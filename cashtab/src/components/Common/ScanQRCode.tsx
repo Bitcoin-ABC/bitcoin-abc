@@ -230,7 +230,8 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
             const mobile = isMobileDevice();
             const hasBarcodeDetector =
                 typeof (window as any).BarcodeDetector === 'function';
-            // Prefer full-frame ROI where possible to maximize info for dense codes
+
+            // Use full-frame ROI for better performance on dense QR codes
             const qrbox = hasBarcodeDetector
                 ? (viewfinderWidth: number, viewfinderHeight: number) => ({
                       width: viewfinderWidth,
@@ -254,50 +255,20 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
                 aspectRatio: ASPECT_RATIO,
             };
 
-            // Prefer a back/rear/environment camera; never use front
-            let cameraParam: any = { facingMode: 'environment' };
-            try {
-                const getCameras = (Html5Qrcode as any).getCameras;
-                if (typeof getCameras === 'function') {
-                    const cameras = await getCameras();
-                    if (Array.isArray(cameras) && cameras.length > 0) {
-                        const backRegex = /back|rear|environment/i;
-                        const back = cameras.find((c: any) =>
-                            backRegex.test(c.label || ''),
-                        );
-                        if (back && back.id) cameraParam = back.id;
-                    }
-                }
-            } catch {
-                // ignore enumeration failures
-            }
+            // Use environment camera directly - no enumeration to avoid delay
+            const cameraParam = { facingMode: 'environment' };
 
-            try {
-                await instance.start(
-                    cameraParam,
-                    qrConfig,
-                    decodedText => {
-                        onScan(decodedText);
-                        setVisible(false);
-                    },
-                    () => {
-                        /* noop */
-                    },
-                );
-            } catch {
-                // fallback: explicit facingMode environment
-                await instance.start(
-                    { facingMode: 'environment' },
-                    qrConfig,
-                    decodedText => {
-                        onScan(decodedText);
-                        setVisible(false);
-                    },
-                    () => {
-                        /* noop */
-                    },
-                );
-            }
+            await instance.start(
+                cameraParam,
+                qrConfig,
+                decodedText => {
+                    onScan(decodedText);
+                    setVisible(false);
+                },
+                () => {
+                    /* noop */
+                },
+            );
 
             // After start, try to detect and initialize zoom support
             try {
@@ -394,11 +365,8 @@ const ScanQRCode: React.FC<ScanQRCodeProps> = ({
             if (vv && typeof vv.addEventListener === 'function') {
                 vv.addEventListener('resize', onResize);
             }
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    scanForQrCode();
-                }, 0);
-            });
+            // Start camera immediately - no delay needed since we removed enumeration
+            scanForQrCode();
             return () => {
                 window.removeEventListener('resize', onResize);
                 if (vv && typeof vv.removeEventListener === 'function') {
