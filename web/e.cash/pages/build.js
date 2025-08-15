@@ -72,6 +72,12 @@ const devLinks = [
                 description: 'Tools for working with eCash addresses',
                 link: 'https://www.npmjs.com/package/ecashaddrjs',
             },
+            {
+                title: 'ecash-agora',
+                description:
+                    'Library for interacting with the eCash Agora token swap protocol',
+                link: 'https://www.npmjs.com/package/ecash-agora',
+            },
         ],
     },
     {
