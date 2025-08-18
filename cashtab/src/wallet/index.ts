@@ -677,19 +677,3 @@ export const getHashes = (wallet: CashtabWallet): string[] => {
     });
     return hashArray;
 };
-
-/**
- * Determine if a wallet has unfinalized txs in its state
- * @param wallet
- */
-export const hasUnfinalizedTxsInHistory = (wallet: CashtabWallet): boolean => {
-    if (!Array.isArray(wallet.state?.parsedTxHistory)) {
-        // If we do not have a valid wallet, we return false
-        // Not expected to ever happen
-        return false;
-    }
-    const unfinalizedTxs = wallet.state.parsedTxHistory.filter(
-        tx => typeof tx.block === 'undefined',
-    );
-    return unfinalizedTxs.length > 0;
-};

@@ -80,7 +80,6 @@ const Home: React.FC = () => {
         apiError,
         cashtabState,
         updateCashtabState,
-        chaintipBlockheight,
     } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets[0];
@@ -216,7 +215,6 @@ const Home: React.FC = () => {
                         cashtabState={cashtabState}
                         updateCashtabState={updateCashtabState}
                         userLocale={userLocale}
-                        chaintipBlockheight={chaintipBlockheight}
                     />
                 ) : (
                     <InlineLoader />

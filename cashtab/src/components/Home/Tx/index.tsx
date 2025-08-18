@@ -123,7 +123,6 @@ interface TxProps {
             | StoredCashtabWallet[]
             | (LegacyCashtabWallet | StoredCashtabWallet)[],
     ) => Promise<boolean>;
-    chaintipBlockheight: number;
     userLocale: string;
 }
 const Tx: React.FC<TxProps> = ({
@@ -132,7 +131,6 @@ const Tx: React.FC<TxProps> = ({
     fiatCurrency,
     cashtabState,
     updateCashtabState,
-    chaintipBlockheight,
     userLocale = 'en-US',
 }) => {
     const { txid, timeFirstSeen, block, parsed } = tx;
@@ -1097,15 +1095,8 @@ const Tx: React.FC<TxProps> = ({
                                 <Timestamp>
                                     {renderedTimestamp}
                                     <TimestampSeperator>|</TimestampSeperator>
-                                    {typeof block !== 'undefined' &&
-                                    block.height <= chaintipBlockheight ? (
-                                        <AvalancheFinalized
-                                            displayed={
-                                                typeof block !== 'undefined' &&
-                                                block.height <=
-                                                    chaintipBlockheight
-                                            }
-                                        />
+                                    {tx.isFinal ? (
+                                        <AvalancheFinalized />
                                     ) : (
                                         <Ellipsis title="Loading">
                                             Finalizing<span>.</span>

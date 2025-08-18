@@ -80,8 +80,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { getHashes } from 'wallet';
 import userEvent from '@testing-library/user-event';
 
-const AVALANCHE_FINALIZED_CHAINTIP = 800000;
-
 describe('<Tx />', () => {
     it('Incoming XEC-only, avalanche finalized', async () => {
         render(
@@ -92,7 +90,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                 </ThemeProvider>
             </MemoryRouter>,
@@ -124,18 +121,19 @@ describe('<Tx />', () => {
         expect(screen.getByText('42.00 XEC')).toBeInTheDocument();
     });
     it('Incoming XEC-only, not yet finalized by Avalanche', async () => {
-        const AVALANCHE_UNFINALIZED_CHAINTIP = 0;
-
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
                     <Tx
-                        tx={{ ...incomingXec.tx, parsed: incomingXec.parsed }}
+                        tx={{
+                            ...incomingXec.tx,
+                            parsed: incomingXec.parsed,
+                            isFinal: false,
+                        }}
                         hashes={getHashes(mockParseTxWallet)}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_UNFINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -178,7 +176,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -224,7 +221,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -256,7 +252,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -292,7 +287,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -333,7 +327,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -380,7 +373,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -435,7 +427,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -491,7 +482,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -546,7 +536,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -599,7 +588,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -652,7 +640,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -709,7 +696,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -762,7 +748,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -816,7 +801,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -876,7 +860,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockLargeTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -949,7 +932,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockLargeTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -995,7 +977,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1041,7 +1022,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1085,7 +1065,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1138,7 +1117,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1197,7 +1175,6 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1254,7 +1231,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1298,7 +1274,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1342,7 +1317,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1389,7 +1363,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1436,7 +1409,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1483,7 +1455,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1527,7 +1498,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1571,7 +1541,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1623,7 +1592,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1667,7 +1635,6 @@ describe('<Tx />', () => {
                                 tokens: mockTxHistorySupportingTokenCache,
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1720,7 +1687,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1776,7 +1742,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1825,7 +1790,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1883,7 +1847,6 @@ describe('<Tx />', () => {
                                 tokens: mockTxHistorySupportingTokenCache,
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1931,7 +1894,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1978,7 +1940,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2032,7 +1993,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2079,7 +2039,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(SlpNftParentFanTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2141,7 +2100,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(SlpNftMint.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2206,7 +2164,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(SlpParentGenesisTxMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2265,7 +2222,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2308,7 +2264,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2347,7 +2302,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2389,7 +2343,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2425,7 +2378,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2461,7 +2413,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2497,7 +2448,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2542,7 +2492,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(agoraAdSetupTxSlpNft.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2600,7 +2549,6 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2659,7 +2607,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(agoraOneshotSaleTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2713,7 +2660,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2766,7 +2712,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(agoraOneshotSaleTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2823,7 +2768,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2876,7 +2820,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(AgoraOneshotCancelTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2930,7 +2873,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -2975,7 +2917,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3032,7 +2973,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3076,7 +3016,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(agoraPartialBuxBuyTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3142,7 +3081,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3200,7 +3138,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(agoraPartialBuxBuyTx.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3269,7 +3206,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3333,7 +3269,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3402,7 +3337,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3457,7 +3391,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3525,7 +3458,6 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3582,7 +3514,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3646,7 +3577,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(thisMock.cache),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3711,7 +3641,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3770,7 +3699,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3821,7 +3749,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3865,7 +3792,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3909,7 +3835,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -3953,7 +3878,6 @@ describe('<Tx />', () => {
                                 tokens: new Map(),
                             },
                         }}
-                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>

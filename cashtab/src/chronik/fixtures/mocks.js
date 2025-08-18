@@ -7333,6 +7333,7 @@ export const incomingXec = {
             hash: '00000000000000000a6da230a41e268bb42ad7f4e9f939b6875c4fb2293bcd6f',
             timestamp: 1652812528,
         },
+        isFinal: true,
     },
     parsed: {
         satoshisSent: 4200,

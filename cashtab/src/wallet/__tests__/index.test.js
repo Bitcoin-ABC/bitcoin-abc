@@ -17,7 +17,6 @@ import {
     undecimalizeTokenAmount,
     removeLeadingZeros,
     getHashes,
-    hasUnfinalizedTxsInHistory,
     sciToDecimal,
     toBigInt,
 } from 'wallet';
@@ -230,15 +229,6 @@ describe('Cashtab wallet methods', () => {
             'a28f8852f868f88e71ec666c632d6f86e978f046',
             '600efb12a6f813eccf13171a8bc62055212d8d6c',
         ]);
-    });
-    describe('Determines if a wallet has unfinalized txs in history', () => {
-        const { expectedReturns } = vectors.hasUnfinalizedTxsInHistory;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, wallet, returned } = expectedReturn;
-            it(`hasUnfinalizedTxsInHistory: ${description}`, () => {
-                expect(hasUnfinalizedTxsInHistory(wallet)).toBe(returned);
-            });
-        });
     });
     describe('Converts nanosatoshis to XEC and XEC to nanosatoshis', () => {
         const { expectedReturns, expectedErrors } = vectors.nanoSatoshisToXec;

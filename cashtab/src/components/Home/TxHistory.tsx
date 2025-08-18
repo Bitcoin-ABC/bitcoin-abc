@@ -27,7 +27,6 @@ interface TxHistoryProps {
             | StoredCashtabWallet[]
             | (LegacyCashtabWallet | StoredCashtabWallet)[],
     ) => Promise<boolean>;
-    chaintipBlockheight: number;
     userLocale: string;
 }
 
@@ -38,7 +37,6 @@ const TxHistory: React.FC<TxHistoryProps> = ({
     fiatCurrency,
     cashtabState,
     updateCashtabState,
-    chaintipBlockheight,
     userLocale = 'en-US',
 }) => {
     return (
@@ -52,7 +50,6 @@ const TxHistory: React.FC<TxHistoryProps> = ({
                     fiatCurrency={fiatCurrency}
                     cashtabState={cashtabState}
                     updateCashtabState={updateCashtabState}
-                    chaintipBlockheight={chaintipBlockheight}
                     userLocale={userLocale}
                 />
             ))}
