@@ -7093,9 +7093,15 @@ void PeerManagerImpl::ProcessMessage(
                 assert(tx != nullptr);
 
                 const TxId &txid = tx->GetId();
-                logVoteUpdate(u, "tx", txid);
+                const auto status{u.getStatus()};
 
-                switch (u.getStatus()) {
+                if (status != avalanche::VoteStatus::Finalized) {
+                    // Because we also want to log the parents txs of this
+                    // finalized tx, we log the finalization later.
+                    logVoteUpdate(u, "tx", txid);
+                }
+
+                switch (status) {
                     case avalanche::VoteStatus::Rejected: {
                         // Remove from the mempool and the finalized tree, as
                         // well as all the children txs. Note that removal from
@@ -7202,7 +7208,7 @@ void PeerManagerImpl::ProcessMessage(
                             }
                         }
 
-                        if (u.getStatus() == avalanche::VoteStatus::Finalized) {
+                        if (status == avalanche::VoteStatus::Finalized) {
                             LOCK2(cs_main, m_mempool.cs);
                             auto it = m_mempool.GetIter(txid);
                             if (!it.has_value()) {
@@ -7225,9 +7231,7 @@ void PeerManagerImpl::ProcessMessage(
                                     finalized_txid);
                                 // Log the parent tx being implicitely finalized
                                 // as well
-                                if (finalized_txid != txid) {
-                                    logVoteUpdate(u, "tx", finalized_txid);
-                                }
+                                logVoteUpdate(u, "tx", finalized_txid);
                             }
 
                             // NO_THREAD_SAFETY_ANALYSIS because
