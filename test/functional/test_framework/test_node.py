@@ -813,6 +813,7 @@ class TestNode:
         extra_args=None,
         expected_msg=None,
         match=ErrorMatch.FULL_TEXT,
+        timeout=None,
         *args,
         **kwargs,
     ):
@@ -834,7 +835,7 @@ class TestNode:
                 self.start(
                     extra_args, stdout=log_stdout, stderr=log_stderr, *args, **kwargs
                 )
-                ret = self.process.wait(timeout=self.rpc_timeout)
+                ret = self.process.wait(timeout=timeout or self.rpc_timeout)
                 self.log.debug(
                     self._node_msg(
                         f"bitcoind exited with status {ret} during initialization"

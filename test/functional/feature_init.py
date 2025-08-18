@@ -122,6 +122,7 @@ class InitStressTest(BitcoinTestFramework):
                 ],
                 expected_msg=err_fragment,
                 match=ErrorMatch.PARTIAL_REGEX,
+                timeout=300,
             )
 
             for target_file in target_files:
