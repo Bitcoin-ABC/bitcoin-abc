@@ -11,6 +11,7 @@ import http.client
 import json
 import logging
 import os
+import platform
 import pprint
 import re
 import shlex
@@ -584,13 +585,21 @@ class TestNode:
     def wait_until_stopped(
         self, *, timeout=BITCOIND_PROC_WAIT_TIMEOUT, expect_error=False, **kwargs
     ):
-        # Whether node shutdown return EXIT_FAILURE or EXIT_SUCCESS
-        expected_ret_code = 1 if expect_error else 0
+        if "expected_ret_code" not in kwargs:
+            # Whether node shutdown return EXIT_FAILURE or EXIT_SUCCESS
+            kwargs["expected_ret_code"] = 1 if expect_error else 0
         wait_until_helper(
-            lambda: self.is_node_stopped(expected_ret_code=expected_ret_code, **kwargs),
+            lambda: self.is_node_stopped(**kwargs),
             timeout=timeout,
             timeout_factor=self.timeout_factor,
         )
+
+    def kill_process(self):
+        self.process.kill()
+        self.wait_until_stopped(
+            expected_ret_code=1 if platform.system() == "Windows" else -9
+        )
+        assert self.is_node_stopped()
 
     @property
     def chain_path(self) -> Path:
