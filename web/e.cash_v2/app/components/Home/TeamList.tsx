@@ -50,7 +50,7 @@ const TeamList: React.FC = () => {
       name: "Antony Zegers",
       title: "CEO Bitcoin ABC",
       image: "/antony.png",
-      bio: "Antony holds a degree as master of applied science and has 12 years of experience in operational research and analysis. He fell down the Bitcoin rabbit hole in 2012. Since 2017, he has been directly involved in crypto, organizing and developing cryptocurrency projects. He is chief executive officer of Bitcoin ABC since 2021.",
+      bio: "Antony holds a master's degree in Electrical Engineering and has 12 years of experience in operational research and analysis. He fell down the Bitcoin rabbit hole in 2012. Since 2017, he has been directly involved in crypto, organizing and developing cryptocurrency projects. He is chief executive officer of Bitcoin ABC since 2020.",
     },
     {
       name: "David Klakurka",
