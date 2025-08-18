@@ -949,6 +949,8 @@ const SendXec: React.FC = () => {
         // Initialize targetOutputs for this tx
         let targetOutputs = [];
 
+        let isPaybutton = false;
+
         // If you have an OP_RETURN output, add it at index 0
         // Aesthetic choice, easier to see when checking on block explorer
 
@@ -967,6 +969,12 @@ const SendXec: React.FC = () => {
             targetOutputs.push(
                 getOpreturnParamTargetOutput(formData.opReturnRaw),
             );
+            const parsed = parseOpReturnRaw(formData.opReturnRaw);
+            console.log(
+                'Sending XEC with OP_RETURN raw:',
+                formData.opReturnRaw,
+            );
+            isPaybutton = parsed.protocol === 'PayButton';
         }
 
         if (isOneToManyXECSend) {
@@ -1026,6 +1034,9 @@ const SendXec: React.FC = () => {
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
+                [], // requiredInputs
+                false, // isBurn
+                isPaybutton,
             );
 
             confirmRawTx(

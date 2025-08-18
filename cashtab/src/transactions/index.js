@@ -15,6 +15,7 @@ import {
     calcTxFee,
     EccDummy,
 } from 'ecash-lib';
+import { ChronikClient } from 'chronik-client';
 import appConfig from 'config/app';
 
 const DUMMY_SK = fromHex(
@@ -49,6 +50,7 @@ export const sendXec = async (
     chaintipBlockheight,
     requiredInputs = [],
     isBurn = false,
+    isPaybutton = false,
 ) => {
     // Add change address to token dust change outputs, if present
     const outputs = [];
@@ -204,6 +206,22 @@ export const sendXec = async (
         // Will throw error on node failing to broadcast tx
         // e.g. 'txn-mempool-conflict (code 18)'
         const response = await chronik.broadcastTx(hex, isBurn);
+
+        if (isPaybutton === true) {
+            try {
+                const paybuttonChronik = new ChronikClient([
+                    'https://xec.paybutton.io',
+                ]);
+                // We don't care about the result, it's a best effort to lower
+                // the tx relay time
+                await paybuttonChronik.broadcastTx(hex, isBurn);
+            } catch (err) {
+                console.log(
+                    'Error broadcasting to paybutton node (ignored): ',
+                    err.message,
+                );
+            }
+        }
 
         return { hex, response };
     }
