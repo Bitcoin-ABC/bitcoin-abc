@@ -75,12 +75,8 @@ const Home: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        fiatPrice,
-        apiError,
-        cashtabState,
-        updateCashtabState,
-    } = ContextValue;
+    const { fiatPrice, apiError, cashtabState, updateCashtabState } =
+        ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets[0];
     const hashes = getHashes(wallet);
@@ -231,14 +227,13 @@ const Home: React.FC = () => {
                             Mint an NFT
                         </SecondaryLink>
                         <Info>
-                            💰 You could also earn more by monetizing your
-                            content at{' '}
+                            Check out{' '}
                             <a
-                                href="https://ecashchat.com/"
+                                href="https://e.cash/use-ecash"
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                eCashChat.
+                                more uses for XEC
                             </a>
                         </Info>
                     </>
