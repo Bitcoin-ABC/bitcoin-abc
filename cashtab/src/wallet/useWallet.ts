@@ -79,11 +79,7 @@ export interface UseWalletReturnType {
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     apiError: boolean;
     updateCashtabState: UpdateCashtabState;
-    processChronikWsMsg: (
-        msg: WsMsgClient,
-        cashtabState: CashtabState,
-        fiatPrice: null | number,
-    ) => Promise<boolean>;
+    processChronikWsMsg: (msg: WsMsgClient) => Promise<boolean>;
     cashtabState: CashtabState;
     /**
      * In some cases, we only want to set CashtabState as setting the state
@@ -120,14 +116,273 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const prevFiatPrice = usePrevious(fiatPrice);
     const prevFiatCurrency = usePrevious(cashtabState.settings.fiatCurrency);
 
-    const update = async (cashtabState: CashtabState) => {
-        if (!cashtabLoaded) {
+    // Refs to always hold current state
+    const currentCashtabStateRef = useRef<CashtabState>(cashtabState);
+    const currentFiatPriceRef = useRef<number | null>(fiatPrice);
+    const currentCashtabLoadedRef = useRef<boolean>(cashtabLoaded);
+
+    // Update refs whenever state changes
+    useEffect(() => {
+        currentCashtabStateRef.current = cashtabState;
+    }, [cashtabState]);
+
+    useEffect(() => {
+        currentFiatPriceRef.current = fiatPrice;
+    }, [fiatPrice]);
+
+    useEffect(() => {
+        currentCashtabLoadedRef.current = cashtabLoaded;
+    }, [cashtabLoaded]);
+
+    // Queue for processing messages in order
+    const messageQueue = useRef<Array<WsMsgClient>>([]);
+    const isProcessing = useRef<boolean>(false);
+
+    // Track transactions to finalize for batch updates
+    const pendingFinalizations = useRef<Set<string>>(new Set());
+    const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Batch update all pending finalizations
+    const batchUpdateFinalizations = async () => {
+        if (pendingFinalizations.current.size === 0) {
+            return;
+        }
+
+        const txidsToFinalize = Array.from(pendingFinalizations.current);
+        pendingFinalizations.current.clear();
+        batchTimeoutRef.current = null;
+
+        const activeWallet = currentCashtabStateRef.current.wallets[0];
+        const updatedHistory = [...activeWallet.state.parsedTxHistory];
+        let hasUpdates = false;
+
+        // Update all txs that we know have finalized but are not yet rendered as such
+        for (const txid of txidsToFinalize) {
+            const txIndex = updatedHistory.findIndex(tx => tx.txid === txid);
+            if (txIndex !== -1) {
+                updatedHistory[txIndex] = {
+                    ...updatedHistory[txIndex],
+                    isFinal: true,
+                };
+                hasUpdates = true;
+            }
+        }
+
+        if (hasUpdates) {
+            const updatedWallet = {
+                ...activeWallet,
+                state: {
+                    ...activeWallet.state,
+                    parsedTxHistory: updatedHistory,
+                },
+            };
+
+            await updateCashtabState('wallets', [
+                updatedWallet,
+                ...currentCashtabStateRef.current.wallets.slice(1),
+            ]);
+        }
+    };
+
+    // Process messages sequentially
+    const processMessageQueue = async () => {
+        if (isProcessing.current) {
+            return;
+        }
+
+        isProcessing.current = true;
+
+        while (messageQueue.current.length > 0) {
+            const msg = messageQueue.current.shift()!;
+
+            try {
+                await processMessage(
+                    msg,
+                    currentCashtabStateRef.current,
+                    currentFiatPriceRef.current,
+                );
+            } catch (error) {
+                console.error('Error processing message:', error);
+            }
+        }
+
+        isProcessing.current = false;
+    };
+
+    // Process individual message
+    const processMessage = async (
+        msg: WsMsgClient,
+        cashtabState: CashtabState,
+        fiatPrice: number | null,
+    ) => {
+        if (!('msgType' in msg)) {
+            // No processing chronik error msgs
+            console.error(`Error from chronik websocket`, msg);
+            return;
+        }
+
+        const { msgType } = msg;
+        const { settings, cashtabCache } = cashtabState;
+
+        switch (msgType) {
+            case 'TX_ADDED_TO_MEMPOOL': {
+                // Update wallet utxo set and history when we see a new tx
+                await update();
+
+                // We parse txs that are added to the mempool for notifications
+                const txid = (msg as MsgTxClient).txid;
+
+                let incomingTxDetails;
+                try {
+                    incomingTxDetails = await chronik.tx(txid);
+                } catch (err) {
+                    // In this case, no notification
+                    return console.error(
+                        `Error in chronik.tx(${txid} while processing an incoming websocket tx`,
+                        err,
+                    );
+                }
+
+                const tokenCacheForParsingThisTx = cashtabCache.tokens;
+                let thisTokenCachedInfo;
+                let tokenId;
+                if (
+                    incomingTxDetails.tokenStatus !==
+                        'TOKEN_STATUS_NON_TOKEN' &&
+                    incomingTxDetails.tokenEntries.length > 0
+                ) {
+                    // If this is a token tx with at least one tokenId that is NOT cached, get token info
+                    // TODO we must get token info for multiple token IDs when we start supporting
+                    // token types other than slpv1
+                    tokenId = incomingTxDetails.tokenEntries[0].tokenId;
+                    thisTokenCachedInfo = cashtabCache.tokens.get(tokenId);
+                    if (typeof thisTokenCachedInfo === 'undefined') {
+                        // If we do not have this token cached
+                        // Note we do not update the cache here because this is handled in update
+                        try {
+                            thisTokenCachedInfo = await getTokenGenesisInfo(
+                                chronik,
+                                tokenId,
+                            );
+                            tokenCacheForParsingThisTx.set(
+                                tokenId,
+                                thisTokenCachedInfo,
+                            );
+                        } catch (err) {
+                            console.error(
+                                `Error fetching chronik.token(${tokenId})`,
+                                err,
+                            );
+
+                            // Do not throw, in this case tokenCacheForParsingThisTx will still not
+                            // include this token info, and the tx will be parsed as if it has 0 decimals
+
+                            // We do not show the (wrong) amount in the notification if this is the case
+                        }
+                    }
+                }
+
+                // parse tx for notification
+                const parsedTx = parseTx(
+                    incomingTxDetails,
+                    getHashes(cashtabState.wallets[0]),
+                );
+
+                // parse tx for notification msg
+                const notificationMsg = getTxNotificationMsg(
+                    parsedTx,
+                    fiatPrice,
+                    locale,
+                    settings.fiatCurrency.toUpperCase(),
+                    thisTokenCachedInfo?.genesisInfo,
+                );
+
+                if (typeof notificationMsg === 'undefined') {
+                    // We do not send a notification for some msgs
+                    return;
+                }
+
+                // eToken txs should have token icon
+                if (parsedTx.parsedTokenEntries.length > 0) {
+                    toast(notificationMsg, {
+                        icon: React.createElement(TokenIconToast, {
+                            type: 'default',
+                            theme: 'default',
+                            size: 32,
+                            tokenId: tokenId as string,
+                        }),
+                    });
+                } else {
+                    // Otherwise normal
+                    toast(notificationMsg, {
+                        icon: CashReceivedNotificationIcon,
+                    });
+                }
+                return true;
+            }
+            case 'BLK_FINALIZED': {
+                // Handle avalanche finalized block
+                // NB we use BLK_FINALIZED msgs to set tipHeight, which is used for determining maturity
+                // of Coinbase utxos (necessary to avoid errors trying to spend staking rewards with
+                // less than 100 confirmations)
+                // Set chaintip height
+                setChaintipBlockheight(msg.blockHeight);
+                return;
+            }
+            case 'TX_FINALIZED': {
+                // Collect transactions to finalize for batch update
+                const txid = (msg as MsgTxClient).txid;
+
+                // Add to pending finalizations
+                pendingFinalizations.current.add(txid);
+
+                // Clear any existing timeout
+                if (batchTimeoutRef.current) {
+                    clearTimeout(batchTimeoutRef.current);
+                }
+
+                // Schedule batch update with a small delay
+                batchTimeoutRef.current = setTimeout(() => {
+                    batchUpdateFinalizations();
+                }, 10); // 10ms delay to catch rapid successive messages
+
+                return;
+            }
+            case 'TX_REMOVED_FROM_MEMPOOL': {
+                // Rare
+                // But, when this happens, we better be sure we are not showing this in the history
+                console.info(`Tx removed from mempool: ${msg.txid}`);
+
+                // Refresh cashtab state
+                await update();
+                return;
+            }
+            default: {
+                // Do nothing for other msg types
+                return;
+            }
+        }
+    };
+
+    // We handle ws msgs by adding them to a queue and processing them sequentially
+    const wsMessageHandler = async (msg: WsMsgClient) => {
+        // Add to queue
+        messageQueue.current.push(msg);
+
+        // Process queue if not already processing
+        if (!isProcessing.current) {
+            await processMessageQueue();
+        }
+    };
+
+    const update = async () => {
+        if (!currentCashtabLoadedRef.current) {
             // Wait for cashtab to get state from storage before updating
             return;
         }
 
         // Get the active wallet
-        const activeWallet = cashtabState.wallets[0];
+        const activeWallet = currentCashtabStateRef.current.wallets[0];
 
         try {
             const chronikUtxos = await getUtxos(chronik, activeWallet);
@@ -138,7 +393,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             const tokens = await getTokenBalances(
                 chronik,
                 slpUtxos,
-                cashtabState.cashtabCache.tokens,
+                currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
             // Fetch and parse tx history
@@ -146,13 +401,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             const parsedTxHistory = await getHistory(
                 chronik,
                 activeWallet,
-                cashtabState.cashtabCache.tokens,
+                currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
             // Update cashtabCache.tokens in state and storage
             updateCashtabState('cashtabCache', {
-                ...cashtabState.cashtabCache,
-                tokens: cashtabState.cashtabCache.tokens,
+                ...currentCashtabStateRef.current.cashtabCache,
+                tokens: currentCashtabStateRef.current.cashtabCache.tokens,
             });
 
             const newState = {
@@ -167,9 +422,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             activeWallet.state = newState;
 
             // Update only the active wallet, wallets[0], in state
-            updateCashtabState('wallets', [
+            await updateCashtabState('wallets', [
                 activeWallet,
-                ...cashtabState.wallets.slice(1),
+                ...currentCashtabStateRef.current.wallets.slice(1),
             ]);
 
             // If everything executed correctly, remove apiError
@@ -620,22 +875,15 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     /**
      * Update websocket subscriptions when active wallet changes
      * Update websocket onMessage handler when fiatPrice changes
-     * @param cashtabState
-     * @param fiatPrice
      */
-    const updateWebsocket = (
-        cashtabState: CashtabState,
-        fiatPrice: number | null,
-    ) => {
+    const updateWebsocket = () => {
         if (ws === null) {
             // Should never happen, we only call this in a useEffect when ws is not null
             return;
         }
         // Set or update the onMessage handler
         // We can only set this when wallet is defined, so we do not set it in loadCashtabState
-        ws.onMessage = msg => {
-            processChronikWsMsg(msg, cashtabState, fiatPrice);
-        };
+        ws.onMessage = wsMessageHandler;
 
         // Check if current subscriptions match current wallet
         const { subs } = ws;
@@ -681,187 +929,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // Update ws in state
         return setWs(ws);
-    };
-
-    // Parse chronik ws message for incoming tx notifications
-    const processChronikWsMsg = async (
-        msg: WsMsgClient,
-        cashtabState: CashtabState,
-        fiatPrice: null | number,
-    ) => {
-        if (!('msgType' in msg)) {
-            // No processing chronik error msgs
-            console.error(`Error from chronik websocket`, msg);
-            return;
-        }
-        // get the message type
-        const { msgType } = msg;
-        // get cashtabState params from param, so you know they are the most recent
-        const { settings, cashtabCache } = cashtabState;
-
-        // Handle incoming websocket messages
-
-        switch (msgType) {
-            case 'TX_ADDED_TO_MEMPOOL': {
-                // Update wallet utxo set and history when we see a new tx
-                update(cashtabState);
-
-                // We parse txs that are added to the mempool for notifications
-                const txid = (msg as MsgTxClient).txid;
-
-                let incomingTxDetails;
-                try {
-                    incomingTxDetails = await chronik.tx(txid);
-                } catch (err) {
-                    // In this case, no notification
-                    return console.error(
-                        `Error in chronik.tx(${txid} while processing an incoming websocket tx`,
-                        err,
-                    );
-                }
-
-                const tokenCacheForParsingThisTx = cashtabCache.tokens;
-                let thisTokenCachedInfo;
-                let tokenId;
-                if (
-                    incomingTxDetails.tokenStatus !==
-                        'TOKEN_STATUS_NON_TOKEN' &&
-                    incomingTxDetails.tokenEntries.length > 0
-                ) {
-                    // If this is a token tx with at least one tokenId that is NOT cached, get token info
-                    // TODO we must get token info for multiple token IDs when we start supporting
-                    // token types other than slpv1
-                    tokenId = incomingTxDetails.tokenEntries[0].tokenId;
-                    thisTokenCachedInfo = cashtabCache.tokens.get(tokenId);
-                    if (typeof thisTokenCachedInfo === 'undefined') {
-                        // If we do not have this token cached
-                        // Note we do not update the cache here because this is handled in update
-                        try {
-                            thisTokenCachedInfo = await getTokenGenesisInfo(
-                                chronik,
-                                tokenId,
-                            );
-                            tokenCacheForParsingThisTx.set(
-                                tokenId,
-                                thisTokenCachedInfo,
-                            );
-                        } catch (err) {
-                            console.error(
-                                `Error fetching chronik.token(${tokenId})`,
-                                err,
-                            );
-
-                            // Do not throw, in this case tokenCacheForParsingThisTx will still not
-                            // include this token info, and the tx will be parsed as if it has 0 decimals
-
-                            // We do not show the (wrong) amount in the notification if this is the case
-                        }
-                    }
-                }
-
-                // parse tx for notification
-                const parsedTx = parseTx(
-                    incomingTxDetails,
-                    getHashes(cashtabState.wallets[0]),
-                );
-
-                // if token tx, get tokenId
-
-                // parse tx for notification msg
-                const notificationMsg = getTxNotificationMsg(
-                    parsedTx,
-                    fiatPrice,
-                    locale,
-                    settings.fiatCurrency.toUpperCase(),
-                    thisTokenCachedInfo?.genesisInfo,
-                );
-
-                if (typeof notificationMsg === 'undefined') {
-                    // We do not send a notification for some msgs
-                    return;
-                }
-
-                // eToken txs should have token icon
-                if (parsedTx.parsedTokenEntries.length > 0) {
-                    toast(notificationMsg, {
-                        icon: React.createElement(TokenIconToast, {
-                            type: 'default',
-                            theme: 'default',
-                            size: 32,
-                            tokenId: tokenId as string,
-                        }),
-                    });
-                } else {
-                    // Otherwise normal
-                    toast(notificationMsg, {
-                        icon: CashReceivedNotificationIcon,
-                    });
-                }
-                return true;
-            }
-            case 'BLK_FINALIZED': {
-                // Handle avalanche finalized block
-
-                // NB we use BLK_FINALIZED msgs to set tipHeight, which is used for determining maturity
-                // of Coinbase utxos (necessary to avoid errors trying to spend staking rewards with
-                // less than 100 confirmations)
-                // Set chaintip height
-                setChaintipBlockheight(msg.blockHeight);
-                return;
-            }
-            case 'TX_FINALIZED': {
-                // Update this specific tx in history to show it is finalized
-                // Avoid updating all the history; after preconcensus we expect txs to finalize individually
-                const txid = (msg as MsgTxClient).txid;
-
-                // Find the transaction in the wallet history and update its isFinal status
-                const activeWallet = cashtabState.wallets[0];
-                const txIndex = activeWallet.state.parsedTxHistory.findIndex(
-                    tx => tx.txid === txid,
-                );
-
-                if (txIndex !== -1) {
-                    // Create a new array with the updated transaction
-                    const updatedHistory = [
-                        ...activeWallet.state.parsedTxHistory,
-                    ];
-                    updatedHistory[txIndex] = {
-                        ...updatedHistory[txIndex],
-                        isFinal: true,
-                    };
-
-                    // Update the wallet state
-                    const updatedWallet = {
-                        ...activeWallet,
-                        state: {
-                            ...activeWallet.state,
-                            parsedTxHistory: updatedHistory,
-                        },
-                    };
-
-                    // Update the wallet in cashtabState
-                    updateCashtabState('wallets', [
-                        updatedWallet,
-                        ...cashtabState.wallets.slice(1),
-                    ]);
-                }
-                return;
-            }
-            case 'TX_REMOVED_FROM_MEMPOOL': {
-                // Rare
-                // But, when this happens, we better be sure we are not showing this in the history
-
-                console.info(`Tx removed from mempool: ${msg.txid}`);
-
-                // Refresh cashtab state
-                update(cashtabState);
-                return;
-            }
-            default: {
-                // Do nothing for other msg types
-                return;
-            }
-        }
     };
 
     // With different currency selections possible, need unique intervals for price checks
@@ -1001,7 +1068,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // 2. You have a valid active wallet in cashtabState
             return;
         }
-        update(cashtabState);
+        update();
     }, [cashtabLoaded, cashtabState.wallets[0]?.name]);
 
     // Clear price API and update to new price API when fiat currency changes
@@ -1103,7 +1170,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // We can call with fiatPrice of null, we will not always have fiatPrice
             return;
         }
-        updateWebsocket(cashtabState, fiatPrice);
+        updateWebsocket();
     }, [cashtabState, fiatPrice, ws, cashtabLoaded]);
 
     return {
@@ -1118,7 +1185,10 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         setLoading,
         apiError,
         updateCashtabState,
-        processChronikWsMsg,
+        processChronikWsMsg: async (msg: WsMsgClient) => {
+            await wsMessageHandler(msg);
+            return true;
+        },
         cashtabState,
         setCashtabState,
     } as UseWalletReturnType;
