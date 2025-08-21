@@ -8,8 +8,8 @@ import { redirects } from "./app/data/redirects";
 
 const scriptSrc =
   process.env.NODE_ENV === "development"
-    ? "'self' 'unsafe-inline' 'unsafe-eval'"
-    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com";
+    ? "'self' 'unsafe-inline' 'unsafe-eval' swapzone.io"
+    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com swapzone.io";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -64,6 +64,7 @@ const nextConfig: NextConfig = {
             object-src 'none';
             base-uri 'self';
             frame-ancestors 'none';
+            frame-src 'self' https://swapspace.co https://swapzone.io;
             form-action 'self';
             upgrade-insecure-requests;
           `
