@@ -1607,7 +1607,7 @@ private:
      */
     uint32_t GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                    const TxId &id) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !m_mempool.cs,
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mempool.cs,
                                  !m_recent_confirmed_transactions_mutex);
 
     /**
@@ -4729,46 +4729,60 @@ PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
 uint32_t
 PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                        const TxId &id) const {
-    // Finalized
-    if (WITH_LOCK(m_mempool.cs,
-                  return m_mempool.isAvalancheFinalizedPreConsensus(id))) {
-        return 0;
-    }
-
     // Recently confirmed
     if (WITH_LOCK(m_recent_confirmed_transactions_mutex,
                   return m_recent_confirmed_transactions.contains(id))) {
         return 0;
     }
 
-    // Accepted in mempool...
-    if (auto tx = m_mempool.get(id)) {
+    CTransactionRef mempool_tx;
+    {
+        LOCK(::cs_main);
+
+        // Invalid tx. m_recent_rejects needs cs_main
+        if (m_recent_rejects.contains(id)) {
+            return 1;
+        }
+
+        LOCK(m_mempool.cs);
+
+        // Finalized
+        if (m_mempool.isAvalancheFinalizedPreConsensus(id)) {
+            return 0;
+        }
+
+        // Accepted in mempool
+        if (auto iter = m_mempool.GetIter(id)) {
+            mempool_tx = (**iter)->GetSharedTx();
+        } else {
+            // Conflicting tx
+            if (m_mempool.withConflicting(
+                    [&id](const TxConflicting &conflicting) {
+                        return conflicting.HaveTx(id);
+                    })) {
+                return 2;
+            }
+
+            // Orphan tx
+            if (m_mempool.withOrphanage([&id](const TxOrphanage &orphanage) {
+                    return orphanage.HaveTx(id);
+                })) {
+                return -2;
+            }
+        }
+    } // release cs_main and mempool.cs locks
+
+    // isPolled() access the vote records, and should be accessed with cs_main
+    // released.
+    // If the tx is in the mempool...
+    if (mempool_tx) {
         // ... and in the polled list
-        if (avalanche.isPolled(tx)) {
+        if (avalanche.isPolled(mempool_tx)) {
             return 0;
         }
 
         // ... but not in the polled list
         return -3;
-    }
-
-    // Conflicting tx
-    if (m_mempool.withConflicting([&id](const TxConflicting &conflicting) {
-            return conflicting.HaveTx(id);
-        })) {
-        return 2;
-    }
-
-    // Invalid tx
-    if (m_recent_rejects.contains(id)) {
-        return 1;
-    }
-
-    // Orphan tx
-    if (m_mempool.withOrphanage([&id](const TxOrphanage &orphanage) {
-            return orphanage.HaveTx(id);
-        })) {
-        return -2;
     }
 
     // Unknown tx
@@ -6686,9 +6700,8 @@ void PeerManagerImpl::ProcessMessage(
             switch (inv.type) {
                 case MSG_TX: {
                     if (m_opts.avalanche_preconsensus) {
-                        vote = WITH_LOCK(cs_main,
-                                         return GetAvalancheVoteForTx(
-                                             *m_avalanche, TxId(inv.hash)));
+                        vote =
+                            GetAvalancheVoteForTx(*m_avalanche, TxId(inv.hash));
                     }
                 } break;
                 case MSG_BLOCK: {
