@@ -153,12 +153,12 @@ export default function MiningContent() {
                   </li>
                   <li>
                     <a
-                      href="https://solo.minemine.online/"
+                      href="https://letsmine.it/coin/xec"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 transition-colors hover:text-blue-300"
                     >
-                      MineMine
+                      letsmineit
                     </a>
                   </li>
                   <li>
@@ -237,12 +237,12 @@ export default function MiningContent() {
                   </li>
                   <li>
                     <a
-                      href="https://pool.minemine.online/"
+                      href="https://letsmine.it/pool/XECPOOL"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 transition-colors hover:text-blue-300"
                     >
-                      MineMine
+                      letsmineit
                     </a>
                   </li>
                   <li>
