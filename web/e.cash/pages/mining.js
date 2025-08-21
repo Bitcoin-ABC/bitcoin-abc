@@ -141,8 +141,8 @@ function Mining() {
                         </ExternalLink>
                     </li>
                     <li>
-                        <ExternalLink href="https://solo.minemine.online/">
-                            MineMine
+                        <ExternalLink href="https://letsmine.it/coin/xec">
+                            letsmineit
                         </ExternalLink>
                     </li>
                     <li>
@@ -185,8 +185,8 @@ function Mining() {
                         </ExternalLink>
                     </li>
                     <li>
-                        <ExternalLink href="https://pool.minemine.online/">
-                            MineMine
+                        <ExternalLink href="https://letsmine.it/pool/XECPOOL">
+                            letsmineit
                         </ExternalLink>
                     </li>
                     <li>
