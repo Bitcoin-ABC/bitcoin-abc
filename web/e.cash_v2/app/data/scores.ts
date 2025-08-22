@@ -67,6 +67,26 @@ export interface InstantExchange {
   attributes: InstantExchangeAttributes;
 }
 
+export interface ServiceAttributes {
+  name: string;
+  description: string;
+  url: string;
+  logo: {
+    data: ExchangeImageData;
+  };
+  featured?: boolean;
+  score?: number;
+  ecash_address_format?: boolean;
+  decimal_place?: number;
+  issues?: string | null;
+  [key: string]: unknown;
+}
+
+export interface Service {
+  id: number;
+  attributes: ServiceAttributes;
+}
+
 // Generic interface for scoring criteria
 export interface ScoringCriteria {
   attribute: string;
@@ -284,15 +304,15 @@ export async function getScoreCardData() {
         )
       ) as InstantExchange[],
       services: sortExchanges(
-        getScores(services as ScoreableItem[], servicesScoringCriteria)
-      ),
+        getScores(services as Service[], servicesScoringCriteria)
+      ) as Service[],
     };
   } catch (error) {
     console.error("Error fetching exchange data:", error);
     return {
       exchanges: [] as Exchange[],
       instantExchanges: [] as InstantExchange[],
-      services: [] as ScoreableItem[],
+      services: [] as Service[],
     };
   }
 }

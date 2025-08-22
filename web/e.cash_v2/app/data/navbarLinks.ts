@@ -31,6 +31,7 @@ export const navbarLinks: NavbarLink[] = [
   { title: "Staking", href: "/staking", category: "getEcash" },
   { title: "Exchanges", href: "/get-ecash", category: "getEcash" },
   { title: "Wallets", href: "/wallets", category: "getEcash" },
+  { title: "Use eCash", href: "/use-ecash", category: "getEcash" },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },
