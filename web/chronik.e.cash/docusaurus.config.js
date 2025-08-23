@@ -110,7 +110,7 @@ const config = {
                         items: [
                             {
                                 label: 'Twitter',
-                                href: 'https://twitter.com/eCashOfficial',
+                                href: 'https://twitter.com/eCash',
                             },
                         ],
                     },
