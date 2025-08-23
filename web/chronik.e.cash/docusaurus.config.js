@@ -109,7 +109,7 @@ const config = {
                         title: 'Community',
                         items: [
                             {
-                                label: 'Twitter',
+                                label: '𝕏 (Twitter)',
                                 href: 'https://twitter.com/eCash',
                             },
                         ],
