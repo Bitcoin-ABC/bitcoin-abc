@@ -31,14 +31,6 @@ export default function Hero() {
         </div>
         <div className="flex items-end gap-4">
           <p>{text}</p>
-          <div className="relative h-4 w-4 shrink-0">
-            <Image
-              src="/arrow-up-right.png"
-              alt="arrow"
-              fill
-              className="object-contain"
-            />
-          </div>
         </div>
       </Link>
     );
@@ -116,15 +108,22 @@ export default function Hero() {
           >
             <div className="absolute right-0 top-[-2px] h-[2px] w-full bg-black" />
 
-            <HeroBox
-              title="NAKAMOTO"
-              href="https://avalance.cash"
-              text="The trusted Bitcoin Proof-of-Work consensus forms the foundation
-              of the eCash protocol."
-            />
+            <div className="_blur border-white/14 hover:bg-white/8 lg:bg-white/2 lg:p-15 group relative w-full border bg-white/5 p-5 last:border-t-0 lg:py-20">
+              <div className="absolute left-[-2px] top-0 h-full w-[1px] bg-black" />
+              <div className="group-hover:text-background relative mb-4 inline-flex items-center justify-center gap-2 overflow-hidden bg-white/10 p-2 py-1 pr-4 text-sm font-light uppercase transition group-hover:bg-white">
+                NAKAMOTO
+                <div className="group-hover:border-t-accentMedium absolute right-0 top-0 h-0 w-0 border-l-[10px] border-t-[10px] border-l-transparent border-t-white transition" />
+              </div>
+              <div className="flex items-end gap-4">
+                <p>
+                  The trusted Bitcoin Proof-of-Work consensus forms the
+                  foundation of the eCash protocol.
+                </p>
+              </div>
+            </div>
             <HeroBox
               title="AVALANCHE"
-              href="https://avalance.cash"
+              href="/#avalanche"
               text="A breakthrough consensus protocol integrated with eCash's core technology."
             />
           </motion.div>

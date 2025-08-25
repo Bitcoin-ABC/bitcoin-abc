@@ -8,7 +8,7 @@ export default function GridPattern({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "absolute inline-flex w-96 flex-wrap content-center items-center justify-start gap-5 opacity-10",
+        "pointer-events-none absolute inline-flex w-96 flex-wrap content-center items-center justify-start gap-5 opacity-10",
         className
       )}
     >

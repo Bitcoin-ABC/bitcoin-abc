@@ -7,6 +7,7 @@ import Image from "next/image";
 import ContentContainer from "../Atoms/ContentContainer";
 import { cn } from "../../utils/cn";
 import { motion } from "framer-motion";
+import Button from "../Atoms/Button";
 
 interface Feature {
   feature: string;
@@ -74,8 +75,8 @@ export default function AvalancheEnhanced() {
   };
 
   return (
-    <ContentContainer className="pb-30 z-30 max-w-[1200px] rounded-[44px] bg-zinc-950 pt-10">
-      <div className="flex flex-col text-center">
+    <ContentContainer className="pb-18 lg:pb-30 z-30 max-w-[1200px] rounded-lg bg-zinc-950 pt-10 lg:rounded-[44px]">
+      <div className="flex flex-col text-center" id="avalanche">
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -152,6 +153,13 @@ export default function AvalancheEnhanced() {
               </motion.div>
             );
           })}
+          <Button
+            href="https://avalanche.cash"
+            className="mt-14"
+            variant="white"
+          >
+            Learn more
+          </Button>
         </div>
       </div>
     </ContentContainer>
