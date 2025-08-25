@@ -7267,8 +7267,29 @@ void PeerManagerImpl::ProcessMessage(
 
                         break;
                     }
-                    case avalanche::VoteStatus::Stale:
+                    case avalanche::VoteStatus::Stale: {
+                        LOCK(cs_main);
+
+                        // If the tx is stale, there is no point keeping it
+                        // around as it will no be mined. Let's remove it but
+                        // also forget we got it so it can be eventually
+                        // re-downloaded.
+                        {
+                            LOCK(m_mempool.cs);
+                            m_mempool.removeRecursive(
+                                *tx, MemPoolRemovalReason::AVALANCHE);
+
+                            m_mempool.withConflicting(
+                                [&txid](TxConflicting &conflicting) {
+                                    conflicting.EraseTx(txid);
+                                });
+                        }
+
+                        // Make sure we can request this tx again
+                        m_txrequest.ForgetInvId(txid);
+
                         break;
+                    }
                 }
             }
         }

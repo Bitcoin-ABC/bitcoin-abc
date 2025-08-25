@@ -22,8 +22,11 @@ from test_framework.messages import (
     MSG_TX,
     AvalancheTxVoteError,
     AvalancheVote,
+    CInv,
     CTransaction,
     FromHex,
+    msg_inv,
+    msg_tx,
 )
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
@@ -51,6 +54,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                "-avastalevotethreshold=256",
             ]
         ]
 
@@ -610,6 +614,52 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 expect_disconnect=False,
                 reject_reason="finalized-tx-conflict",
             )
+
+        self.log.info("Check the node drops staled transactions")
+
+        tip = self.generate(wallet, 1)[0]
+        assert_equal(node.getrawmempool(), [])
+
+        self.wait_until(lambda: has_finalized_block(tip))
+
+        stalled_tx = wallet.send_self_transfer(from_node=node)
+        stalled_txid = stalled_tx["txid"]
+
+        def stale_txid(txid):
+            with node.wait_for_debug_log(
+                [f"Avalanche stalled tx {txid}".encode()],
+                chatty_callable=lambda: can_find_inv_in_poll(
+                    quorum,
+                    int(txid, 16),
+                    response=AvalancheTxVoteError.UNKNOWN,
+                    other_response=AvalancheTxVoteError.UNKNOWN,
+                ),
+            ):
+                pass
+
+        stale_txid(stalled_txid)
+        assert stalled_txid not in node.getrawmempool()
+
+        self.log.info("Check the node can re-download a stalled transaction")
+
+        announcing_peer = node.add_p2p_connection(P2PDataStore())
+        announcing_peer.send_message(
+            msg_inv(
+                [
+                    CInv(MSG_TX, int(stalled_txid, 16)),
+                ]
+            )
+        )
+        announcing_peer.sync_with_ping()
+        announcing_peer.wait_for_getdata([int(stalled_txid, 16)])
+        announcing_peer.send_and_ping(
+            msg_tx(FromHex(CTransaction(), stalled_tx["hex"]))
+        )
+
+        self.wait_until(lambda: stalled_txid in node.getrawmempool())
+
+        # It will be polled again and can now be finalized
+        self.wait_until(lambda: has_finalized_tx(stalled_txid))
 
 
 if __name__ == "__main__":
