@@ -7,24 +7,30 @@ import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import PlusHeader from "../Atoms/PlusHeader";
 import { motion } from "framer-motion";
+import Button from "../Atoms/Button";
 
 export default function WhatWeDo() {
   type CardProps = {
     text: string;
     image: string;
+    href: string;
+    buttonText: string;
   };
-  const Card = ({ text, image }: CardProps) => {
+  const Card = ({ text, image, href, buttonText }: CardProps) => {
     return (
-      <div className="flex w-full items-center self-stretch overflow-hidden rounded-lg border border-white/10 lg:flex-col">
-        <div className="to-background from-background w-1/3 bg-gradient-to-br via-[#101026] p-4 lg:w-full lg:p-10">
-          <div className="relative h-[80px] w-full lg:h-[160px]">
+      <div className="relative flex w-full self-stretch overflow-hidden rounded-lg border border-white/10 lg:flex-col">
+        <div className="to-background from-background relative flex w-1/3 items-center self-stretch bg-gradient-to-br via-[#101026] p-4 lg:w-full lg:p-10">
+          <div className="relative h-[100px] w-full lg:h-[160px]">
             <Image src={image} alt={image} fill className="object-contain" />
           </div>
         </div>
         <div className="border-t-white/14 w-2/3 p-6 lg:w-full lg:border-t">
-          <div className="text-lg font-bold tracking-tight text-white lg:text-xl">
+          <div className="mb-4 text-lg font-bold tracking-tight text-white lg:mb-6 lg:text-xl">
             {text}
           </div>
+          <Button href={href} variant="outline">
+            {buttonText}
+          </Button>
         </div>
       </div>
     );
@@ -44,7 +50,7 @@ export default function WhatWeDo() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
         viewport={{ once: true, amount: 0.5 }}
-        className="relative z-10 flex w-full flex-col gap-10 py-14 lg:flex-row lg:items-center lg:justify-between"
+        className="relative z-10 flex w-full flex-col gap-10 py-14 lg:flex-row lg:items-start lg:justify-between"
       >
         <div className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
           <PlusHeader text="What we do" />
@@ -62,10 +68,14 @@ export default function WhatWeDo() {
           <Card
             text="The Road to 1 Billion Daily Transactions"
             image="/how.png"
+            href="/roadmap"
+            buttonText="Our Vision"
           />
           <Card
             text="With The Internet's Native Currency"
             image="/vision.png"
+            href="/tech"
+            buttonText="Our Tech"
           />
         </div>
       </motion.div>
