@@ -66,7 +66,7 @@ export default function Developers() {
   };
 
   return (
-    <div className="py-30 relative m-auto mt-[-160px] w-full max-w-[2000px] pt-60">
+    <div className="py-30 lg:pb-30 relative m-auto mt-[-160px] w-full max-w-[2000px] pb-20 pt-60">
       <div className="from-background absolute top-0 h-[100px] w-full bg-gradient-to-b to-transparent" />
       <div className="m-auto mb-10 flex w-full select-none items-center overflow-hidden lg:mb-20">
         <div className="srcoll-animation flex items-center gap-10">
@@ -83,7 +83,7 @@ export default function Developers() {
           <div className="absolute right-[-15px] top-[-5%] hidden h-[110%] w-[30px] flex-col items-center border-r border-white/10 lg:flex">
             <Lines />
           </div>
-          <div className="flex w-full flex-col items-center lg:flex-row">
+          <div className="flex w-full flex-col items-center overflow-hidden lg:flex-row">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
