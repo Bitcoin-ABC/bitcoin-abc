@@ -222,46 +222,6 @@ h2 {
   transform-style: preserve-3d;
 }
 
-.animate-path {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: drawLine 2s ease-in-out forwards;
-}
-
-.fade-up {
-  opacity: 0;
-  transform: translateY(3px);
-  animation: fadeUp 1s ease-in-out forwards;
-  animation-delay: 1s;
-}
-
-@keyframes drawLine {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in-up {
-  animation: fadeInUp 1000ms ease-in-out forwards;
-}
-
 @media (pointer: fine) {
   .scrollx-container::-webkit-scrollbar {
     height: 4px;

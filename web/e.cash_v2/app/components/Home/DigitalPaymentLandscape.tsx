@@ -10,15 +10,15 @@ export default function DigitalPaymentLandscape() {
   const Chart = () => {
     return (
       <div className="custom-skew relative flex aspect-[120/70] w-full">
-        <div className="font-fira-code fade-up mr-2 flex h-full shrink-0 flex-col justify-between pb-[14%] pt-4 text-[9px] font-light leading-none tracking-wider lg:text-xs">
+        <div className="font-fira-code mr-2 flex h-full shrink-0 flex-col justify-between pb-[14%] pt-4 text-[9px] font-light leading-none tracking-wider lg:text-xs">
           <label>3.0</label>
           <label>2.0</label>
           <label>1.0</label>
         </div>
-        <div className="fade-up font-fira-code absolute left-[-5px] top-1/2 rotate-[-90deg] text-[8px] font-light uppercase leading-none tracking-widest lg:text-[9px]">
+        <div className="font-fira-code absolute left-[-5px] top-1/2 rotate-[-90deg] text-[8px] font-light uppercase leading-none tracking-widest lg:text-[9px]">
           TRANSACTIONS (BN)
         </div>
-        <div className="font-fira-code fade-up absolute bottom-[-20px] right-0 flex w-[calc(100%-44px)] items-center justify-between text-[9px] font-light leading-none tracking-wider lg:bottom-[-30px] lg:text-xs">
+        <div className="font-fira-code absolute bottom-[-20px] right-0 flex w-[calc(100%-44px)] items-center justify-between text-[9px] font-light leading-none tracking-wider lg:bottom-[-30px] lg:text-xs">
           <label>2018</label>
           <label>2023</label>
           <label>2028</label>
@@ -106,10 +106,6 @@ export default function DigitalPaymentLandscape() {
               strokeWidth="0.2"
               strokeDasharray="4 3"
               fill="none"
-              className="fade-up"
-              style={{
-                animationDelay: "0.7s",
-              }}
             />
 
             <path
@@ -118,7 +114,6 @@ export default function DigitalPaymentLandscape() {
               fill="none"
               strokeWidth="1"
               filter="url(#dropShadow)"
-              className="animate-path"
             />
 
             <path
@@ -127,29 +122,17 @@ export default function DigitalPaymentLandscape() {
               fill="none"
               strokeWidth="0.75"
               filter="url(#dropShadow)"
-              className="animate-path"
-              style={{
-                animationDelay: "0.8s",
-              }}
             />
 
             <path
               d="M 0 0 L 0 100"
               stroke="url(#fadeYAxis)"
               strokeWidth="0.4"
-              className="animate-path"
-              style={{
-                animationDelay: "0.3s",
-              }}
             />
             <path
               d="M 0 100 L 100 100"
               stroke="url(#fadeXAxis)"
-              strokeWidth="0.5"
-              className="animate-path"
-              style={{
-                animationDelay: "0.4s",
-              }}
+              strokeWidth="1"
             />
 
             <ellipse
@@ -159,10 +142,6 @@ export default function DigitalPaymentLandscape() {
               ry="4.7"
               fill="url(#circleGradient)"
               filter="url(#dropShadow)"
-              className="fade-up"
-              style={{
-                animationDelay: "0.4s",
-              }}
             />
           </svg>
           <svg
@@ -174,10 +153,8 @@ export default function DigitalPaymentLandscape() {
               width: "100%",
               height: "100%",
               pointerEvents: "none",
-              animationDelay: "1s",
             }}
             preserveAspectRatio="xMidYMid meet"
-            className="fade-up"
           >
             <image href="/today.png" x="61" y="22" width="20" height="20" />
           </svg>
@@ -186,7 +163,7 @@ export default function DigitalPaymentLandscape() {
     );
   };
   return (
-    <ContentContainer className="my-20 mb-0 px-0 lg:px-4">
+    <ContentContainer className="my-20 mb-0 mt-10 px-0 lg:mt-20 lg:px-4">
       <div className="custom-box from-white/1 to-white/1 py-15 lg:py-22 flex flex-col items-center rounded-lg border border-white/10 bg-gradient-to-br via-[#15172A] px-6 lg:flex-row lg:gap-6 lg:px-20 lg:pb-20 lg:pr-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -211,14 +188,19 @@ export default function DigitalPaymentLandscape() {
           viewport={{ once: true, amount: 0.7 }}
           className="perspective-container text-secondaryText relative order-1 flex w-full items-center gap-4 pb-10 lg:order-2 lg:w-1/2 lg:justify-end lg:pb-12"
         >
-          <div className="font-fira-code fade-up absolute left-1/2 top-[-10px] ml-5 w-full -translate-x-1/2 text-center text-[8px] font-light uppercase leading-none tracking-widest lg:top-0 lg:w-[calc(100%-34px)] lg:text-xs">
+          <div className="font-fira-code absolute left-1/2 top-[-10px] ml-5 w-full -translate-x-1/2 text-center text-[8px] font-light uppercase leading-none tracking-widest lg:top-0 lg:w-[calc(100%-34px)] lg:text-xs">
             Number of non-cash payments
           </div>
           <Chart />
         </motion.div>
-        <div className="font-fira-code text-secondaryText bottom-[30px] right-[30px] order-2 mb-10 text-[8px] lg:absolute lg:mb-0 lg:text-[10px]">
+        <a
+          href="https://www.capgemini.com/wp-content/uploads/2024/09/WPR_2025_web.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-fira-code text-secondaryText hover:text-accentLight bottom-[30px] right-[30px] order-2 mb-10 text-[8px] lg:absolute lg:mb-0 lg:text-[10px]"
+        >
           SOURCE: CAPGEMINI RESEARCH INSTITUTE
-        </div>
+        </a>
       </div>
     </ContentContainer>
   );
