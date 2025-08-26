@@ -1,8 +1,7 @@
-# Bitcoin ABC 0.31.10 Release Notes
+# Bitcoin ABC 0.31.11 Release Notes
 
-Bitcoin ABC version 0.31.10 is now available from:
+Bitcoin ABC version 0.31.11 is now available from:
 
-  <https://download.bitcoinabc.org/0.31.10/>
+  <https://download.bitcoinabc.org/0.31.11/>
 
-This release contains several minor bugfixes and performance improvements to the
-assumeutxo feature.
+This is a maintenance release with no user-visible change.
