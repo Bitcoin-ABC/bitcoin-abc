@@ -54,9 +54,9 @@ fi
 cd - > /dev/null
 echo "✅ ecash-lib-wasm complete"
 
+build_module "$REPO_ROOT/modules/chronik-client" "chronik-client"
 build_module "$REPO_ROOT/modules/ecash-lib" "ecash-lib"
 build_module "$REPO_ROOT/modules/ecash-agora" "ecash-agora"
-build_module "$REPO_ROOT/modules/chronik-client" "chronik-client"
 build_module "$REPO_ROOT/modules/mock-chronik-client" "mock-chronik-client"
 
 # Install Cashtab dependencies
