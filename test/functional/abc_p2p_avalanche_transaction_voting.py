@@ -91,6 +91,11 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids],
         )
 
+        # Now disconnect the poll_node. It's not part of the quorum and will be
+        # polled but never respond which could cause requests timeouts.
+        poll_node.peer_disconnect()
+        poll_node.wait_for_disconnect()
+
         self.log.info("Check the votes on valid mempool transactions")
 
         def get_quorum():
@@ -101,6 +106,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         quorum = get_quorum()
         assert node.getavalancheinfo()["ready_to_poll"]
 
+        poll_node = quorum[0]
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
             poll_node,
@@ -639,6 +645,15 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         stale_txid(stalled_txid)
         assert stalled_txid not in node.getrawmempool()
+
+        # Exhaust the inflight polls
+        while can_find_inv_in_poll(
+            quorum,
+            int(stalled_txid, 16),
+            response=AvalancheTxVoteError.UNKNOWN,
+            other_response=AvalancheTxVoteError.UNKNOWN,
+        ):
+            pass
 
         self.log.info("Check the node can re-download a stalled transaction")
 
