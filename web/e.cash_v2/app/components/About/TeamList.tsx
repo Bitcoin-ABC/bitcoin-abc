@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
@@ -14,84 +14,27 @@ import { team } from "@/app/data/team";
 // No props needed
 const TeamList: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Scroll handler for arrows
-  const scrollByCard = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const card = el.querySelector(".team-card") as HTMLElement;
-    if (!card) return;
-    const cardWidth = card.offsetWidth + 24; // 24px = gap-6
-    el.scrollBy({
-      left: direction === "left" ? -cardWidth : cardWidth,
-      behavior: "smooth",
-    });
-  };
 
   return (
     <section>
-      <ContentContainer className="border-t-accentMedium/10 pt-15 mt-20 max-w-[1400px] border-t">
-        <div className="flex w-full flex-col p-8 lg:p-14">
-          <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
-              <PlusHeader text="Meet the team" />
-              <h2>Core members of the eCash team</h2>
-            </div>
-            <div className="flex flex-col items-end justify-between gap-4 self-stretch lg:mt-0">
-              <div className="hidden items-center gap-4 lg:flex">
-                <span className="text-lg font-semibold text-white">
-                  Interested in contributing?
-                </span>
-                <Button variant="ghost" href="/build">
-                  Start building
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="cursor-pointer select-none rounded p-4 transition-all hover:bg-white/5"
-                  onClick={() => scrollByCard("left")}
-                >
-                  <div className="relative h-5 w-5 rotate-180 cursor-pointer">
-                    <Image
-                      src="/chevron.png"
-                      alt="previous"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-                <div
-                  className="cursor-pointer rounded p-4 transition-all hover:bg-white/5"
-                  onClick={() => scrollByCard("right")}
-                >
-                  <div className="relative h-5 w-5">
-                    <Image
-                      src="/chevron.png"
-                      alt="previous"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+      <ContentContainer className="mb-30 mt-10">
+        <div className="mb-10 flex w-full flex-col justify-between lg:mb-20 lg:flex-row">
+          <div className="flex flex-col items-start gap-6 lg:w-1/2 lg:max-w-[420px]">
+            <PlusHeader text="Our team" />
+            <h2>Meet our team with over 30 years combined experience</h2>
           </div>
+          <p className="mt-6 max-w-[430px] lg:mt-0 lg:w-1/2 lg:pt-12">
+            Our veteran team brings over a decade of blockchain experience,
+            delivering professional-grade tools and documentation that make
+            building payment solutions faster and more intuitive than ever
+            before.
+          </p>
         </div>
-      </ContentContainer>
-      <div className="w-full">
-        <div
-          className="scrollx-fade flex gap-6 overflow-x-auto"
-          style={{
-            paddingLeft: "max(2rem, calc((100vw - 1400px) / 2 + 2rem))",
-            paddingRight: "max(2rem, calc((100vw - 1400px) / 2 + 2rem))",
-          }}
-          ref={scrollRef}
-        >
+        <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {team.map((member, idx) => (
             <div
               key={idx}
-              className="team-card custom-box w-68 bg-white/2 hover:bg-white/4 group relative flex min-h-[350px] flex-shrink-0 cursor-pointer flex-col justify-between rounded-2xl p-6 transition-all"
+              className="team-card custom-box bg-white/2 hover:bg-white/4 group relative flex min-h-[350px] w-full cursor-pointer flex-col justify-between rounded-2xl p-6 transition-all"
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
             >
               <div className="text-secondaryText text-xs font-light uppercase tracking-wide">
@@ -151,7 +94,13 @@ const TeamList: React.FC = () => {
             </div>
           ))}
         </div>
-      </div>
+        <div className="mt-10 w-full flex-col items-center justify-center text-center">
+          <h4 className="mb-6">Interested in joining our team?</h4>
+          <Button href="/careers" variant="white">
+            View Careers
+          </Button>
+        </div>
+      </ContentContainer>
     </section>
   );
 };
