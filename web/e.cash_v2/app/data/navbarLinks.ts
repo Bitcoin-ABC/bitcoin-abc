@@ -23,6 +23,7 @@ export const navbarLinks: NavbarLink[] = [
   // More
   { title: "Blog", href: "/blog", category: "more" },
   { title: "Roadmap", href: "/roadmap", category: "more" },
+  { title: "Careers", href: "/careers", category: "more" },
   { title: "Explorer", href: "https://explorer.e.cash/", category: "more" },
   { title: "Brand", href: "/brand", category: "more" },
 
