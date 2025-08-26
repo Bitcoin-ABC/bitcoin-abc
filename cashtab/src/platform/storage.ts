@@ -109,14 +109,41 @@ export const initializeStorage = async (): Promise<{
         console.info(
             `Storage initialized successfully on ${platformInfo.platform}`,
         );
-        console.info(`Storage config:`, {
-            env: platformInfo.platform,
-            persistent: config.isPersistent,
-            description: config.description,
-        });
+        console.info(
+            `Storage config:`,
+            JSON.stringify(
+                {
+                    env: platformInfo.platform,
+                    persistent: config.isPersistent,
+                    description: config.description,
+                },
+                null,
+                2,
+            ),
+        );
 
         if (storageInfo) {
-            console.info(`Storage info:`, storageInfo);
+            console.info(
+                `Storage info:`,
+                JSON.stringify(
+                    {
+                        quota:
+                            storageInfo.quota === -1
+                                ? 'Unknown'
+                                : `${storageInfo.quota} bytes`,
+                        usage:
+                            storageInfo.usage === -1
+                                ? 'Unknown'
+                                : `${storageInfo.usage} bytes`,
+                        available:
+                            storageInfo.available === -1
+                                ? 'Unknown'
+                                : `${storageInfo.available} bytes`,
+                    },
+                    null,
+                    2,
+                ),
+            );
         }
 
         return {
