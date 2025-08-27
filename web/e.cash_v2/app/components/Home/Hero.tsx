@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +11,29 @@ import GridPattern from "../Atoms/GridPattern";
 import Spline from "@splinetool/react-spline";
 import Button from "../Atoms/Button";
 import { motion } from "motion/react";
+
+// Hook to detect if screen width is 1024px or larger (desktop breakpoint)
+// Needed to conditionally render the correct Spline scene
+function useLargeScreen() {
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) =>
+      setIsLargeScreen(!!e.matches);
+    onChange(mql);
+
+    // Handle both modern and legacy browser APIs
+    if (mql.addEventListener) {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    } else {
+      // Fallback for older browsers
+      mql.addListener(onChange);
+      return () => mql.removeListener(onChange);
+    }
+  }, []);
+  return isLargeScreen;
+}
 
 export default function Hero() {
   type HeroBoxProps = {
@@ -37,6 +60,7 @@ export default function Hero() {
   };
 
   const [loading, setLoading] = useState(true);
+  const isLargeScreen = useLargeScreen();
 
   return (
     <div className="relative w-full py-10 pt-20 lg:pt-12">
@@ -67,22 +91,23 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
               className="mask-gradient-fade-to-left bottom-20.25 absolute hidden h-[1px] w-full bg-black lg:block"
             />
+            {!isLargeScreen && (
+              <div className="relative z-20 m-auto mb-6 h-[150px] w-full max-w-[150px] lg:hidden">
+                {loading && (
+                  <Image
+                    src="/spline-preview.png"
+                    alt="eCash"
+                    fill
+                    className="object-contain"
+                  />
+                )}
 
-            <div className="relative z-20 m-auto mb-6 h-[150px] w-full max-w-[150px] lg:hidden">
-              {loading && (
-                <Image
-                  src="/spline-preview.png"
-                  alt="eCash"
-                  fill
-                  className="object-contain"
+                <Spline
+                  scene="/scene-mobile.splinecode"
+                  onLoad={() => setLoading(false)}
                 />
-              )}
-
-              <Spline
-                scene="/scene-mobile.splinecode"
-                onLoad={() => setLoading(false)}
-              />
-            </div>
+              </div>
+            )}
             <motion.div
               className="relative z-50 m-auto text-center lg:m-0 lg:text-left"
               initial={{ opacity: 0, y: 30 }}
@@ -145,31 +170,32 @@ export default function Hero() {
           className="object-contain"
         />
       </div>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
-        className="absolute left-1/2 top-1/2 z-10 hidden h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 lg:block"
-      >
-        <div className="absolute bottom-[-100px] left-1/2 z-0 h-[125px] w-[312px] -translate-x-1/2">
-          <Image
-            src="/shadow.png"
-            alt="eCash"
-            fill
-            className="object-contain"
-          />
-        </div>
-        {loading && (
-          <Image
-            src="/spline-preview.png"
-            alt="eCash"
-            fill
-            className="object-contain"
-          />
-        )}
-
-        <Spline scene="/scene.splinecode" onLoad={() => setLoading(false)} />
-      </motion.div>
+      {isLargeScreen && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+          className="absolute left-1/2 top-1/2 z-10 hidden h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 lg:block"
+        >
+          <div className="absolute bottom-[-100px] left-1/2 z-0 h-[125px] w-[312px] -translate-x-1/2">
+            <Image
+              src="/shadow.png"
+              alt="eCash"
+              fill
+              className="object-contain"
+            />
+          </div>
+          {loading && (
+            <Image
+              src="/spline-preview.png"
+              alt="eCash"
+              fill
+              className="object-contain"
+            />
+          )}
+          <Spline scene="/scene.splinecode" onLoad={() => setLoading(false)} />
+        </motion.div>
+      )}
     </div>
   );
 }
