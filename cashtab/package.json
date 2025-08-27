@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.34.2",
+    "version": "3.34.3",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -33,7 +33,6 @@
         "b58-ts": "file:../modules/b58-ts",
         "bignumber.js": "^9.1.2",
         "bip39": "^3.0.2",
-        "bip66": "^1.1.5",
         "chronik-client": "file:../modules/chronik-client",
         "ecash-agora": "file:../modules/ecash-agora",
         "ecash-lib": "file:../modules/ecash-lib",
