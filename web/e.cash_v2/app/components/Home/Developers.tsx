@@ -50,6 +50,7 @@ export default function Developers() {
             alt="eCash Developers"
             fill
             className="object-contain"
+            sizes="(max-width: 1024px) 12px, 18px"
           />
         </div>
       </Link>
@@ -124,6 +125,7 @@ export default function Developers() {
                   alt="eCash"
                   fill
                   className="object-contain"
+                  sizes="25vw"
                 />
               </div>
             </div>
@@ -151,6 +153,7 @@ export default function Developers() {
                   alt="eCash Telegram"
                   fill
                   className="object-contain"
+                  sizes="(max-width: 1024px) 50px, 60px"
                 />
               </div>
               <span className="max-w-[200px] text-sm uppercase tracking-wide lg:text-center">

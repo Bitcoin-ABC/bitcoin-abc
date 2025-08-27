@@ -55,7 +55,12 @@ export default function TechFeatures() {
               {/* Icon Container */}
               <div className="bg-white/4 mb-6 flex items-center justify-center rounded-full border-t border-t-white/10 p-6 shadow-lg lg:p-8">
                 <div className="relative h-8 w-8 lg:h-10 lg:w-10">
-                  <Image src={feature.icon} alt={feature.title} fill />
+                  <Image
+                    src={feature.icon}
+                    alt={feature.title}
+                    fill
+                    sizes="(max-width: 1024px) 32px, 40px"
+                  />
                 </div>
               </div>
 

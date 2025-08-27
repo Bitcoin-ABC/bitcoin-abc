@@ -79,6 +79,7 @@ export default function AboutSection() {
                   alt="Milton Friedman"
                   fill
                   className="object-contain"
+                  sizes="48px"
                 />
               </div>
               <div className="flex flex-col items-start justify-start">

@@ -19,7 +19,12 @@ export default function BrandHero() {
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
         className="left-1/2 top-0 hidden aspect-[700/677] w-[90%] max-w-[400px] -translate-x-1/2 lg:absolute lg:block lg:w-[580px] lg:max-w-none lg:translate-x-[30px]"
       >
-        <Image src="/logo-diagram.svg" alt="eCash Logo" fill />
+        <Image
+          src="/logo-diagram.svg"
+          alt="eCash Logo"
+          fill
+          sizes="(max-width: 1024px) 0vw, 580px"
+        />
       </motion.div>
       <ContentContainer>
         <motion.div

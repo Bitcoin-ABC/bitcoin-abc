@@ -256,6 +256,7 @@ export default function RoadmapGrid() {
                       src={improvement.icon}
                       alt={improvement.title}
                       fill
+                      sizes="(max-width: 1024px) 24px, 40px"
                     />
                   </div>
                 </div>

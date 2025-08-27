@@ -99,6 +99,7 @@ export default function Navbar() {
                 alt="eCash"
                 fill
                 className="object-contain"
+                sizes="(max-width: 1024px) 96px, 116px"
               />
             </Link>
             {/* Main links - hidden on mobile */}
@@ -232,7 +233,7 @@ export default function Navbar() {
                         alt="arrow"
                         width={16}
                         height={16}
-                        className="ml-1"
+                        className="ml-1 h-4 w-4"
                       />
                     </div>
                   )}
@@ -429,6 +430,7 @@ export default function Navbar() {
                         alt={link.title}
                         fill
                         className="h-full w-full object-contain"
+                        sizes="20px"
                       />
                     </div>
                   </Link>

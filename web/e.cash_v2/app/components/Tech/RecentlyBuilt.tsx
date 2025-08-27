@@ -34,6 +34,7 @@ const ProjectTile: React.FC<ProjectTileProps> = ({ project }) => (
           alt={project.name}
           fill
           className="object-contain"
+          sizes="(max-width: 1024px) 25vw, 30vw"
         />
       </div>
     </div>

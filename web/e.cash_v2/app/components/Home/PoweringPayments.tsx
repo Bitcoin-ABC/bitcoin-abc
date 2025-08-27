@@ -97,6 +97,7 @@ export default function PoweringPayments() {
             alt={name}
             fill
             className="object-contain object-bottom"
+            sizes="60vw"
           />
         </div>
       </motion.div>
@@ -205,6 +206,7 @@ export default function PoweringPayments() {
             alt="Powering Internet-Scale Payments"
             fill
             className="object-contain"
+            sizes="(max-width: 1024px) 100vw, 550px"
           />
 
           {/* Overlay image with smooth transitions */}
@@ -223,6 +225,7 @@ export default function PoweringPayments() {
                   alt="Powering Internet-Scale Payments"
                   fill
                   className="hidden object-contain lg:inline-block"
+                  sizes="(max-width: 1024px) 0vw, 550px"
                 />
               </motion.div>
             )}
@@ -261,6 +264,7 @@ export default function PoweringPayments() {
                 alt={feature.name}
                 fill
                 className="object-contain"
+                sizes="50px"
               />
             </div>
             <span
@@ -280,12 +284,14 @@ export default function PoweringPayments() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative h-full w-full"
                   >
                     <Image
                       src="/arrow-up.png"
                       alt="arrow"
                       fill
                       className="object-contain"
+                      sizes="15px"
                     />
                   </motion.div>
                 )}

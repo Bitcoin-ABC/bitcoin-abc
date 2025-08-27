@@ -41,6 +41,7 @@ export default function TrustedBy() {
                 className="object-contain"
                 alt={item}
                 priority
+                sizes="(max-width: 1024px) 100px, 130px"
               />
             </div>
           ))}

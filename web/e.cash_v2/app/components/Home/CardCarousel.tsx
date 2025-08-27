@@ -25,7 +25,13 @@ export default function CardCarousel() {
         className="bg-white/3 hover:from-white/2 flex w-full min-w-[250px] flex-col items-center self-stretch overflow-hidden rounded-lg border-t-2 border-t-white/10 p-8 transition-all hover:bg-gradient-to-tr hover:to-[#21173B]"
       >
         <div className="relative mb-10 aspect-[4/3] w-full">
-          <Image src={image} alt={image} fill className="object-contain" />
+          <Image
+            src={image}
+            alt={image}
+            fill
+            className="object-contain"
+            sizes="(max-width: 1024px) 100vw, 33vw"
+          />
         </div>
 
         <div className="flex w-full items-center justify-between">
@@ -38,6 +44,7 @@ export default function CardCarousel() {
               alt="arrow"
               fill
               className="object-contain"
+              sizes="20px"
             />
           </div>
         </div>

@@ -33,6 +33,7 @@ export default function PlusHeader({ text, inverse = false }: PlusHeaderProps) {
               "object-contain",
               inverse && "brightness-0 invert filter"
             )}
+            sizes="12px"
           />
         </div>
       </div>

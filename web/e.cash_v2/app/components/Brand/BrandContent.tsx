@@ -140,6 +140,7 @@ export default function BrandContent() {
                         alt={`eCash ${logo.row_name} ${variation}`}
                         fill
                         className="object-contain"
+                        sizes="128px"
                       />
                     </div>
                     <div className="mt-4 text-center">

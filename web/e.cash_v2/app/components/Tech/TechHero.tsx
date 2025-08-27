@@ -19,7 +19,12 @@ export default function TechHero() {
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
         className="absolute left-1/2 top-0 aspect-[700/677] w-[90%] max-w-[400px] -translate-x-1/2 lg:w-[580px] lg:max-w-none lg:translate-x-[30px]"
       >
-        <Image src="/tech.png" alt="eCash" fill />
+        <Image
+          src="/tech.png"
+          alt="eCash"
+          fill
+          sizes="(max-width: 1024px) 90vw, 580px"
+        />
       </motion.div>
       <ContentContainer>
         <motion.div

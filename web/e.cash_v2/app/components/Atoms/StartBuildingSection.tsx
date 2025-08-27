@@ -20,6 +20,7 @@ export default function StartBuildingSection() {
             alt="eCash"
             className="object-contain"
             fill
+            sizes="(max-width: 1024px) 100px, 160px"
           />
         </div>
 

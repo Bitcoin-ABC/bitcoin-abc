@@ -66,6 +66,7 @@ export default function FeaturedArticlesClient({
                     className="object-cover"
                     priority={idx === 0}
                     unoptimized
+                    sizes="(max-width: 1024px) 90vw, (max-width: 1280px) 33vw, 350px"
                   />
                 </div>
               </div>

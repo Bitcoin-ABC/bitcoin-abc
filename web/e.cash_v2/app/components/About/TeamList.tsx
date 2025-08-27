@@ -50,6 +50,7 @@ const TeamList: React.FC = () => {
                     "object-contain transition-all duration-300",
                     openIndex === idx ? "opacity-0" : "opacity-100"
                   )}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 <div
                   className={cn(
@@ -71,6 +72,7 @@ const TeamList: React.FC = () => {
                       alt="plus icon"
                       fill
                       className="object-contain brightness-200"
+                      sizes="12px"
                     />
                   </div>
                 ) : (
@@ -85,6 +87,7 @@ const TeamList: React.FC = () => {
                           alt="plus icon"
                           fill
                           className="object-contain"
+                          sizes="12px"
                         />
                       </div>
                     </div>

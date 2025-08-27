@@ -95,6 +95,7 @@ export default function GettingStarted() {
               alt="Wallet"
               fill
               className="object-contain"
+              sizes="(max-width: 1024px) 100vw, 100vw"
             />
           </div>
         </motion.div>
@@ -134,6 +135,7 @@ export default function GettingStarted() {
                           alt="arrow"
                           fill
                           className="object-contain opacity-50 transition-all group-hover:opacity-100"
+                          sizes="14px"
                         />
                       </span>
                     </Link>

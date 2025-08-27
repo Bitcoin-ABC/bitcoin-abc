@@ -21,7 +21,12 @@ export default function Footer() {
   return (
     <footer className="relative bg-[#06060E] text-white">
       <div className="absolute bottom-0 left-1/2 aspect-[500/182] w-full max-w-[500px] -translate-x-1/2 opacity-60">
-        <Image src="/footer-bg.png" alt="eCash" fill />
+        <Image
+          src="/footer-bg.png"
+          alt="eCash"
+          fill
+          sizes="(max-width: 500px) 100vw, 500px"
+        />
       </div>
       <div className="absolute bottom-0 left-1/2 h-[100px] w-full -translate-x-1/2 bg-gradient-to-b from-transparent to-[#06060E]" />
       <ContentContainer className="max-w-[1400px]">
@@ -37,6 +42,7 @@ export default function Footer() {
                     alt="eCash"
                     fill
                     className="object-contain"
+                    sizes="(max-width: 1024px) 96px, 116px"
                   />
                 </div>
               </Link>
@@ -154,6 +160,7 @@ export default function Footer() {
                       alt={link.title}
                       fill
                       className="object-contain"
+                      sizes="28px"
                     />
                   </div>
                 </Link>

@@ -157,10 +157,22 @@ export default function Hero() {
       <GridPattern className="left-1/2 top-16 z-10 hidden -translate-x-[calc(50%+100px)] lg:inline-flex" />
       <GridPattern className="lg:mask-gradient-fade-135 bottom-[-100px] right-0 z-30 inline-flex origin-bottom-right scale-[0.7] lg:bottom-0 lg:right-20 lg:scale-100" />
       <div className="absolute left-0 top-0 z-0 hidden h-[800px] w-[533px] lg:block">
-        <Image src="/tl-blur.jpg" alt="eCash" fill className="object-contain" />
+        <Image
+          src="/tl-blur.jpg"
+          alt="eCash"
+          fill
+          className="object-contain"
+          sizes="(max-width: 1024px) 0vw, 533px"
+        />
       </div>
       <div className="absolute right-0 top-0 z-0 h-[800px] w-[600px]">
-        <Image src="/tr-blur.jpg" alt="eCash" fill className="object-contain" />
+        <Image
+          src="/tr-blur.jpg"
+          alt="eCash"
+          fill
+          className="object-contain"
+          sizes="600px"
+        />
       </div>
       <div className="absolute left-1/2 top-1/2 z-0 hidden h-[445px] w-[500px] -translate-x-[calc(50%+60px)] -translate-y-[calc(50%-150px)] lg:block">
         <Image
@@ -168,6 +180,7 @@ export default function Hero() {
           alt="eCash"
           fill
           className="object-contain"
+          sizes="(max-width: 1024px) 0vw, 500px"
         />
       </div>
       {isLargeScreen && (
@@ -183,6 +196,7 @@ export default function Hero() {
               alt="eCash"
               fill
               className="object-contain"
+              sizes="312px"
             />
           </div>
           {loading && (
@@ -191,6 +205,7 @@ export default function Hero() {
               alt="eCash"
               fill
               className="object-contain"
+              sizes="400px"
             />
           )}
           <Spline scene="/scene.splinecode" onLoad={() => setLoading(false)} />

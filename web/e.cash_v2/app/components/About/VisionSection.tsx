@@ -59,6 +59,7 @@ export default function VisionSection() {
                     alt="eCash"
                     fill
                     className="object-contain"
+                    sizes="300px"
                   />
                 )}
                 <div className="block lg:hidden">

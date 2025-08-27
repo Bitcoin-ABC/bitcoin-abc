@@ -21,7 +21,13 @@ export default function WhatWeDo() {
       <div className="relative flex w-full self-stretch overflow-hidden rounded-lg border border-white/10 lg:flex-col">
         <div className="to-background from-background relative flex w-1/3 items-center self-stretch bg-gradient-to-br via-[#101026] p-4 lg:w-full lg:p-10">
           <div className="relative h-[100px] w-full lg:h-[160px]">
-            <Image src={image} alt={image} fill className="object-contain" />
+            <Image
+              src={image}
+              alt={image}
+              fill
+              className="object-contain"
+              sizes="(max-width: 1024px) 33vw, 160px"
+            />
           </div>
         </div>
         <div className="border-t-white/14 w-2/3 p-6 lg:w-full lg:border-t">
@@ -43,6 +49,7 @@ export default function WhatWeDo() {
           alt="eCash"
           fill
           className="-rotate-[36deg] object-contain"
+          sizes="(max-width: 1024px) 0vw, 533px"
         />
       </div>
       <motion.div

@@ -58,6 +58,7 @@ const TeamList: React.FC = () => {
                       alt="previous"
                       fill
                       className="object-contain"
+                      sizes="20px"
                     />
                   </div>
                 </div>
@@ -71,6 +72,7 @@ const TeamList: React.FC = () => {
                       alt="previous"
                       fill
                       className="object-contain"
+                      sizes="20px"
                     />
                   </div>
                 </div>
@@ -107,6 +109,7 @@ const TeamList: React.FC = () => {
                     "object-contain transition-all duration-300",
                     openIndex === idx ? "opacity-0" : "opacity-100"
                   )}
+                  sizes="272px"
                 />
                 <div
                   className={cn(
@@ -128,6 +131,7 @@ const TeamList: React.FC = () => {
                       alt="plus icon"
                       fill
                       className="object-contain brightness-200"
+                      sizes="12px"
                     />
                   </div>
                 ) : (
@@ -142,6 +146,7 @@ const TeamList: React.FC = () => {
                           alt="plus icon"
                           fill
                           className="object-contain"
+                          sizes="12px"
                         />
                       </div>
                     </div>

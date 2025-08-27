@@ -148,6 +148,7 @@ function WalletCard({ wallet }: { wallet: typeof wallets[0] }) {
               alt={wallet.name}
               fill
               className="object-contain p-2"
+              sizes="(max-width: 1024px) 48px, 64px"
             />
           </div>
           <div>

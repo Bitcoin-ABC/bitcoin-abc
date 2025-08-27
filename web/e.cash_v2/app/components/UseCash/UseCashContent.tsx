@@ -40,6 +40,7 @@ export default function UseCashContent({
                   alt={service.title}
                   fill
                   className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 250px"
                 />
               </div>
               <div className="relative flex h-full flex-col justify-between">
@@ -119,6 +120,7 @@ export default function UseCashContent({
                         alt={item.attributes.name}
                         className="object-contain transition-transform duration-300 group-hover:scale-110"
                         unoptimized={true}
+                        sizes="(max-width: 768px) 33vw, (max-width: 1024px) 16vw, 16vw"
                       />
                     </div>
                   </motion.a>

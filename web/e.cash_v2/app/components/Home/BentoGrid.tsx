@@ -45,7 +45,12 @@ export default function BentoGrid() {
       >
         <div className="relative z-30 flex w-full flex-col lg:max-w-[250px]">
           <div className="relative h-[50px] w-[50px] lg:h-[60px] lg:w-[60px]">
-            <Image src={icon} alt={title} fill />
+            <Image
+              src={icon}
+              alt={title}
+              fill
+              sizes="(max-width: 1024px) 50px, 60px"
+            />
           </div>
           <h4 className="py-1 text-xl font-bold lg:text-2xl">{title}</h4>
           <p>{text}</p>
@@ -57,6 +62,7 @@ export default function BentoGrid() {
             alt={title}
             fill
             className={cn(imagePosition, "object-contain")}
+            sizes="(max-width: 1024px) 100vw, 50vw"
           />
         </div>
       </motion.div>

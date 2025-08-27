@@ -89,6 +89,7 @@ export default function AvalancheEnhanced() {
             alt="avalanche"
             fill
             className="object-contain"
+            sizes="(max-width: 1024px) 150px, 220px"
           />
         </motion.div>
         <motion.h3

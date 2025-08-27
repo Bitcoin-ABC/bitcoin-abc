@@ -19,7 +19,13 @@ export default function StakingHero() {
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
         className="lg:translate-x-[30px relative top-0 m-auto mt-[-80px] aspect-[900/913] w-[90%] max-w-[400px] lg:absolute lg:left-1/2 lg:mt-0 lg:w-[580px] lg:max-w-none"
       >
-        <Image src="/about.png" alt="eCash" fill className="object-contain" />
+        <Image
+          src="/about.png"
+          alt="eCash"
+          fill
+          className="object-contain"
+          sizes="(max-width: 1024px) 90vw, 580px"
+        />
       </motion.div>
       <ContentContainer>
         <motion.div

@@ -19,12 +19,14 @@ export default function BuildHero() {
           alt="eCash"
           fill
           className="hidden lg:inline-block lg:object-contain"
+          sizes="(max-width: 1024px) 0vw, 100vw"
         />
         <Image
           src="/bubble-mobile.png"
           alt="eCash"
           fill
           className="object-cover object-right lg:hidden"
+          sizes="100vw"
         />
       </div>
       <div className="from-background absolute inset-0 w-full bg-gradient-to-t to-transparent lg:aspect-[1000/337]" />
@@ -42,7 +44,7 @@ export default function BuildHero() {
           <h1 className="mb-6 max-w-[450px] text-center text-4xl font-bold tracking-tighter lg:text-6xl lg:leading-[60px]">
             Build on eCash to future-proof your tech
           </h1>
-          <p className="lg:mb-30 text-secondaryText mx-auto mb-20 max-w-[450px] text-center text-base lg:text-lg">
+          <p className="text-secondaryText lg:mb-30 mx-auto mb-20 max-w-[450px] text-center text-base lg:text-lg">
             Become a pioneer in the eCash frontier economy. The eCash network's
             unique capabilities enable business models impossible anywhere else.
             Micropayments, novel tokenomics and on-chain trading — we're in

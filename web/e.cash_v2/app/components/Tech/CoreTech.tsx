@@ -125,6 +125,7 @@ export default function CoreTech() {
                     alt="Feature graphic"
                     fill
                     className="object-contain"
+                    sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 20vw"
                   />
                 </div>
               </div>

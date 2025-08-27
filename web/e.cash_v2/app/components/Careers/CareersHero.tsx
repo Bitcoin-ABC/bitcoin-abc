@@ -18,12 +18,14 @@ export default function BuildHero() {
           alt="eCash"
           fill
           className="hidden lg:inline-block lg:object-contain"
+          sizes="(max-width: 1024px) 0vw, 100vw"
         />
         <Image
           src="/bubble-mobile.png"
           alt="eCash"
           fill
           className="object-cover object-right lg:hidden"
+          sizes="100vw"
         />
       </div>
       <div className="from-background absolute inset-0 w-full bg-gradient-to-t to-transparent lg:aspect-[1000/337]" />
