@@ -20,6 +20,38 @@ const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 
 See tests for detailed methods.
 
+## Roadmap
+
+`ecash-wallet` is engineered to be a drop-in wallet lib for any ecash application that needs wallet functionality. The first milestone demonstrating minimal fulfillment of this requirement will be the integration of `ecash-wallet` into Cashtab.
+
+### Phase One, Cashtab feature parity
+
+-   XEC actions
+    [x] Send XEC to one recipient
+    [x] Send XEC to many recipients
+
+-   GENESIS, MINT, SEND, and BURN for all token types
+    [x] SLP_TOKEN_TYPE_FUNGIBLE
+    [x] ALP_TOKEN_TYPE_STANDARD
+    [] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
+    [] SLP_TOKEN_TYPE_NFT1_GROUP
+    [] SLP_TOKEN_TYPE_NFT1_CHILD
+    [] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
+-   Agora actions (PARTIAL and ONESHOT)
+    [] SLP (requires "chained" txs)
+    [] ALP
+
+### Phase Two, extended functionality
+
+[] Support for chained XEC txs, i.e. handling an Action that requires more than one tx due to the 100kb tx size restriction
+[] Support for chained token txs, i.e. handling an Action that requires more than one tx due to token protocol per-tx output limits
+
+### Phase Three, wishlist
+
+[] HD wallets
+[] Fine-grained utxo control, avalanche proofs
+[] SLP_TOKEN_TYPE_MINT_VAULT GENESIS and MINT actions
+
 ## Change log
 
 -   0.0.0 Init with constructor and `sync` method [D17773](https://reviews.bitcoinabc.org/D17773)
