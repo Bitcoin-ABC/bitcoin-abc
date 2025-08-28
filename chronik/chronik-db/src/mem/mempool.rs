@@ -224,7 +224,7 @@ impl Mempool {
 
     /// Analyze a tx which is not already in the mempool without adding it
     pub fn probe_tx(
-        &mut self,
+        &self,
         db: &Db,
         mempool_tx: MempoolTx,
         plugin_ctx: &PluginContext,
@@ -232,14 +232,41 @@ impl Mempool {
     ) -> Result<MempoolResult<'_>> {
         let txid = mempool_tx.tx.txid();
 
-        // FIXME this is a hacky way of probing the tx: we reuse the parsing
-        // code that happens when inserting into the mempool then remove the
-        // transaction.
-        // The opposite should be done instead, where the actual parsing happens
-        // here and the insert/remove functions use the result from the probe to
-        // take action on the mempool.
-        self.insert(db, mempool_tx, plugin_ctx, plugin_name_map)?;
-        self.remove(txid)
+        let mut token_id_aux = TokenIdGroupAux::default();
+        let mut token_tx = None;
+        let mut spent_tokens = Vec::new();
+        if self.is_token_index_enabled {
+            let probed = self
+                .tokens
+                .probe(db, &mempool_tx, |txid| self.txs.contains_key(txid))?;
+            if let Some((probed_token_tx, probed_spent_tokens)) = probed {
+                token_id_aux = TokenIdGroupAux::from_probed_tx(
+                    txid,
+                    &probed_token_tx,
+                    &probed_spent_tokens,
+                );
+                token_tx = Some(probed_token_tx);
+                spent_tokens = probed_spent_tokens;
+            }
+        }
+        let plugin_outputs = self.plugins.probe(
+            db,
+            &mempool_tx.tx,
+            |txid| self.txs.contains_key(txid),
+            if let Some(token_tx) = &token_tx {
+                Some((token_tx, spent_tokens.as_slice()))
+            } else {
+                None
+            },
+            plugin_ctx,
+            plugin_name_map,
+        )?;
+
+        Ok(MempoolResult {
+            mempool_tx: Cow::Owned(mempool_tx),
+            token_id_aux,
+            plugin_outputs,
+        })
     }
 
     /// Get all mempool txs

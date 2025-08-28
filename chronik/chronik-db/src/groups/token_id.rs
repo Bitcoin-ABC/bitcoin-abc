@@ -6,7 +6,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
-use bitcoinsuite_slp::token_id::TokenId;
+use bitcoinsuite_slp::{
+    token_id::TokenId, token_tx::TokenTx, verify::SpentToken,
+};
 
 use crate::{
     db::{
@@ -227,6 +229,26 @@ impl TokenIdGroupAux {
             None => vec![None; tx.inputs.len()],
         };
         aux.insert(tx.txid(), (input_token_ids, output_token_ids));
+        TokenIdGroupAux { txs: aux }
+    }
+
+    /// Build aux data from probed tx token info
+    pub fn from_probed_tx(
+        txid: TxId,
+        token_tx: &TokenTx,
+        spent_tokens: &[Option<SpentToken>],
+    ) -> Self {
+        let output_token_ids = token_tx
+            .outputs
+            .iter()
+            .map(|output| Some(token_tx.token(output.as_ref()?).meta.token_id))
+            .collect::<Vec<_>>();
+        let input_token_ids = spent_tokens
+            .iter()
+            .map(|token| Some(token.as_ref()?.token.meta.token_id))
+            .collect::<Vec<_>>();
+        let mut aux = HashMap::new();
+        aux.insert(txid, (input_token_ids, output_token_ids));
         TokenIdGroupAux { txs: aux }
     }
 }

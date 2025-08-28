@@ -483,11 +483,16 @@ class ChronikWsTest(BitcoinTestFramework):
             self.wait_until(vote_until_final)
 
         # Create a new tx that will be invalidated
-        tx = wallet.create_self_transfer()
-        txid2 = tx["txid"]
+        utxo = wallet.get_utxo()
+        tx2 = wallet.create_self_transfer(utxo_to_spend=utxo, fee_rate=1000)
+        txid2 = tx2["txid"]
         chronik_sub_txid(ws, node, txid2)
 
-        wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
+        tx3 = wallet.create_self_transfer(utxo_to_spend=utxo, fee_rate=2000)
+        txid3 = tx3["txid"]
+        chronik_sub_txid(ws, node, txid3)
+
+        wallet.sendrawtransaction(from_node=node, tx_hex=tx2["hex"])
         assert_equal(
             ws.recv(),
             pb.WsMsg(
@@ -498,8 +503,17 @@ class ChronikWsTest(BitcoinTestFramework):
             ),
         )
 
+        # It's a conflicting tx so it goes to the conflicting pool, and we
+        # expect no message. We can't just use sendrawtransaction here as the tx
+        # will be rejected for conflict.
+        peer.send_txs_and_test(
+            [tx3["tx"]], node, success=False, reject_reason="txn-mempool-conflict"
+        )
+        assert_equal(node.gettransactionstatus(txid3)["pool"], "conflicting")
+
         invalidate_tx(txid2)
-        # We first get the removal message, then the invalidated one
+        # We first get the tx2 removal message, then the conflicting tx3 is
+        # added to the mempool, then tx2 is invalidated
         assert_equal(
             ws.recv(),
             pb.WsMsg(
@@ -513,8 +527,31 @@ class ChronikWsTest(BitcoinTestFramework):
             ws.recv(),
             pb.WsMsg(
                 tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid3)[::-1],
+                )
+            ),
+        )
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
                     msg_type=pb.TX_INVALIDATED,
                     txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+        )
+
+        finalize_tx(txid3)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_FINALIZED,
+                    txid=bytes.fromhex(txid3)[::-1],
+                    finalization_reason=pb.TxFinalizationReason(
+                        finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
+                    ),
                 )
             ),
         )
@@ -522,6 +559,7 @@ class ChronikWsTest(BitcoinTestFramework):
         # Unsubscribe
         chronik_sub_txid(ws, node, txid, is_unsub=True)
         chronik_sub_txid(ws, node, txid2, is_unsub=True)
+        chronik_sub_txid(ws, node, txid3, is_unsub=True)
 
         # Tx confirmed
         tip = self.generate(wallet, 1)[0]

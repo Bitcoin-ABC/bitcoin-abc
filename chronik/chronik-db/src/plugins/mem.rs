@@ -56,11 +56,11 @@ impl MempoolPlugins {
         }
     }
 
-    /// Run the tx against the plugins and index them.
-    pub fn insert(
-        &mut self,
+    /// Get the plugin outputs for the given transaction
+    pub fn probe(
+        &self,
         db: &Db,
-        tx: &MempoolTx,
+        tx: &Tx,
         is_mempool_tx: impl Fn(&TxId) -> bool,
         token_data: Option<(&TokenTx, &[Option<SpentToken>])>,
         plugin_ctx: &PluginContext,
@@ -71,7 +71,7 @@ impl MempoolPlugins {
         }
 
         let mut plugin_outputs = self.fetch_plugin_outputs(
-            tx.tx.inputs.iter().map(|input| (input.prev_out, None)),
+            tx.inputs.iter().map(|input| (input.prev_out, None)),
             db,
             &is_mempool_tx,
         )??;
@@ -79,7 +79,7 @@ impl MempoolPlugins {
         plugin_ctx.with_py(|py| -> Result<()> {
             let result = plugin_ctx.run_on_tx(
                 py,
-                &tx.tx,
+                tx,
                 token_data,
                 &plugin_outputs,
                 plugin_name_map,
@@ -87,15 +87,40 @@ impl MempoolPlugins {
 
             for (out_idx, plugin_output) in result.outputs {
                 let outpoint = OutPoint {
-                    txid: tx.tx.txid(),
+                    txid: tx.txid(),
                     out_idx,
                 };
-                self.plugin_outputs.insert(outpoint, plugin_output.clone());
                 plugin_outputs.insert(outpoint, plugin_output);
             }
 
             Ok(())
         })?;
+
+        Ok(plugin_outputs)
+    }
+
+    /// Run the tx against the plugins and index them.
+    pub fn insert(
+        &mut self,
+        db: &Db,
+        tx: &MempoolTx,
+        is_mempool_tx: impl Fn(&TxId) -> bool,
+        token_data: Option<(&TokenTx, &[Option<SpentToken>])>,
+        plugin_ctx: &PluginContext,
+        plugin_name_map: &PluginNameMap,
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
+        let plugin_outputs = self.probe(
+            db,
+            &tx.tx,
+            &is_mempool_tx,
+            token_data,
+            plugin_ctx,
+            plugin_name_map,
+        )?;
+
+        for (outpoint, plugin_output) in &plugin_outputs {
+            self.plugin_outputs.insert(*outpoint, plugin_output.clone());
+        }
 
         self.group_utxos
             .insert(tx, &is_mempool_tx, &plugin_outputs)?;

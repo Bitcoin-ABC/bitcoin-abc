@@ -49,19 +49,19 @@ pub enum MempoolTokensError {
 
 impl MempoolTokens {
     /// Parse, color and verify a potential token tx.
-    pub fn insert(
-        &mut self,
+    pub fn probe(
+        &self,
         db: &Db,
         tx: &MempoolTx,
         is_mempool_tx: impl Fn(&TxId) -> bool,
-    ) -> Result<()> {
+    ) -> Result<Option<(TokenTx, Vec<Option<SpentToken>>)>> {
         let spent_tokens =
             self.fetch_tx_spent_tokens(&tx.tx, db, &is_mempool_tx)??;
         let has_any_tokens = spent_tokens.iter().any(|token| token.is_some());
 
         let colored = ColoredTx::color_tx(&tx.tx);
         if colored.is_none() && !has_any_tokens {
-            return Ok(());
+            return Ok(None);
         }
         let colored = colored.unwrap_or_else(|| ColoredTx {
             outputs: vec![None; tx.tx.outputs.len()],
@@ -148,10 +148,26 @@ impl MempoolTokens {
             override_has_mint_vault: None,
         };
         let verified = context.verify(colored);
-        self.token_txs.insert(tx.tx.txid(), verified);
-        if has_any_tokens {
-            self.tx_token_inputs.insert(tx.tx.txid(), spent_tokens);
+
+        Ok(Some((verified, spent_tokens)))
+    }
+
+    /// Insert a token tx into the mempool token index.
+    pub fn insert(
+        &mut self,
+        db: &Db,
+        tx: &MempoolTx,
+        is_mempool_tx: impl Fn(&TxId) -> bool,
+    ) -> Result<()> {
+        if let Some((verified, spent_tokens)) =
+            self.probe(db, tx, is_mempool_tx)?
+        {
+            self.token_txs.insert(tx.tx.txid(), verified);
+            if spent_tokens.iter().any(|token| token.is_some()) {
+                self.tx_token_inputs.insert(tx.tx.txid(), spent_tokens);
+            }
         }
+
         Ok(())
     }
 
