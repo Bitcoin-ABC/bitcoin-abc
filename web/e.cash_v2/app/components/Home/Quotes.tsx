@@ -19,38 +19,24 @@ type Quote = {
 export const quotes: Quote[] = [
   {
     quote:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.",
-    name: "Satoshi Vega",
-    title: "Front-End Developer",
-    image: "/profile.png",
+      "Of all the cryptocurrency nodes I have integrated into my pool, eCash has proven to be the most active and has the most dedicated team of maintainers.",
+    name: "letsmineit",
+    title: "Mining Pool Operator",
+    image: "/lets-mine-it.png",
   },
   {
     quote:
-      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
-    name: "Hal Nakamoto",
-    title: "Full-Stack Engineer",
-    image: "/profile.png",
+      "Reading logs has never been so enjoyable. I wish more coin projects were as active to make pool admins' life easier.",
+    name: "zpool",
+    title: "Mining Pool Operator",
+    image: "/zpool.png",
   },
   {
     quote:
-      "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.",
-    name: "Vitalia Reyes",
-    title: "Smart Contract Developer",
-    image: "/profile.png",
-  },
-  {
-    quote:
-      "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.",
-    name: "Charlie Decker",
-    title: "Blockchain Engineer",
-    image: "/profile.png",
-  },
-  {
-    quote:
-      "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.",
-    name: "Ada Moreno",
-    title: "Back-End Developer",
-    image: "/profile.png",
+      "We're proud to be the only shared RPC provider for eCash. From the very beginning, we believed in its vision, and the Avalanche upgrade only strengthened that belief.",
+    name: "NOWNodes",
+    title: "Mining Pool Operator",
+    image: "/nownodes.png",
   },
 ];
 
@@ -159,7 +145,7 @@ export default function Quotes() {
             )}
           >
             <div className="mb-5 text-xl font-bold text-white lg:mb-7 lg:text-2xl">
-              "{quote.quote}"
+              “{quote.quote}"
             </div>
             <div className="flex items-center gap-3">
               <Image
