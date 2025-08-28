@@ -116,6 +116,7 @@ popd
 update-alternatives --install /usr/bin/clang clang "$(command -v clang-16)" 100
 update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-16)" 100
 update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-16)" 100
+update-alternatives --install /usr/bin/llvm-config llvm-config "$(command -v llvm-config-16)" 100
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
