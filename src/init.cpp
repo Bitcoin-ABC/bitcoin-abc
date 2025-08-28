@@ -537,7 +537,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-dbbatchsize",
         strprintf("Maximum database write batch size in bytes (default: %u)",
-                  DEFAULT_DB_BATCH_SIZE),
+                  DEFAULT_DB_CACHE_BATCH),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::OPTIONS);
     argsman.AddArg("-dbcache=<n>",
