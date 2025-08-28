@@ -10,7 +10,6 @@ import {
     getAgoraOneshotAcceptFuelInputs,
     getAgoraCancelFuelInputs,
 } from 'ecash-agora';
-import wif from 'wif';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Alert, Info, TokenIdPreview } from 'components/Common/Atoms';
@@ -215,7 +214,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             }
             // Sign and prep utxos for ecash-lib inputs
             const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
-            const sk = wif.decode(pathInfo.wif).privateKey;
+            const sk = pathInfo.sk;
             signedFuelInputs.push({
                 input: {
                     prevOut: {
@@ -336,7 +335,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
 
             // sk for the tx is the sk for this utxo
-            const sk = wif.decode(pathInfo.wif).privateKey;
+            const sk = pathInfo.sk;
 
             // Convert from Cashtab utxo to signed ecash-lib input
             fuelInputs.push({
@@ -366,7 +365,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                 // Cashtab default path
                 // This works here because we lookup cancelable offers by the same path
                 // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: wif.decode(defaultPathInfo.wif).privateKey,
+                cancelSk: defaultPathInfo.sk,
                 fuelInputs: fuelInputs,
                 // Change to Cashtab default derivation path
                 recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
