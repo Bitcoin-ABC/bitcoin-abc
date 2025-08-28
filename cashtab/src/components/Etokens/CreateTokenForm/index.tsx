@@ -73,10 +73,9 @@ import {
     TokenTypeDescription,
     OuterCtn,
 } from 'components/Etokens/CreateTokenForm/styles';
-import { sha256, Message } from 'js-sha256';
 import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
-import { toHex } from 'ecash-lib';
+import { toHex, sha256 } from 'ecash-lib';
 
 interface CreateTokenFormProps {
     nftChildGenesisInput?: TokenUtxo[];
@@ -305,10 +304,16 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                 hashreader.addEventListener('load', () => {
                     // Handle Input expects an event with key target
                     // target to have keys name and hash
+                    // Convert ArrayBuffer to Uint8Array for ecash-lib sha256
+                    const uint8Array = new Uint8Array(
+                        hashreader.result as ArrayBuffer,
+                    );
+                    const hashBytes = sha256(uint8Array);
+                    const hashHex = toHex(hashBytes);
                     handleInput({
                         target: {
                             name: 'hash',
-                            value: sha256(hashreader.result as Message),
+                            value: hashHex,
                         },
                     } as React.ChangeEvent<HTMLInputElement>);
                 });
