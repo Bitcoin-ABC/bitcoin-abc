@@ -1574,15 +1574,20 @@ const SendXec: React.FC = () => {
             )}
             {showSuccessModal && (
                 <SuccessModalOverlay
-                    onClick={e => {
-                        // Prevent closing when clicking on the overlay
-                        e.stopPropagation();
+                    onClick={async () => {
+                        // Close the window on any click off of the modal
+                        setShowSuccessModal(false);
+                        window.close();
                     }}
                 >
                     <SuccessModalContent
-                        onClick={e => {
-                            // Prevent closing when clicking on the content
-                            e.stopPropagation();
+                        onClick={async e => {
+                            // Close the window when clicking on the modal content
+                            // (but not on interactive elements like copy button or link)
+                            if (e.target === e.currentTarget) {
+                                setShowSuccessModal(false);
+                                window.close();
+                            }
                         }}
                     >
                         <SuccessIcon />
@@ -1592,15 +1597,19 @@ const SendXec: React.FC = () => {
                                 href={`${explorer.blockExplorerUrl}/tx/${successTxid}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                // Prevent closing the window when clicking on the link
+                                onClick={e => e.stopPropagation()}
                             >
                                 {abbreviateTxid(successTxid)}
                             </TransactionIdLink>
                             <CopyIconContainer>
                                 <CopyButton
                                     aria-label="Copy transaction ID"
-                                    onClick={() =>
-                                        copyTxidWithTooltip(successTxid)
-                                    }
+                                    onClick={e => {
+                                        // Prevent closing the window when clicking on the copy button
+                                        e.stopPropagation();
+                                        copyTxidWithTooltip(successTxid);
+                                    }}
                                 >
                                     <CopyPasteIcon />
                                 </CopyButton>
