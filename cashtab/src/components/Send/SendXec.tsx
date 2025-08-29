@@ -73,13 +73,29 @@ import {
     TokenType,
     GenesisInfo,
 } from 'chronik-client';
-import { SendButtonContainer } from './styled';
+import {
+    SendButtonContainer,
+    SuccessModalOverlay,
+    SuccessModalContent,
+    SuccessIcon,
+    SuccessTitle,
+    TransactionIdContainer,
+    TransactionIdLink,
+    CopyIconContainer,
+    Tooltip,
+    CopyButton,
+    SuccessButton,
+} from './styled';
 import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
     FIRMA_REDEEM_EMPP_RAW_LENGTH,
 } from 'constants/tokens';
-import { FirmaIcon, TetherIcon } from 'components/Common/CustomIcons';
+import {
+    FirmaIcon,
+    TetherIcon,
+    CopyPasteIcon,
+} from 'components/Common/CustomIcons';
 
 const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
@@ -332,6 +348,28 @@ const SendXec: React.FC = () => {
         useState<boolean>(false);
     const [tokenIdQueryError, setTokenIdQueryError] = useState<boolean>(false);
 
+    // Success modal for URL-based transactions
+    const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+    const [successTxid, setSuccessTxid] = useState<string>('');
+    const [showCopiedTooltip, setShowCopiedTooltip] = useState<boolean>(false);
+
+    // Helper function to abbreviate transaction ID
+    const abbreviateTxid = (txid: string): string => {
+        if (txid.length <= 10) return txid;
+        return `${txid.substring(0, 3)}...${txid.substring(txid.length - 3)}`;
+    };
+
+    // Helper function to copy transaction ID with tooltip feedback
+    const copyTxidWithTooltip = async (txid: string) => {
+        try {
+            await navigator.clipboard.writeText(txid);
+            setShowCopiedTooltip(true);
+            setTimeout(() => setShowCopiedTooltip(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy txid:', err);
+        }
+    };
+
     // Extension transaction handling
     const [isExtensionTransaction, setIsExtensionTransaction] =
         useState<boolean>(false);
@@ -546,13 +584,11 @@ const SendXec: React.FC = () => {
             );
         }
 
-        // Close the window for both cases
-        // Note that JS will not allow this to happen unless the window was
-        // opened by JS, i.e. from a link opening a tab or the extension
-        // This means the "Reject" button will not reject txs for the
-        // special case of a user directly typing in a URL to a tx, but
-        // this is acceptable behavior
-        window.close();
+        // Show success modal for both extension and URL-based transactions
+        if (isExtensionTransaction || txInfoFromUrl) {
+            setSuccessTxid(txid);
+            setShowSuccessModal(true);
+        }
     };
 
     const handleTransactionRejection = async (
@@ -914,8 +950,9 @@ const SendXec: React.FC = () => {
             if (isExtensionTransaction) {
                 await handleTransactionApproval(response.txid);
             } else if (txInfoFromUrl) {
-                // Close window after successful tx
-                window.close();
+                // Show success modal for URL-based transactions
+                setSuccessTxid(response.txid);
+                setShowSuccessModal(true);
             }
 
             clearInputForms();
@@ -1057,8 +1094,9 @@ const SendXec: React.FC = () => {
             if (isExtensionTransaction) {
                 await handleTransactionApproval(txObj.response.txid);
             } else if (txInfoFromUrl) {
-                // Close window after successful tx
-                window.close();
+                // Show success modal for URL-based transactions
+                setSuccessTxid(txObj.response.txid);
+                setShowSuccessModal(true);
             }
         } catch (err) {
             handleSendXecError(err as XecSendError);
@@ -1533,6 +1571,54 @@ const SendXec: React.FC = () => {
                     handleCancel={handleCancel}
                     showCancelButton
                 />
+            )}
+            {showSuccessModal && (
+                <SuccessModalOverlay
+                    onClick={e => {
+                        // Prevent closing when clicking on the overlay
+                        e.stopPropagation();
+                    }}
+                >
+                    <SuccessModalContent
+                        onClick={e => {
+                            // Prevent closing when clicking on the content
+                            e.stopPropagation();
+                        }}
+                    >
+                        <SuccessIcon />
+                        <SuccessTitle>Success!</SuccessTitle>
+                        <TransactionIdContainer>
+                            <TransactionIdLink
+                                href={`${explorer.blockExplorerUrl}/tx/${successTxid}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {abbreviateTxid(successTxid)}
+                            </TransactionIdLink>
+                            <CopyIconContainer>
+                                <CopyButton
+                                    aria-label="Copy transaction ID"
+                                    onClick={() =>
+                                        copyTxidWithTooltip(successTxid)
+                                    }
+                                >
+                                    <CopyPasteIcon />
+                                </CopyButton>
+                                {showCopiedTooltip && (
+                                    <Tooltip>Copied!</Tooltip>
+                                )}
+                            </CopyIconContainer>
+                        </TransactionIdContainer>
+                        <SuccessButton
+                            onClick={async () => {
+                                setShowSuccessModal(false);
+                                window.close();
+                            }}
+                        >
+                            OK
+                        </SuccessButton>
+                    </SuccessModalContent>
+                </SuccessModalOverlay>
             )}
 
             <SwitchContainer>
