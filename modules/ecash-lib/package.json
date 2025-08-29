@@ -1,6 +1,6 @@
 {
     "name": "ecash-lib",
-    "version": "4.3.1",
+    "version": "4.3.2",
     "description": "Library for eCash transaction building",
     "main": "./dist/indexNodeJs.js",
     "browser": "./dist/indexBrowser.js",

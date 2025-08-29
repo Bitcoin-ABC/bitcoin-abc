@@ -20,6 +20,7 @@ import {
     payment,
     SLP_TOKEN_TYPE_FUNGIBLE,
     ALP_TOKEN_TYPE_STANDARD,
+    SLP_TOKEN_TYPE_MINT_VAULT,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -90,15 +91,10 @@ const DUMMY_SPENDABLE_COINBASE_UTXO: ScriptUtxo = {
 const DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD = toHex(strToBytes('SLP2')).repeat(
     8,
 );
-const TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD: TokenType = {
-    protocol: 'ALP',
-    type: 'ALP_TOKEN_TYPE_STANDARD',
-    number: 0,
-};
 const ALP_TOKEN_TYPE_STANDARD_ATOMS = 101n;
 const DUMMY_TOKEN_ALP_TOKEN_TYPE_STANDARD: Token = {
     tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
-    tokenType: TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD,
+    tokenType: ALP_TOKEN_TYPE_STANDARD,
     atoms: ALP_TOKEN_TYPE_STANDARD_ATOMS,
     isMintBaton: false,
 };
@@ -131,15 +127,11 @@ const getDummyAlpUtxo = (
 const DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE = toHex(strToBytes('SLP0')).repeat(
     8,
 );
-const TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE: TokenType = {
-    protocol: 'SLP',
-    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-    number: 1,
-};
+
 const SLP_TOKEN_TYPE_FUNGIBLE_ATOMS = 100n;
 const DUMMY_TOKEN_SLP_TOKEN_TYPE_FUNGIBLE: Token = {
     tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
-    tokenType: TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
     atoms: SLP_TOKEN_TYPE_FUNGIBLE_ATOMS,
     isMintBaton: false,
 };
@@ -159,6 +151,24 @@ const getDummySlpUtxo = (
     };
 };
 
+// Dummy SLP_TOKEN_TYPE_MINT_VAULT utxos (quantity only; mint batons do not exist for this type)
+const DUMMY_TOKENID_SLP_TOKEN_TYPE_MINT_VAULT = toHex(
+    strToBytes('SLP2'),
+).repeat(8);
+
+const SLP_TOKEN_TYPE_MINT_VAULT_ATOMS = 100n;
+const DUMMY_TOKEN_SLP_TOKEN_TYPE_MINT_VAULT: Token = {
+    tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_MINT_VAULT,
+    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+    atoms: SLP_TOKEN_TYPE_MINT_VAULT_ATOMS,
+    isMintBaton: false,
+};
+const DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT: ScriptUtxo = {
+    ...DUMMY_UTXO,
+    outpoint: { ...DUMMY_OUTPOINT, outIdx: 5 },
+    token: DUMMY_TOKEN_SLP_TOKEN_TYPE_MINT_VAULT,
+};
+
 const DUMMY_SPENDABLE_COINBASE_UTXO_TOKEN: ScriptUtxo = {
     ...DUMMY_SPENDABLE_COINBASE_UTXO,
     outpoint: { ...DUMMY_OUTPOINT, outIdx: 5 },
@@ -170,8 +180,11 @@ const ALL_SUPPORTED_UTXOS: ScriptUtxo[] = [
     DUMMY_UTXO,
     DUMMY_UNSPENDABLE_COINBASE_UTXO,
     DUMMY_SPENDABLE_COINBASE_UTXO,
+    DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE,
+    DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
     DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
     DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD_MINTBATON,
+    DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
     DUMMY_SPENDABLE_COINBASE_UTXO_TOKEN,
 ];
 
@@ -340,7 +353,7 @@ describe('Support functions', () => {
     context('validateTokenActions', () => {
         const dummyGenesisAction = {
             type: 'GENESIS',
-            tokenType: TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
             genesisInfo: {
                 tokenTicker: 'ALP',
                 tokenName: 'ALP Test Token',
@@ -354,14 +367,17 @@ describe('Support functions', () => {
         const dummySendActionTokenOne = {
             type: 'SEND',
             tokenId: tokenOne,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
         } as payment.SendAction;
         const dummyMintActionTokenOne = {
             type: 'MINT',
             tokenId: tokenOne,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
         } as payment.MintAction;
         const dummyBurnActionTokenOne = {
             type: 'BURN',
             tokenId: tokenOne,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
         } as payment.BurnAction;
         it('An empty array at the tokenActions key is valid', () => {
             expect(() => validateTokenActions([])).not.to.throw();
@@ -483,6 +499,19 @@ describe('Support functions', () => {
             ).to.throw(
                 Error,
                 `ecash-wallet does not support minting and sending the same token in the same Action. tokenActions MINT and SEND ${tokenOne}.`,
+            );
+        });
+        it('tokenActions that call for MINT of a SLP_TOKEN_TYPE_MINT_VAULT token are invalid', () => {
+            expect(() =>
+                validateTokenActions([
+                    {
+                        ...dummyMintActionTokenOne,
+                        tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                    },
+                ]),
+            ).to.throw(
+                Error,
+                `ecash-wallet does not currently support minting SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
             );
         });
     });
@@ -1669,7 +1698,7 @@ describe('Support functions', () => {
                 ],
             };
             expect(getTokenType(alpMintAction)).to.deep.equal(
-                TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD,
+                ALP_TOKEN_TYPE_STANDARD,
             );
         });
         it('Returns an unsupported token type without throwing', () => {
@@ -2178,7 +2207,7 @@ describe('Support functions', () => {
                                     type: 'SEND',
                                     tokenId: tokenIdThisAction,
                                     tokenType: {
-                                        ...TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                        ...SLP_TOKEN_TYPE_FUNGIBLE,
                                         type: 'SOME_UNSUPPORTED_TYPE',
                                     } as unknown as TokenType,
                                 },
@@ -2322,8 +2351,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                                     genesisInfo: nullGenesisInfo,
                                 },
                                 {
@@ -2404,7 +2432,7 @@ describe('Support functions', () => {
                     `ecash-wallet does not support minting and sending the same token in the same Action. tokenActions MINT and SEND ${tokenIdThisAction}.`,
                 );
             });
-            it('Throws if action exceeds SLP_TOKEN_TYPE_FUNGIBLE max outputs per tx', () => {
+            it('Throws if action exceeds SLP_MAX_SEND_OUTPUTS max outputs per tx', () => {
                 const tokenIdThisAction = `11`.repeat(32);
                 const atomsPerOutput = 1_000n;
                 const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS + 1).fill(
@@ -2614,8 +2642,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -2696,8 +2723,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -2747,8 +2773,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -2874,8 +2899,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_SLP_TOKEN_TYPE_FUNGIBLE,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -3111,8 +3135,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD,
+                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -3194,8 +3217,7 @@ describe('Support functions', () => {
                             tokenActions: [
                                 {
                                     type: 'GENESIS',
-                                    tokenType:
-                                        TOKEN_TYPE_ALP_TOKEN_TYPE_STANDARD,
+                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
                                     genesisInfo: nullGenesisInfo,
                                 },
                             ] as payment.TokenAction[],
@@ -3747,6 +3769,520 @@ describe('Support functions', () => {
                 );
             });
         });
+        context('SLP_TOKEN_TYPE_MINT_VAULT', () => {
+            it('Throws if action is associated with more than one tokenId', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                                {
+                                    sats: 546n,
+                                    tokenId: '22'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                                },
+                                {
+                                    type: 'SEND',
+                                    tokenId: '22'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                            {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                    tokenId: '22'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Action must include only one token type. Found (at least) two: ALP_TOKEN_TYPE_STANDARD and SLP_TOKEN_TYPE_MINT_VAULT.',
+                );
+            });
+            it('Throws if we have a genesisAction and another token action', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                // Blank OP_RETURN
+                                { sats: 0n },
+                                // Genesis mint qty at correct outIdx for SLP_TOKEN_TYPE_MINT_VAULT
+                                {
+                                    sats: 546n,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Token SEND output unrelated to genesis
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                                {
+                                    type: 'SEND',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'SLP_TOKEN_TYPE_MINT_VAULT token txs may only have a single token action. 2 tokenActions specified.',
+                );
+            });
+            it('Throws if action combines MINT and SEND outputs', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+
+                // Note we throw here because we don't support minting SLP_TOKEN_TYPE_MINT_VAULT tokens at all
+                // But, when we do, we would still expect to throw here
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Send output
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                                // Mint output
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                                {
+                                    type: 'MINT',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `ecash-wallet does not currently support minting SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
+                );
+            });
+            it('Throws if action exceeds SLP_MAX_SEND_OUTPUTS max outputs per tx', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                const atomsPerOutput = 1_000n;
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS + 1).fill(
+                    {
+                        sats: 546n,
+                        tokenId: tokenIdThisAction,
+                        atoms: atomsPerOutput,
+                        script: DUMMY_SCRIPT,
+                        isMintBaton: false,
+                    },
+                );
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                    tokenId: tokenIdThisAction,
+                                    /** Exactly specify outputs so no change output is added */
+                                    atoms:
+                                        BigInt(SLP_MAX_SEND_OUTPUTS + 1) *
+                                        atomsPerOutput,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action may not have more than ${SLP_MAX_SEND_OUTPUTS} token outputs, and no outputs may be at outIdx > ${SLP_MAX_SEND_OUTPUTS}. Found output at outIdx 20.`,
+                );
+            });
+            it('Throws if generating a token change output will cause us to exceed SLP max outputs per tx', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it up with "just enough" outputs and no change expected
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS).fill({
+                    sats: 546n,
+                    tokenId: tokenIdThisAction,
+                    atoms: 1_000_000n,
+                    script: DUMMY_SCRIPT,
+                    isMintBaton: false,
+                });
+
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `Tx needs a token change output to avoid burning atoms of ${tokenIdThisAction}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of ${SLP_MAX_SEND_OUTPUTS} for SLP_TOKEN_TYPE_MINT_VAULT.`,
+                );
+            });
+            it('DOES NOT throw if output atoms exactly match input atoms at max outputs, so no change output is generated', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it up with "just enough" outputs but requiredUtxos expect change
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS).fill({
+                    sats: 546n,
+                    tokenId: tokenIdThisAction,
+                    atoms: 1_000_000n,
+                    script: DUMMY_SCRIPT,
+                    isMintBaton: false,
+                });
+
+                const testAction = {
+                    outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                    tokenActions: [
+                        {
+                            type: 'SEND',
+                            tokenId: tokenIdThisAction,
+                            tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                        },
+                    ] as payment.TokenAction[],
+                };
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [
+                        {
+                            ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                tokenId: tokenIdThisAction,
+                                atoms:
+                                    BigInt(SLP_MAX_SEND_OUTPUTS) * 1_000_000n,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // No error thrown, returns processed outputs
+                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
+
+                // Original action remains unchanged
+                expect(testAction.outputs.length).to.equal(
+                    SLP_MAX_SEND_OUTPUTS + 1,
+                );
+            });
+            it('DOES NOT throw and adds change if adding change does not push us over the output limit', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it with enough outputs so that 1 change output puts us at the max
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS - 1).fill(
+                    {
+                        sats: 546n,
+                        tokenId: tokenIdThisAction,
+                        atoms: 1_000_000n,
+                        script: DUMMY_SCRIPT,
+                        isMintBaton: false,
+                    },
+                );
+
+                const testAction = {
+                    outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                    tokenActions: [
+                        {
+                            type: 'SEND',
+                            tokenId: tokenIdThisAction,
+                            tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                        },
+                    ] as payment.TokenAction[],
+                };
+
+                const outputsLengthBeforeChange = testAction.outputs.length;
+                expect(outputsLengthBeforeChange).to.equal(19);
+
+                const expectedChangeAtoms = 55n;
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [
+                        {
+                            ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT.token,
+                                tokenId: tokenIdThisAction,
+                                atoms:
+                                    BigInt(SLP_MAX_SEND_OUTPUTS - 1) *
+                                        1_000_000n +
+                                    expectedChangeAtoms,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // No error thrown, check returned outputs
+                expect(result).to.have.length(outputsLengthBeforeChange + 1);
+
+                // The OP_RETURN has been written in the returned results
+                const opReturn = result[0].script.toHex();
+                expect(opReturn).to.equal(
+                    `6a04534c500001020453454e442011111111111111111111111111111111111111111111111111111111111111110800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f4240080000000000000037`,
+                );
+
+                // The last token output is the change output; it has expected atoms
+                expect(BigInt(parseInt(opReturn.slice(-2), 16))).to.equal(
+                    expectedChangeAtoms,
+                );
+            });
+            it('Throws if a genesisAction includes any mint batons', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Baton is at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 0n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'An SLP SLP_TOKEN_TYPE_MINT_VAULT Action may not have any mint batons.',
+                );
+            });
+            it('Throws if genesisAction does not include mint qty at outIdx 1', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Sats at outIdx 1
+                                {
+                                    sats: 10000n,
+                                    script: DUMMY_SCRIPT,
+                                },
+                                // Mint qty at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Genesis action for SLP_TOKEN_TYPE_MINT_VAULT token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_MINT_VAULT tokens.',
+                );
+            });
+            it('Throws on MINT action (not currently supported)', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 10n,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'MINT',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `ecash-wallet does not currently support minting SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
+                );
+            });
+            it('Throws if genesisAction includes more than one mint qty output', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Another mint qty output
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP SLP_TOKEN_TYPE_MINT_VAULT GENESIS tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx 2.`,
+                );
+            });
+        });
     });
 });
 
@@ -3757,7 +4293,7 @@ describe('static methods', () => {
         });
         it('Can get total eCash satoshis held by all kinds of utxos', () => {
             expect(Wallet.sumUtxosSats(ALL_SUPPORTED_UTXOS)).to.equal(
-                93751638n,
+                93753276n,
             );
         });
     });

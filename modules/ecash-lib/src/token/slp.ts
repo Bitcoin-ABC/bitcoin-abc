@@ -62,6 +62,24 @@ export const SLP_TOKEN_TYPE_FUNGIBLE: SlpTokenType = {
     number: SLP_FUNGIBLE,
 };
 
+export const SLP_TOKEN_TYPE_MINT_VAULT: SlpTokenType = {
+    protocol: 'SLP',
+    type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+    number: SLP_MINT_VAULT,
+};
+
+export const SLP_TOKEN_TYPE_NFT1_GROUP: SlpTokenType = {
+    protocol: 'SLP',
+    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+    number: SLP_NFT1_GROUP,
+};
+
+export const SLP_TOKEN_TYPE_NFT1_CHILD: SlpTokenType = {
+    protocol: 'SLP',
+    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+    number: SLP_NFT1_CHILD,
+};
+
 /** Build an SLP GENESIS OP_RETURN, creating a new SLP token */
 export function slpGenesis(
     tokenType: number,

@@ -25,6 +25,7 @@ import {
     payment,
     SLP_TOKEN_TYPE_FUNGIBLE,
     ALP_TOKEN_TYPE_STANDARD,
+    SLP_TOKEN_TYPE_MINT_VAULT,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 import { Wallet } from '../src/wallet';
@@ -1113,5 +1114,235 @@ describe('Wallet can build and broadcast on regtest', () => {
          *    i.e. should we require the user to specify a burned mint baton?
          * [] SLP burn  mint baton
          */
+    });
+    it('We can handle SLP SLP_TOKEN_TYPE_MINT_VAULT token actions (GENESIS, SEND, and BURN, but not MINT)', async () => {
+        // Ref https://github.com/badger-cash/slp-specifications/blob/master/slp-token-type-2.md
+
+        // Init the wallet
+        const slpMintVaultWallet = Wallet.fromSk(
+            fromHex('15'.repeat(32)),
+            chronik,
+        );
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, slpMintVaultWallet.script);
+
+        // Sync the wallet
+        await slpMintVaultWallet.sync();
+
+        // We can mint an SLP_TOKEN_TYPE_MINT_VAULT token
+        // Note that this GenesisInfo is distinct from SLP_TOKEN_TYPE_FUNGIBLE
+        // Note that this token does not have mint batons
+        const slpMintVaultGenesisInfo = {
+            tokenTicker: 'SLP',
+            tokenName: 'SLP_TOKEN_TYPE_MINT_VAULT Test Token',
+            url: 'cashtab.com',
+            decimals: 0,
+            /** To mint this token, a tx must include utxos with this outputScript */
+            mintVaultScripthash: toHex(slpMintVaultWallet.pkh),
+        };
+
+        const genesisMintQty = 1_000n;
+
+        // Construct the Action for this tx
+        const slpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1, per SLP spec */
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: slpMintVaultWallet.script,
+                    atoms: genesisMintQty,
+                },
+            ],
+            tokenActions: [
+                /** SLP genesis action */
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                    genesisInfo: slpMintVaultGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast
+        const resp = await slpMintVaultWallet
+            .action(slpGenesisAction)
+            .build()
+            .broadcast();
+
+        const slpGenesisTokenId = resp.txid;
+
+        // It's a valid SLP genesis tx
+        const tokenInfo = await chronik.token(slpGenesisTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('SLP_TOKEN_TYPE_MINT_VAULT');
+
+        // We can get token supply from checking utxos
+        const supply = (await chronik.tokenId(slpGenesisTokenId).utxos()).utxos
+            .map(utxo => utxo.token!.atoms)
+            .reduce((prev, curr) => prev + curr, 0n);
+        expect(supply).to.equal(genesisMintQty);
+
+        // Include SLP_MAX_SEND_OUTPUTS-1 outputs so we can (just) fit token change AND a leftover output
+        const tokenSendOutputs: payment.PaymentOutput[] = [];
+        for (let i = 1; i <= SLP_MAX_SEND_OUTPUTS - 1; i++) {
+            tokenSendOutputs.push({
+                sats: 546n,
+                script: slpMintVaultWallet.script,
+                tokenId: slpGenesisTokenId,
+                atoms: BigInt(i),
+            });
+        }
+
+        // We can SEND our test token
+        const slpSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-18
+                 * In this way, we expect token change
+                 * at outIdx 19, the higest available outIdx
+                 * for SLP token outputs
+                 */
+                ...tokenSendOutputs,
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                },
+            ],
+        };
+
+        const slpSendActionTooManyOutputs: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-17
+                 * In this way, we expect token change
+                 * at outIdx 19, the higest available outIdx
+                 * for SLP token outputs
+                 */
+                ...tokenSendOutputs,
+                // Add a single additional token output
+                // We will try to add a token change output and this will be an output too far for spec
+                {
+                    sats: 546n,
+                    script: slpMintVaultWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: BigInt(1n),
+                },
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                },
+            ],
+        };
+
+        // NB we must sync() again for minted qty to be an available utxo
+        await slpMintVaultWallet.sync();
+
+        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
+        expect(() =>
+            slpMintVaultWallet.action(slpSendActionTooManyOutputs).build(),
+        ).to.throw(
+            Error,
+            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_MINT_VAULT.`,
+        );
+
+        // Build and broadcast
+        const sendResponse = await slpMintVaultWallet
+            .action(slpSendAction)
+            .build()
+            .broadcast();
+
+        const slpSendTxid = sendResponse.txid;
+
+        const sendTx = await chronik.tx(slpSendTxid);
+        expect(sendTx.tokenEntries).to.have.length(1);
+        expect(sendTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(sendTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(sendTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // We cannot burn an SLP amount that we do not have exact utxos for
+        const burnAtomsThatDoNotMatchUtxos = 300n;
+        const slpCannotBurnAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * We don't specify any token SEND outputs
+                 * We could, but let's just let the wallet
+                 * figure them out to complete our BURN
+                 */
+            ],
+            tokenActions: [
+                /** SLP burn action */
+                {
+                    type: 'BURN',
+                    tokenId: slpGenesisTokenId,
+                    burnAtoms: burnAtomsThatDoNotMatchUtxos,
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                },
+            ],
+        };
+
+        // Sync to get latest utxo set
+        await slpMintVaultWallet.sync();
+
+        // We can't burn this amount of atoms because we do not have a utxo of this size
+        expect(() =>
+            slpMintVaultWallet.action(slpCannotBurnAction).build(),
+        ).to.throw(
+            Error,
+            `Unable to find UTXOs for ${slpGenesisTokenId} with exactly ${burnAtomsThatDoNotMatchUtxos} atoms. Create a UTXO with ${burnAtomsThatDoNotMatchUtxos} atoms to burn without a SEND action.`,
+        );
+
+        const burnAtoms = 1_000n;
+        const slpBurnAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * We don't specify any token SEND outputs
+                 * We could, but let's just let the wallet
+                 * figure them out to complete our BURN
+                 */
+            ],
+            tokenActions: [
+                /** SLP burn action */
+                {
+                    type: 'BURN',
+                    tokenId: slpGenesisTokenId,
+                    burnAtoms,
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                },
+            ],
+        };
+
+        // Build and broadcast
+        const burnResponse = await slpMintVaultWallet
+            .action(slpBurnAction)
+            .build()
+            .broadcast();
+
+        const burnTx = await chronik.tx(burnResponse.txid);
+        expect(burnTx.tokenEntries).to.have.length(1);
+        expect(burnTx.tokenEntries[0].txType).to.equal('BURN');
+        expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(burnAtoms);
+        expect(burnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(burnAtoms);
+        expect(burnTx.tokenEntries[0].burnSummary).to.equal(``);
+        expect(burnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
     });
 });

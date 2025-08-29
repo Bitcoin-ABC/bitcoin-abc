@@ -796,7 +796,13 @@ export const validateTokenActions = (tokenActions: payment.TokenAction[]) => {
                 break;
             }
             case 'MINT': {
-                const { tokenId } = tokenAction as payment.MintAction;
+                const { tokenId, tokenType } =
+                    tokenAction as payment.MintAction;
+                if (tokenType.type === 'SLP_TOKEN_TYPE_MINT_VAULT') {
+                    throw new Error(
+                        `ecash-wallet does not currently support minting SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
+                    );
+                }
                 if (mintTokenIds.includes(tokenId)) {
                     throw new Error(
                         `Duplicate MINT action for tokenId ${tokenId}`,
@@ -1013,6 +1019,13 @@ interface SelectUtxosResult {
     errors?: string[];
 }
 
+/**
+ * Select utxos to fulfill the requirements of an Action
+ *
+ * NB the following are not currently supported:
+ * - Minting of SLP_TOKEN_TYPE_MINT_VAULT tokens
+ * - Minting of SLP_TOKEN_TYPE_NFT1 tokens
+ */
 export const selectUtxos = (
     action: payment.Action,
     /**
@@ -1511,12 +1524,15 @@ export const finalizeOutputs = (
     // Validate actions
     validateTokenActions(tokenActions);
 
-    if (tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE') {
-        // If this is an SLP_TOKEN_TYPE_FUNGIBLE token action
+    if (
+        tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE' ||
+        tokenType.type === 'SLP_TOKEN_TYPE_MINT_VAULT'
+    ) {
+        // If this is an SLP_TOKEN_TYPE_FUNGIBLE or SLP_TOKEN_TYPE_MINT_VAULT token action
         if (tokenActions.length > 1) {
             // And we have more than 1 tokenAction specified
             throw new Error(
-                `SLP_TOKEN_TYPE_FUNGIBLE token txs may only have a single token action. ${tokenActions.length} tokenActions specified.`,
+                `${tokenType.type} token txs may only have a single token action. ${tokenActions.length} tokenActions specified.`,
             );
         }
     }
@@ -1765,10 +1781,9 @@ export const finalizeOutputs = (
                     // Just throw a specific error msg
                     const changeOutputIdx = outputs.length;
 
-                    // NB we have already validated for only SLP_TOKEN_TYPE_FUNGIBLE and ALP_TOKEN_TYPE_STANDARD
-                    // So we can assume the tokenType is one of these
+                    // Apply SLP or ALP max output rules
                     const changeOutputIdxMax =
-                        tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE'
+                        tokenType.protocol === 'SLP'
                             ? SLP_MAX_SEND_OUTPUTS
                             : ALP_POLICY_MAX_OUTPUTS;
 
@@ -1807,6 +1822,115 @@ export const finalizeOutputs = (
     const numBatonsMap: Map<string, number> = new Map();
 
     switch (tokenType.type) {
+        case 'SLP_TOKEN_TYPE_MINT_VAULT': {
+            /**
+             * Validate for tokenId(s) and actions
+             * - SLP SLP_TOKEN_TYPE_MINT_VAULT can have ONLY genesis or
+             *   ONLY send or ONLY mint, ONLY with a single tokenId
+             *
+             * NB ecash-wallet does not currently support MINT for SLP_TOKEN_TYPE_MINT_VAULT tokens
+             * This is handled in validateTokenActions
+             */
+            if (tokenIdsThisAction.size > 1) {
+                throw new Error(
+                    `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action may only be associated with a single tokenId. Found ${tokenIdsThisAction.size}.`,
+                );
+            }
+            if (
+                typeof genesisAction !== 'undefined' &&
+                tokenIdsThisAction.size !== 0
+            ) {
+                // If we have a genesis action and any other associated tokenIds
+                // NB this covers the case of attempting to combine GENESIS and BURN
+                throw new Error(
+                    `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action with a specified genesisAction may not have any other associated token actions.`,
+                );
+            }
+            /**
+             * For an SLP SLP_TOKEN_TYPE_FUNGIBLE Action,
+             * if we have any send outputs, then we cannot have any other token outputs
+             * and we may ONLY have a burn action
+             */
+            if (sendActionTokenIds.size > 0 && mintActionTokenIds.size > 0) {
+                throw new Error(
+                    `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action with SEND outputs may not have any MINT outputs.`,
+                );
+            }
+
+            /**
+             * Now that we have validated everything we can validate at the Action and
+             * Output level, iterate over outputs to validate for spec-related requirements
+             * related to output ordering and indices
+             *
+             * Spec
+             * https://github.com/badger-cash/slp-specifications/blob/master/slp-token-type-2.md
+             *
+             * - Mint qty must be at outIdx 1 for GENESIS txs (can be at 1 and more for MINT txs)
+             * - Mint txs are only valid if their blockheight is > genesis tx blockheight
+             * - No mint batons
+             */
+            for (let i = 0; i < outputs.length; i += 1) {
+                const output = outputs[i];
+                if ('tokenId' in output) {
+                    if (output.isMintBaton === true) {
+                        throw new Error(
+                            `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action may not have any mint batons.`,
+                        );
+                    }
+
+                    // If this is a token output
+                    if (i > SLP_MAX_SEND_OUTPUTS) {
+                        /**
+                         * For an SLP SLP_TOKEN_TYPE_MINT_VAULT action, we cannot have
+                         * more than SLP_MAX_SEND_OUTPUTS (19) total token outputs
+                         *
+                         * We will support Actions with more than 19 outputs when we support
+                         * chained txs, but even in this case there are additional rules (i.e.
+                         * we would only support chained txs of sends, not mint or genesis)
+                         *
+                         * If the outIdx is higher than SLP_MAX_SEND_OUTPUTS, throw
+                         * NB we need to validate not just for max outputs, but also for max outIdx, this approach does both
+                         */
+                        throw new Error(
+                            `An SLP SLP_TOKEN_TYPE_MINT_VAULT Action may not have more than ${SLP_MAX_SEND_OUTPUTS} token outputs, and no outputs may be at outIdx > ${SLP_MAX_SEND_OUTPUTS}. Found output at outIdx ${i}.`,
+                        );
+                    }
+                    if (sendActionTokenIds.has(output.tokenId)) {
+                        // If this is a token send output, update lastAtomsOutIdx map
+                        lastAtomsOutIdxMap.set(output.tokenId, i);
+                    }
+                }
+                if (i === 1) {
+                    // If we are at outIdx of 1
+                    if (typeof genesisAction !== 'undefined') {
+                        // If we have a genesis action specified
+                        if (
+                            !('tokenId' in output) ||
+                            output.tokenId !==
+                                payment.GENESIS_TOKEN_ID_PLACEHOLDER
+                        ) {
+                            // Throw if output at outIdx 1 is NOT a genesis-related mint quantity output
+                            throw new Error(
+                                `Genesis action for SLP_TOKEN_TYPE_MINT_VAULT token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
+                            );
+                        }
+                        // else continue to the next output, no further validation required
+                        continue;
+                    }
+                }
+                if (
+                    typeof genesisAction !== 'undefined' &&
+                    'tokenId' in output &&
+                    output.tokenId === payment.GENESIS_TOKEN_ID_PLACEHOLDER
+                ) {
+                    // Genesis tx cannot have any mint qty output other than the one at outIdx 1
+                    throw new Error(
+                        `An SLP SLP_TOKEN_TYPE_MINT_VAULT GENESIS tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx ${i}.`,
+                    );
+                }
+            }
+            break;
+        }
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * Valid
@@ -1878,7 +2002,7 @@ export const finalizeOutputs = (
                          * NB we need to validate not just for max outputs, but also for max outIdx, this approach does both
                          */
                         throw new Error(
-                            `An SLP SLP_TOKEN_TYPE_FUNGIBLE Action may not have more than ${SLP_MAX_SEND_OUTPUTS} token outputs, and no outputs may be at outIdx > ${SLP_MAX_SEND_OUTPUTS}. Found output at outIdx ${i}.`,
+                            `An SLP ${tokenType.type} Action may not have more than ${SLP_MAX_SEND_OUTPUTS} token outputs, and no outputs may be at outIdx > ${SLP_MAX_SEND_OUTPUTS}. Found output at outIdx ${i}.`,
                         );
                     }
                     if (sendActionTokenIds.has(output.tokenId)) {
@@ -2141,6 +2265,98 @@ export const finalizeOutputs = (
     let opReturnScript: Script;
 
     switch (tokenType.type) {
+        case 'SLP_TOKEN_TYPE_MINT_VAULT': {
+            /**
+             * NB for SLP_TOKEN_TYPE_MINT_VAULT, lastAtomsOutIdx is only relevant for a send tx
+             * We do not need this info for genesis as there can be only one qty output
+             * We would need this info for MINT, but this is not yet supported
+             *
+             * NB for SLP_TOKEN_TYPE_MINT_VAULT, we expect only 1 or 0 entries in lastAtomsOutIdxMap
+             */
+
+            // GENESIS action mint qty, if applicable
+            let mintQuantity: undefined | bigint;
+
+            // We only expect 0 or 1 entries in lastAtomsKeyValueArr for SLP_TOKEN_TYPE_FUNGIBLE
+            const lastAtomsKeyValueArr = lastAtomsOutIdxMap
+                .entries()
+                .next().value;
+
+            const lastAtomsOutIdx: undefined | number =
+                typeof lastAtomsKeyValueArr !== 'undefined'
+                    ? lastAtomsKeyValueArr[1]
+                    : undefined;
+
+            // Will only have one for SLP. Necessary for SEND.
+            // NB SLP MINT txs may only have 1 mint qty and 1 mint baton
+            const atomsArray: bigint[] = [];
+            // NB we start iterating at i=1 bc we do not have to do anything for the outIdx 0 OP_RETURN output
+            for (let i = 1; i < outputs.length; i += 1) {
+                const output = outputs[i];
+
+                if ('tokenId' in output) {
+                    if (sendActionTokenIds.has(output.tokenId)) {
+                        // If this is a token SEND output, we must add its atoms to the atomsArray
+                        // NB for SLP_TOKEN_TYPE_FUNGIBLE we only use atomsArray for SEND action
+                        atomsArray.push(output.atoms);
+                    }
+                }
+                if (
+                    'tokenId' in output &&
+                    output.tokenId === payment.GENESIS_TOKEN_ID_PLACEHOLDER
+                ) {
+                    // If this is a mint qty output (GENESIS or MINT)
+                    mintQuantity = output.atoms;
+                }
+                if (
+                    atomsArray.length !== i &&
+                    i <= SLP_MAX_SEND_OUTPUTS &&
+                    typeof lastAtomsOutIdx === 'number' &&
+                    i <= lastAtomsOutIdx
+                ) {
+                    // If we did not add atoms to atomsArray for this outIdx
+                    // AND we are still dealing with outIdx values that are associated
+                    // with SLP tokens
+                    // AND we still expect another outIdx associated with this token send later
+                    // THEN add 0n placeholder
+                    // NB we only use atomsArray for SLP SEND or BURN for SLP_TOKEN_TYPE_FUNGIBLE
+                    atomsArray.push(0n);
+                }
+            }
+
+            if (typeof mintQuantity !== 'undefined') {
+                // If we have a mint quantity (for SLP_TOKEN_TYPE_FUNGIBLE, this is required
+                // for all GENESIS and MINT actions)
+                if (typeof genesisAction !== 'undefined') {
+                    // If this is a GENESIS tx, build a GENESIS OP_RETURN
+                    opReturnScript = slpGenesis(
+                        genesisAction.tokenType.number,
+                        genesisAction.genesisInfo,
+                        mintQuantity,
+                    );
+                }
+            } else if (burnActionTokenIds.size > 0) {
+                const burnAtoms = (tokenActions[0] as payment.BurnAction)
+                    .burnAtoms;
+                opReturnScript = slpBurn(
+                    (tokenActions[0] as payment.BurnAction).tokenId,
+                    tokenType.number,
+                    burnAtoms,
+                );
+            } else {
+                // SEND
+                opReturnScript = slpSend(
+                    (tokenActions[0] as payment.SendAction).tokenId,
+                    tokenType.number,
+                    atomsArray,
+                );
+            }
+
+            // Write over the blank OP_RETURN output at index 0
+            (outputs[0] as payment.PaymentOutput).script = opReturnScript!;
+
+            break;
+        }
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * NB for SLP_TOKEN_TYPE_FUNGIBLE, lastAtomsOutIdx is only relevant for a send tx

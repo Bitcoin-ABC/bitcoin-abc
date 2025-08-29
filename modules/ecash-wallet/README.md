@@ -33,7 +33,7 @@ See tests for detailed methods.
 -   GENESIS, MINT, SEND, and BURN for all token types
     [x] SLP_TOKEN_TYPE_FUNGIBLE
     [x] ALP_TOKEN_TYPE_STANDARD
-    [] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
+    [x] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
     [] SLP_TOKEN_TYPE_NFT1_GROUP
     [] SLP_TOKEN_TYPE_NFT1_CHILD
     [] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
@@ -70,3 +70,7 @@ See tests for detailed methods.
 # 1.1.0
 
 [D18398](https://reviews.bitcoinabc.org/D18398) Accept addresses in the transaction ouputs
+
+# 1.2.0
+
+[D18548](https://reviews.bitcoinabc.org/D18548) Support GENESIS, SEND, and BURN for SLP_TOKEN_TYPE_MINT_VAULT
