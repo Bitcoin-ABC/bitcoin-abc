@@ -30,9 +30,6 @@ from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
 
-MINER_FUND_RATIO = 0.32 + 0.01
-MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
-
 
 class ChronikWsTest(BitcoinTestFramework):
     def set_test_params(self):
