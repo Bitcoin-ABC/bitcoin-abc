@@ -1401,6 +1401,9 @@ export const paymentOutputsToTxOutputs = (
  * - May only have 1 mint baton and it must be at outIdx >= 2 and <= 0xff (255)
  * - All send outputs must be at 1<=outIdx<=19
  *
+ * SLP_TOKEN_TYPE_NFT1_GROUP is the same spec rules as SLP_TOKEN_TYPE_FUNGIBLE except different type byte
+ * Will have some distinctions added when we support SLP_TOKEN_TYPE_NFT1_CHILD
+ *
  * SLP spec rules prevent exceeding 223 bytes in the OP_RETURN. So, even if this
  * limit increase in future, SLP txs will be the same.
  *
@@ -1524,11 +1527,10 @@ export const finalizeOutputs = (
     // Validate actions
     validateTokenActions(tokenActions);
 
-    if (
-        tokenType.type === 'SLP_TOKEN_TYPE_FUNGIBLE' ||
-        tokenType.type === 'SLP_TOKEN_TYPE_MINT_VAULT'
-    ) {
-        // If this is an SLP_TOKEN_TYPE_FUNGIBLE or SLP_TOKEN_TYPE_MINT_VAULT token action
+    if (tokenType.protocol === 'SLP') {
+        // SLP tokens may have only one token action
+        // We have a kind of exception for minting SLP NFTs, where we must consume / burn a Parent token to mint a child
+        // But ecash-wallet treats this as one action, since it is a unique case
         if (tokenActions.length > 1) {
             // And we have more than 1 tokenAction specified
             throw new Error(
@@ -1931,6 +1933,9 @@ export const finalizeOutputs = (
             }
             break;
         }
+        // Intentional fall through as SLP_TOKEN_TYPE_NFT1_GROUP tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
+        // There is a unique case where we burn exactly 1 of these, but that is handled in the inputs, needed for selecting utxos, only for minting a SLP_TOKEN_TYPE_NFT1_CHILD
+        case 'SLP_TOKEN_TYPE_NFT1_GROUP':
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * Valid
@@ -1951,7 +1956,7 @@ export const finalizeOutputs = (
              */
             if (tokenIdsThisAction.size > 1) {
                 throw new Error(
-                    `An SLP SLP_TOKEN_TYPE_FUNGIBLE Action may only be associated with a single tokenId. Found ${tokenIdsThisAction.size}.`,
+                    `An SLP ${tokenType.type} Action may only be associated with a single tokenId. Found ${tokenIdsThisAction.size}.`,
                 );
             }
             if (
@@ -1961,7 +1966,7 @@ export const finalizeOutputs = (
                 // If we have a genesis action and any other associated tokenIds
                 // NB this covers the case of attempting to combine GENESIS and BURN
                 throw new Error(
-                    `An SLP SLP_TOKEN_TYPE_FUNGIBLE Action with a specified genesisAction may not have any other associated token actions.`,
+                    `An SLP ${tokenType.type} Action with a specified genesisAction may not have any other associated token actions.`,
                 );
             }
             /**
@@ -1971,7 +1976,7 @@ export const finalizeOutputs = (
              */
             if (sendActionTokenIds.size > 0 && mintActionTokenIds.size > 0) {
                 throw new Error(
-                    `An SLP SLP_TOKEN_TYPE_FUNGIBLE Action with SEND outputs may not have any MINT outputs.`,
+                    `An SLP ${tokenType.type} Action with SEND outputs may not have any MINT outputs.`,
                 );
             }
 
@@ -2022,7 +2027,7 @@ export const finalizeOutputs = (
                         ) {
                             // Throw if output at outIdx 1 is NOT a genesis-related mint quantity output
                             throw new Error(
-                                `Genesis action for ${tokenType.type} token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_FUNGIBLE tokens.`,
+                                `Genesis action for ${tokenType.type} token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP ${tokenType.type} tokens.`,
                             );
                         }
                         // else continue to the next output, no further validation required
@@ -2038,7 +2043,7 @@ export const finalizeOutputs = (
                             // is NOT a mint quantity output, throw
                             // This is a spec requirement for SLP SLP_TOKEN_TYPE_FUNGIBLE tokens
                             throw new Error(
-                                `Mint action for ${tokenType.type} token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_FUNGIBLE tokens.`,
+                                `Mint action for ${tokenType.type} token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP ${tokenType.type} tokens.`,
                             );
                         }
                         // If outIdx 1 is a mint qty output, no further validation required
@@ -2357,6 +2362,8 @@ export const finalizeOutputs = (
 
             break;
         }
+        // Intentional fall through as SLP_TOKEN_TYPE_NFT1_GROUP tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
+        case 'SLP_TOKEN_TYPE_NFT1_GROUP':
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * NB for SLP_TOKEN_TYPE_FUNGIBLE, lastAtomsOutIdx is only relevant for a send tx

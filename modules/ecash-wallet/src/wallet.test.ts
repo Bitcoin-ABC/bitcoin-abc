@@ -21,6 +21,8 @@ import {
     SLP_TOKEN_TYPE_FUNGIBLE,
     ALP_TOKEN_TYPE_STANDARD,
     SLP_TOKEN_TYPE_MINT_VAULT,
+    SLP_NFT1_GROUP,
+    SLP_TOKEN_TYPE_NFT1_GROUP,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -123,7 +125,7 @@ const getDummyAlpUtxo = (
     };
 };
 
-// Dummy SLP utxos (quantity and mintbaton)
+// Dummy SLP_TOKEN_TYPE_FUNGIBLE utxos (quantity and mintbaton)
 const DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE = toHex(strToBytes('SLP0')).repeat(
     8,
 );
@@ -149,6 +151,33 @@ const getDummySlpUtxo = (
         ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE,
         token: { ...DUMMY_TOKEN_SLP_TOKEN_TYPE_FUNGIBLE, tokenId, atoms },
     };
+};
+
+// Dummy SLP_TOKEN_TYPE_NFT1_GROUP utxos (quantity and mintbaton)
+const DUMMY_TOKENID_SLP_TOKEN_TYPE_NFT1_GROUP = toHex(
+    strToBytes('NFTP'),
+).repeat(8);
+
+const SLP_TOKEN_TYPE_NFT1_GROUP_ATOMS = 12n;
+const DUMMY_TOKEN_SLP_TOKEN_TYPE_NFT1_GROUP: Token = {
+    tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_NFT1_GROUP,
+    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+    atoms: SLP_TOKEN_TYPE_NFT1_GROUP_ATOMS,
+    isMintBaton: false,
+};
+const DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP: ScriptUtxo = {
+    ...DUMMY_UTXO,
+    outpoint: { ...DUMMY_OUTPOINT, outIdx: 6 },
+    token: DUMMY_TOKEN_SLP_TOKEN_TYPE_NFT1_GROUP,
+};
+const DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON: ScriptUtxo = {
+    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+    outpoint: { ...DUMMY_OUTPOINT, outIdx: 7 },
+    token: {
+        ...DUMMY_TOKEN_SLP_TOKEN_TYPE_NFT1_GROUP,
+        isMintBaton: true,
+        atoms: 0n,
+    },
 };
 
 // Dummy SLP_TOKEN_TYPE_MINT_VAULT utxos (quantity only; mint batons do not exist for this type)
@@ -182,6 +211,8 @@ const ALL_SUPPORTED_UTXOS: ScriptUtxo[] = [
     DUMMY_SPENDABLE_COINBASE_UTXO,
     DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE,
     DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
+    DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+    DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
     DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
     DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD_MINTBATON,
     DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT,
@@ -2913,6 +2944,673 @@ describe('Support functions', () => {
                 );
             });
         });
+        context('SLP_TOKEN_TYPE_NFT1_GROUP', () => {
+            it('Throws if action is associated with more than one tokenId', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                                {
+                                    sats: 546n,
+                                    tokenId: '22'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                                },
+                                {
+                                    type: 'SEND',
+                                    tokenId: '22'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                            {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                    tokenId: '22'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Action must include only one token type. Found (at least) two: ALP_TOKEN_TYPE_STANDARD and SLP_TOKEN_TYPE_NFT1_GROUP.',
+                );
+            });
+            it('Throws if we have a genesisAction and another token action', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                // Blank OP_RETURN
+                                { sats: 0n },
+                                // Genesis mint qty at correct outIdx for SLP_TOKEN_TYPE_FUNGIBLE
+                                {
+                                    sats: 546n,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Token SEND output unrelated to genesis
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                                {
+                                    type: 'SEND',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'SLP_TOKEN_TYPE_NFT1_GROUP token txs may only have a single token action. 2 tokenActions specified.',
+                );
+            });
+            it('Throws if action combines MINT and SEND outputs', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Send output
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                                // Mint output
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                                {
+                                    type: 'MINT',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `ecash-wallet does not support minting and sending the same token in the same Action. tokenActions MINT and SEND ${tokenIdThisAction}.`,
+                );
+            });
+            it('Throws if action exceeds SLP_MAX_SEND_OUTPUTS max outputs per tx', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                const atomsPerOutput = 1_000n;
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS + 1).fill(
+                    {
+                        sats: 546n,
+                        tokenId: tokenIdThisAction,
+                        atoms: atomsPerOutput,
+                        script: DUMMY_SCRIPT,
+                        isMintBaton: false,
+                    },
+                );
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                    tokenId: tokenIdThisAction,
+                                    /** Exactly specify outputs so no change output is added */
+                                    atoms:
+                                        BigInt(SLP_MAX_SEND_OUTPUTS + 1) *
+                                        atomsPerOutput,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP SLP_TOKEN_TYPE_NFT1_GROUP Action may not have more than ${SLP_MAX_SEND_OUTPUTS} token outputs, and no outputs may be at outIdx > ${SLP_MAX_SEND_OUTPUTS}. Found output at outIdx 20.`,
+                );
+            });
+            it('Throws if generating a token change output will cause us to exceed SLP max outputs per tx', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it up with "just enough" outputs and no change expected
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS).fill({
+                    sats: 546n,
+                    tokenId: tokenIdThisAction,
+                    atoms: 1_000_000n,
+                    script: DUMMY_SCRIPT,
+                    isMintBaton: false,
+                });
+
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                            tokenActions: [
+                                {
+                                    type: 'SEND',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `Tx needs a token change output to avoid burning atoms of ${tokenIdThisAction}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of ${SLP_MAX_SEND_OUTPUTS} for SLP_TOKEN_TYPE_NFT1_GROUP.`,
+                );
+            });
+            it('DOES NOT throw if output atoms exactly match input atoms at max outputs, so no change output is generated', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it up with "just enough" outputs but requiredUtxos expect change
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS).fill({
+                    sats: 546n,
+                    tokenId: tokenIdThisAction,
+                    atoms: 1_000_000n,
+                    script: DUMMY_SCRIPT,
+                    isMintBaton: false,
+                });
+
+                const testAction = {
+                    outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                    tokenActions: [
+                        {
+                            type: 'SEND',
+                            tokenId: tokenIdThisAction,
+                            tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                        },
+                    ] as payment.TokenAction[],
+                };
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [
+                        {
+                            ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                tokenId: tokenIdThisAction,
+                                atoms:
+                                    BigInt(SLP_MAX_SEND_OUTPUTS) * 1_000_000n,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // No error thrown, returns processed outputs
+                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
+
+                // Original action remains unchanged
+                expect(testAction.outputs.length).to.equal(
+                    SLP_MAX_SEND_OUTPUTS + 1,
+                );
+            });
+            it('DOES NOT throw and adds change if adding change does not push us over the output limit', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                // Fill it with enough outputs so that 1 change output puts us at the max
+                const tooManySendOutputs = Array(SLP_MAX_SEND_OUTPUTS - 1).fill(
+                    {
+                        sats: 546n,
+                        tokenId: tokenIdThisAction,
+                        atoms: 1_000_000n,
+                        script: DUMMY_SCRIPT,
+                        isMintBaton: false,
+                    },
+                );
+
+                const testAction = {
+                    outputs: [{ sats: 0n }, ...tooManySendOutputs],
+                    tokenActions: [
+                        {
+                            type: 'SEND',
+                            tokenId: tokenIdThisAction,
+                            tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                        },
+                    ] as payment.TokenAction[],
+                };
+
+                const outputsLengthBeforeChange = testAction.outputs.length;
+                expect(outputsLengthBeforeChange).to.equal(19);
+
+                const expectedChangeAtoms = 55n;
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [
+                        {
+                            ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            token: {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP.token,
+                                tokenId: tokenIdThisAction,
+                                atoms:
+                                    BigInt(SLP_MAX_SEND_OUTPUTS - 1) *
+                                        1_000_000n +
+                                    expectedChangeAtoms,
+                            } as Token,
+                        },
+                    ],
+                    DUMMY_CHANGE_SCRIPT,
+                );
+
+                // No error thrown, check returned outputs
+                expect(result).to.have.length(outputsLengthBeforeChange + 1);
+
+                // The OP_RETURN has been written in the returned results
+                const opReturn = result[0].script.toHex();
+                expect(opReturn).to.equal(
+                    `6a04534c500001${SLP_NFT1_GROUP.toString(
+                        16,
+                    )}0453454e442011111111111111111111111111111111111111111111111111111111111111110800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f4240080000000000000037`,
+                );
+
+                // The last token output is the change output; it has expected atoms
+                expect(BigInt(parseInt(opReturn.slice(-2), 16))).to.equal(
+                    expectedChangeAtoms,
+                );
+            });
+            it('Throws if genesisAction does not include mint qty at outIdx 1', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Baton is at outIdx 1
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 0n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Genesis action for SLP_TOKEN_TYPE_NFT1_GROUP token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_NFT1_GROUP tokens.',
+                );
+            });
+            it('Throws if MINT action does not include mint qty at outIdx 1', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Non-genesis mint baton output is at outIdx 1
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 0n,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'MINT',
+                                    tokenId: '11'.repeat(32),
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `Mint action for SLP_TOKEN_TYPE_NFT1_GROUP token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_NFT1_GROUP tokens.`,
+                );
+            });
+            it('Throws if genesisAction includes more than one mint baton', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Mint baton output is at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 0n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                                // Another mint baton output is at outIdx 3
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 0n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP_TOKEN_TYPE_NFT1_GROUP GENESIS tx may only specify exactly 1 mint baton. Found second mint baton at outIdx 3.`,
+                );
+            });
+            it('Throws if genesisAction includes more than one mint qty output', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                                // Mint baton output is at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 0n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                                // Another mint qty output
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 10n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP_TOKEN_TYPE_NFT1_GROUP GENESIS tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx 3.`,
+                );
+            });
+            it('Throws if MINT action includes more than 1 mint baton', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 10n,
+                                    isMintBaton: false,
+                                },
+                                // Non-genesis mint baton output is at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 0n,
+                                    isMintBaton: true,
+                                },
+                                // Another non-genesis mint baton output is at outIdx 3
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 0n,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'MINT',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP_TOKEN_TYPE_NFT1_GROUP MINT tx may only specify exactly 1 mint baton. Found second mint baton at outIdx 3.`,
+                );
+            });
+            it('Throws if MINT action includes more than 1 mint qty', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Mint qty output at outIdx 1, per spec
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 10n,
+                                    isMintBaton: false,
+                                },
+                                // Non-genesis mint baton output is at outIdx 2
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 0n,
+                                    isMintBaton: true,
+                                },
+                                // Another mint qty output
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 10n,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'MINT',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
+                            DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `An SLP_TOKEN_TYPE_NFT1_GROUP MINT tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx 3.`,
+                );
+            });
+            it('Throws if genesisAction includes mint baton at first output index', () => {
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: true,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'GENESIS',
+                                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                                    genesisInfo: nullGenesisInfo,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [DUMMY_UTXO],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Genesis action for SLP_TOKEN_TYPE_NFT1_GROUP token specified, but no mint quantity output found at outIdx 1. This is a spec requirement for SLP SLP_TOKEN_TYPE_NFT1_GROUP tokens.',
+                );
+            });
+        });
         context('ALP_TOKEN_TYPE_STANDARD', () => {
             it('Throws if we have SEND and MINT actions associated with the same tokenId', () => {
                 const tokenIdThisAction = `11`.repeat(32);
@@ -4293,7 +4991,7 @@ describe('static methods', () => {
         });
         it('Can get total eCash satoshis held by all kinds of utxos', () => {
             expect(Wallet.sumUtxosSats(ALL_SUPPORTED_UTXOS)).to.equal(
-                93753276n,
+                93754368n,
             );
         });
     });
