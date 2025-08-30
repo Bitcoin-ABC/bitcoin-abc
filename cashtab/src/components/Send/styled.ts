@@ -32,6 +32,20 @@ const fadeInUp = keyframes`
     }
 `;
 
+// Animation for progress bar
+const progressBar = keyframes`
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
+`;
+
+// Shared constant for progress bar duration
+// Time in MS it takes for the extension or webapp tx modal to close
+export const PROGRESS_BAR_DURATION_MS = 2000;
+
 export const SendButtonContainer = styled.div`
     position: sticky;
     bottom: 0;
@@ -254,29 +268,86 @@ export const CopyButton = styled.button`
 `;
 
 export const SuccessButton = styled.button`
-    background: ${props => props.theme.accent};
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 30px;
+    background: ${props => props.theme.primaryBackground};
+    color: ${props => props.theme.primaryText};
+    border: 2px solid ${props => props.theme.primaryText};
+    border-radius: 20px;
+    padding: 12px 24px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.2s ease;
     margin-top: 20px;
-    transition: all 0.3s ease;
     animation: ${fadeInUp} 0.5s ease-out 0.4s both;
 
     &:hover {
-        background: ${props => props.theme.accent + 'dd'};
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        background: ${props => props.theme.primaryText};
+        color: ${props => props.theme.primaryBackground};
     }
 
     /* Larger button for mobile and extension */
     @media (max-width: 768px), (max-height: 600px) {
-        padding: 16px 40px;
+        padding: 16px 32px;
         font-size: 18px;
         margin-top: 30px;
-        border-radius: 12px;
     }
+`;
+
+export const ProgressBarContainer = styled.div`
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+
+    /* Hide on desktop, show only on mobile and extension */
+    @media (min-width: 769px) and (min-height: 601px) {
+        display: none;
+    }
+
+    /* Full screen for extension and mobile */
+    @media (max-width: 768px), (max-height: 600px) {
+        border-radius: 0;
+    }
+`;
+
+export const ProgressBar = styled.div<{ isActive: boolean }>`
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        ${props => props.theme.accent},
+        ${props => props.theme.accent}dd
+    );
+    animation: ${props => (props.isActive ? progressBar : 'none')}
+        ${PROGRESS_BAR_DURATION_MS}ms linear forwards;
+`;
+
+export const ScreenProgressBarContainer = styled.div`
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    overflow: hidden;
+
+    /* Show only on desktop */
+    @media (max-width: 768px), (max-height: 600px) {
+        display: none;
+    }
+`;
+
+export const ScreenProgressBar = styled.div<{ isActive: boolean }>`
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        ${props => props.theme.accent},
+        ${props => props.theme.accent}dd
+    );
+    animation: ${props => (props.isActive ? progressBar : 'none')}
+        ${PROGRESS_BAR_DURATION_MS}ms linear forwards;
 `;
