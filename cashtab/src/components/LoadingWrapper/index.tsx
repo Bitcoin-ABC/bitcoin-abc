@@ -27,10 +27,13 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
     const [error, setError] = useState<null | string>(null);
 
     useEffect(() => {
-        ChronikClient.useStrategy(
-            ConnectionStrategy.ClosestFirst,
-            chronikConfig.urls,
-        )
+        // Detect if we're in transaction mode (URL has parameters)
+        const hasUrlParameters = window.location.hash.includes('?');
+        const strategy = hasUrlParameters
+            ? ConnectionStrategy.AsOrdered
+            : ConnectionStrategy.ClosestFirst;
+
+        ChronikClient.useStrategy(strategy, chronikConfig.urls)
             .then(client => {
                 setChronik(client);
                 setAgora(new Agora(client));
