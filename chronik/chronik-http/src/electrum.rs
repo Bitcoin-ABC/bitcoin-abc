@@ -1159,6 +1159,15 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         script_hash: Sha256,
         formatted_subscription: String,
     ) -> Result<Value, RPCError> {
+        let max_history = self.max_history;
+        let status = get_scripthash_status(
+            script_hash,
+            self.indexer.clone(),
+            self.node.clone(),
+            max_history,
+        )
+        .await?;
+
         let indexer = self.indexer.read().await;
         let mut subs: tokio::sync::RwLockWriteGuard<
             '_,
@@ -1171,7 +1180,6 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
-        let max_history = self.max_history;
 
         let sub_id = hash_to_sub_id(&script_hash.into());
         if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
@@ -1224,14 +1232,6 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 log_chronik!("Unsubscription from electrum scripthash\n");
             });
         }
-
-        let status = get_scripthash_status(
-            script_hash,
-            self.indexer.clone(),
-            self.node.clone(),
-            max_history,
-        )
-        .await?;
 
         Ok(serde_json::json!(status))
     }
