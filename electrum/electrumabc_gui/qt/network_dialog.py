@@ -1047,7 +1047,8 @@ class NetworkChoiceLayout(QObject, PrintError):
             self.server_port.setText(port)
         self.ssl_cb.setChecked(protocol == "s")
         ssl_disable = (
-            self.ssl_cb.isChecked()
+            host not in ("127.0.0.1", "::1", "localhost")
+            and self.ssl_cb.isChecked()
             and not self.tor_cb.isChecked()
             and not host.lower().endswith(".onion")
         )
