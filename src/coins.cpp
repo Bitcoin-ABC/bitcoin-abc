@@ -229,18 +229,18 @@ void CCoinsViewCache::BatchWrite(CoinsViewCacheCursor &cursor,
                                  const BlockHash &hashBlockIn) {
     for (auto it{cursor.Begin()}; it != cursor.End();
          it = cursor.NextAndMaybeErase(*it)) {
-        // Ignore non-dirty entries (optimization).
         if (!it->second.IsDirty()) {
+            // TODO a cursor can only contain dirty entries
             continue;
         }
-        CCoinsMap::iterator itUs = cacheCoins.find(it->first);
-        if (itUs == cacheCoins.end()) {
-            // The parent cache does not have an entry, while the child cache
-            // does. We can ignore it if it's both spent and FRESH in the child
-            if (!(it->second.IsFresh() && it->second.coin.IsSpent())) {
-                // Create the coin in the parent cache, move the data up
-                // and mark it as dirty.
-                itUs = cacheCoins.try_emplace(it->first).first;
+        auto [itUs, inserted]{cacheCoins.try_emplace(it->first)};
+        if (inserted) {
+            if (it->second.IsFresh() && it->second.coin.IsSpent()) {
+                // TODO fresh coins should have been removed at spend
+                cacheCoins.erase(itUs);
+            } else {
+                // The parent cache does not have an entry, while the child
+                // cache does. Move the data up and mark it as dirty.
                 CCoinsCacheEntry &entry{itUs->second};
                 assert(entry.coin.DynamicMemoryUsage() == 0);
                 if (cursor.WillErase(*it)) {
