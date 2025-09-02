@@ -69,6 +69,8 @@ export interface GenesisAction {
     type: 'GENESIS';
     tokenType: TokenType;
     genesisInfo: GenesisInfo;
+    /** Only for SLP_TOKEN_TYPE_NFT1_CHILD tokens */
+    groupTokenId?: string;
 }
 
 /**

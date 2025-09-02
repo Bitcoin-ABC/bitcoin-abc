@@ -100,3 +100,4 @@ console.log(toHex(rawTx));
 -   4.3.0 - Export a Tx.toHex() method [D18396](https://reviews.bitcoinabc.org/D18396)
 -   4.3.1 - Modify union type of payment outputs to include ecash-wallet template OP_RETURN [D18403](https://reviews.bitcoinabc.org/D18403)
 -   4.3.2 - Export additional token types [D18548](https://reviews.bitcoinabc.org/D18548)
+-   4.3.3 - Modify payment.GenesisAction to support minting NFTs (SLP_TOKEN_TYPE_NFT1_CHILD genesis txs) [D18557](https://reviews.bitcoinabc.org/D18557)
