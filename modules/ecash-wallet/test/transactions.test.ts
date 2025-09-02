@@ -27,9 +27,11 @@ import {
     ALP_TOKEN_TYPE_STANDARD,
     SLP_TOKEN_TYPE_MINT_VAULT,
     SLP_TOKEN_TYPE_NFT1_GROUP,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 import { Wallet } from '../src/wallet';
+import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
 use(chaiAsPromised);
 
@@ -1632,5 +1634,319 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(burnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(burnAtoms);
         expect(burnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(burnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+    });
+    it('We can handle SLP SLP_TOKEN_TYPE_NFT1_CHILD token actions', async () => {
+        // Init the wallet
+        const slpNftWallet = Wallet.fromSk(fromHex('17'.repeat(32)), chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, slpNftWallet.script);
+
+        // Sync the wallet
+        await slpNftWallet.sync();
+
+        // Genesis SLP_TOKEN_TYPE_NFT1_GROUP tokens to support minting NFTs
+        const slpGenesisInfo = {
+            tokenTicker: 'SLP GROUP',
+            tokenName: 'SLP Test GROUP',
+            url: 'cashtab.com',
+            decimals: 0,
+        };
+
+        const genesisMintQty = 1_000n;
+
+        // Construct the Action for this tx
+        const slpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1, per SLP spec */
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: slpNftWallet.script,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2, in valid spec range of range 2-255 */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                /** SLP genesis action */
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    genesisInfo: slpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast
+        const resp = await slpNftWallet
+            .action(slpGenesisAction)
+            .build()
+            .broadcast();
+
+        const slpGenesisTokenId = resp.txid;
+
+        // It's a valid SLP genesis tx
+        const tokenInfo = await chronik.token(slpGenesisTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('SLP_TOKEN_TYPE_NFT1_GROUP');
+
+        // We can get token supply from checking utxos
+        const supply = (await chronik.tokenId(slpGenesisTokenId).utxos()).utxos
+            .map(utxo => utxo.token!.atoms)
+            .reduce((prev, curr) => prev + curr, 0n);
+        expect(supply).to.equal(genesisMintQty);
+
+        // We get expected error if we try to mint an NFT without fanning out the inputs
+        const nftAlphaGenesisInfo = {
+            tokenTicker: 'A',
+            tokenName: 'ALPHA',
+            url: 'cashtab.com',
+            decimals: 0,
+            hash: '',
+        };
+        const nftMintAlpha: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** The NFT */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                /** SLP mint action */
+                {
+                    type: 'GENESIS',
+                    groupTokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: nftAlphaGenesisInfo,
+                },
+            ],
+        };
+        await slpNftWallet.sync();
+
+        expect(() => slpNftWallet.action(nftMintAlpha).build()).to.throw(
+            Error,
+            `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${slpGenesisTokenId}. You must split your qty-1000 input into qty-1 inputs.`,
+        );
+
+        // We conduct a fan-out tx to mint a SLP_TOKEN_TYPE_NFT1_CHILD token
+        const slpFanoutAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Send qty at outIdxs 1, 2, and 3 */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: 1n,
+                },
+                /** ecash-wallet will automatically send itself the token change */
+            ],
+            tokenActions: [
+                /** SLP fanout action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            ],
+        };
+
+        // Broadcast the fanout tx
+        await slpNftWallet.action(slpFanoutAction).build().broadcast();
+
+        // Now we can mint the NFT
+        await slpNftWallet.sync();
+        const alphaNftResp = await slpNftWallet
+            .action(nftMintAlpha)
+            .build()
+            .broadcast();
+        const nftMintAlphaTxid = alphaNftResp.txid;
+
+        // It's a valid SLP genesis tx
+        const alphaTokenInfo = await chronik.token(nftMintAlphaTxid);
+        expect(alphaTokenInfo.genesisInfo).to.deep.equal(nftAlphaGenesisInfo);
+
+        // We can send an NFT
+        const nftSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Send qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: nftMintAlphaTxid,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: nftMintAlphaTxid,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                },
+            ],
+        };
+
+        await slpNftWallet.sync();
+        await slpNftWallet.action(nftSendAction).build().broadcast();
+
+        // This NFT now belongs to MOCK_DESTINATION_ADDRESS
+        const utxosAtMockDestination = await chronik
+            .address(MOCK_DESTINATION_ADDRESS)
+            .utxos();
+        const utxoAtMockDestination = utxosAtMockDestination.utxos.find(
+            utxo => utxo.token?.tokenId === nftMintAlphaTxid,
+        );
+        expect(utxoAtMockDestination?.token?.atoms).to.equal(1n);
+
+        // We can mint another NFT
+        const nftBetaGenesisInfo = {
+            tokenTicker: 'B',
+            tokenName: 'BETA',
+            url: 'cashtab.com',
+            decimals: 0,
+            hash: '',
+        };
+        const nftMintBeta: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** The NFT */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                /** SLP mint action */
+                {
+                    type: 'GENESIS',
+                    groupTokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: nftBetaGenesisInfo,
+                },
+            ],
+        };
+        await slpNftWallet.sync();
+        const betaNftResp = await slpNftWallet
+            .action(nftMintBeta)
+            .build()
+            .broadcast();
+        const nftMintBetaTxid = betaNftResp.txid;
+
+        // It's a valid SLP genesis tx
+        const betaTokenInfo = await chronik.token(nftMintBetaTxid);
+        expect(betaTokenInfo.genesisInfo).to.deep.equal(nftBetaGenesisInfo);
+
+        // We can burn an NFT
+        const nftBurnAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+            ],
+            tokenActions: [
+                /** SLP burn action */
+                {
+                    type: 'BURN',
+                    tokenId: nftMintBetaTxid,
+                    burnAtoms: 1n,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                },
+            ],
+        };
+
+        await slpNftWallet.sync();
+        const burnResp = await slpNftWallet
+            .action(nftBurnAction)
+            .build()
+            .broadcast();
+        const nftBurnTxid = burnResp.txid;
+
+        // It's a valid SLP burn tx
+        const burnTx = await chronik.tx(nftBurnTxid);
+        expect(burnTx.tokenEntries).to.have.length(1);
+        expect(burnTx.tokenEntries[0].txType).to.equal('BURN');
+        expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(1n);
+        expect(burnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(1n);
+        expect(burnTx.tokenEntries[0].burnSummary).to.equal(``);
+        expect(burnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // No more supply of this NFT
+        const utxosThisNft = await chronik.tokenId(nftMintBetaTxid).utxos();
+        expect(utxosThisNft.utxos.length).to.equal(0);
+
+        // We cannot mint an NFT with atoms of > 1n
+        const nftGammaGenesisInfo = {
+            tokenTicker: 'G',
+            tokenName: 'GAMMA',
+            url: 'cashtab.com',
+            decimals: 0,
+            hash: '',
+        };
+        const nftGammaBeta: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** The NFT, but we attempt to mint with 2n atoms */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: 2n,
+                },
+            ],
+            tokenActions: [
+                /** SLP mint action */
+                {
+                    type: 'GENESIS',
+                    groupTokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: nftGammaGenesisInfo,
+                },
+            ],
+        };
+        await slpNftWallet.sync();
+        expect(() => slpNftWallet.action(nftGammaBeta).build()).to.throw(
+            Error,
+            `An SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx must have 1 atom at outIdx 1. Found 2 atoms.`,
+        );
+
+        /**
+         * NB if we do attempt to broadcast this tx, chronik will catch and throw this:
+         *  Error: Failed getting /broadcast-tx: 400: Tx <txid> failed token checks:
+         *  Parsing failed: SLP error: Invalid NFT1 Child GENESIS initial quantity,
+         *  expected 1 but got 2. Unexpected burn: Burns 1 atoms.
+         */
     });
 });

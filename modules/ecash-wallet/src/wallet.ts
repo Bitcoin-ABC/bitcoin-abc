@@ -37,6 +37,7 @@ import {
     mnemonicToSeed,
     HdNode,
     toHex,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
 } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
@@ -667,6 +668,12 @@ interface ActionTotal {
     sats: bigint;
     /** All the info we need to determine required token utxos for an action */
     tokens?: Map<string, RequiredTokenInputs>;
+    /**
+     * Only for SLP_TOKEN_TYPE_NFT1_CHILD tokens
+     * We need a qty-1 input of this tokenId at index 0 of inputs to mint an NFT,
+     * aka GENESIS tx of SLP_TOKEN_TYPE_NFT1_CHILD tokens
+     * */
+    groupTokenId?: string;
 }
 
 /**
@@ -748,6 +755,47 @@ export const getTokenUtxosWithExactAtoms = (
 };
 
 /**
+ * We need a qty-1 input of this tokenId at index 0 of inputs to mint an NFT
+ * - Try to get this
+ * - If we can't get this, get the biggest qty utxo
+ * - If we don't have anything, return undefined
+ */
+export const getNftChildGenesisInput = (
+    tokenId: string,
+    slpUtxos: ScriptUtxo[],
+): ScriptUtxo | undefined => {
+    // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
+    // because in this case we only want exactly 1 utxo
+    for (const utxo of slpUtxos) {
+        if (
+            utxo.token?.tokenId === tokenId &&
+            utxo.token?.isMintBaton === false &&
+            utxo.token?.atoms === 1n
+        ) {
+            return utxo;
+        }
+    }
+
+    // If we can't find exactly 1 input, look for the input with the highest qty
+    let highestQtyUtxo: ScriptUtxo | undefined = undefined;
+    let highestQty = 0n;
+
+    for (const utxo of slpUtxos) {
+        if (
+            utxo.token?.tokenId === tokenId &&
+            utxo.token?.isMintBaton === false &&
+            utxo.token?.atoms > highestQty
+        ) {
+            highestQtyUtxo = utxo;
+            highestQty = utxo.token.atoms;
+        }
+    }
+
+    // Return the highest qty utxo if found
+    return highestQtyUtxo;
+};
+
+/**
  * Validate only user-specified token actions
  * For v0 of ecash-wallet, we only support single-tx actions, which
  * means some combinations of actions are always invalid, or
@@ -776,6 +824,21 @@ export const validateTokenActions = (tokenActions: payment.TokenAction[]) => {
                     throw new Error(
                         `GenesisAction must be at index 0 of tokenActions. Found GenesisAction at index ${i}.`,
                     );
+                }
+                if (
+                    tokenAction.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                ) {
+                    if (typeof tokenAction.groupTokenId === 'undefined') {
+                        throw new Error(
+                            `SLP_TOKEN_TYPE_NFT1_CHILD genesis txs must specify a groupTokenId.`,
+                        );
+                    }
+                } else {
+                    if (typeof tokenAction.groupTokenId !== 'undefined') {
+                        throw new Error(
+                            `${tokenAction.tokenType.type} genesis txs must not specify a groupTokenId.`,
+                        );
+                    }
                 }
                 break;
             }
@@ -850,6 +913,7 @@ export const getActionTotals = (action: payment.Action): ActionTotal => {
     const burnWithChangeTokenIds: Set<string> = new Set();
     const burnAllTokenIds: Set<string> = new Set();
     const mintActionTokenIds: Set<string> = new Set();
+    let groupTokenId: string | undefined = undefined;
 
     const burnAtomsMap: Map<string, bigint> = new Map();
     for (const action of tokenActions) {
@@ -865,6 +929,15 @@ export const getActionTotals = (action: payment.Action): ActionTotal => {
             }
             case 'MINT': {
                 mintActionTokenIds.add(action.tokenId);
+                break;
+            }
+            case 'GENESIS': {
+                // GENESIS txs only require specific inputs if they are for SLP_TOKEN_TYPE_NFT1_CHILD
+                if (action.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+                    // NB we already validate that a genesis action for SLP_TOKEN_TYPE_NFT1_CHILD has a groupTokenId
+                    // in validateTokenActions
+                    groupTokenId = action.groupTokenId;
+                }
             }
         }
     }
@@ -980,6 +1053,10 @@ export const getActionTotals = (action: payment.Action): ActionTotal => {
         actionTotal.tokens = requiredTokenInputsMap;
     }
 
+    if (typeof groupTokenId !== 'undefined') {
+        actionTotal.groupTokenId = groupTokenId;
+    }
+
     return actionTotal;
 };
 
@@ -1022,9 +1099,24 @@ interface SelectUtxosResult {
 /**
  * Select utxos to fulfill the requirements of an Action
  *
+ * Notes about minting SLP_TOKEN_TYPE_NFT1_CHILD tokens
+ *
+ * These tokens, aka "NFTs", are minted by burning exactly 1 SLP_TOKEN_TYPE_NFT1_GROUP token
+ * However, a user may not have these quantity-1 SLP_TOKEN_TYPE_NFT1_GROUP tokens available
+ * We return a unique error msg for the case of "user has no qty-1 SLP_TOKEN_TYPE_NFT1_GROUP tokens"
+ * vs "user has only qty-more-than-1 SLP_TOKEN_TYPE_NFT1_GROUP tokens"
+ *
+ * ref https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md
+ * NB we actually "could" mint NFT by burning an SLP_TOKEN_TYPE_NFT1_GROUP with qty > 1.
+ * However we cannot have "change" for the SLP_TOKEN_TYPE_NFT1_GROUP in this tx, because
+ * SLP only supports one action, and the mint action must be for token type SLP_TOKEN_TYPE_NFT1_CHILD
+ * So, the best practice is to perform fan-out txs
+ *
+ * ecash-wallet could handle this with chained txs, either before MINT or after the genesis of the
+ * SLP_TOKEN_TYPE_NFT1_GROUP token. For now, the user must perform fan-out txs manually.
+ *
  * NB the following are not currently supported:
  * - Minting of SLP_TOKEN_TYPE_MINT_VAULT tokens
- * - Minting of SLP_TOKEN_TYPE_NFT1 tokens
  */
 export const selectUtxos = (
     action: payment.Action,
@@ -1041,7 +1133,7 @@ export const selectUtxos = (
      */
     satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
 ): SelectUtxosResult => {
-    const { sats, tokens } = getActionTotals(action);
+    const { sats, tokens, groupTokenId } = getActionTotals(action);
 
     let tokenIdsWithRequiredUtxos: string[] = [];
 
@@ -1064,12 +1156,46 @@ export const selectUtxos = (
         }
     }
 
+    // We need exactly 1 qty-1 input of this tokenId at index 0 of inputs to mint an NFT
+    // If we have it, use it, and we can make this mint in 1 tx
+    // If we have an input with qty > 1, we need to chain a fan-out tx; return appropriate error msg
+    // If we have no inputs, return appropriate error msg
+    let nftMintInput: ScriptUtxo | undefined = undefined;
+    let needsNftMintInput: boolean = false;
+    let needsNftFanout: boolean = false;
+    if (typeof groupTokenId !== 'undefined') {
+        nftMintInput = getNftChildGenesisInput(groupTokenId, spendableUtxos);
+        if (typeof nftMintInput === 'undefined') {
+            // We do not have the inputs we need
+            // So that we can still use the existing tokens and sats logic of this function
+            // below, add this as a missing token
+            needsNftMintInput = true;
+        } else if (nftMintInput.token?.atoms && nftMintInput.token.atoms > 1n) {
+            // We have it but not the right qty
+            needsNftFanout = true;
+        }
+    }
+
     // NB for a non-token tx, we only use non-token utxos
     // As this function is extended, we will need to count the sats
     // in token utxos
 
     const selectedUtxos: ScriptUtxo[] = [];
     let selectedUtxosSats = 0n;
+
+    // Add NFT mint input if we have one
+    if (
+        typeof groupTokenId !== 'undefined' &&
+        typeof nftMintInput !== 'undefined' &&
+        !needsNftFanout
+    ) {
+        // We only add if it is a qty-1 input
+        // Technically, a higher qty input would "work" per spec
+        // But we enforce using only qty-1 inputs
+        // TODO we could perhaps auto-fan-and-mint using this library
+        selectedUtxos.push(nftMintInput);
+        selectedUtxosSats += nftMintInput.sats;
+    }
 
     // Handle burnAll tokenIds first
     for (const burnAllTokenId of burnAllTokenIds) {
@@ -1108,20 +1234,23 @@ export const selectUtxos = (
     }
 
     // If this tx is ONLY a burn all tx, we may have enough already
-    if (
-        (selectedUtxosSats >= sats ||
-            satsStrategy === SatsSelectionStrategy.NO_SATS) &&
-        tokenIdsWithRequiredUtxos.length === 0
-    ) {
-        // If selectedUtxos fulfill the requirements of this Action, return them
+    if (typeof groupTokenId === 'undefined') {
+        // Make sure this is not an NFT mint tx
+        if (
+            (selectedUtxosSats >= sats ||
+                satsStrategy === SatsSelectionStrategy.NO_SATS) &&
+            tokenIdsWithRequiredUtxos.length === 0
+        ) {
+            // If selectedUtxos fulfill the requirements of this Action, return them
 
-        return {
-            success: true,
-            utxos: selectedUtxos,
-            // Only expected to be > 0n if satsStrategy is NO_SATS
-            missingSats:
-                selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
-        };
+            return {
+                success: true,
+                utxos: selectedUtxos,
+                // Only expected to be > 0n if satsStrategy is NO_SATS
+                missingSats:
+                    selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+            };
+        }
     }
 
     for (const utxo of spendableUtxos) {
@@ -1246,7 +1375,9 @@ export const selectUtxos = (
         selectedUtxosSats += utxo.sats;
         if (
             selectedUtxosSats >= sats &&
-            tokenIdsWithRequiredUtxos.length === 0
+            tokenIdsWithRequiredUtxos.length === 0 &&
+            !needsNftMintInput &&
+            !needsNftFanout
         ) {
             return {
                 success: true,
@@ -1288,6 +1419,28 @@ export const selectUtxos = (
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
             errors,
+        };
+    }
+
+    if (needsNftMintInput || needsNftFanout) {
+        // Special case where user wants to mint an NFT but lacks any inputs
+        const missingTokensCustom = new Map();
+        missingTokensCustom.set(groupTokenId, {
+            atoms: 1n,
+            needsMintBaton: false,
+        });
+        return {
+            success: false,
+            missingTokens: missingTokensCustom,
+            missingSats:
+                selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+            errors: needsNftMintInput
+                ? [
+                      `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
+                  ]
+                : [
+                      `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}. You must split your qty-${nftMintInput?.token?.atoms} input into qty-1 inputs.`,
+                  ],
         };
     }
 
@@ -1934,8 +2087,11 @@ export const finalizeOutputs = (
             break;
         }
         // Intentional fall through as SLP_TOKEN_TYPE_NFT1_GROUP tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
-        // There is a unique case where we burn exactly 1 of these, but that is handled in the inputs, needed for selecting utxos, only for minting a SLP_TOKEN_TYPE_NFT1_CHILD
+        // Intentional fall through as SLP_TOKEN_TYPE_NFT1_CHILD tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
+        // There is a unique case where we burn exactly 1 SLP_TOKEN_TYPE_NFT1_GROUP, but that is handled in the inputs, needed for selecting utxos, only for minting a SLP_TOKEN_TYPE_NFT1_CHILD
+        // It is not technically a BURN action
         case 'SLP_TOKEN_TYPE_NFT1_GROUP':
+        case 'SLP_TOKEN_TYPE_NFT1_CHILD':
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * Valid
@@ -2363,7 +2519,10 @@ export const finalizeOutputs = (
             break;
         }
         // Intentional fall through as SLP_TOKEN_TYPE_NFT1_GROUP tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
+        // Intentional fall through as SLP_TOKEN_TYPE_NFT1_CHILD tokens have same spec as SLP_TOKEN_TYPE_FUNGIBLE tokens
+
         case 'SLP_TOKEN_TYPE_NFT1_GROUP':
+        case 'SLP_TOKEN_TYPE_NFT1_CHILD':
         case 'SLP_TOKEN_TYPE_FUNGIBLE': {
             /**
              * NB for SLP_TOKEN_TYPE_FUNGIBLE, lastAtomsOutIdx is only relevant for a send tx
@@ -2438,6 +2597,19 @@ export const finalizeOutputs = (
                 // If we have a mint quantity (for SLP_TOKEN_TYPE_FUNGIBLE, this is required
                 // for all GENESIS and MINT actions)
                 if (typeof genesisAction !== 'undefined') {
+                    // Validate quantity 1n for NFT genesis
+                    if (
+                        genesisAction.tokenType.type ===
+                        SLP_TOKEN_TYPE_NFT1_CHILD.type
+                    ) {
+                        // We validate that SLP_TOKEN_TYPE_NFT1_CHILD mints are only for qty 1n
+                        // NB chronik will also throw an error if this broadcasts as it fails token checks
+                        if (mintQuantity !== 1n) {
+                            throw new Error(
+                                `An SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx must have 1 atom at outIdx 1. Found ${mintQuantity} atoms.`,
+                            );
+                        }
+                    }
                     // If this is a GENESIS tx, build a GENESIS OP_RETURN
                     opReturnScript = slpGenesis(
                         genesisAction.tokenType.number,

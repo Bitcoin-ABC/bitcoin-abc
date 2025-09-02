@@ -23,6 +23,7 @@ import {
     SLP_TOKEN_TYPE_MINT_VAULT,
     SLP_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_GROUP,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -41,7 +42,9 @@ import {
     selectUtxos,
     SatsSelectionStrategy,
     paymentOutputsToTxOutputs,
+    getNftChildGenesisInput,
 } from './wallet';
+import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -545,6 +548,32 @@ describe('Support functions', () => {
                 `ecash-wallet does not currently support minting SLP_TOKEN_TYPE_MINT_VAULT tokens.`,
             );
         });
+        it('tokenActions with a genesisAction for SLP_TOKEN_TYPE_NFT1_CHILD are invalid if groupTokenId is not specified', () => {
+            const nftDummyGenesisAction = {
+                type: 'GENESIS',
+                tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                // No groupTokenId
+                groupTokenId: undefined,
+            } as payment.GenesisAction;
+            expect(() =>
+                validateTokenActions([nftDummyGenesisAction]),
+            ).to.throw(
+                Error,
+                `SLP_TOKEN_TYPE_NFT1_CHILD genesis txs must specify a groupTokenId.`,
+            );
+        });
+        it('tokenActions with a genesisAction for any other token type are invalid if groupTokenId IS specified', () => {
+            const badAlpGenesisAction = {
+                type: 'GENESIS',
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                // groupTokenId wrongly specified
+                groupTokenId: '11'.repeat(32),
+            } as payment.GenesisAction;
+            expect(() => validateTokenActions([badAlpGenesisAction])).to.throw(
+                Error,
+                `ALP_TOKEN_TYPE_STANDARD genesis txs must not specify a groupTokenId.`,
+            );
+        });
     });
     context('getActionTotals', () => {
         it('Returns expected ActionTotal for a non-token action (i.e., sats only)', () => {
@@ -687,6 +716,35 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+            });
+        });
+        it('Returns the correct ActionTotal for a GENESIS of an SLP_TOKEN_TYPE_NFT1_CHILD', () => {
+            const groupTokenId = '11'.repeat(32);
+            const action = {
+                outputs: [
+                    // Blank OP_RETURN
+                    { sats: 0n },
+                    // SLP_TOKEN_TYPE_NFT1_CHILD GENESIS (aka "NFT mint")
+                    {
+                        sats: 546n,
+                        script: DUMMY_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId,
+                    },
+                ],
+            };
+            const totals = getActionTotals(action);
+            expect(totals).to.deep.equal({
+                sats: 546n,
+                groupTokenId,
             });
         });
         it('DOES NOT throw for a combined BURN and MINT of a single token', () => {
@@ -1606,6 +1664,231 @@ describe('Support functions', () => {
                 ],
             });
         });
+        it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we are missing the SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const spendableUtxos = [DUMMY_UTXO];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: false,
+                missingSats: 0n,
+                missingTokens: new Map([
+                    ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
+                ]),
+                errors: [
+                    `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
+                ],
+            });
+        });
+        it('Returns expected utxos for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const mockNftParentInput = {
+                ...DUMMY_UTXO,
+                token: {
+                    tokenId: '11'.repeat(32),
+                    atoms: 1n,
+                    isMintBaton: false,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            };
+            const spendableUtxos = [DUMMY_UTXO, mockNftParentInput];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                // NB the parent input is at index 0
+                utxos: [mockNftParentInput, DUMMY_UTXO],
+            });
+        });
+        it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const mockNftParentBigInput = {
+                ...DUMMY_UTXO,
+                token: {
+                    tokenId: '11'.repeat(32),
+                    atoms: 100n,
+                    isMintBaton: false,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            };
+            const spendableUtxos = [DUMMY_UTXO, mockNftParentBigInput];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: false,
+                missingSats: 0n,
+                missingTokens: new Map([
+                    ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
+                ]),
+                errors: [
+                    `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111. You must split your qty-100 input into qty-1 inputs.`,
+                ],
+            });
+        });
+        it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we are missing the SLP_TOKEN_TYPE_NFT1_GROUP input and also sats', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                    { sats: 100_000_000n, script: MOCK_DESTINATION_SCRIPT },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const spendableUtxos = [DUMMY_UTXO];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: false,
+                missingSats: 100_000_000n,
+                missingTokens: new Map([
+                    ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
+                ]),
+                errors: [
+                    `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
+                ],
+            });
+        });
+        it('An NFT mint fails with insufficient sats if we have a qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input but insufficient sats', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                    { sats: 100_000_000n, script: MOCK_DESTINATION_SCRIPT },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const mockNftParentInput = {
+                ...DUMMY_UTXO,
+                token: {
+                    tokenId: '11'.repeat(32),
+                    atoms: 1n,
+                    isMintBaton: false,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            };
+            const spendableUtxos = [DUMMY_UTXO, mockNftParentInput];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: false,
+                missingSats: 99999454n,
+                errors: [
+                    'Insufficient sats to complete tx. Need 99999454 additional satoshis to complete this Action.',
+                ],
+            });
+        });
+        it('An NFT mint succeeds with insufficient sats if we have a qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input, insufficient sats, but select a strategy not requiring sats', () => {
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                    { sats: 100_000_000n, script: MOCK_DESTINATION_SCRIPT },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+            const mockNftParentInput = {
+                ...DUMMY_UTXO,
+                token: {
+                    tokenId: '11'.repeat(32),
+                    atoms: 1n,
+                    isMintBaton: false,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            };
+            const spendableUtxos = [DUMMY_UTXO, mockNftParentInput];
+            expect(
+                selectUtxos(
+                    action,
+                    spendableUtxos,
+                    SatsSelectionStrategy.NO_SATS,
+                ),
+            ).to.deep.equal({
+                success: true,
+                missingSats: 100000000n,
+                utxos: [mockNftParentInput],
+            });
+        });
     });
     context('getTokenType', () => {
         it('Returns user-specified genesisAction tokenType for an Action with specified genesisAction', () => {
@@ -1759,6 +2042,87 @@ describe('Support functions', () => {
                 ...ALP_TOKEN_TYPE_STANDARD,
                 type: 'SOME_UNSUPPORTED_TYPE',
             } as unknown as TokenType);
+        });
+    });
+    context('getNftChildGenesisInput', () => {
+        it('Returns exactly 1 input when qty-1 input exists', () => {
+            const tokenId = '11'.repeat(32);
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 1000n },
+                {
+                    ...DUMMY_UTXO,
+                    sats: 546n,
+                    token: {
+                        tokenId,
+                        atoms: 1n,
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+                {
+                    ...DUMMY_UTXO,
+                    sats: 546n,
+                    token: {
+                        tokenId,
+                        atoms: 5n,
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+            ];
+
+            const result = getNftChildGenesisInput(tokenId, spendableUtxos);
+            expect(result?.token?.atoms).to.equal(1n);
+        });
+
+        it('Returns highest qty input when no qty-1 input exists', () => {
+            const tokenId = '22'.repeat(32);
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 1000n },
+                {
+                    ...DUMMY_UTXO,
+                    sats: 546n,
+                    token: {
+                        tokenId,
+                        atoms: 3n,
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+                {
+                    ...DUMMY_UTXO,
+                    sats: 546n,
+                    token: {
+                        tokenId,
+                        atoms: 7n,
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+            ];
+
+            const result = getNftChildGenesisInput(tokenId, spendableUtxos);
+            expect(result?.token?.atoms).to.equal(7n);
+        });
+
+        it('Returns undefined when no matching inputs exist', () => {
+            const tokenId = '33'.repeat(32);
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 1000n },
+                {
+                    ...DUMMY_UTXO,
+                    sats: 546n,
+                    token: {
+                        tokenId: 'different'.repeat(32),
+                        atoms: 1n,
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+            ];
+
+            const result = getNftChildGenesisInput(tokenId, spendableUtxos);
+            expect(result).to.equal(undefined);
         });
     });
     context('paymentOutputsToTxOutputs', () => {
