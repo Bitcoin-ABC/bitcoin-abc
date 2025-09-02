@@ -76,6 +76,7 @@ export interface UseWalletReturnType {
     firmaPrice: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
+    initialUtxoSyncComplete: boolean;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     apiError: boolean;
     updateCashtabState: UpdateCashtabState;
@@ -97,6 +98,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [checkFiatInterval, setCheckFiatInterval] =
         useState<null | NodeJS.Timeout>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [initialUtxoSyncComplete, setInitialUtxoSyncComplete] =
+        useState<boolean>(false);
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState<CashtabState>(
         new CashtabState(),
@@ -373,6 +376,54 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         if (!isProcessing.current) {
             await processMessageQueue();
         }
+    };
+
+    /**
+     * For users opening the app in the extension or a webapp window,
+     * the only thing that must be up-to-date is the utxo set; we do not
+     * care about the token balances or tx history
+     *
+     * Speed and accurate utxo set are critical
+     *
+     * So, we load the utxo set first and unlock the UI
+     *
+     * Then we lazy load everything else
+     */
+    const startupUtxoSync = async () => {
+        // Get the active wallet
+        const activeWallet = currentCashtabStateRef.current.wallets[0];
+
+        try {
+            const chronikUtxos = await getUtxos(chronik, activeWallet);
+            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+
+            const newState = {
+                ...activeWallet.state,
+                balanceSats: getBalanceSats(nonSlpUtxos),
+                slpUtxos,
+                nonSlpUtxos,
+            };
+
+            // Set wallet with new state field
+            activeWallet.state = newState;
+
+            // Update only the active wallet, wallets[0], in state
+            await updateCashtabState('wallets', [
+                activeWallet,
+                ...currentCashtabStateRef.current.wallets.slice(1),
+            ]);
+        } catch (error) {
+            // We only log errors, leaving API Error handling to update()
+            console.error(`Error in utxoSync() `, cashtabState);
+            console.error(error);
+        }
+
+        // We clear this flag even if we fail to get the latest utxo set
+        // as we anticipate update() will catch the same API error
+        setInitialUtxoSyncComplete(true);
+
+        // Call the full update
+        update();
     };
 
     const update = async () => {
@@ -1068,7 +1119,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // 2. You have a valid active wallet in cashtabState
             return;
         }
-        update();
+        // Sync utxos to unlock the UI, and then lazy load the rest of Cashtab state
+        startupUtxoSync();
     }, [cashtabLoaded, cashtabState.wallets[0]?.name]);
 
     // Clear price API and update to new price API when fiat currency changes
@@ -1183,6 +1235,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         cashtabLoaded,
         loading,
         setLoading,
+        initialUtxoSyncComplete,
         apiError,
         updateCashtabState,
         processChronikWsMsg: async (msg: WsMsgClient) => {

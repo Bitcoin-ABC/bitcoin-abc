@@ -88,6 +88,7 @@ const App = () => {
         loading,
         setLoading,
         cashtabLoaded,
+        initialUtxoSyncComplete,
     } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
@@ -139,7 +140,7 @@ const App = () => {
                 </>
             )}
 
-            {loading ? (
+            {loading || !initialUtxoSyncComplete ? (
                 <Spinner />
             ) : (
                 wallet !== false && !validWallet && <Spinner />
