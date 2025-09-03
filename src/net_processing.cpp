@@ -51,6 +51,11 @@
 #include <util/trace.h>
 #include <validation.h>
 
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -117,6 +122,9 @@ static constexpr auto GETAVAADDR_INTERVAL{2min};
  * expired, the proof radix tree can be cleaned up.
  */
 static constexpr auto AVALANCHE_AVAPROOFS_TIMEOUT{2min};
+
+/// Maximum number of stalled avalanche txids to store per peer.
+static constexpr size_t MAX_AVALANCHE_STALLED_TXIDS_PER_PEER{100};
 
 struct DataRequestParameters {
     /**
@@ -319,6 +327,31 @@ struct QueuedBlock {
     std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
 };
 
+struct StalledTxId {
+    TxId txid;
+    std::chrono::seconds timeAdded;
+
+    StalledTxId(TxId txid_, std::chrono::seconds timeAdded_)
+        : txid(txid_), timeAdded(timeAdded_){};
+};
+
+struct by_txid {};
+struct by_time {};
+
+using StalledTxIdSet = boost::multi_index_container<
+    StalledTxId,
+    boost::multi_index::indexed_by<
+        // sort by txid
+        boost::multi_index::hashed_unique<
+            boost::multi_index::tag<by_txid>,
+            boost::multi_index::member<StalledTxId, TxId, &StalledTxId::txid>,
+            SaltedTxIdHasher>,
+        // sort by timeAdded
+        boost::multi_index::ordered_non_unique<
+            boost::multi_index::tag<by_time>,
+            boost::multi_index::member<StalledTxId, std::chrono::seconds,
+                                       &StalledTxId::timeAdded>>>>;
+
 /**
  * Data structure for an individual peer. This struct is not protected by
  * cs_main since it does not contain validation-critical data.
@@ -467,6 +500,12 @@ struct Peer {
          * this node. See BIP133.
          */
         std::atomic<Amount> m_fee_filter_received{Amount::zero()};
+
+        /**
+         * A set of avalanche stalled txids that we can relay to this peer.
+         */
+        StalledTxIdSet
+            m_avalanche_stalled_txids GUARDED_BY(m_tx_inventory_mutex);
     };
 
     /*
@@ -3162,7 +3201,8 @@ void PeerManagerImpl::RelayTransaction(const TxId &txid) {
             continue;
         }
 
-        if (!tx_relay->m_tx_inventory_known_filter.contains(txid)) {
+        if (!tx_relay->m_tx_inventory_known_filter.contains(txid) ||
+            tx_relay->m_avalanche_stalled_txids.count(txid) > 0) {
             tx_relay->m_tx_inventory_to_send.insert(txid);
         }
     }
@@ -7288,6 +7328,37 @@ void PeerManagerImpl::ProcessMessage(
                         // Make sure we can request this tx again
                         m_txrequest.ForgetInvId(txid);
 
+                        {
+                            // Save the stalled txids so that we can relay them
+                            // to our peers.
+                            LOCK(m_peer_mutex);
+                            for (auto &it : m_peer_map) {
+                                auto tx_relay = (*it.second).GetTxRelay();
+                                if (!tx_relay) {
+                                    continue;
+                                }
+
+                                LOCK(tx_relay->m_tx_inventory_mutex);
+
+                                // We limit the size of the stalled txs set to
+                                // avoid unbounded memory growth. In practice,
+                                // this should not be an issue as stalled txs
+                                // should be few and far between. If we are at
+                                // the limit, remove the oldest entries.
+                                auto &stalled_by_time =
+                                    tx_relay->m_avalanche_stalled_txids
+                                        .get<by_time>();
+                                if (stalled_by_time.size() >=
+                                    MAX_AVALANCHE_STALLED_TXIDS_PER_PEER) {
+                                    stalled_by_time.erase(
+                                        stalled_by_time.begin()->timeAdded);
+                                }
+
+                                tx_relay->m_avalanche_stalled_txids.insert(
+                                    {txid, now});
+                            }
+                        }
+
                         break;
                     }
                 }
@@ -9012,7 +9083,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     // Remove it from the to-be-sent set
                     tx_relay->m_tx_inventory_to_send.erase(it);
                     // Check if not in the filter already
-                    if (tx_relay->m_tx_inventory_known_filter.contains(txid)) {
+                    if (tx_relay->m_tx_inventory_known_filter.contains(txid) &&
+                        tx_relay->m_avalanche_stalled_txids.count(txid) == 0) {
                         continue;
                     }
                     // Not in the mempool anymore? don't bother sending it.
@@ -9035,6 +9107,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     addInvAndMaybeFlush(MSG_TX, txid);
                     nRelayedTransactions++;
                     tx_relay->m_tx_inventory_known_filter.insert(txid);
+                    tx_relay->m_avalanche_stalled_txids.erase(txid);
                 }
             }
         }

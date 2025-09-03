@@ -28,7 +28,7 @@ from test_framework.messages import (
     msg_inv,
     msg_tx,
 )
-from test_framework.p2p import P2PDataStore
+from test_framework.p2p import P2PDataStore, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -657,6 +657,9 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         self.log.info("Check the node can re-download a stalled transaction")
 
+        with p2p_lock:
+            [p.last_message.clear() for p in quorum]
+
         announcing_peer = node.add_p2p_connection(P2PDataStore())
         announcing_peer.send_message(
             msg_inv(
@@ -672,6 +675,9 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         )
 
         self.wait_until(lambda: stalled_txid in node.getrawmempool())
+
+        # It is also relayed by the node
+        [p.wait_for_inv([CInv(MSG_TX, int(stalled_txid, 16))]) for p in quorum]
 
         # It will be polled again and can now be finalized
         self.wait_until(lambda: has_finalized_tx(stalled_txid))
