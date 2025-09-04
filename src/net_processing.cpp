@@ -7155,6 +7155,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
 
                 switch (status) {
+                    case avalanche::VoteStatus::Invalid: // Fallthrough
                     case avalanche::VoteStatus::Rejected: {
                         // Remove from the mempool and the finalized tree, as
                         // well as all the children txs. Note that removal from
@@ -7196,26 +7197,27 @@ void PeerManagerImpl::ProcessMessage(
                                 });
                         }
 
-                        break;
-                    }
-                    case avalanche::VoteStatus::Invalid: {
-                        m_mempool.withConflicting(
-                            [&txid](TxConflicting &conflicting) {
-                                conflicting.EraseTx(txid);
-                            });
+                        if (status == avalanche::VoteStatus::Invalid) {
+                            // Also remove from the conflicting pool. If it was
+                            // in the mempool (unlikely) we just moved it there.
+                            m_mempool.withConflicting(
+                                [&txid](TxConflicting &conflicting) {
+                                    conflicting.EraseTx(txid);
+                                });
 
-                        LOCK(cs_main);
-                        m_recent_rejects.insert(txid);
+                            m_recent_rejects.insert(txid);
 
-                        CCoinsViewMemPool coinViewMempool(
-                            &m_chainman.ActiveChainstate().CoinsTip(),
-                            m_mempool);
-                        CCoinsViewCache coinViewCache(&coinViewMempool);
-                        auto spentCoins =
-                            std::make_shared<const std::vector<Coin>>(
-                                GetSpentCoins(tx, coinViewCache));
+                            CCoinsViewMemPool coinViewMempool(
+                                &m_chainman.ActiveChainstate().CoinsTip(),
+                                m_mempool);
+                            CCoinsViewCache coinViewCache(&coinViewMempool);
+                            auto spentCoins =
+                                std::make_shared<const std::vector<Coin>>(
+                                    GetSpentCoins(tx, coinViewCache));
 
-                        GetMainSignals().TransactionInvalidated(tx, spentCoins);
+                            GetMainSignals().TransactionInvalidated(tx,
+                                                                    spentCoins);
+                        }
 
                         break;
                     }

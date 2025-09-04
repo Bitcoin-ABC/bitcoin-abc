@@ -519,6 +519,12 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         assert mempool_tx["txid"] in node.getrawmempool()
         assert conflicting_tx["txid"] not in node.getrawmempool()
 
+        # Also reject the mempool_tx so the conflicting_tx is pulled back to the
+        # mempool
+        self.wait_until(lambda: has_rejected_tx(mempool_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
+
         self.wait_until(lambda: has_invalidated_tx(conflicting_tx["txid"]))
         assert mempool_tx["txid"] in node.getrawmempool()
         assert conflicting_tx["txid"] not in node.getrawmempool()
@@ -544,6 +550,29 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 expect_disconnect=False,
                 reject_reason="txn-mempool-conflict",
             )
+
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert another_conflicting_tx["txid"] not in node.getrawmempool()
+
+        # We can now invalidate both transactions and they will both be removed
+        # from all the pools independently of where they used to be. The
+        # mempool_tx is polled first, then the conflicting tx once it reaches
+        # the mempool
+        self.wait_until(lambda: has_rejected_tx(mempool_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert another_conflicting_tx["txid"] in node.getrawmempool()
+
+        self.wait_until(lambda: has_invalidated_tx(mempool_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert another_conflicting_tx["txid"] in node.getrawmempool()
+
+        self.wait_until(lambda: has_rejected_tx(another_conflicting_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert another_conflicting_tx["txid"] not in node.getrawmempool()
+
+        self.wait_until(lambda: has_invalidated_tx(another_conflicting_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert another_conflicting_tx["txid"] not in node.getrawmempool()
 
         self.log.info("Check all conflicting txs are erased upon finalization")
 
