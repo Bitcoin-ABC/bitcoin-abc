@@ -163,11 +163,14 @@ impl<'a> QueryBlocks<'a> {
         if end_height < start_height {
             return Err(InvalidEndHeight(end_height).into());
         }
-        let num_blocks = end_height as usize - start_height as usize + 1;
+        Ok(end_height as usize - start_height as usize + 1)
+    }
+
+    fn check_num_blocks(num_blocks: usize) -> Result<(), QueryBlockError> {
         if num_blocks > MAX_BLOCKS_PAGE_SIZE {
-            return Err(BlocksPageSizeTooLarge(num_blocks).into());
+            return Err(BlocksPageSizeTooLarge(num_blocks));
         }
-        Ok(num_blocks)
+        Ok(())
     }
 
     /// Check that the block height and checkpoint height are consistent.
@@ -192,6 +195,7 @@ impl<'a> QueryBlocks<'a> {
     ) -> Result<proto::Blocks> {
         let num_blocks =
             Self::check_range_boundaries(start_height, end_height)?;
+        Self::check_num_blocks(num_blocks)?;
         let block_reader = BlockReader::new(self.db)?;
         let block_stats_reader = BlockStatsReader::new(self.db)?;
         let mut blocks = Vec::with_capacity(num_blocks);
@@ -403,8 +407,13 @@ impl<'a> QueryBlocks<'a> {
         start_height: BlockHeight,
         end_height: BlockHeight,
         checkpoint_height: i32,
+        check_num_blocks: bool,
     ) -> Result<proto::BlockHeaders> {
-        Self::check_range_boundaries(start_height, end_height)?;
+        let num_blocks =
+            Self::check_range_boundaries(start_height, end_height)?;
+        if check_num_blocks {
+            Self::check_num_blocks(num_blocks)?;
+        }
         let (root, branch) = self
             .merkle_root_and_branch(end_height, checkpoint_height)
             .await?;

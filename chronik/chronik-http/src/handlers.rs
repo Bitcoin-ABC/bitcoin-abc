@@ -435,6 +435,6 @@ pub async fn handle_block_headers(
     let checkpoint_height: i32 =
         get_param(query_params, "checkpoint_height")?.unwrap_or(0);
     blocks
-        .headers_by_range(start_height, end_height, checkpoint_height)
+        .headers_by_range(start_height, end_height, checkpoint_height, true)
         .await
 }

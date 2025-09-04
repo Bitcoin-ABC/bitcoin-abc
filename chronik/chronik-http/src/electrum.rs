@@ -1670,6 +1670,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 start_height,
                 start_height + count - 1,
                 checkpoint_height,
+                false,
             )
             .await
             .map_err(|_| RPCError::InternalError)?;

@@ -80,7 +80,6 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_broadcast()
         self.test_transaction_get_merkle()
         self.test_transaction_id_from_pos()
-        self.test_block_header()
         self.test_scripthash()
         self.test_headers_subscribe()
         self.test_scripthash_subscribe()
@@ -90,6 +89,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_transaction_subscribe()
         self.test_utxo_get_info()
         self.test_mempool_get_fee_histogram()
+        self.test_block_header()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -993,6 +993,22 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                     ),
                 },
             )
+
+        self.generate(self.node, 2016)
+
+        hex_header_len = 160
+        for num in [1, 10, 100, 500, 501, 2015]:
+            headers_reply = self.client.blockchain.block.headers(1, num)
+            assert headers_reply.error is None, f"got an error for {num} headers"
+            assert_equal(len(headers_reply.result["hex"]) / hex_header_len, num)
+
+        headers_2016 = self.client.blockchain.block.headers(1, 2016).result["hex"]
+        assert_equal(len(headers_2016) / hex_header_len, 2016)
+
+        # above 2016, we just silently return the max
+        for num in [2017, 1000000]:
+            headers = self.client.blockchain.block.headers(1, num).result["hex"]
+            assert_equal(headers, headers_2016)
 
     def test_scripthash(self):
         for invalid_scripthash in (31 * "ff", 31 * "ff" + "f", 42, False, "spam"):
