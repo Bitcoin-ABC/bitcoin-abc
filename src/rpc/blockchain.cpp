@@ -1349,10 +1349,13 @@ RPCHelpMan getblockchaininfo() {
                 {RPCResult::Type::STR, "chain",
                  "current network name (main, test, regtest)"},
                 {RPCResult::Type::NUM, "blocks",
-                 "the height of the most-work fully-validated chain. The "
-                 "genesis block has height 0"},
+                 "the height of the most-work fully-validated "
+                 "non-parked chain. The genesis block has height 0"},
                 {RPCResult::Type::NUM, "headers",
                  "the current number of headers we have validated"},
+                {RPCResult::Type::NUM, "finalized_blockhash",
+                 "the hash of the avalanche finalized tip if any, otherwise "
+                 "the genesis block hash"},
                 {RPCResult::Type::STR, "bestblockhash",
                  "the hash of the currently best block"},
                 {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
@@ -1403,6 +1406,11 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("headers", chainman.m_best_header
                                       ? chainman.m_best_header->nHeight
                                       : -1);
+            auto avalanche_finalized_tip{chainman.GetAvalancheFinalizedTip()};
+            obj.pushKV("finalized_blockhash",
+                       avalanche_finalized_tip
+                           ? avalanche_finalized_tip->GetBlockHash().GetHex()
+                           : chainparams.GenesisBlock().GetHash().GetHex());
             obj.pushKV("bestblockhash", tip.GetBlockHash().GetHex());
             obj.pushKV("difficulty", GetDifficulty(tip));
             obj.pushKV("time", tip.GetBlockTime());

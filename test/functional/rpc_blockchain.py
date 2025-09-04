@@ -130,6 +130,7 @@ class BlockchainTest(BitcoinTestFramework):
             "chain",
             "chainwork",
             "difficulty",
+            "finalized_blockhash",
             "headers",
             "initialblockdownload",
             "mediantime",
