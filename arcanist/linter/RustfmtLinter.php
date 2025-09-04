@@ -20,8 +20,8 @@ final class RustfmtLinter extends ArcanistExternalLinter {
   public function getInstallInstructions() {
     return pht('You have to install a nightly Rust toolchain for this ' .
                'linter, and name it "abc-nightly". You can do so via ' .
-               '`rustup install nightly-2022-06-29` and then ' .
-               '`ABC_NIGHTLY="$(rustc +nightly-2022-06-29 --print sysroot)"` ' .
+               '`rustup install nightly-2023-12-29` and then ' .
+               '`ABC_NIGHTLY="$(rustc +nightly-2023-12-29 --print sysroot)"` ' .
                'and then `rustup toolchain link abc-nightly "${ABC_NIGHTLY}"`');
   }
 
