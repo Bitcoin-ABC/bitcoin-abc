@@ -855,6 +855,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     cashtabState.wallets = migratedWallets;
                 }
             } else {
+                console.info(
+                    `No wallets found in storage, initializing for new user`,
+                );
+                // For this case, there is no need to sync utxos
+                setInitialUtxoSyncComplete(true);
                 // So, if we do not find wallets from storage, cashtabState will be initialized with default
                 // wallets []
                 cashtabState.wallets = wallets;
