@@ -8,6 +8,7 @@ import { navitems } from '../../data/navitems';
 import { socials } from '../../data/socials';
 import { NavbarOuter, NavbarCtn, EnvVarMessage, SocialCtn } from './styles';
 import { useApiData } from './getNavbarData';
+import AnnouncementBar from '/components/announcement-bar';
 
 export default function Navbar() {
     const [mobileMenu, setMobileMenu] = useState(false);
@@ -51,6 +52,15 @@ export default function Navbar() {
 
     return (
         <NavbarOuter navBackground={navBackground}>
+            <AnnouncementBar
+                navBackground={navBackground}
+                href="https://ecashconference.com/"
+            >
+                <span>
+                    <span>Don't miss the 2025 Electronic Cash Conference!</span>
+                    <span>OCT 4-5 - Click here for more details</span>
+                </span>
+            </AnnouncementBar>
             {!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
                 <EnvVarMessage>
                     Google Analytics is disabled, set the env
