@@ -500,47 +500,42 @@ impl ChronikElectrumRPCServerEndpoint {
                -> bool {
             let endpoint =
                 format!("{}://{}:{}", scheme, peer.ip_addr, expected_port);
-            let Ok(client) = (
-                match ClientBuilder::new_with_codec(
-                    endpoint,
-                    ElectrumCodec {},
-                ) {
-                    Ok(client) => {
-                        let client = match scheme {
-                            "tls" => {
-                                let root_store = RootCertStore {
-                                    roots: webpki_roots::TLS_SERVER_ROOTS
-                                        .into(),
-                                };
-                                let tls_config =
-                                    rustls::ClientConfig::builder()
-                                        .with_root_certificates(root_store)
-                                        .with_no_client_auth();
-                                let Ok(client) =
-                                    client.tls_config(
-                                        tls_config,
-                                        &peer.url,
-                                    ) else {
-                                    return false;
-                                };
-                                client
-                            },
-                            _ => client,
-                        };
-                        client.build().await
-                    },
-                    Err(_) => {
-                        return false;
-                    },
+            let Ok(client) = (match ClientBuilder::new_with_codec(
+                endpoint,
+                ElectrumCodec {},
+            ) {
+                Ok(client) => {
+                    let client = match scheme {
+                        "tls" => {
+                            let root_store = RootCertStore {
+                                roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+                            };
+                            let tls_config = rustls::ClientConfig::builder()
+                                .with_root_certificates(root_store)
+                                .with_no_client_auth();
+                            let Ok(client) =
+                                client.tls_config(tls_config, &peer.url)
+                            else {
+                                return false;
+                            };
+                            client
+                        }
+                        _ => client,
+                    };
+                    client.build().await
                 }
-            ) else {
+                Err(_) => {
+                    return false;
+                }
+            }) else {
                 return false;
             };
 
-            let Ok(features): Result<Value, _> = client
-                .call("server.features", ()).await else {
-                    return false;
-                };
+            let Ok(features): Result<Value, _> =
+                client.call("server.features", ()).await
+            else {
+                return false;
+            };
 
             if !features.get("genesis_hash").is_some_and(|genesis| {
                 genesis
@@ -745,7 +740,7 @@ impl ChronikElectrumRPCServerEndpoint {
 
         // Mandatory params
         let Some(max_protocol_version) = features.remove("protocol_max") else {
-            return Ok(json!(false))
+            return Ok(json!(false));
         };
         let max_protocol_version: String = match max_protocol_version.as_str() {
             Some(max_protocol_version) => max_protocol_version.into(),
@@ -755,10 +750,10 @@ impl ChronikElectrumRPCServerEndpoint {
         };
 
         let Some(hosts) = features.remove("hosts") else {
-            return Ok(json!(false))
+            return Ok(json!(false));
         };
         let Some(hosts) = hosts.as_object() else {
-            return Ok(json!(false))
+            return Ok(json!(false));
         };
 
         if hosts.is_empty() {
@@ -781,7 +776,7 @@ impl ChronikElectrumRPCServerEndpoint {
 
             // We need a port to resolve the url, just use 0
             let Ok(mut addrs) = format!("{url}:0").to_socket_addrs() else {
-                return Ok(json!(false))
+                return Ok(json!(false));
             };
             // Use the first IPv4 if several are available, the first address
             // otherwise
@@ -794,7 +789,7 @@ impl ChronikElectrumRPCServerEndpoint {
             let tcp_port = match protocols.get("tcp_port") {
                 Some(tcp_port) => {
                     let Some(tcp_port) = tcp_port.as_i64() else {
-                        return Ok(json!(false))
+                        return Ok(json!(false));
                     };
                     match u16::try_from(tcp_port) {
                         Ok(tcp_port) => Some(tcp_port),
@@ -806,7 +801,7 @@ impl ChronikElectrumRPCServerEndpoint {
             let ssl_port = match protocols.get("ssl_port") {
                 Some(ssl_port) => {
                     let Some(ssl_port) = ssl_port.as_i64() else {
-                        return Ok(json!(false))
+                        return Ok(json!(false));
                     };
                     match u16::try_from(ssl_port) {
                         Ok(ssl_port) => Some(ssl_port),
