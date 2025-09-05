@@ -462,7 +462,8 @@ FUZZ_TARGET(coinscache_sim) {
                 // Apply to simulation data.
                 flush();
                 // Apply to real caches.
-                caches.back()->Flush();
+                caches.back()->Flush(
+                    /*reallocate_cache=*/provider.ConsumeBool());
             },
 
             [&]() {
@@ -472,15 +473,6 @@ FUZZ_TARGET(coinscache_sim) {
                 flush();
                 // Apply to real caches.
                 caches.back()->Sync();
-            },
-
-            [&]() {
-                // Flush + ReallocateCache.
-                // Apply to simulation data.
-                flush();
-                // Apply to real caches.
-                caches.back()->Flush();
-                caches.back()->ReallocateCache();
             },
 
             [&]() {

@@ -79,7 +79,10 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                         std::move(outpoint), std::move(coin));
                 }
             },
-            [&] { (void)coins_view_cache.Flush(); },
+            [&] {
+                (void)coins_view_cache.Flush(
+                    /*reallocate_cache=*/fuzzed_data_provider.ConsumeBool());
+            },
             [&] { (void)coins_view_cache.Sync(); },
             [&] {
                 coins_view_cache.SetBestBlock(

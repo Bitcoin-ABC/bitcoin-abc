@@ -2903,7 +2903,8 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
             return false;
         }
 
-        view.Flush();
+        // local CCoinsViewCache goes out of scope
+        view.Flush(/*reallocate_cache=*/false);
     }
     LogPrint(BCLog::BENCH, "- Disconnect block: %.2fms\n",
              Ticks<MillisecondsDouble>(SteadyClock::now() - time_start));
@@ -3108,7 +3109,8 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
             Ticks<MillisecondsDouble>(time_3 - time_2),
             Ticks<SecondsDouble>(time_connect_total),
             Ticks<MillisecondsDouble>(time_connect_total) / num_blocks_total);
-        view.Flush();
+        // local CCoinsViewCache goes out of scope
+        view.Flush(/*reallocate_cache=*/false);
     }
 
     const auto time_4{SteadyClock::now()};
@@ -5579,7 +5581,8 @@ bool Chainstate::ReplayBlocks() {
     }
 
     cache.SetBestBlock(pindexNew->GetBlockHash());
-    cache.Flush();
+    // local CCoinsViewCache goes out of scope
+    cache.Flush(/*reallocate_cache=*/false);
     m_chainman.GetNotifications().progress(bilingual_str{}, 100, false);
     return true;
 }

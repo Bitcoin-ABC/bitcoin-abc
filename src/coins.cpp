@@ -297,12 +297,14 @@ void CCoinsViewCache::BatchWrite(CoinsViewCacheCursor &cursor,
     hashBlock = hashBlockIn;
 }
 
-void CCoinsViewCache::Flush() {
+void CCoinsViewCache::Flush(bool reallocate_cache) {
     auto cursor{CoinsViewCacheCursor(m_sentinel, cacheCoins,
                                      /*will_erase=*/true)};
     base->BatchWrite(cursor, hashBlock);
     cacheCoins.clear();
-    ReallocateCache();
+    if (reallocate_cache) {
+        ReallocateCache();
+    }
     cachedCoinsUsage = 0;
 }
 
