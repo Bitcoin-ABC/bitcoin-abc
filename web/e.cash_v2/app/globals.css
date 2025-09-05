@@ -321,3 +321,7 @@ h2 {
     height: 617px;
   }
 }
+
+#quickstart-section {
+  scroll-margin-top: 120px;
+}

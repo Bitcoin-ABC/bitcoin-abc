@@ -3,11 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ContentContainer from "../Atoms/ContentContainer";
 import { motion } from "framer-motion";
 import PlusHeader from "../Atoms/PlusHeader";
 import { cn } from "../../utils/cn";
+import CustomSelect from "../Atoms/CustomSelect";
 
 interface BuildItem {
   name: string;
@@ -143,15 +145,56 @@ const buildCategories: BuildCategory[] = [
 
 export default function BuildItems() {
   const [selectedCategory, setSelectedCategory] = useState("contribute");
+  const router = useRouter();
 
   const selectedCategoryData = buildCategories.find(
     (category) => category.id === selectedCategory
   );
 
+  // Handle URL hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1); // Remove the # symbol
+      if (hash && buildCategories.some((cat) => cat.id === hash)) {
+        setSelectedCategory(hash);
+        // Scroll to the quickstart section
+        setTimeout(() => {
+          const quickstartSection =
+            document.getElementById("quickstart-section");
+          if (quickstartSection) {
+            quickstartSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      }
+    };
+
+    // Check for hash on initial load
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    // Update URL hash
+    router.push(`#${categoryId}`, { scroll: false });
+  };
+
   return (
     <div className="pb-30 relative w-full">
       <ContentContainer className="p-0 lg:px-4">
-        <div className="flex flex-col gap-8 border-t border-t-white/10 bg-gradient-to-br from-white/5 to-[#15172A] p-10 lg:flex-row lg:border-t-0 lg:from-transparent lg:to-transparent lg:p-0">
+        <div
+          id="quickstart-section"
+          className="flex flex-col gap-8 border-t border-t-white/10 bg-gradient-to-br from-white/5 to-[#15172A] p-10 lg:flex-row lg:border-t-0 lg:from-transparent lg:to-transparent lg:p-0"
+        >
           {/* Sidebar Navigation */}
           <motion.div
             className="flex-shrink-0 lg:w-[200px]"
@@ -165,43 +208,38 @@ export default function BuildItems() {
             </div>
             {/* Mobile Dropdown */}
             <div className="lg:hidden">
-              <select
-                value={selectedCategory}
+              <CustomSelect
                 name="build-category"
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setSelectedCategory(e.target.value)
-                }
-                className="w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-[#15172A] px-4 py-4 font-medium focus:outline-none focus:ring-1 focus:ring-[#551AA1]"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
-                  backgroundSize: "12px 8px",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 16px center",
-                }}
-              >
-                {buildCategories.map((category: BuildCategory) => (
-                  <option key={category.id} value={category.id}>
-                    {category.id.charAt(0).toUpperCase() + category.id.slice(1)}
-                  </option>
-                ))}
-              </select>
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                options={buildCategories.map((category: BuildCategory) => ({
+                  value: category.id,
+                  label:
+                    category.id.charAt(0).toUpperCase() + category.id.slice(1),
+                }))}
+                placeholder="Select a category"
+              />
             </div>
 
             {/* Desktop Navigation */}
             <nav className="mt-10 hidden space-y-2 lg:block">
               {buildCategories.map((category) => (
-                <button
+                <a
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  href={`#${category.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleCategoryChange(category.id);
+                  }}
                   className={cn(
-                    "w-full cursor-pointer rounded-lg border-t border-t-transparent px-4 py-2 text-left text-lg font-medium capitalize transition-all duration-200",
+                    "block w-full cursor-pointer rounded-lg border-t border-t-transparent px-4 py-2 text-left text-lg font-medium capitalize transition-all duration-200",
                     selectedCategory === category.id
                       ? "border-t border-t-white/60 bg-gradient-to-t from-[#280F5C] to-[#551AA1] text-white"
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   )}
                 >
                   {category.id}
-                </button>
+                </a>
               ))}
             </nav>
           </motion.div>
