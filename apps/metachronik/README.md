@@ -7,8 +7,8 @@ A Node.js TypeScript application that indexes eCash blockchain data from Chronik
 ### Production-Ready Features
 
 -   **Real-time Block Processing**: WebSocket subscription to Chronik for instant block processing
--   **Automatic Reconciliation**: Daily checks for missing blocks and data integrity
--   **Missing Block Detection**: Identifies and processes any gaps in the blockchain data
+-   **Event-driven Reconciliation**: Automatic gap detection and reconciliation when blockchain gaps are detected
+-   **Missing Block Detection**: Identifies and processes any gaps in the blockchain data in real-time
 -   **Price Integration**: Automatic current price fetching for new days only
 -   **Comprehensive Token Tracking**: ALP and SLP token transaction counting by type
 -   **Advanced Analytics**: Agora volume, cachet claims, faucet claims, and more
@@ -136,8 +136,8 @@ The indexer runs as a background service that:
 -   Continuously monitors the blockchain for new blocks
 -   Processes blocks in real-time via WebSocket
 -   Runs scheduled data collection every 6 hours
--   Performs daily reconciliation at 2 AM
--   Maintains data integrity and fills any gaps
+-   Automatically detects and reconciles gaps when they occur
+-   Maintains data integrity through event-driven reconciliation
 
 ## Data Collection
 
@@ -145,7 +145,15 @@ The application automatically collects data from the Chronik indexer using multi
 
 1. **Real-time Processing**: WebSocket subscription for instant block processing
 2. **Scheduled Collection**: Cron jobs every 6 hours for bulk data collection
-3. **Daily Reconciliation**: Automatic daily checks for missing blocks and data integrity
+3. **Event-driven Reconciliation**: Automatic gap detection and reconciliation when blockchain gaps are detected
+
+### Reconciliation Process
+
+Event-driven reconciliation:
+
+-   **Normal Operation**: Blocks arrive via WebSocket and should always be exactly 1 height higher than the previous block
+-   **Gap Detection**: If a block arrives that's not exactly 1 height higher, the system detects a gap
+-   **Automatic Reconciliation**: When a gap is detected, the system automatically reconciles missing blocks from the highest height in the database to the current chain tip
 
 ### Data Collected
 

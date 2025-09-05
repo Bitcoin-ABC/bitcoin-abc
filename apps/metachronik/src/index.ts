@@ -85,17 +85,6 @@ async function initializeServices() {
                 logger.error('Scheduled data collection failed:', error);
             }
         });
-
-        // Setup daily reconciliation job (runs at 2 AM every day)
-        cron.schedule('0 2 * * *', async () => {
-            logger.info('Starting daily reconciliation');
-            try {
-                await reconciliationService.performDailyReconciliation();
-                logger.info('Daily reconciliation completed');
-            } catch (error) {
-                logger.error('Daily reconciliation failed:', error);
-            }
-        });
     } catch (error) {
         logger.error('Failed to initialize services:', error);
         process.exit(1);
@@ -333,6 +322,7 @@ async function initializeWebSocket(): Promise<void> {
             chronikService['chronik'], // Access the private chronik instance
             dbService,
             chronikService,
+            reconciliationService,
         );
 
         await wsHandler.initialize();

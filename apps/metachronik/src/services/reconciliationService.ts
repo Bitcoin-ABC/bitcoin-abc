@@ -16,62 +16,53 @@ export class ReconciliationService {
     }
 
     /**
-     * Daily reconciliation task
-     * - Check for missing blocks in the last 24 hours
-     * - Update daily aggregations
-     * - Refresh cumulative materialized views
+     * Reconcile missing blocks starting from the highest height in the database
+     * This is only called when we detect a gap in the blockchain
      */
-    async performDailyReconciliation(): Promise<void> {
+    async reconcileFromHighestHeight(): Promise<void> {
         try {
-            logger.info('Starting daily reconciliation...');
+            logger.info('Starting reconciliation from highest height...');
+
+            // Get the highest block in our database
+            const highestBlockHeight =
+                await this.dbService.getHighestBlockHeight();
+
+            logger.info(
+                `Starting reconciliation from height ${highestBlockHeight + 1}`,
+            );
 
             // Get current chain tip
             const blockchainInfo =
                 await this.chronikService.getBlockchainInfo();
             const currentTipHeight = blockchainInfo.tipHeight;
 
-            // Get the highest block in our database
-            const highestBlockHeight =
-                await this.dbService.getHighestBlockHeight();
-            const lowestBlockHeight =
-                await this.dbService.getLowestBlockHeight();
-
-            logger.info(
-                `Database range: ${lowestBlockHeight} - ${highestBlockHeight}`,
-            );
-            logger.info(`Current chain tip: ${currentTipHeight}`);
-
-            // Check for missing blocks in the entire database range
-            const missingBlocks = await this.dbService.getMissingBlocks(
-                lowestBlockHeight,
-                Math.max(highestBlockHeight, currentTipHeight),
-            );
-
-            if (missingBlocks.length > 0) {
-                logger.info(
-                    `Found ${
-                        missingBlocks.length
-                    } missing blocks: ${missingBlocks.join(', ')}`,
-                );
-                await this.processMissingBlocks(missingBlocks);
-            } else {
-                logger.info('No missing blocks found');
+            if (highestBlockHeight >= currentTipHeight) {
+                logger.info('Database is up to date, no reconciliation needed');
+                return;
             }
 
-            // Update daily aggregations for the last 7 days
-            await this.updateRecentDailyAggregations();
+            // Process missing blocks from highest height + 1 to current tip
+            const missingHeights: number[] = [];
+            for (
+                let height = highestBlockHeight + 1;
+                height <= currentTipHeight;
+                height++
+            ) {
+                missingHeights.push(height);
+            }
 
-            // Refresh cumulative materialized views to include new data
-            await this.refreshCumulativeViews();
+            if (missingHeights.length > 0) {
+                logger.info(
+                    `Found ${missingHeights.length} missing blocks: ${
+                        missingHeights[0]
+                    } - ${missingHeights[missingHeights.length - 1]}`,
+                );
+                await this.processMissingBlocks(missingHeights);
+            }
 
-            // NB we do not update any missing prices, this must
-            // be done manually
-            // We do not have a reliable price API that can cover all
-            // days we want to chart
-
-            logger.info('Daily reconciliation completed');
+            logger.info('Reconciliation completed');
         } catch (error) {
-            logger.error('Daily reconciliation failed:', error);
+            logger.error('Reconciliation failed:', error);
             throw error;
         }
     }
@@ -138,65 +129,6 @@ export class ReconciliationService {
             if (i + batchSize < missingHeights.length) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
-        }
-    }
-
-    /**
-     * Update daily aggregations for recent days
-     */
-    private async updateRecentDailyAggregations(): Promise<void> {
-        try {
-            logger.info('Updating recent daily aggregations...');
-
-            // Get the last 7 days
-            const today = new Date();
-            const datesToUpdate: string[] = [];
-
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                if (dateStr) {
-                    datesToUpdate.push(dateStr);
-                }
-            }
-
-            for (const date of datesToUpdate) {
-                try {
-                    await this.dbService.aggregateDailyData(
-                        date,
-                        this.chronikService,
-                    );
-                    logger.debug(`Updated daily aggregation for ${date}`);
-                } catch (error) {
-                    logger.error(
-                        `Failed to update daily aggregation for ${date}:`,
-                        error,
-                    );
-                }
-            }
-
-            logger.info('Recent daily aggregations updated');
-        } catch (error) {
-            logger.error('Error updating recent daily aggregations:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Refresh cumulative materialized views to include new data
-     */
-    private async refreshCumulativeViews(): Promise<void> {
-        try {
-            logger.info('Refreshing cumulative materialized views...');
-            await this.dbService.refreshCumulativeViews();
-            logger.info('Cumulative materialized views refreshed');
-        } catch (error) {
-            logger.error(
-                'Error refreshing cumulative materialized views:',
-                error,
-            );
-            throw error;
         }
     }
 }

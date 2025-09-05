@@ -5,12 +5,14 @@
 import { ChronikClient, WsEndpoint, WsMsgClient } from 'chronik-client';
 import DatabaseService from './database';
 import ChronikService from './chronik';
+import { ReconciliationService } from './reconciliationService';
 import logger from '../utils/logger';
 
 export class WebSocketHandler {
     private chronik: ChronikClient;
     private dbService: DatabaseService;
     private chronikService: ChronikService;
+    private reconciliationService: ReconciliationService;
     private ws: WsEndpoint | null = null;
     private isProcessing = false;
 
@@ -18,10 +20,12 @@ export class WebSocketHandler {
         chronik: ChronikClient,
         dbService: DatabaseService,
         chronikService: ChronikService,
+        reconciliationService: ReconciliationService,
     ) {
         this.chronik = chronik;
         this.dbService = dbService;
         this.chronikService = chronikService;
+        this.reconciliationService = reconciliationService;
     }
 
     public async initialize(): Promise<void> {
@@ -128,8 +132,8 @@ export class WebSocketHandler {
                             blockHeight - expectedNextHeight
                         } blocks.`,
                     );
-                    // Trigger re-indexing to fill the gap
-                    await this.triggerReindexing();
+                    // Trigger reconciliation to fill the gap
+                    await this.reconciliationService.reconcileFromHighestHeight();
                     return;
                 }
             }
@@ -182,32 +186,6 @@ export class WebSocketHandler {
             );
         } finally {
             this.isProcessing = false;
-        }
-    }
-
-    private async triggerReindexing(): Promise<void> {
-        try {
-            logger.info('🔄 Triggering re-indexing to fill missing blocks...');
-
-            // Get the highest block height in our database
-            const highestBlockHeight =
-                await this.dbService.getHighestBlockHeight();
-            const startHeight = highestBlockHeight + 1;
-
-            logger.info(`🔄 Starting re-indexing from block ${startHeight}`);
-
-            // Import the indexBlocksInRange function from the main index file
-            // For now, we'll just log the issue and let the cron job handle it
-            logger.warn(
-                `⚠️ Missing blocks detected. Manual intervention may be required.`,
-            );
-            logger.warn(`⚠️ Expected to re-index from block ${startHeight}`);
-
-            // TODO: In a future version, we could trigger the re-indexing directly here
-            // For now, the cron job will handle catching up missing blocks
-            // In practice, not sure if we will ever see this. Could be overengineered.
-        } catch (error) {
-            logger.error('Failed to trigger re-indexing:', error);
         }
     }
 
