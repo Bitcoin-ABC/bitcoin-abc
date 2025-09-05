@@ -5,34 +5,34 @@
 export type NavbarLink = {
   title: string;
   href: string;
-  category: "main" | "tools" | "more" | "getEcash" | "actions" | "social";
+  category: "main" | "about" | "tools" | "more" | "actions" | "social";
 };
 
 export const navbarLinks: NavbarLink[] = [
   // Main
   { title: "Build", href: "/build", category: "main" },
   { title: "Tech", href: "/tech", category: "main" },
-  { title: "About", href: "/about", category: "main" },
+
+  // About
+  { title: "About", href: "/about", category: "about" },
+  { title: "Blog", href: "/blog", category: "about" },
+  { title: "Roadmap", href: "/roadmap", category: "about" },
+  { title: "Careers", href: "/careers", category: "about" },
+  { title: "Brand", href: "/brand", category: "about" },
+  { title: "Wallets", href: "/wallets", category: "about" },
 
   // Tools
   { title: "Cashtab", href: "https://cashtab.com", category: "tools" },
   { title: "PayButton", href: "https://paybutton.org", category: "tools" },
   { title: "XECX", href: "https://stakedxec.com/", category: "tools" },
   { title: "Firma", href: "https://firma.cash/", category: "tools" },
+  { title: "Explorer", href: "https://explorer.e.cash/", category: "tools" },
 
   // More
-  { title: "Blog", href: "/blog", category: "more" },
-  { title: "Roadmap", href: "/roadmap", category: "more" },
-  { title: "Careers", href: "/careers", category: "more" },
-  { title: "Explorer", href: "https://explorer.e.cash/", category: "more" },
-  { title: "Brand", href: "/brand", category: "more" },
-
-  // Get eCash
-  { title: "Mining", href: "/mining", category: "getEcash" },
-  { title: "Staking", href: "/staking", category: "getEcash" },
-  { title: "Exchanges", href: "/get-ecash", category: "getEcash" },
-  { title: "Wallets", href: "/wallets", category: "getEcash" },
-  { title: "Use eCash", href: "/use-ecash", category: "getEcash" },
+  { title: "Mining", href: "/mining", category: "more" },
+  { title: "Staking", href: "/staking", category: "more" },
+  { title: "Exchanges", href: "/get-ecash", category: "more" },
+  { title: "Use eCash", href: "/use-ecash", category: "more" },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },

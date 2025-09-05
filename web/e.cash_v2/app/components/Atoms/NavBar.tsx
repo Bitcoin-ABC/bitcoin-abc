@@ -18,9 +18,11 @@ export default function Navbar() {
   const isHomepage = pathname === "/";
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const aboutTimeout = useRef<NodeJS.Timeout | null>(null);
   const toolsTimeout = useRef<NodeJS.Timeout | null>(null);
   const moreTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -115,6 +117,50 @@ export default function Navbar() {
                     {link.title}
                   </Link>
                 ))}
+              {/* About dropdown - hidden on mobile */}
+              <div
+                className="relative"
+                onMouseEnter={() =>
+                  handleDropdown(setAboutOpen, aboutTimeout, true)
+                }
+                onMouseLeave={() =>
+                  handleDropdown(setAboutOpen, aboutTimeout, false)
+                }
+              >
+                <button
+                  className={cn(
+                    "hover:text-accentLight flex items-center gap-2 font-medium transition-all",
+                    aboutOpen && "text-accentLight"
+                  )}
+                >
+                  About
+                  <Image
+                    src="/arrow-up.png"
+                    alt="chevron-down"
+                    width={10}
+                    height={10}
+                    className={cn(
+                      "rotate-180 transition-all",
+                      aboutOpen && "custom-filter"
+                    )}
+                  />
+                </button>
+                {aboutOpen && (
+                  <div className={dropDownBox}>
+                    {navbarLinks
+                      .filter((l) => l.category === "about")
+                      .map((link) => (
+                        <Link
+                          key={link.title}
+                          href={link.href}
+                          className={dropDownItem}
+                        >
+                          {link.title}
+                        </Link>
+                      ))}
+                  </div>
+                )}
+              </div>
               {/* Tools dropdown - hidden on mobile */}
               <div
                 className="relative"
@@ -186,11 +232,9 @@ export default function Navbar() {
               </button>
               {moreOpen && (
                 <div className={cn(dropDownBox, "left-auto right-0")}>
-                  {/* Show both 'more' and 'getEcash' links here */}
+                  {/* Show 'more' links here */}
                   {navbarLinks
-                    .filter(
-                      (l) => l.category === "more" || l.category === "getEcash"
-                    )
+                    .filter((l) => l.category === "more")
                     .map((link) => {
                       const isExternal = link.href.startsWith("http");
                       return (
@@ -275,7 +319,7 @@ export default function Navbar() {
 
             {/* Mobile hamburger menu button */}
             <button
-              className="hamburger-button relative flex flex-col gap-2 p-2 lg:hidden"
+              className="hamburger-button relative flex cursor-pointer flex-col gap-2 p-2 lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle mobile menu"
             >
@@ -327,6 +371,27 @@ export default function Navbar() {
               </div>
             </div>
 
+            {/* About section */}
+            <div>
+              <div className="font-fira-code text-secondaryText mb-3 text-xs font-light">
+                ABOUT
+              </div>
+              <div className="text-xl font-bold">
+                {navbarLinks
+                  .filter((l) => l.category === "about")
+                  .map((link) => (
+                    <Link
+                      key={link.title}
+                      href={link.href}
+                      className="hover:text-accentLight block py-2 transition-all"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.title}
+                    </Link>
+                  ))}
+              </div>
+            </div>
+
             {/* Tools section */}
             <div>
               <div className="font-fira-code text-secondaryText mb-3 text-xs font-light">
@@ -350,46 +415,31 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* More and Get eCash sections */}
-            <div className="mt-4 flex items-start gap-12">
-              <div>
-                <div className="mb-5 font-medium text-white">More</div>
-                <div className="text-secondaryText flex flex-col gap-5 text-base font-light">
-                  {navbarLinks
-                    .filter((l) => l.category === "more")
-                    .map((link) => {
-                      const isExternal = link.href.startsWith("http");
-                      return (
-                        <Link
-                          key={link.title}
-                          href={link.href}
-                          {...(isExternal && {
-                            target: "_blank",
-                            rel: "noopener noreferrer",
-                          })}
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          {link.title}
-                        </Link>
-                      );
-                    })}
-                </div>
+            {/* More section */}
+            <div>
+              <div className="font-fira-code text-secondaryText mb-3 text-xs font-light">
+                MORE
               </div>
-              <div>
-                <div className="mb-5 font-medium text-white">Get eCash</div>
-                <div className="text-secondaryText flex flex-col gap-5 text-base font-light">
-                  {navbarLinks
-                    .filter((l) => l.category === "getEcash")
-                    .map((link) => (
+              <div className="text-xl font-bold">
+                {navbarLinks
+                  .filter((l) => l.category === "more")
+                  .map((link) => {
+                    const isExternal = link.href.startsWith("http");
+                    return (
                       <Link
                         key={link.title}
                         href={link.href}
+                        className="hover:text-accentLight block py-2 transition-all"
+                        {...(isExternal && {
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                        })}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {link.title}
                       </Link>
-                    ))}
-                </div>
+                    );
+                  })}
               </div>
             </div>
 
