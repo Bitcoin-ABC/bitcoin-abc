@@ -44,7 +44,7 @@ const progressBar = keyframes`
 
 // Shared constant for progress bar duration
 // Time in MS it takes for the extension or webapp tx modal to close
-export const PROGRESS_BAR_DURATION_MS = 2000;
+export const PROGRESS_BAR_DURATION_MS = 1000;
 
 export const SendButtonContainer = styled.div`
     position: sticky;
