@@ -51,7 +51,10 @@ export default async function BlogPage() {
         </p>
       </div>
       {/* Latest post large */}
-      <div className="relative mb-12 overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5">
+      <a
+        href={`/blog/${latest.attributes.slug}`}
+        className="group relative mb-12 block overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5"
+      >
         <div className="relative h-[550px] w-full">
           <Image
             src={`https://strapi.fabien.cash${getImageUrl(latest)}`}
@@ -70,26 +73,23 @@ export default async function BlogPage() {
             <span className="mx-2">•</span>
             <span>{calculateReadTime(latest.attributes.content)} min read</span>
           </div>
-          <h2 className="mb-4 max-w-2xl text-3xl font-bold text-white">
+          <h2 className="mb-4 max-w-2xl text-3xl font-bold text-white transition-all group-hover:underline">
             {latest.attributes.title}
           </h2>
           <div className="mt-4 w-fit">
-            <Button
-              href={`/blog/${latest.attributes.slug}`}
-              variant="white"
-              className="m-0"
-            >
+            <Button variant="white" className="m-0">
               Read more
             </Button>
           </div>
         </div>
-      </div>
+      </a>
       {/* Next 9 posts as cards */}
       <div className="mb-16 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {featured.map((post, idx) => (
-          <div
+          <a
+            href={`/blog/${post.attributes.slug}`}
             key={post.id}
-            className="flex flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5"
+            className="group flex flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5"
           >
             <div className="p-2">
               <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[300px]">
@@ -113,20 +113,16 @@ export default async function BlogPage() {
                   {calculateReadTime(post.attributes.content)} min read
                 </span>
               </div>
-              <h3 className="mb-4 text-xl font-bold leading-tight text-white lg:text-2xl">
+              <h3 className="mb-4 text-xl font-bold leading-tight text-white transition-all group-hover:underline lg:text-2xl">
                 {post.attributes.title}
               </h3>
               <div className="mt-auto">
-                <Button
-                  href={`/blog/${post.attributes.slug}`}
-                  variant="white"
-                  className="mt-4"
-                >
+                <Button variant="white" className="mt-4">
                   Read more
                 </Button>
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
       {/* More articles as text links */}

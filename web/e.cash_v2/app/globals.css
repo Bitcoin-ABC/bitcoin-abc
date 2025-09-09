@@ -64,6 +64,15 @@ article ul {
   margin: 20px 0;
 }
 
+article a {
+  text-decoration: underline;
+  color: var(--accentMedium);
+  transition: all 0.2s ease-in-out;
+  &:hover {
+    color: var(--accentLight);
+  }
+}
+
 /* The tailwinds backdrop-blur class was acting up. Utilizing a custom class 
 here to get the effect */
 

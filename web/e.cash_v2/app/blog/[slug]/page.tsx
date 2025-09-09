@@ -11,9 +11,11 @@ import {
   sortBlogPostsByDate,
   formatTimestamp,
   calculateReadTime,
+  getNextRecommendedPost,
   BlogPost,
 } from "../../data/blog";
 import ContentContainer from "../../components/Atoms/ContentContainer";
+import BlogRecommendation from "../../components/Blog/BlogRecommendation";
 
 // Length of time to cache the page in seconds
 // Value must be a static export to work with Next.js
@@ -45,8 +47,10 @@ export default async function BlogPostPage({
     post.attributes.image.data.attributes.formats.small?.url ||
     post.attributes.image.data.attributes.url;
 
+  const recommendedPost = getNextRecommendedPost(posts, slug);
+
   return (
-    <ContentContainer className="max-w-[900px] pt-20">
+    <ContentContainer className="pb-30 max-w-[800px] pt-20">
       <Link
         href="/blog"
         className="text-accentMedium mb-8 inline-block hover:underline"
@@ -79,6 +83,7 @@ export default async function BlogPostPage({
         className="prose prose-invert prose-lg prose-headings:mt-8 prose-p:mt-4 max-w-none text-lg"
         dangerouslySetInnerHTML={{ __html: post.attributes.content }}
       />
+      {recommendedPost && <BlogRecommendation post={recommendedPost} />}
     </ContentContainer>
   );
 }

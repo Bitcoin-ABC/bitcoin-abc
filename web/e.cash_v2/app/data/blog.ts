@@ -114,3 +114,26 @@ export function calculateReadTime(content: string): number {
 
   return readTime;
 }
+
+/**
+ * Get the next recommended blog post (the post published just before the current one)
+ * @param posts - Array of all blog posts sorted by date
+ * @param currentSlug - Slug of the current blog post to exclude
+ * @returns The blog post published just before the current one, or null if none available
+ */
+export function getNextRecommendedPost(
+  posts: BlogPost[],
+  currentSlug: string
+): BlogPost | null {
+  const currentIndex = posts.findIndex(
+    (post) => post.attributes.slug === currentSlug
+  );
+
+  // If current post not found or it's the last post, return null
+  if (currentIndex === -1 || currentIndex === posts.length - 1) {
+    return null;
+  }
+
+  // Return the post that comes after the current one (which is chronologically before it)
+  return posts[currentIndex + 1];
+}
