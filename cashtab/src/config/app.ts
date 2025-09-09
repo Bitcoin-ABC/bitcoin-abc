@@ -23,7 +23,7 @@ interface AppConfig {
     tokenTicker: string;
     tokenLogo: string; // path to png file
     localStorageMaxCharacters: number;
-    monitorExtension: false;
+    monitorExtension: boolean;
     vipTokens: {
         grumpy: {
             tokenId: string;
@@ -61,7 +61,7 @@ const appConfig: AppConfig = {
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
     localStorageMaxCharacters: 24,
-    monitorExtension: false,
+    monitorExtension: true,
     vipTokens: {
         grumpy: {
             tokenId:

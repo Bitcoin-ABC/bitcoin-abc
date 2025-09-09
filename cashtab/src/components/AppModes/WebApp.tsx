@@ -5,6 +5,7 @@
 import { useEffect } from 'react';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
+import { isMobile } from 'helpers';
 
 interface ExtendedWindow {
     bitcoinAbc?: 'cashtab';
@@ -99,15 +100,67 @@ const WebApp = () => {
         );
     };
 
+    const isDesktopChromeOrBrave = (): boolean => {
+        // Check if user is on mobile
+        if (isMobile(navigator)) {
+            return false;
+        }
+
+        // Check user agent for Chrome or Brave (Brave identifies as Chrome)
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isChromeOrBrave =
+            userAgent.includes('chrome') && !userAgent.includes('edg');
+        const isFirefox = userAgent.includes('firefox');
+
+        return isChromeOrBrave && !isFirefox;
+    };
+
     const handleExtensionStatus = async () => {
         if (appConfig.monitorExtension) {
             const extensionInstalled = await getExtensionInstallationStatus();
-            // TODO if false and other conditions are met, show popup advertising browser extension
             console.info(
                 `Cashtab browser extension: ${
                     extensionInstalled ? 'Installed' : 'Not installed'
                 }`,
             );
+
+            // Show extension installation notice if not installed and on desktop Chrome/Brave
+            if (!extensionInstalled && isDesktopChromeOrBrave()) {
+                toast.info(
+                    <div>
+                        <div
+                            style={{ fontWeight: 'bold', marginBottom: '8px' }}
+                        >
+                            Install Cashtab Browser Extension
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                            Enhance your webapp experience with our browser
+                            extension for Chrome and Brave.
+                        </div>
+                        <a
+                            href="https://chromewebstore.google.com/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                color: '#007bff',
+                                textDecoration: 'underline',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            Install Extension →
+                        </a>
+                    </div>,
+                    {
+                        autoClose: 10000, // Show for 10 seconds
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        style: {
+                            minWidth: '400px',
+                            maxWidth: '500px',
+                        },
+                    },
+                );
+            }
         }
     };
 
