@@ -36,6 +36,7 @@ See tests for detailed methods.
     [x] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
     [x] SLP_TOKEN_TYPE_NFT1_GROUP
     [x] SLP_TOKEN_TYPE_NFT1_CHILD (Mint NFTs)
+    [x] DataAction for ALP_TOKEN_TYPE_STANDARD txs
     [] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
 -   Agora actions (PARTIAL and ONESHOT)
     [] SLP (requires "chained" txs)
@@ -82,3 +83,7 @@ See tests for detailed methods.
 # 1.4.0
 
 [D18558](https://reviews.bitcoinabc.org/D18558) Support GENESIS, SEND, and BURN for SLP_TOKEN_TYPE_NFT1_CHILD
+
+# 1.5.0
+
+[D18585](https://reviews.bitcoinabc.org/D18585) Support DataAction for ALP token sends

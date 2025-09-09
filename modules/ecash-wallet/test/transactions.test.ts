@@ -1949,4 +1949,273 @@ describe('Wallet can build and broadcast on regtest', () => {
          *  expected 1 but got 2. Unexpected burn: Burns 1 atoms.
          */
     });
+    it('We can send an ALP tx with DataAction(s)', async () => {
+        // Init the wallet
+        const alpDataWallet = Wallet.fromSk(fromHex('18'.repeat(32)), chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, alpDataWallet.script);
+
+        // Sync the wallet
+        await alpDataWallet.sync();
+
+        // First, create an ALP token
+        const alpGenesisInfo = {
+            tokenTicker: 'DATA',
+            tokenName: 'ALP Data Test Token',
+            url: 'cashtab.com',
+            decimals: 0,
+            data: 'deadbeef',
+            authPubkey: toHex(alpDataWallet.pk),
+        };
+
+        const genesisMintQty = 1_000n;
+
+        // Construct the Action for genesis
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: alpDataWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: alpDataWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await alpDataWallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const alpTokenId = genesisResp.txid;
+
+        // Verify it's a valid ALP genesis tx
+        const tokenInfo = await chronik.token(alpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('ALP_TOKEN_TYPE_STANDARD');
+
+        // Now send the token with DataAction containing "test" (ASCII encoded)
+        const testData = new TextEncoder().encode('test');
+
+        const alpSendWithDataAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Send some tokens */
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: alpTokenId,
+                    atoms: 100n,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** DataAction with "test" ASCII encoded */
+                {
+                    type: 'DATA',
+                    data: testData,
+                },
+            ],
+        };
+
+        // Sync to get the token UTXOs
+        await alpDataWallet.sync();
+
+        // Build and broadcast the transaction with DataAction
+        const sendWithDataResp = await alpDataWallet
+            .action(alpSendWithDataAction)
+            .build()
+            .broadcast();
+
+        const sendWithDataTxid = sendWithDataResp.txid;
+
+        // Verify the transaction was successful
+        const sendWithDataTx = await chronik.tx(sendWithDataTxid);
+        expect(sendWithDataTx.tokenEntries).to.have.length(1);
+        expect(sendWithDataTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(sendWithDataTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(sendWithDataTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify the data was included in the OP_RETURN
+        // The OP_RETURN should contain the ALP SEND pushdata followed by the "test" data
+
+        // The "test" data (74657374 in hex) should be present in the OP_RETURN
+        // We can verify this by checking that the transaction was successful and
+        // the token was sent correctly, which confirms the DataAction was processed
+
+        // Verify the token was sent correctly (so, the ALP tx was valid)
+        const utxosAtDestination = await chronik
+            .address(MOCK_DESTINATION_ADDRESS)
+            .utxos();
+        const tokenUtxoAtDestination = utxosAtDestination.utxos.find(
+            utxo => utxo.token?.tokenId === alpTokenId,
+        );
+        expect(tokenUtxoAtDestination?.token?.atoms).to.equal(100n);
+
+        // Verify we find the data in the OP_RETURN (so, the DataAction was processed)
+        const opReturn = sendWithDataTx.outputs[0].outputScript;
+        const testDataHex = toHex(testData);
+
+        expect(opReturn).to.include(testDataHex); // "test" in hex: 74657374
+
+        // Test that we get an error when trying to send max ALP outputs with DataAction
+        // This should exceed the OP_RETURN size limit
+        const maxAlpOutputs: payment.PaymentOutput[] = [];
+        for (let i = 1; i <= ALP_POLICY_MAX_OUTPUTS - 1; i++) {
+            maxAlpOutputs.push({
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId: alpTokenId,
+                atoms: BigInt(i),
+            });
+        }
+
+        const alpMaxOutputsWithDataAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-28
+                 * This will be the maximum number of outputs before hitting ALP_POLICY_MAX_OUTPUTS
+                 * Adding DataAction should push us over the OP_RETURN size limit
+                 */
+                ...maxAlpOutputs,
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** DataAction with "test" ASCII encoded - this should cause OP_RETURN to exceed size limit */
+                {
+                    type: 'DATA',
+                    data: testData,
+                },
+            ],
+        };
+
+        // Sync to get the updated token UTXOs
+        await alpDataWallet.sync();
+
+        // This should throw an error because the OP_RETURN would exceed the size limit
+        expect(() =>
+            alpDataWallet.action(alpMaxOutputsWithDataAction).build(),
+        ).to.throw(
+            Error,
+            `Specified action results in OP_RETURN of 226 bytes, vs max allowed of 223.`,
+        );
+
+        // Test sending ALP transaction with two DataActions: "alpha" and "beta"
+        const alphaData = new TextEncoder().encode('alpha');
+        const betaData = new TextEncoder().encode('beta');
+
+        const alpSendWithTwoDataActions: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Send some tokens */
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: alpTokenId,
+                    atoms: 50n,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** First DataAction with "alpha" */
+                {
+                    type: 'DATA',
+                    data: alphaData,
+                },
+                /** Second DataAction with "beta" */
+                {
+                    type: 'DATA',
+                    data: betaData,
+                },
+            ],
+        };
+
+        // Sync to get the updated token UTXOs
+        await alpDataWallet.sync();
+
+        // Build and broadcast the transaction with two DataActions
+        const sendWithTwoDataResp = await alpDataWallet
+            .action(alpSendWithTwoDataActions)
+            .build()
+            .broadcast();
+
+        const sendWithTwoDataTxid = sendWithTwoDataResp.txid;
+
+        // Verify the transaction was successful
+        const sendWithTwoDataTx = await chronik.tx(sendWithTwoDataTxid);
+        expect(sendWithTwoDataTx.tokenEntries).to.have.length(1);
+        expect(sendWithTwoDataTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(sendWithTwoDataTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(sendWithTwoDataTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify both data actions are included in the OP_RETURN
+        const opReturnWithTwoData = sendWithTwoDataTx.outputs[0].outputScript;
+        const alphaDataHex = toHex(alphaData);
+        const betaDataHex = toHex(betaData);
+
+        expect(opReturnWithTwoData).to.include(alphaDataHex); // "alpha" in hex: 616c706861
+        expect(opReturnWithTwoData).to.include(betaDataHex); // "beta" in hex: 62657461
+
+        // Verify the token was sent correctly
+        const utxosAtDestinationAfterTwoData = await chronik
+            .address(MOCK_DESTINATION_ADDRESS)
+            .utxos();
+        const tokenUtxosAtDestinationAfterTwoData =
+            utxosAtDestinationAfterTwoData.utxos.filter(
+                utxo => utxo.token?.tokenId === alpTokenId,
+            );
+
+        // We should have 2 UTXOs: one from the first transaction (100 atoms) and one from the second (50 atoms)
+        expect(tokenUtxosAtDestinationAfterTwoData).to.have.length(2);
+
+        // Calculate total atoms across all UTXOs
+        const totalAtoms = tokenUtxosAtDestinationAfterTwoData.reduce(
+            (sum, utxo) => sum + (utxo.token?.atoms || 0n),
+            0n,
+        );
+        expect(totalAtoms).to.equal(150n); // 100 + 50
+    });
 });

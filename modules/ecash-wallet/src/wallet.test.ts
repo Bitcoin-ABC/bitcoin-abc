@@ -2658,6 +2658,140 @@ describe('Support functions', () => {
                 );
             });
         });
+        context('DataAction validation', () => {
+            it('Throws when user includes data action but no other token actions', () => {
+                const dataAction: payment.DataAction = {
+                    type: 'DATA',
+                    data: new Uint8Array([1, 2, 3, 4]),
+                };
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [{ sats: 0n }],
+                            tokenActions: [dataAction],
+                        },
+                        [DUMMY_UTXO],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Data actions are only supported for ALP_TOKEN_TYPE_STANDARD token actions.',
+                );
+            });
+            it('Throws when user includes data action but tokenActions is undefined', () => {
+                // This test scenario is not possible since DataAction can only be in tokenActions
+                // If tokenActions is undefined, there can't be a DataAction
+                // This test would be redundant, so we skip it
+            });
+            it('Throws when user includes data action with SLP token action', () => {
+                const dataAction: payment.DataAction = {
+                    type: 'DATA',
+                    data: new Uint8Array([1, 2, 3, 4]),
+                };
+                const slpSendAction: payment.SendAction = {
+                    type: 'SEND',
+                    tokenId: '11'.repeat(32),
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                };
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [slpSendAction, dataAction],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Data actions are only supported for ALP_TOKEN_TYPE_STANDARD token actions.',
+                );
+            });
+            it('Throws when user includes data action with SLP_TOKEN_TYPE_MINT_VAULT token action', () => {
+                const dataAction: payment.DataAction = {
+                    type: 'DATA',
+                    data: new Uint8Array([1, 2, 3, 4]),
+                };
+                const mintVaultGenesisAction: payment.GenesisAction = {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                    genesisInfo: nullGenesisInfo,
+                };
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    script: DUMMY_SCRIPT,
+                                    atoms: 100n,
+                                    tokenId:
+                                        payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [mintVaultGenesisAction, dataAction],
+                        },
+                        [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    'Data actions are only supported for ALP_TOKEN_TYPE_STANDARD token actions.',
+                );
+            });
+            it('Does not throw when user includes data action with ALP_TOKEN_TYPE_STANDARD token action', () => {
+                const dataAction: payment.DataAction = {
+                    type: 'DATA',
+                    data: new Uint8Array([1, 2, 3, 4]),
+                };
+                const alpSendAction: payment.SendAction = {
+                    type: 'SEND',
+                    tokenId: '11'.repeat(32),
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                };
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                {
+                                    sats: 546n,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 100n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [alpSendAction, dataAction],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD.token,
+                                    tokenId: '11'.repeat(32),
+                                    atoms: 1000n, // Ensure sufficient atoms
+                                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                                    isMintBaton: false,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).not.to.throw();
+            });
+        });
         context('SLP_TOKEN_TYPE_FUNGIBLE', () => {
             it('Throws if action is associated with more than one tokenId', () => {
                 expect(() =>

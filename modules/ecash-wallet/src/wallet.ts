@@ -889,6 +889,12 @@ export const validateTokenActions = (tokenActions: payment.TokenAction[]) => {
                 burnTokenIds.push(tokenId);
                 break;
             }
+            case 'DATA': {
+                // DataAction validation is handled in finalizeOutputs
+                // No specific validation needed here
+                // We do not validate data actions here because we would need to know token type
+                break;
+            }
             default: {
                 throw new Error(
                     `Unknown token action at index ${i} of tokenActions`,
@@ -1518,6 +1524,7 @@ export const getTokenType = (action: payment.Action): TokenType | undefined => {
                 }
             }
         }
+        // NB we do not expect to find tokenType in a data action
     }
 
     return tokenType;
@@ -1621,6 +1628,22 @@ export const finalizeOutputs = (
     const tokenType = getTokenType(action);
 
     const isTokenTx = typeof tokenType !== 'undefined';
+
+    // Check for data actions
+    const dataActions = tokenActions?.filter(
+        action => action.type === 'DATA',
+    ) as payment.DataAction[];
+
+    if (dataActions && dataActions.length > 0) {
+        // Data actions are only supported for ALP_TOKEN_TYPE_STANDARD token actions
+        // Users who want straight-up EMPP in a tx or straight-up OP_RETURN do not include
+        // DataAction in tokenActions, but instead specify their OP_RETURN output
+        if (tokenType?.type !== 'ALP_TOKEN_TYPE_STANDARD') {
+            throw new Error(
+                `Data actions are only supported for ALP_TOKEN_TYPE_STANDARD token actions.`,
+            );
+        }
+    }
 
     // We can have only 1 OP_RETURN output
     // A non-token tx must specify OP_RETURN output manually
@@ -2760,6 +2783,12 @@ export const finalizeOutputs = (
                         emppScriptArr.push(
                             alpBurn(tokenId, tokenType.number, burnAtoms),
                         );
+                        break;
+                    }
+                    case 'DATA': {
+                        // Add the arbitrary data as an EMPP push
+                        const { data } = action as payment.DataAction;
+                        emppScriptArr.push(data);
                         break;
                     }
                     default: {
