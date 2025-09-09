@@ -376,11 +376,31 @@ const Wallets = () => {
     /**
      * Copy wallet address and close tab
      */
-    const copyWalletAddress = async (address: string, _walletName: string) => {
+    const copyWalletAddress = async (address: string, walletName: string) => {
         if (navigator.clipboard) {
             await navigator.clipboard.writeText(address);
         }
         toast.success(`"${address}" copied to clipboard`);
+
+        // Find the wallet that was copied
+        const copiedWallet = wallets.find(wallet => wallet.name === walletName);
+
+        // If the copied wallet is not the active wallet (index 0), activate it
+        if (copiedWallet && wallets[0].mnemonic !== copiedWallet.mnemonic) {
+            // Get desired wallets array after activating walletToActivate
+            const walletsAfterActivation = getWalletsForNewActiveWallet(
+                copiedWallet,
+                wallets,
+            );
+
+            // Event("Category", "Action", "Label")
+            // Track number of times a different wallet is activated
+            Event('Configure.js', 'Activate', '');
+
+            // Update state and storage directly, waiting for completion
+            setLoading(true);
+            await updateCashtabState('wallets', walletsAfterActivation);
+        }
 
         // Close the tab after copying - this works when the tab was opened by JavaScript
         window.close();
