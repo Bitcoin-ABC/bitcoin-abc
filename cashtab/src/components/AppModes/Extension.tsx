@@ -2,8 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Modal from 'components/Common/Modal';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import { getWalletsForNewActiveWallet, CashtabWallet } from 'wallet';
+import { Event } from 'components/Common/GoogleAnalytics';
+import {
+    AddressShareModal,
+    WalletAddressRow,
+    WalletInfo,
+    WalletNameText,
+    WalletAddress,
+    CopyButton,
+    ActiveIndicator,
+} from 'components/Wallets/styles';
 
 const Extension: React.FC = () => {
     // Extension-only state fields
@@ -15,16 +27,61 @@ const Extension: React.FC = () => {
     const [addressRequestTabUrl, setAddressRequestTabUrl] =
         useState<string>('');
 
-    const handleApprovedAddressShare = async (): Promise<void> => {
+    // Get wallet context
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // If wallet context is not loaded, show loading or return null
+        return null;
+    }
+    const { cashtabState, updateCashtabState, setLoading } = ContextValue;
+    const { wallets } = cashtabState;
+
+    /**
+     * Get abbreviated address for display
+     */
+    const getAbbreviatedAddress = (address: string) => {
+        const addressParts = address.split(':');
+        const unprefixedAddress = addressParts[addressParts.length - 1];
+        return `${unprefixedAddress.slice(0, 5)}...${unprefixedAddress.slice(
+            -5,
+        )}`;
+    };
+
+    /**
+     * Handle wallet connection - activate wallet and share address
+     */
+    const handleWalletConnect = async (
+        wallet: CashtabWallet,
+    ): Promise<void> => {
         if (addressRequestTabId === null) return;
 
+        // If the selected wallet is not the active wallet, activate it first
+        if (wallets[0].mnemonic !== wallet.mnemonic) {
+            // Get desired wallets array after activating wallet
+            const walletsAfterActivation = getWalletsForNewActiveWallet(
+                wallet,
+                wallets,
+            );
+
+            // Event("Category", "Action", "Label")
+            // Track number of times a different wallet is activated
+            Event('Extension.js', 'Activate', '');
+
+            // Update state and storage directly, waiting for completion
+            setLoading(true);
+            await updateCashtabState('wallets', walletsAfterActivation);
+        }
+
+        // Send the address to the requesting tab
         await chrome.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: true,
             url: addressRequestTabUrl,
             tabId: addressRequestTabId,
+            address: wallet.paths.get(1899).address,
         });
+
         setShowApproveAddressShareModal(false);
         // Close the popup after user action
         window.close();
@@ -86,13 +143,63 @@ const Extension: React.FC = () => {
         <>
             {showApproveAddressShareModal && (
                 <Modal
-                    title={`Share your address?`}
-                    description={`The web page ${addressRequestTabUrl} is requesting your
-                        eCash address.`}
-                    handleOk={() => handleApprovedAddressShare()}
-                    handleCancel={() => handleRejectedAddressShare()}
-                    showCancelButton
-                />
+                    height={400}
+                    title="Connect Wallet"
+                    description={`Wallet connect request from ${
+                        new URL(addressRequestTabUrl).hostname
+                    }`}
+                    handleCancel={() => setShowApproveAddressShareModal(false)}
+                    showCancelButton={false}
+                    showButtons={false}
+                >
+                    <AddressShareModal>
+                        <div
+                            style={{
+                                marginBottom: '16px',
+                                textAlign: 'center',
+                            }}
+                        >
+                            <button
+                                onClick={() => handleRejectedAddressShare()}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                Reject
+                            </button>
+                        </div>
+                        {wallets.map((wallet, index) => (
+                            <WalletAddressRow key={`${wallet.name}_${index}`}>
+                                <WalletInfo>
+                                    <WalletNameText>
+                                        {wallet.name}
+                                        {index === 0 && (
+                                            <ActiveIndicator>
+                                                [active]
+                                            </ActiveIndicator>
+                                        )}
+                                    </WalletNameText>
+                                    <WalletAddress>
+                                        {getAbbreviatedAddress(
+                                            wallet.paths.get(1899).address,
+                                        )}
+                                    </WalletAddress>
+                                </WalletInfo>
+                                <CopyButton
+                                    onClick={() => handleWalletConnect(wallet)}
+                                >
+                                    Connect
+                                </CopyButton>
+                            </WalletAddressRow>
+                        ))}
+                    </AddressShareModal>
+                </Modal>
             )}
         </>
     );
