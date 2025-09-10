@@ -23,3 +23,9 @@ Updated settings
  -  The maximum allowed value for the `-dbcache` configuration option has been
   dropped. Note that before this change, large `-dbcache` values were automatically
   reduced to 16 GiB (1 GiB on 32 bit systems).
+
+Bugfix
+------
+
+ - Fixed a bug where the `getavalancheinfo` RPC could return the wrong status
+   for the local proof if it was rejected by avalanche vote.

@@ -775,12 +775,24 @@ ProofRegistrationState Processor::getLocalProofRegistrationState() const {
         return state;
     }
 
-    if (peerData->proof &&
-        WITH_LOCK(cs_peerManager, return peerManager->isInConflictingPool(
-                                      peerData->proof->getId()))) {
-        state.Invalid(ProofRegistrationResult::CONFLICTING,
-                      "conflicting-utxos");
-        return state;
+    if (peerData->proof) {
+        LOCK(cs_peerManager);
+
+        const ProofId &proofid = peerData->proof->getId();
+
+        if (peerManager->isInConflictingPool(proofid)) {
+            state.Invalid(ProofRegistrationResult::CONFLICTING,
+                          "conflicting-utxos");
+            return state;
+        }
+
+        if (peerManager->isInvalid(proofid)) {
+            // If proof is invalid but verifies valid, it's been rejected by
+            // avalanche
+            state.Invalid(ProofRegistrationResult::INVALID,
+                          "avalanche-invalidated");
+            return state;
+        }
     }
 
     return WITH_LOCK(peerData->cs_proofState, return peerData->proofState);
