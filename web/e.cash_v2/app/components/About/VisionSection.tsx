@@ -3,15 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 "use client";
-import { useState } from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
 import { motion } from "motion/react";
 import Image from "next/image";
-import Spline from "@splinetool/react-spline";
 
 export default function VisionSection() {
-  const [loading, setLoading] = useState(true);
   return (
     <div className="lg:py-26 py-10">
       <ContentContainer>
@@ -49,31 +46,17 @@ export default function VisionSection() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeInOut", delay: 0.3 }}
-              viewport={{ once: true, amount: 0.5 }}
-              className="custom-box relative flex h-[700px] w-full flex-1 items-center justify-center rounded-2xl bg-white/5"
+              viewport={{ once: true }}
+              className="custom-box relative flex h-[400px] min-h-[400px] w-full flex-1 items-center justify-center rounded-2xl bg-white/5 lg:h-[500px] lg:min-h-[500px]"
             >
-              <div className="relative flex h-[300px] w-[300px] items-center justify-center">
-                {loading && (
-                  <Image
-                    src="/spline-preview.png"
-                    alt="eCash"
-                    fill
-                    className="object-contain"
-                    sizes="300px"
-                  />
-                )}
-                <div className="block lg:hidden">
-                  <Spline
-                    scene="/scene-mobile.splinecode"
-                    onLoad={() => setLoading(false)}
-                  />
-                </div>
-                <div className="hidden lg:block">
-                  <Spline
-                    scene="/logo300p.splinecode"
-                    onLoad={() => setLoading(false)}
-                  />
-                </div>
+              <div className="relative flex h-[200px] w-[200px] items-center justify-center lg:h-[300px] lg:w-[300px]">
+                <Image
+                  src="/spline-preview.png"
+                  alt="eCash"
+                  fill
+                  className="object-contain"
+                  sizes="200px lg:300px"
+                />
               </div>
             </motion.div>
           </div>
