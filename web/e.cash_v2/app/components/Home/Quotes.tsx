@@ -26,6 +26,13 @@ export const quotes: Quote[] = [
   },
   {
     quote:
+      "eCash is the only blockchain we're using in TixTown. Leveraging their lightning-fast infrastructure, our customers often cannot believe how fast transactions are.",
+    name: "TixTown",
+    title: "Event Management Platform",
+    image: "/tixtown-quote.png",
+  },
+  {
+    quote:
       "Reading logs has never been so enjoyable. I wish more coin projects were as active to make pool admins' life easier.",
     name: "zpool",
     title: "Mining Pool Operator",
@@ -129,9 +136,9 @@ export default function Quotes() {
   return (
     <ContentContainer className="max-w-[1400px]">
       <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
         viewport={{ once: true, amount: 0.5 }}
         className="scrollx-container scrollx-fade py-15 lg:py-30 m-auto flex w-full snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-[20vw] lg:gap-8 lg:px-[calc(50vw-325px)] xl:px-[325px]"
         ref={containerRef}
