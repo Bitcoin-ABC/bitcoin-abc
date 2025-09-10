@@ -520,12 +520,34 @@ const Wallets = () => {
             {showAddressShareModal && (
                 <Modal
                     height={400}
-                    title="Share Wallet Address"
+                    title="Connect Wallet"
+                    description="Select a wallet to connect"
                     handleCancel={() => setShowAddressShareModal(false)}
-                    showCancelButton
+                    showCancelButton={false}
                     showButtons={false}
                 >
                     <AddressShareModal>
+                        <div
+                            style={{
+                                marginBottom: '16px',
+                                textAlign: 'center',
+                            }}
+                        >
+                            <button
+                                onClick={() => setShowAddressShareModal(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                Reject
+                            </button>
+                        </div>
                         {wallets.map((wallet, index) => (
                             <WalletAddressRow key={`${wallet.name}_${index}`}>
                                 <WalletInfo>
@@ -551,7 +573,7 @@ const Wallets = () => {
                                         )
                                     }
                                 >
-                                    Copy
+                                    Connect
                                 </CopyButton>
                             </WalletAddressRow>
                         ))}
