@@ -1368,6 +1368,8 @@ const Token: React.FC = () => {
             clearInputForms();
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
+            // Refresh token supply after successful burn
+            getUncachedTokenInfo();
         } catch (e) {
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
@@ -1440,6 +1442,8 @@ const Token: React.FC = () => {
                 </a>,
             );
             clearInputForms();
+            // Refresh token supply after successful mint
+            getUncachedTokenInfo();
         } catch (e) {
             toast.error(`${e}`);
         }
