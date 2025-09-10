@@ -4,6 +4,7 @@
 
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
+import { previewAddress } from 'helpers';
 import { getStackArray } from 'ecash-script';
 import {
     getTypeAndHashFromOutputScript,
@@ -1093,7 +1094,7 @@ export const getTxNotificationMsg = (
     const renderedToOrFromAddress =
         toOrFromAddress === 'self' || toOrFromAddress === 'unknown'
             ? toOrFromAddress
-            : `${toOrFromAddress.slice(6, 11)}...${toOrFromAddress.slice(-5)}`;
+            : previewAddress(toOrFromAddress);
 
     if (parsedTokenEntries.length === 0) {
         // If this is not a token tx

@@ -22,6 +22,7 @@ import {
     LegacyTxInputJson,
     LegacyTxOutputJson,
     LegacyTokenEntryJson,
+    previewAddress,
 } from 'helpers';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -286,12 +287,8 @@ export const createCashtabWallet = async (
     for (const path of pathsToDerive) {
         const pathInfo = getPathInfo(masterHDNode, path);
         if (path === appConfig.derivationPath) {
-            // Initialize wallet name with first 5 chars of Path1899 address
-            const prefixLength = `${appConfig.prefix}:`.length;
-            wallet.name = pathInfo.address.slice(
-                prefixLength,
-                prefixLength + 5,
-            );
+            // Initialize wallet name with standardized preview address format
+            wallet.name = previewAddress(pathInfo.address);
         }
         walletPaths.set(path, pathInfo);
     }

@@ -101,7 +101,13 @@ import { getContactNameError } from 'validation';
 import AvalancheFinalized from 'components/Common/AvalancheFinalized';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import CashtabCache from 'config/CashtabCache';
-import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
+import {
+    CashtabCacheJson,
+    StoredCashtabWallet,
+    previewAddress,
+    previewTokenId,
+    previewSolAddr,
+} from 'helpers';
 import { CopyIconButton, IconButton } from 'components/Common/Buttons';
 import { FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 import { Alert } from 'components/Common/Atoms';
@@ -146,7 +152,7 @@ const Tx: React.FC<TxProps> = ({
 
     const replyAddressPreview =
         typeof replyAddress !== 'undefined'
-            ? `${replyAddress.slice(6, 9)}...${replyAddress.slice(-3)}`
+            ? previewAddress(replyAddress)
             : undefined;
 
     const knownSender = contactList.find(
@@ -155,10 +161,7 @@ const Tx: React.FC<TxProps> = ({
 
     let knownRecipient, renderedRecipient, renderedOtherRecipients;
     if (xecTxType === 'Sent' && typeof recipients[0] !== 'undefined') {
-        const recipientPreview = `${recipients[0].slice(
-            6,
-            9,
-        )}...${recipients[0].slice(-3)}`;
+        const recipientPreview = previewAddress(recipients[0]);
         knownRecipient = contactList.find(
             contact => contact.address === recipients[0],
         );
@@ -239,10 +242,7 @@ const Tx: React.FC<TxProps> = ({
                         // Type guard, we know that all valid aliases will have this action
                         // from the parseTx function
                         const { alias, address } = action;
-                        const aliasAddrPreview = `${address.slice(
-                            6,
-                            9,
-                        )}...${address.slice(-3)}`;
+                        const aliasAddrPreview = previewAddress(address);
                         renderedAppActions.push(
                             <>
                                 <IconAndLabel>
@@ -342,10 +342,7 @@ const Tx: React.FC<TxProps> = ({
                                                 target="_blank"
                                                 rel="noreferrer"
                                             >
-                                                {`${tokenId.slice(
-                                                    0,
-                                                    3,
-                                                )}...${tokenId.slice(-3)}`}
+                                                {previewTokenId(tokenId)}
                                             </ActionLink>
                                         </AppDescLabel>
                                     </IconAndLabel>
@@ -604,7 +601,7 @@ const Tx: React.FC<TxProps> = ({
             case opReturn.appPrefixesHex.solAddr: {
                 const solAddr = (action as SolAddrAction).solAddr;
                 const renderedAddr = isValid
-                    ? `${solAddr.slice(0, 3)}...${solAddr.slice(-3)}`
+                    ? previewSolAddr(solAddr)
                     : solAddr;
                 renderedAppActions.push(
                     <IconAndLabel>
@@ -755,7 +752,7 @@ const Tx: React.FC<TxProps> = ({
         let tokenName: string;
         let decimals: undefined | number;
         if (typeof cachedTokenInfo === 'undefined') {
-            tokenName = `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`;
+            tokenName = previewTokenId(tokenId);
             tokenTicker = '';
             // Leave decimals as undefined, we will not use it if we do not have it
         } else {

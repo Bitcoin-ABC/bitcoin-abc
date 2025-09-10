@@ -121,7 +121,7 @@ export default {
                 fiatPrice: null,
                 userLocale: 'en-US',
                 selectedFiatTicker: 'USD',
-                returned: 'Received 42.00 XEC from qp89x...nhgg6',
+                returned: 'Received 42.00 XEC from qp8...gg6',
             },
             {
                 description: 'Outgoing XEC tx',
@@ -129,7 +129,7 @@ export default {
                 fiatPrice: null,
                 userLocale: 'en-US',
                 selectedFiatTicker: 'USD',
-                returned: 'Sent 222.00 XEC to qp89x...nhgg6',
+                returned: 'Sent 222.00 XEC to qp8...gg6',
             },
             {
                 description: 'Incoming eToken',

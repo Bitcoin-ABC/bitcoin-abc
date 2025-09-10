@@ -7,6 +7,7 @@ import Modal from 'components/Common/Modal';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { getWalletsForNewActiveWallet, CashtabWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
+import { previewAddress } from 'helpers';
 import {
     AddressShareModal,
     WalletAddressRow,
@@ -35,17 +36,6 @@ const Extension: React.FC = () => {
     }
     const { cashtabState, updateCashtabState, setLoading } = ContextValue;
     const { wallets } = cashtabState;
-
-    /**
-     * Get abbreviated address for display
-     */
-    const getAbbreviatedAddress = (address: string) => {
-        const addressParts = address.split(':');
-        const unprefixedAddress = addressParts[addressParts.length - 1];
-        return `${unprefixedAddress.slice(0, 5)}...${unprefixedAddress.slice(
-            -5,
-        )}`;
-    };
 
     /**
      * Handle wallet connection - activate wallet and share address
@@ -186,9 +176,25 @@ const Extension: React.FC = () => {
                                         )}
                                     </WalletNameText>
                                     <WalletAddress>
-                                        {getAbbreviatedAddress(
-                                            wallet.paths.get(1899).address,
-                                        )}
+                                        {(() => {
+                                            const preview = previewAddress(
+                                                wallet.paths.get(1899).address,
+                                            );
+                                            const firstChar = preview.charAt(0);
+                                            const rest = preview.slice(1);
+                                            return (
+                                                <>
+                                                    <span
+                                                        style={{
+                                                            color: 'var(--accent)',
+                                                        }}
+                                                    >
+                                                        {firstChar}
+                                                    </span>
+                                                    {rest}
+                                                </>
+                                            );
+                                        })()}
                                     </WalletAddress>
                                 </WalletInfo>
                                 <CopyButton

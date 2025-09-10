@@ -336,17 +336,21 @@ describe('<Wallets />', () => {
 
         // Wallet added success notification
         expect(
-            await screen.findByText(`New wallet "qrj4p" added to wallets`),
+            await screen.findByText(`New wallet "qrj...mua" added to wallets`),
         ).toBeInTheDocument();
 
         // We see the new wallet
-        expect((await screen.findAllByText('qrj4p'))[1]).toBeInTheDocument();
+        expect(
+            (await screen.findAllByText('qrj...mua'))[1],
+        ).toBeInTheDocument();
 
         // It is added to the end of the wallets array
         // It will be organized alphabetically when the user refreshes and loadCashtabState runs
         // We want it added at the end so it's easy for a user to see what wallet was just added
         const walletsAfterAdd = await localforage.getItem('wallets');
-        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe('qrj4p');
+        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe(
+            'qrj...mua',
+        );
 
         // We can import a wallet by specifying a mnemonic
         await user.click(
@@ -400,7 +404,7 @@ describe('<Wallets />', () => {
         // Wallet imported success toast
         expect(
             await screen.findByText(
-                `New imported wallet "qzxep" added to your saved wallets`,
+                `New imported wallet "qzx...l7c" added to your saved wallets`,
             ),
         ).toBeInTheDocument();
 
@@ -410,14 +414,16 @@ describe('<Wallets />', () => {
         ).not.toBeInTheDocument();
 
         // We see the new wallet
-        expect((await screen.findAllByText('qzxep'))[1]).toBeInTheDocument();
+        expect(
+            (await screen.findAllByText('qzx...l7c'))[1],
+        ).toBeInTheDocument();
 
         // It is added to the end of the wallets array
         // It will be organized alphabetically when the user refreshes and loadCashtabState runs
         // We want it added at the end so it's easy for a user to see what wallet was just added
         const walletsAfterImport = await localforage.getItem('wallets');
         expect(walletsAfterImport[walletsAfterImport.length - 1].name).toBe(
-            'qzxep',
+            'qzx...l7c',
         );
 
         // The modal will be closed after a successful import
@@ -454,7 +460,7 @@ describe('<Wallets />', () => {
         // Wallet imported failure toast
         expect(
             await screen.findByText(
-                `Cannot import: wallet already exists (name: "qzxep")`,
+                `Cannot import: wallet already exists (name: "qzx...l7c")`,
             ),
         ).toBeInTheDocument();
 
@@ -488,7 +494,7 @@ describe('<Wallets />', () => {
         // We get the once-in-a-blue-moon modal error
         expect(
             await screen.findByText(
-                `By a vanishingly small chance, "qrj4p" already existed in saved wallets. Please try again.`,
+                `By a vanishingly small chance, "qrj...mua" already existed in saved wallets. Please try again.`,
             ),
         ).toBeInTheDocument();
     });

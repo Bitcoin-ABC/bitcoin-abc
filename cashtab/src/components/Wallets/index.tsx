@@ -45,7 +45,7 @@ import {
     getWalletsForNewActiveWallet,
     CashtabWallet,
 } from 'wallet';
-import { getUserLocale } from 'helpers';
+import { getUserLocale, previewAddress } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { toFormattedXec } from 'formatting';
 import debounce from 'lodash.debounce';
@@ -406,17 +406,6 @@ const Wallets = () => {
         window.close();
     };
 
-    /**
-     * Get abbreviated address for display
-     */
-    const getAbbreviatedAddress = (address: string) => {
-        const addressParts = address.split(':');
-        const unprefixedAddress = addressParts[addressParts.length - 1];
-        return `${unprefixedAddress.slice(0, 5)}...${unprefixedAddress.slice(
-            -5,
-        )}`;
-    };
-
     const activateWallet = (
         walletToActivate: CashtabWallet,
         wallets: CashtabWallet[],
@@ -560,9 +549,25 @@ const Wallets = () => {
                                         )}
                                     </WalletNameText>
                                     <WalletAddress>
-                                        {getAbbreviatedAddress(
-                                            wallet.paths.get(1899).address,
-                                        )}
+                                        {(() => {
+                                            const preview = previewAddress(
+                                                wallet.paths.get(1899).address,
+                                            );
+                                            const firstChar = preview.charAt(0);
+                                            const rest = preview.slice(1);
+                                            return (
+                                                <>
+                                                    <span
+                                                        style={{
+                                                            color: 'var(--accent)',
+                                                        }}
+                                                    >
+                                                        {firstChar}
+                                                    </span>
+                                                    {rest}
+                                                </>
+                                            );
+                                        })()}
                                     </WalletAddress>
                                 </WalletInfo>
                                 <CopyButton

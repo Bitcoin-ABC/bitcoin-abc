@@ -715,7 +715,7 @@ describe('<App />', () => {
         // We expect the wallet to be walletWithXecAndTokens, except new name and no legacy paths
         const expectedWallet = {
             ...walletWithXecAndTokens,
-            name: 'qqa9l',
+            name: 'qqa...70g',
             paths: new Map([[1899, expectedPathInfo]]),
         };
 

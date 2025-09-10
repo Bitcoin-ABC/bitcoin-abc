@@ -8,6 +8,7 @@ import QRCodeSVG from 'qrcode.react';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
 import firmaLogo from 'assets/firma-icon.png';
+import { previewAddress } from 'helpers';
 
 export const CustomQRCode = styled(QRCodeSVG)`
     cursor: pointer;
@@ -49,6 +50,16 @@ const PrefixLabel = styled.span`
 `;
 const AddressHighlightTrim = styled.span`
     color: ${props => props.theme.primaryText};
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+`;
+
+const FirstCharHighlight = styled.span`
+    color: ${props => props.theme.accent};
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -122,10 +133,6 @@ export const QRCode: React.FC<QrCodeProps> = ({
     const addressOnly = isBip21 ? address.split('?')[0] : address;
 
     const [visible, setVisible] = useState(false);
-    const trimAmount = 3;
-    const addressSplit = address ? address.split(':') : [''];
-    const addressPrefix = addressSplit[0];
-    const prefixLength = addressPrefix.length + 1;
 
     const handleClick = () => {
         setVisible(true);
@@ -199,18 +206,21 @@ export const QRCode: React.FC<QrCodeProps> = ({
                                 spellCheck="false"
                                 type="text"
                             />
-                            <PrefixLabel>
-                                {addressOnly.slice(0, prefixLength)}
-                            </PrefixLabel>
+                            <PrefixLabel>ecash:</PrefixLabel>
                             <AddressHighlightTrim>
-                                {addressOnly.slice(
-                                    prefixLength,
-                                    prefixLength + trimAmount,
-                                )}
-                            </AddressHighlightTrim>
-                            {'...'}
-                            <AddressHighlightTrim>
-                                {addressOnly.slice(-trimAmount)}
+                                {(() => {
+                                    const preview = previewAddress(addressOnly);
+                                    const firstChar = preview.charAt(0);
+                                    const rest = preview.slice(1);
+                                    return (
+                                        <>
+                                            <FirstCharHighlight>
+                                                {firstChar}
+                                            </FirstCharHighlight>
+                                            {rest}
+                                        </>
+                                    );
+                                })()}
                             </AddressHighlightTrim>
                         </ReceiveAddressHolder>
                     )}

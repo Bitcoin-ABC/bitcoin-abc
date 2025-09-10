@@ -77,7 +77,9 @@ describe('<OnBoarding />', () => {
 
         // New wallet is added in localforage
         const walletsAfterAdd = await localforage.getItem('wallets');
-        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe('qrj4p');
+        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe(
+            'qrj...mua',
+        );
     });
     it('We can import a wallet', async () => {
         // localforage defaults
@@ -148,7 +150,7 @@ describe('<OnBoarding />', () => {
         // The wallet is in localforage
         const walletsAfterImport = await localforage.getItem('wallets');
         expect(walletsAfterImport[walletsAfterImport.length - 1].name).toBe(
-            'qzxep',
+            'qzx...l7c',
         );
 
         // The modal will be closed after a successful import

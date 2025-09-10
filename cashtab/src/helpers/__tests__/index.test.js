@@ -13,6 +13,9 @@ import {
     cashtabWalletsToJSON,
     scriptUtxoFromJson,
     txFromJson,
+    previewAddress,
+    previewTokenId,
+    previewSolAddr,
 } from 'helpers';
 import vectors from 'helpers/fixtures/vectors';
 
@@ -169,6 +172,38 @@ describe('Cashtab helper functions', () => {
             expect(revivedTx.tokenEntries[0].intentionalBurnAtoms).toEqual(
                 100n,
             );
+        });
+    });
+    describe('Address and token ID preview functions', () => {
+        it('previewAddress: should format ecash addresses correctly', () => {
+            const address = 'ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep';
+            expect(previewAddress(address)).toBe('qzs...jep');
+        });
+
+        it('previewAddress: should handle addresses without prefix', () => {
+            const address = 'qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep';
+            expect(previewAddress(address)).toBe('qzs...jep');
+        });
+
+        it('previewTokenId: should format token IDs correctly', () => {
+            const tokenId =
+                '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
+            expect(previewTokenId(tokenId)).toBe('50d...10e');
+        });
+
+        it('previewTokenId: should handle short token IDs', () => {
+            const tokenId = 'abc123';
+            expect(previewTokenId(tokenId)).toBe('abc...123');
+        });
+
+        it('previewSolAddr: should format Sol addresses correctly', () => {
+            const solAddr = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+            expect(previewSolAddr(solAddr)).toBe('9Wz...WWM');
+        });
+
+        it('previewSolAddr: should handle short Sol addresses', () => {
+            const solAddr = 'abc123';
+            expect(previewSolAddr(solAddr)).toBe('abc...123');
         });
     });
 });

@@ -575,3 +575,37 @@ export const getTextWidth = (
         return 200;
     }
 };
+
+/**
+ * Create a standardized preview of an address for display purposes
+ * @param address Full address string (e.g., "ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep")
+ * @returns Abbreviated address in format "XXX...XXX" (e.g., "qzs...jep")
+ */
+export const previewAddress = (address: string): string => {
+    // Remove the "ecash:" prefix and get the address part
+    const addressWithoutPrefix = address.includes(':')
+        ? address.split(':')[1]
+        : address;
+
+    return `${addressWithoutPrefix.slice(0, 3)}...${addressWithoutPrefix.slice(
+        -3,
+    )}`;
+};
+
+/**
+ * Create a standardized preview of a token ID for display purposes
+ * @param tokenId Full token ID string (e.g., "50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e")
+ * @returns Abbreviated token ID in format "XXX...XXX" (e.g., "50d...10e")
+ */
+export const previewTokenId = (tokenId: string): string => {
+    return `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`;
+};
+
+/**
+ * Create a standardized preview of a Sol address for display purposes
+ * @param solAddr Full Sol address string
+ * @returns Abbreviated Sol address in format "XXX...XXX" (e.g., "abc...xyz")
+ */
+export const previewSolAddr = (solAddr: string): string => {
+    return `${solAddr.slice(0, 3)}...${solAddr.slice(-3)}`;
+};
