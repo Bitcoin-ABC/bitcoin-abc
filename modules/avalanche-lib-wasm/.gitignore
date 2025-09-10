@@ -1,0 +1,12 @@
+# Rust build artifacts
+Cargo.lock
+
+# Generated WASM files and bindings
+*.wasm
+pkg/
+
+# wasm-pack generated files
+.wasm-pack-cache/ 
+
+# Generated TypeScript bindings (output to ../avalanche-lib/src/ffi/)
+../avalanche-lib/src/ffi/

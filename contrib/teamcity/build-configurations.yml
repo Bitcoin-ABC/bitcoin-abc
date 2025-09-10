@@ -742,6 +742,15 @@ builds:
       pushd "${TOPLEVEL}/modules/ecash-script"
       npm ci
 
+  avalanche-lib-wasm:
+    runOnDiffRegex:
+      - modules/avalanche-lib-wasm/
+    script: |
+      pushd "${TOPLEVEL}/modules/avalanche-lib-wasm"
+      ./build-wasm.sh
+      cargo build
+      cargo test
+
   cashtab-tests:
     runOnDiffRegex:
       - cashtab/

@@ -1,0 +1,43 @@
+# Copyright (c) 2025 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+[package]
+name = "avalanche-lib-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "WebAssembly library for eCash Avalanche proof, stake, and delegation management"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Generate bindings from WebAssembly <-> JS
+wasm-bindgen = "=0.2.92"
+
+# Implementation of SHA-256 cryptographic hash functions
+sha2 = "0.10"
+
+# Hex encoding/decoding
+hex = "0.4"
+
+# Random number generation for WebAssembly
+getrandom = { version = "0.2", features = ["js"] }
+
+[dependencies.ecash-secp256k1]
+path = "../ecash-secp256k1"
+default-features = false
+features = ["alloc", "recovery", "rand", "std"]
+
+[profile.release-wasm]
+inherits = "release"
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

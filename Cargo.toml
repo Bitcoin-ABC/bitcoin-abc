@@ -17,6 +17,7 @@ members = [
     "chronik/chronik-plugin-impl",
     "chronik/chronik-proto",
     "chronik/chronik-util",
+    "modules/avalanche-lib-wasm",
     "modules/bitcoinsuite-chronik-client",
     "modules/ecash-lib-wasm",
     "modules/ecash-secp256k1",

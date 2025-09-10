@@ -194,6 +194,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "avalanche-lib-wasm"
+version = "0.1.0"
+dependencies = [
+ "ecash-secp256k1",
+ "getrandom 0.2.16",
+ "hex",
+ "sha2",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "aws-lc-rs"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
