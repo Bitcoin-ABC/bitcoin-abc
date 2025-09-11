@@ -111,6 +111,11 @@ const buildCategories: BuildCategory[] = [
         description: "Public repository for the Cashtab wallet",
         url: "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab",
       },
+      {
+        name: "PayButton App",
+        description: "Next.js boilerplate with server-verified transactions",
+        url: "https://github.com/PayButton/examples/tree/master/simple-nextjs-app",
+      },
     ],
   },
   {
