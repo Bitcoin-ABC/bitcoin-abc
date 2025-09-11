@@ -54,18 +54,30 @@ export const metadata: Metadata = {
   },
 };
 
+function shouldShowBanner(endTime: string): boolean {
+  const now = new Date();
+  const endDate = new Date(endTime);
+  return now < endDate;
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Endtime timestamp for the top banner
+  // Banner is shown if the current time is before the endtime.
+  // We need to set it here so we apply the extra padding to the main content when banner is active.
+  const bannerEndTime = "2025-10-05T05:23:59Z";
+  const showBanner = shouldShowBanner(bannerEndTime);
+
   return (
     <html lang="en">
       <body
         className={`${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
       >
-        <Navbar />
-        {children}
+        <Navbar showBanner={showBanner} />
+        <div className={showBanner ? "pt-[30px]" : ""}>{children}</div>
         <Footer />
       </body>
     </html>

@@ -13,7 +13,11 @@ import Button from "./Button";
 import { useRef } from "react";
 import { motion } from "framer-motion";
 
-export default function Navbar() {
+interface NavbarProps {
+  showBanner: boolean;
+}
+
+export default function Navbar({ showBanner }: NavbarProps) {
   const pathname = usePathname();
   const isHomepage = pathname === "/";
 
@@ -87,12 +91,25 @@ export default function Navbar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
         className={cn(
-          "fixed z-50 flex w-full items-center justify-center px-4 py-4 transition-all duration-300",
+          "fixed top-0 z-50 flex w-full flex-col items-center justify-center transition-all duration-300",
           (isScrolled || mobileMenuOpen) &&
             "bg-background/30 shadow-sm backdrop-blur-sm"
         )}
       >
-        <div className="flex w-full max-w-[1400px] items-center justify-between">
+        {/* Banner
+         ***** Note: Set the endtime timestamp for the banner in layout.tsx. *****
+         */}
+        {showBanner && (
+          <Link
+            href="https://ecashconference.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[30px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs font-medium leading-none transition-all duration-300 lg:text-sm"
+          >
+            Don't miss the 2025 Electronic Cash Conference! Oct 4-5
+          </Link>
+        )}
+        <div className="flex w-full max-w-[1400px] items-center justify-between px-4 py-4">
           {/* Left: Logo and main links */}
           <div className="flex items-center gap-12">
             <Link className="lg:w-29 relative h-7 w-24 lg:h-8" href="/">
