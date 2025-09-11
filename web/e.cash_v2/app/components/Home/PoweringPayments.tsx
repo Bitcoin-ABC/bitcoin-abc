@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 "use client";
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import { cn } from "../../utils/cn";
@@ -24,7 +24,7 @@ const eCashFeatures = [
   },
   {
     name: "Chronik",
-    text: "Chronik is an indexer integrated right into the node. This super fast, reliable and highly scalable indexing solution makes it easy for developers to bootstrap and leverage native support for all available features on the eCash network.",
+    text: "Chronik is a high-speed, reliable indexer built into the node, giving developers easy, scalable access to all native eCash network features.",
   },
   {
     name: "Tokens",
@@ -32,7 +32,7 @@ const eCashFeatures = [
   },
   {
     name: "CashFusion",
-    text: "Privacy is fundamental to sound money. This is why eCash supports the CashFusion protocol. CashFusion offers anonymity comparable to the top privacy coins while maintaining an auditable supply cap.",
+    text: "Privacy is fundamental to sound money. CashFusion offers anonymity comparable to the top privacy coins while maintaining an auditable supply cap.",
   },
 ];
 
@@ -44,46 +44,25 @@ export default function PoweringPayments() {
   type FeatureCardProps = {
     name: string;
     index: number;
+    text: string;
     onHover: (index: number | null) => void;
   };
 
-  const FeatureCard = ({ name, index, onHover }: FeatureCardProps) => {
+  const FeatureCard = ({ name, index, text, onHover }: FeatureCardProps) => {
     const isHovered = hoveredIndex === index;
 
     return (
-      <motion.div
+      <div
         onMouseEnter={() => onHover(index)}
         onMouseLeave={() => onHover(null)}
         className="custom-box relative flex h-[160px] w-full max-w-[270px] cursor-pointer items-center rounded-xl bg-gradient-to-br from-[#0E0E21] to-[#19193B] p-8"
-        whileHover={{
-          background: "linear-gradient(135deg, #130D3F 0%, #7316d1 100%)",
-          transition: { duration: 0.2, ease: "easeOut" },
-        }}
       >
-        {/* Connection lines with smooth animations */}
-        {index === 2 && (
-          <motion.div
-            className="absolute left-[270px] z-0 h-[3px] w-2/3 bg-[#a77ba8]"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{
-              scaleX: isHovered ? 1 : 0,
-              opacity: isHovered ? 1 : 0,
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            style={{ transformOrigin: "left center" }}
-          />
+        {/* Connection lines */}
+        {isHovered && index === 2 && (
+          <div className="absolute left-[270px] z-0 h-[3px] w-2/3 bg-[#a77ba8]" />
         )}
-        {index === 5 && (
-          <motion.div
-            className="absolute right-[270px] z-0 h-[3px] w-2/3 bg-[#a77ba8]"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{
-              scaleX: isHovered ? 1 : 0,
-              opacity: isHovered ? 1 : 0,
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            style={{ transformOrigin: "right center" }}
-          />
+        {isHovered && index === 5 && (
+          <div className="absolute right-[270px] z-0 h-[3px] w-2/3 bg-[#a77ba8]" />
         )}
 
         <div className="flex flex-col items-start">
@@ -100,7 +79,16 @@ export default function PoweringPayments() {
             sizes="60vw"
           />
         </div>
-      </motion.div>
+
+        <motion.div
+          className="absolute inset-0 flex items-center rounded-xl bg-gradient-to-br from-[#130D3F] to-[#7316d1] p-4 text-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {text}
+        </motion.div>
+      </div>
     );
   };
 
@@ -132,53 +120,10 @@ export default function PoweringPayments() {
       child.scrollIntoView({
         behavior: "smooth",
         inline: "start",
+        block: "nearest",
       });
     }
   }, []);
-
-  // Memoized content to prevent unnecessary re-renders
-  const centerContent = useMemo(
-    () => (
-      <div className="absolute flex h-full w-full items-center justify-center overflow-hidden">
-        <AnimatePresence mode="wait">
-          {hoveredIndex !== null ? (
-            <motion.div
-              key={`text-${hoveredIndex}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <div>
-                <p className="bg-background/70 max-w-[330px] rounded border border-white/10 p-6 text-center backdrop-blur-sm">
-                  {eCashFeatures[hoveredIndex - 1]?.text}
-                </p>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="title"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <div>
-                <h2 className="max-w-[330px] text-center">
-                  Powering{" "}
-                  <span className="pink-gradient-text">Internet-Scale</span>{" "}
-                  Payments
-                </h2>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    ),
-    [hoveredIndex]
-  );
 
   return (
     <ContentContainer className="mb-30 max-w-[1400px]">
@@ -195,6 +140,7 @@ export default function PoweringPayments() {
               key={index}
               index={index + 1}
               name={feature.name}
+              text={feature.text}
               onHover={setHoveredIndex}
             />
           ))}
@@ -210,28 +156,28 @@ export default function PoweringPayments() {
           />
 
           {/* Overlay image with smooth transitions */}
-          <AnimatePresence mode="wait">
-            {hoveredIndex !== null && (
-              <motion.div
-                key={`overlay-${hoveredIndex}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={`/overlay-${hoveredIndex}.png`}
-                  alt="Powering Internet-Scale Payments"
-                  fill
-                  className="hidden object-contain lg:inline-block"
-                  sizes="(max-width: 1024px) 0vw, 550px"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
 
-          {centerContent}
+          {hoveredIndex !== null && (
+            <div key={`overlay-${hoveredIndex}`} className="absolute inset-0">
+              <Image
+                src={`/overlay-${hoveredIndex}.png`}
+                alt="Powering Internet-Scale Payments"
+                fill
+                className="hidden object-contain lg:inline-block"
+                sizes="(max-width: 1024px) 0vw, 550px"
+              />
+            </div>
+          )}
+
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div>
+              <h2 className="max-w-[330px] text-center">
+                Powering{" "}
+                <span className="pink-gradient-text">Internet-Scale</span>{" "}
+                Payments
+              </h2>
+            </div>
+          </div>
         </div>
 
         <div className="hidden grow basis-0 flex-col items-start justify-center gap-2 self-stretch lg:flex [&>*:nth-child(2)]:self-end">
@@ -240,6 +186,7 @@ export default function PoweringPayments() {
               key={index}
               index={index + 4}
               name={feature.name}
+              text={feature.text}
               onHover={setHoveredIndex}
             />
           ))}
