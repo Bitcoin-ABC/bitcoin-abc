@@ -52,7 +52,7 @@ import { explorer } from 'config/explorer';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
-import { hasEnoughToken, fiatToSatoshis } from 'wallet';
+import { fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
 import {
     SendTokenBip21Input,
@@ -932,19 +932,7 @@ const SendXec: React.FC = () => {
                 ecc,
                 wallet,
                 tokenSendTargetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
                     ? getNft(tokenId as string, wallet.state.slpUtxos)
@@ -1074,19 +1062,7 @@ const SendXec: React.FC = () => {
                 ecc,
                 wallet,
                 targetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 [], // requiredInputs
                 false, // isBurn
@@ -1376,19 +1352,7 @@ const SendXec: React.FC = () => {
                 wallet,
                 intendedTargetOutputs,
                 chaintipBlockheight,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
             );
         } catch {
             // Set to zero. In this case, 0 is the max amount we can send, and we know

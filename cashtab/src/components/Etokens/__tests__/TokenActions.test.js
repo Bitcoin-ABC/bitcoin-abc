@@ -15,6 +15,7 @@ import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import appConfig from 'config/app';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import {
     tokenTestWallet,
     supportedTokens,
@@ -62,6 +63,16 @@ describe('<Token /> available actions rendered', () => {
             tokenTestWallet,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Build chronik mocks that Cashtab would use to add token info to cache
         for (const tokenMock of supportedTokens) {

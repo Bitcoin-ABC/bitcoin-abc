@@ -5,6 +5,10 @@
 // Test vectors for validation functions
 import appConfig from 'config/app';
 import CashtabSettings from 'config/CashtabSettings';
+import {
+    FEE_SATS_PER_KB_XEC_MINIMUM,
+    FEE_SATS_PER_KB_XEC_MAXIMUM,
+} from 'constants/transactions';
 import CashtabCache from 'config/CashtabCache';
 import {
     mockCashtabCache,
@@ -1205,6 +1209,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
                 migratedSettings: {
                     fiatCurrency: 'usd',
@@ -1212,7 +1217,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
             },
             {
@@ -1226,7 +1231,7 @@ export default {
                     autoCameraOn: false,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
             },
             {
@@ -1243,7 +1248,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
                 migratedSettings: {
                     fiatCurrency: 'brl',
@@ -1251,7 +1256,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
             },
         ],
@@ -1277,7 +1282,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
                 isValid: true,
             },
@@ -1290,7 +1295,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
                 isValid: false,
             },
@@ -1303,7 +1308,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
-                    minFeeSends: false,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 },
                 isValid: false,
             },
@@ -1315,6 +1320,33 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
+                },
+                isValid: false,
+            },
+            {
+                description:
+                    'Rejects settings object with satsPerKb below minimum fee',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM - 1,
+                },
+                isValid: false,
+            },
+            {
+                description:
+                    'Rejects settings object with satsPerKb above maximum fee',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MAXIMUM + 1,
                 },
                 isValid: false,
             },

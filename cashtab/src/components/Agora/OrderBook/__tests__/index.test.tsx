@@ -27,6 +27,7 @@ import {
     bullCacheMocks,
     CachedXecx,
 } from 'components/Agora/fixtures/mocks';
+import { FEE_SATS_PER_KB_XEC_MINIMUM } from 'constants/transactions';
 import { ChronikClient } from 'chronik-client';
 import { Ecc, Address } from 'ecash-lib';
 import { Agora } from 'ecash-agora';
@@ -454,6 +455,12 @@ describe('<OrderBook />', () => {
             SupportedCashtabStorageKeys.Settings,
             SettingsUsd,
         );
+
+        // Mock satsPerKb to minimum fee for this test to match hardcoded transaction hex
+        await localForage.setItem('settings', {
+            ...SettingsUsd,
+            satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
+        });
 
         // Prepare mockedChronik for a tx that cancels a listing
         const cancelHex =

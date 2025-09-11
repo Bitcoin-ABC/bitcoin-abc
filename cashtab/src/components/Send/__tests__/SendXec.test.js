@@ -16,12 +16,12 @@ import { explorer } from 'config/explorer';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import appConfig from 'config/app';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import {
     initializeCashtabStateForTests,
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import CashtabSettings from 'config/CashtabSettings';
 import { Ecc } from 'ecash-lib';
 import {
     slp1FixedBear,
@@ -682,6 +682,16 @@ describe('<SendXec />', () => {
             localforage,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Can check in electrum for opreturn and amount
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -818,6 +828,16 @@ describe('<SendXec />', () => {
             localforage,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Can check in electrum for opreturn and amount
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064418305d1f7771a13e90b0cb15adf1c0a39b4381d1ec1bc3bebfa67cbbb5c9461b1a9d0c5a66ca5935aad771cbe869c9002add8b9d9822724ce73db8d15554f26cb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0200000000000000003c6a040074616235486f772061626f75742061206c6f6e672d6973682043617368746162206d7367207769746820656d6f6a697320f09f8eaff09f988e11820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
@@ -904,156 +924,23 @@ describe('<SendXec />', () => {
             ),
         );
     });
-    it('If the user has minFeeSends set to true but no longer has the right token amount, the feature is disabled', async () => {
-        // Mock the app with context at the Send screen
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
-
-        // Adjust initial settings so that minFeeSends is true
-        await localforage.setItem('settings', {
-            ...new CashtabSettings(),
-            minFeeSends: true,
-        });
-
-        // Can check in electrum to confirm this is not sent at 1.0 sat/byte
-        // It's 2.02
-        const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            '63e4bba044135367eb71c71bc78aee91ecce0551fbdfbdb975e668fb808547ed';
-        mockedChronik.setBroadcastTx(hex, txid);
-
-        render(
-            <CashtabTestWrapper
-                chronik={mockedChronik}
-                ecc={ecc}
-                route="/send"
-            />,
-        );
-
-        // Wait for the app to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
-        );
-
-        // Confirm we have minFeeSends true in settings
-        expect(await localforage.getItem('settings')).toEqual({
-            ...new CashtabSettings(),
-            minFeeSends: true,
-        });
-
-        const addressInputEl = screen.getByPlaceholderText('Address');
-        const amountInputEl = screen.getByPlaceholderText('Amount');
-        // The user enters a valid BIP21 query string with a valid amount param
-        const op_return_raw =
-            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
-        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}`;
-        await user.type(addressInputEl, addressInput);
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // The 'Send To' input field is not disabled
-        expect(addressInputEl).toHaveProperty('disabled', false);
-
-        // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
-
-        // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(17);
-
-        // The amount input is disabled because it is set by a bip21 query string
-        expect(amountInputEl).toHaveProperty('disabled', true);
-
-        const opReturnRawInput = screen.getByPlaceholderText(
-            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
-        );
-
-        // The op_return_raw input is populated with this op_return_raw
-        expect(opReturnRawInput).toHaveValue(op_return_raw);
-
-        // The op_return_raw input is disabled
-        expect(opReturnRawInput).toHaveProperty('disabled', true);
-
-        // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
-            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
-        }
-        // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
-            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
-        }
-
-        // The Send button is enabled as we have valid address and amount params
-        expect(screen.getByRole('button', { name: 'Send' })).not.toHaveStyle(
-            'cursor: not-allowed',
-        );
-
-        // The Cashtab Msg switch is disabled because op_return_raw is set
-        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
-            'disabled',
-            true,
-        );
-
-        // Click Send
-        await user.click(
-            screen.getByRole('button', { name: 'Send' }),
-            addressInput,
-        );
-
-        // Notification is rendered with expected txid
-        const txSuccessNotification = await screen.findByText('eCash sent');
-        await waitFor(() =>
-            expect(txSuccessNotification).toHaveAttribute(
-                'href',
-                `${explorer.blockExplorerUrl}/tx/${txid}`,
-            ),
-        );
-        await waitFor(() =>
-            // The op_return_raw set alert is now removed
-            expect(
-                screen.queryByText(
-                    `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
-                ),
-            ).not.toBeInTheDocument(),
-        );
-        await waitFor(() =>
-            // The amount input is no longer disabled
-            expect(amountInputEl).toHaveProperty('disabled', false),
-        );
-        await waitFor(() =>
-            // Amount input is reset
-            expect(amountInputEl).toHaveValue(null),
-        );
-
-        // The "Send to Many" switch is not disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            false,
-        );
-
-        // The 'Send To' input field has been cleared
-        expect(addressInputEl).toHaveValue('');
-
-        // The Cashtab Msg switch is no longer disabled because op_return_raw is not set
-        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
-            'disabled',
-            false,
-        );
-    });
     it('We can send a tx with amount denominated in fiat currency', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        // This matches the mocked transaction that was created with the higher fee rate
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Can check in electrum for opreturn and amount
         const hex =
@@ -1118,6 +1005,16 @@ describe('<SendXec />', () => {
             localforage,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Can check in electrum for opreturn and amount
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064411aa35b343dea193092b46c01b877677d595d854686655ae24a3387a10955656a7604dca1cae999239d8ae76dc16ec9db72560832e8a9b0fb09f4ba6e1fb384b14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03d0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac98080000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acab710e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -1177,6 +1074,16 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Can check in electrum for opreturn and amount
         const hex =
@@ -1282,6 +1189,16 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Can check in electrum for opreturn and multiple outputs
         const hex =
@@ -1518,6 +1435,16 @@ describe('<SendXec />', () => {
             localforage,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Token send tx
         const hex =
             '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006441bac61dbfa47bc7b92952caaa867c2c5fd11bde4cfa36c21b818dbb80c15b19a0c94845e916bc57bc5f35f32ca379bd48a6ee1dc4ded52794bcee231655b105f14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a59dcc96f885dcbf56d473ba74b3202adb00dbc1142e379efa3784b559d7be97aa3d777eb4001613f205191d177c9896f652132d397a65cdfa93c69657d59f1b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -1629,6 +1556,16 @@ describe('<SendXec />', () => {
             localforage,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Token send tx
         const hex =
             '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441fff980a72dab5fed2ef4b94c54c5b91dd2e4d22fab32bd8daa8ba8118fc45b121cceb8c43a869966219d1e6b1ebf6c34436287a349fbd132a11b8928cdf642784121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441c8203434106d39d750461d8a6939412f432220cba2e957f19a699e5ed57a4357bb257dfcde9aa5618d6b87721f939b69312c429eba28c056f06efad33b4875314121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac18310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
@@ -1738,6 +1675,16 @@ describe('<SendXec />', () => {
             tokenTestWallet,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Token send tx
         const hex =
@@ -1861,6 +1808,16 @@ describe('<SendXec />', () => {
             tokenTestWallet,
             localforage,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // FIRMA redeem send tx
         const hex =

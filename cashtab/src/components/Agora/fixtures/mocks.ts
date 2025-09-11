@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import appConfig from 'config/app';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import { fromHex, Script } from 'ecash-lib';
 import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
@@ -2039,8 +2040,8 @@ export const SettingsUsd = {
     balanceVisible: true,
     fiatCurrency: 'usd',
     hideMessagesFromUnknownSenders: false,
-    minFeeSends: true,
     sendModal: false,
+    satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate to match hardcoded transaction hexes
     showMessages: false,
     toggleHideBalance: false,
 };

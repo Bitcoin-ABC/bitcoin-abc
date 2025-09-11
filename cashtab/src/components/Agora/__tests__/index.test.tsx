@@ -41,6 +41,7 @@ import {
 } from 'components/Agora/fixtures/mocks';
 import { token as tokenConfig } from 'config/token';
 import { prepareContext } from 'test';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 
 // We need to wrap the Agora component with context so we can useContext instead of prop drilling
 interface AgoraTestWrapperProps {
@@ -147,6 +148,16 @@ describe('<Agora />', () => {
             tokenMocks,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
         mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
@@ -248,6 +259,16 @@ describe('<Agora />', () => {
             tokenMocks,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
         mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
@@ -306,6 +327,16 @@ describe('<Agora />', () => {
             [agoraPartialAlphaWallet, agoraPartialBetaWallet],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
@@ -395,6 +426,16 @@ describe('<Agora />', () => {
             [agoraPartialAlphaWallet, agoraPartialBetaWallet],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
@@ -533,6 +574,16 @@ describe('<Agora />', () => {
             tokenMocks,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
         mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
@@ -647,6 +698,16 @@ describe('<Agora />', () => {
             [agoraPartialAlphaWallet, agoraPartialBetaHighBalanceWallet],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
@@ -809,6 +870,16 @@ describe('<Agora />', () => {
             [agoraPartialAlphaWallet, agoraPartialBetaHighBalanceWallet],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localForage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Manually add XECX token mock to chronik since it's not in the wallet's token list
         mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);

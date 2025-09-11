@@ -43,13 +43,7 @@ import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { toHex, Script, fromHex, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
-import {
-    CashtabWallet,
-    toXec,
-    hasEnoughToken,
-    DUMMY_KEYPAIR,
-    CashtabUtxo,
-} from 'wallet';
+import { CashtabWallet, toXec, DUMMY_KEYPAIR, CashtabUtxo } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
 import appConfig from 'config/app';
 import { ChronikClient } from 'chronik-client';
@@ -168,20 +162,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
     const acceptOffer = async (agoraOneshot: AgoraOffer) => {
         // Determine tx fee from settings
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                wallet.state.tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    wallet.state.tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
         // Potential input utxos for this transaction
         // non-token utxos that are spendable
@@ -285,20 +266,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
     const cancelOffer = async (agoraOneshot: AgoraOffer) => {
         // Get user fee from settings
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                wallet.state.tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    wallet.state.tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
         // Potential input utxos for this transaction
         // non-token utxos that are spendable
@@ -377,6 +345,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Note that broadcastTx will accept cancelTxSer
         // But hex is a better way to store raw txs for integration tests
         const hex = toHex(cancelTxSer);
+        console.log('hex', hex);
 
         // Broadcast the cancel tx
         let resp;

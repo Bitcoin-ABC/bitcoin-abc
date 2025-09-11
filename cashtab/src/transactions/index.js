@@ -33,7 +33,7 @@ const DUMMY_P2PKH = Script.p2pkh(
  * @param {Ecc} ecc
  * @param {object} wallet
  * @param {array} targetOutputs
- * @param {bigint} satsPerKb integer, fee in satoshis per kb
+ * @param {number} satsPerKb integer, fee in satoshis per kb
  * @param {number} chaintipBlockheight
  * @param {array} requiredInputs inputs that must be included in this tx
  * e.g. token utxos for token txs, or p2sh scripts with lokadid for ecash-agora ad txs
@@ -167,7 +167,7 @@ export const sendXec = async (
         let tx;
         try {
             tx = txBuilder.sign({
-                feePerKb: satsPerKb,
+                feePerKb: BigInt(satsPerKb),
                 dustSats: appConfig.dustSats,
             });
         } catch (err) {
@@ -233,7 +233,7 @@ export const sendXec = async (
  * Determine the max amount a wallet can send
  * @param {object} wallet Cashtab wallet
  * @param {[] or [{script: <script>}]} scriptOutputs other output e.g. a Cashtab Msg to be sent in a max send tx
- * @param {bigint} satsPerKb
+ * @param {number} satsPerKb
  * @returns {integer} max amount of satoshis that a Cashtab wallet can send
  */
 export const getMaxSendAmountSatoshis = (
@@ -286,12 +286,12 @@ export const getMaxSendAmountSatoshis = (
     });
 
     const tx = txBuilder.sign({
-        feePerKb: satsPerKb,
+        feePerKb: BigInt(satsPerKb),
         dustSats: BigInt(appConfig.dustSats),
         ecc: eccDummy,
     });
     // Calculate the tx fee
-    const txFeeInSatoshis = calcTxFee(tx.serSize(), satsPerKb);
+    const txFeeInSatoshis = calcTxFee(tx.serSize(), BigInt(satsPerKb));
     // The max send amount is totalSatsInWallet less txFeeInSatoshis
     const maxSendAmountSatoshis = totalSatsInWallet - txFeeInSatoshis;
     return Number(maxSendAmountSatoshis);

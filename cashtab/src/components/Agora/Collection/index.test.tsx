@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
+import * as localForage from 'localforage';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import { render, screen } from '@testing-library/react';
@@ -10,6 +11,12 @@ import CashtabCache from 'config/CashtabCache';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import 'fake-indexeddb/auto';
+import { SupportedCashtabStorageKeys } from 'test';
+import CashtabSettings from 'config/CashtabSettings';
+import {
+    FEE_SATS_PER_KB_XEC_MINIMUM,
+    FEE_SATS_PER_KB_CASHTAB_LEGACY,
+} from 'constants/transactions';
 import {
     agoraPartialAlphaWallet,
     agoraPartialAlphaKeypair,
@@ -22,6 +29,16 @@ import {
     heismanCollectionCacheMocks,
     lkCacheMocks,
 } from 'components/Agora/fixtures/mocks';
+
+// Create a proper CashtabSettings instance
+const testSettings = new CashtabSettings(
+    SettingsUsd.fiatCurrency,
+    SettingsUsd.sendModal,
+    SettingsUsd.autoCameraOn,
+    SettingsUsd.hideMessagesFromUnknownSenders,
+    SettingsUsd.balanceVisible,
+    FEE_SATS_PER_KB_XEC_MINIMUM, // Default minimum fee
+);
 import {
     MockAgora,
     MockChronikClient,
@@ -61,7 +78,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
-                    settings={SettingsUsd}
+                    settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
@@ -104,7 +121,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
-                    settings={SettingsUsd}
+                    settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
@@ -175,7 +192,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={new CashtabCache()}
-                    settings={SettingsUsd}
+                    settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
@@ -261,7 +278,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={new CashtabCache()}
-                    settings={SettingsUsd}
+                    settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
@@ -303,6 +320,12 @@ describe('<Collection />', () => {
         expect(cancelButton).toBeInTheDocument();
     });
     it('We can render and cancel our own listing', async () => {
+        // Set expected settings in localforage
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            testSettings,
+        );
+
         // Need to mock agora API endpoints
         const mockedAgora = new MockAgora();
 
@@ -339,7 +362,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
-                    settings={SettingsUsd}
+                    settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
@@ -389,6 +412,19 @@ describe('<Collection />', () => {
         ).toBeInTheDocument();
     });
     it('We can render and buy a listing', async () => {
+        // Set expected settings in localforage with 2010 sat/kb for this specific test
+        const testSettings2010 = new CashtabSettings(
+            SettingsUsd.fiatCurrency,
+            SettingsUsd.sendModal,
+            SettingsUsd.autoCameraOn,
+            SettingsUsd.hideMessagesFromUnknownSenders,
+            SettingsUsd.balanceVisible,
+            FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this specific test
+        );
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            testSettings2010,
+        );
         // Need to mock agora API endpoints
         const mockedAgora = new MockAgora();
 
@@ -438,7 +474,7 @@ describe('<Collection />', () => {
                     agora={mockedAgora as unknown as Agora}
                     chronik={mockedChronik as unknown as ChronikClient}
                     cashtabCache={CollectionTestCache}
-                    settings={SettingsUsd}
+                    settings={testSettings2010}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={{

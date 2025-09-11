@@ -106,13 +106,6 @@ const Configure: React.FC = () => {
         });
     };
 
-    const handleMinFeesToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        updateCashtabState('settings', {
-            ...settings,
-            minFeeSends: e.target.checked,
-        });
-    };
-
     return (
         <StyledConfigure title="Settings">
             <PageHeader>
@@ -186,16 +179,8 @@ const Configure: React.FC = () => {
                                 tokenId={appConfig.vipTokens.cachet.tokenId}
                             />
                         )}
-                        <Headline>VIP Settings</Headline>
+                        <Headline>Cashtab VIP 🏆</Headline>
                     </HeadlineAndIcon>
-                    <GeneralSettingsItem>
-                        <Switch
-                            name="Toggle minimum fee sends"
-                            checked={settings.minFeeSends}
-                            handleToggle={handleMinFeesToggle}
-                        />
-                        <SettingsLabel> ABSOLUTE MINIMUM fees</SettingsLabel>
-                    </GeneralSettingsItem>
                 </>
             )}
 

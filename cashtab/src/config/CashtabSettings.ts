@@ -2,14 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import {
+    FEE_SATS_PER_KB_XEC_MINIMUM,
+    FEE_SATS_PER_KB_MAXIMUM,
+} from 'constants/transactions';
+
 interface CashtabSettingsInterface {
     fiatCurrency: string;
     sendModal: boolean;
     autoCameraOn: boolean;
     hideMessagesFromUnknownSenders: boolean;
     balanceVisible: boolean;
-    minFeeSends: boolean;
+    satsPerKb: number;
 }
+
 // Default settings which can be modified within Cashtab
 class CashtabSettings implements CashtabSettingsInterface {
     fiatCurrency: string;
@@ -17,21 +23,21 @@ class CashtabSettings implements CashtabSettingsInterface {
     autoCameraOn: boolean;
     hideMessagesFromUnknownSenders: boolean;
     balanceVisible: boolean;
-    minFeeSends: boolean;
+    satsPerKb: number;
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,
         autoCameraOn = false,
         hideMessagesFromUnknownSenders = false,
         balanceVisible = true,
-        minFeeSends = false,
+        satsPerKb = FEE_SATS_PER_KB_XEC_MINIMUM,
     ) {
         this.fiatCurrency = fiatCurrency;
         this.sendModal = sendModal;
         this.autoCameraOn = autoCameraOn;
         this.hideMessagesFromUnknownSenders = hideMessagesFromUnknownSenders;
         this.balanceVisible = balanceVisible;
-        this.minFeeSends = minFeeSends;
+        this.satsPerKb = satsPerKb;
     }
 }
 export default CashtabSettings;
@@ -82,7 +88,10 @@ export interface CashtabSettingsValidation {
     autoCameraOn: boolean[];
     hideMessagesFromUnknownSenders: boolean[];
     balanceVisible: boolean[];
-    minFeeSends: boolean[];
+    satsPerKb: {
+        min: number;
+        max: number;
+    };
 }
 
 // Validation for CashtabSettings
@@ -92,5 +101,9 @@ export const cashtabSettingsValidation: CashtabSettingsValidation = {
     autoCameraOn: [true, false],
     hideMessagesFromUnknownSenders: [true, false],
     balanceVisible: [true, false],
-    minFeeSends: [true, false],
+    // Note: satsPerKb is not currently exposed to users in the UI
+    satsPerKb: {
+        min: FEE_SATS_PER_KB_XEC_MINIMUM,
+        max: FEE_SATS_PER_KB_MAXIMUM,
+    },
 };

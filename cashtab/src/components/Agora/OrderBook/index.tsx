@@ -33,7 +33,6 @@ import {
     nanoSatoshisToXec,
     decimalizeTokenAmount,
     toXec,
-    hasEnoughToken,
     DUMMY_KEYPAIR,
     toBigInt,
     SlpDecimals,
@@ -243,20 +242,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
     const cancelOffer = async (agoraPartial: PartialOffer) => {
         // Get user fee from settings
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                wallet.state.tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    wallet.state.tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
         // Potential input utxos for this transaction
         // non-token utxos that are spendable
@@ -340,7 +326,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Broadcast the cancel tx
         let resp;
         try {
+            console.log('OrderBook cancel - hex:', hex);
+            console.log('OrderBook cancel - satsPerKb:', settings.satsPerKb);
             resp = await chronik.broadcastTx(hex);
+            console.log('OrderBook cancel - resp:', resp);
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
@@ -371,20 +360,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             return;
         }
         // Determine tx fee from settings
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                wallet.state.tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    wallet.state.tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
         // Potential input utxos for this transaction
         // non-token utxos that are spendable

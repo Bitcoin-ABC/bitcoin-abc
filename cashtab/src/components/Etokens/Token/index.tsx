@@ -65,7 +65,6 @@ import {
 } from 'token-protocols';
 import { sendXec } from 'transactions';
 import {
-    hasEnoughToken,
     decimalizeTokenAmount,
     toSatoshis,
     toXec,
@@ -998,19 +997,7 @@ const Token: React.FC = () => {
                 ecc,
                 wallet,
                 tokenSendTargetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 isNftChild
                     ? getNft(tokenId as string, wallet.state.slpUtxos)
@@ -1050,19 +1037,7 @@ const Token: React.FC = () => {
                 ecc,
                 wallet,
                 nftFanTargetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 nftFanInputs,
             );
@@ -1339,19 +1314,7 @@ const Token: React.FC = () => {
                 ecc,
                 wallet,
                 tokenBurnTargetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 tokenInputInfo.tokenInputs,
                 true, // skip SLP burn checks
@@ -1416,19 +1379,7 @@ const Token: React.FC = () => {
                 ecc,
                 wallet,
                 mintTargetOutputs,
-                settings.minFeeSends &&
-                    (hasEnoughToken(
-                        tokens,
-                        appConfig.vipTokens.grumpy.tokenId,
-                        appConfig.vipTokens.grumpy.vipBalance,
-                    ) ||
-                        hasEnoughToken(
-                            tokens,
-                            appConfig.vipTokens.cachet.tokenId,
-                            appConfig.vipTokens.cachet.vipBalance,
-                        ))
-                    ? appConfig.minFee
-                    : appConfig.defaultFee,
+                settings.satsPerKb,
                 chaintipBlockheight,
                 [mintBaton],
             );
@@ -1528,20 +1479,7 @@ const Token: React.FC = () => {
                           ).toFixed(2),
                       ),
                   );
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb = settings.satsPerKb;
 
         // Build the ad tx
         // The advertisement tx is an SLP send tx of the listed NFT to the seller's wallet
@@ -1591,7 +1529,7 @@ const Token: React.FC = () => {
             agoraAdScript,
             AgoraOneshotAdSignatory(sk),
             offerTargetOutputs,
-            satsPerKb,
+            BigInt(satsPerKb),
         );
 
         // So, the ad prep tx must include an output with an input that covers this fee
@@ -1946,20 +1884,7 @@ const Token: React.FC = () => {
         // offeredTokens is in units of token satoshis
         const offeredTokens = previewedAgoraPartial.offeredAtoms();
 
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb = settings.satsPerKb;
 
         // Get enough token utxos to cover the listing
         // Note that getSendTokenInputs expects decimalized tokens as a string and decimals as a param
@@ -2037,20 +1962,7 @@ const Token: React.FC = () => {
         // To guarantee we have no utxo conflicts while sending a chain of 2 txs
         // We ensure that the target output of the ad setup tx will include enough XEC
         // to cover the offer tx
-        const satsPerKb =
-            settings.minFeeSends &&
-            (hasEnoughToken(
-                tokens,
-                appConfig.vipTokens.grumpy.tokenId,
-                appConfig.vipTokens.grumpy.vipBalance,
-            ) ||
-                hasEnoughToken(
-                    tokens,
-                    appConfig.vipTokens.cachet.tokenId,
-                    appConfig.vipTokens.cachet.vipBalance,
-                ))
-                ? appConfig.minFee
-                : appConfig.defaultFee;
+        const satsPerKb = settings.satsPerKb;
 
         const agoraAdScript = (
             previewedAgoraPartial as AgoraPartial
@@ -2092,7 +2004,7 @@ const Token: React.FC = () => {
             agoraAdScript,
             AgoraPartialAdSignatory(sk),
             offerTargetOutputs,
-            satsPerKb,
+            BigInt(satsPerKb),
         );
 
         // The ad setup tx itself is sending tokens to a dust output

@@ -217,15 +217,39 @@ export const isValidCashtabSettings = (settings: CashtabSettings): boolean => {
     try {
         let isValidSettingParams = true;
         for (const param in cashtabDefaultConfig) {
+            let isValidParam = false;
+
             if (
                 !Object.prototype.hasOwnProperty.call(
                     settings,
                     param as keyof CashtabSettings,
-                ) ||
-                !(cashtabSettingsValidation as CashtabSettingsValidation)[
-                    param as keyof CashtabSettingsValidation
-                ].some(val => val === settings[param as keyof CashtabSettings])
+                )
             ) {
+                isValidParam = false;
+            } else if (param === 'satsPerKb') {
+                // Special validation for satsPerKb
+                const settingValue = settings[
+                    param as keyof CashtabSettings
+                ] as number;
+                const satsPerKbValidation = (
+                    cashtabSettingsValidation as CashtabSettingsValidation
+                )[param] as { min: number; max: number };
+                isValidParam =
+                    typeof settingValue === 'number' &&
+                    settingValue >= satsPerKbValidation.min &&
+                    settingValue <= satsPerKbValidation.max;
+            } else {
+                // Standard validation for other fields
+                const validationArray = (
+                    cashtabSettingsValidation as CashtabSettingsValidation
+                )[param as keyof CashtabSettingsValidation] as any[];
+                isValidParam = validationArray.some(
+                    (val: any) =>
+                        val === settings[param as keyof CashtabSettings],
+                );
+            }
+
+            if (!isValidParam) {
                 isValidSettingParams = false;
                 break;
             }
@@ -257,7 +281,15 @@ export const migrateLegacyCashtabSettings = (
                 cashtabDefaultConfig[param as keyof CashtabSettings] as unknown;
         }
     }
-    return settings;
+    // Return the serialized version to ensure consistent format
+    return new CashtabSettings(
+        settings.fiatCurrency,
+        settings.sendModal,
+        settings.autoCameraOn,
+        settings.hideMessagesFromUnknownSenders,
+        settings.balanceVisible,
+        settings.satsPerKb,
+    );
 };
 
 /**

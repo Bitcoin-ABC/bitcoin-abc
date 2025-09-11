@@ -17,6 +17,7 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { prepareContext, mockPrice } from 'test';
 import { ThemeProvider } from 'styled-components';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import { theme } from 'assets/styles/theme';
 import { MemoryRouter } from 'react-router-dom';
 import { WalletProvider } from 'wallet/context';
@@ -92,6 +93,16 @@ describe('<CreateTokenForm />', () => {
             [walletWithXecAndTokens],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Add tx mock to mockedChronik
         const hex =
@@ -219,6 +230,16 @@ describe('<CreateTokenForm />', () => {
             tokenMocks,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
         mockedChronik.setToken(
             createdTokenId,
@@ -344,6 +365,16 @@ describe('<CreateTokenForm />', () => {
             tokenMocks,
         );
 
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064415594de73e7f09dc4bd7622b136921d8b883c131559e9ba9212185fb5f7db1fe062715183484097a5f7cf71d75af3b9b3b2768f7e011550893376ef9ec150887b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000006e6a04534c500001810747454e45534953033448432454686520466f75722048616c662d436f696e73206f66204a696e2d71756120283448432925656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c294c0001004c0008000000000000000422020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac467f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -466,6 +497,16 @@ describe('<CreateTokenForm />', () => {
             [walletWithCreatedToken],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
         mockedChronik.setToken(
@@ -612,6 +653,16 @@ describe('<CreateTokenForm />', () => {
             [walletWithCreatedToken],
             tokenMocks,
         );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
 
         // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
         mockedChronik.setToken(

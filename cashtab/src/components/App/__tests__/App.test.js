@@ -6,6 +6,7 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { FEE_SATS_PER_KB_XEC_MINIMUM } from 'constants/transactions';
 import {
     walletWithXecAndTokens,
     walletWithXecAndTokens_pre_2_1_0,
@@ -551,7 +552,6 @@ describe('<App />', () => {
             autoCameraOn: true,
             // no hideMessagesFromUnknownSenders
             // no balanceVisible
-            // no minFeeSends
         };
 
         // Update localforage with these legacy settings
@@ -565,7 +565,7 @@ describe('<App />', () => {
                 ...legacySettings,
                 hideMessagesFromUnknownSenders: false,
                 balanceVisible: true,
-                minFeeSends: false,
+                satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
             }),
         );
     });

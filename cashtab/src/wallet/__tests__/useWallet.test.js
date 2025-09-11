@@ -6,6 +6,7 @@ import useWallet from 'wallet/useWallet';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
+import { FEE_SATS_PER_KB_XEC_MINIMUM } from 'constants/transactions';
 import {
     cashtabSettingsGbp,
     nonDefaultContactList,
@@ -185,9 +186,10 @@ describe('useWallet hook rendering in different localforage states', () => {
             ),
         );
         await waitFor(() =>
-            expect(result.current.cashtabState.settings).toEqual(
-                cashtabSettingsGbp,
-            ),
+            expect(result.current.cashtabState.settings).toEqual({
+                ...cashtabSettingsGbp,
+                satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM, // Number format (no longer serialized)
+            }),
         );
         await waitFor(() =>
             expect(result.current.cashtabState.wallets[0]).toStrictEqual(

@@ -45,7 +45,6 @@ import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import {
-    hasEnoughToken,
     undecimalizeTokenAmount,
     TokenUtxo,
     SlpDecimals,
@@ -708,19 +707,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                       ecc,
                       wallet,
                       targetOutputs,
-                      settings.minFeeSends &&
-                          (hasEnoughToken(
-                              tokens,
-                              appConfig.vipTokens.grumpy.tokenId,
-                              appConfig.vipTokens.grumpy.vipBalance,
-                          ) ||
-                              hasEnoughToken(
-                                  tokens,
-                                  appConfig.vipTokens.cachet.tokenId,
-                                  appConfig.vipTokens.cachet.vipBalance,
-                              ))
-                          ? appConfig.minFee
-                          : appConfig.defaultFee,
+                      settings.satsPerKb,
                       chaintipBlockheight,
                       // per spec, this must be at index 0
                       // https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md
@@ -731,19 +718,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                       ecc,
                       wallet,
                       targetOutputs,
-                      settings.minFeeSends &&
-                          (hasEnoughToken(
-                              tokens,
-                              appConfig.vipTokens.grumpy.tokenId,
-                              appConfig.vipTokens.grumpy.vipBalance,
-                          ) ||
-                              hasEnoughToken(
-                                  tokens,
-                                  appConfig.vipTokens.cachet.tokenId,
-                                  appConfig.vipTokens.cachet.vipBalance,
-                              ))
-                          ? appConfig.minFee
-                          : appConfig.defaultFee,
+                      settings.satsPerKb,
                       chaintipBlockheight,
                   );
 
