@@ -602,10 +602,10 @@ void CNode::CloseSocketDisconnect() {
 }
 
 void CConnman::AddWhitelistPermissionFlags(
-    NetPermissionFlags &flags, const CNetAddr &addr,
+    NetPermissionFlags &flags, std::optional<CNetAddr> addr,
     const std::vector<NetWhitelistPermissions> &ranges) const {
     for (const auto &subnet : ranges) {
-        if (subnet.m_subnet.Match(addr)) {
+        if (addr.has_value() && subnet.m_subnet.Match(addr.value())) {
             NetPermissions::AddFlag(flags, subnet.m_flags);
         }
     }
@@ -1070,7 +1070,15 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
     int nInbound = 0;
     int nMaxInbound = nMaxConnections - m_max_outbound;
 
-    AddWhitelistPermissionFlags(permission_flags, addr,
+    const bool inbound_onion =
+        std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
+        m_onion_binds.end();
+
+    // Tor inbound connections do not reveal the peer's actual network address.
+    // Therefore do not apply address-based whitelist permissions to them.
+    AddWhitelistPermissionFlags(permission_flags,
+                                inbound_onion ? std::nullopt
+                                              : std::make_optional(addr),
                                 vWhitelistedRangeIncoming);
 
     {
@@ -1143,9 +1151,6 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
             .Write(id)
             .Finalize();
 
-    const bool inbound_onion =
-        std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
-        m_onion_binds.end();
     CNode *pnode = new CNode(
         id, std::move(sock), addr, CalculateKeyedNetGroup(addr), nonce,
         extra_entropy, addr_bind, "", ConnectionType::INBOUND, inbound_onion,

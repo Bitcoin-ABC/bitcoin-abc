@@ -1190,7 +1190,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(!m_unused_i2p_sessions_mutex);
     ;
     void AddWhitelistPermissionFlags(
-        NetPermissionFlags &flags, const CNetAddr &addr,
+        NetPermissionFlags &flags, std::optional<CNetAddr> addr,
         const std::vector<NetWhitelistPermissions> &ranges) const;
 
     void DeleteNode(CNode *pnode);
