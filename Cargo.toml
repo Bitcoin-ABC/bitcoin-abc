@@ -3,6 +3,7 @@
 [workspace]
 
 members = [
+    "apps/proof-manager-cli",
     "chronik/abc-rust-error",
     "chronik/abc-rust-lint",
     "chronik/bitcoinsuite-core",

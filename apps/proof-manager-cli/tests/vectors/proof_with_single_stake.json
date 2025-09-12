@@ -1,0 +1,20 @@
+{
+    "proof": {
+        "sequence": 1,
+        "expiration": 2051222400,
+        "master": "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744",
+        "payoutscript": "76a914abcdefabcdefabcdefabcdefabcdefabcdefabcd88ac",
+        "stakes": [
+            {
+                "txid": "1111111111111111111111111111111111111111111111111111111111111111",
+                "vout": 0,
+                "amount": 500000000,
+                "height": 799999,
+                "iscoinbase": false,
+                "pubkey": "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645cd85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a",
+                "signature": "xeZFVhlRuR4AGVbPMT82z1cPzztZmmunWLCVdH2UzJEDy6UWfoOLdsHIv8mlyxEq6glFQnbA5v+GOzR0Cc8XNg=="
+            }
+        ],
+        "signature": "Cc3M+ho8wpdewF3YhA9g7nP/6xO3YTtOpVGgNaKE07BDpnYyzHHjqwMKarRzAu/NeTXsoVQw5/q9r6cvR9sg2Q=="
+    }
+}

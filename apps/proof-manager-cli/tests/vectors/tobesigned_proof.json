@@ -1,0 +1,19 @@
+{
+    "proof": {
+        "expiration": 1735689600,
+        "master": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+        "payoutscript": "76a914abcdefabcdefabcdefabcdefabcdefabcdefabcd88ac",
+        "sequence": 1,
+        "stakes": [
+            {
+                "amount": 100000000.0,
+                "height": 800000,
+                "iscoinbase": false,
+                "pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+                "signature": "EbLGO7ce8fXZ30iq6YfGsNjP8zt2qKW6YGAxQ+atPEvsugi3vIVcXb62nWX/Kpaj5Xuyk7kFtvItYvMSttIA3w==",
+                "txid": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                "vout": 0
+            }
+        ]
+    }
+}

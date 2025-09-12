@@ -1,0 +1,28 @@
+{
+    "stakes": [
+        {
+            "txid": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            "vout": 0,
+            "amount": 100000000,
+            "height": 800000,
+            "iscoinbase": false,
+            "pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+        },
+        {
+            "txid": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+            "vout": 1,
+            "amount": 200000000,
+            "height": 800001,
+            "iscoinbase": false,
+            "pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+        },
+        {
+            "txid": "fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+            "vout": 2,
+            "amount": 150000000,
+            "height": 800002,
+            "iscoinbase": true,
+            "pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+        }
+    ]
+}

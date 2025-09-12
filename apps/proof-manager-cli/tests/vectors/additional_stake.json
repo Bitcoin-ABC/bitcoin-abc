@@ -1,0 +1,13 @@
+{
+    "stakes": [
+        {
+            "txid": "2222222222222222222222222222222222222222222222222222222222222222",
+            "vout": 0,
+            "amount": 150000000,
+            "height": 800003,
+            "iscoinbase": false,
+            "pubkey": "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645cd85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a",
+            "signature": "SUQeiPHj6bRysqa4kLj7xIq16dk3zyJDgMFFXhqJTCsFqzdoHr0L1EIylM0Z3vtt1NLIK9xbaeFs+3LMEWm4mA=="
+        }
+    ]
+}

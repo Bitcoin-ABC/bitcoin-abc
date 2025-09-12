@@ -1,0 +1,9 @@
+{
+    "proof": {
+        "sequence": 42,
+        "expiration": 2051222400,
+        "master": "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744",
+        "payoutscript": "21038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac",
+        "stakes": []
+    }
+}

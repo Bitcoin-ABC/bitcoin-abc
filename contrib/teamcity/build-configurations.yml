@@ -751,6 +751,15 @@ builds:
       cargo build
       cargo test
 
+  proof-manager-cli:
+    runOnDiffRegex:
+      - modules/avalanche-lib-wasm/
+      - apps/proof-manager-cli/
+    script: |
+      pushd "${TOPLEVEL}/apps/proof-manager-cli"
+      cargo build
+      cargo test
+
   cashtab-tests:
     runOnDiffRegex:
       - cashtab/

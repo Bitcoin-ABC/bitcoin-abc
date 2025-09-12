@@ -1,0 +1,12 @@
+{
+    "delegation": {
+        "limitedid": "c1283084c878408b2a5a11b7a1155b3cccce91526e4da0ba3947bbcf9d9ed402",
+        "master": "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3",
+        "levels": [
+            {
+                "pubkey": "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef",
+                "signature": ""
+            }
+        ]
+    }
+}
