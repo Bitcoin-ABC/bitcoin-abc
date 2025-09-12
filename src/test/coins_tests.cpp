@@ -1054,12 +1054,6 @@ void TestFlushBehavior(
         BOOST_CHECK_EQUAL(flags, 0);
     }
 
-    // Can't overwrite an entry without specifying that an overwrite is
-    // expected.
-    BOOST_CHECK_THROW(
-        view->AddCoin(outp, Coin(coin), /*possible_overwrite=*/false),
-        std::logic_error);
-
     // --- 6. Spend the coin.
     //
     BOOST_CHECK(view->SpendCoin(outp));
@@ -1136,6 +1130,15 @@ void TestFlushBehavior(
     BOOST_CHECK_EQUAL(flags, NO_ENTRY);
     BOOST_CHECK(!all_caches[0]->HaveCoinInCache(outp));
     BOOST_CHECK(!base.HaveCoin(outp));
+
+    // Can't overwrite an entry without specifying that an overwrite is
+    // expected.
+    // The cache is in an inconsistent state after this test and should not be
+    // reused.
+    view->AddCoin(outp, Coin(coin), false);
+    BOOST_CHECK_THROW(
+        view->AddCoin(outp, Coin(coin), /*possible_overwrite=*/false),
+        std::logic_error);
 }
 
 BOOST_AUTO_TEST_CASE(ccoins_flush_behavior) {
