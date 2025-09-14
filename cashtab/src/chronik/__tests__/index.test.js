@@ -8,7 +8,7 @@ import {
     getTxNotificationMsg,
     getTokenGenesisInfo,
     getTokenBalances,
-    getHistory,
+    getTransactionHistory,
     getUtxos,
     getAllTxHistoryByTokenId,
     getChildNftsFromParent,
@@ -259,11 +259,12 @@ describe('Cashtab chronik.js functions', () => {
         const tokenCache = new CashtabCache().tokens;
 
         // Get token balances
-        const parsedTxHistory = await getHistory(
+        const result = await getTransactionHistory(
             mockedChronik,
-            mockTxHistoryWallet,
+            defaultAddress,
             tokenCache,
         );
+        const parsedTxHistory = result.txs;
 
         // Expect cache is updated
         expect(tokenCache).toStrictEqual(mockTxHistoryTokenCache);
@@ -298,11 +299,12 @@ describe('Cashtab chronik.js functions', () => {
             const tokenCache = new CashtabCache().tokens;
 
             // Get token balances
-            const parsedTxHistory = await getHistory(
+            const result = await getTransactionHistory(
                 mockedChronik,
-                mockTxHistoryWallet,
+                defaultAddress,
                 tokenCache,
             );
+            const parsedTxHistory = result.txs;
 
             // Expect cache is unchanged
             expect(tokenCache).toStrictEqual(new CashtabCache().tokens);

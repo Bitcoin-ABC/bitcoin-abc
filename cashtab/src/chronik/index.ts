@@ -13,7 +13,6 @@ import {
     decodeCashAddress,
 } from 'ecashaddrjs';
 import {
-    getHashes,
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
     CashtabUtxo,
@@ -1176,42 +1175,35 @@ export const getTxNotificationMsg = (
 };
 
 /**
- * Get tx history of cashtab wallet
- * - Get tx history of path 1899 only
- * - sort by timeFirstSeen + block
- * - Trim to number of txs Cashtab renders
+ * Get transaction history with pagination
  * - Parse txs for rendering in Cashtab
  * - Update cachedTokens with any new tokenIds
  * @param chronik chronik-client instance
- * @param wallet cashtab wallet
+ * @param address the address to get history for
  * @param cachedTokens the map stored at cashtabCache.tokens
- * @returns Tx[], each tx also has a 'parsed' key with other rendering info
+ * @param page page number (0-based), defaults to 0
+ * @param pageSize number of transactions per page, defaults to chronikConfig.txHistoryPageSize
+ * @returns object with txs array and totalPages info
  */
-export const getHistory = async (
+export const getTransactionHistory = async (
     chronik: ChronikClient,
-    wallet: CashtabWallet,
+    address: string,
     cachedTokens: Map<string, CashtabCachedTokenInfo>,
-): Promise<CashtabTx[]> => {
-    // Only get history for path 1899
-    const path1899Address = wallet.paths.get(1899)?.address;
-    if (!path1899Address) {
-        // Will not happen as path1899 is always defined
-        // Satisfies typescript until Cashtab cleans up its wallet shape with ecash-wallet
-        throw new Error('Path 1899 not found in wallet');
-    }
+    page: number = 0,
+    pageSize: number = chronikConfig.txHistoryPageSize,
+): Promise<{ txs: CashtabTx[]; totalPages?: number }> => {
+    // Get hash from address for parseTx
+    const { hash } = decodeCashAddress(address);
 
-    // Just throw an error if you get a chronik error
-    // This will be handled in the update loop
-    const txHistoryPage = await chronik.address(path1899Address).history();
+    // Get transaction history from chronik
+    const pageResponse = await chronik.address(address).history(page, pageSize);
 
-    const renderedTxs = txHistoryPage.txs.slice(
-        0,
-        chronikConfig.txHistoryCount,
-    );
+    // For non-paginated requests, limit to pageSize
+    const txsToProcess = pageResponse.txs;
 
     // Parse txs
     const history: CashtabTx[] = [];
-    for (const tx of renderedTxs) {
+    for (const tx of txsToProcess) {
         const { tokenEntries } = tx;
 
         // Get all tokenIds associated with this tx
@@ -1243,12 +1235,17 @@ export const getHistory = async (
             }
         }
 
-        (tx as CashtabTx).parsed = parseTx(tx, getHashes(wallet));
+        (tx as CashtabTx).parsed = parseTx(tx, [hash]);
 
         history.push(tx as CashtabTx);
     }
 
-    return history;
+    const result: { txs: CashtabTx[]; totalPages?: number } = {
+        txs: history,
+        totalPages: pageResponse.numPages,
+    };
+
+    return result;
 };
 
 /**

@@ -75,7 +75,7 @@ const Home: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { fiatPrice, apiError, cashtabState, updateCashtabState } =
+    const { chronik, fiatPrice, apiError, cashtabState, updateCashtabState } =
         ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets[0];
@@ -211,6 +211,7 @@ const Home: React.FC = () => {
                         cashtabState={cashtabState}
                         updateCashtabState={updateCashtabState}
                         userLocale={userLocale}
+                        chronik={chronik}
                     />
                 ) : (
                     <InlineLoader />

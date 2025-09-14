@@ -13,7 +13,7 @@ import {
 import { storage, initializeStorage } from 'platform';
 import {
     getUtxos,
-    getHistory,
+    getTransactionHistory,
     organizeUtxosByType,
     parseTx,
     getTokenBalances,
@@ -40,6 +40,7 @@ import {
     getHashes,
     CashtabWallet,
     LegacyCashtabWallet,
+    CashtabPathInfo,
 } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
@@ -449,11 +450,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // Fetch and parse tx history
             // Note: this function will also update cashtabCache.tokens if any tokens in tx history are not in cache
-            const parsedTxHistory = await getHistory(
+
+            const result = await getTransactionHistory(
                 chronik,
-                activeWallet,
+                (
+                    activeWallet.paths.get(
+                        appConfig.derivationPath,
+                    ) as CashtabPathInfo
+                ).address!,
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
+            const parsedTxHistory = result.txs;
 
             // Update cashtabCache.tokens in state and storage
             updateCashtabState('cashtabCache', {
