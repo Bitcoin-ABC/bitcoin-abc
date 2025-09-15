@@ -49,8 +49,10 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
                 `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
             )
         ).data.ecash;
-    } catch (err) {
-        console.error(`Error getting daily summary price info`, err);
+    } catch {
+        console.error(
+            'CoinGecko API request failed for daily summary, building message without price data',
+        );
     }
 
     // Get staker info, if available

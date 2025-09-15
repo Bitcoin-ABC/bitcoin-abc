@@ -98,12 +98,9 @@ export const getCoingeckoPrices = async (
             };
         }
         return false;
-    } catch (err) {
+    } catch {
         console.log(
-            `Error fetching prices of ${coingeckoSlugs.join(
-                ',',
-            )} from ${apiUrl}`,
-            err,
+            'CoinGecko API request failed, building message without price data',
         );
     }
     return false;
