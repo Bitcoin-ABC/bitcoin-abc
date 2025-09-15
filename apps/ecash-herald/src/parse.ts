@@ -460,10 +460,9 @@ export const parseMultipushStack = (
             // Since we don't know any spec or parsing rules for other types of EMPP pushes,
             // Just add an ASCII decode of the whole thing if you see one
             msgs.push(
-                `${'Unknown App:'}${Buffer.from(
-                    emppStackArray[i],
-                    'hex',
-                ).toString('ascii')}`,
+                `${'Unknown App:'}${prepareStringForTelegramHTML(
+                    Buffer.from(emppStackArray[i], 'hex').toString('ascii'),
+                )}`,
             );
         }
         // Do not parse any other empp (haven't seen any in the wild, no existing specs to follow)
