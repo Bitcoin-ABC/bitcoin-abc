@@ -28,6 +28,7 @@ import {
     SLP_TOKEN_TYPE_MINT_VAULT,
     SLP_TOKEN_TYPE_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_CHILD,
+    ALL_BIP143,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 import { Wallet } from '../src/wallet';
@@ -100,7 +101,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const firstTxid = resp.txid;
+        const firstTxid = resp.broadcasted[0];
 
         expect(firstTxid).to.equal(
             'c979983f62cb14ea449dec2982fd34ab2cac522634f38ce4b0cd32601ef05047',
@@ -121,9 +122,6 @@ describe('Wallet can build and broadcast on regtest', () => {
         const OUTPUTS_TO_TEST = 12;
         const dozenOutputs = getDustOutputs(OUTPUTS_TO_TEST);
 
-        // Sync again
-        await testWallet.sync();
-
         const respTwo = await testWallet
             .action({
                 outputs: dozenOutputs,
@@ -131,7 +129,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const secondTxid = respTwo.txid;
+        const secondTxid = respTwo.broadcasted[0];
 
         expect(secondTxid).to.equal(
             'a62b0564fcefa5e3fc857e8ad90a408c00421608d7fdc3d13f335a52f29b3fc8',
@@ -143,19 +141,18 @@ describe('Wallet can build and broadcast on regtest', () => {
 
         const threeThousandOutputs = getDustOutputs(3_000);
 
-        await testWallet.sync();
-
-        await expect(
-            testWallet
-                .action({
-                    outputs: threeThousandOutputs,
-                })
-                .build()
-                .broadcast(),
-        ).to.be.rejectedWith(
-            Error,
-            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: tx-size`,
-        );
+        const tooBigFailure = await testWallet
+            .action({
+                outputs: threeThousandOutputs,
+            })
+            .build()
+            .broadcast();
+        expect(tooBigFailure.success).to.equal(false);
+        expect(tooBigFailure.broadcasted).to.have.length(0);
+        expect(tooBigFailure.unbroadcasted).to.have.length(1);
+        expect(tooBigFailure.errors).to.deep.equal([
+            `Error: Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: tx-size`,
+        ]);
     });
     it('We can handle SLP SLP_TOKEN_TYPE_FUNGIBLE token actions', async () => {
         // Init the wallet
@@ -219,7 +216,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpGenesisTokenId = resp.txid;
+        const slpGenesisTokenId = resp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const tokenInfo = await chronik.token(slpGenesisTokenId);
@@ -268,9 +265,6 @@ describe('Wallet can build and broadcast on regtest', () => {
                 },
             ],
         };
-
-        // NB we must sync() again for the mint baton to be an available utxo
-        await slpWallet.sync();
 
         // Build and broadcast the MINT tx
         await slpWallet.action(slpMintAction).build().broadcast();
@@ -348,12 +342,12 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again for minted qty to be an available utxo
-        await slpWallet.sync();
-
         // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
         expect(() =>
-            slpWallet.action(slpSendActionTooManyOutputs).build(),
+            slpWallet
+                .clone()
+                .action(slpSendActionTooManyOutputs)
+                .build(ALL_BIP143),
         ).to.throw(
             Error,
             `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_FUNGIBLE.`,
@@ -365,7 +359,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpSendTxid = sendResponse.txid;
+        const slpSendTxid = sendResponse.broadcasted[0];
 
         const sendTx = await chronik.tx(slpSendTxid);
         expect(sendTx.tokenEntries).to.have.length(1);
@@ -380,9 +374,8 @@ describe('Wallet can build and broadcast on regtest', () => {
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
                 /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
+                 * We do not specify any token outputs
+                 * for an SLP burn action
                  */
             ],
             tokenActions: [
@@ -396,24 +389,14 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get latest utxo set
-        await slpWallet.sync();
-
-        // We can't burn this amount of atoms because we do not have a utxo of this size
-        expect(() => slpWallet.action(slpCannotBurnAction).build()).to.throw(
-            Error,
-            `Unable to find UTXOs for ${slpGenesisTokenId} with exactly ${burnAtomsThatDoNotMatchUtxos} atoms. Create a UTXO with ${burnAtomsThatDoNotMatchUtxos} atoms to burn without a SEND action.`,
-        );
-
         const burnAtoms = 333n;
         const slpBurnAction: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
                 /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
+                 * We do not specify any token outputs
+                 * for an SLP burn action
                  */
             ],
             tokenActions: [
@@ -433,13 +416,43 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const burnTx = await chronik.tx(burnResponse.txid);
+        const burnTx = await chronik.tx(burnResponse.broadcasted[0]);
         expect(burnTx.tokenEntries).to.have.length(1);
         expect(burnTx.tokenEntries[0].txType).to.equal('BURN');
         expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(burnAtoms);
         expect(burnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(burnAtoms);
         expect(burnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(burnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // We can burn exact atoms that do not match an existing utxo with a chained tx
+        const chainedBurn = await slpWallet
+            .action(slpCannotBurnAction)
+            .build()
+            .broadcast();
+        expect(chainedBurn.success).to.equal(true);
+        expect(chainedBurn.broadcasted).to.have.length(2);
+
+        const burnUtxoPrepTxid = chainedBurn.broadcasted[0];
+        const chainedBurnTxid = chainedBurn.broadcasted[1];
+
+        const burnUtxoPrepTx = await chronik.tx(burnUtxoPrepTxid);
+        const chainedBurnTx = await chronik.tx(chainedBurnTxid);
+
+        expect(burnUtxoPrepTx.tokenEntries).to.have.length(1);
+        expect(burnUtxoPrepTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(burnUtxoPrepTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(burnUtxoPrepTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        expect(chainedBurnTx.tokenEntries).to.have.length(1);
+        expect(chainedBurnTx.tokenEntries[0].txType).to.equal('BURN');
+        expect(chainedBurnTx.tokenEntries[0].actualBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
+        );
+        expect(chainedBurnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
+        );
+        expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
+        expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
     });
     it('We can handle ALP ALP_TOKEN_TYPE_STANDARD token actions', async () => {
         // Init the wallet
@@ -530,7 +543,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const alpGenesisTokenId = resp.txid;
+        const alpGenesisTokenId = resp.broadcasted[0];
 
         // It's a valid ALP genesis tx
         const tokenInfo = await chronik.token(alpGenesisTokenId);
@@ -611,9 +624,6 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again for the mint baton to be an available utxo
-        await alpWallet.sync();
-
         // Build and broadcast the MINT tx
         await alpWallet.action(alpMintAction).build().broadcast();
 
@@ -684,16 +694,13 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again for the mint baton to be an available utxo
-        await alpWallet.sync();
-
         // Build and broadcast the MINT tx
         const mintBurn = await alpWallet
             .action(alpMintandBurnAction)
             .build()
             .broadcast();
 
-        const mintAndBurnTx = await chronik.tx(mintBurn.txid);
+        const mintAndBurnTx = await chronik.tx(mintBurn.broadcasted[0]);
 
         // This is a valid MINT and BURN tx
         expect(mintAndBurnTx.tokenEntries).to.have.length(1);
@@ -779,16 +786,13 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again to get the updated utxo set
-        await alpWallet.sync();
-
         // Build and broadcast
         const genesisAndMintResp = await alpWallet
             .action(alpGenesisAndMintAction)
             .build()
             .broadcast();
 
-        const alpGenesisTokenIdBeta = genesisAndMintResp.txid;
+        const alpGenesisTokenIdBeta = genesisAndMintResp.broadcasted[0];
 
         // It's a valid ALP genesis tx
         const tokenInfoBeta = await chronik.token(alpGenesisTokenIdBeta);
@@ -880,14 +884,13 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again to get the updated utxo set
-        await alpWallet.sync();
-
         // Build and broadcast
         // Looks like this should work. After all, we will have 29 outputs.
         // But it won't, because we still have to push the 0 atoms into two atomsArrays
         // So we exceed the OP_RETURN
-        expect(() => alpWallet.action(alpSendAction).build()).to.throw(
+        expect(() =>
+            alpWallet.clone().action(alpSendAction).build(ALL_BIP143),
+        ).to.throw(
             Error,
             `Specified action results in OP_RETURN of 434 bytes, vs max allowed of ${OP_RETURN_MAX_BYTES}.`,
         );
@@ -932,7 +935,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const alpSendTxid = alpSendResponse.txid;
+        const alpSendTxid = alpSendResponse.broadcasted[0];
 
         const sendTx = await chronik.tx(alpSendTxid);
         // We sent two tokens
@@ -985,11 +988,10 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get latest utxo set
-        await alpWallet.sync();
-
         // We cannot burn this quantity of the beta token without specifying a SEND action because we do not have a utxo of this size
-        expect(() => alpWallet.action(alpDoubleBurnError).build()).to.throw(
+        expect(() =>
+            alpWallet.clone().action(alpDoubleBurnError).build(ALL_BIP143),
+        ).to.throw(
             Error,
             `Unable to find UTXOs for ${alpGenesisTokenIdBeta} with exactly ${alpGenesisTokenIdBetaBurnAtomsCannotBurnAll} atoms. Create a UTXO with ${alpGenesisTokenIdBetaBurnAtomsCannotBurnAll} atoms to burn without a SEND action.`,
         );
@@ -1051,7 +1053,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const burnTx = await chronik.tx(burnResponse.txid);
+        const burnTx = await chronik.tx(burnResponse.broadcasted[0]);
         expect(burnTx.tokenEntries).to.have.length(2);
         expect(burnTx.tokenEntries[0].txType).to.equal('SEND');
         expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(
@@ -1103,9 +1105,9 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        await alpWallet.sync();
-
-        expect(() => alpWallet.action(outOfReachAlpAction).build()).to.throw(
+        expect(() =>
+            alpWallet.clone().action(outOfReachAlpAction).build(ALL_BIP143),
+        ).to.throw(
             Error,
             `Missing required token utxos: ${tokenWeDoNotHave} => Missing mint baton, ${alpGenesisTokenId} => Missing 999999990135 atoms`,
         );
@@ -1177,7 +1179,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpGenesisTokenId = resp.txid;
+        const slpGenesisTokenId = resp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const tokenInfo = await chronik.token(slpGenesisTokenId);
@@ -1253,12 +1255,12 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again for minted qty to be an available utxo
-        await slpMintVaultWallet.sync();
-
         // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
         expect(() =>
-            slpMintVaultWallet.action(slpSendActionTooManyOutputs).build(),
+            slpMintVaultWallet
+                .clone()
+                .action(slpSendActionTooManyOutputs)
+                .build(ALL_BIP143),
         ).to.throw(
             Error,
             `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_MINT_VAULT.`,
@@ -1270,7 +1272,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpSendTxid = sendResponse.txid;
+        const slpSendTxid = sendResponse.broadcasted[0];
 
         const sendTx = await chronik.tx(slpSendTxid);
         expect(sendTx.tokenEntries).to.have.length(1);
@@ -1285,9 +1287,8 @@ describe('Wallet can build and broadcast on regtest', () => {
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
                 /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
+                 * We do not specify any token outputs
+                 * for an SLP burn action
                  */
             ],
             tokenActions: [
@@ -1301,26 +1302,44 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get latest utxo set
-        await slpMintVaultWallet.sync();
+        // We can burn an SLP amount that we do not have exact utxos for with a chained tx
+        const chainedBurn = await slpMintVaultWallet
+            .action(slpCannotBurnAction)
+            .build()
+            .broadcast();
+        expect(chainedBurn.success).to.equal(true);
+        expect(chainedBurn.broadcasted).to.have.length(2);
 
-        // We can't burn this amount of atoms because we do not have a utxo of this size
-        expect(() =>
-            slpMintVaultWallet.action(slpCannotBurnAction).build(),
-        ).to.throw(
-            Error,
-            `Unable to find UTXOs for ${slpGenesisTokenId} with exactly ${burnAtomsThatDoNotMatchUtxos} atoms. Create a UTXO with ${burnAtomsThatDoNotMatchUtxos} atoms to burn without a SEND action.`,
+        const burnUtxoPrepTxid = chainedBurn.broadcasted[0];
+        const chainedBurnTxid = chainedBurn.broadcasted[1];
+
+        const burnUtxoPrepTx = await chronik.tx(burnUtxoPrepTxid);
+        const chainedBurnTx = await chronik.tx(chainedBurnTxid);
+
+        expect(burnUtxoPrepTx.tokenEntries).to.have.length(1);
+        expect(burnUtxoPrepTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(burnUtxoPrepTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(burnUtxoPrepTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        expect(chainedBurnTx.tokenEntries).to.have.length(1);
+        expect(chainedBurnTx.tokenEntries[0].txType).to.equal('BURN');
+        expect(chainedBurnTx.tokenEntries[0].actualBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
         );
+        expect(chainedBurnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
+        );
+        expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
+        expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
 
-        const burnAtoms = 1_000n;
+        const burnAtoms = 700n;
         const slpBurnAction: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
                 /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
+                 * We do not specify any token outputs
+                 * for an SLP burn action
                  */
             ],
             tokenActions: [
@@ -1340,7 +1359,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const burnTx = await chronik.tx(burnResponse.txid);
+        const burnTx = await chronik.tx(burnResponse.broadcasted[0]);
         expect(burnTx.tokenEntries).to.have.length(1);
         expect(burnTx.tokenEntries[0].txType).to.equal('BURN');
         expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(burnAtoms);
@@ -1413,7 +1432,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpGenesisTokenId = resp.txid;
+        const slpGenesisTokenId = resp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const tokenInfo = await chronik.token(slpGenesisTokenId);
@@ -1462,9 +1481,6 @@ describe('Wallet can build and broadcast on regtest', () => {
                 },
             ],
         };
-
-        // NB we must sync() again for the mint baton to be an available utxo
-        await slpWallet.sync();
 
         // Build and broadcast the MINT tx
         await slpWallet.action(slpMintAction).build().broadcast();
@@ -1542,12 +1558,12 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // NB we must sync() again for minted qty to be an available utxo
-        await slpWallet.sync();
-
         // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
         expect(() =>
-            slpWallet.action(slpSendActionTooManyOutputs).build(),
+            slpWallet
+                .clone()
+                .action(slpSendActionTooManyOutputs)
+                .build(ALL_BIP143),
         ).to.throw(
             Error,
             `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_NFT1_GROUP.`,
@@ -1559,7 +1575,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpSendTxid = sendResponse.txid;
+        const slpSendTxid = sendResponse.broadcasted[0];
 
         const sendTx = await chronik.tx(slpSendTxid);
         expect(sendTx.tokenEntries).to.have.length(1);
@@ -1567,47 +1583,14 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(sendTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
         expect(sendTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
 
-        // We cannot burn an SLP amount that we do not have exact utxos for
-        const burnAtomsThatDoNotMatchUtxos = 300n;
-        const slpCannotBurnAction: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
-                 */
-            ],
-            tokenActions: [
-                /** SLP burn action */
-                {
-                    type: 'BURN',
-                    tokenId: slpGenesisTokenId,
-                    burnAtoms: burnAtomsThatDoNotMatchUtxos,
-                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
-                },
-            ],
-        };
-
-        // Sync to get latest utxo set
-        await slpWallet.sync();
-
-        // We can't burn this amount of atoms because we do not have a utxo of this size
-        expect(() => slpWallet.action(slpCannotBurnAction).build()).to.throw(
-            Error,
-            `Unable to find UTXOs for ${slpGenesisTokenId} with exactly ${burnAtomsThatDoNotMatchUtxos} atoms. Create a UTXO with ${burnAtomsThatDoNotMatchUtxos} atoms to burn without a SEND action.`,
-        );
-
         const burnAtoms = 333n;
         const slpBurnAction: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
                 /**
-                 * We don't specify any token SEND outputs
-                 * We could, but let's just let the wallet
-                 * figure them out to complete our BURN
+                 * We do not specify any token outputs
+                 * for an SLP burn action
                  */
             ],
             tokenActions: [
@@ -1627,13 +1610,65 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const burnTx = await chronik.tx(burnResponse.txid);
+        const burnTx = await chronik.tx(burnResponse.broadcasted[0]);
         expect(burnTx.tokenEntries).to.have.length(1);
         expect(burnTx.tokenEntries[0].txType).to.equal('BURN');
         expect(burnTx.tokenEntries[0].actualBurnAtoms).to.equal(burnAtoms);
         expect(burnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(burnAtoms);
         expect(burnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(burnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // We can burn an SLP amount that we do not have exact utxos for
+        const burnAtomsThatDoNotMatchUtxos = 300n;
+        const slpCannotBurnAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * We do not specify any token outputs
+                 * for an SLP burn action
+                 */
+            ],
+            tokenActions: [
+                /** SLP burn action */
+                {
+                    type: 'BURN',
+                    tokenId: slpGenesisTokenId,
+                    burnAtoms: burnAtomsThatDoNotMatchUtxos,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            ],
+        };
+
+        // We can intentionally burn an SLP amount that we do not have exact utxos for
+        const chainedBurn = await slpWallet
+            .action(slpCannotBurnAction)
+            .build()
+            .broadcast();
+        expect(chainedBurn.success).to.equal(true);
+        expect(chainedBurn.broadcasted).to.have.length(2);
+
+        const burnUtxoPrepTxid = chainedBurn.broadcasted[0];
+        const chainedBurnTxid = chainedBurn.broadcasted[1];
+
+        const burnUtxoPrepTx = await chronik.tx(burnUtxoPrepTxid);
+        const chainedBurnTx = await chronik.tx(chainedBurnTxid);
+
+        expect(burnUtxoPrepTx.tokenEntries).to.have.length(1);
+        expect(burnUtxoPrepTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(burnUtxoPrepTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(burnUtxoPrepTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        expect(chainedBurnTx.tokenEntries).to.have.length(1);
+        expect(chainedBurnTx.tokenEntries[0].txType).to.equal('BURN');
+        expect(chainedBurnTx.tokenEntries[0].actualBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
+        );
+        expect(chainedBurnTx.tokenEntries[0].intentionalBurnAtoms).to.equal(
+            burnAtomsThatDoNotMatchUtxos,
+        );
+        expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
+        expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
     });
     it('We can handle SLP SLP_TOKEN_TYPE_NFT1_CHILD token actions', async () => {
         // Init the wallet
@@ -1693,7 +1728,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const slpGenesisTokenId = resp.txid;
+        const slpGenesisTokenId = resp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const tokenInfo = await chronik.token(slpGenesisTokenId);
@@ -1735,9 +1770,10 @@ describe('Wallet can build and broadcast on regtest', () => {
                 },
             ],
         };
-        await slpNftWallet.sync();
 
-        expect(() => slpNftWallet.action(nftMintAlpha).build()).to.throw(
+        expect(() =>
+            slpNftWallet.clone().action(nftMintAlpha).build(ALL_BIP143),
+        ).to.throw(
             Error,
             `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${slpGenesisTokenId}. You must split your qty-1000 input into qty-1 inputs.`,
         );
@@ -1782,12 +1818,11 @@ describe('Wallet can build and broadcast on regtest', () => {
         await slpNftWallet.action(slpFanoutAction).build().broadcast();
 
         // Now we can mint the NFT
-        await slpNftWallet.sync();
         const alphaNftResp = await slpNftWallet
             .action(nftMintAlpha)
             .build()
             .broadcast();
-        const nftMintAlphaTxid = alphaNftResp.txid;
+        const nftMintAlphaTxid = alphaNftResp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const alphaTokenInfo = await chronik.token(nftMintAlphaTxid);
@@ -1816,7 +1851,6 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        await slpNftWallet.sync();
         await slpNftWallet.action(nftSendAction).build().broadcast();
 
         // This NFT now belongs to MOCK_DESTINATION_ADDRESS
@@ -1858,12 +1892,12 @@ describe('Wallet can build and broadcast on regtest', () => {
                 },
             ],
         };
-        await slpNftWallet.sync();
+
         const betaNftResp = await slpNftWallet
             .action(nftMintBeta)
             .build()
             .broadcast();
-        const nftMintBetaTxid = betaNftResp.txid;
+        const nftMintBetaTxid = betaNftResp.broadcasted[0];
 
         // It's a valid SLP genesis tx
         const betaTokenInfo = await chronik.token(nftMintBetaTxid);
@@ -1886,12 +1920,11 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        await slpNftWallet.sync();
         const burnResp = await slpNftWallet
             .action(nftBurnAction)
             .build()
             .broadcast();
-        const nftBurnTxid = burnResp.txid;
+        const nftBurnTxid = burnResp.broadcasted[0];
 
         // It's a valid SLP burn tx
         const burnTx = await chronik.tx(nftBurnTxid);
@@ -1936,8 +1969,10 @@ describe('Wallet can build and broadcast on regtest', () => {
                 },
             ],
         };
-        await slpNftWallet.sync();
-        expect(() => slpNftWallet.action(nftGammaBeta).build()).to.throw(
+
+        expect(() =>
+            slpNftWallet.clone().action(nftGammaBeta).build(ALL_BIP143),
+        ).to.throw(
             Error,
             `An SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx must have 1 atom at outIdx 1. Found 2 atoms.`,
         );
@@ -2012,7 +2047,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             .build()
             .broadcast();
 
-        const alpTokenId = genesisResp.txid;
+        const alpTokenId = genesisResp.broadcasted[0];
 
         // Verify it's a valid ALP genesis tx
         const tokenInfo = await chronik.token(alpTokenId);
@@ -2048,16 +2083,13 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get the token UTXOs
-        await alpDataWallet.sync();
-
         // Build and broadcast the transaction with DataAction
         const sendWithDataResp = await alpDataWallet
             .action(alpSendWithDataAction)
             .build()
             .broadcast();
 
-        const sendWithDataTxid = sendWithDataResp.txid;
+        const sendWithDataTxid = sendWithDataResp.broadcasted[0];
 
         // Verify the transaction was successful
         const sendWithDataTx = await chronik.tx(sendWithDataTxid);
@@ -2126,12 +2158,12 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get the updated token UTXOs
-        await alpDataWallet.sync();
-
         // This should throw an error because the OP_RETURN would exceed the size limit
         expect(() =>
-            alpDataWallet.action(alpMaxOutputsWithDataAction).build(),
+            alpDataWallet
+                .clone()
+                .action(alpMaxOutputsWithDataAction)
+                .build(ALL_BIP143),
         ).to.throw(
             Error,
             `Specified action results in OP_RETURN of 226 bytes, vs max allowed of 223.`,
@@ -2173,16 +2205,13 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Sync to get the updated token UTXOs
-        await alpDataWallet.sync();
-
         // Build and broadcast the transaction with two DataActions
         const sendWithTwoDataResp = await alpDataWallet
             .action(alpSendWithTwoDataActions)
             .build()
             .broadcast();
 
-        const sendWithTwoDataTxid = sendWithTwoDataResp.txid;
+        const sendWithTwoDataTxid = sendWithTwoDataResp.broadcasted[0];
 
         // Verify the transaction was successful
         const sendWithTwoDataTx = await chronik.tx(sendWithTwoDataTxid);

@@ -115,7 +115,7 @@ describe('Postage mechanism for eCash transactions', () => {
             .build()
             .broadcast();
 
-        const tokenId = genesisResp.txid;
+        const tokenId = genesisResp.broadcasted[0];
 
         // Sync to get the new token UTXOs
         await tokenWallet.sync();
@@ -196,7 +196,7 @@ describe('Postage mechanism for eCash transactions', () => {
         const broadcastResp = await broadcastableTx.broadcast();
 
         // Inspect the tx from chronik
-        const tx = await chronik.tx(broadcastResp.txid);
+        const tx = await chronik.tx(broadcastResp.broadcasted[0]);
 
         // It's a valid token tx
         expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');

@@ -65,23 +65,6 @@ describe('routes.js', function () {
         } as Tx,
     ]);
 
-    mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, [
-        { ...MOCK_SCRIPT_UTXO, sats: 10000n },
-        {
-            ...MOCK_SPENDABLE_TOKEN_UTXO,
-            outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
-            token: {
-                ...MOCK_UTXO_TOKEN,
-                tokenId: config.rewardsTokenId,
-                // Note, can change this to '10' or something less than config.rewardAmountTokenSats
-                // to test behavior of server if it is out of tokens
-                // Bad ROI on adding this test outright as we need lots of scripting
-                // to overcome the need for multiple mocked server wallets
-                atoms: config.rewardAmountTokenSats,
-            },
-        },
-    ] as ScriptUtxo[]);
-
     const mockCachetClaim = {
         rawTx: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441bba10be120fe1552207b5d0608fd96b93b007a4559e5589135284e2645dad0a9028742091b37b483918e58ee3c23d6f25fa219d83d658362adc67baea639241641210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff1111111111111111111111111111111111111111111111111111111111111111010000006441e3a5dca2108390a00fc3f135ed4c3069ad8ef36e27bb02d5553280979abab75b9d4885b3cbd3afd00eadb47513e9fd75d31ae1ab7eaecf4264f5c04d2f511f0841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
         txid: '49f3eaa422872d1a9383f76368afda09ed5c515c821fd8c84172f7a191551556',
@@ -134,6 +117,25 @@ describe('routes.js', function () {
     // Initialize fs, to be memfs in these tests
     beforeEach(async () => {
         const TEST_PORT = 5000;
+
+        // Mock utxo set before each test, to ensure it is constant across tests
+        mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, [
+            { ...MOCK_SCRIPT_UTXO, sats: 10000n },
+            {
+                ...MOCK_SPENDABLE_TOKEN_UTXO,
+                outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                token: {
+                    ...MOCK_UTXO_TOKEN,
+                    tokenId: config.rewardsTokenId,
+                    // Note, can change this to '10' or something less than config.rewardAmountTokenSats
+                    // to test behavior of server if it is out of tokens
+                    // Bad ROI on adding this test outright as we need lots of scripting
+                    // to overcome the need for multiple mocked server wallets
+                    atoms: config.rewardAmountTokenSats,
+                },
+            },
+        ] as ScriptUtxo[]);
+
         app = startExpressServer(
             TEST_PORT,
             mockedChronikClient as unknown as ChronikClient,

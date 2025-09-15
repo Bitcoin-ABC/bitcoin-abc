@@ -37,7 +37,7 @@ See tests for detailed methods.
     [x] SLP_TOKEN_TYPE_NFT1_GROUP
     [x] SLP_TOKEN_TYPE_NFT1_CHILD (Mint NFTs)
     [x] DataAction for ALP_TOKEN_TYPE_STANDARD txs
-    [] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
+    [X] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
 -   Agora actions (PARTIAL and ONESHOT)
     [] SLP (requires "chained" txs)
     [] ALP
@@ -87,3 +87,12 @@ See tests for detailed methods.
 # 1.5.0
 
 [D18585](https://reviews.bitcoinabc.org/D18585) Support DataAction for ALP token sends
+
+# 2.0.0
+
+[D18627](https://reviews.bitcoinabc.org/D18627)
+
+-   Support intentional SLP burns for arbitrary amounts with a chained tx.
+-   Support automatic updating of determined wallet utxo set on tx build() (unless user opts out, e.g. for running tests) (NB does not apply to PostageTx)
+-   **_BREAKING CHANGE_** the `.broadcast()` method no longer throws, returns a `success` key with more information
+-   Patch issue where SLP burns are not invalidated for including specified outputs

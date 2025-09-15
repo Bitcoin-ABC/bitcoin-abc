@@ -264,7 +264,7 @@ export const startExpressServer = (
             }
 
             // Get txid before sending response
-            const { txid } = rewardSuccess;
+            const txid = rewardSuccess.broadcasted[0];
             interface SendRewardResponse {
                 address: string;
                 txid?: string;
@@ -390,7 +390,7 @@ export const startExpressServer = (
             }
 
             // Get txid before sending response
-            const { txid } = airdropSuccess;
+            const txid = airdropSuccess.broadcasted[0];
             interface SendRewardResponse {
                 address: string;
                 txid?: string;

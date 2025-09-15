@@ -24,6 +24,7 @@ import {
     SLP_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_CHILD,
+    ALL_BIP143,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -43,6 +44,7 @@ import {
     SatsSelectionStrategy,
     paymentOutputsToTxOutputs,
     getNftChildGenesisInput,
+    getUtxoFromOutput,
 } from './wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
@@ -282,7 +284,10 @@ describe('wallet.ts', () => {
         });
 
         // Mock a utxo set
-        mockChronik.setUtxosByAddress(DUMMY_ADDRESS, ALL_SUPPORTED_UTXOS);
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
 
         // We can sync the wallet
         await testWallet.sync();
@@ -302,6 +307,7 @@ describe('wallet.ts', () => {
         // We can get the size of a tx without broadcasting it
         expect(
             testWallet
+                .clone()
                 .action({
                     outputs: [
                         {
@@ -310,13 +316,14 @@ describe('wallet.ts', () => {
                         },
                     ],
                 })
-                .build()
-                .size(),
-        ).to.equal(360);
+                .build(ALL_BIP143)
+                .builtTxs[0].size(),
+        ).to.deep.equal(360);
 
         // We can get the fee of a tx without broadcasting it
         expect(
             testWallet
+                .clone()
                 .action({
                     outputs: [
                         {
@@ -325,9 +332,26 @@ describe('wallet.ts', () => {
                         },
                     ],
                 })
-                .build()
-                .fee(),
-        ).to.equal(360n);
+                .build(ALL_BIP143)
+                .builtTxs[0].fee(),
+        ).to.deep.equal(360n);
+
+        // We can get the txid of a tx without broadcasting it
+        expect(
+            testWallet
+                .clone()
+                .action({
+                    outputs: [
+                        {
+                            script: MOCK_DESTINATION_SCRIPT,
+                            sats: 546n,
+                        },
+                    ],
+                })
+                .build(ALL_BIP143).builtTxs[0].txid,
+        ).to.deep.equal(
+            'c56c1a6606eaa4e46034b3ff452a444395d83afb8bdfbf5b14e81d7657e9003c',
+        );
 
         // Fee can be adjusted by feePerKb param
         expect(
@@ -342,8 +366,8 @@ describe('wallet.ts', () => {
                     feePerKb: 5000n,
                 })
                 .build()
-                .fee(),
-        ).to.equal(1800n);
+                .builtTxs[0].fee(),
+        ).to.deep.equal(1800n);
     });
     it('Throw error on sync() fail', async () => {
         const mockChronik = new MockChronikClient();
@@ -380,6 +404,125 @@ describe('wallet.ts', () => {
 
         // utxos are still empty because there was an error in querying latest utxo set
         expect(errorWallet.utxos).to.deep.equal([]);
+    });
+
+    it('Can build chained SLP burn tx and update the wallet utxo set', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock blockchain info
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Set up UTXOs: we have 45 atoms but need to burn exactly 42 atoms
+        // This will require a chained transaction (send 42 atoms, then burn them)
+        const utxosWithInsufficientExactAtoms = [
+            { ...DUMMY_UTXO, sats: 50_000n }, // More sats to cover fees for chained txs
+            { ...getDummySlpUtxo(45n), sats: 50_000n }, // We have 45 atoms but need exactly 42, with enough sats for fees
+        ];
+
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            utxosWithInsufficientExactAtoms,
+        );
+        await testWallet.sync();
+
+        // Store original UTXO state
+        const originalUtxos = structuredClone(testWallet.utxos);
+
+        // Create a burn action that requires chaining (exact burn of 42 atoms)
+        const burnAction = {
+            outputs: [
+                { sats: 0n }, // OP_RETURN placeholder
+            ],
+            tokenActions: [
+                {
+                    type: 'BURN',
+                    tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    burnAtoms: 42n, // Need exactly 42 atoms
+                },
+            ] as payment.TokenAction[],
+        };
+
+        // Build the chained transaction
+        const builtAction = testWallet.action(burnAction).build();
+
+        // Verify we got a chained transaction (2 txs)
+        expect(builtAction.txs).to.have.length(2);
+
+        // Verify wallet UTXO set was modified
+        expect(testWallet.utxos).not.to.deep.equal(originalUtxos);
+
+        // Verify both transactions are valid
+        expect(builtAction.builtTxs).to.have.length(2);
+    });
+
+    it('Can build chained SLP burn tx without updating wallet utxo set', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock blockchain info
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Set up UTXOs: we have 45 atoms but need to burn exactly 42 atoms
+        // This will require a chained transaction (send 42 atoms, then burn them)
+        const utxosWithInsufficientExactAtoms = [
+            { ...DUMMY_UTXO, sats: 50_000n }, // More sats to cover fees for chained txs
+            { ...getDummySlpUtxo(45n), sats: 50_000n }, // We have 45 atoms but need exactly 42, with enough sats for fees
+        ];
+
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            utxosWithInsufficientExactAtoms,
+        );
+        await testWallet.sync();
+
+        // Store original UTXO count and state
+        const originalUtxoCount = testWallet.utxos.length;
+        const originalUtxos = structuredClone(testWallet.utxos);
+
+        // Create a burn action that requires chaining (exact burn of 42 atoms)
+        const burnAction = {
+            outputs: [
+                { sats: 0n }, // OP_RETURN placeholder
+            ],
+            tokenActions: [
+                {
+                    type: 'BURN',
+                    tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    burnAtoms: 42n, // Need exactly 42 atoms
+                },
+            ] as payment.TokenAction[],
+        };
+
+        // Build the chained transaction without updating UTXOs
+        const builtAction = testWallet
+            .clone()
+            .action(burnAction)
+            .build(ALL_BIP143);
+
+        // Verify we got a chained transaction (2 txs)
+        expect(builtAction.txs).to.have.length(2);
+
+        // Verify wallet UTXO set was not modified
+        expect(testWallet.utxos).to.have.length(originalUtxoCount);
+        expect(testWallet.utxos).to.deep.equal(originalUtxos);
+
+        // Verify both transactions are valid
+        expect(builtAction.builtTxs).to.have.length(2);
     });
 });
 
@@ -918,6 +1061,7 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: false,
                 missingSats: 1000n,
+                requiresTxChain: false,
                 errors: [
                     'Insufficient sats to complete tx. Need 1000 additional satoshis to complete this Action.',
                 ],
@@ -938,6 +1082,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 1000n,
                 utxos: [],
+                requiresTxChain: false,
             });
         });
         it('Return success true for a non-token tx with insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -961,6 +1106,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 500n },
                     { ...DUMMY_UTXO, sats: 300n },
                 ],
+                requiresTxChain: false,
             });
         });
         it('Return success true for a non-token tx with sufficient sats if ATTEMPT_SATS strategy', () => {
@@ -984,6 +1130,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 500n },
                     { ...DUMMY_UTXO, sats: 600n },
                 ],
+                requiresTxChain: false,
             });
         });
         it('Return success true for a token tx with sufficient tokens but insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1019,6 +1166,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 500n,
                 utxos: [{ ...DUMMY_UTXO, sats: 500n }, getDummySlpUtxo(2n)],
+                requiresTxChain: false,
             });
         });
         it('Return failure for a token tx with missing tokens even if ATTEMPT_SATS strategy', () => {
@@ -1064,6 +1212,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1102,6 +1251,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_500n }, getDummySlpUtxo(2n)],
+                requiresTxChain: false,
             });
         });
         it('For an XEC-only tx, returns non-token utxos with sufficient sats', () => {
@@ -1120,6 +1270,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 750n },
                     { ...DUMMY_UTXO, sats: 750n },
                 ],
+                requiresTxChain: false,
             });
         });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
@@ -1134,6 +1285,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_000n }],
+                requiresTxChain: false,
             });
         });
         it('Returns expected object if we have insufficient token utxos', () => {
@@ -1173,6 +1325,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1272,6 +1425,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1371,6 +1525,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1404,6 +1559,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 10_000n }, getDummySlpUtxo(1n)],
+                requiresTxChain: false,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx', () => {
@@ -1478,6 +1634,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: spendableUtxos,
+                requiresTxChain: false,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx if gasless', () => {
@@ -1557,6 +1714,7 @@ describe('Support functions', () => {
                 success: true,
                 utxos: spendableUtxos,
                 missingSats: 546n,
+                requiresTxChain: false,
             });
         });
         it('Returns detailed summary of missing token inputs for a gasless tx', () => {
@@ -1657,6 +1815,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing required token utxos: 1111111111111111111111111111111111111111111111111111111111111111 => Missing mint baton,` +
                         ` 2222222222222222222222222222222222222222222222222222222222222222 => Missing 10 atoms,` +
@@ -1691,6 +1850,7 @@ describe('Support functions', () => {
                 missingTokens: new Map([
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -1731,6 +1891,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 // NB the parent input is at index 0
                 utxos: [mockNftParentInput, DUMMY_UTXO],
+                requiresTxChain: false,
             });
         });
         it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
@@ -1769,6 +1930,7 @@ describe('Support functions', () => {
                 missingTokens: new Map([
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111. You must split your qty-100 input into qty-1 inputs.`,
                 ],
@@ -1802,6 +1964,7 @@ describe('Support functions', () => {
                 missingTokens: new Map([
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
+                requiresTxChain: false,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -1841,6 +2004,7 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: false,
                 missingSats: 99999454n,
+                requiresTxChain: false,
                 errors: [
                     'Insufficient sats to complete tx. Need 99999454 additional satoshis to complete this Action.',
                 ],
@@ -1887,6 +2051,74 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 100000000n,
                 utxos: [mockNftParentInput],
+                requiresTxChain: false,
+            });
+        });
+        it('Returns utxos with requiresTxChain: false for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have exact atoms', () => {
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'BURN',
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                        burnAtoms: 42n,
+                    },
+                ] as payment.TokenAction[],
+            };
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 10_000n },
+                getDummySlpUtxo(40n),
+                getDummySlpUtxo(2n),
+            ];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: [
+                    getDummySlpUtxo(40n),
+                    getDummySlpUtxo(2n),
+                    { ...DUMMY_UTXO, sats: 10_000n },
+                ],
+                requiresTxChain: false,
+            });
+        });
+        it('Returns utxos with requiresTxChain: true for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have enough atoms but not exact atoms', () => {
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'BURN',
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                        burnAtoms: 42n,
+                    },
+                ] as payment.TokenAction[],
+            };
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 10_000n },
+                getDummySlpUtxo(45n),
+            ];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: [getDummySlpUtxo(45n), { ...DUMMY_UTXO, sats: 10_000n }],
+                requiresTxChain: true,
             });
         });
     });
@@ -2251,9 +2483,11 @@ describe('Support functions', () => {
                 );
 
                 // The function should return the massaged outputs
-                expect(result).to.have.length(1);
-                expect(result[0].sats).to.equal(1000n);
-                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+                expect(result.txOutputs).to.have.length(1);
+                expect(result.txOutputs[0].sats).to.equal(1000n);
+                expect(result.txOutputs[0].script).to.deep.equal(
+                    MOCK_DESTINATION_SCRIPT,
+                );
 
                 // Original action should remain unchanged (deep copy behavior)
                 expect(testAction.outputs[0]).to.deep.equal({
@@ -2279,9 +2513,11 @@ describe('Support functions', () => {
                 );
 
                 // The returned output should have the same script and sats
-                expect(result).to.have.length(1);
-                expect(result[0].sats).to.equal(1000n);
-                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+                expect(result.txOutputs).to.have.length(1);
+                expect(result.txOutputs[0].sats).to.equal(1000n);
+                expect(result.txOutputs[0].script).to.deep.equal(
+                    MOCK_DESTINATION_SCRIPT,
+                );
             });
 
             it('Handles multiple outputs with mixed address and script fields', () => {
@@ -2306,15 +2542,19 @@ describe('Support functions', () => {
                 );
 
                 // The returned outputs should be processed correctly
-                expect(result).to.have.length(2);
+                expect(result.txOutputs).to.have.length(2);
 
                 // First output: address converted to script
-                expect(result[0].sats).to.equal(1000n);
-                expect(result[0].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+                expect(result.txOutputs[0].sats).to.equal(1000n);
+                expect(result.txOutputs[0].script).to.deep.equal(
+                    MOCK_DESTINATION_SCRIPT,
+                );
 
                 // Second output: script unchanged
-                expect(result[1].sats).to.equal(2000n);
-                expect(result[1].script).to.deep.equal(MOCK_DESTINATION_SCRIPT);
+                expect(result.txOutputs[1].sats).to.equal(2000n);
+                expect(result.txOutputs[1].script).to.deep.equal(
+                    MOCK_DESTINATION_SCRIPT,
+                );
             });
         });
 
@@ -2907,6 +3147,56 @@ describe('Support functions', () => {
                     'SLP_TOKEN_TYPE_FUNGIBLE token txs may only have a single token action. 2 tokenActions specified.',
                 );
             });
+            it('Throws if we specify a token output in an SLP burn action', () => {
+                const tokenIdThisAction = `11`.repeat(32);
+                expect(() =>
+                    finalizeOutputs(
+                        {
+                            outputs: [
+                                { sats: 0n },
+                                // Send output
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                                // We specify a token receive output, invalid in SLP
+                                {
+                                    sats: 546n,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000n,
+                                    script: DUMMY_SCRIPT,
+                                    isMintBaton: false,
+                                },
+                            ],
+                            tokenActions: [
+                                {
+                                    type: 'BURN',
+                                    tokenId: tokenIdThisAction,
+                                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                                    burnAtoms: 1n,
+                                },
+                            ] as payment.TokenAction[],
+                        },
+                        [
+                            {
+                                ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE,
+                                token: {
+                                    ...DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE.token,
+                                    tokenId: tokenIdThisAction,
+                                    atoms: 1_000_000_000n,
+                                } as Token,
+                            },
+                        ],
+                        DUMMY_CHANGE_SCRIPT,
+                    ),
+                ).to.throw(
+                    Error,
+                    `SLP burns may not specify SLP receive outputs. ecash-wallet will automatically calculate change from SLP burns.`,
+                );
+            });
             it('Throws if action combines MINT and SEND outputs', () => {
                 const tokenIdThisAction = `11`.repeat(32);
                 expect(() =>
@@ -3084,7 +3374,9 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs
-                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
+                expect(result.txOutputs).to.have.length(
+                    SLP_MAX_SEND_OUTPUTS + 1,
+                );
 
                 // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
@@ -3139,10 +3431,12 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, check returned outputs
-                expect(result).to.have.length(outputsLengthBeforeChange + 1);
+                expect(result.txOutputs).to.have.length(
+                    outputsLengthBeforeChange + 1,
+                );
 
                 // The OP_RETURN has been written in the returned results
-                const opReturn = result[0].script.toHex();
+                const opReturn = result.txOutputs[0].script.toHex();
                 expect(opReturn).to.equal(
                     `6a04534c500001010453454e442011111111111111111111111111111111111111111111111111111111111111110800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f4240080000000000000037`,
                 );
@@ -3734,7 +4028,9 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs
-                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
+                expect(result.txOutputs).to.have.length(
+                    SLP_MAX_SEND_OUTPUTS + 1,
+                );
 
                 // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
@@ -3789,10 +4085,12 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, check returned outputs
-                expect(result).to.have.length(outputsLengthBeforeChange + 1);
+                expect(result.txOutputs).to.have.length(
+                    outputsLengthBeforeChange + 1,
+                );
 
                 // The OP_RETURN has been written in the returned results
-                const opReturn = result[0].script.toHex();
+                const opReturn = result.txOutputs[0].script.toHex();
                 expect(opReturn).to.equal(
                     `6a04534c500001${SLP_NFT1_GROUP.toString(
                         16,
@@ -4213,7 +4511,7 @@ describe('Support functions', () => {
                 );
 
                 // Should return the processed outputs successfully (3 original + 1 change)
-                expect(result).to.have.length(4);
+                expect(result.txOutputs).to.have.length(4);
             });
             it('Throws if action exceeds ALP_POLICY_MAX_OUTPUTS max outputs per tx', () => {
                 const tokenIdThisAction = `11`.repeat(32);
@@ -4524,7 +4822,7 @@ describe('Support functions', () => {
                 );
 
                 // Should return the processed outputs successfully (10 original + 1 change)
-                expect(result).to.have.length(11);
+                expect(result.txOutputs).to.have.length(11);
             });
             it('Throws if generating a token change output will cause us to exceed ALP_TOKEN_TYPE_STANDARD max outputs per tx', () => {
                 const tokenIdThisAction = `11`.repeat(32);
@@ -4610,7 +4908,9 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs
-                expect(result).to.have.length(ALP_POLICY_MAX_OUTPUTS + 1);
+                expect(result.txOutputs).to.have.length(
+                    ALP_POLICY_MAX_OUTPUTS + 1,
+                );
 
                 // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
@@ -4695,10 +4995,12 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs with change added
-                expect(result).to.have.length(outputsLengthBeforeChange + 2);
+                expect(result.txOutputs).to.have.length(
+                    outputsLengthBeforeChange + 2,
+                );
 
                 // We get the expected EMPP OP_RETURN in the results
-                expect(result[0].script.toHex()).to.equal(
+                expect(result.txOutputs[0].script.toHex()).to.equal(
                     `6a504c67534c5032000453454e4411111111111111111111111111111111111111111111111111111111111111110a40420f00000040420f00000040420f00000040420f0000000000000000000000000000000000000000000000000000000000000000003700000000004c6d534c5032000453454e4422222222222222222222222222222222222222222222222222222222222222220b00000000000000000000000000000000000000000000000040420f00000040420f00000040420f00000040420f00000040420f000000000000000000420000000000`,
                 );
             });
@@ -4891,14 +5193,16 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs
-                expect(result).to.have.length(outputsLengthBeforeChange + 2);
+                expect(result.txOutputs).to.have.length(
+                    outputsLengthBeforeChange + 2,
+                );
 
                 const ALP_SEND = '53454e44';
                 const ALP_BURN = '4255524e';
 
                 // NB we do not parse this EMPP string to find the appropriate change values
                 // This behavior is confirmed in transactions.test.ts
-                const opReturnHex = result[0].script?.toHex();
+                const opReturnHex = result.txOutputs[0].script?.toHex();
                 const sendOneEmpp = `37534c50320004${ALP_SEND}${tokenOne}02000000000000360000000000`;
                 const sendTwoEmpp = `3d534c50320004${ALP_SEND}${tokenTwo}0340420f000000000000000000400000000000`;
                 const burnOneEmpp = `30534c50320004${ALP_BURN}${tokenOne}010000000000`;
@@ -4952,7 +5256,7 @@ describe('Support functions', () => {
                     mockChangeScript,
                 );
                 const opReturnHexRearranged =
-                    resultRearranged[0].script?.toHex();
+                    resultRearranged.txOutputs[0].script?.toHex();
 
                 // EMPP order matches user-specified ordering in tokenActions
                 expect(opReturnHexRearranged).to.equal(
@@ -5260,7 +5564,9 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, returns processed outputs
-                expect(result).to.have.length(SLP_MAX_SEND_OUTPUTS + 1);
+                expect(result.txOutputs).to.have.length(
+                    SLP_MAX_SEND_OUTPUTS + 1,
+                );
 
                 // Original action remains unchanged
                 expect(testAction.outputs.length).to.equal(
@@ -5315,10 +5621,12 @@ describe('Support functions', () => {
                 );
 
                 // No error thrown, check returned outputs
-                expect(result).to.have.length(outputsLengthBeforeChange + 1);
+                expect(result.txOutputs).to.have.length(
+                    outputsLengthBeforeChange + 1,
+                );
 
                 // The OP_RETURN has been written in the returned results
-                const opReturn = result[0].script.toHex();
+                const opReturn = result.txOutputs[0].script.toHex();
                 expect(opReturn).to.equal(
                     `6a04534c500001020453454e442011111111111111111111111111111111111111111111111111111111111111110800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f42400800000000000f4240080000000000000037`,
                 );
@@ -5478,6 +5786,188 @@ describe('Support functions', () => {
                     `An SLP SLP_TOKEN_TYPE_MINT_VAULT GENESIS tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx 2.`,
                 );
             });
+        });
+    });
+});
+
+describe('getUtxoFromOutput', () => {
+    const mockTxid =
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const mockOutIdx = 0;
+
+    context('Non-token UTXO', () => {
+        it('Can get a non-token UTXO from a PaymentOutput', () => {
+            const output: payment.PaymentOutput = {
+                sats: 1000n,
+                script: MOCK_DESTINATION_SCRIPT,
+            };
+
+            const result = getUtxoFromOutput(output, mockTxid, mockOutIdx);
+
+            expect(result).to.deep.equal({
+                outpoint: { txid: mockTxid, outIdx: mockOutIdx },
+                blockHeight: -1,
+                sats: 1000n,
+                isFinal: false,
+                isCoinbase: false,
+            });
+        });
+    });
+
+    context('Token UTXOs', () => {
+        const tokenId =
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+        const tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
+
+        it('Can get a UTXO from a non-genesis mint baton output', () => {
+            const output: payment.PaymentOutput = {
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId,
+                atoms: 0n,
+                isMintBaton: true,
+            };
+
+            const result = getUtxoFromOutput(
+                output,
+                mockTxid,
+                mockOutIdx,
+                tokenType,
+            );
+
+            expect(result).to.deep.equal({
+                outpoint: { txid: mockTxid, outIdx: mockOutIdx },
+                blockHeight: -1,
+                sats: 546n,
+                isFinal: false,
+                isCoinbase: false,
+                token: {
+                    tokenId,
+                    tokenType,
+                    atoms: 0n,
+                    isMintBaton: true,
+                },
+            });
+        });
+
+        it('Can get a UTXO from a genesis mint baton output', () => {
+            const output: payment.PaymentOutput = {
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                atoms: 0n,
+                isMintBaton: true,
+            };
+
+            const result = getUtxoFromOutput(
+                output,
+                mockTxid,
+                mockOutIdx,
+                tokenType,
+            );
+
+            expect(result).to.deep.equal({
+                outpoint: { txid: mockTxid, outIdx: mockOutIdx },
+                blockHeight: -1,
+                sats: 546n,
+                isFinal: false,
+                isCoinbase: false,
+                token: {
+                    tokenId: mockTxid, // Should be replaced with txid for genesis
+                    tokenType,
+                    atoms: 0n,
+                    isMintBaton: true,
+                },
+            });
+        });
+
+        it('Can get a UTXO from a non-genesis non-mint-baton token output', () => {
+            const output: payment.PaymentOutput = {
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId,
+                atoms: 1000n,
+                isMintBaton: false,
+            };
+
+            const result = getUtxoFromOutput(
+                output,
+                mockTxid,
+                mockOutIdx,
+                tokenType,
+            );
+
+            expect(result).to.deep.equal({
+                outpoint: { txid: mockTxid, outIdx: mockOutIdx },
+                blockHeight: -1,
+                sats: 546n,
+                isFinal: false,
+                isCoinbase: false,
+                token: {
+                    tokenId,
+                    tokenType,
+                    atoms: 1000n,
+                    isMintBaton: false,
+                },
+            });
+        });
+
+        it('Can get a UTXO from a genesis non-mint-baton output', () => {
+            const output: payment.PaymentOutput = {
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                atoms: 1000n,
+                isMintBaton: false,
+            };
+
+            const result = getUtxoFromOutput(
+                output,
+                mockTxid,
+                mockOutIdx,
+                tokenType,
+            );
+
+            expect(result).to.deep.equal({
+                outpoint: { txid: mockTxid, outIdx: mockOutIdx },
+                blockHeight: -1,
+                sats: 546n,
+                isFinal: false,
+                isCoinbase: false,
+                token: {
+                    tokenId: mockTxid, // Should be replaced with txid for genesis
+                    tokenType,
+                    atoms: 1000n,
+                    isMintBaton: false,
+                },
+            });
+        });
+    });
+
+    context('Error cases', () => {
+        it('Throws error when output has no sats', () => {
+            const output: payment.PaymentOutput = {
+                script: MOCK_DESTINATION_SCRIPT,
+            };
+
+            expect(() =>
+                getUtxoFromOutput(output, mockTxid, mockOutIdx),
+            ).to.throw('Output must have sats');
+        });
+
+        it('Throws error when token output has no tokenType', () => {
+            const output: payment.PaymentOutput = {
+                sats: 546n,
+                script: MOCK_DESTINATION_SCRIPT,
+                tokenId:
+                    'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+                atoms: 1000n,
+                isMintBaton: false,
+            };
+
+            expect(() =>
+                getUtxoFromOutput(output, mockTxid, mockOutIdx),
+            ).to.throw('Token type is required for token utxos');
         });
     });
 });

@@ -38,6 +38,8 @@ import {
     HdNode,
     toHex,
     SLP_TOKEN_TYPE_NFT1_CHILD,
+    toHexRev,
+    sha256d,
 } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
@@ -216,6 +218,22 @@ export class Wallet {
     }
 
     /**
+     * Create a deep clone of this wallet
+     * Useful for testing scenarios where you want to use a wallet
+     * without mutating the original
+     */
+    clone(): Wallet {
+        // Create a new wallet instance with the same secret key and chronik client
+        const clonedWallet = new Wallet(this.sk, this.chronik);
+
+        // Copy the mutable state
+        clonedWallet.tipHeight = this.tipHeight;
+        clonedWallet.utxos = [...this.utxos]; // Shallow copy of the array
+
+        return clonedWallet;
+    }
+
+    /**
      * Return total quantity of satoshis held
      * by arbitrary array of utxos
      */
@@ -268,13 +286,79 @@ class WalletAction {
     }
 
     /**
+     * Build chained txs to fulfill a multi-tx action
+     * Chained txs fulfill a limited number of known cases
+     * Incrementally add to this method to cover them all
+     * [x] Intentional SLP burn where we do not have exact atoms available
+     * [] SLP_TOKEN_TYPE_NFT1_CHILD mints where we do not have a qty-1 input
+     * [] Token txs with outputs exceeding spec per-tx limits, or ALP txs where outputs and data pushes exceed OP_RETURN limits
+     * [] XEC or XEC-and-token txs where outputs would cause tx to exceed 100kb broadcast limit
+     */
+    private _buildChained(sighash = ALL_BIP143): BuiltAction {
+        // For now, we only support intentional SLP burns where we do not have exact atoms available
+        // This is a private method and that is currently the only way ecash-wallet can get here
+        // As we add more cases, we will need to add logic to distinguish what kind of chained tx we are building
+
+        const { tokenActions } = this.action;
+        const burnAction = tokenActions?.find(action => action.type === 'BURN');
+        if (!burnAction) {
+            throw new Error(
+                'ecash-wallet only supports chained txs for intentional SLP burns where we do not have exact atoms available',
+            );
+        }
+        const { tokenId, burnAtoms } = burnAction as payment.BurnAction;
+
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        // An intentional SLP burn requires two actions
+        // 1. A SEND action to create a utxo of the correct size
+        // 2. The user's original BURN action
+
+        const chainedTxs: Tx[] = [];
+
+        // 1. A SEND action to create a utxo of the correct size
+        const sendAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                // This is the utxo that will be used for the BURN action
+                // So, we note that its outIdx is 1
+                {
+                    sats: dustSats,
+                    script: this._wallet.script,
+                    tokenId,
+                    atoms: burnAtoms,
+                },
+            ],
+            tokenActions: [
+                { type: 'SEND', tokenId, tokenType: burnAction.tokenType },
+            ],
+        };
+
+        const sendTx = this._wallet.action(sendAction).build(sighash);
+
+        chainedTxs.push(sendTx.txs[0]);
+
+        // 2. The user's original BURN action is simply this.action
+        const burnTx = this._wallet
+            .action(this.action)
+            .build(sighash) as BuiltAction;
+
+        chainedTxs.push(burnTx.txs[0]);
+
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+    }
+
+    /**
      * Build (but do not broadcast) an eCash tx to handle the
      * action specified by the constructor
      *
      * NB that, for now, we will throw an error if we cannot handle
      * all instructions in a single tx
+     *
+     * NB calling build() will always update the wallet's utxo set to reflect the post-broadcast state
      */
-    public build(sighash = ALL_BIP143): BuiltTx {
+    public build(sighash = ALL_BIP143): BuiltAction {
         if (
             this.selectUtxosResult.success === false ||
             typeof this.selectUtxosResult.utxos === 'undefined' ||
@@ -295,6 +379,11 @@ class WalletAction {
             );
         }
 
+        if (this.selectUtxosResult.requiresTxChain) {
+            // Special handling for chained txs
+            return this._buildChained(sighash);
+        }
+
         const selectedUtxos = this.selectUtxosResult.utxos;
 
         const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
@@ -304,7 +393,7 @@ class WalletAction {
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
          */
-        const outputs = finalizeOutputs(
+        const { paymentOutputs, txOutputs } = finalizeOutputs(
             this.action,
             selectedUtxos,
             this._wallet.script,
@@ -322,14 +411,15 @@ class WalletAction {
         );
 
         // Can you cover the tx without fuelUtxos?
-        const builtTxResult = this._getBuiltTx(
+        const builtActionResult = this._getBuiltAction(
             finalizedInputs,
-            outputs as TxBuilderOutput[],
+            txOutputs,
+            paymentOutputs,
             feePerKb,
             dustSats,
         );
-        if (builtTxResult.success) {
-            return builtTxResult.builtTx as BuiltTx;
+        if (builtActionResult.success && builtActionResult.builtAction) {
+            return builtActionResult.builtAction;
         } else {
             needsAnotherUtxo = true;
         }
@@ -366,14 +456,18 @@ class WalletAction {
             mightTheseUtxosWork = inputSats > outputSats;
 
             if (mightTheseUtxosWork) {
-                const builtTxResult = this._getBuiltTx(
+                const builtActionResult = this._getBuiltAction(
                     finalizedInputs,
-                    outputs as TxBuilderOutput[],
+                    txOutputs,
+                    paymentOutputs,
                     feePerKb,
                     dustSats,
                 );
-                if (builtTxResult.success) {
-                    return builtTxResult.builtTx as BuiltTx;
+                if (
+                    builtActionResult.success &&
+                    builtActionResult.builtAction
+                ) {
+                    return builtActionResult.builtAction;
                 } else {
                     needsAnotherUtxo = true;
                 }
@@ -386,6 +480,118 @@ class WalletAction {
                 typeof txFee !== 'undefined' ? ` (${txFee})` : ``
             }`,
         );
+    }
+
+    /**
+     * After a successful broadcast, we "know" how the wallet's utxo set has changed
+     * - Inputs can be removed
+     * - Outputs can be added
+     *
+     * Because all txs made with ecash-wallet are valid token txs, i.e. no unintentional burns,
+     * we can safely assume created token utxos will be valid and spendable
+     *
+     * NB we could calc the txid from the Tx, but we will always have the txid from the successful broadcast
+     * So we use that as a param, since we only call this function after a successful broadcast
+     */
+    private _updateUtxosAfterSuccessfulBuild(
+        tx: Tx,
+        txid: string,
+        finalizedOutputs: payment.PaymentOutput[],
+    ) {
+        // Remove spent utxos
+        const { inputs } = tx;
+        for (const input of inputs) {
+            // Find the utxo used to create this input
+            const { prevOut } = input;
+            const { txid, outIdx } = prevOut;
+            const utxo = this._wallet.utxos.find(
+                utxo =>
+                    utxo.outpoint.txid === txid &&
+                    utxo.outpoint.outIdx === outIdx,
+            );
+            if (utxo) {
+                // Remove the utxo from the utxo set
+                this._wallet.utxos.splice(this._wallet.utxos.indexOf(utxo), 1);
+            }
+        }
+
+        for (let i = 0; i < finalizedOutputs.length; i++) {
+            const finalizedOutput = finalizedOutputs[i];
+            if (finalizedOutput.sats === 0n) {
+                // Skip blank OP_RETURN outputs
+                continue;
+            }
+            if (typeof finalizedOutput.script === 'undefined') {
+                // finalizeOutputs will have converted address key to script key
+                // We include this to satisfy typescript
+                throw new Error(
+                    'Outputs[i].script must be defined to _updateUtxosAfterSuccessfulBuild',
+                );
+            }
+            const script = finalizedOutput.script.toHex();
+            if (script === this._wallet.script.toHex()) {
+                // If this output was created at the wallet's script, it is now a utxo for the wallet
+
+                // Parse for tokenType, if any
+                // Get the tokenType for this output by parsing for its associated action
+                let tokenType: TokenType | undefined;
+                if ('tokenId' in finalizedOutput) {
+                    // Special handling for genesis outputs
+                    if (
+                        finalizedOutput.tokenId ===
+                        payment.GENESIS_TOKEN_ID_PLACEHOLDER
+                    ) {
+                        // This is a genesis output
+                        tokenType = this.action.tokenActions?.find(
+                            action => action.type === 'GENESIS',
+                        )?.tokenType;
+                    } else {
+                        // This is a mint or send output
+                        const action = this.action.tokenActions?.find(
+                            action =>
+                                'tokenId' in action &&
+                                action.tokenId === finalizedOutput.tokenId,
+                        );
+                        tokenType =
+                            action && 'tokenType' in action
+                                ? action.tokenType
+                                : undefined;
+                        if (typeof tokenType === 'undefined') {
+                            // We can't get here because of other type checks; but we include this to satisfy typescript
+                            // DataActions do not have a tokenId but they only apply to OP_RETURN outputs
+                            throw new Error(
+                                `Token type not found for tokenId ${finalizedOutput.tokenId}`,
+                            );
+                        }
+                    }
+                }
+
+                this._wallet.utxos.push(
+                    getUtxoFromOutput(finalizedOutputs[i], txid, i, tokenType),
+                );
+            }
+        }
+
+        // NB we do not expect an XEC change output to be added to finalizedOutputs by finalizeOutputs, but it will be in the Tx outputs (if we have one)
+        // NB that token change outputs WILL be returned in the paymentOutputs of finalizedOutputs return
+        // So, we need to add a change output to the outputs we iterate over for utxo creation, if we have one
+        if (tx.outputs.length > finalizedOutputs.length) {
+            // We have XEC change added by the txBuilder
+            const changeOutIdx = tx.outputs.length - 1;
+            const changeOutput = tx.outputs[changeOutIdx];
+
+            // Note that ecash-lib supports change outputs at any Script, so we must still confirm this is going to our wallet's script
+            if (changeOutput.script.toHex() === this._wallet.script.toHex()) {
+                // This will be a utxo
+                this._wallet.utxos.push(
+                    getUtxoFromOutput(
+                        tx.outputs[changeOutIdx],
+                        txid,
+                        changeOutIdx,
+                    ),
+                );
+            }
+        }
     }
 
     /**
@@ -416,7 +622,7 @@ class WalletAction {
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
          */
-        const outputs = finalizeOutputs(
+        const { txOutputs } = finalizeOutputs(
             this.action,
             selectedUtxos,
             this._wallet.script,
@@ -432,7 +638,7 @@ class WalletAction {
         return new PostageTx(
             this._wallet,
             finalizedInputs,
-            outputs as TxBuilderOutput[],
+            txOutputs,
             feePerKb,
             dustSats,
             this.actionTotal,
@@ -443,18 +649,20 @@ class WalletAction {
      * We need to build and sign a tx to confirm
      * we have sufficient inputs
      */
-    private _getBuiltTx = (
+    private _getBuiltAction = (
         inputs: TxBuilderInput[],
-        outputs: TxBuilderOutput[],
+        // NB outputs here is the result of finalizeOutputs
+        txOutputs: TxBuilderOutput[],
+        paymentOutputs: payment.PaymentOutput[],
         feePerKb: bigint,
         dustSats: bigint,
-    ): { success: boolean; builtTx?: BuiltTx } => {
+    ): { success: boolean; builtAction?: BuiltAction } => {
         // Can you cover the tx without fuelUtxos?
         try {
             const txBuilder = new TxBuilder({
                 inputs,
                 // ecash-wallet always adds a leftover output
-                outputs: [...outputs, this._wallet.script],
+                outputs: [...txOutputs, this._wallet.script],
             });
             const thisTx = txBuilder.sign({
                 feePerKb,
@@ -471,9 +679,20 @@ class WalletAction {
             // Do your inputs cover outputSum + txFee?
             if (inputSats >= this.actionTotal.sats + txFee) {
                 // mightTheseUtxosWork --> now we have confirmed they will work
+                // Update utxos
+                const txid = toHexRev(sha256d(thisTx.ser()));
+                this._updateUtxosAfterSuccessfulBuild(
+                    thisTx,
+                    txid,
+                    paymentOutputs,
+                );
                 return {
                     success: true,
-                    builtTx: new BuiltTx(this._wallet, thisTx, feePerKb),
+                    builtAction: new BuiltAction(
+                        this._wallet,
+                        [thisTx],
+                        feePerKb,
+                    ),
                 };
             }
         } catch {
@@ -485,29 +704,85 @@ class WalletAction {
     };
 }
 
+/**
+ * A single built tx
+ * Ready-to-broadcast, and with helpful methods for inspecting its properties
+ *
+ * We do not include a broadcast() method because we want broadcast() to return
+ * a standard type for any action, whether it requires a single tx or a tx chain
+ */
 class BuiltTx {
-    private _wallet: Wallet;
     public tx: Tx;
+    public txid: string;
     public feePerKb: bigint;
-    constructor(wallet: Wallet, tx: Tx, feePerKb: bigint) {
-        this._wallet = wallet;
+    constructor(tx: Tx, feePerKb: bigint) {
         this.tx = tx;
         this.feePerKb = feePerKb;
+        this.txid = toHexRev(sha256d(tx.ser()));
     }
 
-    public size() {
+    public size(): number {
         return this.tx.serSize();
     }
 
-    public fee() {
+    public fee(): bigint {
         return calcTxFee(this.size(), this.feePerKb);
+    }
+}
+
+/**
+ * An action may have more than one Tx
+ * So, we use the BuiltAction class to handle the txs property as an array
+ * All methods return an array. So, we can still tell if this is a "normal" one-tx action
+ * Although most actions are expected to be one-tx, it is deemed more important to keep a
+ * constant interface than to optimze for one-tx actions
+ */
+class BuiltAction {
+    private _wallet: Wallet;
+    public txs: Tx[];
+    public builtTxs: BuiltTx[];
+    public feePerKb: bigint;
+    constructor(wallet: Wallet, txs: Tx[], feePerKb: bigint) {
+        this._wallet = wallet;
+        this.txs = txs;
+        this.feePerKb = feePerKb;
+        this.builtTxs = txs.map(tx => new BuiltTx(tx, feePerKb));
     }
 
     public async broadcast() {
-        // NB we get the same result here if we do not use toHex
-        // We use toHex because it simplifies creating and storing
-        // mocks for mock-chronik-client in tests
-        return await this._wallet.chronik.broadcastTx(toHex(this.tx.ser()));
+        // We must broadcast each tx in order and separately
+        // We must track which txs broadcast successfully
+        // If any tx in the chain fails, we stop, and return the txs that broadcast successfully and those that failed
+
+        // txids that broadcast succcessfully
+        const broadcasted: string[] = [];
+
+        const txsToBroadcast = this.txs.map(tx => toHex(tx.ser()));
+
+        for (let i = 0; i < txsToBroadcast.length; i++) {
+            try {
+                // NB we DO NOT sync in between txs, as all chained txs are built with utxos that exist at initial sync or are implied by previous txs in the chain
+                const { txid } = await this._wallet.chronik.broadcastTx(
+                    txsToBroadcast[i],
+                );
+                broadcasted.push(txid);
+            } catch (err) {
+                console.error(
+                    `Error broadcasting tx ${i + 1} of ${
+                        txsToBroadcast.length
+                    }:`,
+                    err,
+                );
+                return {
+                    success: false,
+                    broadcasted,
+                    unbroadcasted: txsToBroadcast.slice(i),
+                    errors: [`${err}`],
+                };
+            }
+        }
+
+        return { success: true, broadcasted };
     }
 }
 
@@ -543,7 +818,10 @@ class PostageTx {
      * Add fuel inputs and create a broadcastable transaction
      * Uses the same fee calculation approach as build() method
      */
-    public addFuelAndSign(fuelWallet: Wallet, sighash = ALL_BIP143): BuiltTx {
+    public addFuelAndSign(
+        fuelWallet: Wallet,
+        sighash = ALL_BIP143,
+    ): BuiltAction {
         const fuelUtxos = fuelWallet.spendableSatsOnlyUtxos();
         if (fuelUtxos.length === 0) {
             throw new Error('No XEC UTXOs available in fuel wallet');
@@ -580,7 +858,7 @@ class PostageTx {
                 feePerKb: this.feePerKb,
                 dustSats: this.dustSats,
             });
-            return new BuiltTx(fuelWallet, signedTx, this.feePerKb);
+            return new BuiltAction(fuelWallet, [signedTx], this.feePerKb);
         } catch {
             // Expected - postage inputs are insufficient
         }
@@ -603,7 +881,7 @@ class PostageTx {
                     feePerKb: this.feePerKb,
                     dustSats: this.dustSats,
                 });
-                return new BuiltTx(fuelWallet, signedTx, this.feePerKb);
+                return new BuiltAction(fuelWallet, [signedTx], this.feePerKb);
             } catch {
                 // Continue to next fuel UTXO
             }
@@ -689,7 +967,7 @@ export const getTokenUtxosWithExactAtoms = (
     availableUtxos: ScriptUtxo[],
     tokenId: string,
     burnAtoms: bigint,
-): ScriptUtxo[] => {
+): { hasExact: boolean; burnUtxos: ScriptUtxo[] } => {
     if (burnAtoms <= 0n) {
         throw new Error(
             `burnAtoms of ${burnAtoms} specified for ${tokenId}. burnAtoms must be greater than 0n.`,
@@ -722,7 +1000,7 @@ export const getTokenUtxosWithExactAtoms = (
 
     if (totalAtoms === burnAtoms) {
         // If total equals burnAtoms, return all relevant UTXOs
-        return relevantUtxos;
+        return { hasExact: true, burnUtxos: relevantUtxos };
     }
 
     // Use dynamic programming to find the exact sum and track UTXOs
@@ -743,15 +1021,42 @@ export const getTokenUtxosWithExactAtoms = (
         for (const [newSum, utxos] of newEntries) {
             if (newSum === burnAtoms) {
                 // Found exact match
-                return utxos;
+                return { hasExact: true, burnUtxos: utxos };
             }
             dp.set(newSum, utxos);
         }
     }
 
-    throw new Error(
-        `Unable to find UTXOs for ${tokenId} with exactly ${burnAtoms} atoms. Create a UTXO with ${burnAtoms} atoms to burn without a SEND action.`,
-    );
+    // We do not have utxos available that exactly sum to burnAtoms
+    // For ALP, throw; as we do not "auto chain" alp BURN without SEND actions; in ALP these
+    // very specifically mean "must burn all", as the user could otherwise specify a SEND
+    if (
+        relevantUtxos.some(
+            utxo => utxo.token?.tokenType.type === 'ALP_TOKEN_TYPE_STANDARD',
+        )
+    ) {
+        throw new Error(
+            `Unable to find UTXOs for ${tokenId} with exactly ${burnAtoms} atoms. Create a UTXO with ${burnAtoms} atoms to burn without a SEND action.`,
+        );
+    }
+
+    // Otherwise for all SLP tokens, we can auto chain
+    // "chained" will be true, and we need to return utxo(s) with atoms > burnAtoms
+
+    // We use accumulative algo here
+    // NB we "know" we have enough utxos as we already would have thrown above if not
+    // But, we do not need to return all the utxos here, just enough to cover the burn
+    const utxosWithSufficientAtoms: ScriptUtxo[] = [];
+    let currentSum = 0n;
+    for (const utxo of relevantUtxos) {
+        currentSum += utxo.token!.atoms;
+        utxosWithSufficientAtoms.push(utxo);
+        if (currentSum >= burnAtoms) {
+            break;
+        }
+    }
+
+    return { hasExact: false, burnUtxos: utxosWithSufficientAtoms };
 };
 
 /**
@@ -1097,6 +1402,21 @@ interface SelectUtxosResult {
      */
     missingSats: bigint;
     /**
+     * Whether the action requires multiple "chained" txs
+     * Note that chained txs are not just multiple txs. "chained" implies that each tx
+     * requires a utxo from the previous tx as an input
+     *
+     * Examples
+     * - SLP intentional burn where we must first prepare a utxo of the correct size
+     * - SLP NFT mints where we must first prepare a SLP_TOKEN_TYPE_NFT1_GROUP token of size 1
+     * - Token sends where we send to more outputs than the token protocol allows
+     * - XEC or mixed token/XEC sends where the tx size will exceed 100kb
+     *
+     * If requiresTxChain is false, then we can complete the action with a single tx
+     * If requiresTxChain is true, then a chained tx is required to fulfill the action
+     */
+    requiresTxChain: boolean;
+    /**
      * Error messages if selection failed
      */
     errors?: string[];
@@ -1123,6 +1443,21 @@ interface SelectUtxosResult {
  *
  * NB the following are not currently supported:
  * - Minting of SLP_TOKEN_TYPE_MINT_VAULT tokens
+ *
+ * Note on "chained" txs
+ * For chained txs, we select the utxos we need for every tx in the chain on the first function call
+ * In this way, we know we have all the utxos required for the user action
+ * Some chained txs require specific intermediary utxos, e.g. SLP agora and intentional burn txs
+ * All chained txs require enough sats to cover the tx fees of every tx in the chain (well, depending on SatsSelectionStrategy)
+ * TODO well not necessarily, we could just mark utxos as spent in real time and continue to call selectUtxos for each tx in the chain;
+ * we would still throw an error if we did not have the fees for the whole chain
+ * but this could be less optimized than say a token chained tx, where you could use the fees for hte sats of the token change of each tx in the chain,
+ * this approach would also work for slp agora and slp intentional burn, so could be good to generalize it now
+ *
+ * Actions
+ * 1) after tx is broadcast, update the utxo set without any API call; remove inputs and add outputs
+ * 2) this is "good enough" for the SLP and agora 2-part chained txs; if you want, can add more specific handling for optimizing chained txs
+ *
  */
 export const selectUtxos = (
     action: payment.Action,
@@ -1140,6 +1475,9 @@ export const selectUtxos = (
     satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
 ): SelectUtxosResult => {
     const { sats, tokens, groupTokenId } = getActionTotals(action);
+
+    // Init "requiresTxChain" as false
+    let requiresTxChain = false;
 
     let tokenIdsWithRequiredUtxos: string[] = [];
 
@@ -1205,13 +1543,18 @@ export const selectUtxos = (
 
     // Handle burnAll tokenIds first
     for (const burnAllTokenId of burnAllTokenIds) {
-        const utxosThisBurnAllTokenId = getTokenUtxosWithExactAtoms(
+        const { hasExact, burnUtxos } = getTokenUtxosWithExactAtoms(
             spendableUtxos,
             burnAllTokenId,
             tokens!.get(burnAllTokenId)!.atoms,
         );
 
-        for (const utxo of utxosThisBurnAllTokenId) {
+        if (!hasExact) {
+            // If we do not have utxos with the exact burn atoms, we must have a chained tx for an intentional BURN
+            requiresTxChain = true;
+        }
+
+        for (const utxo of burnUtxos) {
             selectedUtxos.push(utxo);
             selectedUtxosSats += utxo.sats;
         }
@@ -1255,6 +1598,7 @@ export const selectUtxos = (
                 // Only expected to be > 0n if satsStrategy is NO_SATS
                 missingSats:
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+                requiresTxChain,
             };
         }
     }
@@ -1307,6 +1651,7 @@ export const selectUtxos = (
                                 selectedUtxosSats >= sats
                                     ? 0n
                                     : sats - selectedUtxosSats,
+                            requiresTxChain,
                         };
                     }
                 } else if (
@@ -1355,6 +1700,7 @@ export const selectUtxos = (
                                 selectedUtxosSats >= sats
                                     ? 0n
                                     : sats - selectedUtxosSats,
+                            requiresTxChain,
                         };
                     }
                 }
@@ -1390,6 +1736,7 @@ export const selectUtxos = (
                 utxos: selectedUtxos,
                 // Always 0 here, determined by condition of this if block
                 missingSats: 0n,
+                requiresTxChain,
             };
         }
     }
@@ -1424,6 +1771,7 @@ export const selectUtxos = (
             missingTokens: tokens,
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+            requiresTxChain,
             errors,
         };
     }
@@ -1440,6 +1788,7 @@ export const selectUtxos = (
             missingTokens: missingTokensCustom,
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+            requiresTxChain,
             errors: needsNftMintInput
                 ? [
                       `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
@@ -1463,6 +1812,7 @@ export const selectUtxos = (
         return {
             success: false,
             missingSats,
+            requiresTxChain,
             errors,
         };
     }
@@ -1474,6 +1824,7 @@ export const selectUtxos = (
         utxos: selectedUtxos,
         missingSats,
         // NB we do not have errors for missingSats with these strategies
+        requiresTxChain,
     };
 };
 
@@ -1590,7 +1941,7 @@ export const finalizeOutputs = (
     requiredUtxos: ScriptUtxo[],
     changeScript: Script,
     dustSats = DEFAULT_DUST_SATS,
-): TxOutput[] => {
+): { paymentOutputs: payment.PaymentOutput[]; txOutputs: TxOutput[] } => {
     // Make a deep copy of outputs to avoid mutating the action object
     const outputs = action.outputs.map(output => ({ ...output }));
     const tokenActions = action.tokenActions;
@@ -1688,7 +2039,10 @@ export const finalizeOutputs = (
             );
         }
         // For this case, validation is finished
-        return paymentOutputsToTxOutputs(outputs, dustSats);
+        return {
+            paymentOutputs: outputs,
+            txOutputs: paymentOutputsToTxOutputs(outputs, dustSats),
+        };
     }
 
     // Everything below is for token txs
@@ -1807,6 +2161,14 @@ export const finalizeOutputs = (
             )
             .map(o => (o as payment.PaymentTokenOutput).tokenId),
     );
+
+    if (tokenType.protocol === 'SLP') {
+        if (tokenIdsThisAction.size > 0 && burnActionTokenIds.size > 0) {
+            throw new Error(
+                `SLP burns may not specify SLP receive outputs. ecash-wallet will automatically calculate change from SLP burns.`,
+            );
+        }
+    }
 
     // Make sure we do not have any output-specified tokenIds that are not
     // associated with any action
@@ -2818,7 +3180,82 @@ export const finalizeOutputs = (
         }
     }
 
-    return paymentOutputsToTxOutputs(outputs, dustSats);
+    // We must return the paymentOutputs to support utxo updating after successful build
+    // The txOutputs are used to build and sign the tx
+    return {
+        paymentOutputs: outputs,
+        txOutputs: paymentOutputsToTxOutputs(outputs, dustSats),
+    };
+};
+
+/**
+ * Convert a PaymentOutput to a ScriptUtxo
+ * NB this function assumes the output is from a valid tx that met valid token spec conditions
+ */
+export const getUtxoFromOutput = (
+    output: payment.PaymentOutput,
+    txid: string,
+    outIdx: number,
+    tokenType?: TokenType,
+): ScriptUtxo => {
+    // Create the outpoint
+    const outpoint = { txid, outIdx };
+
+    const { sats } = output;
+    if (typeof sats === 'undefined') {
+        // OP_RETURN outputs cannot be utxos
+        // NB we do not expect this function to be called on OP_RETURN outputs
+        throw new Error('Output must have sats');
+    }
+
+    if ('tokenId' in output) {
+        if (typeof tokenType === 'undefined') {
+            throw new Error('Token type is required for token utxos');
+        }
+        /**
+         * This PaymentOutput has become a token utxo
+         *
+         * Possibilities
+         * - GENESIS mint baton (tokenId will be txid)
+         * - GENESIS mint qty (tokenId will be txid)
+         * - mint baton (tokenId as specified)
+         * - mint qty (tokenId as specified)
+         */
+
+        const tokenId =
+            output.tokenId === payment.GENESIS_TOKEN_ID_PLACEHOLDER
+                ? txid
+                : output.tokenId;
+
+        return {
+            outpoint,
+            sats,
+            token: {
+                tokenId,
+                tokenType,
+                atoms: output.atoms,
+                isMintBaton: output.isMintBaton ?? false,
+            },
+            // We init as unconfirmed
+            blockHeight: -1,
+            // We init as unfinalized
+            isFinal: false,
+            // A utxo created from a PaymentOutput will never be a coinbase utxo
+            isCoinbase: false,
+        };
+    } else {
+        // Just a regular non-token utxo
+        return {
+            outpoint,
+            // We init as unconfirmed
+            blockHeight: -1,
+            sats,
+            // We init as unfinalized
+            isFinal: false,
+            // A utxo created from a PaymentOutput will never be a coinbase utxo
+            isCoinbase: false,
+        };
+    }
 };
 
 /**

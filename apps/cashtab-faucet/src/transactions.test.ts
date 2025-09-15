@@ -36,7 +36,7 @@ describe('transactions.ts', function () {
 
             // Set mocks in chronik-client
             mockChronik.setUtxosByAddress(wallet.address, utxos);
-            mockChronik.setBroadcastTx(rawTx, returned.txid);
+            mockChronik.setBroadcastTx(rawTx, returned.broadcasted[0]);
 
             it(description, async function () {
                 assert.deepEqual(
@@ -98,7 +98,7 @@ describe('transactions.ts', function () {
                 mockedChronik as unknown as ChronikClient,
             );
             mockedChronik.setUtxosByAddress(wallet.address, utxos);
-            mockedChronik.setBroadcastTx(rawTx, returned.txid);
+            mockedChronik.setBroadcastTx(rawTx, returned.broadcasted[0]);
             it(description, async function () {
                 assert.deepEqual(
                     await sendXecAirdrop(

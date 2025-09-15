@@ -38,7 +38,7 @@ export const sendReward = async (
     rewardAmountTokenSats: bigint,
     destinationAddress: string,
 ): Promise<{
-    txid: string;
+    broadcasted: string[];
 }> => {
     // Define your wallet action
     // For a CACHET reward, we are sending 100 CACHET to an eligible user
@@ -82,7 +82,7 @@ export const sendXecAirdrop = async (
     wallet: Wallet,
     xecAirdropAmountSats: bigint,
     destinationAddress: string,
-): Promise<{ txid: string }> => {
+): Promise<{ broadcasted: string[] }> => {
     // Define your wallet action for an XEC reward
     // In cashtab-faucet, we send 42 XEC to an eligible user
     const xecSendAction: payment.Action = {
