@@ -6,15 +6,21 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import {
-    initializeCashtabStateForTests,
-    clearLocalForage,
-} from 'components/App/fixtures/helpers';
+import { prepareContext, mockPrice } from 'test';
 import 'fake-indexeddb/auto';
-import localforage from 'localforage';
-import { when } from 'jest-when';
-import appConfig from 'config/app';
-import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import * as localForage from 'localforage';
+import { ThemeProvider } from 'styled-components';
+import { theme } from 'assets/styles/theme';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import { ChronikClient } from 'chronik-client';
+import { Ecc, toHex } from 'ecash-lib';
+import { Agora } from 'ecash-agora';
+import {
+    MockAgora,
+    MockChronikClient,
+} from '../../../../../modules/mock-chronik-client';
+import App from 'components/App/App';
 import {
     nftMarketWallet,
     saturnFive,
@@ -23,38 +29,54 @@ import {
     transvaalAgoraOffer,
     argentina,
     argentinaAgoraOffer,
+    nftIntegrationTokenAndTxMocks,
 } from 'components/Nfts/fixtures/mocks';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
-import { Ecc, toHex } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
+import appConfig from 'config/app';
 import { cashtabCacheToJSON } from 'helpers';
-import { MockAgora } from '../../../../../modules/mock-chronik-client';
+
+// We need to wrap the Nfts component with context so we can useContext instead of prop drilling
+interface NftsTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    theme: any;
+    route?: string;
+}
+
+const NftsTestWrapper: React.FC<NftsTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    theme,
+    route = '/nfts',
+}) => (
+    <WalletProvider
+        chronik={chronik as unknown as ChronikClient}
+        agora={agora as unknown as Agora}
+        ecc={ecc}
+    >
+        <MemoryRouter initialEntries={[route]}>
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
 
 describe('<Nfts />', () => {
     const ecc = new Ecc();
+
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs requiring different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
+        mockPrice(0.00003);
     });
+
     afterEach(async () => {
         jest.clearAllMocks();
-        await clearLocalForage(localforage);
+        await localForage.clear();
     });
     it('A chronik error in agora queries displays expected error msg', async () => {
         // Set expected query mocks for Agora
@@ -62,16 +84,39 @@ describe('<Nfts />', () => {
 
         mockedAgora.setOfferedGroupTokenIds(new Error('some chronik error'));
 
-        const mockedChronik = await initializeCashtabStateForTests(
-            nftMarketWallet,
-            localforage,
+        // Mock the cache directly with the NFT data
+        const yourTokenCache = new CashtabCache();
+        yourTokenCache.tokens.set(
+            saturnFive.groupTokenId,
+            saturnFive.groupCache,
+        );
+        yourTokenCache.tokens.set(saturnFive.tokenId, saturnFive.cache);
+
+        await localForage.setItem(
+            'tokenCache',
+            cashtabCacheToJSON(yourTokenCache),
+        );
+
+        // Use comprehensive token mocks for prepareContext
+        const tokenMocks = new Map();
+        Object.entries(nftIntegrationTokenAndTxMocks).forEach(
+            ([tokenId, { tx, token }]) => {
+                tokenMocks.set(tokenId, { tx, tokenInfo: token });
+            },
+        );
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [nftMarketWallet],
+            tokenMocks,
         );
 
         render(
-            <CashtabTestWrapper
+            <NftsTestWrapper
                 chronik={mockedChronik}
                 agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route="/nfts"
             />,
         );
@@ -90,20 +135,43 @@ describe('<Nfts />', () => {
         mockedAgora.setOfferedGroupTokenIds([]);
 
         mockedAgora.setActiveOffersByPubKey(
-            toHex(nftMarketWallet.paths.get(appConfig.derivationPath).pk),
+            toHex(nftMarketWallet.paths.get(appConfig.derivationPath)!.pk),
             [],
         );
 
-        const mockedChronik = await initializeCashtabStateForTests(
-            nftMarketWallet,
-            localforage,
+        // Mock the cache directly with the NFT data
+        const yourTokenCache = new CashtabCache();
+        yourTokenCache.tokens.set(
+            saturnFive.groupTokenId,
+            saturnFive.groupCache,
+        );
+        yourTokenCache.tokens.set(saturnFive.tokenId, saturnFive.cache);
+
+        await localForage.setItem(
+            'tokenCache',
+            cashtabCacheToJSON(yourTokenCache),
+        );
+
+        // Use comprehensive token mocks for prepareContext
+        const tokenMocks = new Map();
+        Object.entries(nftIntegrationTokenAndTxMocks).forEach(
+            ([tokenId, { tx, token }]) => {
+                tokenMocks.set(tokenId, { tx, tokenInfo: token });
+            },
+        );
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [nftMarketWallet],
+            tokenMocks,
         );
 
         render(
-            <CashtabTestWrapper
+            <NftsTestWrapper
                 chronik={mockedChronik}
                 agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route="/nfts"
             />,
         );
@@ -140,14 +208,14 @@ describe('<Nfts />', () => {
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
         mockedAgora.setActiveOffersByPubKey(
-            toHex(nftMarketWallet.paths.get(appConfig.derivationPath).pk),
+            toHex(nftMarketWallet.paths.get(appConfig.derivationPath)!.pk),
             [saturnFiveAgoraOffer],
         );
 
         // Also set activeOffersByPubKey for the wallet you are switching to
         mockedAgora.setActiveOffersByPubKey(
             toHex(
-                walletWithXecAndTokens.paths.get(appConfig.derivationPath).pk,
+                walletWithXecAndTokens.paths.get(appConfig.derivationPath)!.pk,
             ),
             [],
         );
@@ -161,9 +229,18 @@ describe('<Nfts />', () => {
             argentinaAgoraOffer,
         ]);
 
-        const mockedChronik = await initializeCashtabStateForTests(
+        // Use comprehensive token mocks for prepareContext
+        const tokenMocks = new Map();
+        Object.entries(nftIntegrationTokenAndTxMocks).forEach(
+            ([tokenId, { tx, token }]) => {
+                tokenMocks.set(tokenId, { tx, tokenInfo: token });
+            },
+        );
+
+        const mockedChronik = await prepareContext(
+            localForage,
             [nftMarketWallet, walletWithXecAndTokens],
-            localforage,
+            tokenMocks,
         );
 
         // Mock token cache
@@ -182,16 +259,17 @@ describe('<Nfts />', () => {
         yourTokenCache.tokens.set(transvaal.tokenId, transvaal.cache);
         // Cache Argentina flag NFT
         yourTokenCache.tokens.set(argentina.tokenId, argentina.cache);
-        await localforage.setItem(
+        await localForage.setItem(
             'cashtabCache',
             cashtabCacheToJSON(yourTokenCache),
         );
 
         render(
-            <CashtabTestWrapper
+            <NftsTestWrapper
                 chronik={mockedChronik}
                 agora={mockedAgora}
                 ecc={ecc}
+                theme={theme}
                 route="/nfts"
             />,
         );
