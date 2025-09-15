@@ -21906,9 +21906,9 @@ for (const tokenId of Object.keys(tokensInHistory)) {
     }
     txHistoryTokenCache.set(tokenId, cachedInfo);
 }
-export const mockTxHistoryTokenCache = txHistoryTokenCache;
+// Original mockTxHistoryTokenCache will be replaced with filtered version below
 
-export const expectedParsedTxHistory = [
+const originalExpectedParsedTxHistory = [
     {
         txid: '66c3321dcaf4eba9e05b6167e9714c4a7b660917c2f5d29d65a519944d4c62e7',
         version: 2,
@@ -22649,6 +22649,32 @@ export const expectedParsedTxHistory = [
         },
     },
 ];
+
+// Create expected results that only include transactions from path 1899
+const path1899TxIds = mockPath1899History.map(tx => tx.txid);
+const expectedParsedTxHistoryPath1899 = originalExpectedParsedTxHistory.filter(
+    tx => path1899TxIds.includes(tx.txid),
+);
+
+export const expectedParsedTxHistory = expectedParsedTxHistoryPath1899;
+
+// Create a new mock cache that only includes tokens from path 1899 transactions
+const path1899TokenIds = new Set();
+for (const tx of mockPath1899History) {
+    for (const tokenEntry of tx.tokenEntries || []) {
+        path1899TokenIds.add(tokenEntry.tokenId);
+    }
+}
+
+// Create a new filtered token cache
+const mockTxHistoryTokenCachePath1899 = new CashtabCache().tokens;
+for (const [tokenId, tokenInfo] of txHistoryTokenCache) {
+    if (path1899TokenIds.has(tokenId)) {
+        mockTxHistoryTokenCachePath1899.set(tokenId, tokenInfo);
+    }
+}
+
+export const mockTxHistoryTokenCache = mockTxHistoryTokenCachePath1899;
 
 const tokenInfoErrorParsedTxHistory = [...expectedParsedTxHistory];
 

@@ -4,8 +4,6 @@
 
 import {
     organizeUtxosByType,
-    flattenChronikTxHistory,
-    sortAndTrimChronikTxHistory,
     parseTx,
     getTxNotificationMsg,
     getTokenGenesisInfo,
@@ -17,15 +15,12 @@ import {
 } from 'chronik';
 import vectors from '../fixtures/vectors';
 import {
-    mockTxHistoryOfAllAddresses,
-    mockFlatTxHistoryNoUnconfirmed,
     chronikTokenMocks,
     mockLargeTokenCache,
     chronikSlpUtxos,
     keyValueBalanceArray,
     mockTxHistoryWalletJson,
     mockPath1899History,
-    mockPath145History,
     mockTxHistoryTokenCache,
     tokensInHistory,
     expectedParsedTxHistory,
@@ -38,11 +33,6 @@ import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import CashtabCache from 'config/CashtabCache';
 
 describe('Cashtab chronik.js functions', () => {
-    it(`flattenChronikTxHistory successfully combines the result of getHistory into a single array`, async () => {
-        expect(
-            await flattenChronikTxHistory(mockTxHistoryOfAllAddresses),
-        ).toStrictEqual(mockFlatTxHistoryNoUnconfirmed);
-    });
     describe('Parses supported tx types', () => {
         const { expectedReturns } = vectors.parseTx;
         expectedReturns.forEach(expectedReturn => {
@@ -74,25 +64,6 @@ describe('Cashtab chronik.js functions', () => {
                         genesisInfo,
                     ),
                 ).toEqual(returned);
-            });
-        });
-    });
-    describe('Sorts and trims chronik tx history', () => {
-        const { expectedReturns } = vectors.sortAndTrimChronikTxHistory;
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                flatTxHistoryArray,
-                txHistoryCount,
-                returned,
-            } = expectedReturn;
-            it(`sortAndTrimChronikTxHistory: ${description}`, () => {
-                expect(
-                    sortAndTrimChronikTxHistory(
-                        flatTxHistoryArray,
-                        txHistoryCount,
-                    ),
-                ).toStrictEqual(returned);
             });
         });
     });
@@ -258,7 +229,7 @@ describe('Cashtab chronik.js functions', () => {
             { sats: 546n, path: 145 },
         ]);
     });
-    it('We can get and parse tx history from a multi-path wallet, and update the token cache at the same time', async () => {
+    it('We can get and parse tx history from path 1899, and update the token cache at the same time', async () => {
         // Make all of your chronik mocks
         const tokenIds = Object.keys(tokensInHistory);
         const mockedChronik = new MockChronikClient();
@@ -277,16 +248,11 @@ describe('Cashtab chronik.js functions', () => {
         );
 
         const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
-        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
 
-        // Set tx history for all paths
+        // Set tx history for path 1899 only
         mockedChronik.setTxHistoryByAddress(
             defaultAddress,
             mockPath1899History,
-        );
-        mockedChronik.setTxHistoryByAddress(
-            secondaryAddress,
-            mockPath145History,
         );
 
         // Initialize an empty token cache
@@ -302,10 +268,10 @@ describe('Cashtab chronik.js functions', () => {
         // Expect cache is updated
         expect(tokenCache).toStrictEqual(mockTxHistoryTokenCache);
 
-        // Expect correct tx history
+        // Expect correct tx history (only from path 1899)
         expect(parsedTxHistory).toStrictEqual(expectedParsedTxHistory);
     });
-    describe('We can get and parse tx history from a multi-path wallet. If there is an error in getting cached token data, we still parse tx history.', () => {
+    describe('We can get and parse tx history from path 1899. If there is an error in getting cached token data, we still parse tx history.', () => {
         // Make all of your chronik mocks
         const tokenIds = Object.keys(tokensInHistory);
         const mockedChronik = new MockChronikClient();
@@ -320,16 +286,11 @@ describe('Cashtab chronik.js functions', () => {
         );
 
         const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
-        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
 
-        // Set tx history for all paths
+        // Set tx history for path 1899 only
         mockedChronik.setTxHistoryByAddress(
             defaultAddress,
             mockPath1899History,
-        );
-        mockedChronik.setTxHistoryByAddress(
-            secondaryAddress,
-            mockPath145History,
         );
 
         it(`We add to token cache and get parsed tx history`, async () => {

@@ -36,12 +36,6 @@ import {
     offSpecEcashChat,
     eCashChatAuthenticationTx,
     unknownAppTx,
-    mockFlatTxHistoryNoUnconfirmed,
-    mockSortedTxHistoryNoUnconfirmed,
-    mockFlatTxHistoryWithUnconfirmed,
-    mockSortedFlatTxHistoryWithUnconfirmed,
-    mockFlatTxHistoryWithAllUnconfirmed,
-    mockSortedFlatTxHistoryWithAllUnconfirmed,
     AlpTx,
     SlpV1Mint,
     SlpNftParentFanTx,
@@ -938,31 +932,6 @@ export default {
                 tx: firmaRedeemTx.tx,
                 hashes: [firmaRedeemTx.sendingHash],
                 parsed: firmaRedeemTx.parsedSend,
-            },
-        ],
-    },
-    sortAndTrimChronikTxHistory: {
-        expectedReturns: [
-            {
-                description:
-                    'successfully orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are confirmed',
-                flatTxHistoryArray: mockFlatTxHistoryNoUnconfirmed,
-                txHistoryCount: 10,
-                returned: mockSortedTxHistoryNoUnconfirmed,
-            },
-            {
-                description:
-                    'orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if some txs are confirmed and others unconfirmed',
-                flatTxHistoryArray: mockFlatTxHistoryWithUnconfirmed,
-                txHistoryCount: 10,
-                returned: mockSortedFlatTxHistoryWithUnconfirmed,
-            },
-            {
-                description:
-                    'orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are unconfirmed,',
-                flatTxHistoryArray: mockFlatTxHistoryWithAllUnconfirmed,
-                txHistoryCount: 10,
-                returned: mockSortedFlatTxHistoryWithAllUnconfirmed,
             },
         ],
     },

@@ -26,10 +26,8 @@ import {
 } from 'wallet';
 import {
     ChronikClient,
-    TxHistoryPage,
     ScriptUtxo,
     Tx,
-    BlockMetadata,
     TokenTxType,
     GenesisInfo,
 } from 'chronik-client';
@@ -43,47 +41,6 @@ import { getEmppAppActions } from 'opreturn';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
-
-export const getTxHistoryPage = async (
-    chronik: ChronikClient,
-    hash160: string,
-    page = 0,
-): Promise<void | TxHistoryPage> => {
-    let txHistoryPage;
-    try {
-        txHistoryPage = await chronik
-            .script('p2pkh', hash160)
-            // Get the 25 most recent transactions
-            .history(page, chronikConfig.txHistoryPageSize);
-        return txHistoryPage;
-    } catch (err) {
-        console.error(`Error in getTxHistoryPage(${hash160})`, err);
-    }
-};
-
-export const returnGetTxHistoryPagePromise = (
-    chronik: ChronikClient,
-    hash160: string,
-    page = 0,
-): Promise<TxHistoryPage> => {
-    /* 
-    Unlike getTxHistoryPage, this function will reject and 
-    fail Promise.all() if there is an error in the chronik call
-    */
-    return new Promise((resolve, reject) => {
-        chronik
-            .script('p2pkh', hash160)
-            .history(page, chronikConfig.txHistoryPageSize)
-            .then(
-                result => {
-                    resolve(result);
-                },
-                err => {
-                    reject(err);
-                },
-            );
-    });
-};
 
 interface Alias {
     alias: string;
@@ -186,72 +143,6 @@ export const organizeUtxosByType = (
     }
 
     return { slpUtxos, nonSlpUtxos };
-};
-
-/**
- * Get just the tx objects from chronik history() responses
- * @param txHistoryOfAllAddresses
- * @returns
- */
-export const flattenChronikTxHistory = (
-    txHistoryOfAllAddresses: TxHistoryPage[],
-) => {
-    let flatTxHistoryArray: Tx[] = [];
-    for (const txHistoryThisAddress of txHistoryOfAllAddresses) {
-        flatTxHistoryArray = flatTxHistoryArray.concat(
-            txHistoryThisAddress.txs,
-        );
-    }
-    return flatTxHistoryArray;
-};
-
-interface ConfirmedTx extends Omit<Tx, 'block'> {
-    block: BlockMetadata;
-}
-
-/**
- * Sort an array of chronik txs chronologically and return the first renderedCount of them
- * @param txs
- * @param renderedCount how many txs to return
- * @returns
- */
-export const sortAndTrimChronikTxHistory = (
-    txs: Tx[],
-    renderedCount: number,
-): Tx[] => {
-    const unconfirmedTxs = [];
-    const confirmedTxs: ConfirmedTx[] = [];
-    for (const tx of txs) {
-        if (typeof tx.block === 'undefined') {
-            unconfirmedTxs.push(tx);
-        } else {
-            confirmedTxs.push(tx as ConfirmedTx);
-        }
-    }
-
-    // Sort confirmed txs by blockheight, and then timeFirstSeen
-    const sortedConfirmedTxHistoryArray = confirmedTxs.sort(
-        (a, b) =>
-            // We want more recent blocks i.e. higher blockheights to have earlier array indices
-            b.block.height - a.block.height ||
-            // For blocks with the same height, we want more recent timeFirstSeen i.e. higher timeFirstSeen to have earlier array indices
-            b.timeFirstSeen - a.timeFirstSeen,
-    );
-
-    // Sort unconfirmed txs by timeFirstSeen
-    const sortedUnconfirmedTxHistoryArray = unconfirmedTxs.sort(
-        (a, b) => b.timeFirstSeen - a.timeFirstSeen,
-    );
-
-    // The unconfirmed txs are more recent, so they should be inserted into an array before the confirmed txs
-    const sortedChronikTxHistoryArray = sortedUnconfirmedTxHistoryArray.concat(
-        sortedConfirmedTxHistoryArray,
-    );
-
-    const trimmedAndSortedChronikTxHistoryArray =
-        sortedChronikTxHistoryArray.splice(0, renderedCount);
-
-    return trimmedAndSortedChronikTxHistoryArray;
 };
 
 export enum XecTxType {
@@ -1286,7 +1177,7 @@ export const getTxNotificationMsg = (
 
 /**
  * Get tx history of cashtab wallet
- * - Get tx history of each path in wallet
+ * - Get tx history of path 1899 only
  * - sort by timeFirstSeen + block
  * - Trim to number of txs Cashtab renders
  * - Parse txs for rendering in Cashtab
@@ -1301,18 +1192,20 @@ export const getHistory = async (
     wallet: CashtabWallet,
     cachedTokens: Map<string, CashtabCachedTokenInfo>,
 ): Promise<CashtabTx[]> => {
-    const txHistoryPromises: Promise<TxHistoryPage>[] = [];
-    wallet.paths.forEach(pathInfo => {
-        txHistoryPromises.push(chronik.address(pathInfo.address).history());
-    });
+    // Only get history for path 1899
+    const path1899Address = wallet.paths.get(1899)?.address;
+    if (!path1899Address) {
+        // Will not happen as path1899 is always defined
+        // Satisfies typescript until Cashtab cleans up its wallet shape with ecash-wallet
+        throw new Error('Path 1899 not found in wallet');
+    }
 
     // Just throw an error if you get a chronik error
     // This will be handled in the update loop
-    const txHistoryOfAllAddresses = await Promise.all(txHistoryPromises);
+    const txHistoryPage = await chronik.address(path1899Address).history();
 
-    const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
-    const renderedTxs = sortAndTrimChronikTxHistory(
-        flatTxHistoryArray,
+    const renderedTxs = txHistoryPage.txs.slice(
+        0,
         chronikConfig.txHistoryCount,
     );
 
