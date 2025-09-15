@@ -24,14 +24,6 @@ require('../config/env');
 const jest = require('jest');
 let argv = process.argv.slice(2);
 
-// watchAll unless on CI or explicitly told not to watchAll
-if (!process.env.CI && argv.indexOf('--watchAll=false') === -1) {
-    // Always run all tests
-    argv.push('--watchAll');
-    // Update snapshots
-    argv.push('--updateSnapshot');
-}
-
 // Silence logs unless env var DEBUG=true
 if (process.env.DEBUG !== 'true') {
     argv.push('--silent');
