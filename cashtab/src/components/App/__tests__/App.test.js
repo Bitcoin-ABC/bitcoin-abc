@@ -1078,8 +1078,6 @@ describe('<App />', () => {
         );
 
         const savedWallets = walletsAfterLoad.slice(1);
-        console.log(`savedWallets`, savedWallets);
-        console.log(`validSavedWallets`, validSavedWallets);
 
         // We expect savedWallets in localforage to have been migrated
         await waitFor(async () => {
