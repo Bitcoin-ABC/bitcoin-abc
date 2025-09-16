@@ -4,6 +4,7 @@
 
 import RoadmapHero from "../components/Roadmap/RoadmapHero";
 import RoadmapGrid from "../components/Roadmap/RoadmapGrid";
+import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
 export default function Roadmap() {
   return (
@@ -11,6 +12,7 @@ export default function Roadmap() {
       <div className="bg-gradient-to-br from-[#1F1428] via-[#090916] to-[#0F1528]">
         <RoadmapHero />
         <RoadmapGrid />
+        <StartBuildingSection />
       </div>
     </main>
   );

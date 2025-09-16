@@ -27,11 +27,6 @@ const roadmapData: RoadmapCategory[] = [
       "Enable eCash to scale from ~100 tx/s to over 5,000,000 tx/s. Mass-parallelization is necessary to achieve mankind scale.",
     items: [
       {
-        title: "UTXO Commitments",
-        description: "Blockchain pruning, faster initial sync",
-        status: "underway",
-      },
-      {
         title: "Faster Block Propagation",
         description: "Graphene or other",
         status: "planning",
@@ -45,6 +40,11 @@ const roadmapData: RoadmapCategory[] = [
         title: "Adaptive Block Size",
         description: "Market driven growth to 1TB blocks",
         status: "planning",
+      },
+      {
+        title: "UTXO Commitments",
+        description: "Blockchain pruning, faster initial sync",
+        status: "underway",
       },
       {
         title: "Canonical Transaction Ordering",
@@ -64,11 +64,6 @@ const roadmapData: RoadmapCategory[] = [
       "Improve the eCash payment experience to ensure that it is instant and reliable. Transactions must be received instantly and be completely secure within seconds.",
     items: [
       {
-        title: "Avalanche Pre-consensus",
-        description: "Instant transactions & real-time processing",
-        status: "underway",
-      },
-      {
         title: "Zero-Knowledge Subnet",
         description: "Bulletproof privacy",
         status: "planning",
@@ -77,6 +72,11 @@ const roadmapData: RoadmapCategory[] = [
         title: "Fractional Satoshis",
         description: "Fees low forever",
         status: "planning",
+      },
+      {
+        title: "Avalanche Pre-consensus",
+        description: "Instant transactions & real-time processing",
+        status: "underway",
       },
       {
         title: "CashAddr",
@@ -116,7 +116,7 @@ const roadmapData: RoadmapCategory[] = [
     ],
   },
   {
-    title: "EXTENSIBILITY",
+    title: "Extensibility",
     description:
       "Make eCash extensible. An extensible protocol makes future improvements less disruptive, providing a solid base for businesses and developers to build on.",
     items: [
@@ -182,28 +182,46 @@ const RoadmapItem = ({ item }: RoadmapItemProps) => {
   const getStatusColor = (status: RoadmapItem["status"]) => {
     switch (status) {
       case "planning":
-        return "from-white/10 to-white/20";
+        return "from-[#ffffff]/10 to-[#ffffff]/5";
       case "underway":
-        return "from-[#51039B] to-[#0d082c]";
+        return "from-[#5E0EAE]/60 to-[#5E0EAE]/30";
       case "complete":
-        return "from-[#005898] to-[#040f25]";
-      default:
-        return "bg-white/10";
+        return "from-[#0671c0]/60 to-[#0671c0]/30";
     }
   };
 
+  const getStatusIcon = (status: RoadmapItem["status"]) => {
+    switch (status) {
+      case "planning":
+        return "/map.png";
+      case "underway":
+        return "/code.png";
+      case "complete":
+        return "/check-mark.png";
+    }
+  };
+
+  const statusIcon = getStatusIcon(item.status);
+  const statusColor = getStatusColor(item.status);
+
   return (
     <div
-      className={`flex h-[260px] w-[90%] max-w-[300px] shrink-0 flex-col justify-between gap-2 rounded-lg bg-gradient-to-b p-4 lg:h-[280px] lg:w-[220px] lg:max-w-none ${getStatusColor(
-        item.status
-      )}`}
+      className={`flex w-full gap-4 rounded-lg bg-gradient-to-r ${statusColor}`}
     >
-      <span className="inline-block w-fit rounded-full bg-white/20 px-3 py-0.5 text-xs capitalize">
-        {item.status}
-      </span>
-      <div>
-        <div className="mb-2 text-lg font-bold leading-tight">{item.title}</div>
-        <p className="text-sm">{item.description}</p>
+      <div className="min-h-16 relative w-16 shrink-0 rounded-bl-lg rounded-tl-lg bg-white/10">
+        <Image
+          src={statusIcon}
+          alt={item.status}
+          fill
+          sizes="(max-width: 1024px) 24px, 40px"
+          className="object-contain p-4"
+        />
+      </div>
+      <div className="flex flex-col items-start justify-center py-2 pr-2">
+        <div className="text-lg font-bold leading-tight lg:text-xl">
+          {item.title}
+        </div>
+        <p className="m-0 text-sm">{item.description}</p>
       </div>
     </div>
   );
@@ -219,7 +237,7 @@ const RoadmapCategory = ({ category }: RoadmapCategoryProps) => (
       <h3 className="text-2xl font-bold lg:text-3xl">{category.title}</h3>
       <p className="pr-6 lg:pr-0">{category.description}</p>
     </div>
-    <div className="scrollx-container relative mt-3 flex w-full snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth pb-4 pr-10">
+    <div className="relative mt-3 flex w-full flex-wrap gap-2 pb-4">
       {category.items.map((item, index) => (
         <RoadmapItem key={index} item={item} />
       ))}
@@ -275,13 +293,51 @@ export default function RoadmapGrid() {
           </div>
         </div>
       </ContentContainer>
-      <ContentContainer className="pr-0">
+      <ContentContainer>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full"
+          className="m-auto w-full max-w-[600px]"
         >
+          <div className="mb-10 flex w-full flex-col items-center justify-center gap-6 lg:flex-row">
+            <div className="flex items-center">
+              <div className="relative mr-1 h-10 w-10 rounded-xl bg-white/20">
+                <Image
+                  src="/map.png"
+                  alt="Complete"
+                  fill
+                  sizes="(max-width: 1024px) 24px, 40px"
+                  className="object-contain p-2"
+                />
+              </div>
+              <div>= Planning</div>
+            </div>
+            <div className="flex items-center">
+              <div className="relative mr-1 h-10 w-10 rounded-xl bg-[#5E0EAE]/60">
+                <Image
+                  src="/code.png"
+                  alt="Complete"
+                  fill
+                  sizes="(max-width: 1024px) 24px, 40px"
+                  className="object-contain p-2"
+                />
+              </div>
+              <div>= Underway</div>
+            </div>
+            <div className="flex items-center">
+              <div className="bg-accentMedium/60 relative mr-1 h-10 w-10 rounded-xl">
+                <Image
+                  src="/check-mark.png"
+                  alt="Complete"
+                  fill
+                  sizes="(max-width: 1024px) 24px, 40px"
+                  className="object-contain p-2"
+                />
+              </div>
+              <div>= Complete</div>
+            </div>
+          </div>
           {roadmapData.map((category, index) => (
             <RoadmapCategory key={index} category={category} />
           ))}
