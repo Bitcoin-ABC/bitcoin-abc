@@ -37,7 +37,6 @@ import {
     createCashtabWallet,
     getLegacyPaths,
     getBalanceSats,
-    getHashes,
     CashtabWallet,
     LegacyCashtabWallet,
     CashtabPathInfo,
@@ -287,10 +286,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 }
 
                 // parse tx for notification
-                const parsedTx = parseTx(
-                    incomingTxDetails,
-                    getHashes(cashtabState.wallets[0]),
-                );
+                const parsedTx = parseTx(incomingTxDetails, [
+                    (
+                        cashtabState.wallets[0].paths.get(
+                            appConfig.derivationPath,
+                        ) as CashtabPathInfo
+                    ).hash,
+                ]);
 
                 // parse tx for notification msg
                 const notificationMsg = getTxNotificationMsg(
@@ -919,11 +921,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         ws.subscribeToBlocks();
 
         if (cashtabState.wallets.length > 0) {
-            // Subscribe to addresses of current wallet, if you have one
-            const hash160Array = getHashes(cashtabState.wallets[0]);
-            for (const hash of hash160Array) {
-                ws.subscribeToScript('p2pkh', hash);
-            }
+            // Subscribe to address of current wallet, if you have one
+            const address = (
+                cashtabState.wallets[0].paths.get(
+                    appConfig.derivationPath,
+                ) as CashtabPathInfo
+            ).address;
+            ws.subscribeToAddress(address);
         } else {
             // Set loading to false if we have no wallet
             // as we will not get to the update() until the user creates a wallet
@@ -961,33 +965,30 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             subscribedPayloads.push(script.payload);
         }
 
-        let subscriptionUpdateRequired = false;
-        const hash160Array = getHashes(cashtabState.wallets[0]);
-        if (scripts.length !== hash160Array.length) {
-            // If the websocket is not subscribed to the same amount of addresses as the wallet,
-            // we need to update subscriptions
-            subscriptionUpdateRequired = true;
-        }
-
-        for (const script of scripts) {
-            // If any wallet hash is not subscribed to, we need to update subscriptions
-            if (!hash160Array.includes(script.payload)) {
-                subscriptionUpdateRequired = true;
-            }
-        }
-
-        if (subscriptionUpdateRequired) {
-            // If we need to update subscriptions
+        if (
+            subscribedPayloads.length !== 1 ||
+            subscribedPayloads[0] !==
+                (
+                    cashtabState.wallets[0].paths.get(
+                        appConfig.derivationPath,
+                    ) as CashtabPathInfo
+                ).hash
+        ) {
+            // If we are subscribed to no addresses, more than 1 address, or the wrong address, we need to update subscriptions
 
             // Unsubscribe from all existing subscriptions
             for (const payload of subscribedPayloads) {
                 ws.unsubscribeFromScript('p2pkh', payload);
             }
 
-            // Subscribe to all hashes in the active wallet
-            for (const hash of hash160Array) {
-                ws.subscribeToScript('p2pkh', hash);
-            }
+            // Subscribe to active wallet appConfig.derivationPath address
+            ws.subscribeToAddress(
+                (
+                    cashtabState.wallets[0].paths.get(
+                        appConfig.derivationPath,
+                    ) as CashtabPathInfo
+                ).address,
+            );
         }
 
         // Update ws in state

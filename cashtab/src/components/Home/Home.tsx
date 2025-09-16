@@ -11,7 +11,7 @@ import ApiError from 'components/Common/ApiError';
 import Receive from 'components/Receive/Receive';
 import { Alert, Info } from 'components/Common/Atoms';
 import { getUserLocale } from 'helpers';
-import { CashtabPathInfo, getHashes, CashtabTx } from 'wallet';
+import { CashtabPathInfo, CashtabTx } from 'wallet';
 import PrimaryButton, {
     SecondaryButton,
     PrimaryLink,
@@ -21,6 +21,7 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import { load } from 'recaptcha-v3';
+import appConfig from 'config/app';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -79,7 +80,12 @@ const Home: React.FC = () => {
         ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets[0];
-    const hashes = getHashes(wallet);
+    // We only support one path per wallet for tx history
+    // However, we preserve the array structure of hashes for potential future HD support
+    const hashes = [
+        (wallets[0].paths.get(appConfig.derivationPath) as CashtabPathInfo)
+            .hash,
+    ];
     const { parsedTxHistory } = wallet.state;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
