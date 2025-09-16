@@ -9,6 +9,11 @@ import TelegramBot, {
 } from 'node-telegram-bot-api';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import { SendMessageResponse } from './events';
+
+interface NetworkError extends Error {
+    code?: string;
+}
+
 // undocumented API behavior of HTML parsing mode, discovered through brute force
 const TG_MSG_MAX_LENGTH = 4096;
 
@@ -28,6 +33,71 @@ export const prepareStringForTelegramHTML = (string: string): string => {
 
     return tgReadyString;
 };
+
+/**
+ * Send a Telegram message with retry logic for network errors
+ * @param telegramBot Telegram bot instance
+ * @param channelId Channel ID to send to
+ * @param message Message to send
+ * @param options Send message options
+ * @param maxRetries Maximum number of retry attempts (default: 3)
+ * @param baseDelay Base delay in milliseconds (default: 1000)
+ * @returns Promise that resolves with the message result or rejects with the final error
+ */
+export const heraldSend = async (
+    telegramBot: TelegramBot | MockTelegramBot,
+    channelId: string,
+    message: string,
+    options: any,
+    maxRetries: number = 3,
+    baseDelay: number = 1000,
+): Promise<SendMessageResponse> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return (await telegramBot.sendMessage(
+                channelId,
+                message,
+                options,
+            )) as SendMessageResponse;
+        } catch (error: unknown) {
+            // Don't retry on the last attempt
+            if (attempt === maxRetries) {
+                throw error;
+            }
+
+            // Only retry on network errors, not API errors e.g telegram syntax failures
+            const networkError = error as NetworkError;
+            const isNetworkError =
+                networkError.code === 'EFATAL' ||
+                networkError.message?.includes('socket hang up') ||
+                networkError.message?.includes('ECONNRESET') ||
+                networkError.message?.includes('ETIMEDOUT') ||
+                networkError.message?.includes('ENOTFOUND') ||
+                networkError.message?.includes('ECONNREFUSED');
+
+            if (isNetworkError) {
+                const delay =
+                    baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+                console.log(
+                    `Network error on attempt ${attempt}/${maxRetries}, retrying in ${Math.round(
+                        delay,
+                    )}ms:`,
+                    networkError.message,
+                );
+                if (baseDelay > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                continue;
+            }
+
+            // Don't retry API errors (like 400 Bad Request, 401 Unauthorized, etc.)
+            throw error;
+        }
+    }
+    // Not expected to happen, satisfies typescript
+    throw new Error('Retry logic failed unexpectedly');
+};
+
 export const splitOverflowTgMsg = (tgMsgArray: string[]): string[] => {
     /* splitOverflowTgMsg
      *
@@ -117,19 +187,21 @@ export const sendBlockSummary = async (
                   }
                 : config.tgMsgOptions;
         try {
-            msgSuccess = (await telegramBot.sendMessage(
+            msgSuccess = await heraldSend(
+                telegramBot,
                 channelId,
                 thisMsg,
                 thisMsgOptions,
-            )) as SendMessageResponse;
+            );
             msgReplyId = msgSuccess.message_id;
             msgSuccessArray.push(msgSuccess);
         } catch (err) {
+            const errorMessage =
+                err instanceof Error ? err.message : 'Unknown error';
             console.log(
-                `Error in sending msg in sendBlockSummary, telegramBot.send(${thisMsg}) for msg ${
-                    i + 1
-                } of ${tgMsgStrings.length}`,
-                err,
+                `Failed to send message ${i + 1} of ${
+                    tgMsgStrings.length
+                } after retries: ${errorMessage}`,
             );
             return false;
         }

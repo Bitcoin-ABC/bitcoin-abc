@@ -7,6 +7,7 @@ import {
     prepareStringForTelegramHTML,
     splitOverflowTgMsg,
     sendBlockSummary,
+    heraldSend,
 } from '../src/telegram';
 import templates from './mocks/templates';
 import tgMsgMocks from './mocks/telegramMsgs';
@@ -96,5 +97,217 @@ describe('ecash-herald telegram.js functions', function () {
                 `Message is too long: ${blockSummaryTgMsgs[j].length} > ${TG_MSG_MAX_LENGTH}`,
             );
         }
+    });
+
+    // Tests for heraldSend retry logic
+    describe('heraldSend retry logic', function () {
+        it(`should retry on network errors like 'socket hang up'`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Mock a network error that should be retried for all 3 attempts
+            telegramBot.setCallCountError('sendMessage', 'socket hang up', 3);
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual((error as Error).message, 'socket hang up');
+                assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+            }
+        });
+
+        it(`should retry on EFATAL network errors`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Mock EFATAL error that should be retried for all 3 attempts
+            telegramBot.setCallCountError(
+                'sendMessage',
+                'Network connection failed',
+                3,
+            );
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual(
+                    (error as Error).message,
+                    'Network connection failed',
+                );
+                assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+            }
+        });
+
+        it(`should retry on ECONNRESET network errors`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Override sendMessage to track calls and throw ECONNRESET
+            let callCount = 0;
+            telegramBot.sendMessage = () => {
+                callCount++;
+                const networkError = new Error(
+                    'ECONNRESET: Connection reset by peer',
+                );
+                throw networkError;
+            };
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual(
+                    (error as Error).message,
+                    'ECONNRESET: Connection reset by peer',
+                );
+                assert.strictEqual(callCount, 3); // Should have tried 3 times
+            }
+        });
+
+        it(`should retry on ETIMEDOUT network errors`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Override sendMessage to track calls and throw ETIMEDOUT
+            let callCount = 0;
+            telegramBot.sendMessage = () => {
+                callCount++;
+                const networkError = new Error(
+                    'ETIMEDOUT: Connection timed out',
+                );
+                throw networkError;
+            };
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual(
+                    (error as Error).message,
+                    'ETIMEDOUT: Connection timed out',
+                );
+                assert.strictEqual(callCount, 3); // Should have tried 3 times
+            }
+        });
+
+        it(`should NOT retry on API errors like 400 Bad Request`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Override sendMessage to track calls and throw API error
+            let callCount = 0;
+            telegramBot.sendMessage = () => {
+                callCount++;
+                const apiError = new Error(
+                    "ETELEGRAM: 400 Bad Request: can't parse entities",
+                ) as Error & { code: string };
+                apiError.code = 'ETELEGRAM';
+                throw apiError;
+            };
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual(
+                    (error as Error).message,
+                    "ETELEGRAM: 400 Bad Request: can't parse entities",
+                );
+                assert.strictEqual(callCount, 1); // Should have tried only once (no retry)
+            }
+        });
+
+        it(`should NOT retry on 401 Unauthorized errors`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Override sendMessage to track calls and throw auth error
+            let callCount = 0;
+            telegramBot.sendMessage = () => {
+                callCount++;
+                const authError = new Error(
+                    'ETELEGRAM: 401 Unauthorized',
+                ) as Error & { code: string };
+                authError.code = 'ETELEGRAM';
+                throw authError;
+            };
+
+            try {
+                await heraldSend(
+                    telegramBot,
+                    channelId,
+                    'Test message',
+                    {},
+                    3,
+                    0,
+                );
+                assert.fail('Expected error to be thrown');
+            } catch (error) {
+                assert.strictEqual(
+                    (error as Error).message,
+                    'ETELEGRAM: 401 Unauthorized',
+                );
+                assert.strictEqual(callCount, 1); // Should have tried only once (no retry)
+            }
+        });
+
+        it(`should succeed after retry on temporary network error`, async function () {
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Mock sendMessage to fail twice, then succeed on third call
+            telegramBot.setCallCountError('sendMessage', 'socket hang up', 2);
+
+            const result = await heraldSend(
+                telegramBot,
+                channelId,
+                'Test message',
+                {},
+                3,
+                15,
+            );
+            assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+            assert.strictEqual(
+                (result as unknown as { success: boolean }).success,
+                true,
+            ); // Should succeed
+        });
     });
 });
