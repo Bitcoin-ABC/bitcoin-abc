@@ -26,6 +26,10 @@ COPY web/explorer/ .
 WORKDIR /app/modules/bitcoinsuite-chronik-client
 COPY modules/bitcoinsuite-chronik-client/ .
 
+# avalanche-lib-wasm must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/modules/avalanche-lib-wasm
+COPY modules/avalanche-lib-wasm/ .
+
 # proof-manager-cli must be in place to to run ./build-wasm as it is a workspace member
 WORKDIR /app/apps/proof-manager-cli
 COPY apps/proof-manager-cli/ .
