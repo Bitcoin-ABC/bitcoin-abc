@@ -26,6 +26,10 @@ COPY web/explorer/ .
 WORKDIR /app/modules/bitcoinsuite-chronik-client
 COPY modules/bitcoinsuite-chronik-client/ .
 
+# proof-manager-cli must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/apps/proof-manager-cli
+COPY apps/proof-manager-cli/ .
+
 # Copy chronik to same directory structure as monorepo
 # This needs to be in place to run ./build-wasm
 WORKDIR /app/chronik/
