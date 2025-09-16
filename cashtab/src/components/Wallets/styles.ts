@@ -67,14 +67,6 @@ export const ButtonPanel = styled.div`
     justify-content: center;
 `;
 
-export const WalletBalance = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    word-wrap: break-word;
-    hyphens: auto;
-`;
-
 export const ActivateButton = styled.button`
     cursor: pointer;
     color: ${props => props.theme.accent};

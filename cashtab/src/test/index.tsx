@@ -6,8 +6,7 @@ import { when } from 'jest-when';
 import { Tx, TokenInfo, Block, BlockchainInfo } from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import appConfig from 'config/app';
-import { CashtabWallet } from 'wallet';
-import { cashtabWalletToJSON, StoredCashtabWallet } from 'helpers';
+import { ActiveCashtabWallet, StoredCashtabWallet } from 'wallet';
 
 /**
  * test.tsx
@@ -99,7 +98,7 @@ export const mockPrice = (price: number) => {
  */
 export const prepareMockedChronikCallsForWallet = (
     mockChronik: MockChronikClient,
-    wallet: CashtabWallet,
+    wallet: ActiveCashtabWallet,
     /**
      * We need to add tokenMocks to cover all utxos in the wallet
      * We can also optionally pass tokenMocks that we need in a test
@@ -136,28 +135,21 @@ export const prepareMockedChronikCallsForWallet = (
     );
 
     // Mock all required chronik responses for updating this wallet
-    wallet.paths.forEach((pathInfo, path) => {
-        if (path === 1899) {
-            mockChronik.setUtxosByAddress(
-                pathInfo.address,
-                wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-            );
-            mockChronik.setTxHistoryByAddress(
-                pathInfo.address,
-                wallet.state.parsedTxHistory,
-            );
-        } else {
-            mockChronik.setUtxosByAddress(pathInfo.address, []);
-            mockChronik.setTxHistoryByAddress(pathInfo.address, []);
-        }
-    });
+    mockChronik.setUtxosByAddress(
+        wallet.address,
+        wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+    );
+    mockChronik.setTxHistoryByAddress(
+        wallet.address,
+        wallet.state.parsedTxHistory,
+    );
 };
 
 // Function to update cashtab storage and settings so that we get the expected context
 // Run before every test
 export const prepareContext = async (
     localForage: LocalForage,
-    wallets: CashtabWallet[],
+    wallets: ActiveCashtabWallet[],
     /**
      * We need to add tokenMocks to cover all utxos in the wallet
      * We can also optionally pass tokenMocks that we need in a test
@@ -170,12 +162,20 @@ export const prepareContext = async (
     // Set wallets in localforage
     const storedCashtabWallets: StoredCashtabWallet[] = [];
     for (const wallet of wallets) {
-        storedCashtabWallets.push(
-            cashtabWalletToJSON(wallet) as StoredCashtabWallet,
-        );
+        storedCashtabWallets.push({
+            name: wallet.name,
+            mnemonic: wallet.mnemonic,
+            address: wallet.address,
+            sk: wallet.sk,
+            pk: wallet.pk,
+            hash: wallet.hash,
+        });
     }
 
     await localForage.setItem('wallets', storedCashtabWallets);
+
+    // By convention we set the first wallet as the active wallet
+    await localForage.setItem('activeWalletAddress', wallets[0].address);
 
     // All other localforage items will be unset unless the user has customized them
     // Cashtab will use defaults

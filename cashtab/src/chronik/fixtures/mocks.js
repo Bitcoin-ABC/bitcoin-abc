@@ -20893,24 +20893,8 @@ export const mockTxHistorySupportingTokenCache = supportingTokenCache;
 
 export const mockTxHistoryWalletJson = {
     ...validWalletJson,
-    paths: [
-        [
-            1899,
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                wif: 'string',
-            },
-        ],
-        [
-            145,
-            {
-                address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-                hash: '0d94ba179ec21c42417a71a77873b3619363d8ea',
-                wif: 'string',
-            },
-        ],
-    ],
+    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
 };
 export const mockPath1899History = [
     {

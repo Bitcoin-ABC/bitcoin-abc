@@ -11,7 +11,73 @@ import { cashtabCacheToJSON, cashtabWalletToJSON } from 'helpers';
  * Get expected mock values for chronik client for a given mock wallet
  * Used to support integration testing in Cashtab
  * Default methods may be overwritten in individual unit tests to test special conditions
- * @param {array | object | boolean} wallets Array of wallets stored in localforage.
+ * @param {array | object | boolean} wallets Array of wallets, either legacy or activeWallet
+ * If object, convert to array of length 1.
+ * False if user has not yet created a wallet.
+ * @param {object} localforage the localforage instance used in your test
+ * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
+ * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
+ */
+export const initializeCashtabStateForTests_pre_3_41_0 = async (
+    wallets,
+    localforage,
+    apiError = false,
+) => {
+    // Mock successful utxos calls in chronik
+    const chronikClient = new MockChronikClient();
+
+    if (wallets === false) {
+        // No info to give to chronik, do not populate mocks
+        return chronikClient;
+        // We do not expect anything in localforage for this case
+    }
+
+    wallets = Array.isArray(wallets) ? wallets : [wallets];
+
+    // Set wallets in localforage
+
+    let localforageWallets = [];
+    for (const wallet of wallets) {
+        // JSON convert legacy, otherwise push without state
+
+        // test for non-legacy
+        if ('sk' in wallet) {
+            // Push all but state
+            console.log('pushing non-legacy wallet', wallet);
+            localforageWallets.push({
+                name: wallet.name,
+                mnemonic: wallet.mnemonic,
+                address: wallet.address,
+                sk: wallet.sk,
+                pk: wallet.pk,
+                hash: wallet.hash,
+            });
+        } else {
+            console.log('pushing legacy wallet', wallet);
+            localforageWallets.push(cashtabWalletToJSON(wallet));
+        }
+    }
+
+    await localforage.setItem('wallets', localforageWallets);
+
+    // All other localforage items will be unset unless the user has customized them
+    // Cashtab will use defaults
+    // localforage may be modified in individual test cases to test cases of user with
+    // non-default settings, cashtabCache, or contactList
+
+    // Mock returns for chronik calls expected in useWallet's update routine for all wallets
+    for (const wallet of wallets) {
+        prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
+    }
+
+    return chronikClient;
+};
+
+/**
+ * Get expected mock values for chronik client for a given mock wallet
+ * Used to support integration testing in Cashtab
+ * Default methods may be overwritten in individual unit tests to test special conditions
+ * @param {array | object | boolean} wallets Array of wallets, either legacy or activeWallet
  * If object, convert to array of length 1.
  * False if user has not yet created a wallet.
  * @param {object} localforage the localforage instance used in your test
@@ -38,23 +104,20 @@ export const initializeCashtabStateForTests = async (
 
     let localforageWallets = [];
     for (const wallet of wallets) {
-        // All wallets must be converted from JSON
-        // Historically, only pre-2.9.0 wallets required this
-        // But after 3.14.0, chronik-client types include bigint for sats and atoms,
-        // And these require JSON conversion
-        // In practice, anyone pulling this kind of wallet out of storage will not have bigints
-        // But such a wallet can still be revived (questionable value for Cashtab supporting this
-        // type of migration, edge case that a user's browser would have kept localforage
-        // intact for a year of never visiting cashtab.com)
-        localforageWallets.push(cashtabWalletToJSON(wallet));
+        localforageWallets.push({
+            name: wallet.name,
+            mnemonic: wallet.mnemonic,
+            address: wallet.address,
+            sk: wallet.sk,
+            pk: wallet.pk,
+            hash: wallet.hash,
+        });
     }
 
     await localforage.setItem('wallets', localforageWallets);
 
-    // All other localforage items will be unset unless the user has customized them
-    // Cashtab will use defaults
-    // localforage may be modified in individual test cases to test cases of user with
-    // non-default settings, cashtabCache, or contactList
+    // The first one is active
+    await localforage.setItem('activeWalletAddress', wallets[0].address);
 
     // Mock returns for chronik calls expected in useWallet's update routine for all wallets
     for (const wallet of wallets) {
@@ -177,23 +240,6 @@ export const prepareMockedChronikCallsForLegacyWallet = (
             wallet.Path1899.cashAddress,
             new Error('Error fetching history'),
         );
-        chronikClient.setUtxosByAddress(
-            wallet.Path145.cashAddress,
-            new Error('Error fetching utxos'),
-        );
-        chronikClient.setUtxosByAddress(
-            wallet.Path245.cashAddress,
-            new Error('Error fetching utxos'),
-        );
-        // We set legacy paths to contain no utxos
-        chronikClient.setTxHistoryByAddress(
-            wallet.Path145.cashAddress,
-            new Error('Error fetching history'),
-        );
-        chronikClient.setTxHistoryByAddress(
-            wallet.Path245.cashAddress,
-            new Error('Error fetching history'),
-        );
     } else {
         chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
         chronikClient.setUtxosByAddress(
@@ -204,10 +250,6 @@ export const prepareMockedChronikCallsForLegacyWallet = (
             wallet.Path1899.cashAddress,
             wallet.state.parsedTxHistory,
         );
-        chronikClient.setUtxosByAddress(wallet.Path145.cashAddress, []);
-        chronikClient.setUtxosByAddress(wallet.Path245.cashAddress, []);
-        chronikClient.setTxHistoryByAddress(wallet.Path145.cashAddress, []);
-        chronikClient.setTxHistoryByAddress(wallet.Path245.cashAddress, []);
     }
 };
 
@@ -264,10 +306,6 @@ export const prepareMockedChronikCallsForPre_2_9_0Wallet = (
                     path.address,
                     wallet.state.parsedTxHistory,
                 );
-            } else {
-                // No history or utxos at legacy paths
-                chronikClient.setUtxosByAddress(path.address, []);
-                chronikClient.setTxHistoryByAddress(path.address, []);
             }
         }
     }
@@ -276,7 +314,7 @@ export const prepareMockedChronikCallsForPre_2_9_0Wallet = (
 /**
  * Prepare chronik calls for a wallet of Cashtab version >= 2.9.0
  * @param {object} chronikClient a mockedChronikClient object
- * @param {object} wallet a valid cashtab wallet object
+ * @param {object} wallet
  * @param {boolean} apiError true if we want to set api errors in mocked chronik
  * @returns modifies chronikClient in place to have expected API calls for wallet loading available
  */
@@ -431,16 +469,17 @@ export const prepareMockedChronikCallsForWallet = (
         chronikClient.setTx(tokenId, mockedTxResponse);
     }
 
-    // If you are mocking a legacy wallet to test a migration, return prepareMockedChronikCallsForLegacyWallet
-    if (!('paths' in wallet)) {
+    // SuperLegacy A, no paths key
+    if ('Path1899' in wallet) {
         return prepareMockedChronikCallsForLegacyWallet(
             chronikClient,
             wallet,
             apiError,
         );
     }
-    // If paths is an array and not a map, call appropriate function
-    if (Array.isArray(wallet.paths)) {
+
+    // Legacy, paths array
+    if ('paths' in wallet && Array.isArray(wallet.paths)) {
         return prepareMockedChronikCallsForPre_2_9_0Wallet(
             chronikClient,
             wallet,
@@ -448,8 +487,11 @@ export const prepareMockedChronikCallsForWallet = (
         );
     }
 
-    // Iterate over paths to create chronik mocks
-    wallet.paths.forEach((pathInfo, path) => {
+    // Legacy, paths Map
+    if ('paths' in wallet && wallet.paths instanceof Map) {
+        // 1899 only
+        const pathInfo = wallet.paths.get(1899);
+
         // Mock scriptutxos to match context
         if (apiError) {
             chronikClient.setUtxosByAddress(
@@ -461,21 +503,37 @@ export const prepareMockedChronikCallsForWallet = (
                 new Error('Error fetching history'),
             );
         } else {
-            if (path === 1899) {
-                chronikClient.setUtxosByAddress(
-                    pathInfo.address,
-                    wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-                );
-                chronikClient.setTxHistoryByAddress(
-                    pathInfo.address,
-                    wallet.state.parsedTxHistory,
-                );
-            } else {
-                chronikClient.setUtxosByAddress(pathInfo.address, []);
-                chronikClient.setTxHistoryByAddress(pathInfo.address, []);
-            }
+            chronikClient.setUtxosByAddress(
+                pathInfo.address,
+                wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+            );
+            chronikClient.setTxHistoryByAddress(
+                pathInfo.address,
+                wallet.state.parsedTxHistory,
+            );
         }
-    });
+    }
+
+    // Current
+    if (apiError) {
+        chronikClient.setUtxosByAddress(
+            wallet.address,
+            new Error('Error fetching utxos'),
+        );
+        chronikClient.setTxHistoryByAddress(
+            wallet.address,
+            new Error('Error fetching history'),
+        );
+    } else {
+        chronikClient.setUtxosByAddress(
+            wallet.address,
+            wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+        );
+        chronikClient.setTxHistoryByAddress(
+            wallet.address,
+            wallet.state.parsedTxHistory,
+        );
+    }
 };
 
 /**

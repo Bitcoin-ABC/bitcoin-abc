@@ -5,12 +5,12 @@
 import { Script, slpSend, fromHex } from 'ecash-lib';
 import { AgoraOneshot, AgoraOffer } from 'ecash-agora';
 import { decodeCashAddress } from 'ecashaddrjs';
-import { CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { ActiveCashtabWallet } from 'wallet';
 import { XecTxType } from 'chronik';
 import { Token } from 'chronik-client';
 import { RenderedTokenType } from 'token-protocols';
 
-export const nftMarketWallet: CashtabWallet = {
+export const nftMarketWallet: ActiveCashtabWallet = {
     state: {
         balanceSats: 987865,
         slpUtxos: [
@@ -1259,30 +1259,12 @@ export const nftMarketWallet: CashtabWallet = {
     },
     mnemonic:
         'awake task silly salmon always lonely illegal canal narrow soda hip flat',
-    paths: new Map([
-        [
-            1899,
-            {
-                address: 'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
-                hash: '7ecc1fb4c9139badd227291299d0c58ad73f1f08',
-                wif: 'KwtGQrgQV63tr8zHSLSYZ5Ckfdi6K8VbagnfuaaJMDF41sPocxFU',
-                sk: fromHex(
-                    '13d5a0d64418638a4b8eeb6c0934df55106b960119d3b6c7203f412f006bdc25',
-                ),
-                pk: fromHex(
-                    '038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+    address: 'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
+    hash: '7ecc1fb4c9139badd227291299d0c58ad73f1f08',
+    sk: '13d5a0d64418638a4b8eeb6c0934df55106b960119d3b6c7203f412f006bdc25',
+    pk: '038877f6adb7adbdb7ea03b431e9cd996f05f9ec684b9f1fae3dd4ab756c2f71de',
     name: 'NFT Trading [BURNED]',
 };
-
-const nftMarketWalletPublicKey = new Uint8Array([
-    3, 136, 119, 246, 173, 183, 173, 189, 183, 234, 3, 180, 49, 233, 205, 153,
-    111, 5, 249, 236, 104, 75, 159, 31, 174, 61, 212, 171, 117, 108, 47, 113,
-    222,
-]);
 
 // NFTs with necessary mock data
 const SLP_ONE_TOKEN_NUMBER = 65;
@@ -1304,7 +1286,7 @@ export const saturnFive = {
     tokenId: 'e2db39ade16e971afba2087bf6e29a83d7579137900eb73e5d955bdb769204bb',
     listPriceSatoshis: 100000,
     sellerAddress: 'ecash:qplvc8a5eyfehtwjyu539xwsck9dw0clpqah3r8al9',
-    cancelPk: nftMarketWalletPublicKey,
+    cancelPk: fromHex(nftMarketWallet.pk),
     outpoint: {
         outIdx: 1,
         txid: 'dc85418411897d28cec4a3ef817424f03006b52ae3cf9503caaa5b27a87e02c0',

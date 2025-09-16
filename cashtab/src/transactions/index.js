@@ -66,7 +66,7 @@ export const sendXec = async (
             // wallet
             const tokenChangeTargetOutput = {
                 sats: BigInt(appConfig.dustSats),
-                script: Script.p2pkh(fromHex(wallet.paths.get(1899).hash)),
+                script: Script.p2pkh(fromHex(wallet.hash)),
             };
             outputs.push(tokenChangeTargetOutput);
             continue;
@@ -87,7 +87,7 @@ export const sendXec = async (
     // Add a change output
     // Note: ecash-lib expects this added as simply a script
     // Note: if a change output is not needed, ecash-lib will omit
-    outputs.push(Script.p2pkh(fromHex(wallet.paths.get(1899).hash)));
+    outputs.push(Script.p2pkh(fromHex(wallet.hash)));
 
     // Collect input utxos using accumulative algorithm
 
@@ -109,8 +109,7 @@ export const sendXec = async (
             inputs.push(requiredInput);
             inputSatoshis += requiredInput.input.signData.sats;
         } else {
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            const { sk, pk, hash } = pathInfo;
+            const { sk, pk, hash } = wallet;
             inputs.push({
                 input: {
                     prevOut: requiredInput.outpoint,
@@ -120,7 +119,7 @@ export const sendXec = async (
                         outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
-                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                signatory: P2PKHSignatory(fromHex(sk), fromHex(pk), ALL_BIP143),
             });
             inputSatoshis += requiredInput.sats;
         }
@@ -138,8 +137,7 @@ export const sendXec = async (
             }
             // If inputSatoshis is less than or equal to satoshisToSend, we know we need
             // to add another input
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            const { sk, pk, hash } = pathInfo;
+            const { sk, pk, hash } = wallet;
             inputs.push({
                 input: {
                     prevOut: utxo.outpoint,
@@ -149,7 +147,7 @@ export const sendXec = async (
                         outputScript: Script.p2pkh(fromHex(hash)),
                     },
                 },
-                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                signatory: P2PKHSignatory(fromHex(sk), fromHex(pk), ALL_BIP143),
             });
             inputSatoshis += utxo.sats;
 
@@ -179,8 +177,7 @@ export const sendXec = async (
                 if (utxo === null) {
                     break;
                 }
-                const pathInfo = wallet.paths.get(appConfig.derivationPath);
-                const { sk, pk, hash } = pathInfo;
+                const { sk, pk, hash } = wallet;
                 inputs.push({
                     input: {
                         prevOut: utxo.outpoint,
@@ -190,7 +187,11 @@ export const sendXec = async (
                             outputScript: Script.p2pkh(fromHex(hash)),
                         },
                     },
-                    signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                    signatory: P2PKHSignatory(
+                        fromHex(sk),
+                        fromHex(pk),
+                        ALL_BIP143,
+                    ),
                 });
                 inputSatoshis += utxo.sats;
                 continue;

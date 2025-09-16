@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { fromHex } from 'ecash-lib';
-
 export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
     getBalanceSatsVectors: {
@@ -190,32 +188,14 @@ export default {
                 mnemonic:
                     'beauty shoe decline spend still weird slot snack coach flee between paper',
                 wallet: {
-                    state: {
-                        balanceSats: 0,
-                        slpUtxos: [],
-                        nonSlpUtxos: [],
-                        tokens: new Map(),
-                        parsedTxHistory: [],
-                    },
                     mnemonic:
                         'beauty shoe decline spend still weird slot snack coach flee between paper',
-                    paths: new Map([
-                        [
-                            1899,
-                            {
-                                address:
-                                    'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                                sk: fromHex(
-                                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                                ),
-                                pk: fromHex(
-                                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                                ),
-                            },
-                        ],
-                    ]),
+                    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                    sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+
+                    pk: '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+
                     name: 'qqa...70g',
                 },
             },
@@ -309,49 +289,51 @@ export default {
             },
         ],
     },
-    getWalletsForNewActiveWallet: {
+    sortWalletsForDisplay: {
         expectedReturns: [
             {
                 description: 'Return expected wallets array',
-                walletToActivate: { name: 'alpha', mnemonic: 'one' },
+                activeWallet: { name: 'alpha', mnemonic: 'one' },
                 wallets: [
-                    { name: 'beta', mnemonic: 'two' },
-                    { name: 'gamma', mnemonic: 'three' },
-                    { name: 'alpha', mnemonic: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
+                    { name: 'alpha', address: 'one' },
                 ],
                 returned: [
-                    { name: 'alpha', mnemonic: 'one' },
-                    { name: 'beta', mnemonic: 'two' },
-                    { name: 'gamma', mnemonic: 'three' },
+                    { name: 'alpha', address: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
                 ],
             },
             {
                 description:
                     'Returns wallets array unchanged if walletToActivate is already wallets[0]',
-                walletToActivate: { name: 'alpha', mnemonic: 'one' },
+                activeWallet: { name: 'alpha', address: 'one' },
                 wallets: [
-                    { name: 'alpha', mnemonic: 'one' },
-                    { name: 'beta', mnemonic: 'two' },
-                    { name: 'gamma', mnemonic: 'three' },
+                    { name: 'alpha', address: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
                 ],
                 returned: [
-                    { name: 'alpha', mnemonic: 'one' },
-                    { name: 'beta', mnemonic: 'two' },
-                    { name: 'gamma', mnemonic: 'three' },
+                    { name: 'alpha', address: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
                 ],
             },
-        ],
-        expectedErrors: [
             {
                 description:
-                    'Throws error if called with a wallet that is not in wallets',
-                walletToActivate: { name: 'alphaprime', mnemonic: 'oneprime' },
+                    'Returns sorted by name if active wallet is not in wallets',
+                activeWallet: { name: 'alphaprime', address: 'oneprime' },
                 wallets: [
-                    { name: 'beta', mnemonic: 'two' },
-                    { name: 'gamma', mnemonic: 'three' },
-                    { name: 'alpha', mnemonic: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
+                    { name: 'alpha', address: 'one' },
                 ],
-                errorMsg: `Error activating "alphaprime": Could not find wallet in wallets`,
+                returned: [
+                    { name: 'alpha', address: 'one' },
+                    { name: 'beta', address: 'two' },
+                    { name: 'gamma', address: 'three' },
+                ],
             },
         ],
     },

@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { when } from 'jest-when';
 import { explorer } from 'config/explorer';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { slp1FixedCachet } from 'components/Etokens/fixtures/mocks';
@@ -30,7 +30,7 @@ import App from 'components/App/App';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
-import { CashtabWallet } from 'wallet';
+import { ActiveCashtabWallet } from 'wallet';
 
 interface TokenTestWrapperProps {
     chronik: MockChronikClient;
@@ -65,7 +65,7 @@ const SEND_TOKEN_TOKENID =
 const SEND_TOKEN_DECIMALS = 0;
 const SEND_TOKEN_TICKER = 'BEAR';
 const SEND_TOKEN_BALANCE =
-    walletWithXecAndTokens.state.tokens.get(SEND_TOKEN_TOKENID);
+    walletWithXecAndTokensActive.state.tokens.get(SEND_TOKEN_TOKENID);
 
 // See src/validation, ref parseAddressInput
 // See SendToken for some modified errors (SendToken does not support bip21)
@@ -104,7 +104,7 @@ describe('<Token />', () => {
 
         mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -481,16 +481,11 @@ describe('<Token />', () => {
             />,
         );
 
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // The sell switch is turned on by default
-        expect(screen.getByTitle('Toggle Sell Token')).toHaveProperty(
+        expect(await screen.findByTitle('Toggle Sell Token')).toHaveProperty(
             'checked',
             true,
         );
@@ -628,11 +623,11 @@ describe('<Token />', () => {
         });
 
         const walletWithMintBaton = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     mintBatonUtxo,
                     balanceUtxo,
                 ],
@@ -641,7 +636,7 @@ describe('<Token />', () => {
 
         const mintMockedChronik = await prepareContext(
             localforage,
-            [walletWithMintBaton] as unknown as CashtabWallet[],
+            [walletWithMintBaton] as unknown as ActiveCashtabWallet[],
             tokenMocks,
         );
 
@@ -674,11 +669,6 @@ describe('<Token />', () => {
                 theme={theme}
                 route={`/token/${CACHET_TOKENID}`}
             />,
-        );
-
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // Wait for element to get token info and load
@@ -760,11 +750,11 @@ describe('<Token />', () => {
         };
 
         const walletWithMintBaton = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     mintBatonUtxo,
                     balanceUtxo,
                 ],
@@ -816,11 +806,6 @@ describe('<Token />', () => {
                 theme={theme}
                 route={`/`}
             />,
-        );
-
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
         );
 
         // Default route is home
@@ -912,12 +897,6 @@ describe('<Token />', () => {
                 route={`/token/${CACHET_TOKENID}`}
             />,
         );
-
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
         // Cashtab pings chronik to build token cache info and displays token summary table
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
@@ -958,14 +937,6 @@ describe('<Token />', () => {
             />,
         );
 
-        // We see a spinner while token info is loading
-        expect(screen.getByTitle('Loading')).toBeInTheDocument();
-
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
         // We see expected chronik query error
         expect(
             await screen.findByText(
@@ -994,14 +965,6 @@ describe('<Token />', () => {
                 route={`/token/${invalidTokenId}`}
             />,
         );
-
-        // Wait for Cashtab wallet info to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // We never see a spinner as we never make a chronik token info call
-        expect(screen.queryByTitle('Loading')).not.toBeInTheDocument();
 
         // We see expected invalid tokenId error
         expect(

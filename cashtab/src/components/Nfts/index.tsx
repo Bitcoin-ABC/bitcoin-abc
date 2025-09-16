@@ -6,19 +6,16 @@ import React, { useState, useEffect, useContext } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
-import { toHex } from 'ecash-lib';
 import { AgoraOffer } from 'ecash-agora';
 import { NftsCtn, SubHeader, NftListCtn } from './styled';
 import { SwitchHolder, NftOfferWrapper } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
-import appConfig from 'config/app';
 import Switch from 'components/Common/Switch';
 import Collection, {
     OneshotSwiper,
     OneshotOffer,
 } from 'components/Agora/Collection';
 import { NftIcon } from 'components/Common/CustomIcons';
-import { CashtabPathInfo } from 'wallet';
 
 const Nfts: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -28,11 +25,11 @@ const Nfts: React.FC = () => {
     }
     const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
         ContextValue;
-    const { wallets, settings, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
-    // We get public key when wallet changes
-    const pk = (wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo)
-        .pk;
+    const { settings, cashtabCache, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
 
     const userLocale = getUserLocale(navigator);
 
@@ -52,7 +49,7 @@ const Nfts: React.FC = () => {
         let activeOffersByPubKey: AgoraOffer[];
         let activeOneshotOffersByPubKey: OneshotOffer[];
         try {
-            activeOffersByPubKey = await agora.activeOffersByPubKey(toHex(pk));
+            activeOffersByPubKey = await agora.activeOffersByPubKey(wallet.pk);
             // Filter for ONESHOT offers
             activeOneshotOffersByPubKey = activeOffersByPubKey.filter(
                 offer => offer.variant.type === 'ONESHOT',
@@ -127,7 +124,6 @@ const Nfts: React.FC = () => {
                                     {offeredNftsThisWallet.length > 0 ? (
                                         <OneshotSwiper
                                             offers={offeredNftsThisWallet}
-                                            activePk={pk}
                                             chronik={chronik}
                                             chaintipBlockheight={
                                                 chaintipBlockheight
@@ -163,7 +159,6 @@ const Nfts: React.FC = () => {
                                                     fiatPrice={fiatPrice}
                                                     userLocale={userLocale}
                                                     wallet={wallet}
-                                                    activePk={pk}
                                                     chaintipBlockheight={
                                                         chaintipBlockheight
                                                     }

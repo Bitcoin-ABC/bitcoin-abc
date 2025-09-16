@@ -72,7 +72,6 @@ import {
     xecToNanoSatoshis,
     TokenUtxo,
     SlpDecimals,
-    CashtabPathInfo,
     ScriptUtxoWithToken,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
@@ -176,13 +175,14 @@ const Token: React.FC = () => {
         chaintipBlockheight,
         fiatPrice,
     } = ContextValue;
-    const { settings, wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
+    const { settings, cashtabCache, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     // We get sk/pk/hash when wallet changes
-    const { sk, pk, address } = wallet.paths.get(
-        appConfig.derivationPath,
-    ) as CashtabPathInfo;
-    const changeScript = Script.fromAddress(address);
+
+    const changeScript = Script.fromAddress(wallet.address);
     const { tokens, balanceSats } = wallet.state;
 
     const { tokenId } = useParams();
@@ -644,7 +644,7 @@ const Token: React.FC = () => {
                 tokenId,
             );
             cashtabCache.tokens.set(tokenId, cachedInfoWithGroupTokenId);
-            updateCashtabState('cashtabCache', cashtabCache);
+            updateCashtabState({ cashtabCache: cashtabCache });
         } catch (err) {
             console.error(`Error getting token details for ${tokenId}`, err);
             setChronikQueryError(true);
@@ -1491,21 +1491,13 @@ const Token: React.FC = () => {
             },
             {
                 sats: BigInt(listPriceSatoshis),
-                script: Script.p2pkh(
-                    fromHex(
-                        (
-                            wallet.paths.get(
-                                appConfig.derivationPath,
-                            ) as CashtabPathInfo
-                        ).hash,
-                    ),
-                ),
+                script: Script.p2pkh(fromHex(wallet.hash)),
             },
         ];
 
         const agoraOneshot = new AgoraOneshot({
             enforcedOutputs,
-            cancelPk: pk,
+            cancelPk: fromHex(activeWallet.pk),
         });
         const agoraAdScript = agoraOneshot.adScript();
         const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
@@ -1527,7 +1519,7 @@ const Token: React.FC = () => {
         ];
         const offerTxFuelSats = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraOneshotAdSignatory(sk),
+            AgoraOneshotAdSignatory(fromHex(wallet.sk)),
             offerTargetOutputs,
             BigInt(satsPerKb),
         );
@@ -1552,7 +1544,11 @@ const Token: React.FC = () => {
                         outputScript: changeScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
+                    ALL_BIP143,
+                ),
             },
         ];
         const adSetupTargetOutputs = [
@@ -1609,7 +1605,7 @@ const Token: React.FC = () => {
                         redeemScript: agoraAdScript,
                     },
                 },
-                signatory: AgoraOneshotAdSignatory(sk),
+                signatory: AgoraOneshotAdSignatory(fromHex(wallet.sk)),
             },
         ];
 
@@ -1709,7 +1705,7 @@ const Token: React.FC = () => {
                 tokenProtocol: protocol as 'ALP' | 'SLP',
                 offeredAtoms: userSuggestedOfferedTokens,
                 priceNanoSatsPerAtom: priceNanoSatsPerTokenSatoshi,
-                makerPk: pk,
+                makerPk: fromHex(wallet.pk),
                 minAcceptedAtoms,
             });
             return setPreviewedAgoraPartial(agoraPartial);
@@ -1803,7 +1799,7 @@ const Token: React.FC = () => {
                 tokenProtocol: protocol as 'ALP' | 'SLP',
                 offeredAtoms: userSuggestedOfferedTokens,
                 priceNanoSatsPerAtom: priceNanoSatsPerAtom,
-                makerPk: pk,
+                makerPk: fromHex(wallet.pk),
                 minAcceptedAtoms: userSuggestedOfferedTokens,
             };
             firmaPartial = await agora.selectParams(firmaPartialParams);
@@ -2002,7 +1998,7 @@ const Token: React.FC = () => {
 
         const adSetupSatoshis = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraPartialAdSignatory(sk),
+            AgoraPartialAdSignatory(fromHex(wallet.sk)),
             offerTargetOutputs,
             BigInt(satsPerKb),
         );
@@ -2021,7 +2017,11 @@ const Token: React.FC = () => {
                         outputScript: changeScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
+                    ALL_BIP143,
+                ),
             });
         }
         const adSetupTargetOutputs: TokenTargetOutput[] = [
@@ -2100,7 +2100,7 @@ const Token: React.FC = () => {
                         redeemScript: agoraAdScript,
                     },
                 },
-                signatory: AgoraPartialAdSignatory(sk),
+                signatory: AgoraPartialAdSignatory(fromHex(wallet.sk)),
             },
         ];
 
@@ -2871,7 +2871,6 @@ const Token: React.FC = () => {
                                             offers={
                                                 nftActiveOffer as unknown as OneshotOffer[]
                                             }
-                                            activePk={pk}
                                             chronik={chronik}
                                             chaintipBlockheight={
                                                 chaintipBlockheight
@@ -2979,7 +2978,6 @@ const Token: React.FC = () => {
                                 fiatPrice={fiatPrice}
                                 userLocale={userLocale}
                                 wallet={wallet}
-                                activePk={pk}
                                 chaintipBlockheight={chaintipBlockheight}
                                 noCollectionInfo
                             />

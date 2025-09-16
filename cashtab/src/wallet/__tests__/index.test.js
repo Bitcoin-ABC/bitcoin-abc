@@ -11,17 +11,16 @@ import {
     hasEnoughToken,
     createCashtabWallet,
     fiatToSatoshis,
-    getLegacyPaths,
-    getWalletsForNewActiveWallet,
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
     removeLeadingZeros,
     getHashes,
     sciToDecimal,
     toBigInt,
+    sortWalletsForDisplay,
 } from 'wallet';
-import { isValidCashtabWallet } from 'validation';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { isValidStoredCashtabWallet } from 'validation';
+import { walletWithXecAndTokens_pre_2_9_0 } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
 
 describe('Cashtab wallet methods', () => {
@@ -92,12 +91,10 @@ describe('Cashtab wallet methods', () => {
         expectedReturns.forEach(expectedReturn => {
             const { description, mnemonic, wallet } = expectedReturn;
             it(`createCashtabWallet: ${description}`, async () => {
-                expect(await createCashtabWallet(mnemonic)).toStrictEqual(
-                    wallet,
-                );
+                expect(createCashtabWallet(mnemonic)).toStrictEqual(wallet);
 
                 // The created wallet is a valid Cashtab wallet
-                expect(isValidCashtabWallet(wallet)).toBe(true);
+                expect(isValidStoredCashtabWallet(wallet)).toBe(true);
             });
         });
     });
@@ -113,34 +110,15 @@ describe('Cashtab wallet methods', () => {
             });
         });
     });
-    describe('Gets legacy paths from a legacy wallet requiring migration', () => {
-        const { expectedReturns } = vectors.getLegacyPaths;
+    describe('Can sort wallets appropriately for display, leading with the active wallet', () => {
+        const { expectedReturns } = vectors.sortWalletsForDisplay;
         expectedReturns.forEach(expectedReturn => {
-            const { description, wallet, returned } = expectedReturn;
-            it(`getLegacyPaths: ${description}`, () => {
-                expect(getLegacyPaths(wallet)).toEqual(returned);
-            });
-        });
-    });
-    describe('Gets expected array when activating a new wallet', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getWalletsForNewActiveWallet;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, walletToActivate, wallets, returned } =
+            const { description, activeWallet, wallets, returned } =
                 expectedReturn;
-            it(`getWalletsForNewActiveWallet: ${description}`, () => {
-                expect(
-                    getWalletsForNewActiveWallet(walletToActivate, wallets),
-                ).toEqual(returned);
-            });
-        });
-        expectedErrors.forEach(expectedError => {
-            const { description, walletToActivate, wallets, errorMsg } =
-                expectedError;
-            it(`getWalletsForNewActiveWallet throws error for: ${description}`, () => {
-                expect(() =>
-                    getWalletsForNewActiveWallet(walletToActivate, wallets),
-                ).toThrow(errorMsg);
+            it(`sortWalletsForDisplay: ${description}`, () => {
+                expect(sortWalletsForDisplay(activeWallet, wallets)).toEqual(
+                    returned,
+                );
             });
         });
     });
@@ -224,7 +202,7 @@ describe('Cashtab wallet methods', () => {
         });
     });
     it(`Successfully extracts a hash160 array from valid cashtab wallet`, () => {
-        expect(getHashes(walletWithXecAndTokens)).toStrictEqual([
+        expect(getHashes(walletWithXecAndTokens_pre_2_9_0)).toStrictEqual([
             '3a5fb236934ec078b4507c303d3afd82067f8fc1',
             'a28f8852f868f88e71ec666c632d6f86e978f046',
             '600efb12a6f813eccf13171a8bc62055212d8d6c',

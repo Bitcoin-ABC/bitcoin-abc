@@ -10,7 +10,7 @@
 
 import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
-import { CashtabWallet } from 'wallet';
+import { ActiveCashtabWallet, StoredCashtabWallet } from 'wallet';
 
 export interface CashtabContact {
     name: string;
@@ -21,24 +21,30 @@ interface CashtabStateInterface {
     contactList: CashtabContact[];
     cashtabCache: CashtabCache;
     settings: CashtabSettings;
-    wallets: CashtabWallet[];
+    wallets: StoredCashtabWallet[];
+    activeWallet?: ActiveCashtabWallet;
 }
 
 class CashtabState implements CashtabStateInterface {
     contactList: CashtabContact[];
     cashtabCache: CashtabCache;
     settings: CashtabSettings;
-    wallets: CashtabWallet[];
+    wallets: StoredCashtabWallet[];
+    activeWallet?: ActiveCashtabWallet;
     constructor(
         contactList: CashtabContact[] = [],
         cashtabCache = new CashtabCache(),
         settings = new CashtabSettings(),
         wallets = [],
+        activeWallet?: ActiveCashtabWallet,
     ) {
         this.contactList = contactList;
         this.cashtabCache = cashtabCache;
         this.settings = settings;
         this.wallets = wallets;
+        if (typeof activeWallet !== 'undefined') {
+            this.activeWallet = activeWallet;
+        }
     }
 }
 

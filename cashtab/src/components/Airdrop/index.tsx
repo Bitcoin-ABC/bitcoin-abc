@@ -30,7 +30,6 @@ import { encodeOutputScript } from 'ecashaddrjs';
 import Spinner from 'components/Common/Spinner';
 import { AirdropForm, FormRow, SwitchHolder, AirdropTitle } from './styled';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { CashtabPathInfo } from 'wallet';
 
 const Airdrop = () => {
     const ContextValue = useContext(WalletContext);
@@ -39,8 +38,11 @@ const Airdrop = () => {
         return null;
     }
     const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
-    const { wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
+    const { cashtabCache, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     const location = useLocation();
 
     const [calculatingAirdrop, setCalculatingAirdrop] =
@@ -175,9 +177,11 @@ const Airdrop = () => {
             // Add token info for this token to cache
             cashtabCache.tokens.set(tokenId, tokenCacheInfo);
             // Update cashtabCache.tokens in state and localforage
-            updateCashtabState('cashtabCache', {
-                ...cashtabState.cashtabCache,
-                tokens: cashtabState.cashtabCache.tokens,
+            updateCashtabState({
+                cashtabCache: {
+                    ...cashtabState.cashtabCache,
+                    tokens: cashtabState.cashtabCache.tokens,
+                },
             });
             toast.success(
                 `Token info for ${tokenName} (${tokenTicker}) fetched and cached.`,
@@ -237,9 +241,7 @@ const Airdrop = () => {
 
         const excludedAddresses = [];
         if (ignoreOwnAddress) {
-            excludedAddresses.push(
-                (wallet.paths.get(1899) as CashtabPathInfo).address,
-            );
+            excludedAddresses.push(wallet.address);
         }
         if (ignoreMintAddress) {
             if (typeof mintAddress === 'undefined') {

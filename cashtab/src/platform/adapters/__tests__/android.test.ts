@@ -3,9 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { AndroidStorageAdapter } from '../android';
-import { CashtabWallet } from 'wallet';
-import { StoredCashtabWallet } from 'helpers';
-import { fromHex } from 'ecash-lib';
+import { StoredCashtabWallet } from 'wallet';
 
 // Mock Capacitor SQLite
 const mockSQLite = {
@@ -93,160 +91,59 @@ describe('AndroidStorageAdapter', () => {
         const mockWallet: StoredCashtabWallet = {
             name: 'Test Wallet',
             mnemonic: 'test mnemonic phrase twelve words long',
-            paths: [
-                [
-                    1899,
-                    {
-                        address:
-                            'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                        hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                        wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                        sk: Array.from(
-                            fromHex(
-                                '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                            ),
-                        ),
-                        pk: Array.from(
-                            fromHex(
-                                '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            ),
-                        ),
-                    },
-                ],
-            ],
-            state: {
-                balanceSats: 1000000,
-                slpUtxos: [],
-                nonSlpUtxos: [],
-                tokens: [],
-                parsedTxHistory: [],
-            },
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            pk: '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+            sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
         };
 
-        it('should store wallet data with secure storage for private keys and mnemonics', async () => {
-            // Mock successful database operations
-            mockSQLite.run.mockResolvedValue({});
-
+        it('should store wallet data in secure storage', async () => {
             // Store wallet
             await adapter.setItem('wallets', [mockWallet]);
 
-            // Verify secure storage was called for all wallets with single key
+            // Verify secure storage was called with the entire wallets data
             expect(mockSecureStorage.internalSetItem).toHaveBeenCalledWith({
                 prefixedKey: 'cashtab_secure_wallets',
-                data: expect.stringContaining('test mnemonic phrase'),
+                data: JSON.stringify([mockWallet]),
                 sync: false,
                 access: 0,
             });
         });
 
-        it('should retrieve and reconstruct wallet data from secure storage', async () => {
-            // Mock database to return sanitized wallet data
-            const sanitizedWalletData = JSON.stringify([
-                {
-                    name: 'Test Wallet',
-                    paths: [
-                        [
-                            1899,
-                            {
-                                address:
-                                    'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                                pk: Array.from(
-                                    fromHex(
-                                        '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                                    ),
-                                ),
-                            },
-                        ],
-                    ],
-                    state: {
-                        balanceSats: 1000000,
-                        slpUtxos: [],
-                        nonSlpUtxos: [],
-                        tokens: [],
-                        parsedTxHistory: [],
-                    },
-                },
-            ]);
-
-            mockSQLite.query.mockResolvedValue({
-                values: [{ value: sanitizedWalletData }],
-            });
-
-            // Mock secure storage to return all wallets' private data
-            const allSecureData = {
-                'Test Wallet': {
-                    mnemonic: 'test mnemonic phrase twelve words long',
-                    securePaths: [
-                        [
-                            1899,
-                            {
-                                sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                            },
-                        ],
-                    ],
-                },
-            };
-
+        it('should retrieve wallet data from secure storage', async () => {
+            // Mock secure storage to return wallet data
             mockSecureStorage.internalGetItem.mockResolvedValue({
-                data: JSON.stringify(allSecureData),
+                data: JSON.stringify([mockWallet]),
             });
 
             // Retrieve wallet
-            const retrievedWallets = await adapter.getItem<CashtabWallet[]>(
-                'wallets',
-            );
+            const retrievedWallets = await adapter.getItem<
+                StoredCashtabWallet[]
+            >('wallets');
 
-            // Verify the wallet was reconstructed correctly
+            // Verify the wallet was retrieved correctly
             expect(retrievedWallets).toBeDefined();
             expect(retrievedWallets).toHaveLength(1);
             expect(retrievedWallets![0].name).toBe('Test Wallet');
             expect(retrievedWallets![0].mnemonic).toBe(
                 'test mnemonic phrase twelve words long',
             );
-
-            // Find the path data in the array format
-            const pathsArray = retrievedWallets![0].paths as any;
-            const pathData = pathsArray.find(
-                ([path, _]: [number, any]) => path === 1899,
-            );
-            expect(pathData).toBeDefined();
-            expect(pathData![1].sk).toBeDefined();
-            expect(pathData![1].address).toBe(
+            expect(retrievedWallets![0].address).toBe(
                 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
             );
         });
 
-        it('should throw error when secure data is missing', async () => {
-            // Mock database to return sanitized wallet data
-            const sanitizedWalletData = JSON.stringify([
-                {
-                    name: 'Test Wallet',
-                    paths: [],
-                    state: {
-                        balanceSats: 0,
-                        slpUtxos: [],
-                        nonSlpUtxos: [],
-                        tokens: [],
-                        parsedTxHistory: [],
-                    },
-                },
-            ]);
-
-            mockSQLite.query.mockResolvedValue({
-                values: [{ value: sanitizedWalletData }],
-            });
-
-            // Mock secure storage to return null (missing data)
+        it('should return null when no wallet data exists', async () => {
+            // Mock secure storage to return null (no data)
             mockSecureStorage.internalGetItem.mockResolvedValue({ data: null });
 
-            // Retrieve wallet - should throw error when secure data is missing
-            await expect(
-                adapter.getItem<CashtabWallet[]>('wallets'),
-            ).rejects.toThrow(
-                'Wallet data appears to be corrupted. Private keys and mnemonics are missing from secure storage. Please restore from backup or contact support.',
-            );
+            // Retrieve wallet
+            const retrievedWallets = await adapter.getItem<
+                StoredCashtabWallet[]
+            >('wallets');
+
+            // Should return null when no data exists
+            expect(retrievedWallets).toBeNull();
         });
     });
 });

@@ -25,7 +25,6 @@ import {
     walletWithXecAndTokens_pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import { toXec } from 'wallet';
-import { cashtabWalletFromJSON } from 'helpers';
 import { tokenTestWallet } from 'components/Etokens/fixtures/mocks';
 import {
     agoraPartialAlphaWallet,
@@ -1394,25 +1393,24 @@ export default {
             },
         ],
     },
-    isValidCashtabWallet: {
+    isValidStoredCashtabWallet: {
         expectedReturns: [
             {
-                description: 'Returns true for a valid Cashtab wallet',
-                wallet: cashtabWalletFromJSON(validWalletJson),
+                description: 'Returns true for a valid stored Cashtab wallet',
+                wallet: validWalletJson,
                 returned: true,
             },
             {
                 description:
                     'Returns false for a JSON-loaded pre-2.9.0 Cashtab wallet',
-                wallet: cashtabWalletFromJSON(walletWithXecAndTokens_pre_2_9_0),
+                wallet: walletWithXecAndTokens_pre_2_9_0,
                 returned: false,
             },
             {
                 description:
                     'Returns false for a JSON-loaded pre-2.55.0 Cashtab wallet',
-                wallet: cashtabWalletFromJSON(
-                    walletWithXecAndTokens_pre_2_55_0,
-                ),
+                wallet: walletWithXecAndTokens_pre_2_55_0,
+
                 returned: false,
             },
             {
@@ -1438,225 +1436,44 @@ export default {
                 returned: false,
             },
             {
-                description: 'Returns false if wallet is missing state',
-                wallet: cloneObjectWithDeletedKey(
-                    cashtabWalletFromJSON(validWalletJson),
-                    'state',
-                ),
-                returned: false,
+                description:
+                    'Missing state is ok, stored wallets do not have it',
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'state'),
+                returned: true,
             },
             {
                 description: 'Returns false if wallet is missing mnemonic',
-                wallet: cloneObjectWithDeletedKey(
-                    cashtabWalletFromJSON(validWalletJson),
-                    'mnemonic',
-                ),
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'mnemonic'),
                 returned: false,
             },
             {
                 description: 'Returns false if wallet is missing name',
-                wallet: cloneObjectWithDeletedKey(
-                    cashtabWalletFromJSON(validWalletJson),
-                    'name',
-                ),
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'name'),
                 returned: false,
             },
             {
-                description: 'Returns false if wallet is missing paths',
-                wallet: cloneObjectWithDeletedKey(
-                    cashtabWalletFromJSON(validWalletJson),
-                    'paths',
-                ),
+                description: 'Returns false if wallet is missing hash ',
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'hash'),
                 returned: false,
             },
             {
-                description:
-                    'Returns false if wallet is missing hash in path1899 path object',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    paths: new Map([
-                        [
-                            1899,
-                            {
-                                address: 'string',
-                                wif: 'string',
-                            },
-                        ],
-                    ]),
-                },
+                description: 'Returns false if wallet is missing address ',
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'address'),
                 returned: false,
             },
             {
-                description:
-                    'Returns false if wallet is missing address in path1899 path object',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    paths: new Map([
-                        [
-                            1899,
-                            {
-                                hash: 'string',
-                                wif: 'string',
-                            },
-                        ],
-                    ]),
-                },
+                description: 'Returns false if wallet is missing sk ',
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'sk'),
                 returned: false,
             },
             {
-                description:
-                    'Returns false if wallet is missing address in path1899 path object',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    paths: new Map([
-                        [
-                            1899,
-                            {
-                                address: 'string',
-                                hash: 'string',
-                            },
-                        ],
-                    ]),
-                },
+                description: 'Returns false if wallet is missing pk ',
+                wallet: cloneObjectWithDeletedKey(validWalletJson, 'pk'),
                 returned: false,
             },
             {
-                description: 'Returns true for a multi-path wallet',
-                wallet: cashtabWalletFromJSON(validWalletJsonMultiPath),
-                returned: true,
-            },
-            {
-                description:
-                    'Returns false if wallet is missing wif in a secondary path object',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    paths: new Map([
-                        [
-                            1899,
-                            {
-                                hash: 'string',
-                                address: 'string',
-                                wif: 'string',
-                            },
-                        ],
-                        [
-                            145,
-                            {
-                                hash: 'string',
-                                address: 'string',
-                            },
-                        ],
-                    ]),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if wallet has no path info objects',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    paths: new Map(),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if wallet.state is not an object',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: 'string',
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if no balanceSats in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: {
-                        ...cloneObjectWithDeletedKey(
-                            cashtabWalletFromJSON(validWalletJson).state,
-                            'balanceSats',
-                        ),
-                    },
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if balances in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: {
-                        ...cashtabWalletFromJSON(validWalletJson).state,
-                        balances: {},
-                    },
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if balanceSats is not a number',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: {
-                        ...validWalletJson.state,
-                        balanceSats: '100',
-                        tokens: new Map(),
-                    },
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if no slpUtxos in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: cloneObjectWithDeletedKey(
-                        cashtabWalletFromJSON(validWalletJson).state,
-                        'slpUtxos',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if no nonSlpUtxos in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: cloneObjectWithDeletedKey(
-                        cashtabWalletFromJSON(validWalletJson).state,
-                        'nonSlpUtxos',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if no tokens in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: cloneObjectWithDeletedKey(
-                        cashtabWalletFromJSON(validWalletJson).state,
-                        'tokens',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if hydratedUtxoDetails is in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: {
-                        ...cashtabWalletFromJSON(validWalletJson).state,
-                        hydratedUtxoDetails: [],
-                    },
-                },
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if slpBalancesAndUtxos is in wallet.state',
-                wallet: {
-                    ...cashtabWalletFromJSON(validWalletJson),
-                    state: {
-                        ...cashtabWalletFromJSON(validWalletJson).state,
-                        slpBalancesAndUtxos: [],
-                    },
-                },
+                description: 'Returns false for a pathed wallet',
+                wallet: validWalletJsonMultiPath,
                 returned: false,
             },
             // Wallets used for various tests in Cashtab are valid

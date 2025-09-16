@@ -18,8 +18,11 @@ const CreateToken: React.FC = () => {
         return null;
     }
     const { apiError, fiatPrice, cashtabState } = ContextValue;
-    const { settings, wallets } = cashtabState;
-    const wallet = wallets[0];
+    const { settings, activeWallet } = cashtabState;
+    if (activeWallet === undefined) {
+        return null;
+    }
+    const wallet = activeWallet;
     const { balanceSats } = wallet.state;
 
     const minTokenCreationFiatPriceString =

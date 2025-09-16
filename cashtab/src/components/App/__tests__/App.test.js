@@ -8,7 +8,6 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { FEE_SATS_PER_KB_XEC_MINIMUM } from 'constants/transactions';
 import {
-    walletWithXecAndTokens,
     walletWithXecAndTokens_pre_2_1_0,
     walletWithXecAndTokens_pre_2_9_0,
     walletWithXecAndTokens_pre_2_55_0,
@@ -20,7 +19,12 @@ import {
     validSavedWallets_pre_2_55_0,
     validSavedWallets,
     mockCacheWalletWithXecAndTokens,
-    legacyJsonWalletWithXecAndTokens,
+    walletWithXecAndTokensStored_Pre_3_41_0,
+    walletWithXecAndTokensActive,
+    walletWithXecAndTokensStored,
+    validActiveWallets,
+    walletWithXecAndTokens_pre_3_41_0,
+    validSavedWallets_pre_3_41_0,
 } from 'components/App/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -29,19 +33,15 @@ import appConfig from 'config/app';
 import {
     clearLocalForage,
     initializeCashtabStateForTests,
+    initializeCashtabStateForTests_pre_3_41_0,
     initializeCashtabStateAtLegacyWalletKeysForTests,
     prepareMockedChronikCallsForWallet,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
-import {
-    cashtabCacheToJSON,
-    storedCashtabCacheToMap,
-    cashtabWalletFromJSON,
-    cashtabWalletsFromJSON,
-} from 'helpers';
+import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 import { createCashtabWallet } from 'wallet';
-import { isValidCashtabWallet } from 'validation';
+import { isValidStoredCashtabWallet } from 'validation';
 import CashtabCache from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, toHex } from 'ecash-lib';
@@ -50,7 +50,9 @@ import { MockAgora } from '../../../../../modules/mock-chronik-client';
 describe('<App />', () => {
     const ecc = new Ecc();
     let user;
-    beforeEach(() => {
+    beforeEach(async () => {
+        // Clear localforage
+        await localforage.clear();
         // Set up userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
@@ -109,8 +111,8 @@ describe('<App />', () => {
             <CashtabTestWrapper ecc={ecc} chronik={mockedChronik} route="/" />,
         );
 
-        // We show a spinner while Cashtab is loading
-        expect(screen.getByTitle('Loading...')).toBeInTheDocument();
+        // We see a spinner while the app loads
+        expect(await screen.findByTitle('Loading...')).toBeInTheDocument();
 
         // Wait for the app to load
         await waitFor(() =>
@@ -175,7 +177,7 @@ describe('<App />', () => {
     it('Renders 404 at bad route if user has a wallet', async () => {
         // This is the experience of a user visiting cashtab.com for the first time
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -194,7 +196,7 @@ describe('<App />', () => {
     });
     it('Navigation menu routes to expected components', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -208,9 +210,7 @@ describe('<App />', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        const thisPublicKey = walletWithXecAndTokens.paths.get(
-            appConfig.derivationPath,
-        ).pk;
+        const thisPublicKey = walletWithXecAndTokensActive.pk;
         mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
 
         // activeOffersByGroupTokenId does not need to be mocked since there are no offers here
@@ -341,7 +341,7 @@ describe('<App />', () => {
 
         // Now we see the NFTs screen
         expect(
-            await screen.findByText('Listed Collections'),
+            await screen.findByText(/Error querying listed NFTs/),
         ).toBeInTheDocument();
 
         // Navigate to Agora screen
@@ -351,13 +351,9 @@ describe('<App />', () => {
             }),
         );
 
-        // Now we see the "Token Offers" header
-        // We expect an h2 element that contains the text "Token Offers"
+        // We did not set all the mocks we need but this error confirms our nav destination
         expect(
-            await screen.findByRole('heading', {
-                level: 2,
-                name: 'Token Offers',
-            }),
+            await screen.findByText(/Error querying listed tokens/),
         ).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
@@ -541,7 +537,7 @@ describe('<App />', () => {
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {
         // Note: this is what happens to existing users when we add a new key to cashtabState.settings
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -582,11 +578,11 @@ describe('<App />', () => {
         // Modify walletWithXecAndTokens to have the required token for this feature
 
         const walletWithEasterEggToken = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     requiredEasterEggUtxo,
                 ],
             },
@@ -608,12 +604,11 @@ describe('<App />', () => {
         // We see the easter egg
         expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
     });
-
     it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 2.9.0 cashtabCache', async () => {
         // Note: this is what will happen for all Cashtab users when this diff lands
         const mockedChronik =
             await initializeCashtabStateAtLegacyWalletKeysForTests(
-                walletWithXecAndTokens,
+                walletWithXecAndTokensActive,
                 localforage,
             );
 
@@ -648,7 +643,7 @@ describe('<App />', () => {
         // Prepare chronik mocks for expected utxo set to populate wallet
         prepareMockedChronikCallsForWallet(
             mockedChronik,
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
         );
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
@@ -707,27 +702,15 @@ describe('<App />', () => {
 
         // The imported wallet is in localforage
         const wallets = await localforage.getItem('wallets');
-        const importedWallet = cashtabWalletFromJSON(wallets[0]);
 
-        // The imported wallet matches our expected mock except for name, which is autoset on import
-        // The imported wallet is not imported with legacy paths (145 and 245)
-        const expectedPathInfo = walletWithXecAndTokens.paths.get(1899);
-        // We expect the wallet to be walletWithXecAndTokens, except new name and no legacy paths
-        const expectedWallet = {
-            ...walletWithXecAndTokens,
-            name: 'qqa...70g',
-            paths: new Map([[1899, expectedPathInfo]]),
-        };
-
-        expect(importedWallet).toEqual(expectedWallet);
+        expect(wallets).toEqual([
+            { ...walletWithXecAndTokensStored, name: 'qqa...70g' },
+        ]);
 
         // Apart from state, which is blank from createCashtabWallet,
         // the imported wallet matches what we get from createCashtabWallet
         const createdWallet = await createCashtabWallet(VALID_MNEMONIC);
-        expect(importedWallet).toEqual({
-            ...createdWallet,
-            state: importedWallet.state,
-        });
+        expect(wallets[0]).toEqual(createdWallet);
     });
     it('Migrating from wallet/savedWallet keys (version < 1.6.0): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
         const mockedChronik =
@@ -759,10 +742,17 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
-
+        const migratedWallet = wallets[0];
         // The wallet has been migrated
-        expect(migratedWallet).toEqual(walletWithXecAndTokens);
+        expect(migratedWallet).toEqual(walletWithXecAndTokensStored);
+
+        // The activeWallet key now stores the address of the active wallet
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating from wallet/savedWallet keys (version < 1.6.0): A user with pre-2.1.0 valid wallets in savedWallets has them all migrated to new storage keys and new shape', async () => {
         const mockedChronik =
@@ -801,27 +791,39 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
+        const walletsAfterLoad = await localforage.getItem('wallets');
+        // The savedWallets array stored at the savedWallets key is unchanged
+        expect(await localforage.getItem('savedWallets')).toEqual([
+            ...validSavedWallets_pre_2_1_0,
+            walletWithXecAndTokens_pre_2_1_0,
+        ]);
+
+        // We have migrated all the wallets, including the active wallet
+        expect(walletsAfterLoad).toHaveLength(validSavedWallets.length + 1);
+        expect(
+            walletsAfterLoad.sort((a, b) => a.name.localeCompare(b.name)),
+        ).toEqual(
+            [walletWithXecAndTokensStored, ...validSavedWallets].sort((a, b) =>
+                a.name.localeCompare(b.name),
+            ),
         );
 
-        const savedWallets = walletsAfterLoad.slice(1);
-
-        // The savedWallets array stored at the savedWallets key is unchanged
-        expect(savedWallets).toEqual(validSavedWallets);
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (version >= 1.6.0 and < 2.1.0): A user with an invalid wallet stored at wallets key has that wallet migrated', async () => {
-        // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
         const mixedValidWallets = [
-            walletWithXecAndTokens,
-            ...validSavedWallets_pre_2_1_0.slice(0, 1),
-            ...validSavedWallets.slice(1),
+            walletWithXecAndTokensActive, // valid
+            ...validSavedWallets_pre_2_1_0.slice(0, 1), // legacy
+            ...validActiveWallets.slice(1), // valid
         ];
 
-        // The wallet at index one is invalid
-        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
-
-        const mockedChronik = await initializeCashtabStateForTests(
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
             mixedValidWallets,
             localforage,
         );
@@ -841,31 +843,40 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        // We have migrated all the wallets, including the active wallet
+        expect(walletsAfterLoad).toHaveLength(validSavedWallets.length + 1);
+        expect(
+            walletsAfterLoad.sort((a, b) => a.name.localeCompare(b.name)),
+        ).toEqual(
+            [walletWithXecAndTokensStored, ...validSavedWallets].sort((a, b) =>
+                a.name.localeCompare(b.name),
+            ),
         );
 
-        const savedWallets = walletsAfterLoad.slice(1);
-
-        // We expect savedWallets in localforage to have been migrated
-        await waitFor(async () => {
-            expect(savedWallets).toEqual(validSavedWallets);
-        });
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (version >= 1.6.0 and < 2.1.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
         // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
         const mixedValidWallets = [
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             ...validSavedWallets_pre_2_1_0.slice(0, 3),
-            ...validSavedWallets.slice(3),
+            ...validActiveWallets.slice(3),
         ];
 
         // The wallets at indices 1, 2, and 3 are invalid
-        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[2])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[3])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[1])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[2])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[3])).toBe(false);
 
-        const mockedChronik = await initializeCashtabStateForTests(
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
             mixedValidWallets,
             localforage,
         );
@@ -885,16 +896,21 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
-        );
-
-        const savedWallets = walletsAfterLoad.slice(1);
+        const walletsAfterLoad = await localforage.getItem('wallets');
 
         // We expect savedWallets in localforage to have been migrated
-        await waitFor(async () => {
-            expect(savedWallets).toEqual(validSavedWallets);
-        });
+        expect(walletsAfterLoad).toEqual([
+            walletWithXecAndTokensStored,
+            ...validSavedWallets,
+        ]);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Cashtab version >= 1.6.0 and < 2.1.0: A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -921,19 +937,26 @@ describe('<App />', () => {
             { timeout: 10000 },
         );
 
-        // Check wallet in localforage
+        // Check wallets in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
-        expect(migratedWallet.mnemonic).toEqual(
-            walletWithXecAndTokens.mnemonic,
+        expect(wallets).toEqual([walletWithXecAndTokensStored]);
+
+        // It is valid
+        expect(isValidStoredCashtabWallet(wallets[0])).toEqual(true);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
         );
-        expect(isValidCashtabWallet(migratedWallet)).toEqual(true);
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('A user with all valid wallets stored at wallets key does not have any wallets migrated', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            [walletWithXecAndTokens, ...validSavedWallets],
+            [walletWithXecAndTokensActive, ...validActiveWallets],
             localforage,
         );
 
@@ -951,30 +974,36 @@ describe('<App />', () => {
             '9,513.12 XEC',
         );
 
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
-        );
+        const walletsAfterLoad = await localforage.getItem('wallets');
 
-        // The savedWallets array stored at the savedWallets key is unchanged
+        // Wallets are in place as expected
         expect(walletsAfterLoad).toEqual([
-            walletWithXecAndTokens,
+            walletWithXecAndTokensStored,
             ...validSavedWallets,
         ]);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (version < 2.9.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
         // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
         const mixedValidWallets = [
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             ...validSavedWallets_pre_2_9_0.slice(0, 3),
-            ...validSavedWallets.slice(3),
+            ...validActiveWallets.slice(3),
         ];
 
         // The wallets at indices 1, 2, and 3 are invalid
-        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[2])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[3])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[1])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[2])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[3])).toBe(false);
 
-        const mockedChronik = await initializeCashtabStateForTests(
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
             mixedValidWallets,
             localforage,
         );
@@ -994,16 +1023,23 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
-        );
-
-        const savedWallets = walletsAfterLoad.slice(1);
+        const walletsAfterLoad = await localforage.getItem('wallets');
 
         // We expect savedWallets in localforage to have been migrated
         await waitFor(async () => {
-            expect(savedWallets).toEqual(validSavedWallets);
+            expect(walletsAfterLoad).toEqual([
+                walletWithXecAndTokensStored,
+                ...validSavedWallets,
+            ]);
         });
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (version < 2.9.0): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -1032,28 +1068,33 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
-        expect(migratedWallet.mnemonic).toEqual(
-            walletWithXecAndTokens.mnemonic,
+        expect(wallets).toEqual([walletWithXecAndTokensStored]);
+        expect(isValidStoredCashtabWallet(wallets[0])).toEqual(true);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
         );
-        expect(isValidCashtabWallet(migratedWallet)).toEqual(true);
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (2.9.0 <= version < 2.55.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
         // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
         const mixedValidWallets = [
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             ...validSavedWallets_pre_2_55_0.slice(0, 3),
-            ...validSavedWallets.slice(3),
+            ...validActiveWallets.slice(3),
         ];
 
         // The wallets at indices 1, 2, and 3 are invalid
-        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[2])).toBe(false);
-        expect(isValidCashtabWallet(mixedValidWallets[3])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[1])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[2])).toBe(false);
+        expect(isValidStoredCashtabWallet(mixedValidWallets[3])).toBe(false);
 
-        const mockedChronik = await initializeCashtabStateForTests(
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
             mixedValidWallets,
             localforage,
         );
@@ -1073,16 +1114,21 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = cashtabWalletsFromJSON(
-            await localforage.getItem('wallets'),
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        // Wallets migrated
+        expect(walletsAfterLoad).toEqual([
+            walletWithXecAndTokensStored,
+            ...validSavedWallets,
+        ]);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
         );
-
-        const savedWallets = walletsAfterLoad.slice(1);
-
-        // We expect savedWallets in localforage to have been migrated
-        await waitFor(async () => {
-            expect(savedWallets).toEqual(validSavedWallets);
-        });
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating (2.9.0 <= version < 2.55.0): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -1111,20 +1157,116 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
-        expect(migratedWallet).toEqual(walletWithXecAndTokens);
+        expect(wallets).toEqual([walletWithXecAndTokensStored]);
+        expect(isValidStoredCashtabWallet(wallets[0])).toEqual(true);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
+    });
+    it('Migrating (2.55.0 <= version < 3.41.0): A user with a legacy Cashtab wallet as the active wallet is migrated on startup', async () => {
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
+            walletWithXecAndTokens_pre_3_41_0,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
+
+        // Check wallet in localforage
+        const wallets = await localforage.getItem('wallets');
+
+        // The wallet has been migrated
+        expect(wallets).toEqual([walletWithXecAndTokensStored]);
+        expect(isValidStoredCashtabWallet(wallets[0])).toEqual(true);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
+    });
+    it('Migrating (2.55.0 <= version < 3.41.0): A user with a legacy Cashtab wallets is migrated on startup', async () => {
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
+            [
+                walletWithXecAndTokens_pre_3_41_0,
+                ...validSavedWallets_pre_3_41_0,
+            ],
+            localforage,
+        );
+
+        render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        await waitFor(
+            () => {
+                expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                    '9,513.12 XEC',
+                );
+            },
+            { timeout: 10000 },
+        );
+
+        // Check wallet in localforage
+        const wallets = await localforage.getItem('wallets');
+
+        // The wallets have all been migrated
+        expect(wallets).toEqual([
+            walletWithXecAndTokensStored,
+            ...validSavedWallets,
+        ]);
+        for (const wallet of wallets) {
+            expect(isValidStoredCashtabWallet(wallet)).toEqual(true);
+        }
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('Migrating to 3.14.0: A user with a Cashtab wallet with legacy value/amount keys is migrated', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+        const mockedChronik = await initializeCashtabStateForTests_pre_3_41_0(
+            walletWithXecAndTokensActive,
             localforage,
         );
 
         // Overwrite localforage wallets to be legacy
         await localforage.setItem('wallets', [
-            legacyJsonWalletWithXecAndTokens,
+            walletWithXecAndTokensStored_Pre_3_41_0,
         ]);
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
@@ -1143,15 +1285,23 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
-        expect(migratedWallet).toEqual(walletWithXecAndTokens);
+        expect(wallets).toEqual([walletWithXecAndTokensStored]);
+        expect(isValidStoredCashtabWallet(wallets[0])).toEqual(true);
+
+        // We have the active wallet address stored at the activeWalletAddress key
+        const activeWalletAddress = await localforage.getItem(
+            'activeWalletAddress',
+        );
+        expect(activeWalletAddress).toEqual(
+            walletWithXecAndTokensStored.address,
+        );
     });
     it('If Cashtab starts with < 2.9.0 cashtabCache, it is wiped and migrated to 2.9.0 cashtabCache', async () => {
         // Note: this is what will happen for all Cashtab users when this diff lands
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1224,7 +1374,7 @@ describe('<App />', () => {
         jest.useFakeTimers();
 
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1271,7 +1421,7 @@ describe('<App />', () => {
         jest.useFakeTimers();
 
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 

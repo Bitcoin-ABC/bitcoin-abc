@@ -5,32 +5,28 @@
 import BigNumber from 'bignumber.js';
 import * as bip39 from 'bip39';
 import randomBytes from 'randombytes';
+import { ChronikClient } from 'chronik-client';
 import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { fromHex, HdNode, shaRmd160 } from 'ecash-lib';
+import { fromHex, HdNode, shaRmd160, toHex } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
-import { ParsedTx } from 'chronik';
 import {
-    LegacyCashtabWallet_Pre_2_1_0,
-    LegacyCashtabWallet_Pre_2_9_0,
-    LegacyCashtabWallet_Pre_2_55_0,
+    organizeUtxosByType,
+    ParsedTx,
+    getTokenBalances,
+    getTransactionHistory,
+} from 'chronik';
+import {
+    CashtabWallet_Pre_2_1_0,
+    CashtabWallet_Pre_2_9_0,
+    CashtabWallet_Pre_2_55_0,
+    PathInfo_Pre_2_55_0,
 } from 'components/App/fixtures/mocks';
-import * as wif from 'wif';
-import {
-    TokenJson,
-    TxJson,
-    LegacyTxInputJson,
-    LegacyTxOutputJson,
-    LegacyTokenEntryJson,
-    previewAddress,
-} from 'helpers';
+import { previewAddress, TxJson, TokenJson } from 'helpers';
+import CashtabCache from 'config/CashtabCache';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-export interface LegacyPathInfo_Pre_2_55_0 {
-    address: string;
-    hash: string;
-    wif: string;
-}
+
 export interface CashtabPathInfo {
     address: string;
     hash: string;
@@ -65,6 +61,23 @@ export interface StoredCashtabPathInfo {
      */
     sk: number[];
 }
+export interface CashtabWalletState {
+    balanceSats: number;
+    nonSlpUtxos: NonTokenUtxo[];
+    slpUtxos: TokenUtxo[];
+    parsedTxHistory: CashtabTx[];
+    tokens: Map<string, string>;
+}
+export interface StoredCashtabState
+    extends Omit<
+        CashtabWalletState,
+        'tokens' | 'slpUtxos' | 'nonSlpUtxos' | 'parsedTxHistory'
+    > {
+    tokens: [string, string][];
+    slpUtxos: object[];
+    nonSlpUtxos: object[];
+    parsedTxHistory: object[];
+}
 export interface ScriptUtxoWithToken extends ScriptUtxo {
     token: Token;
 }
@@ -72,10 +85,6 @@ export type NonTokenUtxo = Omit<ScriptUtxo, 'token'>;
 
 export interface NonTokenUtxoJson extends Omit<NonTokenUtxo, 'sats'> {
     sats: string;
-}
-
-export interface LegacyNonTokenUtxoJson extends Omit<NonTokenUtxoJson, 'sats'> {
-    value: number;
 }
 
 export interface TokenUtxo extends NonTokenUtxo {
@@ -116,24 +125,45 @@ export interface CashtabTx extends Tx {
 export interface CashtabTxJson extends TxJson {
     parsed: ParsedTx;
 }
-export interface LegacyCashtabTxJson
-    extends Omit<CashtabTxJson, 'inputs' | 'outputs' | 'tokenEntries'> {
-    inputs: LegacyTxInputJson[];
-    outputs: LegacyTxOutputJson[];
-    tokenEntries: LegacyTokenEntryJson[];
-}
 export interface CashtabWalletPaths extends Map<number, CashtabPathInfo> {
     // Assert that path 1899, the default path, is always defined
     get(key: 1899): CashtabPathInfo;
     // For all other keys, it might return undefined
     get(key: number): CashtabPathInfo | undefined;
 }
-export interface CashtabWallet {
+export interface CashtabWallet_Pre_3_41_0 {
     name: string;
     mnemonic: string;
     // Path 1899 is always defined
     paths: CashtabWalletPaths;
     state: CashtabWalletState;
+}
+export interface StoredCashtabWallet_Pre_3_41_0 {
+    name: string;
+    mnemonic: string;
+    paths: [number, StoredCashtabPathInfo][];
+    state: StoredCashtabState;
+}
+
+export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
+    amount: string;
+}
+/**
+ * Minimal storage interface for a wallet
+ * Note that all we really need is name and mnemonic, as we can derive the rest from mnemonic
+ * However, since we never expect that info to change, it is convenient and lightweight to save ourselves from so much derivation
+ *
+ * We may, for example, wish to ws subscribe to all wallet addresses to show notifications if txs are received at the inactive wallet
+ */
+export interface StoredCashtabWallet {
+    name: string;
+    mnemonic: string;
+    // Store as hex string to save JSON conversions for storage
+    sk: string;
+    // Store as hex string to save JSON conversions for storage
+    pk: string;
+    address: string;
+    hash: string;
 }
 
 const SATOSHIS_PER_XEC = 100;
@@ -242,84 +272,115 @@ export const hasEnoughToken = (
 };
 
 /**
+ * Cashtab wallet
+ * We keep this in state; only name and mnemonic are stored
+ */
+export interface ActiveCashtabWallet extends StoredCashtabWallet {
+    state: CashtabWalletState;
+}
+/**
  * Create a Cashtab wallet object from a valid bip39 mnemonic
+ * We only store wallet name and mnemonic, and we keep a CashtabWallet in state for processing
+ * This will be replaced by Wallet from the ecash-wallet lib when feature parity is reached there
  * @param mnemonic a valid bip39 mnemonic
- * @param additionalPaths array of paths in addition to 1899 to add to this wallet
  * @param ecc
  * Default to 1899-only for all new wallets
  * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
  */
-export const createCashtabWallet = async (
+export const createCashtabWallet = (
     mnemonic: string,
-    additionalPaths: number[] = [],
-): Promise<CashtabWallet> => {
-    // Initialize wallet with empty state
-    const wallet: Omit<CashtabWallet, 'paths'> = {
-        name: '',
-        mnemonic: '',
-        state: {
-            balanceSats: 0,
-            slpUtxos: [],
-            nonSlpUtxos: [],
-            tokens: new Map(),
-            parsedTxHistory: [],
-        },
-    };
-
-    // Set wallet mnemonic
-    wallet.mnemonic = mnemonic;
-
-    const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
-
+    name?: string,
+): StoredCashtabWallet => {
+    const rootSeedBuffer = bip39.mnemonicToSeedSync(mnemonic, '');
     const masterHDNode = HdNode.fromSeed(rootSeedBuffer);
-
-    // wallet.paths is an array
-    // For all newly-created wallets, we only support Path 1899
-    // We would support only Path 1899, but Cashtab must continue to support legacy paths 145 and 245
-    // Maybe someday we will support multi-path, so the array could help
-
-    // We always derive path 1899
-    const pathsToDerive = [appConfig.derivationPath, ...additionalPaths];
-
-    const walletPaths: Map<number, CashtabPathInfo> = new Map();
-    for (const path of pathsToDerive) {
-        const pathInfo = getPathInfo(masterHDNode, path);
-        if (path === appConfig.derivationPath) {
-            // Initialize wallet name with standardized preview address format
-            wallet.name = previewAddress(pathInfo.address);
-        }
-        walletPaths.set(path, pathInfo);
-    }
-
-    return { ...wallet, paths: walletPaths } as CashtabWallet;
-};
-
-/**
- * Get address, hash, and wif for a given derivation path
- *
- * @param masterHDNode calculated from utxolib
- * @param abbreviatedDerivationPath in practice: 145, 245, or 1899
- * @param ecc
- */
-const getPathInfo = (
-    masterHDNode: HdNode,
-    abbreviatedDerivationPath: number,
-): CashtabPathInfo => {
-    const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
+    const fullDerivationPath = `m/44'/${appConfig.derivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
-    const pk = node.pubkey();
-    const address = encodeCashAddress(appConfig.prefix, 'p2pkh', shaRmd160(pk));
+    const address = encodeCashAddress(
+        appConfig.prefix,
+        'p2pkh',
+        shaRmd160(node.pubkey()),
+    );
+    const pk = toHex(node.pubkey());
     const { hash } = decodeCashAddress(address);
-    const sk = node.seckey();
-
-    const thisWif = wif.encode(128, sk as Buffer, true);
+    const sk = toHex(node.seckey()!);
 
     return {
-        hash: hash.toString(),
-        address,
-        wif: thisWif,
-        sk: sk as Uint8Array,
+        name: name || previewAddress(address),
+        mnemonic,
+        sk,
         pk,
+        address,
+        hash,
+    };
+};
+
+export const createActiveCashtabWallet = async (
+    chronik: ChronikClient,
+    storedWallet: StoredCashtabWallet,
+    cashtabCache: CashtabCache,
+): Promise<ActiveCashtabWallet> => {
+    let utxos: ScriptUtxo[];
+    try {
+        utxos = (await chronik.address(storedWallet.address).utxos()).utxos;
+    } catch (error) {
+        console.error(
+            `Error getting utxos in createActiveCashtabWallet`,
+            error,
+        );
+        // API errors mean we fail to populate, not fail to create
+        utxos = [];
+    }
+
+    const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(utxos);
+
+    // Get map of all tokenIds held by this wallet and their balances
+    // Note: this function will also update cashtabCache.tokens if any tokens in slpUtxos are not in cache
+    let tokens: Map<string, string> = new Map();
+    try {
+        tokens = await getTokenBalances(chronik, slpUtxos, cashtabCache.tokens);
+    } catch (error) {
+        console.error(
+            `Error getting token balances in createActiveCashtabWallet`,
+            error,
+        );
+        // API errors mean we fail to populate, not fail to create
+        // Note we would still expect the update() routine to catch this and set apiError to true when the wallet updates
+        tokens = new Map();
+    }
+
+    // Fetch and parse tx history
+    // Note: this function will also update cashtabCache.tokens if any tokens in tx history are not in cache
+
+    let result: { txs: CashtabTx[]; totalPages?: number } = {
+        txs: [],
+        totalPages: 0,
+    };
+    try {
+        result = await getTransactionHistory(
+            chronik,
+            storedWallet.address,
+            cashtabCache.tokens,
+        );
+    } catch (error) {
+        console.error(
+            `Error getting tx history in createActiveCashtabWallet`,
+            error,
+        );
+        // API errors mean we fail to populate, not fail to create
+        result = { txs: [], totalPages: 0 };
+    }
+
+    const parsedTxHistory = result.txs;
+
+    return {
+        ...storedWallet,
+        state: {
+            balanceSats: getBalanceSats(nonSlpUtxos),
+            slpUtxos,
+            nonSlpUtxos,
+            tokens,
+            parsedTxHistory,
+        },
     };
 };
 
@@ -359,98 +420,14 @@ export const fiatToSatoshis = (
  * So, if cashtabWalletFromJSON is called with a legacy wallet, it returns the
  * wallet as-is so it can be invalidated and recreated
  */
-export interface LegacyPathInfo extends LegacyPathInfo_Pre_2_55_0 {
+export interface LegacyPathInfo extends PathInfo_Pre_2_55_0 {
     path: number;
 }
 
-export interface StoredCashtabState
-    extends Omit<
-        CashtabWalletState,
-        'tokens' | 'slpUtxos' | 'nonSlpUtxos' | 'parsedTxHistory'
-    > {
-    tokens: [string, string][];
-    slpUtxos: TokenUtxoJson[] | LegacyTokenUtxoJson[];
-    nonSlpUtxos: NonTokenUtxoJson[] | LegacyNonTokenUtxoJson[];
-    parsedTxHistory: CashtabTxJson[] | LegacyCashtabTxJson[];
-}
-
 export type LegacyCashtabWallet =
-    | LegacyCashtabWallet_Pre_2_1_0
-    | LegacyCashtabWallet_Pre_2_9_0
-    | LegacyCashtabWallet_Pre_2_55_0;
-
-/**
- * Determine if a legacy wallet includes legacy paths that must be migrated
- * @param wallet a cashtab wallet
- * @returns array of legacy paths
- */
-export const getLegacyPaths = (
-    wallet: LegacyCashtabWallet | CashtabWallet,
-): number[] => {
-    const legacyPaths = [];
-    if ('paths' in wallet) {
-        if (Array.isArray(wallet.paths)) {
-            // If we are migrating a wallet pre 2.9.0 and post 2.2.0
-            for (const path of wallet.paths) {
-                if (path.path !== 1899) {
-                    // Path 1899 will be added by default, it is not an 'extra' path
-                    legacyPaths.push(path.path);
-                }
-            }
-        } else {
-            // Cashtab wallet post 2.9.0
-            wallet.paths?.forEach((_pathInfo, path) => {
-                if (path !== 1899) {
-                    legacyPaths.push(path);
-                }
-            });
-        }
-    }
-    if ('Path145' in wallet) {
-        // Wallet created before version 2.2.0 that includes Path145
-        legacyPaths.push(145);
-    }
-    if ('Path245' in wallet) {
-        // Wallet created before version 2.2.0 that includes Path145
-        legacyPaths.push(245);
-    }
-    return legacyPaths;
-};
-
-/**
- * Re-organize the user's wallets array so that wallets[0] is a new active wallet
- * @param walletToActivate Cashtab wallet object of wallet the user wishes to activate
- * @param wallets Array of all cashtab wallets
- * @returns wallets with walletToActivate at wallets[0] and
- * the rest of the wallets sorted alphabetically by name
- */
-export const getWalletsForNewActiveWallet = (
-    walletToActivate: CashtabWallet,
-    wallets: CashtabWallet[],
-): CashtabWallet[] => {
-    // Clone wallets so we do not mutate the app's wallets array
-    const currentWallets = [...wallets];
-    // Find this wallet in wallets
-    const indexOfWalletToActivate = currentWallets.findIndex(
-        wallet => wallet.mnemonic === walletToActivate.mnemonic,
-    );
-
-    if (indexOfWalletToActivate === -1) {
-        // should never happen
-        throw new Error(
-            `Error activating "${walletToActivate.name}": Could not find wallet in wallets`,
-        );
-    }
-
-    // Remove walletToActivate from currentWallets
-    currentWallets.splice(indexOfWalletToActivate, 1);
-
-    // Sort inactive wallets alphabetically by name
-    currentWallets.sort((a, b) => a.name.localeCompare(b.name));
-
-    // Put walletToActivate at 0-index
-    return [walletToActivate, ...currentWallets];
-};
+    | CashtabWallet_Pre_2_1_0
+    | CashtabWallet_Pre_2_9_0
+    | CashtabWallet_Pre_2_55_0;
 
 /**
  * Convert a token amount like one from an in-node chronik utxo to a decimalized string
@@ -665,10 +642,46 @@ export const removeLeadingZeros = (givenString: string): string => {
  * @param wallet valid cashtab wallet
  * @returns array of hashes of all addresses in wallet
  */
-export const getHashes = (wallet: CashtabWallet): string[] => {
+export const getHashes = (wallet: CashtabWallet_Pre_3_41_0): string[] => {
     const hashArray: string[] = [];
     wallet.paths.forEach(pathInfo => {
         hashArray.push(pathInfo.hash);
     });
     return hashArray;
+};
+
+/**
+ * Sort wallets for display with active wallet first, then alphabetically by name
+ * @param wallets Array of wallets to sort
+ * @param activeWallet The currently active wallet
+ * @returns Sorted array with active wallet at index 0, rest alphabetically
+ */
+export const sortWalletsForDisplay = <
+    T extends { name: string; address: string },
+>(
+    activeWallet: T,
+    wallets: T[],
+): T[] => {
+    // Check if activeWallet exists in the wallets array
+    const activeWalletExists = wallets.some(
+        wallet => wallet.address === activeWallet.address,
+    );
+
+    if (!activeWalletExists) {
+        // Not expected to ever happen
+        return wallets.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Filter out the active wallet from the list
+    const otherWallets = wallets.filter(
+        wallet => wallet.address !== activeWallet.address,
+    );
+
+    // Sort other wallets alphabetically by name
+    const sortedOtherWallets = otherWallets.sort((a, b) =>
+        a.name.localeCompare(b.name),
+    );
+
+    // Return active wallet first, then sorted others
+    return [activeWallet, ...sortedOtherWallets];
 };

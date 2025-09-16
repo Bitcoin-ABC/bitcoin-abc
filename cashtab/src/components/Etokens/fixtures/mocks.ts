@@ -2,12 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { fromHex } from 'ecash-lib';
 import { Utxo } from 'chronik-client';
 import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
 import { FIRMA } from 'constants/tokens';
 import { XecTxType } from 'chronik';
-import { CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { ActiveCashtabWallet } from 'wallet';
 
 /**
  * Etokens/fixtures/mocks.js
@@ -34,7 +33,7 @@ const MOCK_TOKEN_UTXO: Utxo = {
     },
 } as unknown as Utxo;
 
-export const tokenTestWallet: CashtabWallet = {
+export const tokenTestWallet: ActiveCashtabWallet = {
     state: {
         balanceSats: 997081,
         slpUtxos: [
@@ -1197,23 +1196,12 @@ export const tokenTestWallet: CashtabWallet = {
         ],
     },
     mnemonic: 'away away away away away away away away away away away away',
-    paths: new Map([
-        [
-            1899,
-            {
-                address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
-                hash: '00549451e5c22b18686cacdf34dce649e5ec3be2',
-                // Same as Transaction Fixtures in App/fixtures/mocks
-                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                sk: fromHex(
-                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                ),
-                pk: fromHex(
-                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                ),
-            },
-        ],
-    ]) as unknown as CashtabWalletPaths,
+    address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
+    hash: '00549451e5c22b18686cacdf34dce649e5ec3be2',
+    sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+
+    pk: '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+
     name: 'Token Test',
 };
 
@@ -2510,7 +2498,7 @@ export const supportedTokens = [
  * Mocks to test Etokens.js component
  */
 
-export const EtokensWalletMock: CashtabWallet = {
+export const EtokensWalletMock: ActiveCashtabWallet = {
     state: {
         balanceSats: 97511071,
         slpUtxos: [
@@ -6442,18 +6430,10 @@ export const EtokensWalletMock: CashtabWallet = {
         ],
     },
     mnemonic: 'army army army army army army army army army army army army',
-    paths: new Map([
-        [
-            1899,
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                wif: '',
-                sk: new Uint8Array(),
-                pk: new Uint8Array(),
-            },
-        ],
-    ]) as unknown as CashtabWalletPaths,
+    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+    sk: '1111111111111111111111111111111111111111111111111111111111111111',
+    pk: '1111111111111111111111111111111111111111111111111111111111111111',
     name: 'Etokens Test',
 };
 export const EtokensStoredCashtabCache = {

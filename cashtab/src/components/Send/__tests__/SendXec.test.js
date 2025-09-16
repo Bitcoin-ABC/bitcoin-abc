@@ -6,7 +6,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import {
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
@@ -63,7 +63,7 @@ describe('<SendXec />', () => {
     it('Renders the SendXec screen with send address input', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -123,7 +123,7 @@ describe('<SendXec />', () => {
     it('Pass valid address to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -181,7 +181,7 @@ describe('<SendXec />', () => {
     it('Pass an invalid address to Send To field and get a validation error', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -232,7 +232,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and bip21 query string with valid amount param to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -290,7 +290,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and bip21 query string with invalid amount param (dust) to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -344,7 +344,7 @@ describe('<SendXec />', () => {
     it('Valid address with valid bip21 query string with valid amount param rejected if amount exceeds wallet balance', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -400,7 +400,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and an invalid bip21 query string', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -460,7 +460,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and bip21 query string with op_return_raw param to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -534,7 +534,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -608,7 +608,7 @@ describe('<SendXec />', () => {
     it('Pass a valid address and bip21 query string with valid amount and invalid op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(
@@ -678,7 +678,7 @@ describe('<SendXec />', () => {
     it('Clicking "Send" will send a valid tx with op_return_raw after entry of a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -824,7 +824,7 @@ describe('<SendXec />', () => {
     it('We can calculate max send amount with and without a cashtab msg, and send a max sat tx with a cashtab msg', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -927,7 +927,7 @@ describe('<SendXec />', () => {
     it('We can send a tx with amount denominated in fiat currency', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1001,7 +1001,7 @@ describe('<SendXec />', () => {
     it('We can send an XEC tx to multiple users', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1071,7 +1071,7 @@ describe('<SendXec />', () => {
     it('If we type a Cashtab msg, then disable the switch, we send a tx without our typed Cashtab message', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1186,7 +1186,7 @@ describe('<SendXec />', () => {
     it('Entering a valid bip21 query string with multiple outputs and op_return_raw will correctly populate UI fields, and the tx can be sent', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1339,7 +1339,7 @@ describe('<SendXec />', () => {
     it('Entering a valid bip21 query string for a token send tx does not render a populated token tx and shows a query error if Cashtab is unable to fetch the token info', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1431,7 +1431,7 @@ describe('<SendXec />', () => {
     it('SLP1 Fungible: Entering a valid bip21 query string for a token send tx will correcty populate the UI, and the tx can be sent', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -1837,13 +1837,6 @@ describe('<SendXec />', () => {
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
         );
-
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // Wait for balance to be loaded
-        expect(await screen.findByText('9,970.81 XEC')).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         await user.type(addressInputEl, bip21Str);

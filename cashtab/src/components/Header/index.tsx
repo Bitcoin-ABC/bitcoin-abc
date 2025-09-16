@@ -2,23 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React from 'react';
-import { getWalletsForNewActiveWallet } from 'wallet';
+import React, { useContext } from 'react';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
-import CashtabSettings, {
-    supportedFiatCurrencies,
-} from 'config/CashtabSettings';
-import { CashtabWallet } from 'wallet';
-import { UpdateCashtabState } from 'wallet/useWallet';
-import CashtabState from 'config/CashtabState';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
 import Cashtab from 'assets/cashtab_xec.png';
 import PopOut from 'assets/popout.png';
-import { toXec } from 'wallet';
+import { toXec, createActiveCashtabWallet } from 'wallet';
 import { FIRMA } from 'constants/tokens';
 import Ecash from 'assets/ecash.png';
 import Staking from 'assets/staking.png';
 import Savings from 'assets/savings.png';
+import { sortWalletsForDisplay } from 'wallet';
 import {
     HeaderCtn,
     WalletDropdown,
@@ -39,41 +36,39 @@ import {
 } from './styled';
 
 interface HeaderProps {
-    wallets: CashtabWallet[];
-    settings: CashtabSettings;
-    updateCashtabState: UpdateCashtabState;
-    setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
-    loading: boolean;
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    fiatPrice: null | number;
-    userLocale?: string;
     path: string;
-    balanceSats: number;
-    /** In decimalized XECX */
-    balanceXecx: number;
-    /** In decimalized firma */
-    balanceFirma: number;
-    firmaPrice: null | number;
 }
 
-const Header: React.FC<HeaderProps> = ({
-    wallets,
-    updateCashtabState,
-    setCashtabState,
-    loading,
-    setLoading,
-    fiatPrice = null,
-    userLocale = 'en-US',
-    path,
-    balanceSats,
-    balanceXecx,
-    balanceFirma,
-    settings = new CashtabSettings(),
-    firmaPrice = null,
-}) => {
-    const address = wallets[0].paths.get(1899).address;
+const Header: React.FC<HeaderProps> = ({ path }) => {
+    const userLocale = getUserLocale(navigator);
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the page
+        return null;
+    }
+    const {
+        chronik,
+        cashtabState,
+        updateCashtabState,
+        loading,
+        setLoading,
+        fiatPrice,
+        firmaPrice,
+    } = ContextValue;
+    const { wallets, activeWallet, settings } = cashtabState;
 
-    const handleSelectWallet = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!activeWallet) {
+        // Without an active wallet, all components except App, which renders Onboarding, are disabled
+        return null;
+    }
+
+    const address = activeWallet.address;
+
+    const menuWallets = sortWalletsForDisplay(activeWallet, wallets);
+
+    const handleSelectWallet = async (
+        e: React.ChangeEvent<HTMLSelectElement>,
+    ) => {
         const walletName = e.target.value;
 
         // Get the active wallet by name
@@ -85,30 +80,22 @@ const Header: React.FC<HeaderProps> = ({
             return;
         }
 
-        // Get desired wallets array after activating walletToActivate
-        const walletsAfterActivation = getWalletsForNewActiveWallet(
-            walletToActivate,
-            wallets,
-        );
-        /**
-         * Update state
-         * useWallet.ts has a useEffect that will then sync this new
-         * active wallet with the network and update it in storage
-         *
-         * We also setLoading(true) on a wallet change, because we want
-         * to prevent rapid wallet cycling
-         *
-         * setLoading(false) is called after the wallet is updated in useWallet.ts
-         */
         setLoading(true);
-        setCashtabState(prevState => ({
-            ...prevState,
-            wallets: walletsAfterActivation,
-        }));
+        try {
+            const activeWallet = await createActiveCashtabWallet(
+                chronik,
+                walletToActivate,
+                cashtabState.cashtabCache,
+            );
+            await updateCashtabState({ activeWallet: activeWallet });
+        } catch (error) {
+            console.error('Error switching wallet:', error);
+            // Reset dropdown to previous value on error
+            e.target.value = activeWallet.name;
+        } finally {
+            setLoading(false);
+        }
     };
-
-    // If navigator.language is undefined, default to en-US
-    userLocale = typeof userLocale === 'undefined' ? 'en-US' : userLocale;
 
     const renderFiatValues =
         typeof fiatPrice === 'number' && typeof firmaPrice === 'number';
@@ -133,16 +120,26 @@ const Header: React.FC<HeaderProps> = ({
             maximumFractionDigits: appConfig.fiatDecimals,
         });
 
-    const balanceXec = toXec(balanceSats);
+    const balanceXec = toXec(activeWallet.state.balanceSats);
 
     const formattedBalanceXec = formatBalance(
         balanceXec,
         appConfig.cashDecimals,
     );
+
+    const balanceXecx =
+        Number(
+            activeWallet.state.tokens.get(appConfig.vipTokens.xecx.tokenId),
+        ) || 0;
+
     const formattedBalanceXecx = formatBalance(
         balanceXecx,
         appConfig.cashDecimals,
     );
+
+    const balanceFirma =
+        Number(activeWallet.state.tokens.get(FIRMA.tokenId)) || 0;
+
     const formattedBalanceFirma = formatBalance(
         balanceFirma,
         FIRMA.token.genesisInfo.decimals,
@@ -228,11 +225,15 @@ const Header: React.FC<HeaderProps> = ({
                 )}
             </MobileHeader>
             <LabelCtn>
-                {renderFiatValues && (
+                {renderFiatValues ? (
                     <Price title="Price in Local Currency">
                         1 {appConfig.ticker} = {formattedExchangeRate}{' '}
                         {settings.fiatCurrency.toUpperCase()}
                     </Price>
+                ) : (
+                    <div>
+                        {/** Render a placeholder if there is no price so we do not content jump the menu */}
+                    </div>
                 )}
                 <WalletSelectCtn>
                     {process.env.REACT_APP_BUILD_ENV === 'extension' && (
@@ -253,10 +254,10 @@ const Header: React.FC<HeaderProps> = ({
                         id="wallets"
                         data-testid="wallet-select"
                         onChange={e => handleSelectWallet(e)}
-                        value={wallets[0].name}
+                        value={activeWallet.name}
                         disabled={loading}
                     >
-                        {wallets.map((wallet, index) => (
+                        {menuWallets.map((wallet, index) => (
                             <WalletOption key={index} value={wallet.name}>
                                 {wallet.name}
                             </WalletOption>

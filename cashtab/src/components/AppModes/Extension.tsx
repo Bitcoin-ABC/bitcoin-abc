@@ -5,7 +5,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Modal from 'components/Common/Modal';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { getWalletsForNewActiveWallet, CashtabWallet } from 'wallet';
+import {
+    ActiveCashtabWallet,
+    StoredCashtabWallet,
+    sortWalletsForDisplay,
+} from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { previewAddress } from 'helpers';
 import {
@@ -34,42 +38,41 @@ const Extension: React.FC = () => {
         // If wallet context is not loaded, show loading or return null
         return null;
     }
-    const { cashtabState, updateCashtabState, setLoading } = ContextValue;
-    const { wallets } = cashtabState;
+    const { cashtabState, handleActivatingCopiedWallet } = ContextValue;
+    const { wallets, activeWallet } = cashtabState;
+
+    if (!activeWallet) {
+        return null;
+    }
+
+    const sortedWallets = sortWalletsForDisplay(activeWallet, wallets);
 
     /**
      * Handle wallet connection - activate wallet and share address
      */
     const handleWalletConnect = async (
-        wallet: CashtabWallet,
+        wallet: ActiveCashtabWallet | StoredCashtabWallet,
     ): Promise<void> => {
         if (addressRequestTabId === null) return;
 
         // If the selected wallet is not the active wallet, activate it first
-        if (wallets[0].mnemonic !== wallet.mnemonic) {
-            // Get desired wallets array after activating wallet
-            const walletsAfterActivation = getWalletsForNewActiveWallet(
-                wallet,
-                wallets,
-            );
-
+        if (activeWallet.address !== wallet.address) {
             // Event("Category", "Action", "Label")
             // Track number of times a different wallet is activated
             Event('Extension.js', 'Activate', '');
 
-            // Update state and storage directly, waiting for completion
-            setLoading(true);
-            await updateCashtabState('wallets', walletsAfterActivation);
+            // Only update the activeWalletAddress in storage for address sharing
+            await handleActivatingCopiedWallet(wallet.address);
         }
 
-        // Send the address to the requesting tab
-        await chrome.tabs.sendMessage(addressRequestTabId, {
+        // Send the address approval to the service worker
+        await chrome.runtime.sendMessage({
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: true,
             url: addressRequestTabUrl,
             tabId: addressRequestTabId,
-            address: wallet.paths.get(1899).address,
+            address: wallet.address,
         });
 
         setShowApproveAddressShareModal(false);
@@ -80,7 +83,7 @@ const Extension: React.FC = () => {
     const handleRejectedAddressShare = async (): Promise<void> => {
         if (addressRequestTabId === null) return;
 
-        await chrome.tabs.sendMessage(addressRequestTabId, {
+        await chrome.runtime.sendMessage({
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: false,
@@ -164,12 +167,13 @@ const Extension: React.FC = () => {
                                 Reject
                             </button>
                         </div>
-                        {wallets.map((wallet, index) => (
+                        {sortedWallets.map((wallet, index) => (
                             <WalletAddressRow key={`${wallet.name}_${index}`}>
                                 <WalletInfo>
                                     <WalletNameText>
                                         {wallet.name}
-                                        {index === 0 && (
+                                        {activeWallet.address ===
+                                            wallet.address && (
                                             <ActiveIndicator>
                                                 [active]
                                             </ActiveIndicator>
@@ -178,7 +182,7 @@ const Extension: React.FC = () => {
                                     <WalletAddress>
                                         {(() => {
                                             const preview = previewAddress(
-                                                wallet.paths.get(1899).address,
+                                                wallet.address,
                                             );
                                             const firstChar = preview.charAt(0);
                                             const rest = preview.slice(1);

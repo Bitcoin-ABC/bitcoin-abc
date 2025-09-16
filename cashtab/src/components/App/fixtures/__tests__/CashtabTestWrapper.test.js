@@ -14,7 +14,7 @@ import {
     initializeCashtabStateForTests,
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -70,7 +70,7 @@ describe('<CashtabTestWrapper />', () => {
     });
     it('With default props, renders App component', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
@@ -89,19 +89,12 @@ describe('<CashtabTestWrapper />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // Wait for the balance to render
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
-
         // Home container
         expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
     });
     it('We can render other pages by passing the route', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(

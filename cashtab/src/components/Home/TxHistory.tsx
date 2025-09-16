@@ -2,54 +2,34 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Tx from 'components/Home/Tx';
 import TxHistoryPagination from 'components/Home/TxHistoryPagination';
-import {
-    CashtabPathInfo,
-    CashtabTx,
-    CashtabWallet,
-    LegacyCashtabWallet,
-} from 'wallet';
-import CashtabState, { CashtabContact } from 'config/CashtabState';
-import CashtabCache from 'config/CashtabCache';
-import CashtabSettings from 'config/CashtabSettings';
-import { CashtabCacheJson, StoredCashtabWallet } from 'helpers';
+import { CashtabTx } from 'wallet';
 import { getTransactionHistory } from 'chronik';
-import { ChronikClient } from 'chronik-client';
-import appConfig from 'config/app';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import { getUserLocale } from 'helpers';
 
-interface TxHistoryProps {
-    txs: CashtabTx[];
-    hashes: string[];
-    fiatPrice: number | null;
-    fiatCurrency: string;
-    cashtabState: CashtabState;
-    updateCashtabState: (
-        key: string,
-        value:
-            | CashtabWallet[]
-            | CashtabCache
-            | CashtabContact[]
-            | CashtabSettings
-            | CashtabCacheJson
-            | StoredCashtabWallet[]
-            | (LegacyCashtabWallet | StoredCashtabWallet)[],
-    ) => Promise<boolean>;
-    userLocale: string;
-    chronik: ChronikClient;
-}
+const TxHistory: React.FC = () => {
+    const ContextValue = useContext(WalletContext);
+    if (!isWalletContextLoaded(ContextValue)) {
+        // Confirm we have all context required to load the component
+        return null;
+    }
+    const { chronik, fiatPrice, cashtabState, updateCashtabState } =
+        ContextValue;
+    const { settings, activeWallet } = cashtabState;
 
-const TxHistory: React.FC<TxHistoryProps> = ({
-    txs,
-    hashes,
-    fiatPrice,
-    fiatCurrency,
-    cashtabState,
-    updateCashtabState,
-    userLocale = 'en-US',
-    chronik,
-}) => {
+    if (!activeWallet) {
+        return null;
+    }
+
+    // Get data from context instead of props
+    const txs = activeWallet.state.parsedTxHistory;
+    const hashes = [activeWallet.hash];
+    const fiatCurrency =
+        settings && settings.fiatCurrency ? settings.fiatCurrency : 'usd';
+    const userLocale = getUserLocale(navigator);
     const [currentPage, setCurrentPage] = useState(0);
     const [paginatedTxs, setPaginatedTxs] = useState<CashtabTx[]>([]);
     const [totalPages, setTotalPages] = useState(0);
@@ -57,11 +37,7 @@ const TxHistory: React.FC<TxHistoryProps> = ({
     const [showPagination, setShowPagination] = useState(false);
 
     // Get the path1899 address (path 1899 is always defined in CashtabWalletPaths)
-    const path1899Address = (
-        cashtabState.wallets[0].paths.get(
-            appConfig.derivationPath,
-        ) as CashtabPathInfo
-    ).address!;
+    const path1899Address = activeWallet.address;
 
     // Reset pagination when wallet changes
     useEffect(() => {
@@ -129,7 +105,7 @@ const TxHistory: React.FC<TxHistoryProps> = ({
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
                     cashtabState={cashtabState}
-                    updateCashtabState={updateCashtabState}
+                    updateCashtabState={updateCashtabState as any}
                     userLocale={userLocale}
                 />
             ))}

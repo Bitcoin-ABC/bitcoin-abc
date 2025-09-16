@@ -77,21 +77,12 @@ import {
     TetherIcon,
     QuestionIcon,
 } from 'components/Common/CustomIcons';
-import CashtabSettings, {
-    supportedFiatCurrencies,
-} from 'config/CashtabSettings';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
 import { ParsedTokenTxType, XecxAction, SolAddrAction } from 'chronik';
 import { toFormattedXec, decimalizedTokenQtyToLocaleFormat } from 'formatting';
-import {
-    toXec,
-    decimalizeTokenAmount,
-    CashtabTx,
-    SlpDecimals,
-    CashtabWallet,
-    LegacyCashtabWallet,
-} from 'wallet';
+import { toXec, decimalizeTokenAmount, CashtabTx, SlpDecimals } from 'wallet';
 import { opReturn } from 'config/opreturn';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import Modal from 'components/Common/Modal';
@@ -99,18 +90,12 @@ import { ModalInput } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import { getContactNameError } from 'validation';
 import AvalancheFinalized from 'components/Common/AvalancheFinalized';
-import CashtabState, { CashtabContact } from 'config/CashtabState';
-import CashtabCache from 'config/CashtabCache';
-import {
-    CashtabCacheJson,
-    StoredCashtabWallet,
-    previewAddress,
-    previewTokenId,
-    previewSolAddr,
-} from 'helpers';
+import CashtabState from 'config/CashtabState';
+import { previewAddress, previewTokenId, previewSolAddr } from 'helpers';
 import { CopyIconButton, IconButton } from 'components/Common/Buttons';
 import { FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 import { Alert } from 'components/Common/Atoms';
+import { UpdateCashtabState } from 'wallet/useWallet';
 
 interface TxProps {
     tx: CashtabTx;
@@ -118,17 +103,7 @@ interface TxProps {
     fiatPrice: null | number;
     fiatCurrency: string;
     cashtabState: CashtabState;
-    updateCashtabState: (
-        key: string,
-        value:
-            | CashtabWallet[]
-            | CashtabCache
-            | CashtabContact[]
-            | CashtabSettings
-            | CashtabCacheJson
-            | StoredCashtabWallet[]
-            | (LegacyCashtabWallet | StoredCashtabWallet)[],
-    ) => Promise<boolean>;
+    updateCashtabState: UpdateCashtabState;
     userLocale: string;
 }
 const Tx: React.FC<TxProps> = ({
@@ -902,7 +877,7 @@ const Tx: React.FC<TxProps> = ({
                 address: addressToAdd,
             });
             // update localforage and state
-            await updateCashtabState('contactList', contactList);
+            await updateCashtabState({ contactList: contactList });
             toast.success(
                 `${formData.newContactName} (${addressToAdd}) added to Contact List`,
             );

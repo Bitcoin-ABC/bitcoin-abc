@@ -4,7 +4,7 @@
 
 import React from 'react';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -78,7 +78,7 @@ describe('<CreateToken />', () => {
         });
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -117,9 +117,9 @@ describe('<CreateToken />', () => {
             tokenInfo: bearTokenAndTx.token,
         });
         const walletWithInsufficientBalance = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 balanceSats: 0,
                 nonSlpUtxos: [],
             },

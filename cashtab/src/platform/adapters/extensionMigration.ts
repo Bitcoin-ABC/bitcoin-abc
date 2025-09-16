@@ -11,9 +11,8 @@
 
 import localforage from 'localforage';
 import { getChromeAPI } from '../types/chrome';
-import { type StoredCashtabWallet } from 'helpers';
 import { SUPPORTED_CASHTAB_STORAGE_KEYS } from 'config/storage';
-import type { LegacyCashtabWallet } from 'wallet';
+import type { LegacyCashtabWallet, StoredCashtabWallet } from 'wallet';
 
 // Use the canonical storage keys list that includes legacy keys (savedWallets, wallet)
 

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     MOCK_CHRONIK_TOKEN_CALL,
     MOCK_CHRONIK_GENESIS_TX_CALL,
     bearTokenAndTx,
@@ -31,7 +31,7 @@ import {
     MockChronikClient,
 } from '../../../../../modules/mock-chronik-client';
 import App from 'components/App/App';
-import { CashtabWallet, TokenUtxo } from 'wallet';
+import { ActiveCashtabWallet, TokenUtxo } from 'wallet';
 
 interface CreateTokenFormTestWrapperProps {
     chronik: MockChronikClient;
@@ -90,7 +90,7 @@ describe('<CreateTokenForm />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -213,12 +213,12 @@ describe('<CreateTokenForm />', () => {
             tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
         });
 
-        const walletWithCreatedToken: CashtabWallet = {
-            ...walletWithXecAndTokens,
+        const walletWithCreatedToken: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     MOCK_UTXO_FOR_BALANCE,
                 ],
             },
@@ -361,7 +361,7 @@ describe('<CreateTokenForm />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -481,12 +481,12 @@ describe('<CreateTokenForm />', () => {
             tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
         });
 
-        const walletWithCreatedToken: CashtabWallet = {
-            ...walletWithXecAndTokens,
+        const walletWithCreatedToken: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     MOCK_UTXO_FOR_BALANCE,
                 ] as unknown as TokenUtxo[],
             },
@@ -637,12 +637,12 @@ describe('<CreateTokenForm />', () => {
             tokenInfo: MOCK_CHRONIK_TOKEN_CALL,
         });
 
-        const walletWithCreatedToken: CashtabWallet = {
-            ...walletWithXecAndTokens,
+        const walletWithCreatedToken: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     MOCK_UTXO_FOR_BALANCE,
                 ] as unknown as TokenUtxo[],
             },

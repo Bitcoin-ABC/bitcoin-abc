@@ -4,7 +4,7 @@
 
 import React from 'react';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { walletWithZeroBalanceZeroHistory } from 'components/Home/fixtures/mocks';
@@ -95,7 +95,7 @@ describe('<Home />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -137,7 +137,7 @@ describe('<Home />', () => {
         );
     });
 
-    it('Renders the Home screen with API error', async () => {
+    it('Renders the Home screen with API error (as well as errors in API calls during createWallet for the active wallet)', async () => {
         const tokenMocks = new Map();
         // Add BEAR token mock
         tokenMocks.set(bearTokenAndTx.token.tokenId, {
@@ -147,7 +147,7 @@ describe('<Home />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -158,7 +158,7 @@ describe('<Home />', () => {
         mockedChronik.setBlock(800000, new Error('Error fetching block'));
 
         // Set error for utxos by address calls
-        const address = walletWithXecAndTokens.paths.get(1899)?.address;
+        const address = walletWithXecAndTokensActive.address;
         if (address) {
             mockedChronik.setUtxosByAddress(
                 address,
@@ -173,13 +173,6 @@ describe('<Home />', () => {
                 ecc={ecc}
                 theme={theme}
             />,
-        );
-
-        // Wait for the app to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
         );
 
         // API Error is rendered
@@ -205,8 +198,7 @@ describe('<Home />', () => {
             tokenMocks,
         );
 
-        const address =
-            walletWithZeroBalanceZeroHistory.paths.get(1899)?.address;
+        const address = walletWithZeroBalanceZeroHistory.address;
         if (address) {
             // Mock successful claim rewards call
             when(fetch)
@@ -298,8 +290,7 @@ describe('<Home />', () => {
             tokenMocks,
         );
 
-        const address =
-            walletWithZeroBalanceZeroHistory.paths.get(1899)?.address;
+        const address = walletWithZeroBalanceZeroHistory.address;
         if (address) {
             // Mock successful claim rewards call
             when(fetch)

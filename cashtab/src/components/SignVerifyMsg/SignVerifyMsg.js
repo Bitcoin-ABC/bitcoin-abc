@@ -15,7 +15,7 @@ import { theme } from 'assets/styles/theme';
 import appConfig from 'config/app';
 import { PageHeader } from 'components/Common/Atoms';
 import { ThemedSignAndVerifyMsg } from 'components/Common/CustomIcons';
-import { signMsg, verifyMsg } from 'ecash-lib';
+import { signMsg, verifyMsg, fromHex } from 'ecash-lib';
 
 const SignVerifyForm = styled.div`
     display: flex;
@@ -51,8 +51,11 @@ const SignatureHolder = styled.code`
 const SignVerifyMsg = () => {
     const ContextValue = React.useContext(WalletContext);
     const { cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
+    const { activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     // Cap msg length to prevent significant computation
     // Note that emojis etc could have larger impact than length
     // However, it is not that important, we do not need to get a bytecount for this component
@@ -81,9 +84,8 @@ const SignVerifyMsg = () => {
 
         // Wrap signing in try...catch to handle any errors
         try {
-            // sign with path 1899 sk
-            const sk = wallet.paths.get(1899).sk;
-            const signature = signMsg(msgToSign, sk);
+            const signature = signMsg(msgToSign, fromHex(wallet.sk));
+            console.log('signature', signature);
 
             setMessageSignature(signature);
             toast.success('Message Signed');

@@ -38,9 +38,12 @@ const Contacts = () => {
         return null;
     }
     const { cashtabState, updateCashtabState } = ContextValue;
-    const { wallets, contactList } = cashtabState;
+    const { contactList, activeWallet } = cashtabState;
+    if (activeWallet === undefined) {
+        return null;
+    }
 
-    const wallet = wallets[0];
+    const wallet = activeWallet;
 
     interface ContactsFormData {
         renamedContactName: string;
@@ -138,7 +141,7 @@ const Contacts = () => {
             contactToUpdate.name = formData.renamedContactName;
 
             // Update localforage and state
-            await updateCashtabState('contactList', contactList);
+            await updateCashtabState({ contactList: contactList });
             toast.success(
                 `"${oldName}" renamed to "${formData.renamedContactName}"`,
             );
@@ -165,7 +168,7 @@ const Contacts = () => {
         );
 
         // Update localforage and state
-        await updateCashtabState('contactList', updatedContactList);
+        await updateCashtabState({ contactList: updatedContactList });
         toast.success(`"${contactToBeDeleted.name}" removed from Contacts`);
 
         // Reset contactToBeDeleted to hide the modal
@@ -196,7 +199,7 @@ const Contacts = () => {
                 address: formData.newContactAddress,
             });
             // update localforage and state
-            await updateCashtabState('contactList', contactList);
+            await updateCashtabState({ contactList: contactList });
             toast.success(
                 `"${formData.newContactName}" (${formData.newContactAddress}) added to Contacts`,
             );

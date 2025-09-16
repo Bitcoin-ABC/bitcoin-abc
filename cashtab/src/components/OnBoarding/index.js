@@ -8,15 +8,18 @@ import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';
-import { createCashtabWallet, generateMnemonic } from 'wallet';
+import {
+    createCashtabWallet,
+    generateMnemonic,
+    createActiveCashtabWallet,
+} from 'wallet';
 import { WelcomeCtn, WelcomeLink, WelcomeText } from './styles';
 import Modal from 'components/Common/Modal';
 import { ModalInput } from 'components/Common/Inputs';
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { updateCashtabState, cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
+    const { updateCashtabState, cashtabState, chronik } = ContextValue;
 
     const [importedMnemonic, setImportedMnemonic] = useState('');
     const [showImportWalletModal, setShowImportWalletModal] = useState(false);
@@ -27,8 +30,17 @@ const OnBoarding = () => {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'Imported');
-        const importedWallet = await createCashtabWallet(importedMnemonic);
-        updateCashtabState('wallets', [...wallets, importedWallet]);
+        const importedWallet = createCashtabWallet(importedMnemonic);
+        // Note that if a user imports a wallet from OnBoarding, we must also set the active wallet
+        const activeWallet = await createActiveCashtabWallet(
+            chronik,
+            importedWallet,
+            cashtabState.cashtabCache,
+        );
+        await updateCashtabState({
+            wallets: [importedWallet],
+            activeWallet: activeWallet,
+        });
         // Close the modal
         setShowImportWalletModal(false);
     }
@@ -37,8 +49,16 @@ const OnBoarding = () => {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'New');
-        const newWallet = await createCashtabWallet(generateMnemonic());
-        updateCashtabState('wallets', [...wallets, newWallet]);
+        const newWallet = createCashtabWallet(generateMnemonic());
+        const newActiveWallet = await createActiveCashtabWallet(
+            chronik,
+            newWallet,
+            cashtabState.cashtabCache,
+        );
+        await updateCashtabState({
+            wallets: [newWallet],
+            activeWallet: newActiveWallet,
+        });
     }
 
     const handleInput = e => {

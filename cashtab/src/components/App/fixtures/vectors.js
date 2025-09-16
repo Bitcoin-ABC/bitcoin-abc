@@ -4,8 +4,8 @@
 
 import {
     walletWithXecAndTokens_pre_2_1_0,
-    walletWithXecAndTokens,
-    validSavedWallets,
+    walletWithXecAndTokensActive,
+    validActiveWallets,
 } from 'components/App/fixtures/mocks';
 
 export default {
@@ -21,11 +21,11 @@ export default {
         expectedReturns: [
             {
                 description: 'Wallet with xec and tokens',
-                wallets: [walletWithXecAndTokens],
+                wallets: [walletWithXecAndTokensActive],
             },
             {
                 description: 'Multiple wallets',
-                wallets: [walletWithXecAndTokens, ...validSavedWallets],
+                wallets: [walletWithXecAndTokensActive, ...validActiveWallets],
             },
         ],
     },

@@ -53,12 +53,16 @@ const BackupWallet = () => {
         return null;
     }
     const { cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
+    const { activeWallet } = cashtabState;
+
+    if (!activeWallet) {
+        return null;
+    }
 
     const userLocale = getUserLocale(navigator);
     const [showSeed, setShowSeed] = useState(false);
 
-    const wallet = wallets[0];
+    const wallet = activeWallet;
 
     return (
         <BackupFlex>

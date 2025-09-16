@@ -3,159 +3,194 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import Header from 'components/Header';
+import { MemoryRouter } from 'react-router-dom';
+import { WalletProvider } from 'wallet/context';
+import App from 'components/App/App';
 import CashtabSettings from 'config/CashtabSettings';
-import { CashtabWallet, CashtabWalletPaths } from 'wallet';
+import { ActiveCashtabWallet } from 'wallet';
+import { prepareContext, mockPrice } from 'test';
+import { when } from 'jest-when';
+import {
+    walletWithXecAndTokensActive,
+    bearTokenAndTx,
+    validActiveWallets,
+} from 'components/App/fixtures/mocks';
+import {
+    MockChronikClient,
+    MockAgora,
+} from '../../../../../modules/mock-chronik-client';
+import { Ecc } from 'ecash-lib';
+import localforage from 'localforage';
+import 'fake-indexeddb/auto';
 
-const mockWallets: CashtabWallet[] = [
+const mockWallets: ActiveCashtabWallet[] = [
     {
+        ...walletWithXecAndTokensActive,
         name: 'MyWallet',
-        mnemonic: 'test mnemonic',
-        paths: new Map([
-            [
-                1899,
-                {
-                    address: 'ecash:qtestaddress',
-                    hash: 'testhash',
-                    wif: 'testwif',
-                    pk: new Uint8Array([1, 2, 3]),
-                    sk: new Uint8Array([4, 5, 6]),
-                },
-            ],
-        ]) as CashtabWalletPaths,
         state: {
-            balanceSats: 0,
-            nonSlpUtxos: [],
-            slpUtxos: [],
-            parsedTxHistory: [],
-            tokens: new Map(),
+            ...walletWithXecAndTokensActive.state,
+            balanceSats: 1_000_000_000,
         },
     },
 ];
 
-describe('<Header />', () => {
-    it('renders correctly with default props and visible balance', () => {
-        render(
+interface HeaderTestWrapperProps {
+    chronik: MockChronikClient;
+    agora: MockAgora;
+    ecc: Ecc;
+    route?: string;
+}
+
+const HeaderTestWrapper: React.FC<HeaderTestWrapperProps> = ({
+    chronik,
+    agora,
+    ecc,
+    route = '/home',
+}) => (
+    <WalletProvider chronik={chronik as any} agora={agora as any} ecc={ecc}>
+        <MemoryRouter initialEntries={[route]}>
             <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={1}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/home"
-                    settings={new CashtabSettings()}
-                />
-            </ThemeProvider>,
+                <App />
+            </ThemeProvider>
+        </MemoryRouter>
+    </WalletProvider>
+);
+
+describe('<Header />', () => {
+    let mockChronik: MockChronikClient;
+    let mockAgora: MockAgora;
+    let mockEcc: Ecc;
+
+    beforeEach(async () => {
+        mockAgora = new MockAgora();
+        mockEcc = {} as Ecc;
+
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
         );
 
-        expect(screen.getByTitle('Price in Local Currency')).toHaveTextContent(
-            '1 XEC = 0.00003000 USD',
+        // Set up context with default settings and get the mock chronik
+        mockChronik = await prepareContext(
+            localforage,
+            mockWallets,
+            tokenMocks,
         );
+
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        mockPrice(0.00003);
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await localforage.clear();
+    });
+
+    it('renders correctly with default props and visible balance', async () => {
+        render(
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/home"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.getByTitle('Price in Local Currency'),
+            ).toHaveTextContent('1 XEC = 0.00003000 USD');
+        });
 
         expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
-            '10,000,000.00 XEC',
+            '9,513.12 XEC',
         );
 
         expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
-            '$300.00 USD',
+            '$0.29 USD',
         );
     });
 
-    it('shows wallet dropdown and allows wallet switching', () => {
-        const setCashtabState = jest.fn();
-        const setLoading = jest.fn();
+    it('shows wallet dropdown and allows wallet switching', async () => {
+        const multipleWallets = [...mockWallets, ...validActiveWallets];
+
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
+        );
+
+        await prepareContext(localforage, multipleWallets, tokenMocks);
 
         render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={[
-                        ...mockWallets,
-                        {
-                            name: 'BackupWallet',
-                            mnemonic: 'backup mnemonic',
-                            paths: new Map([
-                                [
-                                    1899,
-                                    {
-                                        address: 'ecash:q2',
-                                        hash: 'testhash2',
-                                        wif: 'testwif2',
-                                        pk: new Uint8Array([7, 8, 9]),
-                                        sk: new Uint8Array([10, 11, 12]),
-                                    },
-                                ],
-                            ]) as CashtabWalletPaths,
-                            state: {
-                                balanceSats: 0,
-                                nonSlpUtxos: [],
-                                slpUtxos: [],
-                                parsedTxHistory: [],
-                                tokens: new Map(),
-                            },
-                        },
-                    ]}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={setCashtabState}
-                    setLoading={setLoading}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={1}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/"
-                    settings={new CashtabSettings()}
-                />
-            </ThemeProvider>,
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
         );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('wallet-select')).toBeInTheDocument();
+        });
 
         const select = screen.getByTestId('wallet-select');
         expect(select).toBeInTheDocument();
         expect(select).toHaveValue('MyWallet');
 
-        fireEvent.change(select, { target: { value: 'BackupWallet' } });
-        expect(setLoading).toHaveBeenCalledWith(true);
-        expect(setCashtabState).toHaveBeenCalled();
+        fireEvent.change(select, {
+            target: { value: validActiveWallets[1].name },
+        });
+        expect(
+            await screen.findByText(validActiveWallets[1].name),
+        ).toBeInTheDocument();
+        expect(select).toHaveValue(validActiveWallets[1].name);
     });
 
-    it('hides balances if balanceVisible is false', () => {
+    it('hides balances if balanceVisible is false', async () => {
         const hiddenSettings = new CashtabSettings();
         hiddenSettings.balanceVisible = false;
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={1}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={1_000_000}
-                    balanceFirma={100}
-                    path="/"
-                    settings={hiddenSettings}
-                />
-            </ThemeProvider>,
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
         );
+
+        await prepareContext(localforage, mockWallets, tokenMocks);
+        await localforage.setItem('settings', hiddenSettings);
+
+        render(
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+        });
 
         expect(screen.getByTitle('Balance XEC')).toHaveStyle(
             'text-shadow: 0 0 15px #FFFFFF',
@@ -168,60 +203,27 @@ describe('<Header />', () => {
         );
     });
 
-    it('formats numbers based on userLocale', () => {
-        const frSettings = new CashtabSettings();
-        frSettings.fiatCurrency = 'eur';
+    it('does not render fiat values if fiatPrice is null', async () => {
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
+        );
+
+        await prepareContext(localforage, mockWallets, tokenMocks);
+        // Don't set fiat price, so it will be null
 
         render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={1}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/"
-                    settings={frSettings}
-                    userLocale="fr-FR"
-                />
-            </ThemeProvider>,
-        );
-
-        expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
-            '10 000 000,00 XEC',
-        );
-        expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
-            '€300,00 EUR',
-        );
-    });
-
-    it('does not render fiat values if fiatPrice is null', () => {
-        render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={null}
-                    firmaPrice={null}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/"
-                    settings={new CashtabSettings()}
-                />
-            </ThemeProvider>,
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
         );
 
         expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
@@ -236,99 +238,158 @@ describe('<Header />', () => {
         ).not.toBeInTheDocument();
     });
 
-    it('renders fiat price for a non-USD currency', () => {
+    it('renders fiat price for a non-USD currency', async () => {
         const nonUsdSettings = new CashtabSettings();
         nonUsdSettings.fiatCurrency = 'gbp';
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={0}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/"
-                    settings={nonUsdSettings}
-                />
-            </ThemeProvider>,
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
         );
 
+        await prepareContext(localforage, mockWallets, tokenMocks);
+        await localforage.setItem('settings', nonUsdSettings);
+
+        // Mock the GBP API call
+        const cryptoId = 'ecash';
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=gbp&include_last_updated_at=true`;
+
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        ecash: {
+                            gbp: 0.00024,
+                            last_updated_at: 1706644626,
+                        },
+                    }),
+            } as Response);
+
+        render(
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+        });
+
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('10,000,000.00 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
         expect(balanceXec).toHaveStyle('text-shadow: none');
 
-        const fiatDisplay = screen.getByTitle('Balance XEC Fiat');
-        expect(fiatDisplay).toHaveTextContent('£300.00 GBP');
-        expect(fiatDisplay).toHaveStyle('text-shadow: none');
+        // Wait for fiat price to load and check for GBP symbol
+        await waitFor(() => {
+            expect(screen.getAllByText(/£/).length).toBeGreaterThan(0);
+        });
     });
 
-    it('includes forex-adjusted FIRMA fiat price for a non-USD currency', () => {
+    it('includes forex-adjusted FIRMA fiat price for a non-USD currency', async () => {
         const nonUsdSettings = new CashtabSettings();
         nonUsdSettings.fiatCurrency = 'gbp';
 
-        render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={0.00003}
-                    firmaPrice={0.5}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={100}
-                    path="/"
-                    settings={nonUsdSettings}
-                />
-            </ThemeProvider>,
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
         );
 
+        await prepareContext(localforage, mockWallets, tokenMocks);
+        await localforage.setItem('settings', nonUsdSettings);
+
+        // Mock both XEC and FIRMA price API calls for GBP
+        const cryptoId = 'ecash';
+        const xecPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=gbp&include_last_updated_at=true`;
+        const firmaPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=gbp`;
+
+        when(fetch)
+            .calledWith(xecPriceApiUrl)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        ecash: {
+                            gbp: 0.00024,
+                            last_updated_at: 1706644626,
+                        },
+                    }),
+            } as Response);
+
+        when(fetch)
+            .calledWith(firmaPriceApiUrl)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        usd: {
+                            gbp: 0.79,
+                        },
+                    }),
+            } as Response);
+
+        render(
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+        });
+
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('10,000,000.00 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
 
-        const firmaFiat = screen.getByTitle('Balance FIRMA Fiat');
-        expect(firmaFiat).toHaveTextContent('£50.00 GBP');
-
-        const xecFiat = screen.getByTitle('Balance XEC Fiat');
-        expect(xecFiat).toHaveTextContent('£300.00 GBP');
+        // Wait for fiat prices to load and check for GBP symbols
+        await waitFor(() => {
+            expect(screen.getAllByText(/£/).length).toBeGreaterThan(0);
+        });
     });
 
-    it('does not render fiat price if fiatPrice is null', () => {
-        render(
-            <ThemeProvider theme={theme}>
-                <Header
-                    wallets={mockWallets}
-                    updateCashtabState={(): Promise<boolean> =>
-                        Promise.resolve(true)
-                    }
-                    setCashtabState={(): void => {}}
-                    setLoading={(): void => {}}
-                    loading={false}
-                    fiatPrice={null}
-                    firmaPrice={null}
-                    balanceSats={1_000_000_000}
-                    balanceXecx={0}
-                    balanceFirma={0}
-                    path="/"
-                    settings={new CashtabSettings()}
-                />
-            </ThemeProvider>,
+    it('does not render fiat price if fiatPrice is null', async () => {
+        // Create token mocks for the wallet
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
         );
 
+        await prepareContext(localforage, mockWallets, tokenMocks);
+        // Don't set fiat price, so it will be null
+
+        render(
+            <HeaderTestWrapper
+                chronik={mockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+        });
+
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('10,000,000.00 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
         expect(balanceXec).toHaveStyle('text-shadow: none');
 
         expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();

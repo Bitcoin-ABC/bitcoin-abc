@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -56,7 +56,7 @@ describe('<Rewards />', () => {
     it('Renders the loading component while loading, then the Rewards screen', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/rewards" />);
@@ -74,10 +74,10 @@ describe('<Rewards />', () => {
     it('An eligible cashtab wallet can claim a token reward', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
-        const address = walletWithXecAndTokens.paths.get(1899).address;
+        const address = walletWithXecAndTokensActive.address;
 
         // Mock eligibility call as eligible
         when(fetch)
@@ -138,10 +138,10 @@ describe('<Rewards />', () => {
         jest.useFakeTimers();
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
-        const address = walletWithXecAndTokens.paths.get(1899).address;
+        const address = walletWithXecAndTokensActive.address;
 
         // Mock eligibility call as ineligible
         when(fetch)
@@ -171,18 +171,10 @@ describe('<Rewards />', () => {
         // The Rewards screen is in the document
         expect(screen.getByTitle('Rewards')).toBeInTheDocument();
 
-        // The inline loader is present until the timestamp has been calculated
-        expect(await screen.findByTitle('Loading')).toBeInTheDocument();
-
         // Advance timer long enough for the countdown to be populated
         act(() => {
             jest.advanceTimersByTime(1000);
         });
-
-        // When the timestamp is calculated, the inline loader is gone
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
 
         // The Claim button is labeled by a timestamp msg
         const claimButton = await screen.findByRole('button', {
@@ -216,10 +208,10 @@ describe('<Rewards />', () => {
     it('We see expected error if token server is out of money', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
-        const address = walletWithXecAndTokens.paths.get(1899).address;
+        const address = walletWithXecAndTokensActive.address;
 
         // Mock eligibility call as eligible
         when(fetch)

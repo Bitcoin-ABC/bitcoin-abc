@@ -37,7 +37,6 @@ import {
     toBigInt,
     SlpDecimals,
     undecimalizeTokenAmount,
-    CashtabPathInfo,
     CashtabUtxo,
 } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
@@ -206,19 +205,16 @@ const OrderBook: React.FC<OrderBookProps> = ({
     }
     const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
         ContextValue;
-    const { wallets, settings, cashtabCache } = cashtabState;
-    if (wallets.length === 0 || typeof wallets[0].paths === 'undefined') {
-        // Note that, in the app, we will never render this component without wallets[0] as a loaded wallet
+    const { settings, cashtabCache, activeWallet } = cashtabState;
+    if (typeof activeWallet === 'undefined') {
+        // Note that, in the app, we will never render this component without an activeWallet
         // Because the App component will only show OnBoarding in this case
         // But because we directly test this component with context, we must handle this case
         return null;
     }
 
-    const wallet = wallets[0];
+    const wallet = activeWallet;
     const { balanceSats } = wallet.state;
-    const activePk = (
-        wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo
-    ).pk;
 
     const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
 
@@ -269,15 +265,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         const fuelInputs = [];
         for (const fuelUtxo of fuelUtxos) {
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            if (typeof pathInfo === 'undefined') {
-                // Should never happen
-                return toast.error(
-                    `No path info for ${appConfig.derivationPath}`,
-                );
-            }
-            const { sk, hash } = pathInfo;
-
             // Convert from Cashtab utxo to signed ecash-lib input
             fuelInputs.push({
                 input: {
@@ -288,34 +275,27 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     signData: {
                         sats: fuelUtxo.sats,
                         // Send the tokens back to the same address as the fuelUtxo
-                        outputScript: Script.p2pkh(fromHex(hash)),
+                        outputScript: Script.p2pkh(fromHex(wallet.hash)),
                     },
                 },
                 signatory: P2PKHSignatory(
-                    sk,
-                    activePk as Uint8Array,
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
                     ALL_BIP143,
                 ),
             });
         }
 
-        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
-        if (typeof defaultPathInfo === 'undefined') {
-            // Should never happen
-            return toast.error(`No path info for ${appConfig.derivationPath}`);
-        }
-        const { sk, hash } = defaultPathInfo;
-
         // Build the cancel tx
         const cancelTxSer = agoraPartial
             .cancelTx({
-                // Cashtab default path
-                // This works here because we lookup cancelable offers by the same path
+                // Cashtab one-addr
+                // This works here because we lookup cancelable offers by the same addr
                 // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: sk,
+                cancelSk: fromHex(wallet.sk),
                 fuelInputs: fuelInputs,
-                // Change to Cashtab default derivation path
-                recipientScript: Script.p2pkh(fromHex(hash)),
+                // Change to user addr
+                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
                 feePerKb: satsPerKb,
             })
             .ser();
@@ -392,15 +372,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         const signedFuelInputs = [];
         for (const fuelUtxo of acceptFuelInputs) {
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            if (typeof pathInfo === 'undefined') {
-                // Should never happen
-                return toast.error(
-                    `No path info for ${appConfig.derivationPath}`,
-                );
-            }
-            const { sk, hash } = pathInfo;
-
             // Sign and prep utxos for ecash-lib inputs
             signedFuelInputs.push({
                 input: {
@@ -410,21 +381,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     },
                     signData: {
                         sats: fuelUtxo.sats,
-                        outputScript: Script.p2pkh(fromHex(hash)),
+                        outputScript: Script.p2pkh(fromHex(wallet.hash)),
                     },
                 },
                 signatory: P2PKHSignatory(
-                    sk,
-                    activePk as Uint8Array,
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
                     ALL_BIP143,
                 ),
             });
-        }
-
-        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
-        if (typeof defaultPathInfo === 'undefined') {
-            // Should never happen
-            return toast.error(`No path info for ${appConfig.derivationPath}`);
         }
 
         // Use an arbitrary sk, pk for the convenant
@@ -435,10 +400,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                     covenantSk: DUMMY_KEYPAIR.sk,
                     covenantPk: DUMMY_KEYPAIR.pk,
                     fuelInputs: signedFuelInputs,
-                    // Accept at default path, 1899
-                    recipientScript: Script.p2pkh(
-                        fromHex(defaultPathInfo.hash),
-                    ),
+                    recipientScript: Script.p2pkh(fromHex(wallet.hash)),
                     feePerKb: satsPerKb,
                     acceptedAtoms: preparedTokenSatoshis,
                 })
@@ -782,7 +744,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
     // Determine if the active wallet created this offer
     // Used to render Buy or Cancel option to the user
-    // Validate activePk as it could be null from Agora/index.js (not yet calculated)
     let isMaker;
     if (Array.isArray(activeOffers) && activeOffers.length > 0) {
         selectedOffer = activeOffers[selectedIndex];
@@ -797,10 +758,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
         tokenSatoshisStep = tokenSatoshisMax! / truncAtoms;
 
         try {
-            isMaker = toHex(activePk as Uint8Array) === toHex(makerPk);
+            isMaker = wallet.pk === toHex(makerPk);
         } catch {
-            console.error(`Error comparing activePk with makerPk`);
-            console.error(`activePk`, activePk);
+            console.error(`Error comparing wallet.pk with makerPk`);
+            console.error(`wallet.pk`, wallet.pk);
             console.error(`makerPk`, makerPk);
         }
 
@@ -873,8 +834,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // If the active pk made this offer, flag is as unacceptable
                 // Otherwise exclude it entirely
                 const isMakerThisOffer =
-                    toHex(activePk as Uint8Array) ===
-                    toHex(activeOffer.variant.params.makerPk);
+                    wallet.pk === toHex(activeOffer.variant.params.makerPk);
                 const isUnacceptable = minOfferTokens > maxOfferTokens;
                 if (isUnacceptable) {
                     if (isMakerThisOffer) {
@@ -1461,8 +1421,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     const { makerPk } =
                                         activeOffer.variant.params;
                                     const isMakerThisOffer =
-                                        toHex(activePk as Uint8Array) ===
-                                        toHex(makerPk);
+                                        wallet.pk === toHex(makerPk);
 
                                     const makerHash = shaRmd160(makerPk);
                                     const makerOutputScript =

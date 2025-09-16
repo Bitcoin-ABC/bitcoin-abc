@@ -6,7 +6,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import { when } from 'jest-when';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -58,7 +58,7 @@ describe('<Receive />', () => {
     it('Renders as expected on desktop, including copy paste functionality of clicking on the QR code', async () => {
         // Mock the app with context at the Receive screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
@@ -177,7 +177,7 @@ describe('<Receive />', () => {
         });
         // Mock the app with context at the Receive screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
@@ -224,7 +224,7 @@ describe('<Receive />', () => {
         });
         // Mock the app with context at the Receive screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);

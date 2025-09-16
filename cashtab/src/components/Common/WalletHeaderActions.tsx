@@ -6,14 +6,12 @@ import * as React from 'react';
 import { CopyIconButton } from 'components/Common/Buttons';
 import HideBalanceSwitch from 'components/Common/HideBalanceSwitch';
 import CashtabSettings from 'config/CashtabSettings';
+import { UpdateCashtabState } from 'wallet/useWallet';
 
 interface WalletHeaderActionsProps {
     address?: string;
     settings: CashtabSettings;
-    updateCashtabState: (
-        key: string,
-        value: CashtabSettings,
-    ) => Promise<boolean>;
+    updateCashtabState: UpdateCashtabState;
 }
 
 const WalletHeaderActions: React.FC<WalletHeaderActionsProps> = ({

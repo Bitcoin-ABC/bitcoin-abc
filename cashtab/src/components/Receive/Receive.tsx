@@ -22,8 +22,11 @@ export const Receive: React.FC = () => {
         return null;
     }
     const { cashtabState } = contextValue;
-    const { wallets } = cashtabState;
-    const wallet = wallets[0];
+    const { activeWallet } = cashtabState;
+    const wallet = activeWallet;
+    if (!wallet) {
+        return null;
+    }
     // Get device window width
     // Size the QR code depending on device width
     const { width, height } = useWindowDimensions();
@@ -49,7 +52,7 @@ export const Receive: React.FC = () => {
     const [bip21Qty, setBip21Qty] = useState<string>('');
     const [bip21QtyError, setBip21QtyError] = useState<false | string>(false);
 
-    const queryString = `${wallet.paths.get(1899).address}${
+    const queryString = `${wallet.address}${
         receiveFirma
             ? `?token_id=${FIRMA.tokenId}&token_decimalized_qty=${bip21Qty}`
             : bip21Qty

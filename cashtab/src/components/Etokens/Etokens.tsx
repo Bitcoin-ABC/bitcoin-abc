@@ -59,8 +59,11 @@ const Etokens = () => {
         return null;
     }
     const { loading, cashtabState } = ContextValue;
-    const { wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
+    const { cashtabCache, activeWallet } = cashtabState;
+    if (activeWallet === undefined) {
+        return null;
+    }
+    const wallet = activeWallet;
     const { tokens } = wallet.state;
 
     const [tokenSearch, setTokenSearch] = useState<string>('');
@@ -109,7 +112,7 @@ const Etokens = () => {
             new Map();
 
         // Add balance to all cached tokens where balance info is available
-        tokens.forEach((tokenBalance, tokenId) => {
+        tokens.forEach((tokenBalance: string, tokenId: string) => {
             tokenMapWithBalance.set(tokenId, {
                 // Note that we expect every token with balance to be cached
                 ...(cashtabCache.tokens.get(tokenId) as CashtabCachedTokenInfo),

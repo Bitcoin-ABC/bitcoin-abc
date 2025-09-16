@@ -3,13 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import BigNumber from 'bignumber.js';
-import {
-    toXec,
-    toSatoshis,
-    xecToNanoSatoshis,
-    LegacyCashtabWallet,
-    SlpDecimals,
-} from 'wallet';
+import { toXec, toSatoshis, xecToNanoSatoshis, SlpDecimals } from 'wallet';
 import { isValidCashAddress } from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import CashtabSettings, {
@@ -20,7 +14,7 @@ import tokenBlacklist from 'config/tokenBlacklist';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
-import { CashtabWallet, fiatToSatoshis } from 'wallet';
+import { fiatToSatoshis, StoredCashtabWallet } from 'wallet';
 import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedQty } from 'token-protocols';
@@ -395,7 +389,7 @@ export const isValidTokenId = (tokenId: string | undefined | null): boolean => {
  */
 export const getWalletNameError = (
     name: string,
-    wallets: CashtabWallet[],
+    wallets: StoredCashtabWallet[],
 ): false | string => {
     if (name === '') {
         return 'Wallet name cannot be a blank string';
@@ -1001,11 +995,12 @@ export function parseAddressInput(
 }
 
 /**
- * Determine if a given object is a valid Cashtab wallet
+ * Determine if a given object is a valid StoredCashtabWallet
+ * We use this function to determine if we need to migrate storage
  * @param wallet Cashtab wallet object
  */
-export const isValidCashtabWallet = (
-    wallet: CashtabWallet | LegacyCashtabWallet | false,
+export const isValidStoredCashtabWallet = (
+    wallet: StoredCashtabWallet | false,
 ): boolean => {
     if (wallet === false) {
         // Unset cashtab wallet
@@ -1015,65 +1010,16 @@ export const isValidCashtabWallet = (
         // Wallet must be an object
         return false;
     }
-    if (!('paths' in wallet)) {
-        return false;
-    }
-    if (Array.isArray(wallet.paths)) {
-        // wallet.paths should be a map
-        return false;
-    }
-    if (wallet.paths.size < 1) {
-        // Wallet must have at least one path info object
-        return false;
-    }
-    // Validate each path
-    // We use pathsValid as a flag as `return false` from a forEach does not do what you think it does
-    let pathsValid = true;
-    // Return false if we do not have Path1899
-    // This also handles the case of a JSON-activated pre-2.9.0 wallet
 
-    if (typeof wallet.paths.get(1899) === 'undefined') {
-        return false;
-    }
-    wallet.paths.forEach((value, key) => {
-        if (typeof key !== 'number') {
-            // Wallet is invalid if key is not a number
-            pathsValid = false;
-        }
-        if (
-            !('hash' in value) ||
-            !('address' in value) ||
-            !('wif' in value) ||
-            !('sk' in value) ||
-            !(value.sk instanceof Uint8Array) ||
-            !('pk' in value) ||
-            !(value.pk instanceof Uint8Array)
-        ) {
-            // If any given path does not have all of these keys, the wallet is invalid
-            pathsValid = false;
-        }
-    });
-    if (!pathsValid) {
-        // Invalid path
-        return false;
-    }
+    // NB we are only really validating storedWallets here as this function is only used in tests, for now
+    // When we have another migration, will need to update this
     return (
-        typeof wallet === 'object' &&
-        'state' in wallet &&
-        'mnemonic' in wallet &&
-        'name' in wallet &&
-        !('Path145' in wallet) &&
-        !('Path245' in wallet) &&
-        !('Path1899' in wallet) &&
-        typeof wallet.state === 'object' &&
-        'balanceSats' in wallet.state &&
-        typeof wallet.state.balanceSats === 'number' &&
-        !('balances' in wallet.state) &&
-        'slpUtxos' in wallet.state &&
-        'nonSlpUtxos' in wallet.state &&
-        'tokens' in wallet.state &&
-        !('hydratedUtxoDetails' in wallet.state) &&
-        !('slpBalancesAndUtxos' in wallet.state)
+        typeof wallet.sk === 'string' &&
+        typeof wallet.pk === 'string' &&
+        typeof wallet.address === 'string' &&
+        typeof wallet.hash === 'string' &&
+        typeof wallet.mnemonic === 'string' &&
+        typeof wallet.name === 'string'
     );
 };
 

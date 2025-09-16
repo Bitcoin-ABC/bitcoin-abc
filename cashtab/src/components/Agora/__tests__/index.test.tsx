@@ -13,7 +13,7 @@ import { theme } from 'assets/styles/theme';
 import { MemoryRouter } from 'react-router-dom';
 import { WalletProvider } from 'wallet/context';
 import { ChronikClient } from 'chronik-client';
-import { Ecc, toHex } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { Agora } from 'ecash-agora';
 import {
     MockAgora,
@@ -26,8 +26,6 @@ import {
     agoraPartialAlphaWallet,
     agoraPartialBetaWallet,
     agoraPartialBetaHighBalanceWallet,
-    agoraPartialAlphaKeypair,
-    agoraPartialBetaKeypair,
     agoraOfferCachetAlphaOne,
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetBetaOne,
@@ -42,6 +40,7 @@ import {
 import { token as tokenConfig } from 'config/token';
 import { prepareContext } from 'test';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
+import { FIRMA } from 'constants/tokens';
 
 // We need to wrap the Agora component with context so we can useContext instead of prop drilling
 interface AgoraTestWrapperProps {
@@ -137,10 +136,7 @@ describe('<Agora />', () => {
         mockedAgora.setOfferedFungibleTokenIds([]);
 
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, []);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -172,11 +168,6 @@ describe('<Agora />', () => {
             />,
         );
 
-        // Wait for the screen to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
         // Wait for agora offers to load
         await waitFor(() =>
             expect(
@@ -192,11 +183,8 @@ describe('<Agora />', () => {
         expect(screen.getByTitle('Sort by Offer Count')).toBeInTheDocument();
 
         // But we have no offers
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0);
-        });
         expect(
-            screen.getByText(
+            await screen.findByText(
                 'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
@@ -248,10 +236,7 @@ describe('<Agora />', () => {
         mockedAgora.setOfferedFungibleTokenIds(new Error('some chronik error'));
 
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, []);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -317,10 +302,9 @@ describe('<Agora />', () => {
         ]);
 
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [agoraOfferXecxAlphaOne],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
+            agoraOfferXecxAlphaOne,
+        ]);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -359,28 +343,15 @@ describe('<Agora />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        // Wait for agora offers to load
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Loading active offers'),
-            ).not.toBeInTheDocument(),
-        );
-
         // Wait for element to get token info and load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
         // We have an offer
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
-
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // Wait for the Agora component to finish its initialization and load the whitelisted tokens
         await waitFor(() =>
@@ -416,10 +387,9 @@ describe('<Agora />', () => {
             agoraOfferCachetAlphaOne,
         ]);
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [agoraOfferCachetAlphaOne],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
+            agoraOfferCachetAlphaOne,
+        ]);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -453,11 +423,6 @@ describe('<Agora />', () => {
 
         // Wait for the screen to load
         await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // Wait for the screen to load
-        await waitFor(() =>
             expect(
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
@@ -475,15 +440,9 @@ describe('<Agora />', () => {
 
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
-
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // We should see "No whitelisted tokens are currently listed for sale" since Cachet is not whitelisted
         expect(
@@ -506,11 +465,6 @@ describe('<Agora />', () => {
 
         // Loading 1 offer sounds reasonable
         await userEvent.click(screen.getByText('OK'));
-
-        // Wait for the offers to load
-        await waitFor(() =>
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0),
-        );
 
         // We see the token name and ticker above its PartialOffer after OrderBooks load
         expect(
@@ -563,10 +517,9 @@ describe('<Agora />', () => {
         );
 
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [scamAgoraOffer],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
+            scamAgoraOffer,
+        ]);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -606,11 +559,8 @@ describe('<Agora />', () => {
         );
 
         // No whitelisted offers
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0);
-        });
         expect(
-            screen.getByText(
+            await screen.findByText(
                 'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
@@ -631,14 +581,10 @@ describe('<Agora />', () => {
         await userEvent.click(screen.getByText('OK'));
 
         // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
 
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // The scam token is blacklisted, so we should see "No tokens are currently listed for sale"
         expect(
@@ -688,10 +634,9 @@ describe('<Agora />', () => {
         );
 
         // also mock await agora.activeOffersByPubKey(toHex(activePk))
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [scamAgoraOffer],
-        );
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
+            scamAgoraOffer,
+        ]);
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -751,14 +696,9 @@ describe('<Agora />', () => {
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
         // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
 
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // Wait for the Agora component to finish its initialization and load the whitelisted tokens
         await waitFor(() =>
@@ -768,11 +708,8 @@ describe('<Agora />', () => {
         );
 
         // No whitelisted offers
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0);
-        });
         expect(
-            screen.getByText(
+            await screen.findByText(
                 'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
@@ -798,14 +735,10 @@ describe('<Agora />', () => {
         expect(screen.getByText('Manage your listings')).toBeInTheDocument();
 
         // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
 
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // Wait for the Agora component to finish its initialization and load the whitelisted tokens
         await waitFor(() =>
@@ -852,18 +785,17 @@ describe('<Agora />', () => {
         mockedAgora.setActiveOffersByTokenId(BULL_TOKEN_ID, [
             agoraOfferBullAlphaOne,
         ]);
-        // also mock await agora.activeOffersByPubKey(toHex(activePk)), for both walletse
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(agoraPartialAlphaKeypair.pk),
-            [
-                agoraOfferCachetAlphaOne,
-                agoraOfferCachetAlphaTwo,
-                agoraOfferBullAlphaOne,
-            ],
-        );
-        mockedAgora.setActiveOffersByPubKey(toHex(agoraPartialBetaKeypair.pk), [
-            agoraOfferCachetBetaOne,
+        mockedAgora.setActiveOffersByTokenId(FIRMA.tokenId, []);
+        // also mock await agora.activeOffersByPubKey(activePk), for both walletse
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
+            agoraOfferCachetAlphaOne,
+            agoraOfferCachetAlphaTwo,
+            agoraOfferBullAlphaOne,
         ]);
+        mockedAgora.setActiveOffersByPubKey(
+            agoraPartialBetaHighBalanceWallet.pk,
+            [agoraOfferCachetBetaOne],
+        );
 
         const mockedChronik = await prepareContext(
             localForage,
@@ -918,11 +850,9 @@ describe('<Agora />', () => {
         );
 
         // We have no whitelisted tokens, so we see expected msg
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading')).toHaveLength(0);
-        });
+
         expect(
-            screen.getByText(
+            await screen.findByText(
                 'No whitelisted tokens are currently listed for sale. Try loading all offers.',
             ),
         ).toBeInTheDocument();
@@ -995,15 +925,8 @@ describe('<Agora />', () => {
         // We have an offer
         expect(screen.getByText('Token Offers')).toBeInTheDocument();
 
-        // Wait for token info to load (wait for loading to disappear and token name to appear)
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
-
         // Wait for the token to be rendered (either as a whitelisted token or after loading all offers)
-        await waitFor(() =>
-            expect(screen.getByText('Token Offers')).toBeInTheDocument(),
-        );
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
 
         // Wait for the Agora component to finish its initialization and load the whitelisted tokens
         await waitFor(() =>
@@ -1101,11 +1024,6 @@ describe('<Agora />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        // Wait for the wallet to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
-
         // Wait for active offers to load
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
@@ -1194,10 +1112,7 @@ describe('<Agora />', () => {
                 screen.queryByTitle('Loading active offers'),
             ).not.toBeInTheDocument(),
         );
-        // Wait for the wallet to load
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
-        );
+
         expect(await screen.findByTitle('Active Offers')).toBeInTheDocument();
 
         // Now we see cancel buttons again

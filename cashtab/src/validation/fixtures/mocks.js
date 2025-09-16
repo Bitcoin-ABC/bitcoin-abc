@@ -56,18 +56,11 @@ export const validWalletPre_2_1_0 = {
 export const validWalletJson = {
     mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
     name: 'test',
-    paths: [
-        [
-            1899,
-            {
-                address: 'string',
-                hash: 'string',
-                wif: 'string',
-                sk: new Uint8Array(),
-                pk: new Uint8Array(),
-            },
-        ],
-    ],
+    address: 'string',
+    hash: 'string',
+    wif: 'string',
+    sk: 'string',
+    pk: 'string',
     state: {
         balanceSats: 0,
         nonSlpUtxos: [],

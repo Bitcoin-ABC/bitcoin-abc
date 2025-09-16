@@ -722,10 +722,6 @@ describe('<OrderBook />', () => {
             (buyCachetButton as HTMLButtonElement).disabled,
         );
 
-        // Debug: Show the current DOM state to see if there are validation errors
-        console.log('Current DOM state:');
-        screen.debug();
-
         expect(buyCachetButton).not.toBeDisabled();
 
         await userEvent.click(buyCachetButton);
@@ -811,7 +807,7 @@ describe('<OrderBook />', () => {
         ]);
 
         const alphaWalletOutputScript = Address.p2pkh(
-            agoraPartialAlphaWallet.paths.get(1899).hash,
+            agoraPartialAlphaWallet.hash,
         ).toScriptHex();
 
         // Mod tokenmocks so that alphaWallet is the mint address

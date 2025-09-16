@@ -27,7 +27,6 @@ import {
     NftParentGenesisTx,
     NftChildGenesisTx,
 } from '../fixtures/mocks';
-import { cashtabWalletFromJSON } from 'helpers';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import CashtabCache from 'config/CashtabCache';
 
@@ -219,11 +218,9 @@ describe('Cashtab chronik.js functions', () => {
         }
 
         // Revive JSON wallet
-        const mockTxHistoryWallet = cashtabWalletFromJSON(
-            mockTxHistoryWalletJson,
-        );
+        const mockTxHistoryWallet = mockTxHistoryWalletJson;
 
-        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
+        const defaultAddress = mockTxHistoryWallet.address;
 
         // Set tx history for path 1899 only
         mockedChronik.setTxHistoryByAddress(
@@ -258,11 +255,9 @@ describe('Cashtab chronik.js functions', () => {
         }
 
         // Revive JSON wallet
-        const mockTxHistoryWallet = cashtabWalletFromJSON(
-            mockTxHistoryWalletJson,
-        );
+        const mockTxHistoryWallet = mockTxHistoryWalletJson;
 
-        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
+        const defaultAddress = mockTxHistoryWallet.address;
 
         // Set tx history for path 1899 only
         mockedChronik.setTxHistoryByAddress(

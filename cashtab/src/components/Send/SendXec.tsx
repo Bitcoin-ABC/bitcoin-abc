@@ -281,8 +281,11 @@ const SendXec: React.FC = () => {
         chronik,
         ecc,
     } = ContextValue;
-    const { settings, wallets, cashtabCache } = cashtabState;
-    const wallet = wallets[0];
+    const { settings, cashtabCache, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     const { balanceSats, tokens } = wallet.state;
 
     const [isOneToManyXECSend, setIsOneToManyXECSend] =
@@ -510,7 +513,7 @@ const SendXec: React.FC = () => {
         }
         // If we successfully get tokenInfo, update cashtabCache
         cashtabCache.tokens.set(tokenId, tokenInfo);
-        updateCashtabState('cashtabCache', cashtabCache);
+        updateCashtabState({ cashtabCache: cashtabCache });
         // Unset in case user is checking a new token that does exist this time
         setTokenIdQueryError(false);
     };

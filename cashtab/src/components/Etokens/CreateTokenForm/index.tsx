@@ -30,7 +30,6 @@ import getCroppedImg, {
 import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
-import appConfig from 'config/app';
 import {
     getSlpGenesisTargetOutput,
     getMaxDecimalizedSlpQty,
@@ -44,12 +43,7 @@ import {
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
-import {
-    undecimalizeTokenAmount,
-    TokenUtxo,
-    SlpDecimals,
-    CashtabPathInfo,
-} from 'wallet';
+import { undecimalizeTokenAmount, TokenUtxo, SlpDecimals } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -88,8 +82,11 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         return null;
     }
     const { chronik, ecc, chaintipBlockheight, cashtabState } = ContextValue;
-    const { settings, wallets } = cashtabState;
-    const wallet = wallets[0];
+    const { settings, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     const { tokens } = wallet.state;
 
     // Constant to handle rendering of CreateTokenForm for NFT Minting
@@ -684,13 +681,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                       {
                           ...genesisInfo,
                           // Set as Cashtab active wallet public key
-                          authPubkey: toHex(
-                              (
-                                  wallet.paths.get(
-                                      appConfig.derivationPath,
-                                  ) as CashtabPathInfo
-                              ).pk,
-                          ),
+                          authPubkey: activeWallet.pk,
                           // Note we are omitting the "data" key for now
                       },
                       BigInt(

@@ -1320,6 +1320,7 @@ export const getTokenBalances = async (
         let cachedTokenInfo = tokenCache.get(tokenId);
         if (typeof cachedTokenInfo === 'undefined') {
             // If we have not cached this token before, cache it
+            // NB we do not handle chronik errors here; expectation is that callsite will handle chronik errors
             cachedTokenInfo = await getTokenGenesisInfo(chronik, tokenId);
             tokenCache.set(tokenId, cachedTokenInfo);
         }

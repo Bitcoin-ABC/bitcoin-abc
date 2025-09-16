@@ -18,8 +18,6 @@ import {
     mockCachedInfoCashtabDark,
     walletWithXecAndTokens_pre_2_1_0,
     walletWithXecAndTokens_pre_2_9_0,
-    validSavedWallets_pre_2_1_0,
-    validSavedWallets_pre_2_9_0,
     walletWithXecAndTokens_pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import appConfig from 'config/app';
@@ -162,91 +160,6 @@ export default {
                     },
                 },
                 cashtabWalletJSON: cashtabWalletMultiPathWithTokensJson,
-            },
-        ],
-    },
-    cashtabWalletsToJSON: {
-        expectedReturns: [
-            {
-                description: 'Newly created Cashtab wallets',
-                cashtabWallets: [emptyCashtabWallet, emptyCashtabWallet],
-                cashtabWalletsJSON: [
-                    emptyCashtabWalletJson,
-                    emptyCashtabWalletJson,
-                ],
-            },
-            {
-                description: 'Pre-2.1.0 wallets are unchanged',
-                cashtabWallets: validSavedWallets_pre_2_1_0,
-                cashtabWalletsJSON: validSavedWallets_pre_2_1_0,
-            },
-            {
-                description: 'Pre-2.9.0 wallets are unchanged',
-                cashtabWallets: validSavedWallets_pre_2_9_0,
-                cashtabWalletsJSON: validSavedWallets_pre_2_9_0,
-            },
-            {
-                description: 'Cashtab wallets with multiple paths',
-                cashtabWallets: [
-                    {
-                        ...emptyCashtabWalletMultiPathJson,
-                        paths: new Map(emptyCashtabWalletMultiPathJson.paths),
-                        state: {
-                            ...emptyCashtabWalletMultiPathJson.state,
-                            tokens: new Map(
-                                emptyCashtabWalletMultiPathJson.state.tokens,
-                            ),
-                        },
-                    },
-                    {
-                        ...emptyCashtabWalletMultiPathJson,
-                        paths: new Map(emptyCashtabWalletMultiPathJson.paths),
-                        state: {
-                            ...emptyCashtabWalletMultiPathJson.state,
-                            tokens: new Map(
-                                emptyCashtabWalletMultiPathJson.state.tokens,
-                            ),
-                        },
-                    },
-                ],
-                cashtabWalletsJSON: [
-                    emptyCashtabWalletMultiPathJson,
-                    emptyCashtabWalletMultiPathJson,
-                ],
-            },
-            {
-                description:
-                    'Cashtab wallets with multiple paths and tokens in state',
-                cashtabWallets: [
-                    {
-                        ...cashtabWalletMultiPathWithTokensJson,
-                        paths: new Map(
-                            cashtabWalletMultiPathWithTokensJson.paths,
-                        ),
-                        state: {
-                            ...cashtabWalletMultiPathWithTokensJson.state,
-                            tokens: new Map(
-                                cashtabWalletMultiPathWithTokensJson.state.tokens,
-                            ),
-                        },
-                    },
-                    {
-                        ...cashtabWalletMultiPathWithTokensJson,
-                        paths: new Map(
-                            cashtabWalletMultiPathWithTokensJson.paths,
-                        ),
-                        state: {
-                            ...cashtabWalletMultiPathWithTokensJson.state,
-                            tokens: new Map(
-                                cashtabWalletMultiPathWithTokensJson.state.tokens,
-                            ),
-                        },
-                    },
-                ],
-                cashtabWalletsJSON: [
-                    cashtabWalletMultiPathWithTokensJson,
-                    cashtabWalletMultiPathWithTokensJson,
-                ],
             },
         ],
     },

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     cachetTokenAndTx,
     bearTokenAndTx,
     requiredUtxoThisToken,
@@ -31,7 +31,7 @@ import {
 } from '../../../../../modules/mock-chronik-client';
 import App from 'components/App/App';
 import { explorer } from 'config/explorer';
-import { undecimalizeTokenAmount, CashtabWallet } from 'wallet';
+import { undecimalizeTokenAmount, ActiveCashtabWallet } from 'wallet';
 
 interface ConfigureTestWrapperProps {
     chronik: MockChronikClient;
@@ -122,7 +122,7 @@ describe('<Configure />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -216,13 +216,13 @@ describe('<Configure />', () => {
 
     it('"ABSOLUTE MINIMUM fees" setting is unavailable if wallet holds 0.01 less than required balance of Cachet', async () => {
         const CACHET_DECIMALS = 2;
-        // Modify walletWithXecAndTokens to have the required token for this feature
+        // Modify walletWithXecAndTokensActive to have the required token for this feature
         const walletWithVipToken = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
                         token: {
@@ -243,7 +243,7 @@ describe('<Configure />', () => {
                     },
                 ],
             },
-        } as CashtabWallet;
+        } as ActiveCashtabWallet;
 
         const tokenMocks = new Map();
         // Add BEAR token mock
@@ -303,13 +303,13 @@ describe('<Configure />', () => {
 
     it('VIP users see VIP status message', async () => {
         const CACHET_DECIMALS = 2;
-        // Modify walletWithXecAndTokens to have the required token for this feature
+        // Modify walletWithXecAndTokensActive to have the required token for this feature
         const walletWithVipToken = {
-            ...walletWithXecAndTokens,
+            ...walletWithXecAndTokensActive,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithXecAndTokensActive.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
                         token: {
@@ -330,7 +330,7 @@ describe('<Configure />', () => {
                     },
                 ],
             },
-        } as CashtabWallet;
+        } as ActiveCashtabWallet;
 
         const tokenMocks = new Map();
         // Add BEAR token mock
@@ -397,7 +397,7 @@ describe('<Configure />', () => {
 
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 

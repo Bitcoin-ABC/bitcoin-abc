@@ -20,8 +20,11 @@ const Rewards = () => {
         return null;
     }
     const { cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
-    const address = wallets[0].paths.get(1899).address;
+    const { activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const address = activeWallet.address;
     const ELAPSED_TIMER = { hours: '00', minutes: '00', seconds: '00' };
     const [isEligible, setIsEligible] = useState<null | boolean>(null);
     const [eligibleAgainTimestamp, setEligibleAgainTimestamp] = useState<

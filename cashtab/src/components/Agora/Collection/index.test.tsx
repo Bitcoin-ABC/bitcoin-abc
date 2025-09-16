@@ -19,9 +19,7 @@ import {
 } from 'constants/transactions';
 import {
     agoraPartialAlphaWallet,
-    agoraPartialAlphaKeypair,
     agoraPartialBetaWallet,
-    agoraPartialBetaKeypair,
     heismanCollectionGroupTokenId,
     CollectionTestCache,
     SettingsUsd,
@@ -82,7 +80,6 @@ describe('<Collection />', () => {
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
-                    activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                 />
             </ThemeProvider>,
@@ -125,7 +122,6 @@ describe('<Collection />', () => {
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
-                    activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                 />
             </ThemeProvider>,
@@ -196,7 +192,6 @@ describe('<Collection />', () => {
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
-                    activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                 />
             </ThemeProvider>,
@@ -282,7 +277,6 @@ describe('<Collection />', () => {
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
-                    activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     loadOnClick
                 />
@@ -366,7 +360,6 @@ describe('<Collection />', () => {
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
                     wallet={agoraPartialAlphaWallet}
-                    activePk={agoraPartialAlphaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                 />
             </ThemeProvider>,
@@ -483,7 +476,6 @@ describe('<Collection />', () => {
                             nonSlpUtxos: [affordItUtxo],
                         },
                     }}
-                    activePk={agoraPartialBetaKeypair.pk}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                 />
             </ThemeProvider>,

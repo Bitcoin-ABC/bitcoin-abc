@@ -10,8 +10,7 @@ import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import Receive from 'components/Receive/Receive';
 import { Alert, Info } from 'components/Common/Atoms';
-import { getUserLocale } from 'helpers';
-import { CashtabPathInfo, CashtabTx } from 'wallet';
+import { CashtabTx } from 'wallet';
 import PrimaryButton, {
     SecondaryButton,
     PrimaryLink,
@@ -21,7 +20,6 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import { load } from 'recaptcha-v3';
-import appConfig from 'config/app';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -76,16 +74,12 @@ const Home: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, fiatPrice, apiError, cashtabState, updateCashtabState } =
-        ContextValue;
-    const { settings, wallets } = cashtabState;
-    const wallet = wallets[0];
-    // We only support one path per wallet for tx history
-    // However, we preserve the array structure of hashes for potential future HD support
-    const hashes = [
-        (wallets[0].paths.get(appConfig.derivationPath) as CashtabPathInfo)
-            .hash,
-    ];
+    const { apiError, cashtabState } = ContextValue;
+    const { wallets, activeWallet } = cashtabState;
+    if (!activeWallet) {
+        return null;
+    }
+    const wallet = activeWallet;
     const { parsedTxHistory } = wallet.state;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
@@ -96,8 +90,6 @@ const Home: React.FC = () => {
         parsedTxHistory &&
         parsedTxHistory.length < 3 &&
         wallet.state.balanceSats > 0;
-
-    const userLocale = getUserLocale(navigator);
 
     const [airdropPending, setAirdropPending] = useState(false);
     const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
@@ -119,9 +111,7 @@ const Home: React.FC = () => {
         try {
             claimResponse = await (
                 await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${
-                        (wallet.paths.get(1899) as CashtabPathInfo).address
-                    }`,
+                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${wallet.address}`,
                     {
                         method: 'POST',
                         headers: {
@@ -157,9 +147,7 @@ const Home: React.FC = () => {
         try {
             claimResponse = await (
                 await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${
-                        (wallet.paths.get(1899) as CashtabPathInfo).address
-                    }`,
+                    `${tokenConfig.rewardsServerBaseUrl}/claim/${wallet.address}`,
                 )
             ).json();
             // Could help in debugging from user reports
@@ -205,20 +193,7 @@ const Home: React.FC = () => {
             {apiError && <ApiError />}
             <TxHistoryCtn data-testid="tx-history">
                 {isValidParsedTxHistory(parsedTxHistory) ? (
-                    <TxHistory
-                        txs={parsedTxHistory}
-                        hashes={hashes}
-                        fiatPrice={fiatPrice}
-                        fiatCurrency={
-                            settings && settings.fiatCurrency
-                                ? settings.fiatCurrency
-                                : 'usd'
-                        }
-                        cashtabState={cashtabState}
-                        updateCashtabState={updateCashtabState}
-                        userLocale={userLocale}
-                        chronik={chronik}
-                    />
+                    <TxHistory />
                 ) : (
                     <InlineLoader />
                 )}

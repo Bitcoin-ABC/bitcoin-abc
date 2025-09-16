@@ -9,8 +9,6 @@ import {
     storedCashtabCacheToMap,
     cashtabWalletFromJSON,
     cashtabWalletToJSON,
-    cashtabWalletsFromJSON,
-    cashtabWalletsToJSON,
     scriptUtxoFromJson,
     txFromJson,
     previewAddress,
@@ -77,22 +75,6 @@ describe('Cashtab helper functions', () => {
             });
         });
     });
-    describe('Converts cashtabWallets (array) to and from JSON for storage and in-app use', () => {
-        const { expectedReturns } = vectors.cashtabWalletsToJSON;
-
-        expectedReturns.forEach(expectedReturn => {
-            const { description, cashtabWallets, cashtabWalletsJSON } =
-                expectedReturn;
-            it(`cashtabWalletsToJSON and cashtabWalletsFromJSON: ${description}`, () => {
-                expect(cashtabWalletsToJSON(cashtabWallets)).toStrictEqual(
-                    cashtabWalletsJSON,
-                );
-                expect(
-                    cashtabWalletsFromJSON(cashtabWalletsJSON),
-                ).toStrictEqual(cashtabWallets);
-            });
-        });
-    });
     describe('scriptUtxoFromJson', () => {
         it('We can revive a non-legacy JSON token utxo with value and amount keys', () => {
             const legacyUtxoJson = {
@@ -105,19 +87,6 @@ describe('Cashtab helper functions', () => {
             expect(newUtxo.sats).toEqual(546n);
             expect(newUtxo.token.atoms).toEqual(100n);
         });
-        it('We can revive a legacy JSON utxo with value and amount keys', () => {
-            const legacyUtxoJson = {
-                value: 546,
-                token: {
-                    amount: '100',
-                },
-            };
-            const newUtxo = scriptUtxoFromJson(legacyUtxoJson);
-            expect(Object.keys(newUtxo)).toStrictEqual(['token', 'sats']);
-            expect(Object.keys(newUtxo.token)).toStrictEqual(['atoms']);
-            expect(newUtxo.sats).toEqual(546n);
-            expect(newUtxo.token.atoms).toEqual(100n);
-        });
         it('We can revive a non-legacy JSON non-token utxo with value and amount keys', () => {
             const legacyUtxoJson = {
                 sats: '546',
@@ -125,24 +94,16 @@ describe('Cashtab helper functions', () => {
             const newUtxo = scriptUtxoFromJson(legacyUtxoJson);
             expect(newUtxo.sats).toEqual(546n);
         });
-        it('We can revive a legacy JSON non-token utxo with value and amount keys', () => {
-            const legacyUtxoJson = {
-                value: 546,
-            };
-            const newUtxo = scriptUtxoFromJson(legacyUtxoJson);
-            expect(Object.keys(newUtxo)).toStrictEqual(['sats']);
-            expect(newUtxo.sats).toEqual(546n);
-        });
     });
     describe('txFromJson', () => {
-        it('We can revive a stored legacy CashtabTx', () => {
+        it('We can revive a stored CashtabTx', () => {
             const legacyTx = {
-                inputs: [{ value: 546, token: { amount: '100' } }],
-                outputs: [{ value: 546, token: { amount: '100' } }],
+                inputs: [{ sats: 546n, token: { atoms: 100n } }],
+                outputs: [{ sats: 546n, token: { atoms: 100n } }],
                 tokenEntries: [
                     {
-                        actualBurnAmount: '100',
-                        intentionalBurn: '100',
+                        actualBurnAtoms: 100n,
+                        intentionalBurnAtoms: 100n,
                     },
                 ],
             };
@@ -153,13 +114,13 @@ describe('Cashtab helper functions', () => {
                 'tokenEntries',
             ]);
             expect(Object.keys(revivedTx.inputs[0])).toStrictEqual([
-                'token',
                 'sats',
+                'token',
             ]);
             expect(revivedTx.inputs[0].sats).toEqual(546n);
             expect(Object.keys(revivedTx.outputs[0])).toStrictEqual([
-                'token',
                 'sats',
+                'token',
             ]);
             expect(revivedTx.outputs[0].sats).toEqual(546n);
             expect(Object.keys(revivedTx.tokenEntries[0])).toStrictEqual([

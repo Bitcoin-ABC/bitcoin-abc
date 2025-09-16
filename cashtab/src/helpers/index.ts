@@ -13,7 +13,6 @@ import {
 import appConfig from 'config/app';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import {
-    CashtabWallet,
     StoredCashtabState,
     CashtabPathInfo,
     StoredCashtabPathInfo,
@@ -25,15 +24,13 @@ import {
     TokenUtxo,
     NonTokenUtxo,
     TokenUtxoJson,
-    LegacyTokenUtxoJson,
-    LegacyNonTokenUtxoJson,
     NonTokenUtxoJson,
     CashtabTx,
     CashtabWalletState,
-    LegacyTokenJson,
-    LegacyCashtabTxJson,
+    CashtabWallet_Pre_3_41_0,
+    StoredCashtabWallet_Pre_3_41_0,
 } from 'wallet';
-import { LegacyCashtabWallet_Pre_2_55_0 } from 'components/App/fixtures/mocks';
+import { CashtabWallet_Pre_2_55_0 } from 'components/App/fixtures/mocks';
 
 /**
  * the userAgentData key is supported by recent
@@ -108,7 +105,7 @@ export const storedCashtabCacheToMap = (
     };
 };
 
-export interface StoredCashtabWallet {
+export interface LegacyStoredCashtabWallet {
     name: string;
     mnemonic: string;
     paths: [number, StoredCashtabPathInfo][];
@@ -122,8 +119,8 @@ export interface StoredCashtabWallet {
  * @returns
  */
 export const cashtabWalletFromJSON = (
-    storedCashtabWallet: StoredCashtabWallet | LegacyCashtabWallet,
-): CashtabWallet | LegacyCashtabWallet => {
+    storedCashtabWallet: LegacyCashtabWallet | StoredCashtabWallet_Pre_3_41_0,
+): LegacyCashtabWallet => {
     // Convert all bigint json'd values in chronik-client
     const revivedSlpUtxos: TokenUtxo[] = [];
     for (const slpUtxo of storedCashtabWallet.state.slpUtxos) {
@@ -139,9 +136,10 @@ export const cashtabWalletFromJSON = (
     }
     const revivedParsedTxHistory: CashtabTx[] = [];
     for (const parsedTx of storedCashtabWallet.state.parsedTxHistory) {
+        const txJson = parsedTx as CashtabTxJson;
         revivedParsedTxHistory.push({
-            ...txFromJson(parsedTx as CashtabTxJson),
-            parsed: parsedTx.parsed,
+            ...txFromJson(txJson),
+            parsed: txJson.parsed,
         } as CashtabTx);
     }
 
@@ -168,8 +166,8 @@ export const cashtabWalletFromJSON = (
     const activeCashtabWalletPathInfos: [number, CashtabPathInfo][] = [];
     for (const [path, storedPathInfo] of (
         storedCashtabWallet as
-            | LegacyCashtabWallet_Pre_2_55_0
-            | StoredCashtabWallet
+            | CashtabWallet_Pre_2_55_0
+            | StoredCashtabWallet_Pre_3_41_0
     ).paths) {
         if ('sk' in storedPathInfo && 'pk' in storedPathInfo) {
             // If the stored wallet is > 2.55.0, it will have sk and pk fields
@@ -191,7 +189,7 @@ export const cashtabWalletFromJSON = (
         }
     }
     return {
-        ...(storedCashtabWallet as StoredCashtabWallet),
+        ...storedCashtabWallet,
         paths: new Map(activeCashtabWalletPathInfos),
         state: {
             ...storedCashtabWallet.state,
@@ -199,10 +197,10 @@ export const cashtabWalletFromJSON = (
             nonSlpUtxos: revivedNonSlpUtxos,
             parsedTxHistory: revivedParsedTxHistory,
             tokens: new Map(
-                (storedCashtabWallet as StoredCashtabWallet).state.tokens,
+                (storedCashtabWallet as CashtabWallet_Pre_3_41_0).state.tokens,
             ),
         },
-    } as CashtabWallet;
+    } as CashtabWallet_Pre_3_41_0;
 };
 
 /**
@@ -242,14 +240,8 @@ export const scriptUtxoToJson = (
 /**
  * Convert ScriptUtxoJson to ScriptUtxo
  */
-export const scriptUtxoFromJson = (
-    utxo:
-        | TokenUtxoJson
-        | NonTokenUtxoJson
-        | LegacyTokenUtxoJson
-        | LegacyNonTokenUtxoJson,
-): CashtabUtxo => {
-    const storedSats = 'sats' in utxo ? BigInt(utxo.sats) : BigInt(utxo.value);
+export const scriptUtxoFromJson = (utxo: ScriptUtxoJson): CashtabUtxo => {
+    const storedSats = BigInt(utxo.sats);
 
     const scriptUtxo: CashtabUtxo = {
         ...utxo,
@@ -260,10 +252,8 @@ export const scriptUtxoFromJson = (
         delete scriptUtxo.value;
     }
     if ('token' in utxo && typeof utxo.token !== 'undefined') {
-        const atoms =
-            'amount' in utxo.token
-                ? BigInt(utxo.token.amount)
-                : BigInt(utxo.token.atoms);
+        const atoms = BigInt(utxo.token.atoms);
+
         scriptUtxo.token = {
             ...utxo.token,
             atoms,
@@ -280,30 +270,16 @@ interface TxInputJson extends Omit<TxInput, 'sats' | 'token'> {
     sats: string;
     token?: TokenJson;
 }
-export interface LegacyTxInputJson extends Omit<TxInputJson, 'sats' | 'token'> {
-    value: number;
-    token?: LegacyTokenJson;
-}
 
 interface TxOutputJson extends Omit<TxOutput, 'sats' | 'token'> {
     sats: string;
     token?: TokenJson;
-}
-export interface LegacyTxOutputJson
-    extends Omit<TxOutputJson, 'sats' | 'token'> {
-    value: number;
-    token?: LegacyTokenJson;
 }
 
 interface TokenEntryJson
     extends Omit<TokenEntry, 'actualBurnAtoms' | 'intentionalBurnAtoms'> {
     actualBurnAtoms: string;
     intentionalBurnAtoms: string;
-}
-export interface LegacyTokenEntryJson
-    extends Omit<TokenEntryJson, 'actualBurnAtoms' | 'intentionalBurnAtoms'> {
-    actualBurnAmount: string;
-    intentionalBurn: string;
 }
 export interface TxJson
     extends Omit<Tx, 'inputs' | 'outputs' | 'tokenEntries'> {
@@ -356,41 +332,25 @@ export const txToJson = (tx: Tx): TxJson => {
     return txJson;
 };
 
-export const txFromJson = (txJson: TxJson | LegacyCashtabTxJson): Tx => {
+export const txFromJson = (txJson: TxJson): Tx => {
     const tx: Tx = { ...txJson, inputs: [], outputs: [], tokenEntries: [] };
+
     const { inputs, outputs, tokenEntries } = txJson;
+
     for (const input of inputs) {
         const revivedInput: TxInput = { ...input } as unknown as TxInput;
-
-        const sats =
-            'value' in input ? BigInt(input.value) : BigInt(input.sats);
-
+        const sats = BigInt(input.sats);
         revivedInput.sats = sats;
 
-        if ('value' in revivedInput) {
-            delete revivedInput.value;
-        }
-
         if (typeof revivedInput.token !== 'undefined') {
-            const atoms =
-                'amount' in revivedInput.token
-                    ? BigInt(revivedInput.token.amount as string)
-                    : BigInt(revivedInput.token.atoms);
-
+            const atoms = BigInt(revivedInput.token.atoms);
             revivedInput.token.atoms = atoms;
-            if ('amount' in revivedInput.token) {
-                delete revivedInput.token.amount;
-            }
         }
-
         tx.inputs.push(revivedInput);
     }
     for (const output of outputs) {
         const revivedOutput: TxOutput = { ...output } as unknown as TxOutput;
-
-        const sats =
-            'value' in output ? BigInt(output.value) : BigInt(output.sats);
-
+        const sats = BigInt(output.sats);
         revivedOutput.sats = sats;
 
         if ('value' in revivedOutput) {
@@ -398,40 +358,19 @@ export const txFromJson = (txJson: TxJson | LegacyCashtabTxJson): Tx => {
         }
 
         if (typeof revivedOutput.token !== 'undefined') {
-            const atoms =
-                'amount' in revivedOutput.token
-                    ? BigInt(revivedOutput.token.amount as string)
-                    : BigInt(revivedOutput.token.atoms);
-
+            const atoms = BigInt(revivedOutput.token.atoms);
             revivedOutput.token.atoms = atoms;
-            if ('amount' in revivedOutput.token) {
-                delete revivedOutput.token.amount;
-            }
         }
-
         tx.outputs.push(revivedOutput);
     }
     for (const entry of tokenEntries) {
         const revivedTokenEntry: TokenEntry = {
             ...entry,
         } as unknown as TokenEntry;
-        const actualBurnAtoms =
-            'actualBurnAmount' in entry
-                ? BigInt(entry.actualBurnAmount)
-                : BigInt(entry.actualBurnAtoms);
-        const intentionalBurnAtoms =
-            'intentionalBurn' in entry
-                ? BigInt(entry.intentionalBurn)
-                : BigInt(entry.intentionalBurnAtoms);
-
+        const actualBurnAtoms = BigInt(entry.actualBurnAtoms);
+        const intentionalBurnAtoms = BigInt(entry.intentionalBurnAtoms);
         revivedTokenEntry.actualBurnAtoms = actualBurnAtoms;
         revivedTokenEntry.intentionalBurnAtoms = intentionalBurnAtoms;
-        if ('actualBurnAmount' in revivedTokenEntry) {
-            delete revivedTokenEntry.actualBurnAmount;
-        }
-        if ('intentionalBurn' in revivedTokenEntry) {
-            delete revivedTokenEntry.intentionalBurn;
-        }
         tx.tokenEntries.push(revivedTokenEntry);
     }
     return tx;
@@ -439,12 +378,13 @@ export const txFromJson = (txJson: TxJson | LegacyCashtabTxJson): Tx => {
 
 /**
  * Store Map objects as keyvalue arrays before saving in localforage
+ * Note: this is only used for legacy wallets and mock management
  * @param cashtabWallet
  */
 export const cashtabWalletToJSON = (
-    cashtabWallet: LegacyCashtabWallet | CashtabWallet,
-): StoredCashtabWallet | LegacyCashtabWallet => {
-    const storedSlpUtxos: TokenUtxoJson[] = [];
+    cashtabWallet: LegacyCashtabWallet | CashtabWallet_Pre_3_41_0,
+): LegacyStoredCashtabWallet | LegacyCashtabWallet => {
+    const storedSlpUtxos: object[] = [];
     for (const slpUtxo of cashtabWallet.state.slpUtxos) {
         storedSlpUtxos.push(
             scriptUtxoToJson(slpUtxo as TokenUtxo) as TokenUtxoJson,
@@ -465,9 +405,12 @@ export const cashtabWalletToJSON = (
     }
 
     if (
-        typeof (cashtabWallet as unknown as CashtabWallet).paths ===
+        typeof (cashtabWallet as unknown as CashtabWallet_Pre_3_41_0).paths ===
             'undefined' ||
-        !((cashtabWallet as unknown as CashtabWallet).paths instanceof Map)
+        !(
+            (cashtabWallet as unknown as CashtabWallet_Pre_3_41_0)
+                .paths instanceof Map
+        )
     ) {
         // Cashtab wallets before 2.9.0 were already JSON
         // However with new chronik bigint in mocks, we do need to convert bigint to string
@@ -488,21 +431,23 @@ export const cashtabWalletToJSON = (
     // Note that we only expect valid CashtabWallet type here, Legacy handled above
     // And in practice, we do not expect to ever store legacy type as they are migrated on app startup
     const storedCashtabPaths: [number, StoredCashtabPathInfo][] = [];
-    (cashtabWallet as CashtabWallet).paths.forEach((pathInfo, path) => {
-        storedCashtabPaths.push([
-            path,
-            'sk' in pathInfo && 'pk' in pathInfo
-                ? {
-                      ...pathInfo,
-                      sk: Array.from(pathInfo.sk),
-                      pk: Array.from(pathInfo.pk),
-                  }
-                : pathInfo,
-        ]);
-    });
+    (cashtabWallet as CashtabWallet_Pre_3_41_0).paths.forEach(
+        (pathInfo, path) => {
+            storedCashtabPaths.push([
+                path,
+                'sk' in pathInfo && 'pk' in pathInfo
+                    ? {
+                          ...pathInfo,
+                          sk: Array.from(pathInfo.sk),
+                          pk: Array.from(pathInfo.pk),
+                      }
+                    : pathInfo,
+            ]);
+        },
+    );
 
     return {
-        ...(cashtabWallet as CashtabWallet),
+        ...(cashtabWallet as CashtabWallet_Pre_3_41_0),
         paths: storedCashtabPaths,
         state: {
             ...(cashtabWallet.state as unknown as StoredCashtabState),
@@ -510,39 +455,12 @@ export const cashtabWalletToJSON = (
             nonSlpUtxos: storedNonSlpUtxos,
             parsedTxHistory: storedParsedTxHistory,
             tokens: Array.from(
-                (cashtabWallet as CashtabWallet).state.tokens.entries(),
+                (
+                    cashtabWallet as CashtabWallet_Pre_3_41_0
+                ).state.tokens.entries(),
             ),
         },
-    } as StoredCashtabWallet;
-};
-
-/**
- * Convert cashtab wallets to JSON for localforage writing
- * @param wallets array of valid cashtab wallets
- */
-export const cashtabWalletsToJSON = (
-    wallets: CashtabWallet[] | LegacyCashtabWallet[],
-): (StoredCashtabWallet | LegacyCashtabWallet)[] => {
-    const jsonWallets = [];
-    for (const wallet of wallets) {
-        jsonWallets.push(cashtabWalletToJSON(wallet));
-    }
-    return jsonWallets;
-};
-
-/**
- * Convert cashtab wallets from JSON after reading from localforage
- * @param {array} storedWallets array of stored JSON cashtab wallets
- * @returns {array} wallets
- */
-export const cashtabWalletsFromJSON = (
-    storedWallets: (StoredCashtabWallet | LegacyCashtabWallet)[],
-): (LegacyCashtabWallet | CashtabWallet)[] => {
-    const wallets = [];
-    for (const storedWallet of storedWallets) {
-        wallets.push(cashtabWalletFromJSON(storedWallet));
-    }
-    return wallets;
+    } as LegacyStoredCashtabWallet;
 };
 
 /**

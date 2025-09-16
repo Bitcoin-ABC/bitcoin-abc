@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import {
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
@@ -71,7 +71,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -143,7 +143,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -208,7 +208,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -273,7 +273,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -336,7 +336,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -394,7 +394,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -453,7 +453,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -522,7 +522,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -633,7 +633,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -707,7 +707,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -772,7 +772,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -890,7 +890,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         });
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
@@ -1002,13 +1002,6 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // Wait for balance to be loaded
-        expect(await screen.findByText('9,970.81 XEC')).toBeInTheDocument();
-
         const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The "Send to Many" switch is disabled
@@ -1109,13 +1102,6 @@ describe('<SendXec /> rendered with params in URL', () => {
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
         );
-
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
-        );
-
-        // Wait for balance to be loaded
-        expect(await screen.findByText('9,970.81 XEC')).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 

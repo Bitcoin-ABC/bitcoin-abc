@@ -2,60 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { cashtabWalletToJSON, cashtabWalletFromJSON } from 'helpers';
-import { CashtabWallet, CashtabWalletPaths } from 'wallet';
-import { fromHex } from 'ecash-lib';
+import { ActiveCashtabWallet } from 'wallet';
 import { XecTxType } from 'chronik';
 import { RenderedTokenType } from 'token-protocols';
 
-const wallet: CashtabWallet = {
+const wallet: ActiveCashtabWallet = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                sk: fromHex(
-                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                ),
-                pk: fromHex(
-                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                ),
-            },
-        ],
-        [
-            145,
-            {
-                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-                sk: fromHex(
-                    '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
-                ),
-                pk: fromHex(
-                    '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
-                ),
-            },
-        ],
-        [
-            245,
-            {
-                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-                sk: fromHex(
-                    'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
-                ),
-                pk: fromHex(
-                    '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+    sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+
+    pk: '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+
     state: {
         balanceSats: 135000,
         slpUtxos: [],
@@ -1056,54 +1016,15 @@ const wallet: CashtabWallet = {
     },
 };
 
-const walletWithCoinbaseUtxos: CashtabWallet = {
+const walletWithCoinbaseUtxos: ActiveCashtabWallet = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                sk: fromHex(
-                    '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
-                ),
-                pk: fromHex(
-                    '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                ),
-            },
-        ],
-        [
-            145,
-            {
-                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-                sk: fromHex(
-                    '9747c0c6a6b4a1025b222a79ccad3df7330cbf3e6731de58500f865d0370b861',
-                ),
-                pk: fromHex(
-                    '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
-                ),
-            },
-        ],
-        [
-            245,
-            {
-                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-                sk: fromHex(
-                    'c3f637ba1e3cdd10cace41350058a3698c5bd413b69a358a2a2b955843ea043c',
-                ),
-                pk: fromHex(
-                    '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+    hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+    sk: '512d34d3b8f4d269219fd087c80e22b0212769227226dd6b23966cf0aa2f167f',
+    pk: '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+
     state: {
         balanceSats: 135000,
         slpUtxos: [],
@@ -1420,9 +1341,7 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
 
 // Create a wallet with very large utxos
 const TOTAL_ECASH_SUPPLY_SATS = 2100000000000000n;
-const allTheXecWallet = cashtabWalletFromJSON(
-    JSON.parse(JSON.stringify(cashtabWalletToJSON(wallet))),
-);
+const allTheXecWallet = structuredClone(wallet);
 const largeUtxo = {
     outpoint: {
         txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
@@ -1435,56 +1354,20 @@ const largeUtxo = {
 };
 
 allTheXecWallet.state.nonSlpUtxos = [largeUtxo];
-(allTheXecWallet as CashtabWallet).state.balanceSats = Number(largeUtxo.sats);
+(allTheXecWallet as ActiveCashtabWallet).state.balanceSats = Number(
+    largeUtxo.sats,
+);
 
-const walletWithTokensInNode: CashtabWallet = {
+const walletWithTokensInNode: ActiveCashtabWallet = {
     mnemonic:
         'industry limit sense cruel neglect loud chase usual advance method talk come',
     name: 'SLP V1 Send',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
-                wif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
-                sk: fromHex(
-                    '3c0898e4d10337cb51a651fe3ff6653a5683cbe9ce1698094463e48372e9bbfb',
-                ),
-                pk: fromHex(
-                    '03b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921',
-                ),
-            },
-        ],
-        [
-            245,
-            {
-                hash: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
-                address: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
-                wif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
-                sk: fromHex(
-                    'd22c0fc1ca98add975c4574878c8b9e3a979af0d40b93f7f5dc3e03cf94f856d',
-                ),
-                pk: fromHex(
-                    '02d4b1b5ee228995225af776e6f2425a2980b8718c23c560fe792c6403044f8454',
-                ),
-            },
-        ],
-        [
-            145,
-            {
-                hash: '33a070d3931a4993207771ae1aa92aa05491e8b2',
-                address: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
-                wif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
-                sk: fromHex(
-                    'f007266ad2f28d93601e0cdaf32ce765b4c7c1f4d4a30bd4988435b510fa18ba',
-                ),
-                pk: fromHex(
-                    '02ac09ff67b81aa631ff3e110f167af90f528d8c51b53feeb84eeb59c676da54d3',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+    hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
+    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+    sk: '3c0898e4d10337cb51a651fe3ff6653a5683cbe9ce1698094463e48372e9bbfb',
+
+    pk: '03b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921',
+
     state: {
         balanceSats: 1000000,
         slpUtxos: [

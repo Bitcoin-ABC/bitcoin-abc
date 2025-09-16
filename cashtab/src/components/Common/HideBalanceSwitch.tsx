@@ -10,10 +10,9 @@ import CashtabSettings from 'config/CashtabSettings';
 
 interface HideBalanceSwitchProps {
     settings: CashtabSettings;
-    updateCashtabState: (
-        key: string,
-        value: CashtabSettings,
-    ) => Promise<boolean>;
+    updateCashtabState: (updates: {
+        [key: string]: CashtabSettings;
+    }) => Promise<boolean>;
 }
 
 const HideBalanceSwitch: React.FC<HideBalanceSwitchProps> = ({
@@ -24,9 +23,11 @@ const HideBalanceSwitch: React.FC<HideBalanceSwitchProps> = ({
         e: React.ChangeEvent<HTMLInputElement>,
     ): void => {
         // Update settings in state and localforage
-        updateCashtabState('settings', {
-            ...settings,
-            balanceVisible: e.target.checked,
+        updateCashtabState({
+            settings: {
+                ...settings,
+                balanceVisible: e.target.checked,
+            },
         });
     };
 

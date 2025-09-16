@@ -43,9 +43,8 @@ import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { toHex, Script, fromHex, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
-import { CashtabWallet, toXec, DUMMY_KEYPAIR, CashtabUtxo } from 'wallet';
+import { ActiveCashtabWallet, toXec, DUMMY_KEYPAIR, CashtabUtxo } from 'wallet';
 import { ignoreUnspendableUtxos } from 'transactions';
-import appConfig from 'config/app';
 import { ChronikClient } from 'chronik-client';
 import { explorer } from 'config/explorer';
 import { getTokenGenesisInfo } from 'chronik';
@@ -80,11 +79,7 @@ interface CollectionProps {
     settings: CashtabSettings;
     fiatPrice: null | number;
     userLocale: string;
-    wallet: CashtabWallet;
-    // Import makerPk separately as parent component will have this
-    // We do not want to calculate it in every Collection
-    // TODO Cashtab should calc pk on wallet creation
-    activePk: Uint8Array;
+    wallet: ActiveCashtabWallet;
     chaintipBlockheight: number;
     /**
      * Do not render token icon or name for the Collection.
@@ -114,12 +109,11 @@ export interface OneshotOffer extends AgoraOffer {
 interface OneshotSwiperProps {
     offers: OneshotOffer[];
     cashtabCache: CashtabCache;
-    activePk: Uint8Array;
     settings: CashtabSettings;
     userLocale: string;
     fiatPrice: null | number;
     chronik: ChronikClient;
-    wallet: CashtabWallet;
+    wallet: ActiveCashtabWallet;
     chaintipBlockheight: number;
     /**
      * We need the ability to manipulate this param in the higher order component
@@ -133,7 +127,6 @@ interface OneshotSwiperProps {
 export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
     offers,
     cashtabCache,
-    activePk,
     settings,
     userLocale,
     fiatPrice,
@@ -188,16 +181,8 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
         const signedFuelInputs = [];
         for (const fuelUtxo of acceptFuelInputs) {
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            if (typeof pathInfo === 'undefined') {
-                // Should never happen
-                return toast.error(
-                    `No path info for ${appConfig.derivationPath}`,
-                );
-            }
             // Sign and prep utxos for ecash-lib inputs
-            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
-            const sk = pathInfo.sk;
+            const recipientScript = Script.p2pkh(fromHex(wallet.hash));
             signedFuelInputs.push({
                 input: {
                     prevOut: {
@@ -209,23 +194,21 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         outputScript: recipientScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, activePk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
+                    ALL_BIP143,
+                ),
             });
         }
 
-        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
-        if (typeof defaultPathInfo === 'undefined') {
-            // Should never happen
-            return toast.error(`No path info for ${appConfig.derivationPath}`);
-        }
         // Use an arbitrary sk, pk for the convenant
         const acceptTxSer = agoraOneshot
             .acceptTx({
                 covenantSk: DUMMY_KEYPAIR.sk,
                 covenantPk: DUMMY_KEYPAIR.pk,
                 fuelInputs: signedFuelInputs,
-                // Accept at default path, 1899
-                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
+                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
                 feePerKb: satsPerKb,
             })
             .ser();
@@ -295,19 +278,8 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
         const fuelInputs = [];
         for (const fuelUtxo of fuelUtxos) {
-            const pathInfo = wallet.paths.get(appConfig.derivationPath);
-            if (typeof pathInfo === 'undefined') {
-                // Should never happen
-                return toast.error(
-                    `No path info for ${appConfig.derivationPath}`,
-                );
-            }
-            //
             // Send the tokens back to the same address as the fuelUtxo
-            const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
-
-            // sk for the tx is the sk for this utxo
-            const sk = pathInfo.sk;
+            const recipientScript = Script.p2pkh(fromHex(wallet.hash));
 
             // Convert from Cashtab utxo to signed ecash-lib input
             fuelInputs.push({
@@ -321,26 +293,24 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                         outputScript: recipientScript,
                     },
                 },
-                signatory: P2PKHSignatory(sk, activePk, ALL_BIP143),
+                signatory: P2PKHSignatory(
+                    fromHex(wallet.sk),
+                    fromHex(wallet.pk),
+                    ALL_BIP143,
+                ),
             });
-        }
-
-        const defaultPathInfo = wallet.paths.get(appConfig.derivationPath);
-        if (typeof defaultPathInfo === 'undefined') {
-            // Should never happen
-            return toast.error(`No path info for ${appConfig.derivationPath}`);
         }
 
         // Build the cancel tx
         const cancelTxSer = agoraOneshot
             .cancelTx({
-                // Cashtab default path
-                // This works here because we lookup cancelable offers by the same path
+                // Cashtab one-address sk
+                // This works here because we lookup cancelable offers by the same sk
                 // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: defaultPathInfo.sk,
+                cancelSk: fromHex(wallet.sk),
                 fuelInputs: fuelInputs,
-                // Change to Cashtab default derivation path
-                recipientScript: Script.p2pkh(fromHex(defaultPathInfo.hash)),
+                // Change to wallet
+                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
                 feePerKb: satsPerKb,
             })
             .ser();
@@ -349,7 +319,6 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Note that broadcastTx will accept cancelTxSer
         // But hex is a better way to store raw txs for integration tests
         const hex = toHex(cancelTxSer);
-        console.log('hex', hex);
 
         // Broadcast the cancel tx
         let resp;
@@ -408,7 +377,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             return;
         }
         // We know this is a ONESHOT offer but type safety
-        const isMaker = toHex(activePk) === toHex(params.cancelPk);
+        const isMaker = wallet.pk === toHex(params.cancelPk);
         const priceSatoshis = params.enforcedOutputs[1].sats;
         const priceXec = toXec(priceSatoshis);
         const formattedPrice = getFormattedFiatPrice(
@@ -468,8 +437,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                             <InlineLoader />
                         );
                     const isMaker =
-                        toHex(activePk) ===
-                        toHex(offer.variant.params.cancelPk);
+                        wallet.pk === toHex(offer.variant.params.cancelPk);
                     const priceSatoshis =
                         offer.variant.params.enforcedOutputs[1].sats;
                     const priceXec = toXec(priceSatoshis);
@@ -534,7 +502,6 @@ const Collection: React.FC<CollectionProps> = ({
     fiatPrice,
     userLocale,
     wallet,
-    activePk,
     chaintipBlockheight,
     noCollectionInfo = false,
     loadOnClick = false,
@@ -682,7 +649,6 @@ const Collection: React.FC<CollectionProps> = ({
                                 <OneshotSwiper
                                     offers={activeOffers}
                                     setOffers={setActiveOffers}
-                                    activePk={activePk}
                                     chronik={chronik}
                                     chaintipBlockheight={chaintipBlockheight}
                                     wallet={wallet}

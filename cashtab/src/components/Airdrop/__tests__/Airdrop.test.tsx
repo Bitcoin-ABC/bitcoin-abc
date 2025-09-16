@@ -7,7 +7,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     easterEggTokenChronikTokenDetails,
     easterEggTokenChronikGenesisTx,
 } from 'components/App/fixtures/mocks';
@@ -98,7 +98,7 @@ describe('<Airdrop />', () => {
         // Mock the app with context at the Send screen
         const mockedChronik: MockChronikClient = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
         const mockedAgora = new MockAgora();
@@ -239,7 +239,7 @@ describe('<Airdrop />', () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -374,7 +374,7 @@ describe('<Airdrop />', () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
         const mockedAgora = new MockAgora();

@@ -852,10 +852,7 @@ describe('<Token /> available actions rendered', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        mockedAgora.setActiveOffersByPubKey(
-            tokenTestWallet.paths.get(appConfig.derivationPath).pk,
-            [],
-        );
+        mockedAgora.setActiveOffersByPubKey(tokenTestWallet.pk, []);
 
         // activeOffersByGroupTokenId does not need to be mocked since there are no offers here
 

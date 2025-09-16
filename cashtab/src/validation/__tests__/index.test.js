@@ -20,7 +20,7 @@ import {
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
     parseAddressInput,
-    isValidCashtabWallet,
+    isValidStoredCashtabWallet,
     isValidTokenSendOrBurnAmount,
     isValidTokenMintAmount,
     getOpReturnRawError,
@@ -383,11 +383,11 @@ describe('Cashtab validation functions', () => {
         });
     });
     describe('Determines if a cashtab wallet is valid or invalid', () => {
-        const { expectedReturns } = vectors.isValidCashtabWallet;
+        const { expectedReturns } = vectors.isValidStoredCashtabWallet;
         expectedReturns.forEach(expectedReturn => {
             const { description, wallet, returned } = expectedReturn;
-            it(`isValidCashtabWallet: ${description}`, () => {
-                expect(isValidCashtabWallet(wallet)).toBe(returned);
+            it(`isValidStoredCashtabWallet: ${description}`, () => {
+                expect(isValidStoredCashtabWallet(wallet)).toBe(returned);
             });
         });
     });

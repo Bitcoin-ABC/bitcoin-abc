@@ -4,7 +4,7 @@
 
 import React from 'react';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     populatedContactList,
     validSavedWallets,
     bearTokenAndTx,
@@ -86,7 +86,7 @@ describe('<Contacts />', () => {
         // localforage defaults
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 
@@ -96,7 +96,7 @@ describe('<Contacts />', () => {
         const savedWallet = validSavedWallets[0];
 
         await localforage.setItem('wallets', [
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             savedWallet,
         ]);
 
@@ -289,7 +289,7 @@ describe('<Contacts />', () => {
         // localforage defaults
         const mockedChronik = await prepareContext(
             localforage,
-            [walletWithXecAndTokens],
+            [walletWithXecAndTokensActive],
             tokenMocks,
         );
 

@@ -22,7 +22,7 @@ import {
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 import CashtabCache from 'config/CashtabCache';
 import {
-    walletWithXecAndTokens,
+    walletWithXecAndTokensActive,
     mockCacheWalletWithXecAndTokens,
     mockCachedInfoCashtabDark,
 } from 'components/App/fixtures/mocks';
@@ -81,7 +81,7 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
     it('XEC price is set in state on successful API fetch', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
@@ -91,7 +91,7 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
     it('XEC price remains null in state on API error', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         // Mock the fetch call for Cashtab's price API
@@ -133,7 +133,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             });
 
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
 
@@ -147,7 +147,7 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
     it('Cashtab loads wallet, settings, cache, and contactlist from localforage to context if they are present', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         // Set valid and non-default items for wallet context keys that come from indexedDb
@@ -180,6 +180,8 @@ describe('useWallet hook rendering in different localforage states', () => {
             mockCacheWalletWithXecAndTokens,
         );
 
+        console.log(result.current.cashtabState.cashtabCache);
+
         await waitFor(() =>
             expect(result.current.cashtabState.cashtabCache).toEqual(
                 expectedUpdatedCache,
@@ -192,14 +194,14 @@ describe('useWallet hook rendering in different localforage states', () => {
             }),
         );
         await waitFor(() =>
-            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
-                walletWithXecAndTokens,
+            expect(result.current.cashtabState.activeWallet).toStrictEqual(
+                walletWithXecAndTokensActive,
             ),
         );
     });
     it('An incoming tx message from the websocket causes the wallet to update', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            walletWithXecAndTokensActive,
             localforage,
         );
         // Mock chronik.tx response for this tx to be a new token tx
@@ -211,8 +213,8 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         // Wait for the wallet to load
         await waitFor(() =>
-            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
-                walletWithXecAndTokens,
+            expect(result.current.cashtabState.activeWallet).toStrictEqual(
+                walletWithXecAndTokensActive,
             ),
         );
 

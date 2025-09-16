@@ -2,16 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import appConfig from 'config/app';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import { fromHex, Script } from 'ecash-lib';
 import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { CashtabPathInfo, CashtabWallet, CashtabWalletPaths } from 'wallet';
 import { XecTxType } from 'chronik';
 import { RenderedTokenType } from 'token-protocols';
 import { TokenType } from 'chronik-client';
-
+import { ActiveCashtabWallet } from 'wallet';
 /**
  * Mocks for the Agora screen
  * Note that these mocks must be properly typed AgoraOffer<s>
@@ -19,7 +17,7 @@ import { TokenType } from 'chronik-client';
  */
 
 // Real wallet with a (trace) balance on 20241017 if anyone wants it 👀
-export const agoraPartialAlphaWallet: CashtabWallet = {
+export const agoraPartialAlphaWallet: ActiveCashtabWallet = {
     state: {
         balanceSats: 420000,
         slpUtxos: [
@@ -575,27 +573,16 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
     },
     mnemonic:
         'boat lava egg soap winter alone minute erode evoke dune mixture clump',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: '03b830e4b9dce347f3495431e1f9d1005f4b4204',
-                address: 'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
-                wif: 'KwdT9LwmWEWgSvon9BTABY3SMmCNCDptKio9kY8CYUA6oB9sWcRP',
-                sk: fromHex(
-                    '0c368e6f3df4990da1a6a36435fa2f83ad399c8b2e45ff59676989c43578f431',
-                ),
-                pk: fromHex(
-                    '0233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+
     name: 'Agora Partial Alpha',
+    hash: '03b830e4b9dce347f3495431e1f9d1005f4b4204',
+    address: 'ecash:qqpmsv8yh8wwx3lnf92rrc0e6yq97j6zqs8av8vx8h',
+    sk: '0c368e6f3df4990da1a6a36435fa2f83ad399c8b2e45ff59676989c43578f431',
+    pk: '0233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
 };
 
 // Real wallet with a (trace) balance on 20241017 if anyone wants it 👀
-export const agoraPartialBetaWallet: CashtabWallet = {
+export const agoraPartialBetaWallet: ActiveCashtabWallet = {
     state: {
         balanceSats: 4200,
         slpUtxos: [
@@ -873,26 +860,14 @@ export const agoraPartialBetaWallet: CashtabWallet = {
     },
     mnemonic:
         'end object argue chalk toward blouse square primary fragile glad engine paddle',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
-                address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
-                wif: 'L1pjs2zuVGMx4jzegPaSHauNmDrchm8vS1m1T263z5Wzw6ehHwLD',
-                sk: fromHex(
-                    '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
-                ),
-                pk: fromHex(
-                    '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
     name: 'Agora Partial Beta',
+    hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
+    address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
+    sk: '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
+    pk: '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
 };
 
-export const agoraPartialBetaMoreBalanceWallet: CashtabWallet = {
+export const agoraPartialBetaMoreBalanceWallet: ActiveCashtabWallet = {
     state: {
         balanceSats: 10_000_000_00,
         slpUtxos: [
@@ -941,49 +916,11 @@ export const agoraPartialBetaMoreBalanceWallet: CashtabWallet = {
     },
     mnemonic:
         'end object argue chalk toward blouse square primary fragile glad engine paddle',
-    paths: new Map([
-        [
-            1899,
-            {
-                hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
-                address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
-                wif: 'L1pjs2zuVGMx4jzegPaSHauNmDrchm8vS1m1T263z5Wzw6ehHwLD',
-                sk: fromHex(
-                    '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
-                ),
-                pk: fromHex(
-                    '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
-                ),
-            },
-        ],
-    ]) as CashtabWalletPaths,
+    hash: 'f208ef75eb0dd778ea4540cbd966a830c7b94bb0',
+    address: 'ecash:qreq3mm4avxaw782g4qvhktx4qcv0w2tkqj3j5jaad',
+    sk: '895eab6d2f84b8d534907f209173ad9404fc796b9f5c1651dd4501acda3e1cc5',
+    pk: '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
     name: 'Agora Partial Beta Moar Balance',
-};
-
-export const agoraPartialAlphaKeypair = {
-    sk: (
-        agoraPartialAlphaWallet.paths.get(
-            appConfig.derivationPath,
-        ) as CashtabPathInfo
-    ).sk,
-
-    // Hardcoded for easier mock management
-    // Got this by console.logging toHex(ecc.derivePubkey(agoraPartialAlphaKeypair))
-    pk: fromHex(
-        '0233f09cd4dc3381162f09975f90866f085350a5ec890d7fba5f6739c9c0ac2afd',
-    ),
-};
-
-export const agoraPartialBetaKeypair = {
-    sk: (
-        agoraPartialBetaWallet.paths.get(
-            appConfig.derivationPath,
-        ) as CashtabPathInfo
-    ).sk,
-
-    pk: fromHex(
-        '021e75febb8ae57a8805e80df93732ab7d5d8606377cb30c0f02444809cc085f39',
-    ),
 };
 
 // CACHET candle created by Agora Partial Alpha
@@ -1001,7 +938,7 @@ const agoraPartialCachetAlphaOne = new AgoraPartial({
     atomsScaleFactor: 214747n,
     tokenType: 1,
     truncAtoms: 10000n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferCachetAlphaOne = new AgoraOffer({
     outpoint: {
@@ -1051,7 +988,7 @@ const agoraPartialCachetAlphaTwo = new AgoraPartial({
     atomsScaleFactor: 107373n,
     tokenType: 1,
     truncAtoms: 20000n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferCachetAlphaTwo = new AgoraOffer({
     outpoint: {
@@ -1101,7 +1038,7 @@ const agoraPartialBullAlphaOne = new AgoraPartial({
     atomsScaleFactor: 2418301n,
     tokenType: 1,
     truncAtoms: 888n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferBullAlphaOne = new AgoraOffer({
     outpoint: {
@@ -1151,7 +1088,7 @@ const agoraPartialCachetBetaOne = new AgoraPartial({
     atomsScaleFactor: 71582n,
     tokenType: 1,
     truncAtoms: 30000n,
-    makerPk: agoraPartialBetaKeypair.pk,
+    makerPk: fromHex(agoraPartialBetaWallet.pk),
 });
 export const agoraOfferCachetBetaOne = new AgoraOffer({
     outpoint: {
@@ -1203,7 +1140,7 @@ const agoraPartialCachetAlphaUnacceptable = new AgoraPartial({
     atomsScaleFactor: 214n,
     tokenType: 1,
     truncAtoms: 10000000n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
     outpoint: {
@@ -1253,7 +1190,7 @@ const agoraPartialXecxAlphaOne = new AgoraPartial({
     atomsScaleFactor: 5n,
     tokenType: 0,
     truncAtoms: 175289017n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferXecxAlphaOne = new AgoraOffer({
     outpoint: {
@@ -1302,7 +1239,7 @@ export const scamAgoraPartial = new AgoraPartial({
     tokenType: 1,
     truncAtoms: 825472n,
     // Does not correspond with real offer but do this for testing
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const scamAgoraOffer = new AgoraOffer({
     outpoint: {
@@ -1344,7 +1281,7 @@ const mockFirmaPartial = new AgoraPartial({
     atomsScaleFactor: 1407261n,
     scaledTruncAtomsPerTruncSat: 3112n,
     numSatsTruncBytes: 2,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
     minAcceptedScaledTruncAtoms: 21108915n,
     tokenId: '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
     tokenType: 0,
@@ -1402,7 +1339,7 @@ const agoraPartialCachetAffordable = new AgoraPartial({
     atomsScaleFactor: 1000n, // Much smaller scale factor
     tokenType: 1,
     truncAtoms: 10000n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferCachetAffordable = new AgoraOffer({
     outpoint: {
@@ -1452,7 +1389,7 @@ const agoraPartialCachetUnaffordable = new AgoraPartial({
     atomsScaleFactor: 214747n,
     tokenType: 1,
     truncAtoms: 10000n,
-    makerPk: agoraPartialAlphaKeypair.pk,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 export const agoraOfferCachetUnaffordable = new AgoraOffer({
     outpoint: {
@@ -2086,7 +2023,7 @@ const heismanNftOne = new AgoraOneshot({
             ),
         },
     ],
-    cancelPk: agoraPartialAlphaKeypair.pk,
+    cancelPk: fromHex(agoraPartialAlphaWallet.pk),
 });
 const heismanNftOneUtxo = {
     outpoint: {
@@ -2570,7 +2507,7 @@ export const lkCacheMocks = {
     },
 };
 
-export const agoraPartialAlphaHighBalanceWallet: CashtabWallet = {
+export const agoraPartialAlphaHighBalanceWallet: ActiveCashtabWallet = {
     ...agoraPartialAlphaWallet,
     state: {
         ...agoraPartialAlphaWallet.state,
@@ -2584,7 +2521,7 @@ export const agoraPartialAlphaHighBalanceWallet: CashtabWallet = {
     },
 };
 
-export const agoraPartialBetaHighBalanceWallet: CashtabWallet = {
+export const agoraPartialBetaHighBalanceWallet: ActiveCashtabWallet = {
     ...agoraPartialBetaWallet,
     state: {
         ...agoraPartialBetaWallet.state,

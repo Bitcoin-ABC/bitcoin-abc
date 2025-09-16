@@ -7,7 +7,6 @@ import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
-import { toHex } from 'ecash-lib';
 import {
     ActiveOffers,
     OfferTitle,
@@ -17,11 +16,9 @@ import {
     ManageSwitch,
 } from './styled';
 import { getUserLocale } from 'helpers';
-import appConfig from 'config/app';
 import OrderBook, { OrderBookInfo } from './OrderBook';
 import { token as tokenConfig } from 'config/token';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { CashtabPathInfo } from 'wallet';
 import { InlineLoader } from 'components/Common/Spinner';
 import PrimaryButton from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
@@ -76,12 +73,14 @@ const Agora: React.FC = () => {
         return null;
     }
     const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
-    const { wallets, cashtabCache } = cashtabState;
+    const { cashtabCache, activeWallet } = cashtabState;
+    if (typeof activeWallet === 'undefined') {
+        return null;
+    }
     // Note that wallets must be a non-empty array of CashtabWallet[] here, because
     // context is loaded, and App component only renders Onboarding screen if user has no wallet
-    const wallet = wallets[0];
-    const pk = (wallet.paths.get(appConfig.derivationPath) as CashtabPathInfo)
-        .pk;
+    const wallet = activeWallet;
+    const pk = wallet.pk;
 
     // Use a state param to keep track of how many orderbooks we load at once
     const [loadedOrderBooksCount, setLoadedOrderBooksCount] =
@@ -336,7 +335,7 @@ const Agora: React.FC = () => {
         let offeredFungibleTokenIdsThisWallet: Set<string> | string[] =
             new Set();
         try {
-            activeOffersByPubKey = await agora.activeOffersByPubKey(toHex(pk));
+            activeOffersByPubKey = await agora.activeOffersByPubKey(pk);
             // Just get the tokenIds as the Orderbook will load and prepare the offers by tokenId
             for (const activeOffer of activeOffersByPubKey) {
                 if (activeOffer.variant.type === 'PARTIAL') {
@@ -399,9 +398,11 @@ const Agora: React.FC = () => {
             // We handle this in the parent component (e.g. Agora) and not in OrderBook
             // because updating the cache is a UI-locking write operation
             // We would rather write one big change once than 100s of changes
-            updateCashtabState('cashtabCache', {
-                ...cashtabState.cashtabCache,
-                tokens: cashtabCache.tokens,
+            updateCashtabState({
+                cashtabCache: {
+                    ...cashtabState.cashtabCache,
+                    tokens: cashtabCache.tokens,
+                },
             });
         }
     };

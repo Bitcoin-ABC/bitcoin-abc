@@ -14,7 +14,7 @@ import { theme } from 'assets/styles/theme';
 import { MemoryRouter } from 'react-router-dom';
 import { WalletProvider } from 'wallet/context';
 import { ChronikClient } from 'chronik-client';
-import { Ecc, toHex } from 'ecash-lib';
+import { Ecc } from 'ecash-lib';
 import { Agora } from 'ecash-agora';
 import {
     MockAgora,
@@ -31,9 +31,8 @@ import {
     argentinaAgoraOffer,
     nftIntegrationTokenAndTxMocks,
 } from 'components/Nfts/fixtures/mocks';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
-import appConfig from 'config/app';
 import { cashtabCacheToJSON } from 'helpers';
 
 // We need to wrap the Nfts component with context so we can useContext instead of prop drilling
@@ -134,10 +133,7 @@ describe('<Nfts />', () => {
 
         mockedAgora.setOfferedGroupTokenIds([]);
 
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(nftMarketWallet.paths.get(appConfig.derivationPath)!.pk),
-            [],
-        );
+        mockedAgora.setActiveOffersByPubKey(nftMarketWallet.pk, []);
 
         // Mock the cache directly with the NFT data
         const yourTokenCache = new CashtabCache();
@@ -207,16 +203,13 @@ describe('<Nfts />', () => {
 
         // activeOffersByPubKey
         // The test wallet is selling the Saturn V NFT
-        mockedAgora.setActiveOffersByPubKey(
-            toHex(nftMarketWallet.paths.get(appConfig.derivationPath)!.pk),
-            [saturnFiveAgoraOffer],
-        );
+        mockedAgora.setActiveOffersByPubKey(nftMarketWallet.pk, [
+            saturnFiveAgoraOffer,
+        ]);
 
         // Also set activeOffersByPubKey for the wallet you are switching to
         mockedAgora.setActiveOffersByPubKey(
-            toHex(
-                walletWithXecAndTokens.paths.get(appConfig.derivationPath)!.pk,
-            ),
+            walletWithXecAndTokensActive.pk,
             [],
         );
 
@@ -239,7 +232,7 @@ describe('<Nfts />', () => {
 
         const mockedChronik = await prepareContext(
             localForage,
-            [nftMarketWallet, walletWithXecAndTokens],
+            [nftMarketWallet, walletWithXecAndTokensActive],
             tokenMocks,
         );
 
