@@ -83,7 +83,6 @@ const DUMMY_UTXO: CashtabUtxo = {
     blockHeight: 800000,
     isCoinbase: false,
     isFinal: true,
-    path: 1899,
 };
 const vectors: TokenProtocolsVectors = {
     getAllSendUtxos: {

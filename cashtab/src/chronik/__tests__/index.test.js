@@ -9,7 +9,6 @@ import {
     getTokenGenesisInfo,
     getTokenBalances,
     getTransactionHistory,
-    getUtxos,
     getAllTxHistoryByTokenId,
     getChildNftsFromParent,
 } from 'chronik';
@@ -187,7 +186,6 @@ describe('Cashtab chronik.js functions', () => {
                         atoms: 0n,
                         isMintBaton: false,
                     },
-                    path: 1899,
                 },
             ],
             tokenCache,
@@ -206,28 +204,6 @@ describe('Cashtab chronik.js functions', () => {
                 ],
             ]),
         );
-    });
-    it('We can get utxos from multiple paths and tag each one with its path', async () => {
-        // Make all of your chronik mocks
-
-        // Revive JSON wallet
-        const mockTxHistoryWallet = cashtabWalletFromJSON(
-            mockTxHistoryWalletJson,
-        );
-
-        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
-        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
-
-        // Set tx history for all paths
-        const mockedChronik = new MockChronikClient();
-        mockedChronik.setUtxosByAddress(defaultAddress, [{ sats: 546n }]);
-        mockedChronik.setUtxosByAddress(secondaryAddress, [{ sats: 546n }]);
-        expect(
-            await getUtxos(mockedChronik, mockTxHistoryWallet),
-        ).toStrictEqual([
-            { sats: 546n, path: 1899 },
-            { sats: 546n, path: 145 },
-        ]);
     });
     it('We can get and parse tx history from path 1899, and update the token cache at the same time', async () => {
         // Make all of your chronik mocks

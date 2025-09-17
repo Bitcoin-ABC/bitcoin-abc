@@ -269,10 +269,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         const fuelInputs = [];
         for (const fuelUtxo of fuelUtxos) {
-            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             if (typeof pathInfo === 'undefined') {
                 // Should never happen
-                return toast.error(`No path info for ${fuelUtxo.path}`);
+                return toast.error(
+                    `No path info for ${appConfig.derivationPath}`,
+                );
             }
             const { sk, hash } = pathInfo;
 
@@ -390,10 +392,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
         const signedFuelInputs = [];
         for (const fuelUtxo of acceptFuelInputs) {
-            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             if (typeof pathInfo === 'undefined') {
                 // Should never happen
-                return toast.error(`No path info for ${fuelUtxo.path}`);
+                return toast.error(
+                    `No path info for ${appConfig.derivationPath}`,
+                );
             }
             const { sk, hash } = pathInfo;
 

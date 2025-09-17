@@ -12,7 +12,6 @@ import {
 } from 'validation';
 import { storage, initializeStorage } from 'platform';
 import {
-    getUtxos,
     getTransactionHistory,
     organizeUtxosByType,
     parseTx,
@@ -395,9 +394,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const startupUtxoSync = async () => {
         // Get the active wallet
         const activeWallet = currentCashtabStateRef.current.wallets[0];
+        const activeWalletAddress = (
+            activeWallet.paths.get(appConfig.derivationPath) as CashtabPathInfo
+        ).address;
 
         try {
-            const chronikUtxos = await getUtxos(chronik, activeWallet);
+            const chronikUtxos = (
+                await chronik.address(activeWalletAddress).utxos()
+            ).utxos;
             const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
 
             const newState = {
@@ -437,9 +441,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // Get the active wallet
         const activeWallet = currentCashtabStateRef.current.wallets[0];
+        const activeWalletAddress = (
+            activeWallet.paths.get(appConfig.derivationPath) as CashtabPathInfo
+        ).address;
 
         try {
-            const chronikUtxos = await getUtxos(chronik, activeWallet);
+            const chronikUtxos = (
+                await chronik.address(activeWalletAddress).utxos()
+            ).utxos;
             const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
 
             // Get map of all tokenIds held by this wallet and their balances

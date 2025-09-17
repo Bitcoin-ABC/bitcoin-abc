@@ -1093,13 +1093,11 @@ export const walletWithXecAndTokens_pre_2_9_0: LegacyCashtabWallet_Pre_2_9_0 = {
         slpUtxos: [
             {
                 ...walletWithXecAndTokens_pre_2_1_0.state.slpUtxos[0],
-                path: 1899,
             } as TokenUtxo,
         ],
         nonSlpUtxos: [
             {
                 ...walletWithXecAndTokens_pre_2_1_0.state.nonSlpUtxos[0],
-                path: 1899,
             } as NonTokenUtxo,
         ],
         tokens: walletWithXecAndTokens_pre_2_1_0.state.tokens,
@@ -1279,7 +1277,6 @@ export const legacyJsonWalletWithXecAndTokens: StoredCashtabWallet = {
                     amount: '1',
                     isMintBaton: false,
                 },
-                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -1292,7 +1289,6 @@ export const legacyJsonWalletWithXecAndTokens: StoredCashtabWallet = {
                 isCoinbase: false,
                 value: 951312,
                 isFinal: true,
-                path: 1899,
             },
         ],
         parsedTxHistory: [
@@ -2671,7 +2667,6 @@ export const freshWalletWithOneIncomingCashtabMsg: CashtabWallet = {
                 isCoinbase: false,
                 sats: 1000000n,
                 isFinal: false,
-                path: 1899,
             },
         ],
         tokens: new Map(),

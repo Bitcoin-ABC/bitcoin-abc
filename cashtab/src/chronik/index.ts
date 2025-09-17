@@ -15,8 +15,6 @@ import {
 import {
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
-    CashtabUtxo,
-    CashtabWallet,
     TokenUtxo,
     NonTokenUtxo,
     SlpDecimals,
@@ -60,64 +58,6 @@ export const isAliasRegistered = (
     return false;
 };
 
-/**
- * Return a promise to fetch all utxos at an address (and add a 'path' key to them)
- * We need the path key so that we know which wif to sign this utxo with
- * If we add HD wallet support, we will need to add an address key, and change the structure of wallet.paths
- * @param chronik
- * @paramaddress
- * @param path
- */
-export const returnGetPathedUtxosPromise = (
-    chronik: ChronikClient,
-    address: string,
-    path: number,
-): Promise<CashtabUtxo[]> => {
-    return new Promise((resolve, reject) => {
-        chronik
-            .address(address)
-            .utxos()
-            .then(
-                result => {
-                    const cashtabUtxos: CashtabUtxo[] = result.utxos.map(
-                        (utxo: ScriptUtxo) => ({
-                            ...utxo,
-                            path: path,
-                        }),
-                    );
-                    resolve(cashtabUtxos);
-                },
-                err => {
-                    reject(err);
-                },
-            );
-    });
-};
-
-/**
- * Get all utxos for a given wallet
- * @param chronik
- * @param wallet a cashtab wallet
- * @returns
- */
-export const getUtxos = async (
-    chronik: ChronikClient,
-    wallet: CashtabWallet,
-): Promise<CashtabUtxo[]> => {
-    const chronikUtxoPromises: Promise<CashtabUtxo[]>[] = [];
-    wallet.paths.forEach((pathInfo, path) => {
-        const thisPromise = returnGetPathedUtxosPromise(
-            chronik,
-            pathInfo.address,
-            path,
-        );
-        chronikUtxoPromises.push(thisPromise);
-    });
-    const utxoResponsesByPath = await Promise.all(chronikUtxoPromises);
-    const flatUtxos = utxoResponsesByPath.flat();
-    return flatUtxos;
-};
-
 interface OrganizedUtxos {
     slpUtxos: TokenUtxo[];
     nonSlpUtxos: NonTokenUtxo[];
@@ -128,7 +68,7 @@ interface OrganizedUtxos {
  * @param chronikUtxos
  */
 export const organizeUtxosByType = (
-    chronikUtxos: CashtabUtxo[],
+    chronikUtxos: ScriptUtxo[],
 ): OrganizedUtxos => {
     const nonSlpUtxos = [];
     const slpUtxos = [];

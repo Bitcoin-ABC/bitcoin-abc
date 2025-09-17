@@ -68,7 +68,6 @@ const wallet: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 isFinal: true,
-                path: 1899,
                 sats: 25000n,
             },
             {
@@ -79,7 +78,6 @@ const wallet: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 isFinal: true,
-                path: 1899,
                 sats: 100000n,
             },
             {
@@ -90,7 +88,6 @@ const wallet: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 isFinal: true,
-                path: 1899,
                 sats: 10000n,
             },
         ],
@@ -1118,7 +1115,6 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                 },
                 blockHeight: 800000,
                 isCoinbase: true,
-                path: 1899,
                 isFinal: true,
                 sats: 25000n,
             },
@@ -1129,7 +1125,6 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                 },
                 blockHeight: 800000,
                 isCoinbase: true,
-                path: 1899,
                 isFinal: true,
                 sats: 100000n,
             },
@@ -1140,7 +1135,6 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
                 },
                 blockHeight: 800000,
                 isCoinbase: true,
-                path: 1899,
                 isFinal: true,
                 sats: 10000n,
             },
@@ -1424,47 +1418,6 @@ const walletWithCoinbaseUtxos: CashtabWallet = {
     },
 };
 
-// Create a wallet with utxos at multiple addresses
-const utxosAtManyAddressesWallet = cashtabWalletFromJSON(
-    JSON.parse(JSON.stringify(cashtabWalletToJSON(wallet))),
-);
-const multiAddressUtxos = [
-    {
-        outpoint: {
-            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
-            outIdx: 0,
-        },
-        blockHeight: -1,
-        isCoinbase: false,
-        isFinal: true,
-        path: 145,
-        sats: 25000n,
-    },
-    {
-        outpoint: {
-            txid: '901406ff35293a6a75388ae48cf672010e3d06e56f2d030aff29ad359425fb09',
-            outIdx: 0,
-        },
-        blockHeight: -1,
-        isCoinbase: false,
-        isFinal: true,
-        path: 245,
-        sats: 100000n,
-    },
-    {
-        outpoint: {
-            txid: 'bc202cce79a686c8c846fad372677a07fa7821980aab95a1fb6bcf86f53f3450',
-            outIdx: 0,
-        },
-        blockHeight: -1,
-        isCoinbase: false,
-        isFinal: true,
-        path: 1899,
-        sats: 10000n,
-    },
-];
-utxosAtManyAddressesWallet.state.nonSlpUtxos = multiAddressUtxos;
-
 // Create a wallet with very large utxos
 const TOTAL_ECASH_SUPPLY_SATS = 2100000000000000n;
 const allTheXecWallet = cashtabWalletFromJSON(
@@ -1479,7 +1432,6 @@ const largeUtxo = {
     isCoinbase: false,
     isFinal: true,
     sats: TOTAL_ECASH_SUPPLY_SATS,
-    path: 1899,
 };
 
 allTheXecWallet.state.nonSlpUtxos = [largeUtxo];
@@ -1555,7 +1507,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 isCoinbase: false,
                 isFinal: true,
                 blockHeight: 800000,
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -1577,7 +1528,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 isCoinbase: false,
                 isFinal: true,
                 blockHeight: 800000,
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -1599,7 +1549,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 isCoinbase: false,
                 isFinal: true,
                 blockHeight: 800000,
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -1621,7 +1570,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 isCoinbase: false,
                 isFinal: true,
                 blockHeight: 800000,
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -1643,7 +1591,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 isCoinbase: false,
                 isFinal: true,
                 blockHeight: 800000,
-                path: 1899,
                 sats: 546n,
             },
         ],
@@ -1656,7 +1603,6 @@ const walletWithTokensInNode: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 isFinal: false,
-                path: 1899,
                 sats: 1000000n,
             },
         ],
@@ -1673,7 +1619,6 @@ const walletWithTokensInNode: CashtabWallet = {
 module.exports = {
     wallet,
     walletWithCoinbaseUtxos,
-    utxosAtManyAddressesWallet,
     allTheXecWallet,
     walletWithTokensInNode,
 };

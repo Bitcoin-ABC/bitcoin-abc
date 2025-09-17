@@ -43,7 +43,6 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                     atoms: 100000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
             {
                 outpoint: {
@@ -65,7 +64,6 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                     atoms: 3000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -78,7 +76,6 @@ export const agoraPartialAlphaWallet: CashtabWallet = {
                 isCoinbase: false,
                 sats: 420000n,
                 isFinal: false,
-                path: 1899,
             },
         ],
         tokens: new Map([
@@ -622,7 +619,6 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                     atoms: 30000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -636,7 +632,6 @@ export const agoraPartialBetaWallet: CashtabWallet = {
                 // Enough sats for the min buy in orderbook buy test
                 sats: 39016n,
                 isFinal: false,
-                path: 1899,
             },
         ],
         tokens: new Map([
@@ -921,7 +916,6 @@ export const agoraPartialBetaMoreBalanceWallet: CashtabWallet = {
                     atoms: 30000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -935,7 +929,6 @@ export const agoraPartialBetaMoreBalanceWallet: CashtabWallet = {
                 // 10 million XEC
                 sats: 10_000_000_00n,
                 isFinal: false,
-                path: 1899,
             },
         ],
         tokens: new Map([

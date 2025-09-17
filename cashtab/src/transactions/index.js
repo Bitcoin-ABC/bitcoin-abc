@@ -109,7 +109,7 @@ export const sendXec = async (
             inputs.push(requiredInput);
             inputSatoshis += requiredInput.input.signData.sats;
         } else {
-            const pathInfo = wallet.paths.get(requiredInput.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             const { sk, pk, hash } = pathInfo;
             inputs.push({
                 input: {
@@ -138,7 +138,7 @@ export const sendXec = async (
             }
             // If inputSatoshis is less than or equal to satoshisToSend, we know we need
             // to add another input
-            const pathInfo = wallet.paths.get(utxo.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             const { sk, pk, hash } = pathInfo;
             inputs.push({
                 input: {
@@ -179,7 +179,7 @@ export const sendXec = async (
                 if (utxo === null) {
                     break;
                 }
-                const pathInfo = wallet.paths.get(utxo.path);
+                const pathInfo = wallet.paths.get(appConfig.derivationPath);
                 const { sk, pk, hash } = pathInfo;
                 inputs.push({
                     input: {

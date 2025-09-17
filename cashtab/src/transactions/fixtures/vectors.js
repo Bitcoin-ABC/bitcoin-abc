@@ -7,7 +7,6 @@
 import {
     wallet,
     walletWithCoinbaseUtxos,
-    utxosAtManyAddressesWallet,
     allTheXecWallet,
     walletWithTokensInNode,
 } from './mocks';
@@ -28,7 +27,7 @@ const requiredUtxos = [
         blockHeight: -1,
         isCoinbase: false,
         isFinal: true,
-        path: 1899,
+
         sats: 546n,
     },
     {
@@ -39,7 +38,7 @@ const requiredUtxos = [
         blockHeight: -1,
         isCoinbase: false,
         isFinal: true,
-        path: 1899,
+
         sats: 546n,
     },
     {
@@ -50,7 +49,7 @@ const requiredUtxos = [
         blockHeight: -1,
         isCoinbase: false,
         isFinal: true,
-        path: 1899,
+
         sats: 546n,
     },
 ];
@@ -74,7 +73,7 @@ export const sendXecVectors = {
                             blockHeight: -1,
                             isCoinbase: false,
                             isFinal: true,
-                            path: 1899,
+
                             // More than enough to cover the tx
                             sats: 100_000_000n,
                         },
@@ -215,23 +214,6 @@ export const sendXecVectors = {
             chaintipBlockheight: 800000,
             txid: 'b597af156365293c2775c9227315fdd504fcf5685e127ceffeef3e280fbe5a08',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064419d87399cc0165e0d882dddb66b42ed6b450d44114085207753efde09fbb3406f8343a2b20dfe9bf85ba410c9dcd615d266cc52d1f626c3bdfefb5168478a8fe64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff01e8600000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000',
-        },
-        {
-            description:
-                '1 satoshi per byte tx with no change outputs from a wallet with utxos at many addresses',
-            wallet: utxosAtManyAddressesWallet,
-            targetOutputs: [
-                {
-                    sats: 24808n,
-                    script: Script.fromAddress(
-                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                    ),
-                },
-            ],
-            satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
-            chaintipBlockheight: 800000,
-            txid: 'a3aa4561e61c9cd134c576efa835d3cd912aa61bbe9ed1b209e4b1d3aa6db41e',
-            hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef1546800000000644181ca26c0945e7641eb8e6cf6a5e37b55784b690c18875ee44c35009c36a4257c36c131ddcb134ca129410a6613477c086ebe377e9819b0abc4c4be5fe1283f4e412103939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5ffffffff01e8600000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000',
         },
         {
             description:
@@ -691,7 +673,6 @@ export const sendSlp = {
                     isCoinbase: false,
                     isFinal: true,
                     blockHeight: 800000,
-                    path: 1899,
                 },
                 {
                     outpoint: {
@@ -713,7 +694,6 @@ export const sendSlp = {
                     isCoinbase: false,
                     isFinal: true,
                     blockHeight: 800000,
-                    path: 1899,
                 },
             ],
             sendAmounts: [10000000000n, 9999996989999999999n],
@@ -756,7 +736,6 @@ export const sendSlp = {
                     isCoinbase: false,
                     isFinal: true,
                     blockHeight: 800000,
-                    path: 1899,
                 },
             ],
             sendAmounts: [1000000000n],
@@ -812,7 +791,6 @@ export default {
                         outIdx: 1,
                         txid: '1111111111111111111111111111111111111111111111111111111111111111',
                     },
-                    path: 1899,
                     sats: 10000n,
                 },
                 returned: false,
@@ -828,7 +806,6 @@ export default {
                         outIdx: 1,
                         txid: '1111111111111111111111111111111111111111111111111111111111111111',
                     },
-                    path: 1899,
                     token: {
                         atoms: 1000n,
                         isMintBaton: false,

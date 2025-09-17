@@ -188,10 +188,12 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
         const signedFuelInputs = [];
         for (const fuelUtxo of acceptFuelInputs) {
-            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             if (typeof pathInfo === 'undefined') {
                 // Should never happen
-                return toast.error(`No path info for ${fuelUtxo.path}`);
+                return toast.error(
+                    `No path info for ${appConfig.derivationPath}`,
+                );
             }
             // Sign and prep utxos for ecash-lib inputs
             const recipientScript = Script.p2pkh(fromHex(pathInfo.hash));
@@ -293,10 +295,12 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
         const fuelInputs = [];
         for (const fuelUtxo of fuelUtxos) {
-            const pathInfo = wallet.paths.get(fuelUtxo.path);
+            const pathInfo = wallet.paths.get(appConfig.derivationPath);
             if (typeof pathInfo === 'undefined') {
                 // Should never happen
-                return toast.error(`No path info for ${fuelUtxo.path}`);
+                return toast.error(
+                    `No path info for ${appConfig.derivationPath}`,
+                );
             }
             //
             // Send the tokens back to the same address as the fuelUtxo

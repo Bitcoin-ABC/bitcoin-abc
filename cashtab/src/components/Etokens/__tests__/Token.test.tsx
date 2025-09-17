@@ -591,7 +591,6 @@ describe('<Token />', () => {
                 atoms: 0n,
                 isMintBaton: true,
             },
-            path: 1899,
         };
         const balanceUtxo = {
             outpoint: {
@@ -613,7 +612,6 @@ describe('<Token />', () => {
                 atoms: 20000n,
                 isMintBaton: false,
             },
-            path: 1899,
         };
         // Test is for a different wallet, do not use the beforeEach mocks
 
@@ -738,7 +736,6 @@ describe('<Token />', () => {
                 atoms: 0n,
                 isMintBaton: true,
             },
-            path: 1899,
         };
         const balanceUtxo = {
             outpoint: {
@@ -760,7 +757,6 @@ describe('<Token />', () => {
                 atoms: 20000n,
                 isMintBaton: false,
             },
-            path: 1899,
         };
 
         const walletWithMintBaton = {

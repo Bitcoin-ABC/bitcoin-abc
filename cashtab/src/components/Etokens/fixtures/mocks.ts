@@ -57,7 +57,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             // XECX
@@ -80,7 +79,6 @@ export const tokenTestWallet: CashtabWallet = {
                     atoms: 1000000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
             // FIRMA
             {
@@ -102,7 +100,6 @@ export const tokenTestWallet: CashtabWallet = {
                     atoms: 1000000n,
                     isMintBaton: false,
                 },
-                path: 1899,
             },
             {
                 outpoint: {
@@ -123,7 +120,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 1000n,
             },
             {
@@ -145,7 +141,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             // SLP MINT VAULT
@@ -168,7 +163,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -190,7 +184,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 111000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -212,7 +205,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 18446744073709551615n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -234,7 +226,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: true,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -256,7 +247,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -278,7 +268,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: true,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -300,7 +289,6 @@ export const tokenTestWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
         ],
@@ -313,7 +301,6 @@ export const tokenTestWallet: CashtabWallet = {
                 blockHeight: -1,
                 isCoinbase: false,
                 isFinal: false,
-                path: 1899,
                 sats: 997081n,
             },
         ],
@@ -2028,7 +2015,6 @@ export const slp1NftParentWithChildrenMocks = {
                 atoms: 1n,
                 isMintBaton: false,
             },
-            path: 1899,
         },
     ],
 };
@@ -2197,7 +2183,6 @@ export const slp1NftChildMocks = {
                 atoms: 1n,
                 isMintBaton: false,
             },
-            path: 1899,
         },
     ],
 };
@@ -2548,7 +2533,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2570,7 +2554,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2592,7 +2575,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2614,7 +2596,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2636,7 +2617,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 10n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2658,7 +2638,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2680,7 +2659,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 311n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2702,7 +2680,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 4588000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2724,7 +2701,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 229400000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2746,7 +2722,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 229400000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2768,7 +2743,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 123456789n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2790,7 +2764,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1699n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2812,7 +2785,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 99999998n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2834,7 +2806,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2856,7 +2827,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2878,7 +2848,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 200n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2900,7 +2869,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 9900n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2922,7 +2890,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 82n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2944,7 +2911,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 9989n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2966,7 +2932,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 42300000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -2988,7 +2953,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 999882000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3010,7 +2974,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 999999878n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3032,7 +2995,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 2n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3054,7 +3016,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 23n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3076,7 +3037,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 65n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3098,7 +3058,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 3n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3120,7 +3079,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 123456844n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3142,7 +3100,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 995921n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3164,7 +3121,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3186,7 +3142,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3208,7 +3163,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 100n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3230,7 +3184,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 999998999n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3252,7 +3205,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3274,7 +3226,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 2100n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3296,7 +3247,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 2998978719999999999n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3318,7 +3268,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 999824n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3340,7 +3289,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 999977636n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3362,7 +3310,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 5235120528888890n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3384,7 +3331,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 75n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3406,7 +3352,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 652n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3428,7 +3373,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 78n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3450,7 +3394,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 43n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3472,7 +3415,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 330000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3494,7 +3436,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 24999698951n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3516,7 +3457,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3538,7 +3478,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 5344445n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3560,7 +3499,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3582,7 +3520,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 10000000000000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3604,7 +3541,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 10000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3626,7 +3562,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 9899n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3648,7 +3583,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 21000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3670,7 +3604,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 94n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3692,7 +3625,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 4n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3714,7 +3646,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3736,7 +3667,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 55000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3758,7 +3688,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 844601876543211n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3780,7 +3709,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 7700000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3802,7 +3730,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3824,7 +3751,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 8987n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3846,7 +3772,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 4999n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3868,7 +3793,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 112n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3890,7 +3814,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3912,7 +3835,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: true,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3934,7 +3856,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 33n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3956,7 +3877,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1000000000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -3978,7 +3898,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4000,7 +3919,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 18446744073709551615n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4022,7 +3940,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 18446744073709551615n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4044,7 +3961,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 18446744073709551615n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4066,7 +3982,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 3n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4088,7 +4003,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 10010000n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4110,7 +4024,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: true,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4132,7 +4045,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -4154,7 +4066,6 @@ export const EtokensWalletMock: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
         ],
@@ -4168,7 +4079,6 @@ export const EtokensWalletMock: CashtabWallet = {
                 isCoinbase: false,
                 sats: 97511071n,
                 isFinal: true,
-                path: 1899,
             },
         ],
         tokens: new Map([

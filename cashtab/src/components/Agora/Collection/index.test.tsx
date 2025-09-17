@@ -450,7 +450,6 @@ describe('<Collection />', () => {
             isCoinbase: false,
             sats: 5000001488n,
             isFinal: false,
-            path: 1899,
         };
 
         // Must include ToastContainer to test notification

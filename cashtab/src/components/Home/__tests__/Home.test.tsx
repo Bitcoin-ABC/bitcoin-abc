@@ -410,7 +410,6 @@ describe('<Home />', () => {
                         isCoinbase: false,
                         sats: 3000n,
                         isFinal: true,
-                        path: 1899,
                     },
                 ],
                 parsedTxHistory: [

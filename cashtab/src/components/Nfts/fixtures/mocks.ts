@@ -33,7 +33,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: true,
                     atoms: 0n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -55,7 +54,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -77,7 +75,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -99,7 +96,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -121,7 +117,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -143,7 +138,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -165,7 +159,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -187,7 +180,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -209,7 +201,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -231,7 +222,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -253,7 +243,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
             {
@@ -275,7 +264,6 @@ export const nftMarketWallet: CashtabWallet = {
                     isMintBaton: false,
                     atoms: 1n,
                 },
-                path: 1899,
                 sats: 546n,
             },
         ],
@@ -288,7 +276,6 @@ export const nftMarketWallet: CashtabWallet = {
                 blockHeight: 853000,
                 isCoinbase: false,
                 isFinal: true,
-                path: 1899,
                 sats: 1754n,
             },
             {
@@ -299,7 +286,6 @@ export const nftMarketWallet: CashtabWallet = {
                 blockHeight: 853000,
                 isCoinbase: false,
                 isFinal: true,
-                path: 1899,
                 sats: 986111n,
             },
         ],

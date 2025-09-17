@@ -1004,7 +1004,6 @@ export default {
                         },
                         sats: 546n,
                         token: { tokenId: MOCK_TOKEN_ID, atoms: 19n },
-                        path: 1899,
                     },
                 ],
                 returned: [
@@ -1033,7 +1032,6 @@ export default {
                         },
                         sats: 546n,
                         token: { tokenId: MOCK_TOKEN_ID, atoms: 100n },
-                        path: 1899,
                     },
                 ],
                 returned: [
@@ -1062,7 +1060,6 @@ export default {
                         },
                         sats: 546n,
                         token: { tokenId: MOCK_TOKEN_ID, atoms: 12n },
-                        path: 1899,
                     },
                 ],
                 returned: [

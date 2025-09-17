@@ -126,7 +126,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         isCoinbase: false,
                         isFinal: false,
                         sats: 1000n,
-                        path: 1899,
                     },
                     {
                         outpoint: {
@@ -137,7 +136,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         isCoinbase: false,
                         isFinal: false,
                         sats: 1001n,
-                        path: 1899,
                     },
                     {
                         outpoint: {
@@ -148,7 +146,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         isCoinbase: false,
                         isFinal: false,
                         sats: 1000n,
-                        path: 1899,
                     },
                 ],
             },
@@ -198,7 +195,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         isCoinbase: false,
                         sats: 1000n,
                         network: 'XEC',
-                        path: 1899,
                     },
                     {
                         outpoint: {
@@ -209,7 +205,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                         isCoinbase: false,
                         sats: 1001n,
                         network: 'XEC',
-                        path: 1899,
                     },
                 ],
             },
@@ -446,7 +441,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
         it('We must adjust for a higher fee if we have more utxos', () => {
             const SATOSHIS_PER_KB = 1000n;
             const MOCK_BASE_XEC_UTXO = {
-                path: 1899,
                 outpoint: {
                     txid: '1111111111111111111111111111111111111111111111111111111111111111',
                 },
@@ -474,7 +468,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
         it('An immature Coinbase utxo will be ignored in the onMax calculation', () => {
             const SATOSHIS_PER_KB = 2000n;
             const MOCK_STAKING_REWARD_UTXO = {
-                path: 1899,
                 outpoint: {
                     txid: '1111111111111111111111111111111111111111111111111111111111111111',
                 },

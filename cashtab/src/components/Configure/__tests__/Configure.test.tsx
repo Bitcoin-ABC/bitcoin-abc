@@ -225,7 +225,6 @@ describe('<Configure />', () => {
                     ...walletWithXecAndTokens.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
-                        path: 1899,
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,
@@ -313,7 +312,6 @@ describe('<Configure />', () => {
                     ...walletWithXecAndTokens.state.slpUtxos,
                     {
                         ...requiredUtxoThisToken,
-                        path: 1899,
                         token: {
                             ...requiredUtxoThisToken.token,
                             tokenId: appConfig.vipTokens.cachet.tokenId,

@@ -68,9 +68,7 @@ export interface StoredCashtabPathInfo {
 export interface ScriptUtxoWithToken extends ScriptUtxo {
     token: Token;
 }
-export interface NonTokenUtxo extends Omit<ScriptUtxo, 'token'> {
-    path: number;
-}
+export type NonTokenUtxo = Omit<ScriptUtxo, 'token'>;
 
 export interface NonTokenUtxoJson extends Omit<NonTokenUtxo, 'sats'> {
     sats: string;
