@@ -8,6 +8,7 @@ import Image from "next/image";
 import PlusHeader from "../Atoms/PlusHeader";
 import { motion } from "framer-motion";
 import Button from "../Atoms/Button";
+import { cn } from "../../utils/cn";
 
 export default function WhatWeDo() {
   type CardProps = {
@@ -15,8 +16,9 @@ export default function WhatWeDo() {
     image: string;
     href: string;
     buttonText: string;
+    imageText: string;
   };
-  const Card = ({ text, image, href, buttonText }: CardProps) => {
+  const Card = ({ text, image, href, buttonText, imageText }: CardProps) => {
     return (
       <div className="relative flex w-full self-stretch overflow-hidden rounded-lg border border-white/10 lg:flex-col">
         <div className="to-background from-background relative flex w-1/3 items-center self-stretch bg-gradient-to-br via-[#101026] p-4 lg:w-full lg:p-10">
@@ -28,6 +30,14 @@ export default function WhatWeDo() {
               className="object-contain"
               sizes="(max-width: 1024px) 33vw, 160px"
             />
+            <div
+              className={cn(
+                "from-accentLight to-accentDark absolute left-1/2 top-0 ml-10 flex -translate-x-1/2 items-center rounded bg-gradient-to-b px-1 py-0.5 text-[10px] tracking-wider [text-shadow:_0px_-1px_0px_rgb(0_0_0_/_0.36)] lg:left-auto lg:translate-x-0 lg:px-2 lg:text-sm",
+                imageText === "HOW" ? "lg:right-4" : "lg:right-0"
+              )}
+            >
+              {imageText}
+            </div>
           </div>
         </div>
         <div className="border-t-white/14 w-2/3 p-6 lg:w-full lg:border-t">
@@ -77,12 +87,14 @@ export default function WhatWeDo() {
             image="/how.png"
             href="/roadmap"
             buttonText="Our Vision"
+            imageText="HOW"
           />
           <Card
             text="With The Internet's Native Currency"
             image="/vision.png"
             href="/tech"
             buttonText="Our Tech"
+            imageText="VISION"
           />
         </div>
       </motion.div>
