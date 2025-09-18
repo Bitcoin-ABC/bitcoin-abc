@@ -2165,24 +2165,22 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "0.3.4"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cc5581fee9df4a457b4b45b21853f5754b1b50d30f48fb69bd000cd17c83e3c"
+checksum = "cc448f40ec1692ae08647eea6c41a5f1f2477e38b979d9fbe1b5593af69bfcaf"
 dependencies = [
  "tokio-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "0.3.4"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "394276beccdcfe37879b0eeafe316d9313b4945c4b2d565f1e28fd0f37fa2b29"
+checksum = "f2142125d7e97f978212bb6076dca524a7398b88bb5c52359cbd859a684b8496"
 dependencies = [
- "async-channel",
  "bincode 2.0.1",
  "chrono",
  "dirs",
- "futures-util",
  "log",
  "once_cell",
  "parking_lot",
@@ -2194,9 +2192,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "0.3.4"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5f8abaa03cd27533fa07224360aba8fa01ee82a9a16764ad58d7c92db5e50bf"
+checksum = "c3898269dbf941cc09cc729b81a8908343028ff21509f8384307273068c3c102"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -2213,9 +2211,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "0.3.4"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10c68d2b80a28e587cf28b1d7e3f952e0c9a1bd9d58a0336946f8c5a5f1aca69"
+checksum = "b50877497a873386d72cee1fbc9a1712137ccac1f5e5b7397e2107655351bd74"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2225,13 +2223,14 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "0.3.4"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95e38fba17f50e9796c86d441bfa3c7467a722e39301bc30104e4cd28fd371b0"
+checksum = "4b5d5f67e0d5027a56be0c7467c8744a9a297c3e3c1af08d249b1df98d8c4f74"
 dependencies = [
  "async-trait",
  "async-tungstenite",
  "bincode 2.0.1",
+ "bytes",
  "futures-util",
  "karyon_async_rustls",
  "karyon_core",
