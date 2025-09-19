@@ -8,6 +8,8 @@ Test inventory download behavior
 import functools
 import random
 import time
+from dataclasses import dataclass
+from typing import Optional
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import avalanche_proof_from_hex, gen_proof, wait_for_proof
@@ -25,7 +27,12 @@ from test_framework.messages import (
     msg_inv,
     msg_notfound,
 )
-from test_framework.p2p import P2PInterface, p2p_lock
+from test_framework.p2p import (
+    GETDATA_TX_INTERVAL,
+    OVERLOADED_PEER_TX_DELAY,
+    P2PInterface,
+    p2p_lock,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
@@ -43,29 +50,21 @@ class TestP2PConn(P2PInterface):
                 self.getdata_count += 1
 
 
+@dataclass(frozen=True)
 class NetConstants:
     """Constants from net_processing"""
 
-    def __init__(
-        self,
-        getdata_interval,
-        inbound_peer_delay,
-        overloaded_peer_delay,
-        max_getdata_in_flight,
-        max_peer_announcements,
-        bypass_request_limits_permission_flags,
-        getdata_supports_notfound,
-    ):
-        self.getdata_interval = getdata_interval
-        self.inbound_peer_delay = inbound_peer_delay
-        self.overloaded_peer_delay = overloaded_peer_delay
-        self.max_getdata_in_flight = max_getdata_in_flight
-        self.max_peer_announcements = max_peer_announcements
-        self.max_getdata_inbound_wait = self.getdata_interval + self.inbound_peer_delay
-        self.bypass_request_limits_permission_flags = (
-            bypass_request_limits_permission_flags
-        )
-        self.getdata_supports_notfound = getdata_supports_notfound
+    bypass_request_limits_permission_flags: Optional[str]
+    getdata_supports_notfound: bool
+    getdata_interval: int = GETDATA_TX_INTERVAL
+    inbound_peer_delay: int = 2  # seconds
+    overloaded_peer_delay: int = OVERLOADED_PEER_TX_DELAY
+    max_getdata_in_flight: int = 1000
+    max_peer_announcements: int = 5000
+
+    @property
+    def max_getdata_inbound_wait(self):
+        return self.getdata_interval + self.inbound_peer_delay
 
 
 class TestContext:
@@ -82,11 +81,6 @@ PROOF_TEST_CONTEXT = TestContext(
     MSG_AVA_PROOF,
     "avaproof",
     NetConstants(
-        getdata_interval=60,  # seconds
-        inbound_peer_delay=2,  # seconds
-        overloaded_peer_delay=2,  # seconds
-        max_getdata_in_flight=100,
-        max_peer_announcements=5000,
         bypass_request_limits_permission_flags="bypass_proof_request_limits",
         getdata_supports_notfound=True,
     ),
@@ -96,11 +90,6 @@ STAKE_CONTENDER_TEST_CONTEXT = TestContext(
     MSG_AVA_STAKE_CONTENDER,
     "stakecontender",
     NetConstants(
-        getdata_interval=60,  # seconds
-        inbound_peer_delay=2,  # seconds
-        overloaded_peer_delay=2,  # seconds
-        max_getdata_in_flight=100,
-        max_peer_announcements=5000,
         bypass_request_limits_permission_flags=None,
         getdata_supports_notfound=False,
     ),
@@ -110,11 +99,6 @@ TX_TEST_CONTEXT = TestContext(
     MSG_TX,
     "tx",
     NetConstants(
-        getdata_interval=60,  # seconds
-        inbound_peer_delay=2,  # seconds
-        overloaded_peer_delay=2,  # seconds
-        max_getdata_in_flight=100,
-        max_peer_announcements=5000,
         bypass_request_limits_permission_flags="relay",
         getdata_supports_notfound=True,
     ),
