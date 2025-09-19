@@ -56,6 +56,9 @@ if TYPE_CHECKING:
 ca_path = requests.certs.where()
 
 PING_INTERVAL = 300
+SOCKET_CONNECT_TIMEOUT = 10
+SOCKET_TIMEOUT = 2
+REQUEST_TIMEOUT = 30
 
 
 def Connection(
@@ -119,9 +122,9 @@ class TcpConnection(threading.Thread, PrintError):
         for res in addr_info:
             try:
                 s = socket.socket(res[0], socket.SOCK_STREAM)
-                s.settimeout(10)
+                s.settimeout(SOCKET_CONNECT_TIMEOUT)
                 s.connect(res[4])
-                s.settimeout(2)
+                s.settimeout(SOCKET_TIMEOUT)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 return s
             except Exception as _e:
@@ -725,8 +728,8 @@ class Interface(PrintError):
         """Returns True if the interface has timed out."""
         if (
             self.unanswered_requests
-            and time.time() - self.request_time > 10
-            and self.pipe.idle_time() > 10
+            and time.time() - self.request_time > REQUEST_TIMEOUT
+            and self.pipe.idle_time() > REQUEST_TIMEOUT
         ):
             self.print_error("timeout", len(self.unanswered_requests))
             return True
