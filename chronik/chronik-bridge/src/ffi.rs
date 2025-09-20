@@ -380,6 +380,9 @@ mod ffi_inner {
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;
 
+        /// Returns CLIENT_NAME from clientversion.cpp
+        fn client_name() -> String;
+
         /// Calls FormatFullVersion from clientversion.cpp
         fn format_full_version() -> String;
     }

@@ -136,6 +136,8 @@ void sync_with_validation_interface_queue();
 
 bool init_error(const rust::Str msg);
 
+rust::String client_name();
+
 rust::String format_full_version();
 
 } // namespace chronik_bridge

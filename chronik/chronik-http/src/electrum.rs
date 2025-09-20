@@ -485,8 +485,9 @@ struct ChronikElectrumRPCMempoolEndpoint {
 }
 
 fn get_version() -> String {
+    let client_name = ffi::client_name();
     let version_number = ffi::format_full_version();
-    format!("Bitcoin ABC {version_number}")
+    format!("{client_name} {version_number}")
 }
 
 impl ChronikElectrumRPCServerEndpoint {

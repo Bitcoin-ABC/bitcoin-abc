@@ -512,6 +512,10 @@ bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
 }
 
+rust::String client_name() {
+    return CLIENT_NAME;
+}
+
 rust::String format_full_version() {
     return FormatFullVersion();
 }
