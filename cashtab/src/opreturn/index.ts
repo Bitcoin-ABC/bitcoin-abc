@@ -6,7 +6,7 @@ import { encodeCashAddress } from 'ecashaddrjs';
 import { encodeBase58 } from 'b58-ts';
 import { opReturn } from 'config/opreturn';
 import { isValidTokenId, getOpReturnRawError } from 'validation';
-import { consume, getStackArray } from 'ecash-script';
+import { getStackArray, consume } from 'ecash-lib';
 import {
     Script,
     pushBytesOp,
@@ -15,6 +15,7 @@ import {
     TxOutput,
     Bytes,
 } from 'ecash-lib';
+
 import { AddressType } from 'ecashaddrjs/dist/types';
 import { AppAction, XecxAction, UnknownAction } from 'chronik';
 
@@ -83,7 +84,7 @@ export interface ParsedOpReturnRaw {
 export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
     // Intialize return data
     const parsed = { protocol: 'Unknown Protocol', data: opReturnRaw };
-    // See if we can parse it with ecash-script
+    // See if we can parse it
     let stackArray;
     try {
         stackArray = getStackArray(

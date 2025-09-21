@@ -6,7 +6,7 @@ import axios from 'axios';
 import config, { HeraldConfig, HeraldPriceApi, FiatCode } from '../config';
 import BigNumber from 'bignumber.js';
 import addressDirectory from '../constants/addresses';
-import { consume } from 'ecash-script';
+import { consume } from 'ecash-lib';
 import { MemoryCache } from 'cache-manager';
 
 export const returnAddressPreview = (

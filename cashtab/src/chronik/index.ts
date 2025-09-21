@@ -5,7 +5,7 @@
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import { previewAddress } from 'helpers';
-import { getStackArray } from 'ecash-script';
+import { getStackArray } from 'ecash-lib';
 import {
     getTypeAndHashFromOutputScript,
     encodeOutputScript,
@@ -213,7 +213,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
 
     // Assign defaults
     let incoming = true;
-    let stackArray = [];
+    let stackArray: string[] = [];
 
     const destinationAddresses: Set<string> = new Set();
 

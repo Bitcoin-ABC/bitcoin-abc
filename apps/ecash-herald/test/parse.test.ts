@@ -11,7 +11,7 @@ import stakerTestFixtures from './fixtures/stakers';
 import invalidatedBlocksTestFixtures from './fixtures/invalidatedBlocks';
 import { jsonReviver } from '../src/utils';
 import memoFixtures from './mocks/memo';
-import { consumeNextPush } from 'ecash-script';
+import { getStackArray } from 'ecash-lib';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import { Block, ChronikClient, TxOutput } from 'chronik-client';
 import { caching } from 'cache-manager';
@@ -289,12 +289,8 @@ describe('parse.js functions', function () {
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoFixtures.map(memoTestObj => {
             const { outputScript, msg } = memoTestObj;
-            // Get array of pushes
-            const stack = { remainingHex: outputScript.slice(2) };
-            const stackArray = [];
-            while (stack.remainingHex.length > 0) {
-                stackArray.push(consumeNextPush(stack).data);
-            }
+            // Get array of pushes using ecash-lib
+            const stackArray = getStackArray(outputScript);
             assert.deepEqual(parseMemoOutputScript(stackArray), {
                 app: opReturn.memo.app,
                 msg,

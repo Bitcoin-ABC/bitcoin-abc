@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.41.1",
+    "version": "3.41.2",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -37,7 +37,6 @@
         "chronik-client": "file:../modules/chronik-client",
         "ecash-agora": "file:../modules/ecash-agora",
         "ecash-lib": "file:../modules/ecash-lib",
-        "ecash-script": "file:../modules/ecash-script",
         "ecashaddrjs": "file:../modules/ecashaddrjs",
         "html5-qrcode": "^2.3.8",
         "localforage": "^1.9.0",

@@ -13,7 +13,7 @@ import CashtabSettings, {
 import tokenBlacklist from 'config/tokenBlacklist';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
-import { getStackArray } from 'ecash-script';
+import { getStackArray } from 'ecash-lib';
 import { fiatToSatoshis, StoredCashtabWallet } from 'wallet';
 import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
@@ -602,7 +602,7 @@ export const nodeWillAcceptOpReturnRaw = (opReturnRaw: string): boolean => {
             return false;
         }
 
-        // Use validation from ecash-script library
+        // Use validation from ecash-lib method
         // Apply .toLowerCase() to support uppercase, lowercase, or mixed case input
         getStackArray(
             `${opReturn.opReturnPrefixHex}${opReturnRaw.toLowerCase()}`,

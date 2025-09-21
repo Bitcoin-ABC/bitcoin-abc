@@ -4,7 +4,14 @@
 
 import config from '../config';
 import opReturn from '../constants/op_return';
-import { consume, consumeNextPush, swapEndianness } from 'ecash-script';
+import {
+    fromHex,
+    consume,
+    consumeNextPush,
+    swapEndianness,
+    Script,
+    OP_0,
+} from 'ecash-lib';
 import knownMinersJson, { KnownMiners, MinerInfo } from '../constants/miners';
 import cachedTokenInfoMap from '../constants/tokens';
 import {
@@ -35,7 +42,6 @@ import {
 import { CoinDanceStaker } from './events';
 import lokadMap from '../constants/lokad';
 import { scriptOps } from 'ecash-agora';
-import { Script, fromHex, OP_0 } from 'ecash-lib';
 import {
     ChronikClient,
     CoinbaseData,
@@ -399,7 +405,7 @@ export const parseSlpTwo = (slpTwoPush: string): string => {
                     : prepareStringForTelegramHTML(cachedTokenInfo.tokenTicker)
             }</a>`;
 
-            const numOutputs = consume(stack, 1);
+            const numOutputs = parseInt(consume(stack, 1), 16);
             // Iterate over number of outputs to get total amount sent
             // Note: this should be handled with an indexer, as we are not parsing for validity here
             // However, it's still useful information for the herald
