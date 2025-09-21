@@ -496,7 +496,7 @@ const Wallets = () => {
                     }
                 >
                     <ModalInput
-                        type="email"
+                        type="text"
                         placeholder="mnemonic (seed phrase)"
                         name="mnemonic"
                         value={formData.mnemonic}

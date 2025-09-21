@@ -83,7 +83,7 @@ const OnBoarding = () => {
                     disabled={!isValidMnemonic || importedMnemonic === ''}
                 >
                     <ModalInput
-                        type="email"
+                        type="text"
                         placeholder="mnemonic (seed phrase)"
                         name="mnemonic"
                         value={importedMnemonic}
