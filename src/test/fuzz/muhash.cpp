@@ -161,7 +161,9 @@ FUZZ_TARGET(num3072_inv) {
     arith_uint6144 uint{data};
 
     // Bail out if the number has no inverse.
-    if ((uint == ZERO) || (uint == MODULUS)) return;
+    if ((uint == ZERO) || (uint == MODULUS)) {
+        return;
+    }
 
     // Compute the inverse of the Num3072 object.
     Num3072 inv;

@@ -44,7 +44,7 @@ FUZZ_TARGET_INIT(script, initialize_script) {
     if (!script_opt) {
         return;
     }
-    const CScript script{*script_opt};
+    const CScript &script{*script_opt};
 
     std::vector<uint8_t> compressed;
     if (CompressScript(script, compressed)) {

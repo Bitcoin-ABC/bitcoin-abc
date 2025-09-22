@@ -289,10 +289,12 @@ builds:
   build-clang-tidy:
     clang: true
     cmake_flags:
+      - '-DBUILD_CHRONIK=ON'
       - '-DENABLE_CLANG_TIDY=ON'
     targets:
       - - all
       - - check
+      - - bitcoin-fuzzers
     templates:
       - diff-node
     timeout: 1800

@@ -90,11 +90,10 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
     mineBlocks(100);
 
     // Fork of old tip is block 49
-    BOOST_CHECK_EQUAL(
-        bridge.find_fork(*tip).GetBlockHash(),
-        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
-            ->GetAncestor(49)
-            ->GetBlockHash());
+    auto new_tip = WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
+    BOOST_REQUIRE(new_tip);
+    BOOST_CHECK_EQUAL(bridge.find_fork(*tip).GetBlockHash(),
+                      new_tip->GetAncestor(49)->GetBlockHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
