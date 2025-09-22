@@ -19,8 +19,6 @@
 #include <wallet/transaction.h>
 #include <wallet/wallet.h>
 
-using interfaces::FoundBlock;
-
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
 int GetTxSpendSize(const CWallet &wallet, const CWalletTx &wtx,

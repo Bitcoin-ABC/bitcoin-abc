@@ -83,12 +83,10 @@ using kernel::LoadMempool;
 using kernel::Notifications;
 
 using fsbridge::FopenFn;
-using node::BLOCKFILE_CHUNK_SIZE;
 using node::BlockManager;
 using node::BlockMap;
 using node::fReindex;
 using node::SnapshotMetadata;
-using node::UNDOFILE_CHUNK_SIZE;
 
 #define MICRO 0.000001
 #define MILLI 0.001

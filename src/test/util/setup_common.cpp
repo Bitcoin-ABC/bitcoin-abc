@@ -66,7 +66,6 @@ using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::BlockAssembler;
 using node::BlockManager;
-using node::fReindex;
 using node::KernelNotifications;
 using node::LoadChainstate;
 using node::NodeContext;
