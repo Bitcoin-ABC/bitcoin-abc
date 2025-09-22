@@ -11,10 +11,6 @@
  * will make much more sense
  */
 
-interface MinStoredCashtabWallet {
-    paths: Array<[number, { address: string }]>;
-}
-
 interface ChromeWindow {
     id?: number;
     tabs?: chrome.tabs.Tab[];
@@ -38,6 +34,7 @@ interface ChromeMessage {
     txInfo?: Record<string, string>;
     addressRequest?: boolean;
     addressRequestApproved?: boolean;
+    address?: string;
     tabId?: number;
     txResponse?: {
         approved: boolean;
@@ -83,7 +80,10 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
     ) {
         // If approved, then share the address
         if (request.addressRequestApproved) {
-            fetchAddress(request.tabId);
+            chrome.tabs.sendMessage(Number(request.tabId), {
+                success: true,
+                address: request.address,
+            });
         } else {
             // If denied, let the webpage know that the user denied this request
             handleDeniedAddressRequest(request.tabId);
@@ -95,34 +95,6 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
         handleTransactionResponse(request.tabId, request.txResponse);
     }
 });
-
-/**
- * Fetch item from unified extension storage
- * NB for now, we ONLY do this in the extension itself for the address
- * We do not really want to be sharing other stored stuff with webapps, e.g. private keys
- * So, while we have a general method that may be extended later for other purposes,
- * it is not an oversight that we skip full JSON revival
- */
-const getObjectFromExtensionStorage = async function <T = unknown>(
-    key: string,
-): Promise<T | null> {
-    try {
-        const result = await chrome.storage.local.get([key]);
-        const value = result[key];
-        return (value as T) ?? null;
-    } catch (err) {
-        console.error('Error fetching from extension storage:', err);
-        throw err;
-    }
-};
-
-// Simple function to extract address from stored wallet data
-const extractAddressFromStoredWallet = (
-    wallet: MinStoredCashtabWallet,
-): string | null => {
-    const path1899 = wallet.paths.find(([key]) => key === 1899);
-    return path1899?.[1]?.address ?? null;
-};
 
 // Get the current active tab
 const getCurrentActiveTab = async function (): Promise<chrome.tabs.Tab> {
@@ -140,55 +112,6 @@ const getCurrentActiveTab = async function (): Promise<chrome.tabs.Tab> {
         }
     });
 };
-
-// Fetch the active extension address from the active wallet
-async function fetchAddress(tabId?: number): Promise<void> {
-    if (!tabId) return;
-
-    try {
-        // Get wallets from unified storage (raw stored format)
-        const storedWallets = await getObjectFromExtensionStorage<any[]>(
-            'wallets',
-        );
-
-        if (!Array.isArray(storedWallets) || storedWallets.length === 0) {
-            chrome.tabs.sendMessage(Number(tabId), {
-                success: false,
-                reason: 'No wallet found',
-            });
-            return;
-        }
-
-        // Get the active wallet (first wallet in array)
-        const activeWallet = storedWallets[0];
-
-        // NB we do not validate activeWallet this is handled in Cashtab before wallets are stored
-
-        // Extract address from stored wallet data
-        const address = extractAddressFromStoredWallet(activeWallet);
-
-        if (!address) {
-            // Not expected to ever happen
-            chrome.tabs.sendMessage(Number(tabId), {
-                success: false,
-                reason: 'No address found in wallet',
-            });
-            return;
-        }
-
-        // Send the address back to the browser
-        chrome.tabs.sendMessage(Number(tabId), {
-            address: address,
-            success: true,
-        });
-    } catch (error) {
-        console.error('Error fetching address from wallet:', error);
-        chrome.tabs.sendMessage(Number(tabId), {
-            success: false,
-            reason: 'Error accessing wallet data',
-        });
-    }
-}
 
 async function handleDeniedAddressRequest(tabId?: number): Promise<void> {
     if (!tabId) return;
