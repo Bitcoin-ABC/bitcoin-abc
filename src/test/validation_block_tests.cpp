@@ -303,6 +303,8 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     }
     BOOST_CHECK(!activeChainstate.IsBlockAvalancheFinalized(pindex));
     BOOST_CHECK(activeChainstate.IsBlockAvalancheFinalized(pindex->pprev));
+
+    SyncWithValidationInterfaceQueue();
 }
 
 /**
