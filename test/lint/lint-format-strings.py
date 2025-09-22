@@ -265,6 +265,22 @@ def parse_function_call_and_arguments(function_name, function_call):
     return parts
 
 
+def replace_c99_macros(s):
+    """Replace C99 macros for format specifiers in string s with equivalent format
+    specifiers.
+
+    >>> replace_c99_macros('"%d %08" PRIx64 " %s %" PRIu64 " %11" PRId64 " foo %d"')
+    '"%d %08lx %s %lu %11ld foo %d"'
+    """
+    for mac, val in (
+        ("PRIu64", "llu"),
+        ("PRId64", "lld"),
+        ("PRIx64", "llx"),
+    ):
+        s = s.replace(f'" {mac} "', f"{val}")
+    return s
+
+
 def parse_string_content(argument):
     """Return the text within quotes in string argument.
 
@@ -288,6 +304,7 @@ def parse_string_content(argument):
     assert isinstance(argument, str)
     string_content = ""
     in_string = False
+    argument = replace_c99_macros(argument)
     for char in normalize(escape(argument)):
         if char == '"':
             in_string = not in_string
