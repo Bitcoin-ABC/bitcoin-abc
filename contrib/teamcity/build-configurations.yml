@@ -739,11 +739,6 @@ builds:
       npm ci
       npm run build
 
-  ecash-script:
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-script"
-      npm ci
-
   avalanche-lib-wasm:
     runOnDiffRegex:
       - modules/avalanche-lib-wasm/
@@ -786,7 +781,6 @@ builds:
       - ecashaddrjs
       - chronik-client
       - mock-chronik-client
-      - ecash-script
       - ecash-lib
       - ecash-agora
     script: |
@@ -834,7 +828,6 @@ builds:
       - chronik-client
       - ecash-lib
       - ecash-agora
-      - ecash-script
       - mock-chronik-client
     templates:
       - js-mocha
@@ -1051,14 +1044,6 @@ builds:
       - modules/ecashaddrjs/
     env:
       JS_PROJECT_ROOT: modules/ecashaddrjs
-    templates:
-      - js-mocha
-
-  ecash-script-tests:
-    runOnDiffRegex:
-      - modules/ecash-script/
-    env:
-      JS_PROJECT_ROOT: modules/ecash-script
     templates:
       - js-mocha
 
