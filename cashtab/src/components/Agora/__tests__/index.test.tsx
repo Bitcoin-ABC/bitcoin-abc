@@ -40,7 +40,6 @@ import {
 import { token as tokenConfig } from 'config/token';
 import { prepareContext } from 'test';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
-import { FIRMA } from 'constants/tokens';
 
 // We need to wrap the Agora component with context so we can useContext instead of prop drilling
 interface AgoraTestWrapperProps {
@@ -785,7 +784,10 @@ describe('<Agora />', () => {
         mockedAgora.setActiveOffersByTokenId(BULL_TOKEN_ID, [
             agoraOfferBullAlphaOne,
         ]);
-        mockedAgora.setActiveOffersByTokenId(FIRMA.tokenId, []);
+        // Blank active offers to avoid errors from default loads
+        for (const tokenId of tokenConfig.whitelist) {
+            mockedAgora.setActiveOffersByTokenId(tokenId, []);
+        }
         // also mock await agora.activeOffersByPubKey(activePk), for both walletse
         mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, [
             agoraOfferCachetAlphaOne,
@@ -1015,6 +1017,14 @@ describe('<Agora />', () => {
             screen.getByText('Agora Partial Beta'),
         );
 
+        await waitFor(
+            () =>
+                expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
+            // This can take some time
+            // May need to adjust if experience flakiness
+            { timeout: 3000 },
+        );
+
         expect(await screen.findByText('100,000.00 XEC')).toBeInTheDocument();
 
         // Wait for tokens to re-load (triggered by wallet change)
@@ -1102,6 +1112,14 @@ describe('<Agora />', () => {
         await userEvent.selectOptions(
             screen.getByTestId('wallet-select'),
             screen.getByText('Agora Partial Alpha'),
+        );
+
+        await waitFor(
+            () =>
+                expect(screen.queryByTitle('Loading')).not.toBeInTheDocument(),
+            // This can take some time
+            // May need to adjust if experience flakiness
+            { timeout: 3000 },
         );
 
         expect(await screen.findByText('4,200.00 XEC')).toBeInTheDocument();
