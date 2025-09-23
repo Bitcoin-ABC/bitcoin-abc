@@ -904,7 +904,7 @@ bool Processor::isQuorumEstablished() {
     if (pprev && IsStakingRewardsActivated(chainman.GetConsensus(), pprev)) {
         computedRewards = computeStakingReward(pprev);
     }
-    if (pprev && m_stakingPreConsensus && !computedRewards) {
+    if (pprev && isStakingPreconsensusActivated() && !computedRewards) {
         // It's possible to have quorum shortly after startup if peers were
         // loaded from disk, but staking rewards may not be ready yet. In this
         // case, we can still promote and poll for contenders.
@@ -960,7 +960,7 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
                     .second;
         }
 
-        if (m_stakingPreConsensus) {
+        if (isStakingPreconsensusActivated()) {
             promoteAndPollStakeContenders(pindex);
         }
     }
@@ -991,7 +991,7 @@ void Processor::cleanupStakingRewards(const int minHeight) {
         }
     }
 
-    if (m_stakingPreConsensus) {
+    if (isStakingPreconsensusActivated()) {
         WITH_LOCK(cs_peerManager,
                   return peerManager->cleanupStakeContenders(minHeight));
     }
@@ -1038,7 +1038,7 @@ bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
         stakingReward.winners.push_back({ProofId(), payout});
     }
 
-    if (m_stakingPreConsensus) {
+    if (isStakingPreconsensusActivated()) {
         LOCK(cs_peerManager);
         peerManager->setStakeContenderWinners(pprev, payouts);
     }
@@ -1208,7 +1208,7 @@ void Processor::updatedBlockTip() {
         reconcileOrFinalize(proof);
     }
 
-    if (m_stakingPreConsensus) {
+    if (isStakingPreconsensusActivated()) {
         const CBlockIndex *activeTip =
             WITH_LOCK(cs_main, return chainman.ActiveTip());
         if (activeTip) {
@@ -1218,7 +1218,7 @@ void Processor::updatedBlockTip() {
 }
 
 void Processor::transactionAddedToMempool(const CTransactionRef &tx) {
-    if (m_preConsensus) {
+    if (isPreconsensusActivated()) {
         addToReconcile(tx);
     }
 }
@@ -1511,6 +1511,14 @@ bool Processor::GetLocalAcceptance::operator()(
 
     return WITH_LOCK(processor.mempool->cs,
                      return processor.mempool->exists(tx->GetId()));
+}
+
+bool Processor::isPreconsensusActivated() const {
+    return m_preConsensus;
+}
+
+bool Processor::isStakingPreconsensusActivated() const {
+    return m_stakingPreConsensus;
 }
 
 } // namespace avalanche

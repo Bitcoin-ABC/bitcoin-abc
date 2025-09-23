@@ -415,7 +415,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
         addOrUpdateNode(inserted.first, nodeid);
     }
 
-    if (m_stakingPreConsensus) {
+    if (isStakingPreconsensusActivated()) {
         addStakeContender(proof);
     }
 
@@ -662,7 +662,7 @@ void PeerManager::clearAllInvalid() {
 
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
-    if (present && m_stakingPreConsensus && isBoundToPeer(proofid) &&
+    if (present && isStakingPreconsensusActivated() && isBoundToPeer(proofid) &&
         !isRemotelyPresentProof(proofid)) {
         // If this is the first time this peer's proof becomes a remote proof of
         // any node, ensure it is included in the contender cache. There is a

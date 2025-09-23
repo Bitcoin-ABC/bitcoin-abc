@@ -4298,7 +4298,7 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         return;
     }
 
-    if (m_avalanche && m_avalanche->m_preConsensus &&
+    if (m_avalanche && m_avalanche->isPreconsensusActivated() &&
         state.GetResult() == TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
         return;
     }

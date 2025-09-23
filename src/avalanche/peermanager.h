@@ -563,6 +563,10 @@ private:
 
     bool isFlaky(const ProofId &proofid) const;
 
+    bool isStakingPreconsensusActivated() const {
+        return m_stakingPreConsensus;
+    }
+
     friend struct ::avalanche::TestPeerManager;
 };
 

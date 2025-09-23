@@ -76,7 +76,7 @@ BlockAssembler::BlockAssembler(const BlockFitter &fitter,
       m_mempool(mempool), m_chainstate(chainstate), m_avalanche(avalanche),
       fPrintPriority{options.fPrintPriority},
       test_block_validity{options.test_block_validity},
-      add_finalized_txs{avalanche && avalanche->m_preConsensus &&
+      add_finalized_txs{avalanche && avalanche->isPreconsensusActivated() &&
                         options.add_finalized_txs} {}
 
 BlockAssembler::BlockAssembler(const BlockFitter &fitter,

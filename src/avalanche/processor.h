@@ -264,10 +264,10 @@ class Processor final : public NetEventsInterface {
               uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn,
               bool preConsensus, bool stakingPreConsensus);
 
-public:
     const bool m_preConsensus{false};
     const bool m_stakingPreConsensus{false};
 
+public:
     ~Processor();
 
     static std::unique_ptr<Processor>
@@ -402,6 +402,9 @@ public:
     void promoteAndPollStakeContenders(const CBlockIndex *pprev)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager,
                                  !cs_finalizedItems);
+
+    bool isPreconsensusActivated() const;
+    bool isStakingPreconsensusActivated() const;
 
 private:
     void updatedBlockTip()
