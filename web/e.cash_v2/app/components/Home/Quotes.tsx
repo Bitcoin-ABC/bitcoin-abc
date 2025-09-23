@@ -42,7 +42,7 @@ export const quotes: Quote[] = [
     quote:
       "We're proud to be the only shared RPC provider for eCash. From the very beginning, we believed in its vision, and the Avalanche upgrade only strengthened that belief.",
     name: "NOWNodes",
-    title: "Mining Pool Operator",
+    title: "Blockchain Developer API",
     image: "/nownodes.png",
   },
 ];

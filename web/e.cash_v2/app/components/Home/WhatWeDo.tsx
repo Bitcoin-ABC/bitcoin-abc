@@ -33,7 +33,7 @@ export default function WhatWeDo() {
             <div
               className={cn(
                 "from-accentLight to-accentDark absolute left-1/2 top-0 ml-10 flex -translate-x-1/2 items-center rounded bg-gradient-to-b px-1 py-0.5 text-[10px] tracking-wider [text-shadow:_0px_-1px_0px_rgb(0_0_0_/_0.36)] lg:left-auto lg:translate-x-0 lg:px-2 lg:text-sm",
-                imageText === "HOW" ? "lg:right-4" : "lg:right-0"
+                imageText === "HOW" ? "lg:right-0" : "lg:right-4"
               )}
             >
               {imageText}
@@ -86,15 +86,15 @@ export default function WhatWeDo() {
             text="The Road to 1 Billion Daily Transactions"
             image="/how.png"
             href="/roadmap"
-            buttonText="Our Vision"
-            imageText="HOW"
+            buttonText="Our Roadmap"
+            imageText="VISION"
           />
           <Card
             text="With The Internet's Native Currency"
             image="/vision.png"
             href="/tech"
             buttonText="Our Tech"
-            imageText="VISION"
+            imageText="HOW"
           />
         </div>
       </motion.div>
