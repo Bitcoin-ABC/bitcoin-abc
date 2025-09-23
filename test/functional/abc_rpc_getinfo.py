@@ -25,10 +25,14 @@ class GetInfoRPCTest(BitcoinTestFramework):
         assert_equal(info["version_number"], node.getnetworkinfo()["version"])
         assert_equal(info["version_full"], get_cli_version(self, node))
         assert_equal(info["avalanche"], False)
+        assert_equal(info["avalanche_staking_rewards"], False)
+        assert_equal(info["avalanche_staking_preconsensus"], False)
 
-        self.restart_node(0, extra_args=["-avalanche=1"])
+        self.restart_node(0, extra_args=["-avalanche=1", "-avalanchestakingrewards=1"])
         info = node.getinfo()
         assert_equal(info["avalanche"], True)
+        assert_equal(info["avalanche_staking_rewards"], True)
+        assert_equal(info["avalanche_staking_preconsensus"], False)
 
 
 if __name__ == "__main__":

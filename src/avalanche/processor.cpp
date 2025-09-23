@@ -12,6 +12,7 @@
 #include <avalanche/voterecord.h>
 #include <chain.h>
 #include <common/args.h>
+#include <consensus/activation.h>
 #include <key_io.h> // For DecodeSecret
 #include <net.h>
 #include <netbase.h>
@@ -904,7 +905,7 @@ bool Processor::isQuorumEstablished() {
     if (pprev && IsStakingRewardsActivated(chainman.GetConsensus(), pprev)) {
         computedRewards = computeStakingReward(pprev);
     }
-    if (pprev && isStakingPreconsensusActivated() && !computedRewards) {
+    if (pprev && isStakingPreconsensusActivated(pprev) && !computedRewards) {
         // It's possible to have quorum shortly after startup if peers were
         // loaded from disk, but staking rewards may not be ready yet. In this
         // case, we can still promote and poll for contenders.
@@ -960,7 +961,7 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
                     .second;
         }
 
-        if (isStakingPreconsensusActivated()) {
+        if (isStakingPreconsensusActivated(pindex)) {
             promoteAndPollStakeContenders(pindex);
         }
     }
@@ -991,10 +992,8 @@ void Processor::cleanupStakingRewards(const int minHeight) {
         }
     }
 
-    if (isStakingPreconsensusActivated()) {
-        WITH_LOCK(cs_peerManager,
-                  return peerManager->cleanupStakeContenders(minHeight));
-    }
+    WITH_LOCK(cs_peerManager,
+              return peerManager->cleanupStakeContenders(minHeight));
 }
 
 bool Processor::getStakingRewardWinners(
@@ -1038,7 +1037,7 @@ bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
         stakingReward.winners.push_back({ProofId(), payout});
     }
 
-    if (isStakingPreconsensusActivated()) {
+    if (isStakingPreconsensusActivated(pprev)) {
         LOCK(cs_peerManager);
         peerManager->setStakeContenderWinners(pprev, payouts);
     }
@@ -1208,12 +1207,10 @@ void Processor::updatedBlockTip() {
         reconcileOrFinalize(proof);
     }
 
-    if (isStakingPreconsensusActivated()) {
-        const CBlockIndex *activeTip =
-            WITH_LOCK(cs_main, return chainman.ActiveTip());
-        if (activeTip) {
-            promoteAndPollStakeContenders(activeTip);
-        }
+    const CBlockIndex *activeTip =
+        WITH_LOCK(cs_main, return chainman.ActiveTip());
+    if (activeTip && isStakingPreconsensusActivated(activeTip)) {
+        promoteAndPollStakeContenders(activeTip);
     }
 }
 
@@ -1517,8 +1514,9 @@ bool Processor::isPreconsensusActivated() const {
     return m_preConsensus;
 }
 
-bool Processor::isStakingPreconsensusActivated() const {
-    return m_stakingPreConsensus;
+bool Processor::isStakingPreconsensusActivated(const CBlockIndex *pprev) const {
+    return m_stakingPreConsensus &&
+           IsShibusawaEnabled(chainman.GetConsensus(), pprev);
 }
 
 } // namespace avalanche

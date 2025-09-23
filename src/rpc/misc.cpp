@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/processor.h>
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/amount.h>
@@ -15,6 +16,7 @@
 #include <logging.h>
 #include <node/context.h>
 #include <outputtype.h>
+#include <policy/block/stakingrewards.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/server_util.h>
@@ -921,7 +923,11 @@ static RPCHelpMan getinfo() {
                 {RPCResult::Type::STR, "version_full",
                  "The full version as a string"},
                 {RPCResult::Type::BOOL, "avalanche",
-                 "Wether avalanche is enabled"},
+                 "Whether avalanche is enabled"},
+                {RPCResult::Type::BOOL, "avalanche_staking_rewards",
+                 "Whether avalanche staking rewards is enabled"},
+                {RPCResult::Type::BOOL, "avalanche_staking_preconsensus",
+                 "Whether avalanche staking rewards preconsensus is enabled"},
             },
         },
         RPCExamples{HelpExampleCli("getinfo", "") +
@@ -929,11 +935,29 @@ static RPCHelpMan getinfo() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+
+            const Consensus::Params &params =
+                config.GetChainParams().GetConsensus();
+            const CBlockIndex *tip =
+                WITH_LOCK(cs_main, return chainman.ActiveTip());
 
             UniValue infoObj(UniValue::VOBJ);
             infoObj.pushKV("version_number", CLIENT_VERSION);
             infoObj.pushKV("version_full", FormatFullVersion());
-            infoObj.pushKV("avalanche", !!node.avalanche);
+
+            if (node.avalanche) {
+                infoObj.pushKV("avalanche", true);
+                infoObj.pushKV("avalanche_staking_rewards",
+                               IsStakingRewardsActivated(params, tip));
+                infoObj.pushKV(
+                    "avalanche_staking_preconsensus",
+                    node.avalanche->isStakingPreconsensusActivated(tip));
+            } else {
+                infoObj.pushKV("avalanche", false);
+                infoObj.pushKV("avalanche_staking_rewards", false);
+                infoObj.pushKV("avalanche_staking_preconsensus", false);
+            }
             return infoObj;
         },
     };

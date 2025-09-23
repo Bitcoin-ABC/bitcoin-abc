@@ -404,7 +404,7 @@ public:
                                  !cs_finalizedItems);
 
     bool isPreconsensusActivated() const;
-    bool isStakingPreconsensusActivated() const;
+    bool isStakingPreconsensusActivated(const CBlockIndex *pprev) const;
 
 private:
     void updatedBlockTip()

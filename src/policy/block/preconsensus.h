@@ -5,6 +5,8 @@
 #ifndef BITCOIN_POLICY_BLOCK_PRECONSENSUS_H
 #define BITCOIN_POLICY_BLOCK_PRECONSENSUS_H
 
+#include <avalanche/avalanche.h>
+#include <consensus/activation.h>
 #include <consensus/amount.h>
 #include <policy/block/parkingpolicy.h>
 #include <primitives/block.h>

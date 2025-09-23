@@ -2522,6 +2522,11 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     CBlockIndex *chaintip =
         WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
+    // Activate the Shibusawa upgrade
+    int64_t activationTime = chaintip->GetMedianTimePast();
+    setArg("-shibusawaactivationtime", ToString(activationTime));
+    BOOST_CHECK(m_node.avalanche->isStakingPreconsensusActivated(chaintip));
+
     auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId proofid1 = proof1->getId();
     const StakeContenderId contender1_block1(chaintip->GetBlockHash(),
