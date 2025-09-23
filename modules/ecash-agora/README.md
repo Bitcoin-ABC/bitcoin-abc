@@ -199,3 +199,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.1.0
 
 -   Add support for "UNKNOWN" token protocol type in chronik-client [D18155](https://reviews.bitcoinabc.org/D18155)
+
+### 2.2.0
+
+-   Add `src/actions.ts` to support preparing payment Actions for `ecash-wallet`, and add `actions.test.ts` to show implementation [D18673](https://reviews.bitcoinabc.org/D18673)

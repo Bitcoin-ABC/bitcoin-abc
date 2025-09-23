@@ -96,3 +96,9 @@ See tests for detailed methods.
 -   Support automatic updating of determined wallet utxo set on tx build() (unless user opts out, e.g. for running tests) (NB does not apply to PostageTx)
 -   **_BREAKING CHANGE_** the `.broadcast()` method no longer throws, returns a `success` key with more information
 -   Patch issue where SLP burns are not invalidated for including specified outputs
+
+# 2.0.1
+
+[D18673](https://reviews.bitcoinabc.org/D18673)
+
+-   Type errors uncovered when using `ecash-wallet` as a dep in `ecash-agora`

@@ -734,6 +734,7 @@ builds:
     depends:
       - chronik-client
       - ecash-lib
+      - ecash-wallet
     script: |
       pushd "${TOPLEVEL}/modules/ecash-agora"
       npm ci
@@ -933,6 +934,7 @@ builds:
       - ecashaddrjs
       - chronik-client
       - ecash-lib
+      - ecash-wallet
     templates:
       - js-mocha
 
@@ -949,6 +951,7 @@ builds:
       - modules/ecash-lib/
       - modules/ecash-lib-wasm/
       - modules/ecashaddrjs/
+      - modules/ecash-wallet/
       - src/secp256k1/
       - Cargo.toml
       - Cargo.lock
@@ -958,6 +961,7 @@ builds:
       - ecashaddrjs
       - chronik-client
       - ecash-lib
+      - ecash-wallet
     templates:
       - js-mocha-integration-tests
 

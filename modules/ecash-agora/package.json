@@ -1,6 +1,6 @@
 {
     "name": "ecash-agora",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "Library for interacting with the eCash Agora protocol",
     "main": "./dist/index.js",
     "scripts": {
@@ -34,6 +34,7 @@
         "@types/node": "^20.12.7",
         "chai": "^4.4.1",
         "chai-as-promised": "^7.1.1",
+        "ecash-wallet": "file:../ecash-wallet",
         "mocha": "^10.4.0",
         "mocha-junit-reporter": "^2.2.1",
         "nyc": "^15.1.0",

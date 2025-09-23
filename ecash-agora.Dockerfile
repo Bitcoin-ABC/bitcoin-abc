@@ -13,6 +13,12 @@ COPY modules/ecash-agora .
 RUN npm install ecash-lib@latest
 # Install chronik-client from npm, so that module users install it automatically
 RUN npm install chronik-client@latest
+
+# Install ecash-wallet from npm
+# This is a dev dependency so potentially no issue, but we still want to avoid the
+# published package-lock.json including local refs
+RUN npm install -D ecash-wallet@latest
+
 # Install the rest of dependencies
 RUN npm ci
 # Build ecash-agora

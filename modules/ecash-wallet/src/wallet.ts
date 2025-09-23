@@ -306,7 +306,8 @@ class WalletAction {
                 'ecash-wallet only supports chained txs for intentional SLP burns where we do not have exact atoms available',
             );
         }
-        const { tokenId, burnAtoms } = burnAction as payment.BurnAction;
+        const { tokenId, burnAtoms, tokenType } =
+            burnAction as payment.BurnAction;
 
         const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
         const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
@@ -330,9 +331,7 @@ class WalletAction {
                     atoms: burnAtoms,
                 },
             ],
-            tokenActions: [
-                { type: 'SEND', tokenId, tokenType: burnAction.tokenType },
-            ],
+            tokenActions: [{ type: 'SEND', tokenId, tokenType }],
         };
 
         const sendTx = this._wallet.action(sendAction).build(sighash);
@@ -542,9 +541,10 @@ class WalletAction {
                         payment.GENESIS_TOKEN_ID_PLACEHOLDER
                     ) {
                         // This is a genesis output
-                        tokenType = this.action.tokenActions?.find(
+                        const genesisAction = this.action.tokenActions?.find(
                             action => action.type === 'GENESIS',
-                        )?.tokenType;
+                        ) as payment.GenesisAction | undefined;
+                        tokenType = genesisAction?.tokenType;
                     } else {
                         // This is a mint or send output
                         const action = this.action.tokenActions?.find(
@@ -2072,7 +2072,7 @@ export const finalizeOutputs = (
     // NB we have already validated that, if GenesisAction exists, it is at index 0
     const genesisAction = tokenActions.find(
         action => action.type === 'GENESIS',
-    );
+    ) as payment.GenesisAction | undefined;
 
     const genesisActionOutputs = outputs.filter(
         (o): o is payment.PaymentTokenOutput =>
@@ -3104,8 +3104,10 @@ export const finalizeOutputs = (
                 switch (type) {
                     case 'GENESIS': {
                         const genesisEmppPush = alpGenesis(
-                            genesisAction!.tokenType.number,
-                            genesisAction!.genesisInfo,
+                            (genesisAction as payment.GenesisAction).tokenType
+                                .number,
+                            (genesisAction as payment.GenesisAction)
+                                .genesisInfo,
                             {
                                 atomsArray: atomsArrayMap.get(
                                     payment.GENESIS_TOKEN_ID_PLACEHOLDER,
