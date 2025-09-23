@@ -1131,7 +1131,7 @@ export const getTransactionHistory = async (
     cachedTokens: Map<string, CashtabCachedTokenInfo>,
     page: number = 0,
     pageSize: number = chronikConfig.txHistoryPageSize,
-): Promise<{ txs: CashtabTx[]; totalPages?: number }> => {
+): Promise<{ txs: CashtabTx[]; numPages: number; numTxs: number }> => {
     // Get hash from address for parseTx
     const { hash } = decodeCashAddress(address);
 
@@ -1180,9 +1180,10 @@ export const getTransactionHistory = async (
         history.push(tx as CashtabTx);
     }
 
-    const result: { txs: CashtabTx[]; totalPages?: number } = {
+    const result = {
         txs: history,
-        totalPages: pageResponse.numPages,
+        numTxs: pageResponse.numTxs,
+        numPages: pageResponse.numPages,
     };
 
     return result;

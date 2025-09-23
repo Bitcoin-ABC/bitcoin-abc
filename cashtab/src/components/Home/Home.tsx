@@ -10,7 +10,6 @@ import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import Receive from 'components/Receive/Receive';
 import { Alert, Info } from 'components/Common/Atoms';
-import { CashtabTx } from 'wallet';
 import PrimaryButton, {
     SecondaryButton,
     PrimaryLink,
@@ -74,21 +73,21 @@ const Home: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { apiError, cashtabState } = ContextValue;
+    const { apiError, cashtabState, transactionHistory } = ContextValue;
     const { wallets, activeWallet } = cashtabState;
     if (!activeWallet) {
         return null;
     }
     const wallet = activeWallet;
-    const { parsedTxHistory } = wallet.state;
-    const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
+    const hasHistory =
+        transactionHistory && transactionHistory.firstPageTxs.length > 0;
 
     // Want to show a msg to users who have just claimed a free XEC reward, or users who have just received
     // a few txs
     const isNewishWallet =
         hasHistory &&
-        parsedTxHistory &&
-        parsedTxHistory.length < 3 &&
+        transactionHistory &&
+        transactionHistory.firstPageTxs.length < 3 &&
         wallet.state.balanceSats > 0;
 
     const [airdropPending, setAirdropPending] = useState(false);
@@ -168,106 +167,100 @@ const Home: React.FC = () => {
         }
     };
 
-    /**
-     * Type guard for latest CashtabTx[] type
-     * Prevents rendering tx history until wallet has loaded (or migrated)
-     * latest tx history
-     */
-    const isValidParsedTxHistory = (
-        parsedTxHistory: CashtabTx[],
-    ): parsedTxHistory is CashtabTx[] => {
-        if (Array.isArray(parsedTxHistory)) {
-            if (parsedTxHistory.length > 0) {
-                const testEntry = parsedTxHistory[0];
-                // Migrated parsedTxHistory has appActions array in every tx
-                return Array.isArray(testEntry.parsed.appActions);
-            }
-            // Empty array is always valid
-            return true;
-        }
-        return false;
-    };
-
     return (
         <>
             {apiError && <ApiError />}
             <TxHistoryCtn data-testid="tx-history">
-                {isValidParsedTxHistory(parsedTxHistory) ? (
-                    <TxHistory />
+                {transactionHistory === null ? (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <InlineLoader />
+                    </div>
                 ) : (
-                    <InlineLoader />
-                )}
-                {isNewishWallet && (
                     <>
-                        <Info style={{ marginBottom: '20px' }}>
-                            ℹ️ Nice, you have some eCash. What can you do?
-                        </Info>
-                        <PrimaryLink to="/create-token">
-                            Create a token
-                        </PrimaryLink>
-                        <SecondaryLink to="/create-nft-collection">
-                            Mint an NFT
-                        </SecondaryLink>
-                        <Info>
-                            Check out{' '}
-                            <a
-                                href="https://e.cash/use-ecash"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                more uses for XEC
-                            </a>
-                        </Info>
-                    </>
-                )}
-                {!hasHistory && (
-                    <>
-                        <Alert>
-                            <p>
-                                <b>
-                                    <AlertLink to="/backup">
-                                        Backup your wallet
-                                    </AlertLink>
-                                </b>
-                            </p>
-                            <p>
-                                Write down your 12-word seed and keep it in a
-                                safe place.{' '}
-                                <em>Do not share your backup with anyone.</em>
-                            </p>
-                        </Alert>
-                        {process.env.REACT_APP_BUILD_ENV !== 'extension' &&
-                            process.env.REACT_APP_TESTNET !== 'true' && (
-                                <>
-                                    {wallets.length === 1 ? (
-                                        <AirdropButton
-                                            onClick={claimAirdropForNewWallet}
-                                            disabled={airdropPending}
-                                        >
-                                            {airdropPending ? (
-                                                <InlineLoader />
+                        <TxHistory />
+                        {isNewishWallet && (
+                            <>
+                                <Info style={{ marginBottom: '20px' }}>
+                                    ℹ️ Nice, you have some eCash. What can you
+                                    do?
+                                </Info>
+                                <PrimaryLink to="/create-token">
+                                    Create a token
+                                </PrimaryLink>
+                                <SecondaryLink to="/create-nft-collection">
+                                    Mint an NFT
+                                </SecondaryLink>
+                                <Info>
+                                    Check out{' '}
+                                    <a
+                                        href="https://e.cash/use-ecash"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        more uses for XEC
+                                    </a>
+                                </Info>
+                            </>
+                        )}
+                        {!hasHistory && (
+                            <>
+                                <Alert>
+                                    <p>
+                                        <b>
+                                            <AlertLink to="/backup">
+                                                Backup your wallet
+                                            </AlertLink>
+                                        </b>
+                                    </p>
+                                    <p>
+                                        Write down your 12-word seed and keep it
+                                        in a safe place.{' '}
+                                        <em>
+                                            Do not share your backup with
+                                            anyone.
+                                        </em>
+                                    </p>
+                                </Alert>
+                                {process.env.REACT_APP_BUILD_ENV !==
+                                    'extension' &&
+                                    process.env.REACT_APP_TESTNET !==
+                                        'true' && (
+                                        <>
+                                            {wallets.length === 1 ? (
+                                                <AirdropButton
+                                                    onClick={
+                                                        claimAirdropForNewWallet
+                                                    }
+                                                    disabled={airdropPending}
+                                                >
+                                                    {airdropPending ? (
+                                                        <InlineLoader />
+                                                    ) : (
+                                                        'Claim Free XEC'
+                                                    )}
+                                                </AirdropButton>
                                             ) : (
-                                                'Claim Free XEC'
+                                                <TokenRewardButton
+                                                    onClick={
+                                                        claimTokenRewardsForNewWallet
+                                                    }
+                                                    disabled={
+                                                        tokenRewardsPending
+                                                    }
+                                                >
+                                                    {tokenRewardsPending ? (
+                                                        <InlineLoader />
+                                                    ) : (
+                                                        'Claim Token Rewards'
+                                                    )}
+                                                </TokenRewardButton>
                                             )}
-                                        </AirdropButton>
-                                    ) : (
-                                        <TokenRewardButton
-                                            onClick={
-                                                claimTokenRewardsForNewWallet
-                                            }
-                                            disabled={tokenRewardsPending}
-                                        >
-                                            {tokenRewardsPending ? (
-                                                <InlineLoader />
-                                            ) : (
-                                                'Claim Token Rewards'
-                                            )}
-                                        </TokenRewardButton>
+                                        </>
                                     )}
-                                </>
-                            )}
 
-                        <Receive />
+                                <Receive />
+                            </>
+                        )}
                     </>
                 )}
             </TxHistoryCtn>

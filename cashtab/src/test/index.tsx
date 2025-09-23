@@ -104,6 +104,8 @@ export const prepareMockedChronikCallsForWallet = (
      * We can also optionally pass tokenMocks that we need in a test
      */
     tokenMocks: Map<string, TokenMock>,
+    // Not all tests require tx history mocks, default to empty
+    history: Tx[] = [],
 ) => {
     // If we have token utxo or token tx in this wallet, we need a mock for its cached info
     const requiredTokenMocks: Set<string> = new Set([...tokenMocks.keys()]);
@@ -111,7 +113,7 @@ export const prepareMockedChronikCallsForWallet = (
     for (const utxo of wallet.state.slpUtxos) {
         requiredTokenMocks.add(utxo.token.tokenId);
     }
-    for (const tx of wallet.state.parsedTxHistory) {
+    for (const tx of history) {
         if (tx?.tokenEntries.length > 0) {
             requiredTokenMocks.add(tx.tokenEntries[0].tokenId);
         }
@@ -139,10 +141,7 @@ export const prepareMockedChronikCallsForWallet = (
         wallet.address,
         wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
     );
-    mockChronik.setTxHistoryByAddress(
-        wallet.address,
-        wallet.state.parsedTxHistory,
-    );
+    mockChronik.setTxHistoryByAddress(wallet.address, history);
 };
 
 // Function to update cashtab storage and settings so that we get the expected context
@@ -155,6 +154,8 @@ export const prepareContext = async (
      * We can also optionally pass tokenMocks that we need in a test
      */
     tokenMocks: Map<string, TokenMock>,
+    /** Optional if the test requires this mock, must correspond with */
+    history: Tx[][] = [[]],
 ) => {
     // Mock successful utxos calls in chronik
     const mockChronik = new MockChronikClient();
@@ -183,8 +184,13 @@ export const prepareContext = async (
     // non-default settings, cashtabCache, or contactList
 
     // Mock returns for chronik calls expected in useWallet's update routine for all wallets
-    for (const wallet of wallets) {
-        prepareMockedChronikCallsForWallet(mockChronik, wallet, tokenMocks);
+    for (let i = 0; i < wallets.length; i++) {
+        prepareMockedChronikCallsForWallet(
+            mockChronik,
+            wallets[i],
+            tokenMocks,
+            history[i],
+        );
     }
 
     return mockChronik;

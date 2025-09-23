@@ -19,6 +19,7 @@ import {
     getTxNotificationMsg,
 } from 'chronik';
 import appConfig from 'config/app';
+import { chronik as chronikConfig } from 'config/chronik';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import CashtabSettings, {
     supportedFiatCurrencies,
@@ -35,6 +36,7 @@ import {
     StoredCashtabWallet,
     createActiveCashtabWallet,
     LegacyCashtabWallet,
+    CashtabTx,
 } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
@@ -49,6 +51,19 @@ import {
 import { Agora } from 'ecash-agora';
 import { Ecc } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
+
+/**
+ * We keep the first page of tx history in context
+ * This allows us to update it piecemeal without full
+ * chronik calls by using websocket handlers, and keep
+ * tx history (which is important for user info not
+ * wallet actions) separate from the wallet state
+ */
+export interface TransactionHistory {
+    firstPageTxs: CashtabTx[];
+    numPages: number;
+    numTxs: number;
+}
 
 export type UpdateCashtabState = (updates: {
     [key: string]:
@@ -77,6 +92,8 @@ export interface UseWalletReturnType {
     handleActivatingCopiedWallet: (walletAddress: string) => Promise<void>;
     processChronikWsMsg: (msg: WsMsgClient) => Promise<boolean>;
     cashtabState: CashtabState;
+    transactionHistory: TransactionHistory | null;
+    refreshTransactionHistory: () => Promise<void>;
     /**
      * In some cases, we only want to set CashtabState as setting the state
      * will trigger storage writing, and we want to minimize this
@@ -99,7 +116,36 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [cashtabState, setCashtabState] = useState<CashtabState>(
         new CashtabState(),
     );
+    const [transactionHistory, setTransactionHistory] =
+        useState<TransactionHistory | null>(null);
     const locale = getUserLocale();
+
+    const refreshTransactionHistory = async () => {
+        if (!currentCashtabStateRef.current.activeWallet) {
+            setTransactionHistory(null);
+            return;
+        }
+
+        try {
+            // NB this gives us page 0 as we call without specifying page number
+            const result = await getTransactionHistory(
+                chronik,
+                currentCashtabStateRef.current.activeWallet.address,
+                currentCashtabStateRef.current.cashtabCache.tokens,
+            );
+
+            const newTransactionHistory: TransactionHistory = {
+                firstPageTxs: result.txs,
+                numPages: result.numPages,
+                numTxs: result.txs.length,
+            };
+
+            setTransactionHistory(newTransactionHistory);
+        } catch (err) {
+            console.error('Error refreshing transaction history:', err);
+            setTransactionHistory(null);
+        }
+    };
 
     // Ref https://stackoverflow.com/questions/53446020/how-to-compare-oldvalues-and-newvalues-on-react-hooks-useeffect
     // Get the previous value of a state variable
@@ -132,55 +178,18 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         currentCashtabLoadedRef.current = cashtabLoaded;
     }, [cashtabLoaded]);
 
+    // Refresh transaction history when active wallet changes
+    useEffect(() => {
+        if (cashtabLoaded && cashtabState.activeWallet) {
+            refreshTransactionHistory();
+        } else {
+            setTransactionHistory(null);
+        }
+    }, [cashtabState.activeWallet?.address, cashtabLoaded]);
+
     // Queue for processing messages in order
     const messageQueue = useRef<Array<WsMsgClient>>([]);
     const isProcessing = useRef<boolean>(false);
-
-    // Track transactions to finalize for batch updates
-    const pendingFinalizations = useRef<Set<string>>(new Set());
-    const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Batch update all pending finalizations
-    const batchUpdateFinalizations = async () => {
-        if (currentCashtabStateRef.current.activeWallet === undefined) {
-            return;
-        }
-        if (pendingFinalizations.current.size === 0) {
-            return;
-        }
-
-        const txidsToFinalize = Array.from(pendingFinalizations.current);
-        pendingFinalizations.current.clear();
-        batchTimeoutRef.current = null;
-
-        const activeWallet = currentCashtabStateRef.current.activeWallet;
-        const updatedHistory = [...activeWallet.state.parsedTxHistory];
-        let hasUpdates = false;
-
-        // Update all txs that we know have finalized but are not yet rendered as such
-        for (const txid of txidsToFinalize) {
-            const txIndex = updatedHistory.findIndex(tx => tx.txid === txid);
-            if (txIndex !== -1) {
-                updatedHistory[txIndex] = {
-                    ...updatedHistory[txIndex],
-                    isFinal: true,
-                };
-                hasUpdates = true;
-            }
-        }
-
-        if (hasUpdates) {
-            const updatedWallet = {
-                ...activeWallet,
-                state: {
-                    ...activeWallet.state,
-                    parsedTxHistory: updatedHistory,
-                },
-            };
-
-            await updateCashtabState({ activeWallet: updatedWallet });
-        }
-    };
 
     // Process messages sequentially
     const processMessageQueue = async () => {
@@ -224,7 +233,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         switch (msgType) {
             case 'TX_ADDED_TO_MEMPOOL': {
-                // Update wallet utxo set and history when we see a new tx
+                // Update wallet utxo set when we see a new tx
                 await update();
 
                 // We parse txs that are added to the mempool for notifications
@@ -285,6 +294,43 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     cashtabState.wallets[0].hash,
                 ]);
 
+                // Add the new transaction to the beginning of the first page history
+                setTransactionHistory(prev => {
+                    if (!prev) {
+                        return prev;
+                    }
+
+                    // Create the new transaction object
+                    const newTx: CashtabTx = {
+                        ...incomingTxDetails,
+                        parsed: parsedTx,
+                    };
+
+                    // Add to beginning of first page
+                    const updatedFirstPageTxs = [newTx, ...prev.firstPageTxs];
+
+                    // If we're at the page limit, remove the last transaction
+                    if (
+                        updatedFirstPageTxs.length >
+                        chronikConfig.txHistoryPageSize
+                    ) {
+                        updatedFirstPageTxs.pop();
+                    }
+
+                    // Calculate new counts
+                    const newNumTxs = prev.numTxs + 1;
+                    const newNumPages = Math.ceil(
+                        newNumTxs / chronikConfig.txHistoryPageSize,
+                    );
+
+                    return {
+                        ...prev,
+                        firstPageTxs: updatedFirstPageTxs,
+                        numTxs: newNumTxs,
+                        numPages: newNumPages,
+                    };
+                });
+
                 // parse tx for notification msg
                 const notificationMsg = getTxNotificationMsg(
                     parsedTx,
@@ -327,21 +373,31 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 return;
             }
             case 'TX_FINALIZED': {
-                // Collect transactions to finalize for batch update
+                // Update tx if it is in the first page of history
                 const txid = (msg as MsgTxClient).txid;
 
-                // Add to pending finalizations
-                pendingFinalizations.current.add(txid);
+                // Use functional update to avoid race conditions
+                setTransactionHistory(prev => {
+                    if (!prev || prev.firstPageTxs.length === 0) {
+                        return prev;
+                    }
 
-                // Clear any existing timeout
-                if (batchTimeoutRef.current) {
-                    clearTimeout(batchTimeoutRef.current);
-                }
+                    const txIndex = prev.firstPageTxs.findIndex(
+                        tx => tx.txid === txid,
+                    );
+                    if (txIndex !== -1 && !prev.firstPageTxs[txIndex].isFinal) {
+                        // Create a new array with the updated transaction
+                        const updatedFirstPageTxs = [...prev.firstPageTxs];
+                        updatedFirstPageTxs[txIndex] = {
+                            ...updatedFirstPageTxs[txIndex],
+                            isFinal: true,
+                        };
 
-                // Schedule batch update with a small delay
-                batchTimeoutRef.current = setTimeout(() => {
-                    batchUpdateFinalizations();
-                }, 10); // 10ms delay to catch rapid successive messages
+                        return { ...prev, firstPageTxs: updatedFirstPageTxs };
+                    }
+
+                    return prev;
+                });
 
                 return;
             }
@@ -349,6 +405,46 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 // Rare
                 // But, when this happens, we better be sure we are not showing this in the history
                 console.info(`Tx removed from mempool: ${msg.txid}`);
+
+                // Remove the transaction from the first page history if it exists
+                setTransactionHistory(prev => {
+                    if (!prev || prev.firstPageTxs.length === 0) {
+                        return prev;
+                    }
+
+                    const txid = msg.txid;
+                    const txIndex = prev.firstPageTxs.findIndex(
+                        tx => tx.txid === txid,
+                    );
+
+                    if (txIndex === -1) {
+                        // Transaction not in first page, no update needed
+                        return prev;
+                    }
+
+                    // Remove the transaction from first page
+                    const updatedFirstPageTxs = prev.firstPageTxs.filter(
+                        tx => tx.txid !== txid,
+                    );
+
+                    // NB we do not attempt to pull in the "next" tx from the next page, we can live
+                    // with missing a tx in this exceptionally rare case, we just want to be sure
+                    // we are not showing the user a dropped tx
+
+                    // Calculate new counts
+                    const newNumTxs = Math.max(0, prev.numTxs - 1);
+                    const newNumPages = Math.max(
+                        1,
+                        Math.ceil(newNumTxs / chronikConfig.txHistoryPageSize),
+                    ); // At least 1 page
+
+                    return {
+                        ...prev,
+                        firstPageTxs: updatedFirstPageTxs,
+                        numTxs: newNumTxs,
+                        numPages: newNumPages,
+                    };
+                });
 
                 // Refresh cashtab state
                 await update();
@@ -449,16 +545,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
-            // Fetch and parse tx history
-            // Note: this function will also update cashtabCache.tokens if any tokens in tx history are not in cache
-
-            const result = await getTransactionHistory(
-                chronik,
-                activeWallet.address,
-                currentCashtabStateRef.current.cashtabCache.tokens,
-            );
-            const parsedTxHistory = result.txs;
-
             // Update cashtabCache.tokens in state and storage
             updateCashtabState({
                 cashtabCache: {
@@ -472,7 +558,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 slpUtxos,
                 nonSlpUtxos,
                 tokens,
-                parsedTxHistory,
             };
 
             // Set wallet with new state field
@@ -1138,6 +1223,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             return true;
         },
         cashtabState,
+        transactionHistory,
+        refreshTransactionHistory,
         setCashtabState,
     } as UseWalletReturnType;
 };

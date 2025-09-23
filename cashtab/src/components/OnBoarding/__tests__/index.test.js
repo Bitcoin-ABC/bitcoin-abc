@@ -51,6 +51,11 @@ describe('<OnBoarding />', () => {
             localforage,
         );
 
+        mockedChronik.setTxHistoryByAddress(
+            'ecash:qrj4phtd5fyz024uvstcmuf06urmhhgjvv5d0ammua',
+            [],
+        );
+
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
         // Wait for the app to load
@@ -86,6 +91,12 @@ describe('<OnBoarding />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             false,
             localforage,
+        );
+
+        // Set empty tx history for the wallet
+        mockedChronik.setTxHistoryByAddress(
+            'ecash:qzxep3zqcpnuwzx5krsv9hgczv274v4yd50sl0hl7c',
+            [],
         );
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);

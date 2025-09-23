@@ -10,12 +10,7 @@ import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { fromHex, HdNode, shaRmd160, toHex } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
-import {
-    organizeUtxosByType,
-    ParsedTx,
-    getTokenBalances,
-    getTransactionHistory,
-} from 'chronik';
+import { organizeUtxosByType, ParsedTx, getTokenBalances } from 'chronik';
 import {
     CashtabWallet_Pre_2_1_0,
     CashtabWallet_Pre_2_9_0,
@@ -61,22 +56,28 @@ export interface StoredCashtabPathInfo {
      */
     sk: number[];
 }
+export interface CashtabWalletState_Pre_3_42_0 {
+    balanceSats: number;
+    nonSlpUtxos: NonTokenUtxo[];
+    slpUtxos: TokenUtxo[];
+    tokens: Map<string, string>;
+    parsedTxHistory: CashtabTx[];
+}
+
 export interface CashtabWalletState {
     balanceSats: number;
     nonSlpUtxos: NonTokenUtxo[];
     slpUtxos: TokenUtxo[];
-    parsedTxHistory: CashtabTx[];
     tokens: Map<string, string>;
 }
-export interface StoredCashtabState
+export interface StoredCashtabState_Pre_3_42_0
     extends Omit<
-        CashtabWalletState,
-        'tokens' | 'slpUtxos' | 'nonSlpUtxos' | 'parsedTxHistory'
+        CashtabWalletState_Pre_3_42_0,
+        'tokens' | 'slpUtxos' | 'nonSlpUtxos'
     > {
     tokens: [string, string][];
     slpUtxos: object[];
     nonSlpUtxos: object[];
-    parsedTxHistory: object[];
 }
 export interface ScriptUtxoWithToken extends ScriptUtxo {
     token: Token;
@@ -112,13 +113,6 @@ export interface CashtabUtxoJson extends NonTokenUtxoJson {
     token?: TokenJson;
 }
 
-export interface CashtabWalletState {
-    balanceSats: number;
-    nonSlpUtxos: NonTokenUtxo[];
-    slpUtxos: TokenUtxo[];
-    parsedTxHistory: CashtabTx[];
-    tokens: Map<string, string>;
-}
 export interface CashtabTx extends Tx {
     parsed: ParsedTx;
 }
@@ -136,13 +130,13 @@ export interface CashtabWallet_Pre_3_41_0 {
     mnemonic: string;
     // Path 1899 is always defined
     paths: CashtabWalletPaths;
-    state: CashtabWalletState;
+    state: CashtabWalletState_Pre_3_42_0;
 }
 export interface StoredCashtabWallet_Pre_3_41_0 {
     name: string;
     mnemonic: string;
     paths: [number, StoredCashtabPathInfo][];
-    state: StoredCashtabState;
+    state: StoredCashtabState_Pre_3_42_0;
 }
 
 export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
@@ -348,30 +342,6 @@ export const createActiveCashtabWallet = async (
         tokens = new Map();
     }
 
-    // Fetch and parse tx history
-    // Note: this function will also update cashtabCache.tokens if any tokens in tx history are not in cache
-
-    let result: { txs: CashtabTx[]; totalPages?: number } = {
-        txs: [],
-        totalPages: 0,
-    };
-    try {
-        result = await getTransactionHistory(
-            chronik,
-            storedWallet.address,
-            cashtabCache.tokens,
-        );
-    } catch (error) {
-        console.error(
-            `Error getting tx history in createActiveCashtabWallet`,
-            error,
-        );
-        // API errors mean we fail to populate, not fail to create
-        result = { txs: [], totalPages: 0 };
-    }
-
-    const parsedTxHistory = result.txs;
-
     return {
         ...storedWallet,
         state: {
@@ -379,7 +349,6 @@ export const createActiveCashtabWallet = async (
             slpUtxos,
             nonSlpUtxos,
             tokens,
-            parsedTxHistory,
         },
     };
 };

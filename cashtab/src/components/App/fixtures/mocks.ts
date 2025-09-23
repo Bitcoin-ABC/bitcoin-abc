@@ -1227,7 +1227,12 @@ export const walletWithXecAndTokensState: CashtabWalletState =
 
 export const walletWithXecAndTokensActive: ActiveCashtabWallet = {
     ...walletWithXecAndTokensStored,
-    state: walletWithXecAndTokensState,
+    state: {
+        balanceSats: walletWithXecAndTokensState.balanceSats,
+        slpUtxos: walletWithXecAndTokensState.slpUtxos,
+        nonSlpUtxos: walletWithXecAndTokensState.nonSlpUtxos,
+        tokens: walletWithXecAndTokensState.tokens,
+    },
 };
 
 export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_41_0 =
@@ -1338,7 +1343,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '483045022100b8699595913167f3abd5c6dde588fe9dd89e56e811436d0cc02e81a6623a93c1022043954f663eb37a4e0a7cb28bd8ff857d0913cc771832b0e7ccf2b2fbaa9f3ae0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                            value: 1100,
+                            sats: 1100n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
@@ -1350,7 +1355,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '47304402205d3d1e7f83609498d7d7c18cfaa8f4c940c3e12608334b946744c423465cc9f002202199ac5b760c4eb27ee1bf28e94d8e42a6932709d73b387a760269ce2d73aa58412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                            value: 2200,
+                            sats: 2200n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
@@ -1362,7 +1367,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '4730440220649bd38855be5a18bc3b373eec33d9420b9fde009548c79bcccd67a4bef37359022075f64385c0c40670bc03b268554dc7280f0b9dbffbf22c2cb4c76da4898ed1a0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                            value: 546,
+                            sats: 546n,
                             sequenceNo: 4294967295,
                             token: {
                                 tokenId:
@@ -1372,7 +1377,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '888',
+                                atoms: 888n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
@@ -1382,12 +1387,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000001080000000000000377',
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             token: {
@@ -1398,13 +1403,13 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '1',
+                                atoms: 1n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
                         },
                         {
-                            value: 546,
+                            sats: 546n,
                             outputScript:
                                 '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                             token: {
@@ -1415,7 +1420,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                                     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
                                     number: 1,
                                 },
-                                amount: '887',
+                                atoms: 887n,
                                 isMintBaton: false,
                                 entryIdx: 0,
                             },
@@ -1425,7 +1430,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 1319,
+                            sats: 1319n,
                             outputScript:
                                 '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                             spentBy: {
@@ -1452,8 +1457,8 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             isInvalid: false,
                             burnSummary: '',
                             failedColorings: [],
-                            actualBurnAmount: '0',
-                            intentionalBurn: '0',
+                            actualBurnAtoms: 0n,
+                            intentionalBurnAtoms: 0n,
                             burnsMintBatons: false,
                         },
                     ],
@@ -1498,7 +1503,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '47304402201cfc6d40bb6a6ee8faae9a3d373742009fa30c6c02a0fcfe055079b62a65d582022013497e2ae6b417262680990ea5d03fe67ac25f7a2a79121fb9b0f633adf458274121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 952320,
+                            sats: 952320n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1506,12 +1511,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e78656300066e6577746f6e15003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 553,
+                            sats: 553n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1520,7 +1525,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 951312,
+                            sats: 951312n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1580,7 +1585,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '473044022040513dc15ce7601f937ea83a94a90fd55da07b6a2a95a344a3df63d34489985e022072bd23d71ab5502ee2f254cc58aa0bc2f499370f693f77b1bbb87fe3aaee66d44121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 953326,
+                            sats: 953326n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1588,12 +1593,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e786563000d646f657374686973636c65617215003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 551,
+                            sats: 551n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1602,7 +1607,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 952320,
+                            sats: 952320n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1662,7 +1667,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '47304402206feb284b4583db2ba6bd0a03cda7ac1571faec3f0f6ab996e4c8b2592726e626022066fe0a6d8887ba64ea7ac9a7472bc6e8ede63baeea3f7f7250e4aadfd9dfebf84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 954332,
+                            sats: 954332n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1670,12 +1675,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e7865630008776f726b736e6f7715003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 551,
+                            sats: 551n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1684,7 +1689,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 953326,
+                            sats: 953326n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1744,7 +1749,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '47304402202bfc9d29d53f3e2a721472469d0c16726badb0534044e101b990b2413d6d37c80220321cfe15eeea3014012c082693f3ff49f6892b5fe96bc0b980195c7090af1d9a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 955341,
+                            sats: 955341n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1752,12 +1757,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e7865630005746573743415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 554,
+                            sats: 554n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1766,7 +1771,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 954332,
+                            sats: 954332n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1826,7 +1831,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '483045022100952173ce8b1a2f5cc30be77cd32c6b285ff3f96d36ba0296082ca551204c578502201afcad7d0b2426e1c168c1a1b4a98c637a4c808a6c8fd35c298e9cb7cf6cdc474121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 956351,
+                            sats: 956351n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1834,12 +1839,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 555,
+                            sats: 555n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1848,7 +1853,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 955341,
+                            sats: 955341n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1908,7 +1913,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '473044022024d33fa299f1ce126fe5271e26c9fc9e60b10924e2f4aa5fda8bbd46547f0503022077bff168765403d1282f73b7cffd9643b9dd6854e7dbb3ba1f5897bd4a9f63304121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 957361,
+                            sats: 957361n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1916,12 +1921,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 555,
+                            sats: 555n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -1930,7 +1935,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 956351,
+                            sats: 956351n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -1990,7 +1995,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '483045022100e27a4f1c3521ae72c3b1970846616e3ac9f6048066e4566c2d03c1132fb414f50220750243534faa1603bade7c498d8e4390960a59451c858207f80f300f6a57c4534121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 958370,
+                            sats: 958370n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -1998,12 +2003,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 554,
+                            sats: 554n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -2012,7 +2017,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 957361,
+                            sats: 957361n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -2072,7 +2077,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '473044022076ae9639a9cfac3a4189c30eb1ac68daa75850407a2303cb297cc4b1a44a17db0220277681c0346c1b11eb312795c911619935aae6d50d4d03ef5e7dcc916fa28a3d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 959379,
+                            sats: 959379n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -2080,12 +2085,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
                         },
                         {
-                            value: 554,
+                            sats: 554n,
                             outputScript:
                                 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                             spentBy: {
@@ -2094,7 +2099,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 958370,
+                            sats: 958370n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -2154,7 +2159,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                             inputScript:
                                 '473044022037e2b4ac09f71432e97d71938dac7b5f0abcd84a8ea995708b0d58c38fcc743302207570250fe9f8b98b8f7079aafb1c53e796584efd910ed9f7e1f75f491f95e7564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-                            value: 962056,
+                            sats: 962056n,
                             sequenceNo: 4294967295,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
@@ -2162,12 +2167,12 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                     ],
                     outputs: [
                         {
-                            value: 0,
+                            sats: 0n,
                             outputScript:
                                 '6a04007461620b7374696c6c20776f726b73',
                         },
                         {
-                            value: 2200,
+                            sats: 2200n,
                             outputScript:
                                 '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
                             spentBy: {
@@ -2176,7 +2181,7 @@ export const walletWithXecAndTokensStored_Pre_3_41_0: StoredCashtabWallet_Pre_3_
                             },
                         },
                         {
-                            value: 959379,
+                            sats: 959379n,
                             outputScript:
                                 '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                             spentBy: {
@@ -2679,7 +2684,6 @@ export const freshWalletWithOneIncomingCashtabMsg: ActiveCashtabWallet = {
             },
         ],
         tokens: new Map(),
-        parsedTxHistory: freshWalletWithOneIncomingCashtabMsgTxs,
     },
 };
 

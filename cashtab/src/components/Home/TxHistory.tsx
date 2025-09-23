@@ -16,16 +16,19 @@ const TxHistory: React.FC = () => {
         // Confirm we have all context required to load the component
         return null;
     }
-    const { chronik, fiatPrice, cashtabState, updateCashtabState } =
-        ContextValue;
+    const {
+        chronik,
+        fiatPrice,
+        cashtabState,
+        updateCashtabState,
+        transactionHistory,
+    } = ContextValue;
     const { settings, activeWallet } = cashtabState;
 
     if (!activeWallet) {
         return null;
     }
 
-    // Get data from context instead of props
-    const txs = activeWallet.state.parsedTxHistory;
     const hashes = [activeWallet.hash];
     const fiatCurrency =
         settings && settings.fiatCurrency ? settings.fiatCurrency : 'usd';
@@ -39,6 +42,9 @@ const TxHistory: React.FC = () => {
     // Get the path1899 address (path 1899 is always defined in CashtabWalletPaths)
     const path1899Address = activeWallet.address;
 
+    // Get first page transactions from context
+    const txs = transactionHistory?.firstPageTxs || [];
+
     // Reset pagination when wallet changes
     useEffect(() => {
         setCurrentPage(0);
@@ -47,29 +53,11 @@ const TxHistory: React.FC = () => {
 
     // Check if we need to show pagination (more than 20 transactions)
     useEffect(() => {
-        const checkTotalPages = async () => {
-            if (!path1899Address) return;
-
-            try {
-                const result = await getTransactionHistory(
-                    chronik,
-                    path1899Address,
-                    cashtabState.cashtabCache.tokens,
-                );
-                setTotalPages(result.totalPages!);
-                setShowPagination(result.totalPages! > 1);
-            } catch (error) {
-                console.error('Error checking total pages:', error);
-            }
-        };
-
-        checkTotalPages();
-    }, [
-        chronik,
-        path1899Address,
-        cashtabState.cashtabCache.tokens,
-        cashtabState.wallets,
-    ]);
+        if (transactionHistory) {
+            setTotalPages(transactionHistory.numPages);
+            setShowPagination(transactionHistory.numPages > 1);
+        }
+    }, [transactionHistory]);
 
     // Load paginated transactions when page changes
     const handlePageChange = async (page: number) => {

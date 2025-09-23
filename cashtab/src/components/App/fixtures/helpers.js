@@ -22,6 +22,8 @@ export const initializeCashtabStateForTests_pre_3_41_0 = async (
     wallets,
     localforage,
     apiError = false,
+    // Not all tests require tx history mocks, default to empty
+    history = [],
 ) => {
     // Mock successful utxos calls in chronik
     const chronikClient = new MockChronikClient();
@@ -67,7 +69,14 @@ export const initializeCashtabStateForTests_pre_3_41_0 = async (
 
     // Mock returns for chronik calls expected in useWallet's update routine for all wallets
     for (const wallet of wallets) {
-        prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
+        // Keep using parsedTxHistory for legacy wallets that have it available
+        const historyToMock = wallet.state.parsedTxHistory ?? history;
+        prepareMockedChronikCallsForWallet(
+            chronikClient,
+            wallet,
+            apiError,
+            historyToMock,
+        );
     }
 
     return chronikClient;
@@ -88,6 +97,8 @@ export const initializeCashtabStateForTests = async (
     wallets,
     localforage,
     apiError = false,
+    // Not all tests require tx history mocks, default to empty
+    history = [],
 ) => {
     // Mock successful utxos calls in chronik
     const chronikClient = new MockChronikClient();
@@ -121,7 +132,12 @@ export const initializeCashtabStateForTests = async (
 
     // Mock returns for chronik calls expected in useWallet's update routine for all wallets
     for (const wallet of wallets) {
-        prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
+        prepareMockedChronikCallsForWallet(
+            chronikClient,
+            wallet,
+            apiError,
+            history,
+        );
     }
 
     return chronikClient;
@@ -322,6 +338,8 @@ export const prepareMockedChronikCallsForWallet = (
     chronikClient,
     wallet,
     apiError = false,
+    // Not all tests require tx history mocks, default to empty
+    history = [],
 ) => {
     // mock chronik endpoint returns
     const CASHTAB_TESTS_TIPHEIGHT = 800000;
@@ -348,7 +366,7 @@ export const prepareMockedChronikCallsForWallet = (
     for (const utxo of wallet.state.slpUtxos) {
         tokenIdsToMock.add(utxo.token.tokenId);
     }
-    for (const tx of wallet.state.parsedTxHistory) {
+    for (const tx of history) {
         if (tx.parsed?.isEtokenTx || tx?.tokenEntries.length > 0) {
             const tokenId =
                 'tokenEntries' in tx
@@ -507,10 +525,7 @@ export const prepareMockedChronikCallsForWallet = (
                 pathInfo.address,
                 wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
             );
-            chronikClient.setTxHistoryByAddress(
-                pathInfo.address,
-                wallet.state.parsedTxHistory,
-            );
+            chronikClient.setTxHistoryByAddress(pathInfo.address, history);
         }
     }
 
@@ -529,10 +544,7 @@ export const prepareMockedChronikCallsForWallet = (
             wallet.address,
             wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
         );
-        chronikClient.setTxHistoryByAddress(
-            wallet.address,
-            wallet.state.parsedTxHistory,
-        );
+        chronikClient.setTxHistoryByAddress(wallet.address, history);
     }
 };
 

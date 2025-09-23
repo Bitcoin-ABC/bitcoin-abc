@@ -403,7 +403,15 @@ describe('<Home />', () => {
                         isFinal: true,
                     },
                 ],
-                parsedTxHistory: [
+            },
+        };
+
+        const mockedChronik = await prepareContext(
+            localforage,
+            [walletWithBalanceAndHistory],
+            tokenMocks,
+            [
+                [
                     {
                         txid: 'fd7b1118a6eed473b188d328be2bb807072d1834a6575ea983b330236ac2763b',
                         version: 2,
@@ -445,23 +453,10 @@ describe('<Home />', () => {
                             hash: '00000000000000001a8b91517a249923c2fb097e0d2fce5407342d4ef40dd4e3',
                             timestamp: 1723843380,
                         },
-                        parsed: {
-                            xecTxType: 'Received',
-                            satoshisSent: 3000,
-                            stackArray: [],
-                            recipients: [
-                                'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
-                            ],
-                        },
+                        isFinal: true,
                     },
                 ],
-            },
-        };
-
-        const mockedChronik = await prepareContext(
-            localforage,
-            [walletWithBalanceAndHistory],
-            tokenMocks,
+            ],
         );
 
         render(

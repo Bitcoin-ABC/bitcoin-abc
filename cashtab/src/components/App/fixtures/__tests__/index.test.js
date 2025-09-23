@@ -179,7 +179,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                             .address(wallet.address)
                             .history(0, chronikConfig.txHistoryCount)
                     ).txs,
-                ).toEqual(wallet.state.parsedTxHistory);
+                ).toEqual(wallet.state.parsedTxHistory ?? []);
 
                 // Next, initialize with API error
                 const apiErrorChronikClient =

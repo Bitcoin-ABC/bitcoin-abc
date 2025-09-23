@@ -13,7 +13,7 @@ import {
 import appConfig from 'config/app';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import {
-    StoredCashtabState,
+    StoredCashtabState_Pre_3_42_0,
     CashtabPathInfo,
     StoredCashtabPathInfo,
     LegacyCashtabWallet,
@@ -26,7 +26,7 @@ import {
     TokenUtxoJson,
     NonTokenUtxoJson,
     CashtabTx,
-    CashtabWalletState,
+    CashtabWalletState_Pre_3_42_0,
     CashtabWallet_Pre_3_41_0,
     StoredCashtabWallet_Pre_3_41_0,
 } from 'wallet';
@@ -109,7 +109,7 @@ export interface LegacyStoredCashtabWallet {
     name: string;
     mnemonic: string;
     paths: [number, StoredCashtabPathInfo][];
-    state: StoredCashtabState;
+    state: StoredCashtabState_Pre_3_42_0;
 }
 
 /**
@@ -159,7 +159,7 @@ export const cashtabWalletFromJSON = (
             slpUtxos: revivedSlpUtxos,
             nonSlpUtxos: revivedNonSlpUtxos,
             parsedTxHistory: revivedParsedTxHistory,
-        } as unknown as CashtabWalletState;
+        } as unknown as CashtabWalletState_Pre_3_42_0;
 
         return storedCashtabWallet as LegacyCashtabWallet;
     }
@@ -420,7 +420,7 @@ export const cashtabWalletToJSON = (
             slpUtxos: storedSlpUtxos,
             nonSlpUtxos: storedNonSlpUtxos,
             parsedTxHistory: storedParsedTxHistory,
-        } as unknown as CashtabWalletState;
+        } as unknown as CashtabWalletState_Pre_3_42_0;
 
         // We do not plan to ever use this function on such a wallet
         // Handle so we can be sure no errors are thrown
@@ -450,7 +450,7 @@ export const cashtabWalletToJSON = (
         ...(cashtabWallet as CashtabWallet_Pre_3_41_0),
         paths: storedCashtabPaths,
         state: {
-            ...(cashtabWallet.state as unknown as StoredCashtabState),
+            ...(cashtabWallet.state as unknown as StoredCashtabState_Pre_3_42_0),
             slpUtxos: storedSlpUtxos,
             nonSlpUtxos: storedNonSlpUtxos,
             parsedTxHistory: storedParsedTxHistory,
@@ -460,7 +460,7 @@ export const cashtabWalletToJSON = (
                 ).state.tokens.entries(),
             ),
         },
-    } as LegacyStoredCashtabWallet;
+    } as unknown as LegacyStoredCashtabWallet;
 };
 
 /**

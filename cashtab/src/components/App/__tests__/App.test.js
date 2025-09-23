@@ -25,6 +25,7 @@ import {
     validActiveWallets,
     walletWithXecAndTokens_pre_3_41_0,
     validSavedWallets_pre_3_41_0,
+    freshWalletWithOneIncomingCashtabMsgTxs,
 } from 'components/App/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -360,6 +361,8 @@ describe('<App />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
             localforage,
+            false,
+            freshWalletWithOneIncomingCashtabMsgTxs,
         );
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
@@ -415,6 +418,8 @@ describe('<App />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
             localforage,
+            false,
+            freshWalletWithOneIncomingCashtabMsgTxs,
         );
         // Populate the contactList
         const initialContactList = [
@@ -480,6 +485,8 @@ describe('<App />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
             localforage,
+            false,
+            freshWalletWithOneIncomingCashtabMsgTxs,
         );
         const LEGACY_EMPTY_CONTACT_LIST = [{}];
         await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
@@ -500,6 +507,8 @@ describe('<App />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
             localforage,
+            false,
+            freshWalletWithOneIncomingCashtabMsgTxs,
         );
 
         // Render app on home screen

@@ -17,6 +17,5 @@ export const walletWithZeroBalanceZeroHistory: ActiveCashtabWallet = {
         slpUtxos: [],
         nonSlpUtxos: [],
         tokens: new Map(),
-        parsedTxHistory: [],
     },
 };
