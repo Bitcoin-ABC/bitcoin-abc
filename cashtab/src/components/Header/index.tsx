@@ -97,8 +97,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
         }
     };
 
-    const renderFiatValues =
-        typeof fiatPrice === 'number' && typeof firmaPrice === 'number';
+    const renderFiatValues = typeof fiatPrice === 'number';
 
     // Display exchange rate formatted for user's browser locale
     const formattedExchangeRate = renderFiatValues
@@ -153,9 +152,8 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
         ? formatFiat(balanceXecx, fiatPrice)
         : undefined;
 
-    const formattedFIRMABalanceFiat = renderFiatValues
-        ? formatFiat(balanceFirma, firmaPrice)
-        : undefined;
+    const formattedFIRMABalanceFiat =
+        firmaPrice !== null ? formatFiat(balanceFirma, firmaPrice) : undefined;
 
     type AssetBalanceCardProps = {
         title: string;
