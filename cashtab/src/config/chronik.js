@@ -19,5 +19,5 @@ export const chronik = {
                   'https://chronik-native1.fabien.cash',
                   'https://chronik1.alitayin.com',
               ],
-    txHistoryPageSize: 20,
+    txHistoryPageSize: 10,
 };
