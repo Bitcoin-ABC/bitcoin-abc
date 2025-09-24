@@ -94,11 +94,6 @@ COPY modules/ecash-agora/ .
 RUN npm ci
 RUN npm run build
 
-# ecash-script
-WORKDIR /app/modules/ecash-script
-COPY modules/ecash-script/ .
-RUN npm ci
-
 # Now that local dependencies are ready, build cashtab
 WORKDIR /app/cashtab
 # Copy only the package files and install necessary dependencies.
