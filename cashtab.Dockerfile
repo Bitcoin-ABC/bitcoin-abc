@@ -88,6 +88,12 @@ WORKDIR /app/modules/ecash-lib
 RUN npm ci
 RUN npm run build
 
+# ecash-wallet, a dev dep of ecash-agora
+WORKDIR /app/modules/ecash-wallet
+COPY modules/ecash-wallet/ .
+RUN npm ci
+RUN npm run build
+
 # ecash-agora
 WORKDIR /app/modules/ecash-agora
 COPY modules/ecash-agora/ .
