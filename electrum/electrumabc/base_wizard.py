@@ -33,7 +33,7 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
-from . import bitcoin, keystore, mnemo, slip39, util
+from . import bitcoin, keystore, mnemo, networks, slip39, util
 from .address import Address
 from .bip32 import is_bip32_derivation, xpub_type
 from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
@@ -476,25 +476,32 @@ class BaseWizard(PrintError):
         is_hw_wallet: bool = False,
         bip32_seed: bytes = b"",
     ):
-        bip44_btc = keystore.bip44_derivation_btc(0)
-        bip44_bch = keystore.bip44_derivation_bch(0)
-        bip44_xec = keystore.bip44_derivation_xec(0)
         lines = [
             _("Enter your wallet derivation here."),
             _("If you are not sure what this is, leave this field unchanged."),
-            _(
-                "If you want the wallet to use legacy Bitcoin addresses use "
-                f"{bip44_btc}"
-            ),
-            _(f"If you want the wallet to use Bitcoin Cash addresses use {bip44_bch}"),
-            _(f"If you want the wallet to use {CURRENCY} addresses use {bip44_xec}"),
         ]
-        if is_hw_wallet and default_derivation == bip44_bch:
-            lines.append(
-                "\nAt this time, it is recommended to use the Bitcoin Cash derivation "
-                "path for hardware wallets, unless you know for sure that your "
-                "device's firmware already supports the eCash derivation path."
-            )
+        if not networks.net.TESTNET:
+            bip44_btc = keystore.bip44_derivation_btc(0)
+            bip44_bch = keystore.bip44_derivation_bch(0)
+            bip44_xec = keystore.bip44_derivation_xec(0)
+            lines += [
+                _(
+                    "If you want the wallet to use legacy Bitcoin addresses use "
+                    f"{bip44_btc}"
+                ),
+                _(
+                    f"If you want the wallet to use Bitcoin Cash addresses use {bip44_bch}"
+                ),
+                _(
+                    f"If you want the wallet to use {CURRENCY} addresses use {bip44_xec}"
+                ),
+            ]
+            if is_hw_wallet and default_derivation == bip44_bch:
+                lines.append(
+                    "\nAt this time, it is recommended to use the Bitcoin Cash derivation "
+                    "path for hardware wallets, unless you know for sure that your "
+                    "device's firmware already supports the eCash derivation path."
+                )
         message = "\n".join(lines)
         scannable = self.wallet_type == "standard" and bool(bip32_seed)
         self.derivation_path_dialog(

@@ -850,11 +850,19 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
 class DerivationPathScanner(QThread):
     DERIVATION_PATHS = [
-        keystore.bip44_derivation_xec(0),
-        keystore.bip44_derivation_xec_tokens(0),
-        keystore.bip44_derivation_bch(0),
-        keystore.bip44_derivation_btc(0),
-        keystore.bip44_derivation_bch_tokens(0),
+        # XEC
+        "m/44'/899'/0'",
+        # XEC token aware
+        "m/44'/1899'/0'",
+        # BCH
+        "m/44'/145'/0'",
+        # BTC
+        "m/44'/0'/0'",
+        # BCH token aware
+        "m/44'/245'/0'",
+        # Testnet
+        "m/44'/1'/0'",
+        # Weird paths used by various BCH wallets in the past
         "m/144'/44'/0'",
         "m/144'/0'/0'",
         "m/44'/0'/0'/0",
