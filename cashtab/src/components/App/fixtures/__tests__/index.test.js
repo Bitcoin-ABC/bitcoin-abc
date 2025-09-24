@@ -71,7 +71,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
             expect(
                 await mockChronikClient
                     .address(wallet.Path1899.cashAddress)
-                    .history(0, chronikConfig.txHistoryCount),
+                    .history(0, chronikConfig.txHistoryPageSize),
             ).toEqual({
                 txs: wallet.state.parsedTxHistory,
                 numPages: 1,
@@ -100,7 +100,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
             await expect(
                 apiErrorChronikClient
                     .address(wallet.Path1899.cashAddress)
-                    .history(0, chronikConfig.txHistoryCount),
+                    .history(0, chronikConfig.txHistoryPageSize),
             ).rejects.toThrow('Error fetching history');
 
             // Expect localforage wallet and defaults
@@ -177,7 +177,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                     (
                         await mockChronikClient
                             .address(wallet.address)
-                            .history(0, chronikConfig.txHistoryCount)
+                            .history(0, chronikConfig.txHistoryPageSize)
                     ).txs,
                 ).toEqual(wallet.state.parsedTxHistory ?? []);
 
@@ -199,7 +199,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                 await expect(
                     apiErrorChronikClient
                         .address(wallet.address)
-                        .history(0, chronikConfig.txHistoryCount),
+                        .history(0, chronikConfig.txHistoryPageSize),
                 ).rejects.toThrow('Error fetching history');
             }
 
