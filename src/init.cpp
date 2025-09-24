@@ -2609,8 +2609,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             }
         };
         auto [status, error] =
-            catch_exceptions([&, &kernel_cache_sizes = kernel_cache_sizes] {
-                return LoadChainstate(chainman, kernel_cache_sizes, options);
+            catch_exceptions([&, &kernel_cache_sizes_ = kernel_cache_sizes] {
+                return LoadChainstate(chainman, kernel_cache_sizes_, options);
             });
         if (status == node::ChainstateLoadStatus::SUCCESS) {
             uiInterface.InitMessage(_("Verifying blocks...").translated);
