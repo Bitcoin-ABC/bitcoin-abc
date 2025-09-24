@@ -5,6 +5,7 @@
 #include <node/chainstatemanager_args.h>
 
 #include <arith_uint256.h>
+#include <avalanche/avalanche.h>
 #include <common/args.h>
 #include <kernel/chainstatemanager_opts.h>
 #include <node/coins_view_args.h>
@@ -55,6 +56,14 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
     if (auto value{args.GetBoolArg("-persistrecentheaderstime")}) {
         opts.store_recent_headers_time = *value;
     }
+
+    if (auto value{args.GetBoolArg("-parkdeepreorg")}) {
+        opts.park_deep_reorg = *value;
+    }
+
+    opts.automatic_unparking = args.GetBoolArg(
+        "-automaticunparking",
+        !args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED));
 
     return std::nullopt;
 }

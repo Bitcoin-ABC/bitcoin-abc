@@ -28,7 +28,9 @@ enum class ChainstateRole;
 using node::BlockAssembler;
 
 namespace validation_block_tests {
-struct MinerTestingSetup : public RegTestingSetup {
+struct MinerTestingSetup : public TestingSetup {
+    MinerTestingSetup();
+
     std::shared_ptr<CBlock> Block(const Config &config,
                                   const BlockHash &prev_hash);
     std::shared_ptr<const CBlock> GoodBlock(const Config &config,
@@ -74,6 +76,10 @@ struct TestSubscriber final : public CValidationInterface {
         m_expected_tip = block->hashPrevBlock;
     }
 };
+
+// Disable reorg protection for this test.
+MinerTestingSetup::MinerTestingSetup()
+    : TestingSetup(ChainType::REGTEST, {"-parkdeepreorg=0"}) {}
 
 std::shared_ptr<CBlock> MinerTestingSetup::Block(const Config &config,
                                                  const BlockHash &prev_hash) {

@@ -8,6 +8,7 @@
 #include <kernel/notifications_interface.h>
 
 #include <arith_uint256.h>
+#include <avalanche/avalanche.h>
 #include <dbwrapper.h>
 #include <primitives/blockhash.h>
 #include <txdb.h>
@@ -22,6 +23,7 @@ class Config;
 static constexpr bool DEFAULT_CHECKPOINTS_ENABLED{true};
 static constexpr auto DEFAULT_MAX_TIP_AGE{24h};
 static constexpr bool DEFAULT_STORE_RECENT_HEADERS_TIME{false};
+static constexpr bool DEFAULT_PARK_DEEP_REORG{true};
 
 namespace kernel {
 
@@ -37,6 +39,8 @@ struct ChainstateManagerOpts {
         nullptr};
     std::optional<bool> check_block_index{};
     bool checkpoints_enabled{DEFAULT_CHECKPOINTS_ENABLED};
+    bool park_deep_reorg{DEFAULT_PARK_DEEP_REORG};
+    bool automatic_unparking{!AVALANCHE_DEFAULT_ENABLED};
     //! If set, it will override the minimum work we will assume exists on some
     //! valid chain.
     std::optional<arith_uint256> minimum_chain_work{};

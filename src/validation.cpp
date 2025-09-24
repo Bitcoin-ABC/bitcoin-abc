@@ -3518,9 +3518,6 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         std::vector<const CBlockIndex *> blocksToReconcile;
         bool blocks_connected = false;
 
-        const bool fAutoUnpark =
-            gArgs.GetBoolArg("-automaticunparking", !avalanche);
-
         {
             LOCK(cs_main);
             // Lock transaction pool for at least as long as it takes for
@@ -3534,8 +3531,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 // issues, low disk space, etc).
 
                 if (pindexMostWork == nullptr) {
-                    pindexMostWork =
-                        FindMostWorkChain(blocksToReconcile, fAutoUnpark);
+                    pindexMostWork = FindMostWorkChain(
+                        blocksToReconcile,
+                        m_chainman.m_options.automatic_unparking);
                 }
 
                 // Whether we have anything to do at all.
@@ -4942,7 +4940,7 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // later, during FindMostWorkChain. We mark the block as parked at the very
     // last minute so we can make sure everything is ready to be reorged if
     // needed.
-    if (gArgs.GetBoolArg("-parkdeepreorg", true)) {
+    if (m_options.park_deep_reorg) {
         // Blocks that are below the snapshot height can't cause reorgs, as the
         // active tip is at least thousands of blocks higher. Don't park them,
         // they will most likely connect on the tip of the background chain.
