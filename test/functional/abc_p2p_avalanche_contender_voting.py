@@ -46,7 +46,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         self.noban_tx_relay = True
         self.extra_args = [
             [
-                "-avalanchestakingpreconsensus=1",
                 "-avalanchestakingrewards=1",
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",

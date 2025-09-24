@@ -66,6 +66,6 @@ static constexpr bool DEFAULT_PERSIST_AVAPEERS{true};
 static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
 
 /** Default for -avalanchestakingpreconsensus */
-static constexpr bool DEFAULT_AVALANCHE_STAKING_PRECONSENSUS{false};
+static constexpr bool DEFAULT_AVALANCHE_STAKING_PRECONSENSUS{true};
 
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

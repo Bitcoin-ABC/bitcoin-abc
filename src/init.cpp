@@ -1443,6 +1443,11 @@ void SetupServerArgs(NodeContext &node) {
                   testnetChainParams->GetConsensus().enableStakingRewards,
                   regtestChainParams->GetConsensus().enableStakingRewards),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avalanchestakingpreconsensus",
+                   strprintf("Enable the avalanche staking rewards "
+                             "preconsensus feature (default: %u)",
+                             DEFAULT_AVALANCHE_STAKING_PRECONSENSUS),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avalancheconflictingproofcooldown",
                    strprintf("Mandatory cooldown before a proof conflicting "
                              "with an already registered one can be considered "
@@ -1558,7 +1563,6 @@ void SetupServerArgs(NodeContext &node) {
 
     hidden_args.emplace_back("-avalanchepreconsensus");
     hidden_args.emplace_back("-avalanchepreconsensusmining");
-    hidden_args.emplace_back("-avalanchestakingpreconsensus");
 
     // Add the hidden options
     argsman.AddHiddenArgs(hidden_args);

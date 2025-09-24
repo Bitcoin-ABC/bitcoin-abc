@@ -33,7 +33,6 @@ class AvalancheStakingPreconsensusActivationTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-avalanchestakingrewards=1",
-                "-avalanchestakingpreconsensus=1",
                 f"-shibusawaactivationtime={THE_FUTURE}",
             ],
         ]
@@ -124,6 +123,20 @@ class AvalancheStakingPreconsensusActivationTest(BitcoinTestFramework):
 
         # Unpark the activation block to reactivate
         node.unparkblock(activation_block)
+        assert node.getinfo()["avalanche_staking_preconsensus"]
+
+        self.restart_node(
+            0,
+            extra_args=[
+                "-avalanchestakingpreconsensus=0",
+                f"-mocktime={now}",
+            ],
+        )
+
+        assert not node.getinfo()["avalanche_staking_preconsensus"]
+
+        self.restart_node(0, extra_args=[f"-mocktime={now}"])
+
         assert node.getinfo()["avalanche_staking_preconsensus"]
 
 

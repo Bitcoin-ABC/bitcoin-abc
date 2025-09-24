@@ -37,6 +37,9 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-avaminquorumconnectedstakeratio=0.5",
+                # Disable staking reward preconsensus to speedup the test and
+                # avoid bloating the polling space
+                "-avalanchestakingpreconsensus=0",
                 # Preconsensus enabled
                 "-avalanchepreconsensus=1",
                 # Preconsensus mining enabled
