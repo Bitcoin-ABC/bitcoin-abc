@@ -79,28 +79,17 @@ import {
     SuccessModalContent,
     SuccessIcon,
     SuccessTitle,
-    TransactionIdContainer,
     TransactionIdLink,
-    CopyIconContainer,
-    Tooltip,
-    CopyButton,
     SuccessButton,
-    ProgressBarContainer,
-    ProgressBar,
-    ScreenProgressBarContainer,
-    ScreenProgressBar,
-    PROGRESS_BAR_DURATION_MS,
+    SUCCESS_MODAL_DURATION_MS,
 } from './styled';
 import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
     FIRMA_REDEEM_EMPP_RAW_LENGTH,
 } from 'constants/tokens';
-import {
-    FirmaIcon,
-    TetherIcon,
-    CopyPasteIcon,
-} from 'components/Common/CustomIcons';
+import { FirmaIcon, TetherIcon } from 'components/Common/CustomIcons';
+import Burst from 'assets/burst.png';
 
 const OuterCtn = styled.div`
     background: ${props => props.theme.primaryBackground};
@@ -359,7 +348,6 @@ const SendXec: React.FC = () => {
     // Success modal for URL-based transactions
     const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
     const [successTxid, setSuccessTxid] = useState<string>('');
-    const [showCopiedTooltip, setShowCopiedTooltip] = useState<boolean>(false);
 
     // Auto-close success modal after progress bar animation duration
     useEffect(() => {
@@ -367,28 +355,11 @@ const SendXec: React.FC = () => {
             const timer = setTimeout(() => {
                 setShowSuccessModal(false);
                 window.close();
-            }, PROGRESS_BAR_DURATION_MS); // Match the progress bar animation duration
+            }, SUCCESS_MODAL_DURATION_MS); // Match the progress bar animation duration
 
             return () => clearTimeout(timer);
         }
     }, [showSuccessModal]);
-
-    // Helper function to abbreviate transaction ID
-    const abbreviateTxid = (txid: string): string => {
-        if (txid.length <= 10) return txid;
-        return `${txid.substring(0, 3)}...${txid.substring(txid.length - 3)}`;
-    };
-
-    // Helper function to copy transaction ID with tooltip feedback
-    const copyTxidWithTooltip = async (txid: string) => {
-        try {
-            await navigator.clipboard.writeText(txid);
-            setShowCopiedTooltip(true);
-            setTimeout(() => setShowCopiedTooltip(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy txid:', err);
-        }
-    };
 
     // Extension transaction handling
     const [isExtensionTransaction, setIsExtensionTransaction] =
@@ -1530,11 +1501,6 @@ const SendXec: React.FC = () => {
 
     return (
         <>
-            {showSuccessModal && (
-                <ScreenProgressBarContainer>
-                    <ScreenProgressBar isActive={showSuccessModal} />
-                </ScreenProgressBarContainer>
-            )}
             <OuterCtn>
                 {showConfirmSendModal && (
                     <Modal
@@ -1580,45 +1546,30 @@ const SendXec: React.FC = () => {
                                 }
                             }}
                         >
-                            <SuccessIcon />
-                            <SuccessTitle>Success!</SuccessTitle>
-                            <TransactionIdContainer>
-                                <TransactionIdLink
-                                    href={`${explorer.blockExplorerUrl}/tx/${successTxid}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    // Prevent closing the window when clicking on the link
-                                    onClick={e => e.stopPropagation()}
-                                >
-                                    {abbreviateTxid(successTxid)}
-                                </TransactionIdLink>
-                                <CopyIconContainer>
-                                    <CopyButton
-                                        aria-label="Copy transaction ID"
-                                        onClick={e => {
-                                            // Prevent closing the window when clicking on the copy button
-                                            e.stopPropagation();
-                                            copyTxidWithTooltip(successTxid);
-                                        }}
-                                    >
-                                        <CopyPasteIcon />
-                                    </CopyButton>
-                                    {showCopiedTooltip && (
-                                        <Tooltip>Copied!</Tooltip>
-                                    )}
-                                </CopyIconContainer>
-                            </TransactionIdContainer>
+                            <SuccessIcon>
+                                <div />
+                                <img src={Burst} alt="Success" />
+                            </SuccessIcon>
+                            <SuccessTitle>Sent!</SuccessTitle>
+
+                            <TransactionIdLink
+                                href={`${explorer.blockExplorerUrl}/tx/${successTxid}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                // Prevent closing the window when clicking on the link
+                                onClick={e => e.stopPropagation()}
+                            >
+                                View Transaction
+                            </TransactionIdLink>
+
                             <SuccessButton
                                 onClick={async () => {
                                     setShowSuccessModal(false);
                                     window.close();
                                 }}
                             >
-                                OK
+                                Close
                             </SuccessButton>
-                            <ProgressBarContainer>
-                                <ProgressBar isActive={showSuccessModal} />
-                            </ProgressBarContainer>
                         </SuccessModalContent>
                     </SuccessModalOverlay>
                 )}
