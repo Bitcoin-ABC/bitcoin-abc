@@ -4298,7 +4298,8 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         return;
     }
 
-    if (m_avalanche && m_avalanche->isPreconsensusActivated() &&
+    if (m_avalanche &&
+        m_avalanche->isPreconsensusActivated(m_chainman.ActiveTip()) &&
         state.GetResult() == TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
         return;
     }
@@ -6723,10 +6724,12 @@ void PeerManagerImpl::ProcessMessage(
         std::vector<avalanche::Vote> votes;
         votes.reserve(nCount);
 
+        bool fPreconsensus{false};
         bool fStakingPreconsensus{false};
         {
             LOCK(::cs_main);
             const CBlockIndex *tip = m_chainman.ActiveTip();
+            fPreconsensus = m_avalanche->isPreconsensusActivated(tip);
             fStakingPreconsensus =
                 m_avalanche->isStakingPreconsensusActivated(tip);
         }
@@ -6747,7 +6750,7 @@ void PeerManagerImpl::ProcessMessage(
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
                 case MSG_TX: {
-                    if (m_opts.avalanche_preconsensus) {
+                    if (fPreconsensus) {
                         vote =
                             GetAvalancheVoteForTx(*m_avalanche, TxId(inv.hash));
                     }
@@ -6891,10 +6894,12 @@ void PeerManagerImpl::ProcessMessage(
 
         bool shouldActivateBestChain = false;
 
+        bool fPreconsensus{false};
         bool fStakingPreconsensus{false};
         {
             LOCK(::cs_main);
             const CBlockIndex *tip = m_chainman.ActiveTip();
+            fPreconsensus = m_avalanche->isPreconsensusActivated(tip);
             fStakingPreconsensus =
                 m_avalanche->isStakingPreconsensusActivated(tip);
         }
@@ -7045,8 +7050,7 @@ void PeerManagerImpl::ProcessMessage(
 
                             // Skip if the block is already finalized, aka an
                             // ancestor of the finalized tip.
-                            if (m_opts.avalanche_preconsensus &&
-                                newlyFinalized) {
+                            if (fPreconsensus && newlyFinalized) {
                                 auto pblock = getBlockFromIndex(pindex);
                                 assert(pblock);
 
@@ -7153,7 +7157,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
-            if (!m_opts.avalanche_preconsensus) {
+            if (!fPreconsensus) {
                 continue;
             }
 

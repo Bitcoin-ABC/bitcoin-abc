@@ -3,7 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mining with avalanche preconsensus."""
 import random
-import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import AvalancheTxVoteError
@@ -12,6 +11,8 @@ from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
@@ -29,6 +30,8 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
                 "-avaminquorumconnectedstakeratio=0.5",
                 # Preconsensus disabled
                 "-avalanchepreconsensus=0",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
             [
                 "-avacooldown=0",
@@ -44,12 +47,28 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
                 "-avalanchepreconsensus=1",
                 # Preconsensus mining enabled
                 "-avalanchepreconsensusmining=1",
+                # Speed up the test by removing unused polls
+                "-avalanchestakingpreconsensus=0",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
 
     def run_test(self):
         node_non_preconsensus = self.nodes[0]
         node_preconsensus = self.nodes[1]
+
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
+        node_non_preconsensus.setmocktime(now)
+        node_preconsensus.setmocktime(now)
+
+        self.generate(node_non_preconsensus, 6)
+
+        assert not node_non_preconsensus.getinfo()["avalanche_preconsensus"]
+        assert not node_non_preconsensus.getinfo()["avalanche_mining_preconsensus"]
+        assert node_preconsensus.getinfo()["avalanche_preconsensus"]
+        assert node_preconsensus.getinfo()["avalanche_mining_preconsensus"]
 
         def get_quorum(node):
             return [
@@ -223,9 +242,6 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
         assert_equal(node_non_preconsensus.getrawmempool(), [])
 
         self.log.info("Check the block template updates for each new finalized tx")
-
-        now = int(time.time())
-        node_preconsensus.setmocktime(now)
 
         def assert_gbt_txids(expected_txids):
             # getblocktemplate will update if there is a new transaction AND at

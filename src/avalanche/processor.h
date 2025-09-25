@@ -403,7 +403,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager,
                                  !cs_finalizedItems);
 
-    bool isPreconsensusActivated() const;
+    bool isPreconsensusActivated(const CBlockIndex *pprev) const;
     bool isStakingPreconsensusActivated(const CBlockIndex *pprev) const;
 
 private:

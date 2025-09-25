@@ -98,6 +98,10 @@ struct PreconsensusMinerTestingSetupNoCheckpoints : public MinerTestingSetup {
     PreconsensusMinerTestingSetupNoCheckpoints()
         : MinerTestingSetup({"-checkpoints=0", "-avalanchepreconsensus=1"}) {
         m_preconsensus = true;
+        // Don't set this in the constructor initializer list because it can be
+        // overridden by the extra_args parameter, and the CI uses that for the
+        // upgrade-activated tests.
+        setArg("-shibusawaactivationtime", "0");
     }
 };
 

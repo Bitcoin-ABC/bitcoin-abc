@@ -11,6 +11,8 @@ from test_framework.util import assert_equal
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class P2PNode(P2PDataStore):
@@ -31,6 +33,8 @@ class P2PLeakTxTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
 
@@ -38,6 +42,12 @@ class P2PLeakTxTest(BitcoinTestFramework):
         # The block and tx generating node
         self.gen_node = self.nodes[0]
         self.miniwallet = MiniWallet(self.gen_node)
+
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
+        self.nodes[0].setmocktime(now)
+        self.generate(self.gen_node, 6)
+        assert self.gen_node.getinfo()["avalanche_preconsensus"]
 
         self.test_tx_in_block()
         self.test_notfound_on_avalanche_invalidated_tx()

@@ -68,4 +68,7 @@ static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
 /** Default for -avalanchestakingpreconsensus */
 static constexpr bool DEFAULT_AVALANCHE_STAKING_PRECONSENSUS{true};
 
+/** Default for -avalanchepreconsensusmining */
+static constexpr bool DEFAULT_AVALANCHE_MINING_PRECONSENSUS{false};
+
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

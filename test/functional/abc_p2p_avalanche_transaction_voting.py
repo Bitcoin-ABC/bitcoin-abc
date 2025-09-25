@@ -3,7 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction voting."""
 import random
-import time
 from decimal import Decimal
 
 from test_framework.avatools import (
@@ -39,6 +38,8 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet, MiniWalletMode
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheTransactionVotingTest(BitcoinTestFramework):
@@ -55,11 +56,22 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-avastalevotethreshold=256",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ]
         ]
 
     def run_test(self):
         node = self.nodes[0]
+
+        now = THE_FUTURE
+        node.setmocktime(now)
+
+        # Activate the shibusawa upgrade to enable preconsensus
+        assert not node.getinfo()["avalanche_preconsensus"]
+        self.generate(node, 6)
+        assert node.getinfo()["avalanche_preconsensus"]
+
         poll_node = get_ava_p2p_interface(self, node)
         peer = node.add_p2p_connection(P2PDataStore())
 
@@ -294,10 +306,9 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tx(txid))
         assert txid in node.getrawmempool()
 
-        # Bump the time by 5s so we add the new tx to the block template
-        now = int(time.time())
+        # Bump the time by 6s so we add the new tx to the block template
+        now += 6
         node.setmocktime(now)
-        node.bumpmocktime(5)
 
         finalized_txs_size = node.getmempoolinfo()["finalized_txs_bytes"]
         finalized_tx_sigchecks = sum(
@@ -385,9 +396,12 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tx(txid))
         assert txid in node.getrawmempool()
 
+        blockhash = node.getbestblockhash()
+        blocktime = node.getblock(blockhash, 2)["time"]
         conflicting_block = create_block(
-            int(node.getbestblockhash(), 16),
+            int(blockhash, 16),
             create_coinbase(node.getblockcount() - 1),
+            ntime=blocktime,
         )
         conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)["tx"]
         assert conflicting_tx.txid_hex != txid

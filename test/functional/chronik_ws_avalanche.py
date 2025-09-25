@@ -3,7 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test whether Chronik sends WebSocket avalanche messages correctly."""
 import os
-import time
 
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
@@ -36,6 +35,8 @@ from test_framework.util import (
 )
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikWsTest(BitcoinTestFramework):
@@ -53,6 +54,8 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avalanchepreconsensus=1",
                 "-chronik",
                 "-enableminerfund",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -133,8 +136,11 @@ class AvatestPlugin(Plugin):
         # Make sure chronik has synced
         node.syncwithvalidationinterfacequeue()
 
-        now = int(time.time())
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
         node.setmocktime(now)
+        self.generate(node, 6)
+        assert node.getinfo()["avalanche_preconsensus"]
 
         from test_framework.chronik.client import pb
 

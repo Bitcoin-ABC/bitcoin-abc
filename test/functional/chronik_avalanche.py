@@ -22,6 +22,8 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikAvalancheTest(BitcoinTestFramework):
@@ -39,6 +41,8 @@ class ChronikAvalancheTest(BitcoinTestFramework):
                 "-chronik",
                 "-persistavapeers=0",
                 "-avalanchepreconsensus",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -50,6 +54,12 @@ class ChronikAvalancheTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
+        node.setmocktime(now)
+        self.generate(node, 6)
+        assert node.getinfo()["avalanche_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum():
@@ -147,7 +157,9 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         assert_equal(chronik.tx(txid).ok().is_final, True)
 
         # Restarting "wipes" the finalization status of blocks...
-        self.restart_node(0, self.extra_args[0] + ["-chronikreindex"])
+        self.restart_node(
+            0, self.extra_args[0] + ["-chronikreindex", f"-mocktime={now}"]
+        )
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
         assert_equal(chronik.tx(txid).ok().is_final, False)

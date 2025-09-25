@@ -2,8 +2,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test whether Chronik sends WebSocket messages correctly."""
-import time
-
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.cashaddr import decode
@@ -29,6 +27,8 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikWsTest(BitcoinTestFramework):
@@ -46,8 +46,12 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avalanchepreconsensus=1",
                 "-chronik",
                 "-enableminerfund",
+                # Disable staking preconsensus to avoid too many votes
+                "-avalanchestakingpreconsensus=0",
                 # Use a high thresold to avoid stalling transactions
                 "-avastalevotethreshold=100000",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -58,6 +62,12 @@ class ChronikWsTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
+        node.setmocktime(now)
+        self.generate(node, 6)
+        assert node.getinfo()["avalanche_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum():
@@ -98,7 +108,9 @@ class ChronikWsTest(BitcoinTestFramework):
         # Now subscribe to blocks, we'll get block updates from now on
         chronik_sub_to_blocks(ws, node)
 
-        now = int(time.time())
+        # Bump time so next blocks are mined with now as a time (instead of now
+        # plus something to accommodate the MTP increase rule).
+        now += 1000
         node.setmocktime(now)
 
         # Mine block

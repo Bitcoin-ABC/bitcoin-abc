@@ -40,10 +40,6 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
         options.avalanche_peer_replacement_cooldown =
             std::max(int64_t{0}, *value);
     }
-
-    if (auto value{argsman.GetBoolArg("-avalanchepreconsensus")}) {
-        options.avalanche_preconsensus = *value;
-    }
 }
 
 } // namespace node

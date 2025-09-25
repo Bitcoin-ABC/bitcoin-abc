@@ -3,8 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction finalization."""
 
-import time
-
 from test_framework.avatools import (
     assert_response,
     can_find_inv_in_poll,
@@ -25,6 +23,8 @@ from test_framework.util import assert_equal, assert_greater_than_or_equal, uint
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
@@ -44,6 +44,10 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 "-acceptnonstdtxn",
                 # So we can reinit between the tests
                 "-persistavapeers=0",
+                # Make the test faster by avoiding unwanted polls
+                "-avalanchestakingpreconsensus=0",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ]
         ]
 
@@ -194,6 +198,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             extra_args=self.extra_args[0]
             + [
                 f"-blockmaxsize={blockmaxsize}",
+                f"-mocktime={self.now}",
             ],
         )
         self.init()
@@ -304,6 +309,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             hashprev=int(node.getbestblockhash(), 16),
             coinbase=coinbase,
             txlist=txs_to_mine,
+            ntime=self.now + 600,
         )
         block.calc_merkle_root()
         block.solve()
@@ -342,6 +348,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             extra_args=self.extra_args[0]
             + [
                 f"-blockmintxfee={blockmintxfee}",
+                f"-mocktime={self.now}",
             ],
         )
         self.init()
@@ -386,9 +393,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.restart_node(
             0,
             extra_args=self.extra_args[0]
-            + [
-                f"-mempoolexpiry={mempool_expiry_hours}",
-            ],
+            + [f"-mempoolexpiry={mempool_expiry_hours}", f"-mocktime={self.now}"],
         )
         self.init()
 
@@ -398,9 +403,6 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         num_txs = 3
         self.generate(self.wallet, num_txs + 1)
         self.finalize_tip()
-
-        now = int(time.time())
-        node.setmocktime(now)
 
         assert_equal(node.getmempoolinfo()["size"], 0)
         txs = self.wallet.send_self_transfer_chain(from_node=node, chain_length=num_txs)
@@ -414,8 +416,8 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         assert all(node.isfinaltransaction(txid) for txid in txids)
 
         # Move the time forward so all the chain is eligible for expiration
-        now += mempool_expiry_hours * 3600 + 1
-        node.setmocktime(now)
+        self.now += mempool_expiry_hours * 3600 + 1
+        node.setmocktime(self.now)
 
         # Add another transaction to the mempool to trigger the expiration check
         with node.assert_debug_log(
@@ -436,6 +438,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             extra_args=self.extra_args[0]
             + [
                 f"-maxmempool={max_mempool_mb}",
+                f"-mocktime={self.now}",
             ],
         )
         self.init()
@@ -528,6 +531,13 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             self.generate(self.wallet, 1)
 
     def init(self):
+        # Activate preconsensus
+        self.now = THE_FUTURE
+        self.nodes[0].setmocktime(self.now)
+
+        self.generate(self.nodes[0], 6)
+        assert self.nodes[0].getinfo()["avalanche_preconsensus"]
+
         def get_quorum():
             return [
                 get_ava_p2p_interface(self, self.nodes[0])

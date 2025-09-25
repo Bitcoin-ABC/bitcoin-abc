@@ -57,8 +57,8 @@ void ApplyArgsManOptions(const ArgsManager &args,
                          BlockAssembler::Options &options) {
     options.fPrintPriority =
         args.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
-    options.add_finalized_txs =
-        args.GetBoolArg("-avalanchepreconsensusmining", false);
+    options.add_finalized_txs = args.GetBoolArg(
+        "-avalanchepreconsensusmining", DEFAULT_AVALANCHE_MINING_PRECONSENSUS);
 }
 
 static BlockAssembler::Options ConfiguredOptions() {
@@ -76,8 +76,7 @@ BlockAssembler::BlockAssembler(const BlockFitter &fitter,
       m_mempool(mempool), m_chainstate(chainstate), m_avalanche(avalanche),
       fPrintPriority{options.fPrintPriority},
       test_block_validity{options.test_block_validity},
-      add_finalized_txs{avalanche && avalanche->isPreconsensusActivated() &&
-                        options.add_finalized_txs} {}
+      add_finalized_txs{avalanche && options.add_finalized_txs} {}
 
 BlockAssembler::BlockAssembler(const BlockFitter &fitter,
                                Chainstate &chainstate,
@@ -128,9 +127,13 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nTime = TicksSinceEpoch<std::chrono::seconds>(GetAdjustedTime());
     m_lock_time_cutoff = pindexPrev->GetMedianTimePast();
 
+    bool shouldAddFinalizedTxs =
+        m_avalanche && add_finalized_txs &&
+        m_avalanche->isPreconsensusActivated(pindexPrev);
+
     if (m_mempool) {
         LOCK(m_mempool->cs);
-        if (add_finalized_txs) {
+        if (shouldAddFinalizedTxs) {
             addFinalizedTxs(*m_mempool);
         } else {
             addTxs(*m_mempool);
@@ -138,7 +141,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     // Canonical ordering is naturally enforced when using the radix tree
-    if (!add_finalized_txs &&
+    if (!shouldAddFinalizedTxs &&
         IsMagneticAnomalyEnabled(consensusParams, pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
         // canonically ordered.

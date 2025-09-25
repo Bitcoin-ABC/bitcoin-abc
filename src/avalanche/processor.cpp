@@ -1215,7 +1215,8 @@ void Processor::updatedBlockTip() {
 }
 
 void Processor::transactionAddedToMempool(const CTransactionRef &tx) {
-    if (isPreconsensusActivated()) {
+    if (isPreconsensusActivated(
+            WITH_LOCK(cs_main, return chainman.ActiveTip()))) {
         addToReconcile(tx);
     }
 }
@@ -1510,8 +1511,8 @@ bool Processor::GetLocalAcceptance::operator()(
                      return processor.mempool->exists(tx->GetId()));
 }
 
-bool Processor::isPreconsensusActivated() const {
-    return m_preConsensus;
+bool Processor::isPreconsensusActivated(const CBlockIndex *pprev) const {
+    return m_preConsensus && IsShibusawaEnabled(chainman.GetConsensus(), pprev);
 }
 
 bool Processor::isStakingPreconsensusActivated(const CBlockIndex *pprev) const {

@@ -25,6 +25,8 @@ from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, chronik_sub_script, uint256_hex
 
 QUORUM_NODE_COUNT = 16
+THE_FUTURE = 2100000000
+REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikWsScriptTest(BitcoinTestFramework):
@@ -41,6 +43,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-avalanchepreconsensus=1",
                 "-chronik",
+                f"-shibusawaactivationtime={THE_FUTURE}",
+                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -52,7 +56,13 @@ class ChronikWsScriptTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
-        node.setmocktime(1300000000)
+
+        # Activate the shibusawa upgrade
+        now = THE_FUTURE
+        node.setmocktime(now)
+        self.generate(node, 6)
+        assert node.getinfo()["avalanche_preconsensus"]
+
         peer = node.add_p2p_connection(P2PDataStore())
 
         # Make us a coin
@@ -173,7 +183,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         block = create_block(
             int(tip, 16),
             create_coinbase(height, b"\x03" * 33),
-            1300000500,
+            ntime=now + 500,
             txlist=[tx, tx2, tx3_conflict],
         )
         block.solve()
