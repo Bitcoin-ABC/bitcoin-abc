@@ -39,7 +39,6 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
                 "-acceptnonstdtxn=1",
-                "-avalanchepreconsensus=1",
             ]
         ]
 

@@ -63,12 +63,12 @@ static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 static constexpr bool DEFAULT_PERSIST_AVAPEERS{true};
 
 /** Default for -avalanchepreconsensus */
-static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
+static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{true};
 
 /** Default for -avalanchestakingpreconsensus */
 static constexpr bool DEFAULT_AVALANCHE_STAKING_PRECONSENSUS{true};
 
 /** Default for -avalanchepreconsensusmining */
-static constexpr bool DEFAULT_AVALANCHE_MINING_PRECONSENSUS{false};
+static constexpr bool DEFAULT_AVALANCHE_MINING_PRECONSENSUS{true};
 
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

@@ -1448,6 +1448,16 @@ void SetupServerArgs(NodeContext &node) {
                              "preconsensus feature (default: %u)",
                              DEFAULT_AVALANCHE_STAKING_PRECONSENSUS),
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avalanchepreconsensus",
+        strprintf("Enable the avalanche preconsensus feature (default: %u)",
+                  DEFAULT_AVALANCHE_PRECONSENSUS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avalanchepreconsensusmining",
+                   strprintf("Enable mining only the avalanche finalized "
+                             "transactions (default: %u)",
+                             DEFAULT_AVALANCHE_MINING_PRECONSENSUS),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avalancheconflictingproofcooldown",
                    strprintf("Mandatory cooldown before a proof conflicting "
                              "with an already registered one can be considered "
@@ -1560,9 +1570,6 @@ void SetupServerArgs(NodeContext &node) {
                   "them upon startup (default: %u).",
                   DEFAULT_PERSIST_AVAPEERS),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-
-    hidden_args.emplace_back("-avalanchepreconsensus");
-    hidden_args.emplace_back("-avalanchepreconsensusmining");
 
     // Add the hidden options
     argsman.AddHiddenArgs(hidden_args);

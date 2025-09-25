@@ -46,8 +46,6 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-help",
     "-h",
     "-automaticunparking",
-    "-avalanchepreconsensus",
-    "-avalanchepreconsensusmining",
     "-chronikallowpause",
     "-chronikcors",
     "-dbcrashratio",

@@ -39,7 +39,6 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                 "-avacooldown=10000",
                 "-persistavapeers=0",
                 # For polling transactions
-                "-avalanchepreconsensus=1",
                 f"-shibusawaactivationtime={THE_FUTURE}",
                 f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],

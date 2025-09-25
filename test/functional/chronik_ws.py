@@ -43,7 +43,6 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-avalanchepreconsensus=1",
                 "-chronik",
                 "-enableminerfund",
                 # Disable staking preconsensus to avoid too many votes

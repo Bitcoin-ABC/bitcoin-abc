@@ -528,6 +528,10 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
         f.write("shrinkdebugfile=0\n")
         if disable_autoconnect:
             f.write("connect=0\n")
+        # Most tests rely on the legacy non preconsensus mining algo, so disable
+        # the feature by default. This also makes it easy to add txs to blocks
+        # without worrying about avalanche finality.
+        f.write("avalanchepreconsensusmining=0\n")
         f.write(extra_config)
 
 

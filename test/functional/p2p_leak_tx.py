@@ -26,7 +26,6 @@ class P2PLeakTxTest(BitcoinTestFramework):
         self.noban_tx_relay = True
         self.extra_args = [
             [
-                "-avalanchepreconsensus=1",
                 "-avacooldown=0",
                 "-avaproofstakeutxoconfirmations=1",
                 # Low enough for coinbase transactions to be staked in valid proofs

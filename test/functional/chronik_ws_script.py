@@ -41,7 +41,6 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-avalanchepreconsensus=1",
                 "-chronik",
                 f"-shibusawaactivationtime={THE_FUTURE}",
                 f"-replayprotectionactivationtime={REPLAY_PROTECTION}",

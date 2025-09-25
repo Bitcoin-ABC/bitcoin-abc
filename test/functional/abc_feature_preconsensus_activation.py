@@ -29,7 +29,7 @@ class AvalanchePreconsensusActivationTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-avalanchepreconsensus=1",
+                # This is disabled by default on the test framework
                 "-avalanchepreconsensusmining=1",
                 f"-shibusawaactivationtime={THE_FUTURE}",
             ],
@@ -163,7 +163,29 @@ class AvalanchePreconsensusActivationTest(BitcoinTestFramework):
         self.restart_node(
             0,
             extra_args=[
+                "-avalanchepreconsensus=0",
+                f"-mocktime={now}",
+            ],
+        )
+
+        assert not node.getinfo()["avalanche_preconsensus"]
+        assert not node.getinfo()["avalanche_mining_preconsensus"]
+
+        self.restart_node(
+            0,
+            extra_args=[
                 "-avalanchepreconsensus=1",
+                "-avalanchepreconsensusmining=0",
+                f"-mocktime={now}",
+            ],
+        )
+
+        assert node.getinfo()["avalanche_preconsensus"]
+        assert not node.getinfo()["avalanche_mining_preconsensus"]
+
+        self.restart_node(
+            0,
+            extra_args=[
                 "-avalanchepreconsensusmining=0",
                 f"-mocktime={now}",
             ],

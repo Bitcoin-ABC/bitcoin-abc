@@ -40,7 +40,6 @@ class ChronikAvalancheTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
                 "-persistavapeers=0",
-                "-avalanchepreconsensus",
                 f"-shibusawaactivationtime={THE_FUTURE}",
                 f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],

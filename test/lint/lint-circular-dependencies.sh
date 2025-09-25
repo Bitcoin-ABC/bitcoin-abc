@@ -36,6 +36,9 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
 
     # Temporary, removed in a followup
     "index/base -> node/context -> net_processing -> index/blockfilterindex -> index/base"
+
+    # Temporary, to be removed when preconsensus is activated by default
+    "avalanche/processor -> validation -> policy/block/preconsensus -> avalanche/processor"
 )
 
 EXIT_CODE=0
