@@ -69,6 +69,9 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
         "-automaticunparking",
         !args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED));
 
+    opts.replay_protection_activation_time =
+        gArgs.GetIntArg("-replayprotectionactivationtime");
+
     return std::nullopt;
 }
 } // namespace node

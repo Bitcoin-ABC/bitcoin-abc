@@ -227,19 +227,16 @@ bool CheckSequenceLocksAtTip(CBlockIndex *tip, const LockPoints &lock_points) {
 // cause the node to switch to replay protected SigHash ForkID value when the
 // median timestamp of the previous 11 blocks is greater than or equal to
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
-static bool IsReplayProtectionEnabled(const Consensus::Params &params,
-                                      int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetIntArg("-replayprotectionactivationtime",
-                                              params.shibusawaActivationTime);
-}
-
-static bool IsReplayProtectionEnabled(const Consensus::Params &params,
-                                      const CBlockIndex *pindexPrev) {
+static bool
+IsReplayProtectionEnabled(const Consensus::Params &params,
+                          const CBlockIndex *pindexPrev,
+                          const std::optional<int64_t> activation_time) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsReplayProtectionEnabled(params, pindexPrev->GetMedianTimePast());
+    return pindexPrev->GetMedianTimePast() >=
+           activation_time.value_or(params.shibusawaActivationTime);
 }
 
 /**
@@ -2061,7 +2058,9 @@ static uint32_t GetNextBlockScriptFlags(const CBlockIndex *pindex,
 
     // We make sure this node will have replay protection during the next hard
     // fork.
-    if (IsReplayProtectionEnabled(consensusparams, pindex)) {
+    if (IsReplayProtectionEnabled(
+            consensusparams, pindex,
+            chainman.m_options.replay_protection_activation_time)) {
         flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
     }
 

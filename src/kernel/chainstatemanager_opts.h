@@ -56,6 +56,9 @@ struct ChainstateManagerOpts {
     CoinsViewOptions coins_view{};
     Notifications &notifications;
     int stop_at_height{DEFAULT_STOPATHEIGHT};
+    //! If set, this overwrites the timestamp at which replay protection
+    //! activates.
+    std::optional<int64_t> replay_protection_activation_time{};
 
     //! If set, store and load the last few block headers reception time to
     //! speed up RTT bootstraping
