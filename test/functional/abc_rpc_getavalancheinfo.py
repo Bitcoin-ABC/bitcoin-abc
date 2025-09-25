@@ -853,7 +853,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                         quorum,
                         proofid,
                         response=AvalancheProofVoteResponse.REJECTED,
-                        other_response=AvalancheProofVoteResponse.UNKNOWN,
                     )
                 )
                 return try_rpc(
@@ -872,6 +871,15 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         # Invalidate the local proof by avalanche vote
         wait_for_invalidated_proof(proof.proofid)
 
+        # Let's count how many proofs have been finalized during the last rounds
+        # of voting
+        num_finalized = sum(
+            [
+                node.getrawavalancheproof(uint256_hex(peer.proof.proofid))["finalized"]
+                for peer in quorum
+            ]
+        )
+
         assert_equal(
             node.getavalancheinfo(),
             {
@@ -889,7 +897,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "proof_count": QUORUM_NODE_COUNT,
                     "connected_proof_count": QUORUM_NODE_COUNT,
                     "dangling_proof_count": 0,
-                    "finalized_proof_count": 0,
+                    "finalized_proof_count": num_finalized,
                     "conflicting_proof_count": 0,
                     "immature_proof_count": 0,
                     "total_stake_amount": QUORUM_NODE_COUNT * coinbase_amount,
