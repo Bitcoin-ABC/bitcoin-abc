@@ -77,6 +77,9 @@ bool RTTPolicy::operator()(BlockPolicyValidationState &state) {
  */
 static constexpr double RTT_K{6.};
 
+static const double RTT_CONSTANT_FACTOR_1 =
+    RTT_K * std::pow(std::tgamma(1. + 1. / RTT_K), RTT_K) /
+    std::pow(150., RTT_K - 1.);
 static const double RTT_CONSTANT_FACTOR_2 =
     RTT_K * std::pow(std::tgamma(1. + 1. / RTT_K), RTT_K) /
     std::pow(600., RTT_K - 1.);
@@ -90,13 +93,33 @@ static const double RTT_CONSTANT_FACTOR_17 =
     RTT_K * std::pow(std::tgamma(1. + 1. / RTT_K), RTT_K) /
     std::pow(9600., RTT_K - 1.);
 static const std::vector<double> RTT_CONSTANT_FACTOR = {
-    0., 0., RTT_CONSTANT_FACTOR_2,
-    0., 0., RTT_CONSTANT_FACTOR_5,
-    0., 0., 0.,
-    0., 0., RTT_CONSTANT_FACTOR_11,
-    0., 0., 0.,
-    0., 0., RTT_CONSTANT_FACTOR_17,
+    0.,
+    RTT_CONSTANT_FACTOR_1,
+    RTT_CONSTANT_FACTOR_2,
+    0.,
+    0.,
+    RTT_CONSTANT_FACTOR_5,
+    0.,
+    0.,
+    0.,
+    0.,
+    0.,
+    RTT_CONSTANT_FACTOR_11,
+    0.,
+    0.,
+    0.,
+    0.,
+    0.,
+    RTT_CONSTANT_FACTOR_17,
 };
+
+std::vector<size_t> GetRTTFactorIndices(const Consensus::Params &params,
+                                        const CBlockIndex *pprev) {
+    if (!IsShibusawaEnabled(params, pprev)) {
+        return {2, 5, 11, 17};
+    }
+    return {1, 2, 5, 11, 17};
+}
 
 std::optional<uint32_t>
 GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
@@ -127,7 +150,7 @@ GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
     const double prevTargetDouble = prevTarget.getdouble();
 
     double minTarget = UintToArith256(consensusParams.powLimit).getdouble();
-    for (size_t i : {2, 5, 11, 17}) {
+    for (size_t i : GetRTTFactorIndices(consensusParams, pprev)) {
         // Zero (or negative) difftime are not possible, so clamp to minimum 1s
         const int64_t diffTime =
             std::max<int64_t>(1, now - prevHeaderReceivedTime[i]);

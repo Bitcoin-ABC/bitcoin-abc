@@ -1257,7 +1257,8 @@ static RPCHelpMan getblocktemplate() {
                 UniValue rtt(UniValue::VOBJ);
 
                 UniValue prevHeaderTimes(UniValue::VARR);
-                for (size_t i : {2, 5, 11, 17}) {
+                for (size_t i :
+                     GetRTTFactorIndices(consensusParams, pindexPrev)) {
                     prevHeaderTimes.push_back(prevHeaderReceivedTime[i]);
                 }
 

@@ -7,8 +7,10 @@
 
 #include <policy/block/parkingpolicy.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <vector>
 
 class CBlockIndex;
 
@@ -31,6 +33,10 @@ public:
 
     bool operator()(BlockPolicyValidationState &state) override;
 };
+
+/** Get a list of the applicatble rtt factor indices */
+std::vector<size_t> GetRTTFactorIndices(const Consensus::Params &params,
+                                        const CBlockIndex *pprev);
 
 /**
  * Compute the real time block hash target given the previous block parameters.
