@@ -176,9 +176,9 @@ export default function DigitalPaymentLandscape() {
             The digital payment landscape is on the verge of explosive growth.
           </h2>
           <p>
-            If current trends continue, we will reach 100 billion daily
-            transactions — a scale that would overwhelm today's payment
-            infrastructure.
+            At projected rates, global demand could reach 100 billion daily
+            transactions — far beyond what today’s payment infrastructure can
+            support.
           </p>
         </motion.div>
         <motion.div

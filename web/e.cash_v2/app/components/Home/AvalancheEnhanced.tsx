@@ -16,14 +16,19 @@ interface Feature {
 
 const features: Feature[] = [
   {
+    feature: "Instant Finality",
+    details:
+      "Pre-consensus validates individual transactions before they are included in a block, reducing confirmation time for a transaction from 10 minutes to 3 seconds - that’s more than 100 times faster than Proof of Work-only cryptos like Bitcoin.",
+  },
+  {
     feature: "51% Attack Protection",
     details:
-      "Other networks with low hash rates are vulnerable to mining attacks. With Avalanche, eCash is protected. An attacker would need not only most of the hash rate, but also most of the staked eCash. Avalanche consensus selects the chain miners will mine on, and the nodes that make up the network are weighted by their stake.",
+      "Networks with low hash rates are vulnerable to mining attacks. With Avalanche, eCash is protected. An attacker would need not only most of the hash rate, but also most of the staked eCash. Avalanche consensus selects the chain miners will mine on, and the nodes that make up the network are weighted by their stake.",
   },
   {
     feature: "1-block Finality",
     details:
-      "Avalanche Post-consensus provides certainty that transactions with 1 confirmation are final, allowing businesses to credit payments much faster (and with confidence).",
+      "Post-consensus makes each new block irreversible by locking it in as the valid chain tip. Once a block is finalized it cannot be removed from the chain. This also lays the foundation for Instant Finality, which applies the same principle directly to individual transactions.",
   },
   {
     feature: "Staking Rewards",
@@ -39,11 +44,6 @@ const features: Feature[] = [
     feature: "Real-time Transaction Processing",
     details:
       "Since the network will not have to wait for a block to validate transactions, transaction throughput increases. Real-time Transaction Processing allows eCash nodes to prepare for each block before confirmation, significantly reducing the amount of work required when a block comes in.",
-  },
-  {
-    feature: "Instant Finality",
-    details:
-      "Post-consensus finalizes transactions after a single block is found, due to reorg being prevented by the Avalanche consensus. Pre-consensus validates individual transactions before they are included in a block, reducing confirmation time for a transaction from 10 minutes to a few seconds - that’s more than 100 times faster than Proof of Work-only cryptos like Bitcoin.",
   },
   {
     feature: "Dynamic Block Size",
@@ -99,7 +99,7 @@ export default function AvalancheEnhanced() {
           viewport={{ once: true, amount: 0.5 }}
           className="pink-gradient-text z-20 m-auto mb-6 max-w-[300px] text-4xl font-bold tracking-[-1.4px] lg:max-w-none lg:text-6xl"
         >
-          Avalanche enhanced
+          Avalanche-Enhanced
         </motion.h3>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -108,9 +108,8 @@ export default function AvalancheEnhanced() {
           viewport={{ once: true, amount: 0.5 }}
           className="m-auto max-w-[300px] text-xl font-bold leading-7 lg:max-w-[550px] lg:text-2xl"
         >
-          The unique Avalanche/PoW hybrid consensus allows nodes to make
-          decisions in real-time without sacrificing decentralization
-          principles.
+          Avalanche/Nakamoto hybrid achieves real-time consensus. A historic
+          first for PoW blockchains. Here’s what it unlocks:
         </motion.div>
         <div className="m-auto mt-10 w-full max-w-[600px]">
           {features.map(({ feature, details }, index) => {

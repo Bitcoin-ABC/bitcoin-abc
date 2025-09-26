@@ -61,8 +61,11 @@ export default function CardCarousel() {
           viewport={{ once: true, amount: 0.5 }}
           className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]"
         >
-          <PlusHeader text="What we’re doing" />
-          <h2>Building the future of digital payments</h2>
+          <PlusHeader text="Build different" />
+          <h2>
+            Shape the future of{" "}
+            <span className="gradient-text">digital cash</span>
+          </h2>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, x: 30 }}
@@ -72,12 +75,12 @@ export default function CardCarousel() {
           className="scrollx-container mt-12 flex w-full snap-x snap-mandatory items-center gap-4 overflow-x-auto scroll-smooth lg:gap-8"
         >
           <Card
-            text="Active developer community"
+            text="Join the developer community"
             image="/developer-community.png"
             href="https://t.me/eCashBuilders"
           />
           <Card
-            text="The eCash scaling Roadmap"
+            text="Follow the scaling Roadmap"
             image="/roadmap.png"
             href="/roadmap"
           />

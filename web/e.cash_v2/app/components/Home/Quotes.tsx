@@ -33,17 +33,17 @@ export const quotes: Quote[] = [
   },
   {
     quote:
-      "Reading logs has never been so enjoyable. I wish more coin projects were as active to make pool admins' life easier.",
-    name: "zpool",
-    title: "Mining Pool Operator",
-    image: "/zpool.png",
-  },
-  {
-    quote:
       "We're proud to be the only shared RPC provider for eCash. From the very beginning, we believed in its vision, and the Avalanche upgrade only strengthened that belief.",
     name: "NOWNodes",
     title: "Blockchain Developer API",
     image: "/nownodes.png",
+  },
+  {
+    quote:
+      "Reading logs has never been so enjoyable. I wish more coin projects were as active to make pool admins' life easier.",
+    name: "zpool",
+    title: "Mining Pool Operator",
+    image: "/zpool.png",
   },
 ];
 

@@ -93,12 +93,12 @@ export default function Developers() {
               className="border-borderLight mb-10 flex w-full flex-col items-start justify-center gap-6 self-stretch lg:mb-0 lg:w-[40%] lg:border lg:border-b-0 lg:p-10"
             >
               <PlusHeader text="For Developers" />
-              <h2>The ongoing development that powers our ecosystem</h2>
+              <h2>Robust infrastructure, powerful tools, zero dependencies</h2>
               <p>
-                Fast WebSocket APIs, native libraries, and thorough
-                documentation for high-throughput payment processing. Includes
-                flexible hooks for custom implementations, backed by
-                comprehensive test coverage and dedicated developer support.
+                Fast WebSocket APIs, native libraries, and well-maintained tools
+                for unmatched performance. Flexible hooks for custom
+                implementations, backed by comprehensive test coverage — all
+                within a unified open-source monorepo.
               </p>
             </motion.div>
             <motion.div

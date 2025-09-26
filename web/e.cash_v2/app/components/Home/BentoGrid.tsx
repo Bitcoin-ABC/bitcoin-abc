@@ -72,7 +72,8 @@ export default function BentoGrid() {
   return (
     <ContentContainer className="mb-20 max-w-[1300px] lg:mb-40">
       <h2 className="m-auto max-w-[300px] text-center lg:max-w-[500px]">
-        The faster, more efficient and developer-friendly payment network
+        The Fast, Secure, and Extensible{" "}
+        <span className="gradient-text">Layer 1</span>
       </h2>
       <div className="mt-20 flex w-full flex-col gap-2 overflow-hidden">
         <div
@@ -111,7 +112,7 @@ export default function BentoGrid() {
         >
           <Card
             title="Scaling to Billions"
-            text="Building the foundation for global payment adoption"
+            text="Building the foundation for payments at planetary scale"
             icon="/gauge-icon.png"
             image="/tps.png"
             className="bg-gradient-to-br pb-[250px] lg:w-1/2 lg:pb-0"
@@ -140,7 +141,7 @@ export default function BentoGrid() {
         >
           <Card
             title="Developer First"
-            text="Robust Infrastructure and tools. Built by developers, for developers."
+            text="Robust Infrastructure and tools. Built by developers, for developers"
             icon="/airdrop-icon.png"
             image="/blue-glow.png"
             className="lg:h-unset flex h-[350px] flex-col justify-between bg-gradient-to-bl lg:w-1/2"
@@ -156,7 +157,7 @@ export default function BentoGrid() {
           </Card>
           <Card
             title="Enhanced Security"
-            text="Trustless security guarantees for instant transaction finality"
+            text="Trustless security guarantees for instant transaction finality and reorg protection"
             icon="/finger-print-icon.png"
             image="/shield.png"
             className="flex flex-col justify-between bg-gradient-to-br pb-[250px] lg:w-1/2 lg:pb-0"
