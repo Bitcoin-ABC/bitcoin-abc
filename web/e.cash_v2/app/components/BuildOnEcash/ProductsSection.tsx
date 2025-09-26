@@ -117,7 +117,7 @@ export default function ProductsSection() {
         >
           <PlusHeader text="Builders" />
           <h2 className="text-4xl font-bold tracking-tighter lg:text-5xl">
-            Products built with XEC
+            Products built with <span className="gradient-text">XEC</span>
           </h2>
           <p className="text-secondaryText mx-auto max-w-[500px] text-center text-base lg:text-lg">
             Discover the ecosystem of applications and tools built on the eCash
