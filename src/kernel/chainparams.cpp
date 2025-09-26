@@ -222,6 +222,15 @@ public:
              .blockhash =
                  BlockHash{uint256S("0x0000000000000000297efb200794348b44bff4bf"
                                     "b31716cf64dc45bac0a251ea")}},
+            // v0.32.0
+            {.height = 916'000,
+             .hash_serialized =
+                 AssumeutxoHash{uint256S("0x20f077a8fcc08bb9cb3753df845c9a4257c"
+                                         "e500684dfa5a95d1061701c4fa35d")},
+             .nChainTx = 299'856'530,
+             .blockhash =
+                 BlockHash{uint256S("0x00000000000000003fc542691c35873ba4ba7a44"
+                                    "05ce612a62f121988fb8a46d")}},
         };
 
         // Data as of block
@@ -376,6 +385,15 @@ public:
              .blockhash =
                  BlockHash{uint256S("0x000000000000c7d18ee9b71a1ab4d8d21aa9d758"
                                     "7bf260e93df029ccb392d403")}},
+            // v0.32.0
+            {.height = 1'680'000,
+             .hash_serialized =
+                 AssumeutxoHash{uint256S("0x53026f5c5f3bfdbfb3acda49d5531dfcbbb"
+                                         "544cfa0e15e3fcecc22d681aa9986")},
+             .nChainTx = 63'999'716,
+             .blockhash =
+                 BlockHash{uint256S("0x000000000003c4467ce74a73c902e80b5924cfdf"
+                                    "2695bea8991963f26ac6f4b1")}},
         };
 
         // Data as of block
