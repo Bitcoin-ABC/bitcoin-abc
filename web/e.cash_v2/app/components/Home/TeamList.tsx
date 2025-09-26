@@ -35,8 +35,10 @@ const TeamList: React.FC = () => {
         <div className="flex w-full flex-col p-8 lg:p-14">
           <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
-              <PlusHeader text="Meet the team" />
-              <h2>Core members of the eCash team</h2>
+              <PlusHeader text="Meet Bitcoin ABC" />
+              <h2>
+                The team behind <span className="gradient-text">eCash</span>
+              </h2>
             </div>
             <div className="flex flex-col items-end justify-between gap-4 self-stretch lg:mt-0">
               <div className="hidden items-center gap-4 lg:flex">

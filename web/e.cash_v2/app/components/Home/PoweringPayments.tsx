@@ -149,7 +149,7 @@ export default function PoweringPayments() {
         <div className="relative z-10 aspect-[550/721] w-full lg:h-[721px] lg:w-[550px] lg:shrink-0">
           <Image
             src="/powering-payments-bg.jpg"
-            alt="Powering Internet-Scale Cash"
+            alt="Powering Internet-Scale Payments"
             fill
             className="object-contain"
             sizes="(max-width: 1024px) 100vw, 550px"
@@ -161,7 +161,7 @@ export default function PoweringPayments() {
             <div key={`overlay-${hoveredIndex}`} className="absolute inset-0">
               <Image
                 src={`/overlay-${hoveredIndex}.png`}
-                alt="Powering Internet-Scale Cash"
+                alt="Powering Internet-Scale Payments"
                 fill
                 className="hidden object-contain lg:inline-block"
                 sizes="(max-width: 1024px) 0vw, 550px"
@@ -173,7 +173,8 @@ export default function PoweringPayments() {
             <div>
               <h2 className="max-w-[330px] text-center">
                 Powering{" "}
-                <span className="pink-gradient-text">Internet-Scale</span> Cash
+                <span className="pink-gradient-text">Internet-Scale</span>{" "}
+                Payments
               </h2>
             </div>
           </div>

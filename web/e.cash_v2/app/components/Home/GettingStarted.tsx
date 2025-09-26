@@ -24,29 +24,23 @@ const gettingStartedLinks: GettingStartedColumn[] = [
   {
     title: "For developers",
     links: [
+      { text: "Phabricator", href: "https://https://reviews.bitcoinabc.org/" },
       {
-        text: "Contributing",
+        text: "Contribution Guide",
         href: "https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md",
       },
-      { text: "Documentation", href: "https://www.bitcoinabc.org/doc/" },
-      { text: "Github", href: "https://github.com/Bitcoin-ABC/bitcoin-abc/" },
+      { text: "GitHub", href: "https://github.com/Bitcoin-ABC/bitcoin-abc/" },
+      { text: "Chronik Indexer", href: "https://www.chronik.cash/" },
+      { text: "RPC Documentation", href: "https://www.bitcoinabc.org/doc/" },
     ],
   },
   {
     title: "For users",
     links: [
       { text: "Get XEC", href: "/get-xec" },
-      {
-        text: "XECx",
-        href: "https://cashtab.com/#/token/c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4",
-      },
-      {
-        text: "Firma",
-        href: "https://cashtab.com/#/token/0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0",
-      },
+      { text: "XECx", href: "https://stakedxec.com/" },
+      { text: "Firma", href: "https://firma.cash/" },
       { text: "PayButton", href: "https://paybutton.org/" },
-
-      { text: "eLPS", href: "https://elpstoken.com/" },
       { text: "LocaleCash", href: "https://localecash.com/" },
     ],
   },
@@ -54,15 +48,20 @@ const gettingStartedLinks: GettingStartedColumn[] = [
     title: "For observers",
     links: [
       { text: "Blog", href: "/blog" },
+      { text: "Avalanche", href: "https://avalanche.cash" },
       { text: "X (Twitter)", href: "https://x.com/ecash" },
       { text: "Telegram", href: "https://t.me/ecash" },
+      {
+        text: "YouTube",
+        href: "https://www.youtube.com/@eCashOfficial/featured",
+      },
     ],
   },
   {
     title: "For businesses",
     links: [
-      { text: "TixTown", href: "https://www.tixtown.com/" },
-      { text: "PayButton", href: "https://paybutton.org/" },
+      { text: "Email", href: "mailto:contact@e.cash" },
+      { text: "Brand", href: "/brand" },
     ],
   },
 ];
@@ -80,11 +79,11 @@ export default function GettingStarted() {
         >
           <PlusHeader text="Getting started" inverse />
           <h3 className="mt-4 max-w-[450px] text-center text-4xl font-bold leading-none lg:text-6xl">
-            The wallet that’s different
+            Built Different
           </h3>
           <div className="mt-4 max-w-xl text-center text-base font-light text-[#4C4C4C] lg:text-lg">
-            We’ve made it a snap to send value, create your own eTokens, develop
-            apps, or explore the blockchain.
+            We’ve made it a snap to send value, create tokens, develop apps, or
+            explore the blockchain. You’re welcome to try it out.
           </div>
           <Button className="mt-6" href="https://cashtab.com">
             Create your wallet
@@ -144,11 +143,9 @@ export default function GettingStarted() {
               </div>
               {idx === gettingStartedLinks.length - 1 && (
                 <div className="mt-2 flex w-full items-center justify-between gap-2 rounded-2xl bg-white p-6">
-                  <span className="text-xl font-bold">
-                    Get in touch with eCash
-                  </span>
+                  <span className="text-xl font-bold">Join the community</span>
                   <Button href="https://t.me/ecash" className="m-0">
-                    Contact
+                    Chat
                   </Button>
                 </div>
               )}

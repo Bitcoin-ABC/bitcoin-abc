@@ -92,7 +92,7 @@ export default function Developers() {
               viewport={{ once: true, amount: 0.5 }}
               className="border-borderLight mb-10 flex w-full flex-col items-start justify-center gap-6 self-stretch lg:mb-0 lg:w-[40%] lg:border lg:border-b-0 lg:p-10"
             >
-              <PlusHeader text="For Developers" />
+              <PlusHeader text="For developers" />
               <h2>Robust infrastructure, powerful tools, zero dependencies</h2>
               <p>
                 Fast WebSocket APIs, native libraries, and well-maintained tools
