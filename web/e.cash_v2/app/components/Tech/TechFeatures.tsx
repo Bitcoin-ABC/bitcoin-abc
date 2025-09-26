@@ -14,24 +14,25 @@ export default function TechFeatures() {
       icon: "/code-snippet.png",
       title: "Agile Development",
       description:
-        "eCash has already implemented features Bitcoin is still debating",
+        "Features that other projects are still debating are already live on eCash — thanks to an extensible design",
     },
     {
       icon: "/share.png",
       title: "Fork-Free Upgrades",
       description:
-        "Nodes upgrade independently while maintaining network consensus",
+        "Nodes can seemlessly upgrade while maintaining network consensus",
     },
     {
       icon: "/cube.png",
-      title: "Flexible Funding Model",
-      description: "Infrastructure funding is coordinated through miner policy",
+      title: "Robust Infrastructure",
+      description:
+        "A powerful indexing solution and exceptional tooling enable fast and reliable app development",
     },
     {
       icon: "/users-check.png",
       title: "Adaptable Governance",
       description:
-        "Recipients and funding amounts can be modified based on network consensus.",
+        "Network parameters and policies can be modified dynamically by the protocol",
     },
   ];
 

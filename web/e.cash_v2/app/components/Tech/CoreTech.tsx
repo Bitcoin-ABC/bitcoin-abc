@@ -13,55 +13,60 @@ export default function CoreTech() {
     {
       title: "Avalanche",
       description:
-        "A revolutionary consensus algorithm integrated with eCash's core Proof-of-Work, enabling instant transactions, enhanced security, and fork-free upgrades.",
+        "A breakthrough consensus algorithm integrated with eCash’s core Proof-of-Work, improving scalability, security, speed, and extensibility.",
       bulletPoints: [
         "Instant transaction finality",
         "Enhanced security through hybrid consensus",
         "Fork-free network upgrades",
+        "Real-time processing for higher throughput",
       ],
       image: "/avalanche-m.png",
     },
     {
       title: "Chronik",
       description:
-        "Chronik is an indexer integrated right into the node. This super fast, reliable and highly scalable indexing solution makes it easy for developers to bootstrap and leverage native support for all available features on the eCash network.",
+        "A super fast, reliable, and future proof indexing solution built right into the node. Developers can easily bootstrap and leverage native support for all features available on eCash.",
       bulletPoints: [
         "Fast and reliable blockchain indexing",
         "Built into Bitcoin ABC node software",
         "Highly scalable for developers",
+        "Memory safe",
       ],
       image: "/chronik-m.png",
     },
     {
       title: "Tokens",
       description:
-        "Create and trade tokens (and NFTs) instantly. Supported features include minting, burning, sending, and trading. Transaction fees are virtually zero. Unlike tokens on ETH or SOL, tokens created on the eCash network can never be frozen by the mint address.",
+        "A simple, yet powerful token protocol. Supported features include minting, burning, airdrops, and atomic swaps. Unlike on smart chains, tokens can never be frozen by the mint address, and fees are virtually zero",
       bulletPoints: [
-        "One-click token creation",
+        "One-click token and NFT creation",
         "Zero-slippage trading on native dex",
         "Ultra-low transaction costs",
+        "Optional gasless protocols",
       ],
       image: "/tokens-m.png",
     },
     {
       title: "Staking",
       description:
-        "Holder-based staking rewards that incentivize network participation while providing governance mechanisms for the eCash ecosystem.",
+        "Holder-based staking rewards that incentivize network participation while providing protocol governance mechanisms. Earn eCash for making the network more robust and efficient by running an Avalanche-enabled staking node.",
       bulletPoints: [
         "Earn rewards by staking XEC",
         "Participate in network governance",
         "Incentivized node operation",
+        "Increase protocol security and efficiency",
       ],
       image: "/staking-m.png",
     },
     {
       title: "Subnets",
       description:
-        "Customized networks linked to the main eCash blockchain that allow developers to build protocols with unique properties while maintaining value connection.",
+        "Customized networks directly linked to the base layer allow developers to build extended features and protocols with unique properties.",
       bulletPoints: [
         "EVM compatibility for DeFi integration",
         "Zero-Knowledge subnet for privacy",
         "Permissionless custom networks",
+        "Agile feature development",
       ],
       image: "/subnets-m.png",
     },
@@ -79,20 +84,20 @@ export default function CoreTech() {
     {
       title: "CashFusion",
       description:
-        "Advanced privacy protocol that offers anonymity comparable to top privacy coins while maintaining an auditable supply cap.",
+        "An optional CoinJoin protocol that offers high degrees of privacy at scale while maintaining an auditable supply cap.",
       bulletPoints: [
         "Bank-level privacy protection",
-        "Auditable supply cap maintained",
-        "Optional privacy features",
+        "Non-custodial",
+        "One-click activation",
       ],
       image: "/cashfusion-m.png",
     },
     {
       title: "UTXO Model",
       description:
-        "eCash uses the Unspent Transaction Output (UTXO) model, enabling highly scalable parallel transaction processing with advanced features like pay-to-many and gasless transactions.",
+        "eCash uses an Unspent Transaction Output (UTXO) architecture, enabling highly scalable parallel transaction processing with advanced features like pay-to-many and gasless transactions.",
       bulletPoints: [
-        "Highly scalable parallel processing",
+        "Enables parallel processing for mass-scale",
         "Pay-to-many and gasless transactions",
         "Enhanced security and auditability",
       ],

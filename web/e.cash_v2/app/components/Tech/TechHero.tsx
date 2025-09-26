@@ -38,13 +38,14 @@ export default function TechHero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            Enabling instant, low-cost payments across the internet
+            Enabling instant, low-cost payments across the planet
           </h1>
 
           <p>
-            Welcome to the next generation of crypto. eCash combines the core
-            tech behind Bitcoin's success — the same fixed supply, halving
-            schedule, and genesis block — with state of the art crypto tech.
+            Welcome to the state of the art crypto. eCash combines Bitcoin’s
+            battle-tested Proof-of-Work with Avalanche’s unmatched speed and
+            security, enabling instant transaction settlement, millions of tps,
+            and the lowest fees in the industry.
           </p>
         </motion.div>
       </ContentContainer>
