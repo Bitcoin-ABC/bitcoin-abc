@@ -105,21 +105,23 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             txs.append(wallet.send_self_transfer(from_node=node_non_preconsensus))
         self.sync_mempools()
 
-        def finalize_tx(txid, other_response=AvalancheTxVoteError.ACCEPTED, **kwargs):
+        def finalize_txs(txids, other_response=AvalancheTxVoteError.ACCEPTED, **kwargs):
+            txids_int = [int(txid, 16) for txid in txids]
+
             def vote_until_final():
                 can_find_inv_in_poll(
                     quorum_preconsensus,
-                    int(txid, 16),
+                    txids_int,
                     response=AvalancheTxVoteError.ACCEPTED,
                     other_response=other_response,
                     **kwargs,
                 )
-                return node_preconsensus.isfinaltransaction(txid)
+                return all(node_preconsensus.isfinaltransaction(txid) for txid in txids)
 
             self.wait_until(vote_until_final)
 
         # Finalize the first 5 transactions for the preconsensus node
-        [finalize_tx(tx["txid"]) for tx in txs]
+        [finalize_txs([tx["txid"]]) for tx in txs]
 
         for _ in range(5):
             txs.append(wallet.send_self_transfer(from_node=node_non_preconsensus))
@@ -178,17 +180,21 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             chain = wallet.send_self_transfer_chain(
                 from_node=node_preconsensus, chain_length=chain_length
             )
-            if (index := random.randint(0, chain_length + 1)) < chain_length:
-                finalize_tx(
-                    chain[index]["txid"], other_response=AvalancheTxVoteError.UNKNOWN
+            # Wait for all the txs to be in the mempool of the non-preconsensus
+            # node
+            self.wait_until(
+                lambda: all(
+                    tx["txid"] in node_non_preconsensus.getrawmempool() for tx in chain
                 )
+            )
+            if (index := random.randint(0, chain_length + 1)) < chain_length:
+                txids = [tx["txid"] for tx in chain[: index + 1]]
+                finalize_txs(txids, other_response=AvalancheTxVoteError.INVALID)
                 # Not only this tx is finalized, but all its ancestors are
-                finalized_txids.extend([tx["txid"] for tx in chain[: index + 1]])
-
-        self.sync_mempools()
+                finalized_txids.extend(txids)
 
         # The block is valid
-        tip = self.generate(node_preconsensus, 1)[0]
+        tip = self.generate(node_preconsensus, 1, sync_fun=self.sync_blocks)[0]
 
         # Check the block contains all the finalized transactions
         assert_equal(
@@ -196,8 +202,7 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             sorted(finalized_txids),
         )
 
-        # Mempool and block template only contain the transactions that are not
-        # final
+        # Mempool and block template no longer contain the finalized txs
         mempool = node_preconsensus.getrawmempool()
         gbt_txids = [
             tx["txid"] for tx in node_preconsensus.getblocktemplate()["transactions"]
@@ -207,8 +212,12 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             assert txid not in gbt_txids
 
         # Mine the remaining txs and finalize the tip
-        tip = self.generate(node_non_preconsensus, 1)[0]
+        tip = self.generate(node_non_preconsensus, 1, sync_fun=self.sync_blocks)[0]
         finalize_tip(tip)
+
+        # At this point both mempools are empty
+        assert_equal(node_preconsensus.getrawmempool(), [])
+        assert_equal(node_non_preconsensus.getrawmempool(), [])
 
         self.log.info("Check the block template updates for each new finalized tx")
 
@@ -239,7 +248,7 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
         # Finalize the tx: it's added to the block template. There has been no
         # tx added to the mempool since the last getblocktemplate call, but the
         # template should be updated to include the new finalized tx.
-        finalize_tx(first_txid, other_response=AvalancheTxVoteError.UNKNOWN)
+        finalize_txs([first_txid], other_response=AvalancheTxVoteError.UNKNOWN)
         assert_gbt_txids([first_txid])
 
         # Add another tx to the mempool and update the block template before the
@@ -249,7 +258,7 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
 
         # Now finalize the second tx. Similar to the first tx, this new
         # transaction is added to the block template.
-        finalize_tx(second_txid, other_response=AvalancheTxVoteError.UNKNOWN)
+        finalize_txs([second_txid], other_response=AvalancheTxVoteError.UNKNOWN)
         assert_gbt_txids([first_txid, second_txid])
 
 

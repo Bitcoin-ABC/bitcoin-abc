@@ -46,6 +46,8 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avalanchepreconsensus=1",
                 "-chronik",
                 "-enableminerfund",
+                # Use a high thresold to avoid stalling transactions
+                "-avastalevotethreshold=100000",
             ],
         ]
         self.supports_cli = False
