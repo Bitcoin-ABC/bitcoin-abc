@@ -22,22 +22,23 @@ export default function VisionSection() {
               transition={{ duration: 0.6, ease: "easeInOut" }}
               viewport={{ once: true, amount: 0.5 }}
             >
-              <PlusHeader text="Our Vision" />
+              <PlusHeader text="Our vision" />
 
               <h2 className="text-2xl font-bold leading-tight text-white lg:text-4xl">
                 The Road to 1 Billion Daily Transactions
               </h2>
 
               <h3 className="my-4 text-xl font-bold lg:my-8 lg:text-3xl">
-                Powering the internet economy of tomorrow, we are a truly
-                scalable digital payment network for everyone.
+                Powering the internet economy of tomorrow as a truly scalable
+                payments network.
               </h3>
-
               <p>
-                The digital payment landscape is on the verge of explosive
-                growth. If current trends continue, we could reach 100 billion
-                daily transactions — a scale that would cripple today's payment
-                infrastructure.
+                The goal of eCash is to create sound money that is usable by
+                everyone in the world. We see cryptocurrency as a
+                civilization-changing technology which can dramatically increase
+                human flourishing, freedom, and prosperity. Trustless digital
+                cash at mankind scale is an ambitious goal, but we have the
+                groundbreaking technology to achieve it.
               </p>
             </motion.div>
 

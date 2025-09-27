@@ -21,13 +21,13 @@ const TeamList: React.FC = () => {
         <div className="mb-10 flex w-full flex-col justify-between lg:mb-20 lg:flex-row">
           <div className="flex flex-col items-start gap-6 lg:w-1/2 lg:max-w-[420px]">
             <PlusHeader text="Our team" />
-            <h2>Meet our team with over 30 years combined experience</h2>
+            <h2>Meet our team with well over 50 years combined experience</h2>
           </div>
           <p className="mt-6 max-w-[430px] lg:mt-0 lg:w-1/2 lg:pt-12">
-            Our veteran team brings over a decade of blockchain experience,
-            delivering professional-grade tools and documentation that make
-            building payment solutions faster and more intuitive than ever
-            before.
+            Every member of our veteran team brings over 8 years of blockchain
+            experience, delivering professional-grade infrastructure and tools
+            that make building payment solutions faster and more intuitive than
+            ever before.
           </p>
         </div>
         <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
@@ -98,7 +98,7 @@ const TeamList: React.FC = () => {
           ))}
         </div>
         <div className="mt-10 w-full flex-col items-center justify-center text-center">
-          <h4 className="mb-6">Interested in joining our team?</h4>
+          <h4 className="mb-6">Interested in contributing?</h4>
           <Button href="/careers" variant="white">
             View Careers
           </Button>

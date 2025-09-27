@@ -27,23 +27,24 @@ export default function AboutSection() {
 
           <div className="mb-12">
             <p>
-              eCash integrates the groundbreaking Avalanche protocol with its
-              core Nakamoto consensus. This hybrid-consensus enables unmatched
-              capacity, speed, and security that pushes crypto forward and
-              constitutes a viable alternative to legacy finance and looming
-              CBDCs.
+              eCash integrates the revolutionary Avalanche protocol with its
+              core Nakamoto Proof-of-Work. This hybrid-consensus enables
+              unmatched capacity, speed, and security that pushes crypto
+              technology forward and makes it a viable alternative to legacy
+              finance and looming CBDCs.
               <br />
               <br />
-              The eCash network is at the forefront of Layer-1 blockchain
+              The eCash network is at the forefront of Layer 1 blockchain
               technology, delivering on the promise that set off this entire new
               crypto-industry: A censorship-resistant electronic cash system at
               mass scale.
               <br />
               <br />
-              Enter eCash. The revolutionary combination of digital cash and
-              sound money that unlocks new value. Join us and take your first
-              step on the path to financial and personal freedom. Let's redefine
-              money, wealth, and liberty together.
+              This alternative Bitcoin implementation outshines crypto and
+              legacy finance alike with record-breaking throughput capacity,
+              lowest fees in the space, instant transaction finality, and
+              bullet-proof security guarantees. No other network can match its
+              feature-set and properties.
             </p>
           </div>
 

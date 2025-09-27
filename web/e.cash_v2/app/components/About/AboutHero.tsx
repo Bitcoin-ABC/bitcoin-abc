@@ -39,13 +39,17 @@ export default function AboutHero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            The future of payments requires new technology
+            The future of payments requires innovation
           </h1>
 
           <p>
-            Digital payments are on the verge of explosive growth. If current
-            trends continue, we could reach 100 billion daily transactions — a
-            scale that would cripple today's payment infrastructure.
+            eCash is a digital currency that enables instant payments to anyone,
+            anywhere in the world. It uses peer-to-peer technology to operate
+            with no central authority; managing transactions and currency
+            issuance are carried out collectively by the network. As a
+            descendant of Bitcoin with the same genesis and supply schedule,
+            eCash introduces optimizations and protocol upgrades to realize its
+            full potential.
           </p>
         </motion.div>
       </ContentContainer>
