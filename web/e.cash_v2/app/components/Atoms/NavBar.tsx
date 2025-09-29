@@ -245,13 +245,13 @@ export default function Navbar({ showBanner }: NavbarProps) {
                   moreOpen && "text-accentLight"
                 )}
               >
-                More <span className="text-xs">⋯</span>
+                Get eCash <span className="text-xs">⋯</span>
               </button>
               {moreOpen && (
                 <div className={cn(dropDownBox, "left-auto right-0")}>
                   {/* Show 'more' links here */}
                   {navbarLinks
-                    .filter((l) => l.category === "more")
+                    .filter((l) => l.category === "get-ecash")
                     .map((link) => {
                       const isExternal = link.href.startsWith("http");
                       return (
@@ -374,28 +374,9 @@ export default function Navbar({ showBanner }: NavbarProps) {
             <div>
               <div className="mt-15 mb-3 text-xl font-bold">
                 {navbarLinks
-                  .filter((l) => l.category === "main")
-                  .map((link) => (
-                    <Link
-                      key={link.title}
-                      href={link.href}
-                      className="hover:text-accentLight block py-2 transition-all"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {link.title}
-                    </Link>
-                  ))}
-              </div>
-            </div>
-
-            {/* About section */}
-            <div>
-              <div className="font-fira-code text-secondaryText mb-3 text-xs font-light">
-                ABOUT
-              </div>
-              <div className="text-xl font-bold">
-                {navbarLinks
-                  .filter((l) => l.category === "about")
+                  .filter(
+                    (l) => l.category === "main" || l.category === "about"
+                  )
                   .map((link) => (
                     <Link
                       key={link.title}
@@ -432,14 +413,14 @@ export default function Navbar({ showBanner }: NavbarProps) {
               </div>
             </div>
 
-            {/* More section */}
+            {/* Get eCash section */}
             <div>
               <div className="font-fira-code text-secondaryText mb-3 text-xs font-light">
-                MORE
+                GET ECASH
               </div>
               <div className="text-xl font-bold">
                 {navbarLinks
-                  .filter((l) => l.category === "more")
+                  .filter((l) => l.category === "get-ecash")
                   .map((link) => {
                     const isExternal = link.href.startsWith("http");
                     return (

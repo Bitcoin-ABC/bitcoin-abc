@@ -15,8 +15,8 @@ export default function Footer() {
   const socialLinks = getLinksByCategory("social");
   const mainLinks = getLinksByCategory("main");
   const toolsLinks = getLinksByCategory("tools");
-  const moreLinks = getLinksByCategory("more");
-  const getEcashLinks = getLinksByCategory("getEcash");
+  const aboutLinks = getLinksByCategory("about");
+  const getEcashLinks = getLinksByCategory("get-ecash");
 
   return (
     <footer className="relative bg-[#06060E] text-white">
@@ -83,7 +83,7 @@ export default function Footer() {
                       {link.title}
                     </Link>
                   ))}
-                  {moreLinks.map((link) => (
+                  {aboutLinks.map((link) => (
                     <Link
                       key={link.title}
                       href={link.href}

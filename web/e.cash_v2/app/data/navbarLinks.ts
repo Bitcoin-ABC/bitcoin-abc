@@ -5,7 +5,7 @@
 export type NavbarLink = {
   title: string;
   href: string;
-  category: "main" | "about" | "tools" | "more" | "actions" | "social";
+  category: "main" | "about" | "tools" | "get-ecash" | "actions" | "social";
 };
 
 export const navbarLinks: NavbarLink[] = [
@@ -29,10 +29,10 @@ export const navbarLinks: NavbarLink[] = [
   { title: "Explorer", href: "https://explorer.e.cash/", category: "tools" },
 
   // More
-  { title: "Mining", href: "/mining", category: "more" },
-  { title: "Staking", href: "/staking", category: "more" },
-  { title: "Exchanges", href: "/get-ecash", category: "more" },
-  { title: "Use eCash", href: "/use-ecash", category: "more" },
+  { title: "Mining", href: "/mining", category: "get-ecash" },
+  { title: "Staking", href: "/staking", category: "get-ecash" },
+  { title: "Exchanges", href: "/get-ecash", category: "get-ecash" },
+  { title: "Use eCash", href: "/use-ecash", category: "get-ecash" },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },
