@@ -80,10 +80,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
                 return tx
 
             tx = get_base_transaction()
-
-            # Make it the same format as transaction added for padding and save the size.
-            # It's missing the padding output, so we add a constant to account
-            # for it.
             tx.rehash()
 
             # Add the transaction to the block
