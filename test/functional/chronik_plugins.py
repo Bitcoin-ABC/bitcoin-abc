@@ -168,7 +168,7 @@ class MyPluginPlugin(Plugin):
         assert_equal(list(plugin.history(b"b").ok().txs), [])
 
         tx2 = CTransaction()
-        tx2.vin = [CTxIn(COutPoint(tx1.sha256, 3), SCRIPTSIG_OP_TRUE)]
+        tx2.vin = [CTxIn(COutPoint(tx1.txid_int, 3), SCRIPTSIG_OP_TRUE)]
         tx2.vout = [
             CTxOut(0, CScript([OP_RETURN, b"TEST", b"blub", b"borg", b"bjork"])),
             CTxOut(1000, P2SH_OP_TRUE),
@@ -263,8 +263,8 @@ class MyPluginPlugin(Plugin):
 
         tx3 = CTransaction()
         tx3.vin = [
-            CTxIn(COutPoint(tx2.sha256, 1), SCRIPTSIG_OP_TRUE),
-            CTxIn(COutPoint(tx2.sha256, 3), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 1), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 3), SCRIPTSIG_OP_TRUE),
         ]
         tx3.vout = [
             CTxOut(0, CScript([OP_RETURN, b"TEST", b"carp"])),

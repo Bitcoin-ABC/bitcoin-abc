@@ -343,7 +343,7 @@ class FullBlockTest(BitcoinTestFramework):
         script_length = LEGACY_MAX_BLOCK_SIZE - len(b23.serialize()) - 69
         script_output = CScript([b"\x00" * script_length])
         tx.vout.append(CTxOut(0, script_output))
-        tx.vin.append(CTxIn(COutPoint(b23.vtx[1].sha256, 0)))
+        tx.vin.append(CTxIn(COutPoint(b23.vtx[1].txid_int, 0)))
         b23 = self.update_block(23, [tx])
         # Make sure the math above worked out to produce a max-sized block
         assert_equal(len(b23.serialize()), LEGACY_MAX_BLOCK_SIZE)
@@ -685,7 +685,7 @@ class FullBlockTest(BitcoinTestFramework):
         tx = CTransaction()
         assert len(out[17].vout) < 42
         tx.vin.append(
-            CTxIn(COutPoint(out[17].sha256, 42), CScript([OP_TRUE]), 0xFFFFFFFF)
+            CTxIn(COutPoint(out[17].txid_int, 42), CScript([OP_TRUE]), 0xFFFFFFFF)
         )
         tx.vout.append(CTxOut(0, b""))
         pad_tx(tx)
@@ -743,7 +743,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.move_tip(57)
         b_spend_dup_cb = self.next_block("spend_dup_cb")
         tx = CTransaction()
-        tx.vin.append(CTxIn(COutPoint(duplicate_tx.sha256, 0)))
+        tx.vin.append(CTxIn(COutPoint(duplicate_tx.txid_int, 0)))
         tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
         self.sign_tx(tx, duplicate_tx)
         b_spend_dup_cb = self.update_block("spend_dup_cb", [tx])
@@ -773,7 +773,7 @@ class FullBlockTest(BitcoinTestFramework):
         tx = CTransaction()
         tx.nLockTime = 0xFFFFFFFF  # this locktime is non-final
         # don't set nSequence
-        tx.vin.append(CTxIn(COutPoint(out[18].sha256, 0)))
+        tx.vin.append(CTxIn(COutPoint(out[18].txid_int, 0)))
         tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
         assert tx.vin[0].nSequence < 0xFFFFFFFF
         b62 = self.update_block(62, [tx])
@@ -830,7 +830,7 @@ class FullBlockTest(BitcoinTestFramework):
         script_length = LEGACY_MAX_BLOCK_SIZE - len(b64a.normal_serialize()) - 69
         script_output = CScript([b"\x00" * script_length])
         tx.vout.append(CTxOut(0, script_output))
-        tx.vin.append(CTxIn(COutPoint(b64a.vtx[1].sha256, 0)))
+        tx.vin.append(CTxIn(COutPoint(b64a.vtx[1].txid_int, 0)))
         b64a = self.update_block("64a", [tx])
         assert_equal(len(b64a.serialize()), LEGACY_MAX_BLOCK_SIZE + 8)
         self.send_blocks(
@@ -1138,7 +1138,7 @@ class FullBlockTest(BitcoinTestFramework):
             script_length = LEGACY_MAX_BLOCK_SIZE - len(b.serialize()) - 69
             script_output = CScript([b"\x00" * script_length])
             tx.vout.append(CTxOut(0, script_output))
-            tx.vin.append(CTxIn(COutPoint(b.vtx[1].sha256, 0)))
+            tx.vin.append(CTxIn(COutPoint(b.vtx[1].txid_int, 0)))
             b = self.update_block(i, [tx])
             assert_equal(len(b.serialize()), LEGACY_MAX_BLOCK_SIZE)
             blocks.append(b)

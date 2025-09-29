@@ -925,7 +925,7 @@ class P2PDataStore(P2PInterface):
 
         with p2p_lock:
             for tx in txs:
-                self.tx_store[tx.sha256] = tx
+                self.tx_store[tx.txid_int] = tx
 
         def test():
             for tx in txs:

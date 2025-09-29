@@ -155,7 +155,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             # Spend transaction
             txspend = CTransaction()
             txspend.vout.append(CTxOut(50 * COIN - 2000, CScript([OP_TRUE])))
-            txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b""))
+            txspend.vin.append(CTxIn(COutPoint(txfund.txid_int, 0), b""))
 
             # Sign the transaction
             sighashtype = (forkvalue << 8) | SIGHASH_ALL | SIGHASH_FORKID

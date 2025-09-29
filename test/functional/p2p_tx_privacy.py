@@ -67,7 +67,7 @@ class TxPrivacyTest(BitcoinTestFramework):
 
         # Spy should only get an inv for the second transaction as the first
         # one was received pre-verack with the spy
-        spy.wait_for_inv_match(CInv(MSG_TX, tx2.sha256))
+        spy.wait_for_inv_match(CInv(MSG_TX, tx2.txid_int))
 
 
 if __name__ == "__main__":

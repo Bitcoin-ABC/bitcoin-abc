@@ -100,7 +100,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
 
         node.setmocktime(mocktime + 1)
         tx1 = CTransaction()
-        tx1.vin = [CTxIn(COutPoint(tx0.sha256, 1), spend_p2lokad(b"lok1"))]
+        tx1.vin = [CTxIn(COutPoint(tx0.txid_int, 1), spend_p2lokad(b"lok1"))]
         tx1.vout = [CTxOut(0, CScript([OP_RETURN, b"lok0", b"x" * 100]))]
         chronik.broadcast_tx(tx1.serialize()).ok()
         assert_equal(lokad_id_unconf(b"lok0"), [tx0.txid_hex, tx1.txid_hex])
@@ -115,7 +115,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
 
         node.setmocktime(mocktime + 2)
         tx2 = CTransaction()
-        tx2.vin = [CTxIn(COutPoint(tx0.sha256, 2), spend_p2lokad(b"lok2"))]
+        tx2.vin = [CTxIn(COutPoint(tx0.txid_int, 2), spend_p2lokad(b"lok2"))]
         tx2.vout = [
             CTxOut(
                 0, CScript([OP_RETURN, OP_RESERVED, b"lok2__", b"lok0" + b"x" * 100])
@@ -145,7 +145,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         assert_equal(ws2.recv(), ws_msg(tx1.txid_hex, pb.TX_CONFIRMED))
 
         tx3 = CTransaction()
-        tx3.vin = [CTxIn(COutPoint(tx0.sha256, 3), spend_p2lokad(b"lok3"))]
+        tx3.vin = [CTxIn(COutPoint(tx0.txid_int, 3), spend_p2lokad(b"lok3"))]
         tx3.vout = [
             CTxOut(0, CScript([OP_RETURN, OP_RESERVED, b"lok2", b"lok0" + b"x" * 100]))
         ]
@@ -177,7 +177,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
 
         # Mine conflicting tx kicking out tx3
         tx3_conflict = CTransaction()
-        tx3_conflict.vin = [CTxIn(COutPoint(tx0.sha256, 3), spend_p2lokad(b"lok3"))]
+        tx3_conflict.vin = [CTxIn(COutPoint(tx0.txid_int, 3), spend_p2lokad(b"lok3"))]
         tx3_conflict.vout = [
             CTxOut(0, CScript([OP_RETURN, OP_RESERVED, b"lok4" + b"x" * 100]))
         ]

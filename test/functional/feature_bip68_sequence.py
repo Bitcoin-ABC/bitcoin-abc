@@ -279,7 +279,7 @@ class BIP68Test(BitcoinTestFramework):
         # Sequence lock of 0 should pass.
         tx2 = CTransaction()
         tx2.nVersion = 2
-        tx2.vin = [CTxIn(COutPoint(tx1.sha256, 0), nSequence=0)]
+        tx2.vin = [CTxIn(COutPoint(tx1.txid_int, 0), nSequence=0)]
         tx2.vout = [CTxOut(int(0), CScript([b"a"]))]
         tx2.vout[0].nValue = tx1.vout[0].nValue - fee_multiplier * self.nodes[
             0
@@ -299,7 +299,7 @@ class BIP68Test(BitcoinTestFramework):
 
             tx = CTransaction()
             tx.nVersion = 2
-            tx.vin = [CTxIn(COutPoint(orig_tx.sha256, 0), nSequence=sequence_value)]
+            tx.vin = [CTxIn(COutPoint(orig_tx.txid_int, 0), nSequence=sequence_value)]
             tx.vout = [
                 CTxOut(
                     int(
@@ -446,7 +446,7 @@ class BIP68Test(BitcoinTestFramework):
         # Make an anyone-can-spend transaction
         tx2 = CTransaction()
         tx2.nVersion = 1
-        tx2.vin = [CTxIn(COutPoint(tx1.sha256, 0), nSequence=0)]
+        tx2.vin = [CTxIn(COutPoint(tx1.txid_int, 0), nSequence=0)]
         tx2.vout = [
             CTxOut(int(tx1.vout[0].nValue - self.relayfee * XEC), CScript([b"a"]))
         ]
@@ -464,7 +464,7 @@ class BIP68Test(BitcoinTestFramework):
 
         tx3 = CTransaction()
         tx3.nVersion = 2
-        tx3.vin = [CTxIn(COutPoint(tx2.sha256, 0), nSequence=sequence_value)]
+        tx3.vin = [CTxIn(COutPoint(tx2.txid_int, 0), nSequence=sequence_value)]
         tx3.vout = [
             CTxOut(int(tx2.vout[0].nValue - self.relayfee * XEC), CScript([b"a"]))
         ]

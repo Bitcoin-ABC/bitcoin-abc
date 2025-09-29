@@ -42,7 +42,7 @@ class ChronikShutdown(BitcoinTestFramework):
             coinbase_txs.append(coinbase_tx)
             txs = []
             if i > 101:
-                txid = coinbase_txs[i - 101].sha256
+                txid = coinbase_txs[i - 101].txid_int
                 fan_tx = CTransaction()
                 fan_tx.vin = [CTxIn(COutPoint(txid, 0))]
                 fan_tx.vout = [CTxOut(1000, CScript([OP_TRUE]))] * 8000
@@ -50,7 +50,7 @@ class ChronikShutdown(BitcoinTestFramework):
                 for j in range(0, 7997, 3):
                     tx = CTransaction()
                     tx.vin = [
-                        CTxIn(COutPoint(fan_tx.sha256, k)) for k in range(j, j + 3)
+                        CTxIn(COutPoint(fan_tx.txid_int, k)) for k in range(j, j + 3)
                     ]
                     tx.vout = [CTxOut(1000, CScript([OP_TRUE]))]
                     txs.append(tx)
