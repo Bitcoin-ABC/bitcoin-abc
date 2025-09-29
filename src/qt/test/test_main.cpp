@@ -59,7 +59,13 @@ int main(int argc, char *argv[]) {
     // regtest params.
     //
     // All tests must use their own testing setup (if needed).
-    { BasicTestingSetup dummy{ChainType::REGTEST}; }
+    fs::create_directories([] {
+        BasicTestingSetup dummy{ChainType::REGTEST};
+
+        // This is extracted from gui#602, please remove this comment after this
+        // has been backported.
+        return gArgs.GetDataDirNet() / "blocks";
+    }());
 
     NodeContext node_context;
     std::unique_ptr<interfaces::Node> node =
