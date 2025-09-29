@@ -235,7 +235,7 @@ export default function StakingContent() {
                 </div>
                 <span>
                   <Link
-                    href="/blog/ecash-avalanche-tutorial"
+                    href="/blog/avalanche-tutorial"
                     className="text-blue-400 underline hover:text-blue-300"
                   >
                     eCash Avalanche Tutorial

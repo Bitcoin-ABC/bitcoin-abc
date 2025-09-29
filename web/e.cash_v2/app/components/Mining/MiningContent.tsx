@@ -357,12 +357,12 @@ export default function MiningContent() {
                       If you need any help to add eCash support to your mining
                       software, you can request for support in the{" "}
                       <a
-                        href="https://t.me/eCashDevelopment"
+                        href="https://t.me/eCashNode"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-400 transition-colors hover:text-blue-300"
                       >
-                        eCash Development Telegram group
+                        eCash Node Support group
                       </a>
                       .
                     </span>
@@ -503,7 +503,7 @@ export default function MiningContent() {
               </pre>
             </div>
             <p>
-              Your pool software need to make sure the submitted block hash
+              Your pool software needs to make sure the submitted block hash
               complies with the Real Time Target. There are 2 options to achieve
               this:
             </p>

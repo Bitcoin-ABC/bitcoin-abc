@@ -27,22 +27,22 @@ export const faqs: FAQ[] = [
     question:
       "Where can I find eCash price information compared to other cryptocurrencies?",
     answer:
-      "eCash price information is available at all leading crypto research sources, like Coingecko (https://www.coingecko.com/en/coins/ecash), Coinmarketcap (https://coinmarketcap.com/currencies/ecash/), and Crypto.com (https://crypto.com/price/ecash).",
+      "eCash price information is available at all leading crypto research sources, like [Coingecko](https://www.coingecko.com/en/coins/ecash), [Coinmarketcap](https://coinmarketcap.com/currencies/ecash/), and [Crypto.com](https://crypto.com/price/ecash).",
   },
   {
     question: "What is the supply of eCash?",
     answer:
-      "eCash has the same fixed supply as bitcoin. The default base unit of eCash has 2 decimal places (100 satoshis). The default base unit of bitcoin (BTC) has 8 decimal places (100,000,000 satoshis).\n\n90% of all the eCash that will ever exist has already been mined. The inflation rate for eCash is already low (less than 2% as of 2021), and will decrease to zero.",
+      "eCash has the same fixed supply as bitcoin. The default base unit of eCash has 2 decimal places (100 satoshis). The default base unit of bitcoin (BTC) has 8 decimal places (100,000,000 satoshis).\n\n90% of all the eCash that will ever exist has already been mined. The inflation rate for eCash is already low (less than 1% as of 2025), and will decrease to zero.",
   },
   {
     question: "Will XEC be burned to decrease supply?",
     answer:
-      "No. We think XEC is valuable, and therefore we will not burn any.\n\nIt is also important to realize that eCash is different from other new tokens where the founding teams often hold a large proportion of the total supply. In those other coins, the large amount of coins that the team holds is still waiting to be released into the market, causing future inflation. XEC, on the other hand, is already about 90% issued (https://ecash.supply/), and the dev team holds only a small amount relative to total supply. This means that new supply of XEC into the market will continue to be very limited.",
+      "No. We think XEC is valuable, and therefore we will not burn any.\n\nIt is also important to realize that eCash is different from other new tokens where the founding teams often hold a large proportion of the total supply. In those other coins, the large amount of coins that the team holds is still waiting to be released into the market, causing future inflation. XEC, on the other hand, is already about [90% issued](https://ecash.supply/), and the dev team holds only a small amount relative to total supply. This means that new supply of XEC into the market will continue to be very limited.",
   },
   {
     question: "What is the contract address?",
     answer:
-      'XEC is not an ERC-20 token, it is its own blockchain similar to Bitcoin (BTC).\n\nThere is a "Wrapped XEC" token available on the Binance Smart Chain, with contract address 0x0Ef2e7602adD1733Bfdb17aC3094d0421B502cA3 (https://github.com/binance-chain/bep20-issue-mirror-stats/blob/master/bep20-issue-mirror-stats.csv). Users should recognize that holding this BEP-20 token, or similar "wrapped XEC" products, has custodial risk as you have to trust that the custodian (in this case Binance) will hold the full reserves of native XEC safely. For this reason, we recommend that users hold their coins as real native XEC, in a wallet where they control the keys.\n\nTo hold native XEC yourself, you can use a supporting wallet (wallets.html). Write down the "seed phrase" for your wallet and store that in a safe place. This is usually 12 words. The 12 words contain enough information to restore the private keys of the wallet in case you need to recover them in the future.',
+      'XEC is not an ERC-20 token, it is its own blockchain similar to Bitcoin (BTC).\n\nThere is a "Wrapped XEC" token available on the Binance Smart Chain, with contract address [0x0Ef2e7602adD1733Bfdb17aC3094d0421B502cA3](https://github.com/binance-chain/bep20-issue-mirror-stats/blob/master/bep20-issue-mirror-stats.csv). Users should recognize that holding this BEP-20 token, or similar "wrapped XEC" products, has custodial risk as you have to trust that the custodian (in this case Binance) will hold the full reserves of native XEC safely. For this reason, we recommend that users hold their coins as real native XEC, in a wallet where they control the keys.\n\nTo hold native XEC yourself, you can use a supporting wallet (wallets.html). Write down the "seed phrase" for your wallet and store that in a safe place. This is usually 12 words. The 12 words contain enough information to restore the private keys of the wallet in case you need to recover them in the future.',
   },
   {
     question: "What is the base unit of eCash?",
@@ -57,7 +57,7 @@ export const faqs: FAQ[] = [
   {
     question: "Is eCash using the Avalanche blockchain?",
     answer:
-      'No, eCash is its own blockchain.\nIt is important to differentiate the Avalanche protocol, from the cryptocurrency project known as "Avalanche" or "AVAX".\neCash\'s Avalanche implementation is completely separate and distinct from the Avalanche (AVAX) project. They have no connection, other than both using the protocol described in the Avalanche whitepaper (https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV). Avalanche on eCash is an entirely new implementation which was developed from scratch by the Bitcoin ABC team. This is important as it puts eCash in a technology leadership role, rather than having to rely on the innovation of others.',
+      'No, eCash is its own blockchain.\nIt is important to differentiate the Avalanche protocol, from the cryptocurrency project known as "Avalanche" or "AVAX".\neCash\'s Avalanche implementation is completely separate and distinct from the Avalanche (AVAX) project. They have no connection, other than both using the protocol described in the [Avalanche whitepaper](https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV). Avalanche on eCash is an entirely new implementation which was developed from scratch by the Bitcoin ABC team. This is important as it puts eCash in a technology leadership role, rather than having to rely on the innovation of others.',
   },
   {
     question: "Where did eCash come from?",
@@ -67,7 +67,7 @@ export const faqs: FAQ[] = [
   {
     question: "What's the difference between eCash and Bitcoin ABC?",
     answer:
-      "eCash is a cryptocurrency, whereas Bitcoin ABC is the software businesses use to interact with and maintain the eCash network. The team behind the Bitcoin ABC software also operates under the same name.\n\nYou can learn more about Bitcoin ABC at bitcoinabc.org (https://www.bitcoinabc.org/).",
+      "eCash is a cryptocurrency, whereas Bitcoin ABC is the software businesses use to interact with and maintain the eCash network. The team behind the Bitcoin ABC software also operates under the same name.\n\nYou can learn more about Bitcoin ABC at [bitcoinabc.org](https://www.bitcoinabc.org/).",
   },
   {
     question: "Why is eCash listed as BCHA on some exchanges?",
@@ -78,7 +78,7 @@ export const faqs: FAQ[] = [
     question:
       "I have coins on the Bitcoin Cash (BCH) network. How do I retrieve my eCash?",
     answer:
-      "If you have Bitcoin Cash from before November 15th 2020, it is possible that you also have corresponding eCash (XEC). This is because eCash and Bitcoin Cash share a common history, and became separate currencies via a blockchain split. You can split the coins and retrieve your eCash by following the instructions in this article (/blog/splitting-ecash-and-bch-coins-using-electrum-abc-and-electron-cash).",
+      "If you have Bitcoin Cash from before November 15th 2020, it is possible that you also have corresponding eCash (XEC). This is because eCash and Bitcoin Cash share a common history, and became separate currencies via a blockchain split. You can split the coins and retrieve your eCash by following the instructions in [this article] (https://e.cash/blog/splitting-ecash-bch).",
   },
   {
     question: "What's the best way to get technical support?",

@@ -22,22 +22,20 @@ export default function AboutSection() {
           <PlusHeader text="XEC" />
 
           <h2 className="mb-4 mt-4 text-4xl font-bold text-white lg:text-5xl">
-            Cash... Optimized
+            Cash... optimized
           </h2>
 
           <div className="mb-12">
             <p>
-              eCash integrates the revolutionary Avalanche protocol with its
-              core Nakamoto Proof-of-Work. This hybrid-consensus enables
-              unmatched capacity, speed, and security that pushes crypto
-              technology forward and makes it a viable alternative to legacy
-              finance and looming CBDCs.
+              eCash integrates the breakthrough Avalanche protocol with its core
+              Nakamoto Proof-of-Work. This hybrid-consensus enables unmatched
+              capacity, speed, and security.
               <br />
               <br />
               The eCash network is at the forefront of Layer 1 blockchain
               technology, delivering on the promise that set off this entire new
-              crypto-industry: A censorship-resistant electronic cash system at
-              mass scale.
+              crypto-industry: A peer-to-peer electronic cash system at global
+              scale.
               <br />
               <br />
               This alternative Bitcoin implementation outshines crypto and

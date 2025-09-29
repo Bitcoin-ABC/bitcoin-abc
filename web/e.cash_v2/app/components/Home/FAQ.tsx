@@ -14,28 +14,41 @@ import { motion } from "framer-motion";
 
 // Helper function to convert URLs in text to clickable links
 const renderTextWithLinks = (text: string) => {
-  // URL regex pattern to match http/https URLs
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
 
-  const parts = text.split(urlRegex);
+  const parts = [];
+  let lastIndex = 0;
+  let match;
 
-  return parts.map((part, index) => {
-    if (urlRegex.test(part)) {
-      return (
-        <a
-          key={index}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-400 underline transition-colors hover:text-blue-300"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {part}
-        </a>
-      );
+  while ((match = markdownLinkRegex.exec(text)) !== null) {
+    // Push text before the link
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
     }
-    return part;
-  });
+
+    // Push the actual link
+    parts.push(
+      <a
+        key={match[2] + match.index}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 underline transition-colors hover:text-blue-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {match[1]}
+      </a>
+    );
+
+    lastIndex = markdownLinkRegex.lastIndex;
+  }
+
+  // Push any remaining text after the last link
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
 };
 
 export default function FAQ() {

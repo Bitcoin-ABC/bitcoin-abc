@@ -25,7 +25,7 @@ export default function CoreTech() {
     {
       title: "Chronik",
       description:
-        "A super fast, reliable, and future proof indexing solution built right into the node. Developers can easily bootstrap and leverage native support for all features available on eCash.",
+        "A super fast, reliable, and future-proof indexing solution built right into the node. Developers can easily bootstrap and leverage native support for all features available on eCash.",
       bulletPoints: [
         "Fast and reliable blockchain indexing",
         "Built into Bitcoin ABC node software",

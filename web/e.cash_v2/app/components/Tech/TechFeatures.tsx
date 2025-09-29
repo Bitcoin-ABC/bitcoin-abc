@@ -26,7 +26,7 @@ export default function TechFeatures() {
       icon: "/cube.png",
       title: "Robust Infrastructure",
       description:
-        "A powerful indexing solution and exceptional tooling enable fast and reliable app development",
+        "A powerful indexing solution and exceptional tooling for fast and reliable app development",
     },
     {
       icon: "/users-check.png",

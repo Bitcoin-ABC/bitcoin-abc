@@ -39,16 +39,16 @@ export default function StakingHero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            Avalanche Consensus powered by eCash Stakers
+            Avalanche consensus powered by eCash stakers
           </h1>
 
           <p>
-            Stakers have an important job: to participate in eCash's avalanche
+            Stakers have an important job: to participate in eCash's Avalanche
             consensus system, enabling eCash to be a fast and reliable
-            electronic cash system. eCash avalanche participants should run
+            electronic cash system. eCash Avalanche participants should run
             reliable high-availability nodes in order to provide good quality of
             service. In exchange for providing this valuable service to the
-            network, eCash stakers can earn staking rewards.
+            network, eCash stakers get rewarded in XEC.
           </p>
         </motion.div>
       </ContentContainer>

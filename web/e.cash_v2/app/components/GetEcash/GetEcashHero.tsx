@@ -43,9 +43,8 @@ export default function GetEcashHero() {
           </h1>
 
           <p>
-            Get started today by getting your first eCash. It's simple and there
-            are several ways to do it. From exchanges to mining and staking,
-            find the perfect method for you.
+            There are several ways to acquire eCash. From exchanges to mining
+            and staking, find the perfect method for you.
           </p>
         </motion.div>
       </ContentContainer>

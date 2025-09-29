@@ -18,7 +18,7 @@ const features: Feature[] = [
   {
     feature: "Instant Finality",
     details:
-      "Pre-consensus validates individual transactions before they are included in a block, reducing confirmation time for a transaction from 10 minutes to 3 seconds - that’s more than 100 times faster than Proof of Work-only cryptos like Bitcoin.",
+      "Pre-consensus makes transactions irreversible before they are included in a block, reducing settlement time on eCash from 10 minutes to 3 seconds – more than 1000 times faster than Proof of Work-only cryptos like Bitcoin, which take about an hour for strong finality.",
   },
   {
     feature: "51% Attack Protection",

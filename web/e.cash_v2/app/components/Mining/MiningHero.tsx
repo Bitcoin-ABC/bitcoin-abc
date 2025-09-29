@@ -38,7 +38,7 @@ export default function MiningHero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            Nakamoto Consensus powered by SHA256 Proof-of-Work
+            Nakamoto consensus powered by SHA256 proof-of-work
           </h1>
 
           <p>

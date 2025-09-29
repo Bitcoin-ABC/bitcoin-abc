@@ -24,24 +24,28 @@ const gettingStartedLinks: GettingStartedColumn[] = [
   {
     title: "For developers",
     links: [
-      { text: "Phabricator", href: "https://https://reviews.bitcoinabc.org/" },
+      { text: "Phabricator", href: "https://reviews.bitcoinabc.org/" },
+      {
+        text: "GitHub Mirror",
+        href: "https://github.com/Bitcoin-ABC/bitcoin-abc/",
+      },
+      { text: "Chronik Indexer", href: "https://chronik.cash/" },
+      { text: "RPC Documentation", href: "https://www.bitcoinabc.org/doc/" },
       {
         text: "Contribution Guide",
         href: "https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md",
       },
-      { text: "GitHub", href: "https://github.com/Bitcoin-ABC/bitcoin-abc/" },
-      { text: "Chronik Indexer", href: "https://www.chronik.cash/" },
-      { text: "RPC Documentation", href: "https://www.bitcoinabc.org/doc/" },
     ],
   },
   {
     title: "For users",
     links: [
-      { text: "Get XEC", href: "/get-xec" },
+      { text: "Get eCash", href: "/get-ecash" },
       { text: "XECx", href: "https://stakedxec.com/" },
       { text: "Firma", href: "https://firma.cash/" },
       { text: "PayButton", href: "https://paybutton.org/" },
       { text: "LocaleCash", href: "https://localecash.com/" },
+      { text: "Block Explorer", href: "https://explorer.e.cash/" },
     ],
   },
   {
@@ -49,6 +53,7 @@ const gettingStartedLinks: GettingStartedColumn[] = [
     links: [
       { text: "Blog", href: "/blog" },
       { text: "Avalanche", href: "https://avalanche.cash" },
+      { text: "Scorecard", href: "https://scorecard.cash" },
       { text: "X (Twitter)", href: "https://x.com/ecash" },
       { text: "Telegram", href: "https://t.me/ecash" },
       {
@@ -79,7 +84,7 @@ export default function GettingStarted() {
         >
           <PlusHeader text="Getting started" inverse />
           <h3 className="mt-4 max-w-[450px] text-center text-4xl font-bold leading-none lg:text-6xl">
-            Built Different
+            Built different
           </h3>
           <div className="mt-4 max-w-xl text-center text-base font-light text-[#4C4C4C] lg:text-lg">
             We’ve made it a snap to send value, create tokens, develop apps, or

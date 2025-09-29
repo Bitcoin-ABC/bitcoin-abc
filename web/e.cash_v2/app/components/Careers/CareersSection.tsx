@@ -20,7 +20,7 @@ export default function CareersSection() {
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-3xl font-bold text-white">
-            Career Opportunities
+            Career opportunities
           </h2>
           <p className="mx-auto max-w-2xl text-gray-300">
             Join our team and help build the infrastructure for the future of

@@ -25,7 +25,7 @@ export default function VisionSection() {
               <PlusHeader text="Our vision" />
 
               <h2 className="text-2xl font-bold leading-tight text-white lg:text-4xl">
-                The Road to 1 Billion Daily Transactions
+                The road to 1 billion daily transactions
               </h2>
 
               <h3 className="my-4 text-xl font-bold lg:my-8 lg:text-3xl">
@@ -37,8 +37,8 @@ export default function VisionSection() {
                 everyone in the world. We see cryptocurrency as a
                 civilization-changing technology which can dramatically increase
                 human flourishing, freedom, and prosperity. Trustless digital
-                cash at mankind scale is an ambitious goal, but we have the
-                groundbreaking technology to achieve it.
+                cash at mankind scale is an ambitious goal, but eCash has the
+                capabilities to achieve it.
               </p>
             </motion.div>
 

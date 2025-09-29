@@ -72,8 +72,8 @@ export default function BentoGrid() {
   return (
     <ContentContainer className="mb-20 max-w-[1300px] lg:mb-40">
       <h2 className="m-auto max-w-[300px] text-center lg:max-w-[500px]">
-        The Fast, Secure, and Extensible{" "}
-        <span className="gradient-text">Layer 1</span>
+        The fast, secure, and extensible{" "}
+        <span className="gradient-text">layer 1</span>
       </h2>
       <div className="mt-20 flex w-full flex-col gap-2 overflow-hidden">
         <div

@@ -42,7 +42,7 @@ export default function BuildHero() {
             BUILD
           </div>
           <h1 className="mb-6 max-w-[450px] text-center text-4xl font-bold tracking-tighter lg:text-6xl lg:leading-[60px]">
-            Future-proof your Tech
+            Future-proof your tech
           </h1>
           <p className="text-secondaryText lg:mb-30 mx-auto mb-20 max-w-[450px] text-center text-base lg:text-lg">
             Micropayments, novel tokenomics, atomic swaps. Enabling business

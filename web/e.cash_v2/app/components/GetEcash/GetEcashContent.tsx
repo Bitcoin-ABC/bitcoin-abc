@@ -178,7 +178,7 @@ export default function GetEcashContent({
         {/* Additional Methods Section */}
         <div className="mb-16 text-center">
           <h2 className="mb-4 text-3xl font-bold text-white">
-            Other ways to Get eCash
+            Other ways to get eCash
           </h2>
         </div>
         <motion.div
@@ -206,7 +206,8 @@ export default function GetEcashContent({
             <h3 className="mb-4 text-2xl font-bold text-white">Staking</h3>
             <p className="mb-6 text-gray-300">
               Stakers power eCash's Avalanche consensus system, and earn staking
-              rewards in return. Start earning passive income with your XEC.
+              rewards in return. Start earning XEC for running an eCash staking
+              node.
             </p>
             <Button href="/staking" variant="gradient">
               Stake eCash
