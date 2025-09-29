@@ -1481,12 +1481,12 @@ bool PeerManager::setContenderStatusForLocalWinners(
     for (const auto &winner : winners) {
         const StakeContenderId contenderId(prevblockhash, winner.first);
         stakeContenderCache.finalize(contenderId);
-        LogPrintLevel(BCLog::AVALANCHE, BCLog::Level::Debug,
-                      "Stake contender set as local winner: proofid %s, payout "
-                      "%s at block %s (height %d) with id %s\n",
-                      winner.first.ToString(), HexStr(winner.second),
-                      prevblockhash.ToString(), prevblock->nHeight,
-                      contenderId.ToString());
+        LogTrace(BCLog::AVALANCHE,
+                 "Stake contender set as local winner: proofid %s, payout "
+                 "%s at block %s (height %d) with id %s\n",
+                 winner.first.ToString(), HexStr(winner.second),
+                 prevblockhash.ToString(), prevblock->nHeight,
+                 contenderId.ToString());
     }
 
     // Treat the highest ranking contender similarly to local winners except
@@ -1497,11 +1497,11 @@ bool PeerManager::setContenderStatusForLocalWinners(
         // Accept the highest ranking contender. This is a no-op if the highest
         // ranking contender is already the local winner.
         stakeContenderCache.accept(pollableContenders[0]);
-        LogPrintLevel(BCLog::AVALANCHE, BCLog::Level::Debug,
-                      "Stake contender set as best contender: id %s at block "
-                      "%s (height %d)\n",
-                      pollableContenders[0].ToString(),
-                      prevblockhash.ToString(), prevblock->nHeight);
+        LogTrace(BCLog::AVALANCHE,
+                 "Stake contender set as best contender: id %s at block "
+                 "%s (height %d)\n",
+                 pollableContenders[0].ToString(), prevblockhash.ToString(),
+                 prevblock->nHeight);
         return true;
     }
 

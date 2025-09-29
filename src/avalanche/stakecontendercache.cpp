@@ -75,13 +75,13 @@ void StakeContenderCache::promoteToBlock(
                 contender.payoutScriptPubkey, contender.score));
             promoted = true;
         }
-        LogPrintLevel(BCLog::AVALANCHE, BCLog::Level::Debug,
-                      "Contender with proofid %s, payout %s was%s promoted to "
-                      "block %s (height %d) (old id %s, next id %s)\n",
-                      proofid.ToString(), HexStr(contender.payoutScriptPubkey),
-                      promoted ? "" : " NOT", blockhash.ToString(), height,
-                      contender.getStakeContenderId().ToString(),
-                      StakeContenderId(blockhash, proofid).ToString());
+        LogTrace(BCLog::AVALANCHE,
+                 "Contender with proofid %s, payout %s was%s promoted to "
+                 "block %s (height %d) (old id %s, next id %s)\n",
+                 proofid.ToString(), HexStr(contender.payoutScriptPubkey),
+                 promoted ? "" : " NOT", blockhash.ToString(), height,
+                 contender.getStakeContenderId().ToString(),
+                 StakeContenderId(blockhash, proofid).ToString());
     }
     contenders.insert(promotedEntries.begin(), promotedEntries.end());
 }
