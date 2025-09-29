@@ -84,7 +84,7 @@ class BIP66Test(BitcoinTestFramework):
         assert_equal(
             [
                 {
-                    "txid": spendtx.hash,
+                    "txid": spendtx.txid_hex,
                     "allowed": False,
                     "reject-reason": (
                         "mandatory-script-verify-flag-failed (Non-canonical DER"

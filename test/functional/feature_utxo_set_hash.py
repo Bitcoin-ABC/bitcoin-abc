@@ -49,7 +49,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
 
         # Create a spending transaction and mine a block which includes it
         tx = create_transaction(
-            node, spending.vtx[0].rehash(), node.getnewaddress(), amount=49_000_000
+            node, spending.vtx[0].txid_hex, node.getnewaddress(), amount=49_000_000
         )
         txid = node.sendrawtransaction(hexstring=tx.serialize().hex(), maxfeerate=0)
 
@@ -71,7 +71,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
                 for n, tx_out in enumerate(tx.vout):
                     coinbase = 1 if not tx.vin[0].prevout.txid else 0
 
-                    data = COutPoint(int(tx.rehash(), 16), n).serialize()
+                    data = COutPoint(int(tx.txid_hex, 16), n).serialize()
                     data += struct.pack("<i", height * 2 + coinbase)
                     data += tx_out.serialize()
 

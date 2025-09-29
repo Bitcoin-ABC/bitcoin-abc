@@ -504,7 +504,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block, ordered_txs = self.build_block_with_transactions(node, utxo, 5)
         self.utxos.append([ordered_txs[-1].sha256, 0, ordered_txs[-1].vout[0].nValue])
         test_node.send_and_ping(msg_tx(ordered_txs[1]))
-        assert ordered_txs[1].hash in node.getrawmempool()
+        assert ordered_txs[1].txid_hex in node.getrawmempool()
         test_node.send_and_ping(msg_tx(ordered_txs[1]))
 
         # Prefill 4 out of the 6 transactions, and verify that only the one
@@ -530,7 +530,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Make sure all transactions were accepted.
         mempool = node.getrawmempool()
         for tx in block.vtx[1:]:
-            assert tx.hash in mempool
+            assert tx.txid_hex in mempool
 
         # Attempt to add an extra transaction that will not make it into the
         # mempool because it pays no fee
@@ -546,7 +546,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         with node.assert_debug_log(["min relay fee not met"]):
             test_node.send_message(msg_tx(tx_no_fee))
             test_node.sync_with_ping()
-        assert tx_no_fee.hash not in node.getrawmempool()
+        assert tx_no_fee.txid_hex not in node.getrawmempool()
 
         # Add this tx to the block
         block.vtx.append(tx_no_fee)
@@ -582,7 +582,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Make sure all transactions were accepted.
         mempool = node.getrawmempool()
         for tx in ordered_txs[1:6]:
-            assert tx.hash in mempool
+            assert tx.txid_hex in mempool
 
         # Send compact block
         comp_block = HeaderAndShortIDs()
@@ -840,7 +840,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         delivery_peer.sync_with_ping()
         mempool = node.getrawmempool()
         for tx in block.vtx[1:]:
-            assert tx.hash in mempool
+            assert tx.txid_hex in mempool
 
         delivery_peer.send_and_ping(msg_cmpctblock(cmpct_block.to_p2p()))
         assert_equal(node.getbestblockhash(), uint256_hex(block.sha256))

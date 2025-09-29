@@ -149,7 +149,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.log.info("Check the votes on invalid transactions")
 
         invalid_tx = CTransaction()
-        invalid_txid = int(invalid_tx.rehash(), 16)
+        invalid_txid = int(invalid_tx.txid_hex, 16)
 
         # The node has the NOBAN whitelist flag, so it remains connected
         peer.send_txs_and_test(
@@ -390,7 +390,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             create_coinbase(node.getblockcount() - 1),
         )
         conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)["tx"]
-        assert conflicting_tx.get_id() != txid
+        assert conflicting_tx.txid_hex != txid
 
         conflicting_block.vtx.append(conflicting_tx)
         make_conform_to_ctor(conflicting_block)

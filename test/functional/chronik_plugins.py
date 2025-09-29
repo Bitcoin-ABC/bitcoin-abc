@@ -139,10 +139,10 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx1)
         node.sendrawtransaction(tx1.serialize().hex())
 
-        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         # Plugin ran on the mempool tx
-        proto_tx1 = chronik.tx(tx1.hash).ok()
+        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         tx1_plugin_outputs = [
             {},
             {"my_plugin": pb.PluginEntry(data=[b"argo"], groups=[b"a"])},
@@ -178,10 +178,10 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx2)
         node.sendrawtransaction(tx2.serialize().hex())
 
-        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
-        proto_tx2 = chronik.tx(tx2.hash).ok()
+        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         tx2_plugin_inputs = [tx1_plugin_outputs[3]]
         tx2_plugin_outputs = [
             {},
@@ -208,7 +208,7 @@ class MyPluginPlugin(Plugin):
             tx2_plugin_outputs[1:],
         )
 
-        proto_tx1 = chronik.tx(tx1.hash).ok()
+        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         txs = sorted([proto_tx1, proto_tx2], key=lambda t: t.txid[::-1])
         assert_equal(list(plugin.unconfirmed_txs(b"a").ok().txs), txs)
         assert_equal(list(plugin.confirmed_txs(b"a").ok().txs), [])
@@ -221,19 +221,19 @@ class MyPluginPlugin(Plugin):
         block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
         # Lexicographic order
-        txids = sorted([tx1.hash, tx2.hash])
+        txids = sorted([tx1.txid_hex, tx2.txid_hex])
         assert_equal(ws1.recv(), ws_msg(txids[0], pb.TX_CONFIRMED))
         assert_equal(ws1.recv(), ws_msg(txids[1], pb.TX_CONFIRMED))
-        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx2.txid_hex, pb.TX_CONFIRMED))
 
-        proto_tx1 = chronik.tx(tx1.hash).ok()
+        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
             tx1_plugin_outputs,
         )
 
-        proto_tx2 = chronik.tx(tx2.hash).ok()
+        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
             tx2_plugin_inputs,
@@ -273,9 +273,9 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx3)
         node.sendrawtransaction(tx3.serialize().hex())
 
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
-        proto_tx3 = chronik.tx(tx3.hash).ok()
+        proto_tx3 = chronik.tx(tx3.txid_hex).ok()
         tx3_plugin_inputs = [tx2_plugin_outputs[1], tx2_plugin_outputs[3]]
         tx3_plugin_outputs = [
             {},
@@ -304,7 +304,7 @@ class MyPluginPlugin(Plugin):
             tx3_plugin_outputs[1:],
         )
 
-        proto_tx2 = chronik.tx(tx2.hash).ok()
+        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [proto_tx3])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), [proto_tx2])
@@ -313,9 +313,9 @@ class MyPluginPlugin(Plugin):
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_CONFIRMED))
 
-        proto_tx3 = chronik.tx(tx3.hash).ok()
+        proto_tx3 = chronik.tx(tx3.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
             tx3_plugin_inputs,
@@ -330,7 +330,7 @@ class MyPluginPlugin(Plugin):
             tx3_plugin_outputs[1:],
         )
 
-        proto_tx3 = chronik.tx(tx3.hash).ok()
+        proto_tx3 = chronik.tx(tx3.txid_hex).ok()
         txs = sorted([proto_tx2, proto_tx3], key=lambda t: t.txid[::-1])
         assert_equal(list(plugin.unconfirmed_txs(b"b").ok().txs), [])
         assert_equal(list(plugin.confirmed_txs(b"b").ok().txs), txs)
@@ -338,8 +338,8 @@ class MyPluginPlugin(Plugin):
 
         # Disconnect block2, inputs + outputs still work
         node.invalidateblock(block2)
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
-        proto_tx3 = chronik.tx(tx3.hash).ok()
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        proto_tx3 = chronik.tx(tx3.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
             tx3_plugin_inputs,
@@ -358,14 +358,14 @@ class MyPluginPlugin(Plugin):
         node.invalidateblock(block1)
 
         # Topological order
-        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
         # Reorg first clears the mempool and then adds back in topological order
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_REMOVED_FROM_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
-        proto_tx1 = chronik.tx(tx1.hash).ok()
+        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
@@ -377,7 +377,7 @@ class MyPluginPlugin(Plugin):
             [tx1_plugin_outputs[1], tx1_plugin_outputs[2]],
         )
 
-        proto_tx2 = chronik.tx(tx2.hash).ok()
+        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
             tx2_plugin_inputs,
@@ -392,7 +392,7 @@ class MyPluginPlugin(Plugin):
             [tx2_plugin_outputs[2]],
         )
 
-        proto_tx3 = chronik.tx(tx3.hash).ok()
+        proto_tx3 = chronik.tx(tx3.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
             tx3_plugin_inputs,

@@ -94,21 +94,21 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
             CTxOut(coinvalue - 100000, P2SH_OP_TRUE),
         ]
         chronik.broadcast_tx(tx0.serialize()).ok()
-        assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash])
+        assert_equal(lokad_id_unconf(b"lok0"), [tx0.txid_hex])
 
-        assert_equal(ws1.recv(), ws_msg(tx0.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx0.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         node.setmocktime(mocktime + 1)
         tx1 = CTransaction()
         tx1.vin = [CTxIn(COutPoint(tx0.sha256, 1), spend_p2lokad(b"lok1"))]
         tx1.vout = [CTxOut(0, CScript([OP_RETURN, b"lok0", b"x" * 100]))]
         chronik.broadcast_tx(tx1.serialize()).ok()
-        assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash, tx1.hash])
-        assert_equal(lokad_id_unconf(b"lok1"), [tx1.hash])
+        assert_equal(lokad_id_unconf(b"lok0"), [tx0.txid_hex, tx1.txid_hex])
+        assert_equal(lokad_id_unconf(b"lok1"), [tx1.txid_hex])
         assert_equal(lokad_id_unconf(b"xxxx"), [])
 
-        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         # Unsub ws2 from lok2
         chronik_sub_lokad_id(ws2, node, b"lok2", is_unsub=True)
@@ -122,23 +122,27 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
             )
         ]
         chronik.broadcast_tx(tx2.serialize()).ok()
-        assert_equal(lokad_id_unconf(b"lok0"), [tx0.hash, tx1.hash, tx2.hash])
-        assert_equal(lokad_id_unconf(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_unconf(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_unconf(b"lok0"), [tx0.txid_hex, tx1.txid_hex, tx2.txid_hex]
+        )
+        assert_equal(lokad_id_unconf(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_unconf(b"lok2"), [tx2.txid_hex])
 
         # Only sent to ws1, not ws2
-        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         # Mine tx0, tx1, tx2
         blockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
 
-        assert_equal(lokad_id_conf(b"lok0"), sorted([tx0.hash, tx1.hash, tx2.hash]))
-        assert_equal(lokad_id_conf(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_conf(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_conf(b"lok0"), sorted([tx0.txid_hex, tx1.txid_hex, tx2.txid_hex])
+        )
+        assert_equal(lokad_id_conf(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_conf(b"lok2"), [tx2.txid_hex])
 
-        for txid in sorted([tx0.hash, tx1.hash, tx2.hash]):
+        for txid in sorted([tx0.txid_hex, tx1.txid_hex, tx2.txid_hex]):
             assert_equal(ws1.recv(), ws_msg(txid, pb.TX_CONFIRMED))
-        assert_equal(ws2.recv(), ws_msg(tx1.hash, pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx1.txid_hex, pb.TX_CONFIRMED))
 
         tx3 = CTransaction()
         tx3.vin = [CTxIn(COutPoint(tx0.sha256, 3), spend_p2lokad(b"lok3"))]
@@ -147,26 +151,29 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         ]
         chronik.broadcast_tx(tx3.serialize()).ok()
 
-        assert_equal(ws1.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx3.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         # Unconfirmed
-        assert_equal(lokad_id_unconf(b"lok0"), [tx3.hash])
+        assert_equal(lokad_id_unconf(b"lok0"), [tx3.txid_hex])
         assert_equal(lokad_id_unconf(b"lok1"), [])
-        assert_equal(lokad_id_unconf(b"lok2"), [tx3.hash])
-        assert_equal(lokad_id_unconf(b"lok3"), [tx3.hash])
+        assert_equal(lokad_id_unconf(b"lok2"), [tx3.txid_hex])
+        assert_equal(lokad_id_unconf(b"lok3"), [tx3.txid_hex])
         # Confirmed stays unchanged
-        assert_equal(lokad_id_conf(b"lok0"), sorted([tx0.hash, tx1.hash, tx2.hash]))
-        assert_equal(lokad_id_conf(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_conf(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_conf(b"lok0"), sorted([tx0.txid_hex, tx1.txid_hex, tx2.txid_hex])
+        )
+        assert_equal(lokad_id_conf(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_conf(b"lok2"), [tx2.txid_hex])
         assert_equal(lokad_id_conf(b"lok3"), [])
         # History
         assert_equal(
-            lokad_id_history(b"lok0"), [tx3.hash, tx2.hash, tx1.hash, tx0.hash]
+            lokad_id_history(b"lok0"),
+            [tx3.txid_hex, tx2.txid_hex, tx1.txid_hex, tx0.txid_hex],
         )
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx3.hash, tx2.hash])
-        assert_equal(lokad_id_history(b"lok3"), [tx3.hash])
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx3.txid_hex, tx2.txid_hex])
+        assert_equal(lokad_id_history(b"lok3"), [tx3.txid_hex])
 
         # Mine conflicting tx kicking out tx3
         tx3_conflict = CTransaction()
@@ -185,10 +192,10 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
 
-        assert_equal(ws1.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_REMOVED_FROM_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx3.txid_hex, pb.TX_REMOVED_FROM_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3.txid_hex, pb.TX_REMOVED_FROM_MEMPOOL))
 
-        assert_equal(ws2.recv(), ws_msg(tx3_conflict.hash, pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx3_conflict.txid_hex, pb.TX_CONFIRMED))
 
         # No unconfirmed anymore
         assert_equal(lokad_id_unconf(b"lok0"), [])
@@ -196,46 +203,56 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         assert_equal(lokad_id_unconf(b"lok2"), [])
         assert_equal(lokad_id_unconf(b"lok3"), [])
         # Confirmed
-        assert_equal(lokad_id_conf(b"lok0"), sorted([tx0.hash, tx1.hash, tx2.hash]))
-        assert_equal(lokad_id_conf(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_conf(b"lok2"), [tx2.hash])
-        assert_equal(lokad_id_conf(b"lok3"), [tx3_conflict.hash])
-        assert_equal(lokad_id_conf(b"lok4"), [tx3_conflict.hash])
+        assert_equal(
+            lokad_id_conf(b"lok0"), sorted([tx0.txid_hex, tx1.txid_hex, tx2.txid_hex])
+        )
+        assert_equal(lokad_id_conf(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_conf(b"lok2"), [tx2.txid_hex])
+        assert_equal(lokad_id_conf(b"lok3"), [tx3_conflict.txid_hex])
+        assert_equal(lokad_id_conf(b"lok4"), [tx3_conflict.txid_hex])
         # History
-        assert_equal(lokad_id_history(b"lok0"), [tx2.hash, tx1.hash, tx0.hash])
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx2.hash])
-        assert_equal(lokad_id_history(b"lok3"), [tx3_conflict.hash])
-        assert_equal(lokad_id_history(b"lok4"), [tx3_conflict.hash])
+        assert_equal(
+            lokad_id_history(b"lok0"), [tx2.txid_hex, tx1.txid_hex, tx0.txid_hex]
+        )
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx2.txid_hex])
+        assert_equal(lokad_id_history(b"lok3"), [tx3_conflict.txid_hex])
+        assert_equal(lokad_id_history(b"lok4"), [tx3_conflict.txid_hex])
 
         node.invalidateblock(block.hash)
 
-        assert_equal(ws2.recv(), ws_msg(tx3_conflict.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx3_conflict.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 
         # Back to unconfirmed
         assert_equal(lokad_id_unconf(b"lok0"), [])
         assert_equal(lokad_id_unconf(b"lok1"), [])
         assert_equal(lokad_id_unconf(b"lok2"), [])
-        assert_equal(lokad_id_unconf(b"lok3"), [tx3_conflict.hash])
-        assert_equal(lokad_id_unconf(b"lok4"), [tx3_conflict.hash])
+        assert_equal(lokad_id_unconf(b"lok3"), [tx3_conflict.txid_hex])
+        assert_equal(lokad_id_unconf(b"lok4"), [tx3_conflict.txid_hex])
         # Confirmed
-        assert_equal(lokad_id_conf(b"lok0"), sorted([tx0.hash, tx1.hash, tx2.hash]))
-        assert_equal(lokad_id_conf(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_conf(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_conf(b"lok0"), sorted([tx0.txid_hex, tx1.txid_hex, tx2.txid_hex])
+        )
+        assert_equal(lokad_id_conf(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_conf(b"lok2"), [tx2.txid_hex])
         assert_equal(lokad_id_conf(b"lok3"), [])
         assert_equal(lokad_id_conf(b"lok4"), [])
         # History
-        assert_equal(lokad_id_history(b"lok0"), [tx2.hash, tx1.hash, tx0.hash])
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx2.hash])
-        assert_equal(lokad_id_history(b"lok3"), [tx3_conflict.hash])
-        assert_equal(lokad_id_history(b"lok4"), [tx3_conflict.hash])
+        assert_equal(
+            lokad_id_history(b"lok0"), [tx2.txid_hex, tx1.txid_hex, tx0.txid_hex]
+        )
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx2.txid_hex])
+        assert_equal(lokad_id_history(b"lok3"), [tx3_conflict.txid_hex])
+        assert_equal(lokad_id_history(b"lok4"), [tx3_conflict.txid_hex])
 
         # Restarting leaves the LOKAD index intact
         self.restart_node(0, ["-chronik"])
-        assert_equal(lokad_id_history(b"lok0"), [tx2.hash, tx1.hash, tx0.hash])
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_history(b"lok0"), [tx2.txid_hex, tx1.txid_hex, tx0.txid_hex]
+        )
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx2.txid_hex])
 
         # Restarting with index disabled wipes the DB
         self.restart_node(0, ["-chronik", "-chroniklokadidindex=0"])
@@ -245,15 +262,19 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
 
         # Restarting with chroniklokadidindex=1 reindexes the LOKAD ID index
         self.restart_node(0, ["-chronik"])
-        assert_equal(lokad_id_history(b"lok0"), [tx2.hash, tx1.hash, tx0.hash])
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_history(b"lok0"), [tx2.txid_hex, tx1.txid_hex, tx0.txid_hex]
+        )
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx2.txid_hex])
 
         # Restarting again still leaves the index intact
         self.restart_node(0, ["-chronik", "-chroniklokadidindex=1"])
-        assert_equal(lokad_id_history(b"lok0"), [tx2.hash, tx1.hash, tx0.hash])
-        assert_equal(lokad_id_history(b"lok1"), [tx1.hash])
-        assert_equal(lokad_id_history(b"lok2"), [tx2.hash])
+        assert_equal(
+            lokad_id_history(b"lok0"), [tx2.txid_hex, tx1.txid_hex, tx0.txid_hex]
+        )
+        assert_equal(lokad_id_history(b"lok1"), [tx1.txid_hex])
+        assert_equal(lokad_id_history(b"lok2"), [tx2.txid_hex])
 
         # Wipe index again
         self.restart_node(0, ["-chronik", "-chroniklokadidindex=0"])

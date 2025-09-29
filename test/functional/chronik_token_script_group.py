@@ -83,7 +83,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -92,12 +92,12 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=tx.hash, atoms=5000),
-                slp_token(token_id=tx.hash, is_mint_baton=True),
+                slp_token(token_id=tx.txid_hex, atoms=5000),
+                slp_token(token_id=tx.txid_hex, is_mint_baton=True),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 genesis_info=pb.GenesisInfo(),
             ),
@@ -165,7 +165,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -174,13 +174,13 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, atoms=10),
-                alp_token(token_id=tx.hash, atoms=20),
-                alp_token(token_id=tx.hash, is_mint_baton=True),
+                alp_token(token_id=tx.txid_hex, atoms=10),
+                alp_token(token_id=tx.txid_hex, atoms=20),
+                alp_token(token_id=tx.txid_hex, is_mint_baton=True),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                 genesis_info=pb.GenesisInfo(),
             ),

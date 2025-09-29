@@ -265,7 +265,7 @@ class PackageRelayTest(BitcoinTestFramework):
         parent_sender = node.add_p2p_connection(P2PInterface())
 
         # 1. Child is received first. It is missing an input.
-        child_txid_int = int(tx_orphan_bad_sig.get_id(), 16)
+        child_txid_int = int(tx_orphan_bad_sig.txid_hex, 16)
         bad_orphan_sender.send_and_ping(msg_inv([CInv(t=MSG_TX, h=child_txid_int)]))
         bad_orphan_sender.wait_for_getdata([child_txid_int])
         bad_orphan_sender.send_and_ping(msg_tx(tx_orphan_bad_sig))
@@ -281,7 +281,7 @@ class PackageRelayTest(BitcoinTestFramework):
         # 4. Transactions should not be in mempool.
         node_mempool = node.getrawmempool()
         assert low_fee_parent["txid"] not in node_mempool
-        assert tx_orphan_bad_sig.rehash() not in node_mempool
+        assert tx_orphan_bad_sig.txid_hex not in node_mempool
 
         # 5. Peer that sent a consensus-invalid transaction should be
         # disconnected.
@@ -302,7 +302,7 @@ class PackageRelayTest(BitcoinTestFramework):
         tx_parent_bad_sig.vin[0].scriptSig = CScript([b"garbage"])
         pad_tx(tx_parent_bad_sig, 100)
         # Update the parent txid in the coin
-        low_fee_parent["new_utxo"]["txid"] = tx_parent_bad_sig.rehash()
+        low_fee_parent["new_utxo"]["txid"] = tx_parent_bad_sig.txid_hex
 
         high_fee_child = self.wallet.create_self_transfer(
             utxo_to_spend=low_fee_parent["new_utxo"], fee_rate=999 * FEERATE_1SAT_VB
@@ -319,7 +319,7 @@ class PackageRelayTest(BitcoinTestFramework):
         package_sender.send_and_ping(msg_tx(high_fee_child["tx"]))
 
         # 2. Node requests the missing parent by txid.
-        parent_txid_int = int(tx_parent_bad_sig.rehash(), 16)
+        parent_txid_int = int(tx_parent_bad_sig.txid_hex, 16)
         package_sender.wait_for_getdata([parent_txid_int])
 
         # 3. A different node relays the parent. The parent is first evaluated
@@ -330,7 +330,7 @@ class PackageRelayTest(BitcoinTestFramework):
 
         # 4. Transactions should not be in mempool.
         node_mempool = node.getrawmempool()
-        assert tx_parent_bad_sig.rehash() not in node_mempool
+        assert tx_parent_bad_sig.txid_hex not in node_mempool
         assert high_fee_child["txid"] not in node_mempool
 
         # 5. Peer sent a consensus-invalid transaction.

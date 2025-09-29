@@ -174,7 +174,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
         # push the one byte script to the stack
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx)
-        txid = tx.rehash()
+        txid = tx.txid_hex
 
         self.log.debug("Wait until tx is in node[1]'s mempool")
         p2p_rebroadcast_wallet.send_txs_and_test([tx], self.nodes[1])
@@ -190,7 +190,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
 
         self.log.debug("Check that node[1] will not send an invalid tx to node[0]")
         tx.vout[0].nValue += 1
-        txid = tx.rehash()
+        txid = tx.txid_hex
         # Send the transaction twice. The first time, it'll be rejected by ATMP
         # because it conflicts with a mempool transaction. The second time,
         # it'll be in the m_recent_rejects filter.

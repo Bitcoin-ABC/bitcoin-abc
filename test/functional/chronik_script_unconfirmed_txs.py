@@ -189,7 +189,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         ):
             conflict_tx.nLockTime = 2
             mine_txs.append(conflict_tx)
-            conflict_proto_tx.txid = bytes.fromhex(conflict_tx.hash)[::-1]
+            conflict_proto_tx.txid = bytes.fromhex(conflict_tx.txid_hex)[::-1]
             conflict_proto_tx.lock_time = 2
             mine_proto_txs.append(conflict_proto_tx)
 

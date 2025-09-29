@@ -202,8 +202,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 )
 
         # For ws1, this sends a REMOVED_FROM_MEMPOOL for tx3, and two CONFIRMED
-        check_tx_msgs(ws1, pb.TX_REMOVED_FROM_MEMPOOL, [tx3.hash])
-        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.hash]))
+        check_tx_msgs(ws1, pb.TX_REMOVED_FROM_MEMPOOL, [tx3.txid_hex])
+        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.txid_hex]))
 
         # For ws2, this only sends the CONFIRMED msgs
         check_tx_msgs(ws2, pb.TX_CONFIRMED, sorted([txid, txid2]))
@@ -212,7 +212,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         node.invalidateblock(block.hash)
 
         # Adds the disconnected block's txs back into the mempool
-        check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.hash])
+        check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.txid_hex])
         check_tx_msgs(ws2, pb.TX_ADDED_TO_MEMPOOL, [txid, txid2])
 
         # Let's get rid of the proofs vote
@@ -257,7 +257,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
 
         # Mine txs in a block -> sends CONFIRMED
         tip = self.generate(node, 1)[-1]
-        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.hash]))
+        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.txid_hex]))
         check_tx_msgs(ws2, pb.TX_CONFIRMED, sorted([txid, txid2]))
 
         # Wait for Avalanche finalization of block -> sends TX_FINALIZED
@@ -265,7 +265,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         check_tx_msgs(
             ws1,
             pb.TX_FINALIZED,
-            sorted([txid, tx3_conflict.hash]),
+            sorted([txid, tx3_conflict.txid_hex]),
             pb.TX_FINALIZATION_REASON_POST_CONSENSUS,
         )
         check_tx_msgs(

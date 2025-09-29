@@ -208,8 +208,8 @@ class SchnorrTest(BitcoinTestFramework):
         self.generate(node, 1, sync_fun=self.no_op)
         tip = self.getbestblock(node)
         # Make sure they are in the block, and mempool is now empty.
-        txhashes = {schnorrchecksigtx.hash, ecdsachecksigtx.hash}
-        assert txhashes.issubset(tx.rehash() for tx in tip.vtx)
+        txhashes = {schnorrchecksigtx.txid_hex, ecdsachecksigtx.txid_hex}
+        assert txhashes.issubset(tx.txid_hex for tx in tip.vtx)
         assert not node.getrawmempool()
 
         self.log.info("Schnorr in multisig is rejected with mandatory error.")

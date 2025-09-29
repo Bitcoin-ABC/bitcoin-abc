@@ -69,7 +69,9 @@ class ChronikTokenBurn(BitcoinTestFramework):
         txs = []
 
         tx = CTransaction()
-        tx.vin = [CTxIn(COutPoint(int(non_token_tx.hash, 16), 0), SCRIPTSIG_OP_TRUE)]
+        tx.vin = [
+            CTxIn(COutPoint(int(non_token_tx.txid_hex, 16), 0), SCRIPTSIG_OP_TRUE)
+        ]
         tx.vout = [
             CTxOut(
                 0,
@@ -88,7 +90,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -97,12 +99,12 @@ class ChronikTokenBurn(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                slp_token(token_id=tx.hash, atoms=5000),
-                slp_token(token_id=tx.hash, is_mint_baton=True),
+                slp_token(token_id=tx.txid_hex, atoms=5000),
+                slp_token(token_id=tx.txid_hex, is_mint_baton=True),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 genesis_info=pb.GenesisInfo(),
             ),
@@ -160,7 +162,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -169,12 +171,12 @@ class ChronikTokenBurn(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                alp_token(token_id=tx.hash, atoms=1000),
-                alp_token(token_id=tx.hash, is_mint_baton=True),
+                alp_token(token_id=tx.txid_hex, atoms=1000),
+                alp_token(token_id=tx.txid_hex, is_mint_baton=True),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
                 genesis_info=pb.GenesisInfo(),
             ),
@@ -221,7 +223,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
         # Burns SLP mint baton + ALP tokens without any OP_RETURN
         tx = CTransaction()
         tx.vin = [
-            CTxIn(COutPoint(int(non_token_tx.hash, 16), 1), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(int(non_token_tx.txid_hex, 16), 1), SCRIPTSIG_OP_TRUE),
             CTxIn(COutPoint(int(genesis_slp.txid, 16), 2), SCRIPTSIG_OP_TRUE),
             CTxIn(COutPoint(int(burn_alp.txid, 16), 1), SCRIPTSIG_OP_TRUE),
         ]

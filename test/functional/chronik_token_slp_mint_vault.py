@@ -110,7 +110,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -119,11 +119,11 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                vault_token(token_id=tx.hash, atoms=1000),
+                vault_token(token_id=tx.txid_hex, atoms=1000),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
                 genesis_info=pb.GenesisInfo(
                     token_ticker=b"SLPVAULT",

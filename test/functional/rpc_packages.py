@@ -113,7 +113,7 @@ class RPCPackagesTest(BitcoinTestFramework):
             self.independent_txns_testres_blank
             + [
                 {
-                    "txid": tx.get_id(),
+                    "txid": tx.txid_hex,
                     "allowed": False,
                     "reject-reason": "missing-inputs",
                 }
@@ -143,7 +143,7 @@ class RPCPackagesTest(BitcoinTestFramework):
             self.independent_txns_testres_blank
             + [
                 {
-                    "txid": tx_bad_sig.get_id(),
+                    "txid": tx_bad_sig.txid_hex,
                     "allowed": False,
                     "reject-reason": (
                         "mandatory-script-verify-flag-failed (Operation not valid with"
@@ -188,7 +188,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         assert_equal(
             node.testmempoolaccept(rawtxs=chain_hex[::-1]),
             [
-                {"txid": tx.get_id(), "package-error": "package-not-sorted"}
+                {"txid": tx.txid_hex, "package-error": "package-not-sorted"}
                 for tx in chain_txns[::-1]
             ],
         )
@@ -384,7 +384,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         assert_equal(submitpackage_result["package_msg"], "success")
         for package_txn in package_txns:
             tx = package_txn["tx"]
-            assert (txid := tx.get_id()) in submitpackage_result["tx-results"]
+            assert (txid := tx.txid_hex) in submitpackage_result["tx-results"]
             tx_result = submitpackage_result["tx-results"][txid]
             assert_equal(tx_result["vsize"], tx.billable_size())
             assert_equal(tx_result["fees"]["base"], DEFAULT_FEE)
@@ -402,7 +402,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         )
 
         # The node should announce each transaction. No guarantees for propagation.
-        peer.wait_for_broadcast([tx["tx"].get_id() for tx in package_txns])
+        peer.wait_for_broadcast([tx["tx"].txid_hex for tx in package_txns])
         self.generate(node, 1)
 
     def test_submitpackage(self):
@@ -441,7 +441,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         assert_equal(res["package_msg"], "transaction failed")
         first_txid = txs[0]["txid"]
         assert "error" not in res["tx-results"][first_txid]
-        sec_txid = bad_child.get_id()
+        sec_txid = bad_child.txid_hex
         assert_equal(res["tx-results"][sec_txid]["error"], "version")
         peer.wait_for_broadcast([first_txid])
 

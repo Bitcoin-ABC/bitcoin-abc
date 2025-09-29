@@ -94,12 +94,12 @@ class BIP68_112_113Test(BitcoinTestFramework):
         self.noban_tx_relay = True
 
     def create_self_transfer_from_utxo(self, input_tx):
-        utxo = self.miniwallet.get_utxo(txid=input_tx.rehash(), mark_as_spent=False)
+        utxo = self.miniwallet.get_utxo(txid=input_tx.txid_hex, mark_as_spent=False)
         tx = self.miniwallet.create_self_transfer(utxo_to_spend=utxo)["tx"]
         return tx
 
     def spend_tx(self, prev_tx):
-        inputs = [{"txid": prev_tx.hash, "vout": 0}]
+        inputs = [{"txid": prev_tx.txid_hex, "vout": 0}]
         outputs = {ADDRESS_ECREG_UNSPENDABLE: (prev_tx.vout[0].nValue - 1000) / XEC}
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
         spendtx = FromHex(CTransaction(), rawtx)

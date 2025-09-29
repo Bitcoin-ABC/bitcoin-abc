@@ -77,7 +77,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -87,19 +87,19 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             outputs=[
                 pb.Token(),
                 pb.Token(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     atoms=5000,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 ),
                 pb.Token(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     is_mint_baton=True,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 ),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 genesis_info=pb.GenesisInfo(
                     token_ticker=b"SLPTEST",
@@ -210,7 +210,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -222,7 +222,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
                 genesis_info=pb.GenesisInfo(),
             ),

@@ -168,7 +168,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
             pb.SpentBy(),
             pb.SpentBy(txid=bytes.fromhex(txid2)[::-1], input_idx=0),
             pb.SpentBy(txid=bytes.fromhex(txid2)[::-1], input_idx=1),
-            pb.SpentBy(txid=bytes.fromhex(tx3_conflict.hash)[::-1], input_idx=0),
+            pb.SpentBy(txid=bytes.fromhex(tx3_conflict.txid_hex)[::-1], input_idx=0),
         ]
         check_outputs_spent(conflict_spent, has_been_mined=True)
 

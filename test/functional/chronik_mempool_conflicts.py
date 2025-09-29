@@ -56,7 +56,7 @@ class ChronikMempoolConflicts(BitcoinTestFramework):
         tx2 = CTransaction()
         tx2.vin = [
             CTxIn(
-                COutPoint(int(tx1.hash, 16), 1),
+                COutPoint(int(tx1.txid_hex, 16), 1),
                 SCRIPTSIG_OP_TRUE,
             )
         ]
@@ -69,10 +69,10 @@ class ChronikMempoolConflicts(BitcoinTestFramework):
         tx3 = CTransaction()
         tx3.vin = [
             CTxIn(
-                COutPoint(int(tx1.hash, 16), 0),
+                COutPoint(int(tx1.txid_hex, 16), 0),
                 SCRIPTSIG_OP_TRUE,
             ),
-            CTxIn(COutPoint(int(tx2.hash, 16), 0), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(int(tx2.txid_hex, 16), 0), SCRIPTSIG_OP_TRUE),
         ]
         tx3.vout = [CTxOut(546, P2SH_OP_TRUE)]
         node.sendrawtransaction(tx3.serialize().hex())
@@ -91,9 +91,9 @@ class ChronikMempoolConflicts(BitcoinTestFramework):
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
 
-        chronik.tx(tx1.hash).err(404)
-        chronik.tx(tx2.hash).err(404)
-        chronik.tx(tx3.hash).err(404)
+        chronik.tx(tx1.txid_hex).err(404)
+        chronik.tx(tx2.txid_hex).err(404)
+        chronik.tx(tx3.txid_hex).err(404)
 
 
 if __name__ == "__main__":

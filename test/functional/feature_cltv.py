@@ -133,7 +133,7 @@ class BIP65Test(BitcoinTestFramework):
         # The funding tx only has unexecuted bad CLTV, in scriptpubkey; this is
         # valid.
         peer.send_and_ping(msg_tx(fundtx))
-        assert fundtx.hash in self.nodes[0].getrawmempool()
+        assert fundtx.txid_hex in self.nodes[0].getrawmempool()
 
         # Mine a block containing the funding transaction
         block.vtx.append(fundtx)
@@ -149,7 +149,7 @@ class BIP65Test(BitcoinTestFramework):
         assert_equal(
             [
                 {
-                    "txid": spendtx.hash,
+                    "txid": spendtx.txid_hex,
                     "allowed": False,
                     "reject-reason": (
                         "non-mandatory-script-verify-flag (Negative locktime)"

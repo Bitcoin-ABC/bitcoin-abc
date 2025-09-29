@@ -88,7 +88,7 @@ def create_block(
 
 
 def make_conform_to_ctor(block: CBlock):
-    block.vtx = [block.vtx[0]] + sorted(block.vtx[1:], key=lambda tx: tx.get_id())
+    block.vtx = [block.vtx[0]] + sorted(block.vtx[1:], key=lambda tx: tx.txid_hex)
 
 
 def script_BIP34_coinbase_height(height: int) -> CScript:

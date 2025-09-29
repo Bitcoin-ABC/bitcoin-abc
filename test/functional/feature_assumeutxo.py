@@ -747,7 +747,7 @@ class AssumeutxoTest(BitcoinTestFramework):
             [prevout], {getnewdestination()[2]: 24_990_000}
         )
         signed_tx = n1.signrawtransactionwithkey(raw_tx, [privkey], [prevout])["hex"]
-        signed_txid = FromHex(CTransaction(), signed_tx).rehash()
+        signed_txid = FromHex(CTransaction(), signed_tx).txid_hex
 
         assert n1.gettxout(prev_tx["txid"], 0) is not None
         n1.sendrawtransaction(signed_tx)

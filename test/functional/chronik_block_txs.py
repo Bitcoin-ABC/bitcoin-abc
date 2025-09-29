@@ -114,7 +114,10 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         tx2 = CTransaction()
         tx2.vin = [
-            CTxIn(outpoint=COutPoint(int(tx1.hash, 16), 0), scriptSig=SCRIPTSIG_OP_TRUE)
+            CTxIn(
+                outpoint=COutPoint(int(tx1.txid_hex, 16), 0),
+                scriptSig=SCRIPTSIG_OP_TRUE,
+            )
         ]
         tx2.vout = [
             CTxOut(3000, CScript([OP_RETURN, b"test"])),
@@ -135,7 +138,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
 
         proto_coinbase_tx = pb.Tx(
-            txid=bytes.fromhex(tx_coinbase.hash)[::-1],
+            txid=bytes.fromhex(tx_coinbase.txid_hex)[::-1],
             version=1,
             inputs=[
                 pb.TxInput(
@@ -160,7 +163,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
 
         proto_tx1 = pb.Tx(
-            txid=bytes.fromhex(tx1.hash)[::-1],
+            txid=bytes.fromhex(tx1.txid_hex)[::-1],
             version=1,
             inputs=[
                 pb.TxInput(
@@ -176,7 +179,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
                     sats=coinvalue - 10000,
                     output_script=bytes(P2SH_OP_TRUE),
                     spent_by=pb.SpentBy(
-                        txid=bytes.fromhex(tx2.hash)[::-1],
+                        txid=bytes.fromhex(tx2.txid_hex)[::-1],
                         input_idx=0,
                     ),
                 ),
@@ -191,11 +194,13 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
 
         proto_tx2 = pb.Tx(
-            txid=bytes.fromhex(tx2.hash)[::-1],
+            txid=bytes.fromhex(tx2.txid_hex)[::-1],
             version=1,
             inputs=[
                 pb.TxInput(
-                    prev_out=pb.OutPoint(txid=bytes.fromhex(tx1.hash)[::-1], out_idx=0),
+                    prev_out=pb.OutPoint(
+                        txid=bytes.fromhex(tx1.txid_hex)[::-1], out_idx=0
+                    ),
                     input_script=bytes(SCRIPTSIG_OP_TRUE),
                     output_script=bytes(P2SH_OP_TRUE),
                     sats=coinvalue - 10000,

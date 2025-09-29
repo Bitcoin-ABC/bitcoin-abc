@@ -199,7 +199,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         self.log.info("Send a legacy ECDSA multisig into mempool.")
         node.p2ps[0].send_txs_and_test([ecdsa0tx], node)
-        assert_equal(node.getrawmempool(), [ecdsa0tx.hash])
+        assert_equal(node.getrawmempool(), [ecdsa0tx.txid_hex])
 
         self.log.info("Trying to mine a non-null-dummy ECDSA.")
         self.check_for_ban_on_rejected_block(
@@ -215,12 +215,14 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         self.log.info("Submitting a Schnorr-multisig via net, and mining it in a block")
         node.p2ps[0].send_txs_and_test([schnorr1tx], node)
-        assert_equal(set(node.getrawmempool()), {ecdsa0tx.hash, schnorr1tx.hash})
+        assert_equal(
+            set(node.getrawmempool()), {ecdsa0tx.txid_hex, schnorr1tx.txid_hex}
+        )
         tip = self.build_block(tip, [schnorr1tx])
         node.p2ps[0].send_blocks_and_test([tip], node)
 
         self.log.info("That legacy ECDSA multisig is still in mempool, let's mine it")
-        assert_equal(node.getrawmempool(), [ecdsa0tx.hash])
+        assert_equal(node.getrawmempool(), [ecdsa0tx.txid_hex])
         tip = self.build_block(tip, [ecdsa0tx])
         node.p2ps[0].send_blocks_and_test([tip], node)
         assert_equal(node.getrawmempool(), [])

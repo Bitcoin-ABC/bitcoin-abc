@@ -83,7 +83,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_GROUP),
                     tx_type=pb.GENESIS,
                     actual_burn_atoms="0",
@@ -92,12 +92,12 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             inputs=[pb.Token()],
             outputs=[
                 pb.Token(),
-                group_token(token_id=tx.hash, atoms=5000),
-                group_token(token_id=tx.hash, is_mint_baton=True),
+                group_token(token_id=tx.txid_hex, atoms=5000),
+                group_token(token_id=tx.txid_hex, is_mint_baton=True),
                 pb.Token(),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_GROUP),
                 genesis_info=pb.GenesisInfo(
                     token_ticker=b"SLP NFT GROUP",
@@ -214,7 +214,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             status=pb.TOKEN_STATUS_NORMAL,
             entries=[
                 pb.TokenEntry(
-                    token_id=tx.hash,
+                    token_id=tx.txid_hex,
                     token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_CHILD),
                     tx_type=pb.GENESIS,
                     group_token_id=genesis.txid,
@@ -229,10 +229,10 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             inputs=[group_token(token_id=genesis.txid, entry_idx=1, atoms=1)],
             outputs=[
                 pb.Token(),
-                child_token(token_id=tx.hash, atoms=1),
+                child_token(token_id=tx.txid_hex, atoms=1),
             ],
             token_info=pb.TokenInfo(
-                token_id=tx.hash,
+                token_id=tx.txid_hex,
                 token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_CHILD),
                 genesis_info=pb.GenesisInfo(
                     token_ticker=b"SLP NFT CHILD",

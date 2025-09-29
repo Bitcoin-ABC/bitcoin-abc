@@ -156,7 +156,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
         # Transactions that should end up in the mempool
         expected_mempool = {
-            t.hash
+            t.txid_hex
             for t in [
                 tx_withhold,  # The transaction that is the root for all orphans
                 tx_orphan_1,  # The orphan transaction that splits the coins
@@ -195,7 +195,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         )
         pad_tx(rejected_parent)
         with node.assert_debug_log(
-            [f"not keeping orphan with rejected parents {rejected_parent.hash}"]
+            [f"not keeping orphan with rejected parents {rejected_parent.txid_hex}"]
         ):
             node.p2ps[0].send_txs_and_test([rejected_parent], node, success=False)
 

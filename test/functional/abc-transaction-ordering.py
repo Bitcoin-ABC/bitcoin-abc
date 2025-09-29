@@ -212,7 +212,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         assert_equal(len(replay_tx_block.vtx), 16)
         replay_tx_block.vtx.append(proper_block.vtx[5])
         replay_tx_block.vtx = [replay_tx_block.vtx[0]] + sorted(
-            replay_tx_block.vtx[1:], key=lambda tx: tx.get_id()
+            replay_tx_block.vtx[1:], key=lambda tx: tx.txid_hex
         )
         update_block(4449)
         peer.send_blocks_and_test(

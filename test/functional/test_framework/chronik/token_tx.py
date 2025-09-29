@@ -19,7 +19,7 @@ class TokenTx:
         token_info=None,
     ):
         self.tx = tx
-        self.txid = tx.hash
+        self.txid = tx.txid_hex
         self.status = status
         self.entries = entries
         self.inputs = inputs

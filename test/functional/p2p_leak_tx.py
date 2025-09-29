@@ -62,7 +62,7 @@ class P2PLeakTxTest(BitcoinTestFramework):
         self.log.debug("Request transaction")
         inbound_peer.last_message.pop("tx", None)
         inbound_peer.send_and_ping(want_tx)
-        assert_equal(inbound_peer.last_message.get("tx").tx.get_id(), txid)
+        assert_equal(inbound_peer.last_message.get("tx").tx.txid_hex, txid)
 
         self.log.debug(
             "Re-request of transaction after a second block is answered with notfound"
@@ -84,7 +84,7 @@ class P2PLeakTxTest(BitcoinTestFramework):
             inbound_peer.last_message.pop("tx", None)
         self.gen_node.parkblock(blockhash)
         inbound_peer.send_and_ping(want_tx)
-        assert_equal(inbound_peer.last_message.get("tx").tx.get_id(), txid)
+        assert_equal(inbound_peer.last_message.get("tx").tx.txid_hex, txid)
 
         # Restore the chain so we can generate valid proofs in the next test
         self.gen_node.unparkblock(blockhash)

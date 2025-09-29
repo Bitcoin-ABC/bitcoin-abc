@@ -186,7 +186,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
 
         # checks the mempool has exactly the same txns as in the provided list
         def check_mempool_equal(txns):
-            assert set(node.getrawmempool()) == {tx.hash for tx in txns}
+            assert set(node.getrawmempool()) == {tx.txid_hex for tx in txns}
 
         # Create an always-valid chained transaction. It spends a
         # scriptPub=OP_TRUE coin into another. Returns the transaction and its

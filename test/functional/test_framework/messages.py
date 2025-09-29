@@ -441,7 +441,7 @@ class CTransaction:
         )
 
     @property
-    def hash(self) -> str:
+    def txid_hex(self) -> str:
         """Return txid  as hex string."""
         return hash256(self.serialize())[::-1].hex()
 
@@ -449,15 +449,6 @@ class CTransaction:
     def sha256(self) -> int:
         """Return txid as integer."""
         return uint256_from_str(hash256(self.serialize()))
-
-    # Recalculate the txid
-    # TODO: get rid of this method, replace call-sites by .hash access
-    def rehash(self):
-        return self.hash
-
-    def get_id(self):
-        # For now, just forward the hash.
-        return self.hash
 
     def is_valid(self):
         for tout in self.vout:

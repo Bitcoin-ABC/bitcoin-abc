@@ -604,7 +604,7 @@ class P2PInterface(P2PConnection):
         def test_function():
             if not self.last_message.get("tx"):
                 return False
-            return self.last_message["tx"].tx.rehash() == txid
+            return self.last_message["tx"].tx.txid_hex == txid
 
         self.wait_until(test_function, timeout=timeout)
 
@@ -940,11 +940,15 @@ class P2PDataStore(P2PInterface):
             if success:
                 # Check that all txs are now in the mempool
                 for tx in txs:
-                    assert tx.hash in raw_mempool, f"{tx.hash} not found in mempool"
+                    assert (
+                        tx.txid_hex in raw_mempool
+                    ), f"{tx.txid_hex} not found in mempool"
             else:
                 # Check that none of the txs are now in the mempool
                 for tx in txs:
-                    assert tx.hash not in raw_mempool, f"{tx.hash} tx found in mempool"
+                    assert (
+                        tx.txid_hex not in raw_mempool
+                    ), f"{tx.txid_hex} tx found in mempool"
 
         if reject_reason:
             with node.assert_debug_log(expected_msgs=[reject_reason]):

@@ -70,7 +70,7 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Tx not yet picked up by chronik")
         time.sleep(0.1)
-        chronik.tx(tx.hash).err(404)
+        chronik.tx(tx.txid_hex).err(404)
 
         self.log.info("Resume indexing and sync Chronik")
         chronik.resume().ok()
@@ -78,7 +78,7 @@ class ChronikPauseTest(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         self.log.info("Chronik has now indexed the tx")
-        chronik.tx(tx.hash).ok()
+        chronik.tx(tx.txid_hex).ok()
 
         self.log.info("Pause Chronik indexing for block processing")
         chronik.pause().ok()
@@ -100,8 +100,8 @@ class ChronikPauseTest(BitcoinTestFramework):
         chronik.block(blockA.hash).err(404)
 
         self.log.info("Chronik still believes the old tx exists")
-        chronik.tx(tx.hash).ok()
-        chronik.tx(conflict_tx.hash).err(404)
+        chronik.tx(tx.txid_hex).ok()
+        chronik.tx(conflict_tx.txid_hex).err(404)
 
         self.log.info("Resume indexing and sync Chronik")
         chronik.resume().ok()
@@ -109,8 +109,8 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Block now indexed and tx conflict resolved")
         chronik.block(blockA.hash).ok()
-        chronik.tx(tx.hash).err(404)
-        chronik.tx(conflict_tx.hash).ok()
+        chronik.tx(tx.txid_hex).err(404)
+        chronik.tx(conflict_tx.txid_hex).ok()
 
         self.log.info("Pause Chronik for reorg")
         chronik.pause().ok()
@@ -130,8 +130,8 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Reorg returns tx to mempool")
         assert (
-            conflict_tx.hash in node.getrawmempool()
-        ), f"{conflict_tx.hash} not found in mempool"
+            conflict_tx.txid_hex in node.getrawmempool()
+        ), f"{conflict_tx.txid_hex} not found in mempool"
 
         self.log.info("Chronik still thinks blockA exists")
         time.sleep(0.1)
@@ -154,7 +154,7 @@ class ChronikPauseTest(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         # Check if spent coins are indexed correctly
-        tx_proto = chronik.tx(conflict_tx.hash).ok()
+        tx_proto = chronik.tx(conflict_tx.txid_hex).ok()
         assert_equal(tx_proto.inputs[0].output_script, bytes(P2SH_OP_TRUE))
         assert_equal(tx_proto.inputs[0].sats, coinvalue)
 
