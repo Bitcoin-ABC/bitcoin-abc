@@ -46,7 +46,7 @@ export default function StakingContent() {
                   <p className="mt-2 text-red-200">
                     There are fake eCash staking guides that attempt to steal
                     your coins. To stake on eCash, you must run a
-                    fully-validating node with avalanche enabled. There is no
+                    fully-validating node with Avalanche enabled. There is no
                     "wallet only" staking option. Use extreme caution with any
                     third party staking service.
                   </p>
@@ -73,7 +73,7 @@ export default function StakingContent() {
                 network upgrade
               </Link>
               . The purpose of staking rewards is to incentivize running eCash
-              avalanche nodes to improve the overall security and performance of
+              Avalanche nodes to improve the overall security and performance of
               eCash. As such, it is important for stakers to run high quality
               nodes. This will help the eCash system to work well, and also
               ensure you receive the staking rewards.
@@ -161,7 +161,7 @@ export default function StakingContent() {
                   of Delegations. For best redundancy, the nodes should be
                   geographically distributed, in different data centres and with
                   different providers. This will help provide better service to
-                  the avalanche network, and ease in upgrading nodes one at a
+                  the Avalanche network, and ease in upgrading nodes one at a
                   time to ensure no staking downtime.
                 </span>
               </li>
@@ -172,7 +172,7 @@ export default function StakingContent() {
                 <span>
                   Do not use Tor for your staking node. Using Tor results in an
                   unreliable connection to the rest of the network. It provides
-                  worse service to the avalanche network, and increases the
+                  worse service to the Avalanche network, and increases the
                   chance of losing your staking rewards.
                 </span>
               </li>
@@ -284,7 +284,7 @@ export default function StakingContent() {
                     rel="noopener noreferrer"
                     className="text-blue-400 underline hover:text-blue-300"
                   >
-                    stakedXec.com - tokenized staking with XECX
+                    stakedxec.com - tokenized staking with XECX
                   </a>
                 </span>
               </li>
