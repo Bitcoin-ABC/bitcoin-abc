@@ -106,7 +106,10 @@ export default function Navbar({ showBanner }: NavbarProps) {
             rel="noopener noreferrer"
             className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[30px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs font-medium leading-none transition-all duration-300 lg:text-sm"
           >
-            Don't miss the 2025 Electronic Cash Conference! Oct 4-5
+            <div>
+              Don't miss the 2025 Electronic Cash Conference!
+              <span className="whitespace-nowrap"> Oct 4-5</span>
+            </div>
           </Link>
         )}
         <div className="flex w-full max-w-[1400px] items-center justify-between px-4 py-4">
