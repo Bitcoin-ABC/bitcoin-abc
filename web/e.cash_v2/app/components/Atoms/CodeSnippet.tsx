@@ -9,26 +9,32 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 const snippets: Record<string, string> = {
-  "chronik-init.ts": `// Initialize a Chronik client for eCash
-import Chronik from 'chronik-client'
+  "tx.ts": `// Initialize a Chronik client for eCash
+import { ChronikClient } from 'chronik-client'
 
-// Point to a public Chronik endpoint (mainnet)
-const chronik = new Chronik('https://chronik.be.cash/xec')
+// Point to a public Chronik endpoint or endpoints
+const chronik = new ChronikClient(['https://chronik.e.cash/'])
 
-// Test the connection by fetching the current block height
-async function initChronik() {
+// Get an indexed Tx by txid
+async function getTx(txid: string) {
   try {
-    const { blockHeight } = await chronik.blockchain().blockHeight()
-    console.log('Connected to Chronik, current height:', blockHeight)
+    const tx = await chronik.tx(txid)
+    console.log('tx', tx)
   } catch (err) {
-    console.error('Failed to connect to Chronik:', err)
+    console.error(\`Error fetching details for txid \${txid}:\`, err)
   }
 }
 
-initChronik()
+getTx("0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0")
 `,
 
-  "address-utxos.ts": `// Fetch UTXOs for a given address
+  "utxos.ts": `// Initialize a Chronik client for eCash
+import { ChronikClient } from 'chronik-client'
+
+// Point to a public Chronik endpoint or endpoints
+const chronik = new ChronikClient(['https://chronik.e.cash/'])
+
+// Fetch UTXOs for a given address
 async function fetchUtxos(address: string) {
   try {
     const utxoResponse = await chronik.address(address).utxos()
@@ -40,34 +46,66 @@ async function fetchUtxos(address: string) {
   }
 }
 
-// Example usage:
-// fetchUtxos('bitcoincash:qr...')
+fetchUtxos('ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07')
 `,
 
-  "address-monitor.ts": `// Monitor an address for new incoming transactions
-async function monitorAddress(address: string, pollInterval = 5000) {
-  const seen = new Set<string>()
-  // Initial load of UTXOs
-  const initial = await chronik.address(address).utxos()
-  initial.forEach((utxo) => seen.add(utxo.txid))
+  "websocket.ts": `import { ChronikClient } from "chronik-client";
 
-  setInterval(async () => {
-    try {
-      const current = await chronik.address(address).utxos()
-      for (const utxo of current) {
-        if (!seen.has(utxo.txid)) {
-          console.log('New UTXO for', address, utxo)
-          seen.add(utxo.txid)
-        }
-      }
-    } catch (err) {
-      console.error('Error polling UTXOs:', err)
-    }
-  }, pollInterval)
+const TEST_ADDRESS = "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07";
+
+// Test websocket connection for a given chronik server
+async function testWebSocket() {
+  // Get URL from command line args, default to chronik.e.cash
+  const url = process.argv[2] || "https://chronik.e.cash";
+
+  console.log(\`Testing WebSocket connection to: \${url}\`);
+
+  try {
+    const chronik = new ChronikClient([url]);
+
+    // Create WebSocket connection
+    const ws = chronik.ws({
+      onMessage: (msg) => {
+        console.log("Received message:", JSON.stringify(msg, null, 2));
+      },
+      onConnect: () => {
+        console.log("WebSocket connected");
+      },
+      onReconnect: () => {
+        console.log("WebSocket reconnected");
+      },
+      onEnd: () => {
+        console.log("WebSocket connection ended");
+      },
+    });
+
+    // Wait for connection
+    await ws.waitForOpen();
+    console.log("WebSocket is ready");
+
+    // Subscribe to blocks
+    ws.subscribeToBlocks();
+    console.log("Subscribed to blocks");
+
+    // Subscribe to test address
+    ws.subscribeToAddress(TEST_ADDRESS);
+    console.log(\`Subscribed to address: \${TEST_ADDRESS}\`);
+
+    console.log("Listening for messages... (Press Ctrl+C to stop)");
+
+    // Graceful shutdown
+    process.on("SIGINT", () => {
+      console.log("🛑 Shutting down...");
+      ws.close();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    process.exit(1);
+  }
 }
 
-// Example usage:
-// monitorAddress('ecash:qrq3…')
+testWebSocket().catch(console.error);
 `,
 };
 
