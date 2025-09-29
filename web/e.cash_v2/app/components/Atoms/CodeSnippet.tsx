@@ -67,7 +67,7 @@ async function monitorAddress(address: string, pollInterval = 5000) {
 }
 
 // Example usage:
-monitorAddress('ecash:qrq3…')
+// monitorAddress('ecash:qrq3…')
 `,
 };
 
@@ -92,7 +92,7 @@ export default function CodeSnippetTabs() {
   const language = extLangMap[ext] || ext;
 
   return (
-    <div className="scrollx-container w-full overflow-x-auto scroll-smooth bg-gradient-to-bl from-[#120D1C] to-black/60 p-4 lg:h-[550px] lg:p-10">
+    <div className="scrollx-container w-full overflow-x-auto scroll-smooth bg-gradient-to-bl from-[#120D1C] to-black/60 p-4 lg:h-[590px] lg:p-10">
       <div className="mb-4 flex items-center">
         {tabs.map((tab) => (
           <button
