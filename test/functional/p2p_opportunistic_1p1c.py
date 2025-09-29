@@ -265,7 +265,7 @@ class PackageRelayTest(BitcoinTestFramework):
         parent_sender = node.add_p2p_connection(P2PInterface())
 
         # 1. Child is received first. It is missing an input.
-        child_txid_int = int(tx_orphan_bad_sig.txid_hex, 16)
+        child_txid_int = tx_orphan_bad_sig.txid_int
         bad_orphan_sender.send_and_ping(msg_inv([CInv(t=MSG_TX, h=child_txid_int)]))
         bad_orphan_sender.wait_for_getdata([child_txid_int])
         bad_orphan_sender.send_and_ping(msg_tx(tx_orphan_bad_sig))
@@ -319,7 +319,7 @@ class PackageRelayTest(BitcoinTestFramework):
         package_sender.send_and_ping(msg_tx(high_fee_child["tx"]))
 
         # 2. Node requests the missing parent by txid.
-        parent_txid_int = int(tx_parent_bad_sig.txid_hex, 16)
+        parent_txid_int = tx_parent_bad_sig.txid_int
         package_sender.wait_for_getdata([parent_txid_int])
 
         # 3. A different node relays the parent. The parent is first evaluated

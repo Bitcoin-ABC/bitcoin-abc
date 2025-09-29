@@ -121,7 +121,7 @@ class OrphanHandlingTest(BitcoinTestFramework):
 
     def relay_transaction(self, peer, tx):
         """Relay transaction using MSG_TX"""
-        txid = int(tx.txid_hex, 16)
+        txid = tx.txid_int
         peer.send_and_ping(msg_inv([CInv(t=MSG_TX, h=txid)]))
         self.nodes[0].bumpmocktime(TXREQUEST_TIME_SKIP)
         peer.wait_for_getdata([txid])
@@ -167,7 +167,7 @@ class OrphanHandlingTest(BitcoinTestFramework):
 
         # Spy peer should not be able to query the node for the parent yet, since it hasn't been
         # announced / insufficient time has elapsed.
-        parent_inv = CInv(t=MSG_TX, h=int(tx_parent_arrives["tx"].txid_hex, 16))
+        parent_inv = CInv(t=MSG_TX, h=tx_parent_arrives["tx"].txid_int)
         assert_equal(len(peer_spy.get_invs()), 0)
         peer_spy.assert_no_immediate_response(msg_getdata([parent_inv]))
 

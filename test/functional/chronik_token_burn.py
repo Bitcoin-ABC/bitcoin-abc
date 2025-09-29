@@ -69,9 +69,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
         txs = []
 
         tx = CTransaction()
-        tx.vin = [
-            CTxIn(COutPoint(int(non_token_tx.txid_hex, 16), 0), SCRIPTSIG_OP_TRUE)
-        ]
+        tx.vin = [CTxIn(COutPoint(non_token_tx.txid_int, 0), SCRIPTSIG_OP_TRUE)]
         tx.vout = [
             CTxOut(
                 0,
@@ -223,7 +221,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
         # Burns SLP mint baton + ALP tokens without any OP_RETURN
         tx = CTransaction()
         tx.vin = [
-            CTxIn(COutPoint(int(non_token_tx.txid_hex, 16), 1), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(non_token_tx.txid_int, 1), SCRIPTSIG_OP_TRUE),
             CTxIn(COutPoint(int(genesis_slp.txid, 16), 2), SCRIPTSIG_OP_TRUE),
             CTxIn(COutPoint(int(burn_alp.txid, 16), 1), SCRIPTSIG_OP_TRUE),
         ]

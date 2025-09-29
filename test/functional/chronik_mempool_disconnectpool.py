@@ -63,7 +63,7 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
         tx2 = CTransaction()
         tx2.vin = [
             CTxIn(
-                COutPoint(int(tx1.txid_hex, 16), 1),
+                COutPoint(tx1.txid_int, 1),
                 SCRIPTSIG_OP_TRUE,
             )
         ]

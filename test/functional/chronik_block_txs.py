@@ -114,10 +114,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         tx2 = CTransaction()
         tx2.vin = [
-            CTxIn(
-                outpoint=COutPoint(int(tx1.txid_hex, 16), 0),
-                scriptSig=SCRIPTSIG_OP_TRUE,
-            )
+            CTxIn(outpoint=COutPoint(tx1.txid_int, 0), scriptSig=SCRIPTSIG_OP_TRUE)
         ]
         tx2.vout = [
             CTxOut(3000, CScript([OP_RETURN, b"test"])),

@@ -149,7 +149,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.log.info("Check the votes on invalid transactions")
 
         invalid_tx = CTransaction()
-        invalid_txid = int(invalid_tx.txid_hex, 16)
+        invalid_txid = invalid_tx.txid_int
 
         # The node has the NOBAN whitelist flag, so it remains connected
         peer.send_txs_and_test(

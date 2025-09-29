@@ -71,7 +71,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
                 for n, tx_out in enumerate(tx.vout):
                     coinbase = 1 if not tx.vin[0].prevout.txid else 0
 
-                    data = COutPoint(int(tx.txid_hex, 16), n).serialize()
+                    data = COutPoint(tx.txid_int, n).serialize()
                     data += struct.pack("<i", height * 2 + coinbase)
                     data += tx_out.serialize()
 
