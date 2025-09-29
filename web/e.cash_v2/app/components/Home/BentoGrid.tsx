@@ -93,7 +93,7 @@ export default function BentoGrid() {
           />
           <Card
             title="Minimal Fees"
-            text="Transactions for less than $0.001"
+            text="Transactions for less than a hundredth of a cent"
             icon="/coins-icon.png"
             image="/fees.png"
             className="bg-gradient-to-bl pb-[250px] lg:w-1/3 lg:pb-0"
