@@ -37,7 +37,7 @@ export default function CoreTech() {
     {
       title: "Tokens",
       description:
-        "A simple, yet powerful token protocol. Supported features include minting, burning, airdrops, and atomic swaps. Unlike on smart chains, tokens can never be frozen by the mint address, and fees are virtually zero",
+        "Create and trade tokens instantly. Supported features include minting, burning, airdrops, and atomic swaps. Unlike on smart chains, tokens can never be frozen by the mint address, and fees are virtually zero",
       bulletPoints: [
         "One-click token and NFT creation",
         "Zero-slippage trading on native dex",

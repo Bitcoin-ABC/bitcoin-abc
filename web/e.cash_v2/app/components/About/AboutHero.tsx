@@ -39,7 +39,7 @@ export default function AboutHero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            The future of payments requires innovation
+            The future of payments requires new technology
           </h1>
 
           <p>
