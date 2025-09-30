@@ -28,6 +28,15 @@ template <class T>
     return i + j;
 }
 
+template <std::unsigned_integral T, std::unsigned_integral U>
+[[nodiscard]] constexpr bool TrySub(T &i, const U j) noexcept {
+    if (i < T{j}) {
+        return false;
+    }
+    i -= T{j};
+    return true;
+}
+
 /**
  * @brief Left bit shift with overflow checking.
  * @param input The input value to be left shifted.

@@ -9,6 +9,7 @@
 #include <clientversion.h>
 #include <common/system.h>
 #include <logging.h>
+#include <logging/timer.h>
 #include <pow/pow.h>
 #include <random.h>
 #include <util/signalinterrupt.h>
@@ -32,6 +33,9 @@ static constexpr uint8_t DB_LAST_BLOCK{'l'};
 static constexpr uint8_t DB_COINS{'c'};
 static constexpr uint8_t DB_TXINDEX_BLOCK{'T'};
 //               uint8_t DB_TXINDEX{'t'}
+
+// Threshold for warning when writing this many dirty cache entries to disk.
+static constexpr size_t WARN_FLUSH_COINS_COUNT{10'000'000};
 
 util::Result<void> CheckLegacyTxindex(CBlockTreeDB &block_tree_db) {
     CBlockLocator ignored{};
@@ -128,7 +132,7 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
                               const BlockHash &hashBlock) {
     CDBBatch batch(*m_db);
     size_t count = 0;
-    size_t changed = 0;
+    const size_t dirty_count{cursor.GetDirtyCount()};
     assert(!hashBlock.IsNull());
 
     BlockHash old_tip = GetBestBlock();
@@ -140,6 +144,16 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
             old_tip = old_heads[1];
         }
     }
+
+    if (dirty_count > WARN_FLUSH_COINS_COUNT) {
+        LogWarning("Flushing large (%d entries) UTXO set to disk, it may take "
+                   "several minutes\n",
+                   dirty_count);
+    }
+    LOG_TIME_MILLIS_WITH_CATEGORY(
+        strprintf("write coins cache to disk (%d out of %d cached coins)",
+                  dirty_count, cursor.GetTotalCount()),
+        BCLog::BENCH);
 
     // In the first batch, mark the database as being in the middle of a
     // transition from old_tip to hashBlock.
@@ -156,7 +170,6 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
             } else {
                 batch.Write(entry, it->second.coin);
             }
-            changed++;
         }
         count++;
         it = cursor.NextAndMaybeErase(*it);
@@ -185,7 +198,7 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
     LogPrint(BCLog::COINDB,
              "Committed %u changed transaction outputs (out of "
              "%u) to coin database...\n",
-             (unsigned int)changed, (unsigned int)count);
+             (unsigned int)dirty_count, (unsigned int)count);
 }
 
 size_t CCoinsViewDB::EstimateSize() const {

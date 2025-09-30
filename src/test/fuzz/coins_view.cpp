@@ -154,6 +154,7 @@ void TestCoinsView(FuzzedDataProvider &fuzzed_data_provider,
             [&] {
                 CoinsCachePair sentinel{};
                 sentinel.second.SelfRef(sentinel);
+                size_t dirty_count{0};
                 CCoinsMapMemoryResource resource;
                 CCoinsMap coins_map{
                     0, SaltedOutpointHasher{/*deterministic=*/true},
@@ -182,10 +183,12 @@ void TestCoinsView(FuzzedDataProvider &fuzzed_data_provider,
                     if (fresh) {
                         CCoinsCacheEntry::SetFresh(*it, sentinel);
                     }
+                    dirty_count += dirty;
                 }
                 bool expected_code_path = false;
                 try {
-                    auto cursor{CoinsViewCacheCursor(sentinel, coins_map,
+                    auto cursor{CoinsViewCacheCursor(dirty_count, sentinel,
+                                                     coins_map,
                                                      /*will_erase=*/true)};
                     BlockHash best_block{coins_view_cache.GetBestBlock()};
                     if (fuzzed_data_provider.ConsumeBool()) {

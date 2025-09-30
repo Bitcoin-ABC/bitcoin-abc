@@ -88,8 +88,6 @@ using node::BlockMap;
 using node::fReindex;
 using node::SnapshotMetadata;
 
-/** Size threshold for warning about slow UTXO set flush to disk. 1 GiB */
-static constexpr size_t WARN_FLUSH_COINS_SIZE = 1 << 30;
 /**
  * Time window to wait between writing blocks/block index and chainstate to
  * disk.
@@ -2615,8 +2613,9 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
     std::set<int> setFilesToPrune;
     bool full_flush_completed = false;
 
-    const size_t coins_count = CoinsTip().GetCacheSize();
-    const size_t coins_mem_usage = CoinsTip().DynamicMemoryUsage();
+    [[maybe_unused]] const size_t coins_count{CoinsTip().GetCacheSize()};
+    [[maybe_unused]] const size_t coins_mem_usage{
+        CoinsTip().DynamicMemoryUsage()};
 
     try {
         {
@@ -2736,17 +2735,6 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 }
 
                 if (!CoinsTip().GetBestBlock().IsNull()) {
-                    if (coins_mem_usage >= WARN_FLUSH_COINS_SIZE) {
-                        LogWarning("Flushing large (%d GiB) UTXO set to disk, "
-                                   "it may take several minutes\n",
-                                   coins_mem_usage >> 30);
-                    }
-                    LOG_TIME_MILLIS_WITH_CATEGORY(
-                        strprintf(
-                            "write coins cache to disk (%d coins, %.2fKiB)",
-                            coins_count, coins_mem_usage >> 10),
-                        BCLog::BENCH);
-
                     // Typical Coin structures on disk are around 48 bytes in
                     // size. Pushing a new one to the database can cause it to
                     // be written twice (once in the log, and once in the
@@ -2755,7 +2743,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     // conservative safety factor of 2.
                     if (!CheckDiskSpace(m_chainman.m_options.datadir,
                                         48 * 2 * 2 *
-                                            CoinsTip().GetCacheSize())) {
+                                            CoinsTip().GetDirtyCount())) {
                         return FatalError(m_chainman.GetNotifications(), state,
                                           "Disk space is too low!",
                                           _("Disk space is too low!"));

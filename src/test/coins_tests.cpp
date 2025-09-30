@@ -97,6 +97,7 @@ public:
     CCoinsMap &map() const { return cacheCoins; }
     CoinsCachePair &sentinel() const { return m_sentinel; }
     size_t &usage() const { return cachedCoinsUsage; }
+    size_t &dirty() const { return m_dirty_count; }
 };
 } // namespace
 
@@ -205,9 +206,18 @@ struct CacheTest : BasicTestingSetup {
                     }
 
                     Coin newcoin(txout, 1, false);
-                    bool is_overwrite = !coin.IsSpent() || m_rng.rand32() & 1;
-                    stack.back()->AddCoin(COutPoint(txid, 0), newcoin,
-                                          is_overwrite);
+                    if (COutPoint op(txid, 0);
+                        !stack.back()->map().contains(op) &&
+                        !newcoin.GetTxOut().scriptPubKey.IsUnspendable() &&
+                        m_rng.randbool()) {
+                        stack.back()->EmplaceCoinInternalDANGER(
+                            std::move(op), std::move(newcoin));
+                    } else {
+                        stack.back()->AddCoin(
+                            op, std::move(newcoin),
+                            /*possible_overwrite=*/!coin.IsSpent() ||
+                                m_rng.randbool());
+                    }
                 } else {
                     // Spend the coin.
                     removed_an_entry = true;
@@ -715,8 +725,11 @@ static void WriteCoinsViewEntry(CCoinsView &view, const MaybeCoin &cache_coin) {
     if (cache_coin) {
         InsertCoinMapEntry(map, sentinel, *cache_coin);
     }
-    auto cursor{CoinsViewCacheCursor(sentinel, map, /*will_erase=*/true)};
+    size_t dirty_count{cache_coin && cache_coin->IsDirty()};
+    auto cursor{
+        CoinsViewCacheCursor(dirty_count, sentinel, map, /*will_erase=*/true)};
     view.BatchWrite(cursor, BlockHash{});
+    BOOST_CHECK_EQUAL(dirty_count, 0U);
 }
 
 class SingleEntryCacheTest {
@@ -730,6 +743,7 @@ public:
         if (cache_coin) {
             cache.usage() +=
                 InsertCoinMapEntry(cache.map(), cache.sentinel(), *cache_coin);
+            cache.dirty() += cache_coin->IsDirty();
         }
     }
 
@@ -1242,6 +1256,7 @@ BOOST_AUTO_TEST_CASE(ccoins_reset_guard) {
                CScript{} << m_rng.randbytes(CScriptBase::STATIC_SIZE + 1)},
         1, false};
     cache.EmplaceCoinInternalDANGER(COutPoint{outpoint}, Coin{coin});
+    BOOST_CHECK_EQUAL(cache.GetDirtyCount(), 1U);
 
     BlockHash cache_best_block{m_rng.rand256()};
     cache.SetBestBlock(cache_best_block);
@@ -1251,12 +1266,14 @@ BOOST_AUTO_TEST_CASE(ccoins_reset_guard) {
         BOOST_CHECK(cache.AccessCoin(outpoint) == coin);
         BOOST_CHECK(!cache.AccessCoin(outpoint).IsSpent());
         BOOST_CHECK_EQUAL(cache.GetCacheSize(), 1);
+        BOOST_CHECK_EQUAL(cache.GetDirtyCount(), 1);
         BOOST_CHECK_EQUAL(cache.GetBestBlock(), cache_best_block);
         BOOST_CHECK(!root_cache.HaveCoinInCache(outpoint));
     }
 
     BOOST_CHECK(cache.AccessCoin(outpoint).IsSpent());
     BOOST_CHECK_EQUAL(cache.GetCacheSize(), 0);
+    BOOST_CHECK_EQUAL(cache.GetDirtyCount(), 0);
     BOOST_CHECK_EQUAL(cache.GetBestBlock(), base_best_block);
     BOOST_CHECK(!root_cache.HaveCoinInCache(outpoint));
 
@@ -1265,8 +1282,13 @@ BOOST_AUTO_TEST_CASE(ccoins_reset_guard) {
 
     BOOST_CHECK(cache.AccessCoin(outpoint).IsSpent());
     BOOST_CHECK_EQUAL(cache.GetCacheSize(), 0);
+    BOOST_CHECK_EQUAL(cache.GetDirtyCount(), 0U);
     BOOST_CHECK_EQUAL(cache.GetBestBlock(), base_best_block);
     BOOST_CHECK(!root_cache.HaveCoinInCache(outpoint));
+
+    // Flush should be a no-op after reset.
+    cache.Flush();
+    BOOST_CHECK_EQUAL(cache.GetDirtyCount(), 0U);
 }
 
 BOOST_AUTO_TEST_CASE(get_spent_coins_test) {
