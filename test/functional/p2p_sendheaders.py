@@ -586,7 +586,7 @@ class SendHeadersTest(BitcoinTestFramework):
             test_node.wait_for_getdata([x.hash_int for x in blocks])
             [test_node.send_message(msg_block(x)) for x in blocks]
             test_node.sync_with_ping()
-            assert_equal(int(self.nodes[0].getbestblockhash(), 16), blocks[1].hash_int)
+            assert_equal(self.nodes[0].getbestblockhash(), blocks[1].hash_hex)
 
         blocks = []
         # Now we test that if we repeatedly don't send connecting headers, we

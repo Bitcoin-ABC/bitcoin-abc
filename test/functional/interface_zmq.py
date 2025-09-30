@@ -531,7 +531,7 @@ class ZMQTest(BitcoinTestFramework):
             block.solve()
             assert_equal(self.nodes[0].submitblock(block.serialize().hex()), None)
             tip = self.nodes[0].getbestblockhash()
-            assert_equal(int(tip, 16), block.hash_int)
+            assert_equal(tip, block.hash_hex)
             orig_txid_2 = self.nodes[0].sendtoaddress(
                 address=self.nodes[0].getnewaddress(), amount=1_000_000
             )

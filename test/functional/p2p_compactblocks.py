@@ -919,7 +919,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             msg.block_transactions.blockhash = block.hash_int
             msg.block_transactions.transactions = block.vtx[1:]
             peer.send_and_ping(msg)
-            assert_equal(int(node.getbestblockhash(), 16), block.hash_int)
+            assert_equal(node.getbestblockhash(), block.hash_hex)
             peer.clear_getblocktxn()
 
         # Test the simple parallel download case...
@@ -956,7 +956,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             msg.block_transactions.blockhash = block.hash_int
             msg.block_transactions.transactions = block.vtx[1:]
             delivery_peer.send_and_ping(msg)
-            assert_equal(int(node.getbestblockhash(), 16), block.hash_int)
+            assert_equal(node.getbestblockhash(), block.hash_hex)
 
             # Nothing bad should happen if we get a late fill from the first peer...
             stalling_peer.send_and_ping(msg)
