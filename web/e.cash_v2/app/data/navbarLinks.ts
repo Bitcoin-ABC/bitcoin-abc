@@ -5,7 +5,14 @@
 export type NavbarLink = {
   title: string;
   href: string;
-  category: "main" | "about" | "tools" | "get-ecash" | "actions" | "social";
+  category:
+    | "main"
+    | "about"
+    | "tools"
+    | "get-ecash"
+    | "more"
+    | "actions"
+    | "social";
 };
 
 export const navbarLinks: NavbarLink[] = [
@@ -28,11 +35,30 @@ export const navbarLinks: NavbarLink[] = [
   { title: "Firma", href: "https://firma.cash/", category: "tools" },
   { title: "Explorer", href: "https://explorer.e.cash/", category: "tools" },
 
-  // More
+  // Get eCash
   { title: "Mining", href: "/mining", category: "get-ecash" },
   { title: "Staking", href: "/staking", category: "get-ecash" },
   { title: "Exchanges", href: "/get-ecash", category: "get-ecash" },
   { title: "Use eCash", href: "/use-ecash", category: "get-ecash" },
+
+  // More
+  { title: "GNC", href: "https://gnc.e.cash", category: "more" },
+  {
+    title: "Avalanche on eCash",
+    href: "https://avalanche.cash",
+    category: "more",
+  },
+  {
+    title: "eCash Scorecard",
+    href: "https://scorecard.cash",
+    category: "more",
+  },
+  { title: "eCash Supply", href: "https://ecash.supply", category: "more" },
+  {
+    title: "eCash Community",
+    href: "https://ecash.community",
+    category: "more",
+  },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },

@@ -17,6 +17,7 @@ export default function Footer() {
   const toolsLinks = getLinksByCategory("tools");
   const aboutLinks = getLinksByCategory("about");
   const getEcashLinks = getLinksByCategory("get-ecash");
+  const moreEcashLinks = getLinksByCategory("more");
 
   return (
     <footer className="relative bg-[#06060E] text-white">
@@ -69,7 +70,7 @@ export default function Footer() {
             </div>
 
             {/* Right Section - Navigation Links */}
-            <div className="grid grid-cols-2 gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-8 lg:flex lg:flex-row">
               {/* Site Links */}
               <div className="flex flex-col gap-2">
                 <h4 className="font-medium">Site</h4>
@@ -128,6 +129,24 @@ export default function Footer() {
                       key={link.title}
                       href={link.href}
                       className="text-secondaryText hover:text-accentLight font-light transition-colors"
+                    >
+                      {link.title}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* More Links */}
+              <div className="flex flex-col gap-2">
+                <h4 className="font-medium">More</h4>
+                <div className="flex flex-col gap-2">
+                  {moreEcashLinks.map((link) => (
+                    <Link
+                      key={link.title}
+                      href={link.href}
+                      className="text-secondaryText hover:text-accentLight font-light transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       {link.title}
                     </Link>
