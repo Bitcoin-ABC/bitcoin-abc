@@ -2030,7 +2030,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         check_notification([self.client], txid, None)
 
         # Bring back the previous block, tx is confirmed again
-        self.node.parkblock(block.hash)
+        self.node.parkblock(block.hash_hex)
         self.node.unparkblock(tip)
 
         check_notification([self.client], txid, height)

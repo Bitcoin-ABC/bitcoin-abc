@@ -77,7 +77,7 @@ class ValidationTracepointTest(BitcoinTestFramework):
 
             def __repr__(self):
                 return (
-                    f"ConnectedBlock(hash={bytes(self.hash[::-1]).hex()} "
+                    f"ConnectedBlock(hash={bytes(self.hash_hex[::-1]).hex()} "
                     f"height={self.height}, transactions={self.transactions}, "
                     f"inputs={self.inputs}, sigchk={self.sigchk}, "
                     f"duration={self.duration})"
@@ -103,7 +103,7 @@ class ValidationTracepointTest(BitcoinTestFramework):
             event = ctypes.cast(data, ctypes.POINTER(Block)).contents
             self.log.info(f"handle_blockconnected(): {event}")
             block = expected_blocks.pop(0)
-            assert_equal(block["hash"], bytes(event.hash[::-1]).hex())
+            assert_equal(block["hash"], bytes(event.hash_hex[::-1]).hex())
             assert_equal(block["height"], event.height)
             assert_equal(len(block["tx"]), event.transactions)
             assert_equal(len([tx["vin"] for tx in block["tx"]]), event.inputs)

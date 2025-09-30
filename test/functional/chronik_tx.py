@@ -211,7 +211,7 @@ class ChronikTxTest(BitcoinTestFramework):
         proto_tx2.time_first_seen = 0
         proto_tx2.block.CopyFrom(
             pb.BlockMetadata(
-                hash=bytes.fromhex(block.hash)[::-1],
+                hash=bytes.fromhex(block.hash_hex)[::-1],
                 height=103,
                 timestamp=1333333500,
             )

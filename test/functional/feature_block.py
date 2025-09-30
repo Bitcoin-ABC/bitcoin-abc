@@ -239,7 +239,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         )
 
         # New tip should be b13.
-        assert_equal(node.getbestblockhash(), b13.hash)
+        assert_equal(node.getbestblockhash(), b13.hash_hex)
 
         self.move_tip(13)
         b15 = self.next_block(15)
@@ -615,7 +615,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         self.blocks[56] = b56
         assert_equal(len(b56.vtx), 3)
         b56 = self.update_block(56, [b57.vtx[2]])
-        assert_equal(b56.hash, b57.hash)
+        assert_equal(b56.hash_hex, b57.hash_hex)
         self.send_blocks(
             [b56], success=False, reject_reason="bad-txns-duplicate", reconnect=True
         )
@@ -640,7 +640,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         self.blocks["b56p2"] = b56p2
         assert_equal(len(b56p2.vtx), 6)
         b56p2 = self.update_block("b56p2", b56p2.vtx[4:6], reorder=False)
-        assert_equal(b56p2.hash, b57p2.hash)
+        assert_equal(b56p2.hash_hex, b57p2.hash_hex)
         self.send_blocks(
             [b56p2], success=False, reject_reason="bad-txns-duplicate", reconnect=True
         )
@@ -828,7 +828,7 @@ class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
         self.move_tip("dup_2")
         b64 = CBlock(b64a)
         b64.vtx = copy.deepcopy(b64a.vtx)
-        assert_equal(b64.hash, b64a.hash)
+        assert_equal(b64.hash_hex, b64a.hash_hex)
         assert_equal(len(b64.serialize()), LEGACY_MAX_BLOCK_SIZE)
         self.blocks[64] = b64
         b64 = self.update_block(64, [])

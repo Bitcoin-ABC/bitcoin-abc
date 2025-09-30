@@ -90,7 +90,7 @@ class AvalancheRTTTest(BitcoinTestFramework):
             block.solve()
             assert_equal(node.submitblock(ToHex(block)), None)
 
-            expected_tip = block.hash if expect_initially_accepted else tip
+            expected_tip = block.hash_hex if expect_initially_accepted else tip
             assert_equal(node.getbestblockhash(), expected_tip)
 
             # Poll and check the node votes what we expect
@@ -105,8 +105,8 @@ class AvalancheRTTTest(BitcoinTestFramework):
             )
 
             # Vote yes on this block until the node accepts it
-            self.wait_until(lambda: has_accepted_tip(block.hash))
-            assert_equal(node.getbestblockhash(), block.hash)
+            self.wait_until(lambda: has_accepted_tip(block.hash_hex))
+            assert_equal(node.getbestblockhash(), block.hash_hex)
 
             poll_node.send_poll([block.hash_int])
             assert_response(

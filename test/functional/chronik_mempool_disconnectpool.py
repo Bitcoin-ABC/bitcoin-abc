@@ -95,7 +95,8 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         assert_equal(
-            chronik.tx(tx1.txid_hex).ok().block.hash[::-1].hex(), reorg_block1.hash
+            chronik.tx(tx1.txid_hex).ok().block.hash[::-1].hex(),
+            reorg_block1.hash_hex,
         )
         assert_equal(chronik.tx(tx2.txid_hex).ok().block, pb.BlockMetadata())
 

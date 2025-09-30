@@ -97,7 +97,7 @@ class MinerFundTest(BitcoinTestFramework):
         good_block.solve()
 
         node.submitblock(ToHex(good_block))
-        assert_equal(node.getbestblockhash(), good_block.hash)
+        assert_equal(node.getbestblockhash(), good_block.hash_hex)
 
         # node0 mines a block with a coinbase output to the miner fund.
         address = node.get_deterministic_priv_key().address

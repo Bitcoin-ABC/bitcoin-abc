@@ -169,7 +169,7 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
-        blockhashes[-1] = block.hash
+        blockhashes[-1] = block.hash_hex
 
         txs = [{"block": (i + 1, blockhash)} for i, blockhash in enumerate(blockhashes)]
         check_confirmed_txs(txs)

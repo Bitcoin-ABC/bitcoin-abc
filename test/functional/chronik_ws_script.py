@@ -209,7 +209,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         check_tx_msgs(ws2, pb.TX_CONFIRMED, sorted([txid, txid2]))
 
         # Invalidate the block again
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
 
         # Adds the disconnected block's txs back into the mempool
         check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.txid_hex])

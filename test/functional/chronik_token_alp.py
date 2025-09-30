@@ -576,14 +576,14 @@ be in ascending order""",
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
-        all_things.test(chronik, block.hash)
+        all_things.test(chronik, block.hash_hex)
 
         # After being mined, all previous txs still work fine:
         for tx in txs:
-            tx.test(chronik, block.hash)
+            tx.test(chronik, block.hash_hex)
 
         # Undo block + test again
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
         for tx in txs:
             tx.test(chronik)
 
@@ -602,10 +602,10 @@ be in ascending order""",
                 txlist=[mined_tx.tx],
             )
             block.solve()
-            prev_hash = block.hash
+            prev_hash = block.hash_hex
             peer.send_blocks_and_test([block], node)
             node.syncwithvalidationinterfacequeue()
-            tx_block_hashes[block_idx] = block.hash
+            tx_block_hashes[block_idx] = block.hash_hex
 
             # All txs still work on every block
             for tx, block_hash in zip(txs, tx_block_hashes):
@@ -621,12 +621,12 @@ be in ascending order""",
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
-        all_things.test(chronik, block.hash)
+        all_things.test(chronik, block.hash_hex)
         for tx, block_hash in zip(txs, tx_block_hashes):
             tx.test(chronik, block_hash)
 
         # Undo that block again + test
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
         for tx, block_hash in zip(txs, tx_block_hashes):
             tx.test(chronik, block_hash)
 

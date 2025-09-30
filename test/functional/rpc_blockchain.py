@@ -400,7 +400,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_is_hex_string(header_hex)
 
         header = FromHex(CBlockHeader(), header_hex)
-        assert_equal(header.hash, besthash)
+        assert_equal(header.hash_hex, besthash)
 
         assert "previousblockhash" not in node.getblockheader(node.getblockhash(0))
         assert "nextblockhash" not in node.getblockheader(node.getbestblockhash())
@@ -481,7 +481,7 @@ class BlockchainTest(BitcoinTestFramework):
         )
         b2 = solve_and_send_block(b1.hash_int, fork_height + 1, b1.nTime + 1)
 
-        node.invalidateblock(b2.hash)
+        node.invalidateblock(b2.hash_hex)
 
         def assert_waitforheight(height, timeout=2):
             assert_equal(

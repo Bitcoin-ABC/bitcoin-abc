@@ -70,10 +70,10 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Explicitly invalidate blocks 1 and 2
         # See below for why we do this
-        node.invalidateblock(self.blocks[1].hash)
-        assert_equal(self.blocks[0].hash, node.getbestblockhash())
-        node.invalidateblock(self.blocks[2].hash)
-        assert_equal(self.blocks[0].hash, node.getbestblockhash())
+        node.invalidateblock(self.blocks[1].hash_hex)
+        assert_equal(self.blocks[0].hash_hex, node.getbestblockhash())
+        node.invalidateblock(self.blocks[2].hash_hex)
+        assert_equal(self.blocks[0].hash_hex, node.getbestblockhash())
 
         # Mining on top of blocks 1 or 2 is rejected
         self.set_tip(1)
@@ -97,8 +97,8 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Reconsider block 2 to remove invalid status from *both* 1 and 2
         # The goal is to test that block 1 is not retaining any internal state
         # that prevents us from accepting blocks building on top of block 1
-        node.reconsiderblock(self.blocks[2].hash)
-        assert_equal(self.blocks[2].hash, node.getbestblockhash())
+        node.reconsiderblock(self.blocks[2].hash_hex)
+        assert_equal(self.blocks[2].hash_hex, node.getbestblockhash())
 
         # Mining on the block 1 chain should be accepted
         # (needs to mine two blocks because less-work chains are not processed)
@@ -115,15 +115,15 @@ class InvalidChainsTest(BitcoinTestFramework):
         peer.send_blocks_and_test([block(23), block(24)], node)
 
         # Sanity checks
-        assert_equal(self.blocks[24].hash, node.getbestblockhash())
+        assert_equal(self.blocks[24].hash_hex, node.getbestblockhash())
         assert any(
-            self.blocks[221].hash == chaintip["hash"]
+            self.blocks[221].hash_hex == chaintip["hash"]
             for chaintip in node.getchaintips()
         )
 
         # Invalidating the block 2 chain should reject new blocks on that chain
-        node.invalidateblock(self.blocks[2].hash)
-        assert_equal(self.blocks[13].hash, node.getbestblockhash())
+        node.invalidateblock(self.blocks[2].hash_hex)
+        assert_equal(self.blocks[13].hash_hex, node.getbestblockhash())
 
         # Mining on the block 2 chain should be rejected
         self.set_tip(24)
@@ -160,19 +160,19 @@ class InvalidChainsTest(BitcoinTestFramework):
         peer.send_blocks_and_test([block(15), block(16), block(17), block(18)], node)
 
         # Invalidate 17 (so 18 now has failed parent)
-        node.invalidateblock(self.blocks[17].hash)
-        assert_equal(self.blocks[16].hash, node.getbestblockhash())
+        node.invalidateblock(self.blocks[17].hash_hex)
+        assert_equal(self.blocks[16].hash_hex, node.getbestblockhash())
 
         # Invalidate 13 (so 14 and 15 and 16 now also have failed parent)
-        node.invalidateblock(self.blocks[13].hash)
-        assert_equal(self.blocks[12].hash, node.getbestblockhash())
+        node.invalidateblock(self.blocks[13].hash_hex)
+        assert_equal(self.blocks[12].hash_hex, node.getbestblockhash())
 
         # Reconsider 14, which should reconsider 13 and remove failed parent
         # from our cousins 15 and 16 as well. Even though we reconsidered
         # 14, we end up on a different chain because 15/16 have more work.
         # (But, this shouldn't undo our invalidation of 17)
-        node.reconsiderblock(self.blocks[14].hash)
-        assert_equal(self.blocks[16].hash, node.getbestblockhash())
+        node.reconsiderblock(self.blocks[14].hash_hex)
+        assert_equal(self.blocks[16].hash_hex, node.getbestblockhash())
 
 
 if __name__ == "__main__":

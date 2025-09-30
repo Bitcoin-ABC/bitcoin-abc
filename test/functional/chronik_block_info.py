@@ -105,10 +105,10 @@ class ChronikBlockInfoTest(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         assert_equal(
-            chronik.block(block.hash).ok(),
+            chronik.block(block.hash_hex).ok(),
             pb.Block(
                 block_info=pb.BlockInfo(
-                    hash=bytes.fromhex(block.hash)[::-1],
+                    hash=bytes.fromhex(block.hash_hex)[::-1],
                     prev_hash=bytes.fromhex(prev_hash)[::-1],
                     height=102,
                     n_bits=0x207FFFFF,

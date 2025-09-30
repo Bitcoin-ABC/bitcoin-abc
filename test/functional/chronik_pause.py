@@ -97,7 +97,7 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Block not indexed yet")
         time.sleep(0.1)
-        chronik.block(blockA.hash).err(404)
+        chronik.block(blockA.hash_hex).err(404)
 
         self.log.info("Chronik still believes the old tx exists")
         chronik.tx(tx.txid_hex).ok()
@@ -108,7 +108,7 @@ class ChronikPauseTest(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         self.log.info("Block now indexed and tx conflict resolved")
-        chronik.block(blockA.hash).ok()
+        chronik.block(blockA.hash_hex).ok()
         chronik.tx(tx.txid_hex).err(404)
         chronik.tx(conflict_tx.txid_hex).ok()
 
@@ -135,9 +135,9 @@ class ChronikPauseTest(BitcoinTestFramework):
 
         self.log.info("Chronik still thinks blockA exists")
         time.sleep(0.1)
-        chronik.block(blockA.hash).ok()
-        chronik.block(blockB1.hash).err(404)
-        chronik.block(blockB2.hash).err(404)
+        chronik.block(blockA.hash_hex).ok()
+        chronik.block(blockB1.hash_hex).err(404)
+        chronik.block(blockB2.hash_hex).err(404)
 
         self.log.info("Add block that mines the tx")
         blockB3 = create_block(

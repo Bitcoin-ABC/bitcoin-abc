@@ -130,7 +130,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         block_metadata = pb.BlockMetadata(
             height=102,
-            hash=bytes.fromhex(block.hash)[::-1],
+            hash=bytes.fromhex(block.hash_hex)[::-1],
             timestamp=1300000500,
         )
 
@@ -225,7 +225,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         for page, tx in enumerate([proto_coinbase_tx, sorted_tx1, sorted_tx2]):
             assert_equal(
-                chronik.block_txs(block.hash, page=page, page_size=1).ok(),
+                chronik.block_txs(block.hash_hex, page=page, page_size=1).ok(),
                 pb.TxHistoryPage(
                     txs=[tx],
                     num_pages=3,
@@ -234,7 +234,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             )
 
         assert_equal(
-            chronik.block_txs(block.hash).ok(),
+            chronik.block_txs(block.hash_hex).ok(),
             pb.TxHistoryPage(
                 txs=[proto_coinbase_tx, sorted_tx1, sorted_tx2],
                 num_pages=1,
@@ -243,7 +243,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
 
         assert_equal(
-            chronik.block_txs(block.hash, page=0, page_size=2).ok(),
+            chronik.block_txs(block.hash_hex, page=0, page_size=2).ok(),
             pb.TxHistoryPage(
                 txs=[proto_coinbase_tx, sorted_tx1],
                 num_pages=2,
@@ -251,7 +251,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             ),
         )
         assert_equal(
-            chronik.block_txs(block.hash, page=1, page_size=2).ok(),
+            chronik.block_txs(block.hash_hex, page=1, page_size=2).ok(),
             pb.TxHistoryPage(
                 txs=[sorted_tx2],
                 num_pages=2,
@@ -259,8 +259,8 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             ),
         )
 
-        node.invalidateblock(block.hash)
-        chronik.block_txs(block.hash).err(404)
+        node.invalidateblock(block.hash_hex)
+        chronik.block_txs(block.hash_hex).err(404)
 
 
 if __name__ == "__main__":

@@ -308,7 +308,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         block.calc_merkle_root()
         block.solve()
         node.submitblock(ToHex(block))
-        assert_equal(node.getbestblockhash(), block.hash)
+        assert_equal(node.getbestblockhash(), block.hash_hex)
 
         self.finalize_tip()
 

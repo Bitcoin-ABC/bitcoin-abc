@@ -106,7 +106,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         with self.nodes[1].assert_debug_log(
             expected_msgs=[
-                f"AcceptBlockHeader: not adding new block header {blocks_h2[1].hash}, missing anti-dos proof-of-work validation"
+                f"AcceptBlockHeader: not adding new block header {blocks_h2[1].hash_hex}, missing anti-dos proof-of-work validation"
             ]
         ):
             min_work_node.send_and_ping(msg_block(blocks_h2[1]))
@@ -116,7 +116,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # Ensure that the header of the second block was also not accepted by node1
         assert_equal(
-            self.check_hash_in_chaintips(self.nodes[1], blocks_h2[1].hash), False
+            self.check_hash_in_chaintips(self.nodes[1], blocks_h2[1].hash_hex), False
         )
         self.log.info(
             "First height 2 block accepted by node0; correctly rejected by node1"
@@ -132,12 +132,12 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         tip_entry_found = False
         for x in self.nodes[0].getchaintips():
-            if x["hash"] == block_h1f.hash:
+            if x["hash"] == block_h1f.hash_hex:
                 assert_equal(x["status"], "headers-only")
                 tip_entry_found = True
         assert tip_entry_found
         assert_raises_rpc_error(
-            -1, "Block not found on disk", self.nodes[0].getblock, block_h1f.hash
+            -1, "Block not found on disk", self.nodes[0].getblock, block_h1f.hash_hex
         )
 
         # 4. Send another two block that build on the fork.
@@ -150,13 +150,13 @@ class AcceptBlockTest(BitcoinTestFramework):
         # can't be fully validated.
         tip_entry_found = False
         for x in self.nodes[0].getchaintips():
-            if x["hash"] == block_h2f.hash:
+            if x["hash"] == block_h2f.hash_hex:
                 assert_equal(x["status"], "headers-only")
                 tip_entry_found = True
         assert tip_entry_found
 
         # But this block should be accepted by node since it has equal work.
-        self.nodes[0].getblock(block_h2f.hash)
+        self.nodes[0].getblock(block_h2f.hash_hex)
         self.log.info("Second height 2 block accepted, but not reorg'ed to")
 
         # 4b. Now send another block that builds on the forking chain.
@@ -170,14 +170,14 @@ class AcceptBlockTest(BitcoinTestFramework):
         # can't be fully validated.
         tip_entry_found = False
         for x in self.nodes[0].getchaintips():
-            if x["hash"] == block_h3.hash:
+            if x["hash"] == block_h3.hash_hex:
                 assert_equal(x["status"], "headers-only")
                 tip_entry_found = True
         assert tip_entry_found
-        self.nodes[0].getblock(block_h3.hash)
+        self.nodes[0].getblock(block_h3.hash_hex)
 
         # But this block should be accepted by node since it has more work.
-        self.nodes[0].getblock(block_h3.hash)
+        self.nodes[0].getblock(block_h3.hash_hex)
         self.log.info("Unrequested more-work block accepted")
 
         # 4c. Now mine 288 more blocks and deliver; all should be processed but
@@ -198,10 +198,10 @@ class AcceptBlockTest(BitcoinTestFramework):
         test_node.send_message(msg_block(all_blocks[1]))
         test_node.wait_for_disconnect()
         assert_raises_rpc_error(
-            -5, "Block not found", self.nodes[0].getblock, all_blocks[1].hash
+            -5, "Block not found", self.nodes[0].getblock, all_blocks[1].hash_hex
         )
         assert_raises_rpc_error(
-            -5, "Block not found", self.nodes[0].getblockheader, all_blocks[1].hash
+            -5, "Block not found", self.nodes[0].getblockheader, all_blocks[1].hash_hex
         )
         test_node = self.nodes[0].add_p2p_connection(P2PInterface())
 
@@ -211,7 +211,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         headers_message.headers.append(CBlockHeader(all_blocks[0]))
         test_node.send_message(headers_message)
         test_node.send_and_ping(msg_block(all_blocks[1]))
-        self.nodes[0].getblock(all_blocks[1].hash)
+        self.nodes[0].getblock(all_blocks[1].hash_hex)
 
         # Now send the blocks in all_blocks
         for i in range(288):
@@ -221,9 +221,12 @@ class AcceptBlockTest(BitcoinTestFramework):
         # Blocks 1-287 should be accepted, block 288 should be ignored because
         # it's too far ahead
         for x in all_blocks[:-1]:
-            self.nodes[0].getblock(x.hash)
+            self.nodes[0].getblock(x.hash_hex)
         assert_raises_rpc_error(
-            -1, "Block not found on disk", self.nodes[0].getblock, all_blocks[-1].hash
+            -1,
+            "Block not found on disk",
+            self.nodes[0].getblock,
+            all_blocks[-1].hash_hex,
         )
 
         # 5. Test handling of unrequested block on the node that didn't process
@@ -262,10 +265,13 @@ class AcceptBlockTest(BitcoinTestFramework):
         # 7. Send the missing block for the third time (now it is requested)
         test_node.send_and_ping(msg_block(block_h1f))
         assert_equal(self.nodes[0].getblockcount(), 290)
-        self.nodes[0].getblock(all_blocks[286].hash)
-        assert_equal(self.nodes[0].getbestblockhash(), all_blocks[286].hash)
+        self.nodes[0].getblock(all_blocks[286].hash_hex)
+        assert_equal(self.nodes[0].getbestblockhash(), all_blocks[286].hash_hex)
         assert_raises_rpc_error(
-            -1, "Block not found on disk", self.nodes[0].getblock, all_blocks[287].hash
+            -1,
+            "Block not found on disk",
+            self.nodes[0].getblock,
+            all_blocks[287].hash_hex,
         )
         self.log.info("Successfully reorged to longer chain")
 
@@ -306,19 +312,19 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         tip_entry_found = False
         for x in self.nodes[0].getchaintips():
-            if x["hash"] == block_292.hash:
+            if x["hash"] == block_292.hash_hex:
                 assert_equal(x["status"], "headers-only")
                 tip_entry_found = True
         assert tip_entry_found
         assert_raises_rpc_error(
-            -1, "Block not found on disk", self.nodes[0].getblock, block_292.hash
+            -1, "Block not found on disk", self.nodes[0].getblock, block_292.hash_hex
         )
 
         test_node.send_message(msg_block(block_289f))
         test_node.send_and_ping(msg_block(block_290f))
 
-        self.nodes[0].getblock(block_289f.hash)
-        self.nodes[0].getblock(block_290f.hash)
+        self.nodes[0].getblock(block_289f.hash_hex)
+        self.nodes[0].getblock(block_290f.hash_hex)
 
         test_node.send_message(msg_block(block_291))
 
@@ -337,8 +343,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         # We should have failed reorg and switched back to 290 (but have block
         # 291)
         assert_equal(self.nodes[0].getblockcount(), 290)
-        assert_equal(self.nodes[0].getbestblockhash(), all_blocks[286].hash)
-        assert_equal(self.nodes[0].getblock(block_291.hash)["confirmations"], -1)
+        assert_equal(self.nodes[0].getbestblockhash(), all_blocks[286].hash_hex)
+        assert_equal(self.nodes[0].getblock(block_291.hash_hex)["confirmations"], -1)
 
         # Now send a new header on the invalid chain, indicating we're forked
         # off, and expect to get disconnected

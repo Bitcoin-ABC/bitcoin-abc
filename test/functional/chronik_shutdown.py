@@ -58,7 +58,7 @@ class ChronikShutdown(BitcoinTestFramework):
                 int(last_block_hash, 16), coinbase_tx, mocktime + i, txlist=txs
             )
             block.solve()
-            last_block_hash = block.hash
+            last_block_hash = block.hash_hex
             peer.send_message(msg_block(block))
 
         self.stop_nodes()

@@ -61,7 +61,7 @@ class SyncChainTest(BitcoinTestFramework):
 
         # The node should eventually, completely sync without getting stuck
         def node_synced():
-            return node0.getbestblockhash() == blocks[-1].hash
+            return node0.getbestblockhash() == blocks[-1].hash_hex
 
         self.wait_until(node_synced)
 

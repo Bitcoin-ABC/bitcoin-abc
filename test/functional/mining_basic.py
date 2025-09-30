@@ -216,19 +216,19 @@ class MiningTest(BitcoinTestFramework):
                 "status": status,
             }
 
-        assert chain_tip(block.hash) not in node.getchaintips()
+        assert chain_tip(block.hash_hex) not in node.getchaintips()
         node.submitheader(hexdata=block.serialize().hex())
-        assert chain_tip(block.hash) in node.getchaintips()
+        assert chain_tip(block.hash_hex) in node.getchaintips()
         # Noop
         node.submitheader(hexdata=CBlockHeader(block).serialize().hex())
-        assert chain_tip(block.hash) in node.getchaintips()
+        assert chain_tip(block.hash_hex) in node.getchaintips()
 
         bad_block_root = copy.deepcopy(block)
         bad_block_root.hashMerkleRoot += 2
         bad_block_root.solve()
-        assert chain_tip(bad_block_root.hash) not in node.getchaintips()
+        assert chain_tip(bad_block_root.hash_hex) not in node.getchaintips()
         node.submitheader(hexdata=CBlockHeader(bad_block_root).serialize().hex())
-        assert chain_tip(bad_block_root.hash) in node.getchaintips()
+        assert chain_tip(bad_block_root.hash_hex) in node.getchaintips()
         # Should still reject invalid blocks, even if we have the header:
         assert_equal(
             node.submitblock(hexdata=bad_block_root.serialize().hex()),
@@ -238,11 +238,11 @@ class MiningTest(BitcoinTestFramework):
             node.submitblock(hexdata=bad_block_root.serialize().hex()),
             "bad-txnmrklroot",
         )
-        assert chain_tip(bad_block_root.hash) in node.getchaintips()
+        assert chain_tip(bad_block_root.hash_hex) in node.getchaintips()
         # We know the header for this invalid block, so should just return
         # early without error:
         node.submitheader(hexdata=CBlockHeader(bad_block_root).serialize().hex())
-        assert chain_tip(bad_block_root.hash) in node.getchaintips()
+        assert chain_tip(bad_block_root.hash_hex) in node.getchaintips()
 
         bad_block_lock = copy.deepcopy(block)
         bad_block_lock.vtx[0].nLockTime = 2**32 - 1
@@ -288,7 +288,8 @@ class MiningTest(BitcoinTestFramework):
         peer.send_blocks_and_test(blocks=[block], node=node)
         # Must be active now:
         assert (
-            chain_tip(block.hash, status="active", branchlen=0) in node.getchaintips()
+            chain_tip(block.hash_hex, status="active", branchlen=0)
+            in node.getchaintips()
         )
 
         # Building a few blocks should give the same results

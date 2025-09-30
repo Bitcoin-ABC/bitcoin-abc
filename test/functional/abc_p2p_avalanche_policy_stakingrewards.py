@@ -143,7 +143,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
                 else expect_accepted
             )
 
-            expected_tip = block.hash if matches_policy else tip
+            expected_tip = block.hash_hex if matches_policy else tip
             assert_equal(node.getbestblockhash(), expected_tip)
 
             # Poll and check the node votes what we expect
@@ -158,8 +158,8 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             )
 
             # Vote yes on this block until the node accepts it
-            self.wait_until(lambda: has_accepted_tip(block.hash))
-            assert_equal(node.getbestblockhash(), block.hash)
+            self.wait_until(lambda: has_accepted_tip(block.hash_hex))
+            assert_equal(node.getbestblockhash(), block.hash_hex)
 
             poll_node.send_poll([block.hash_int])
             assert_response(
@@ -207,7 +207,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
         reject = ""
         with node.assert_debug_log(expected_msgs=["policy-bad-staking-reward"]):
-            reject = new_block(tip, P2SH_OP_TRUE, staking_rewards_amount).hash
+            reject = new_block(tip, P2SH_OP_TRUE, staking_rewards_amount).hash_hex
 
         reject_hash = int(reject, 16)
         with node.wait_for_debug_log(
@@ -219,7 +219,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             pass
 
         # Build a block on the accepted tip and the chain continues as normal
-        tip = new_block(tip, SCRIPT_UNSPENDABLE, staking_rewards_amount).hash
+        tip = new_block(tip, SCRIPT_UNSPENDABLE, staking_rewards_amount).hash_hex
         assert_equal(node.getbestblockhash(), tip)
 
         # Tip should finalize
@@ -244,7 +244,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             tip, SCRIPT_UNSPENDABLE, staking_rewards_amount, height + 1
         )
         newtip = new_unsubmitted_block(
-            out_of_order_block.hash,
+            out_of_order_block.hash_hex,
             SCRIPT_UNSPENDABLE,
             staking_rewards_amount,
             height + 2,
@@ -253,10 +253,10 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
         # Submit the blocks out of order so that FindMostWorkChain selects newtip as most work
         node.submitblock(ToHex(newtip))
         node.submitblock(ToHex(out_of_order_block))
-        tip = newtip.hash
+        tip = newtip.hash_hex
 
         # Both blocks should still have staking reward winners computed
-        assert node.hasstakingreward(out_of_order_block.hash)
+        assert node.hasstakingreward(out_of_order_block.hash_hex)
         assert node.hasstakingreward(tip)
 
         # New tip should finalize

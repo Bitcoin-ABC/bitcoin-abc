@@ -38,7 +38,7 @@ class P2PFingerprintTest(BitcoinTestFramework):
             block.solve()
 
             blocks.append(block)
-            prev_hash = block.hash
+            prev_hash = block.hash_hex
             prev_height += 1
             prev_median_time = block_time
         return blocks
@@ -83,7 +83,7 @@ class P2PFingerprintTest(BitcoinTestFramework):
             node0.send_and_ping(msg_block(block))
 
         # Check that reorg succeeded
-        self.nodes[0].unparkblock(new_blocks[-1].hash)
+        self.nodes[0].unparkblock(new_blocks[-1].hash_hex)
         assert_equal(self.nodes[0].getblockcount(), 13)
 
         stale_hash = int(block_hashes[-1], 16)

@@ -670,8 +670,8 @@ class AssumeutxoTest(BitcoinTestFramework):
             """Check nTx and nChainTx intermediate values right after loading
             the snapshot, and final values after the snapshot is validated."""
             for height, block in blocks.items():
-                tx = n1.getblockheader(block.hash)["nTx"]
-                stats = n1.getchaintxstats(nblocks=1, blockhash=block.hash)
+                tx = n1.getblockheader(block.hash_hex)["nTx"]
+                stats = n1.getchaintxstats(nblocks=1, blockhash=block.hash_hex)
                 chain_tx = stats.get("txcount", None)
                 window_tx_count = stats.get("window_tx_count", None)
                 tx_rate = stats.get("txrate", None)
@@ -949,7 +949,7 @@ class AssumeutxoTest(BitcoinTestFramework):
 
 @dataclass
 class Block:
-    hash: str
+    hash_hex: str
     tx: int
     chain_tx: int
 

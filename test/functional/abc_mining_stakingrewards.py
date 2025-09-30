@@ -368,7 +368,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
 
-            expected_tip = block.hash
+            expected_tip = block.hash_hex
 
             msg = msg_block(block)
 

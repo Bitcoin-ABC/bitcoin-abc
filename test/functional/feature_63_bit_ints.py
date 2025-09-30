@@ -114,7 +114,7 @@ class Script63BitIntsTest(BitcoinTestFramework):
         peer.send_blocks_and_test([block], node, success=True)
 
         self.log.info("Undo activation")
-        node.invalidateblock(blocks[-1].hash)
+        node.invalidateblock(blocks[-1].hash_hex)
 
         self.log.info("Mempool empty: good_tx is invalid before activation")
         assert_equal(node.getrawmempool(), [])

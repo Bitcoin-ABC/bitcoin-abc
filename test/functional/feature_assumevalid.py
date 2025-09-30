@@ -151,7 +151,7 @@ class AssumeValidTest(BitcoinTestFramework):
         def wait_for_header_sync(node, height):
             expected = {
                 "height": height,
-                "hash": self.blocks[height - 1].hash,
+                "hash": self.blocks[height - 1].hash_hex,
                 "branchlen": height,
                 "status": "headers-only",
             }

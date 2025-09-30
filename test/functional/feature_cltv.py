@@ -107,7 +107,7 @@ class BIP65Test(BitcoinTestFramework):
 
         peer.send_and_ping(msg_block(block))
         # This block is valid
-        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash_hex)
 
         self.log.info("Test that blocks must now be at least version 4")
         tip = block.hash_int
@@ -116,7 +116,7 @@ class BIP65Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(
-            expected_msgs=[f"{block.hash}, bad-version(0x00000003)"]
+            expected_msgs=[f"{block.hash_hex}, bad-version(0x00000003)"]
         ):
             peer.send_and_ping(msg_block(block))
             assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
@@ -142,7 +142,7 @@ class BIP65Test(BitcoinTestFramework):
 
         peer.send_and_ping(msg_block(block))
         # This block is valid
-        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash_hex)
 
         # We show that this tx is invalid due to CLTV by getting it
         # rejected from the mempool for exactly that reason.
@@ -161,7 +161,7 @@ class BIP65Test(BitcoinTestFramework):
             ),
         )
 
-        tip = block.hash
+        tip = block.hash_hex
         block_time += 1
         block = create_block(
             block.hash_int,
@@ -173,7 +173,7 @@ class BIP65Test(BitcoinTestFramework):
         block.solve()
 
         with self.nodes[0].assert_debug_log(
-            expected_msgs=[f"ConnectBlock {block.hash} failed, blk-bad-inputs"]
+            expected_msgs=[f"ConnectBlock {block.hash_hex} failed, blk-bad-inputs"]
         ):
             peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
@@ -206,7 +206,7 @@ class BIP65Test(BitcoinTestFramework):
 
         peer.send_and_ping(msg_block(block))
         # This block is now valid
-        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash_hex)
 
 
 if __name__ == "__main__":

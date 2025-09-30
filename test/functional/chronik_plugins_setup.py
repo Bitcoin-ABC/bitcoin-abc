@@ -237,7 +237,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             assert_start_raises(
                 "Error: Loading plugins failed, there are already matching txs in the DB "
                 f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.txid_hex} "
-                f"in block {block.hash} (height 6). Chronik is synced to height 10, but "
+                f"in block {block.hash_hex} (height 6). Chronik is synced to height 10, but "
                 "this version of Chronik doesn't support automatically re-syncing plugins. "
                 "Either disable the desynced plugins, use -chronikreindex to reindex, or "
                 "park the block and index again."
@@ -247,7 +247,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         open(plugins_toml, "w", encoding="utf-8").close()
         self.start_node(0, ["-chronik"])
         # Invalidate the offending block as suggested in the message
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
 
         # Starting again now syncs fine
         with open(plugins_toml, "w", encoding="utf-8") as f:
@@ -259,7 +259,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             ]
         ):
             self.restart_node(0, ["-chronik"])
-        node.reconsiderblock(block.hash)
+        node.reconsiderblock(block.hash_hex)
         # Tx indexed
         assert_equal(chronik.lokad_id(b"TEST".hex()).confirmed_txs().ok().num_txs, 1)
 
@@ -281,7 +281,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             assert_start_raises(
                 "Error: Loading plugins failed, there are already matching txs in the DB "
                 f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.txid_hex} "
-                f"in block {block.hash} (height 6). Chronik is synced to height 10, but "
+                f"in block {block.hash_hex} (height 6). Chronik is synced to height 10, but "
                 "this version of Chronik doesn't support automatically re-syncing plugins. "
                 "Either disable the desynced plugins, use -chronikreindex to reindex, or "
                 "park the block and index again."

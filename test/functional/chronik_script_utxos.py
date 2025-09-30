@@ -241,7 +241,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
         )
 
         # Invalidating the last block doesn't change UTXOs
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
         assert_equal(
             chronik.script(script_type, payload_hex).utxos().ok(),
             pb.ScriptUtxos(script=bytes(P2SH_OP_TRUE), utxos=expected_utxos),

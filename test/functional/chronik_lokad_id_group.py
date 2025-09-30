@@ -219,7 +219,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         assert_equal(lokad_id_history(b"lok3"), [tx3_conflict.txid_hex])
         assert_equal(lokad_id_history(b"lok4"), [tx3_conflict.txid_hex])
 
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
 
         assert_equal(ws2.recv(), ws_msg(tx3_conflict.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
 

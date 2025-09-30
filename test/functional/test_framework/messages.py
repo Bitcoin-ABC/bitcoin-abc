@@ -514,7 +514,7 @@ class CBlockHeader:
         )
 
     @property
-    def hash(self) -> str:
+    def hash_hex(self) -> str:
         """Return block header hash as hex string."""
         return hash256(self._serialize_header())[::-1].hex()
 

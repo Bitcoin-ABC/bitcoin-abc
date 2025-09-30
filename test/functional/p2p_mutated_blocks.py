@@ -94,7 +94,7 @@ class MutatedBlocksTest(BitcoinTestFramework):
             blockhash=block.hash_int, transactions=[tx]
         )
         honest_relayer.send_and_ping(block_txn)
-        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash_hex)
 
         # Note that the following test is a bit out of place in this suite, due to a
         # non-applicable backport (core#29524). We keep it anyway because this is

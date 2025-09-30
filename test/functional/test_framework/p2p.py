@@ -901,10 +901,11 @@ class P2PDataStore(P2PInterface):
 
             if success:
                 self.wait_until(
-                    lambda: node.getbestblockhash() == blocks[-1].hash, timeout=timeout
+                    lambda: node.getbestblockhash() == blocks[-1].hash_hex,
+                    timeout=timeout,
                 )
             else:
-                assert node.getbestblockhash() != blocks[-1].hash
+                assert node.getbestblockhash() != blocks[-1].hash_hex
 
         if reject_reason:
             with node.assert_debug_log(expected_msgs=[reject_reason]):

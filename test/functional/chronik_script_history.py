@@ -172,7 +172,7 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
-        blockhashes[-1] = block.hash
+        blockhashes[-1] = block.hash_hex
 
         # Blocks still ordered by block height
         blocktxs = [{"block": (i, blockhashes[i - 1])} for i in range(101, 0, -1)]
@@ -271,7 +271,7 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
 
         newblocktxs.sort(key=tx_sort_key, reverse=True)
         for blocktx in newblocktxs:
-            blocktx["block"] = (height, block.hash)
+            blocktx["block"] = (height, block.hash_hex)
 
         node.syncwithvalidationinterfacequeue()
 

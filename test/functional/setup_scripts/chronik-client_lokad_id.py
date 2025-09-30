@@ -186,7 +186,7 @@ class ChronikLokadIdGroup(SetupFramework):
             "Step 7: If block is invalidated, tx is restored to the mempool and lokad ws picks this up"
         )
 
-        node.invalidateblock(block.hash)
+        node.invalidateblock(block.hash_hex)
         assert_equal(node.getblockcount(), 102)
         assert_equal(ws2.recv(), ws_msg(tx3_conflict.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
         yield True
