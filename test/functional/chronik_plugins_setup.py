@@ -236,7 +236,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         ):
             assert_start_raises(
                 "Error: Loading plugins failed, there are already matching txs in the DB "
-                f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.hash} "
+                f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.txid_hex} "
                 f"in block {block.hash} (height 6). Chronik is synced to height 10, but "
                 "this version of Chronik doesn't support automatically re-syncing plugins. "
                 "Either disable the desynced plugins, use -chronikreindex to reindex, or "
@@ -280,7 +280,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         ):
             assert_start_raises(
                 "Error: Loading plugins failed, there are already matching txs in the DB "
-                f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.hash} "
+                f"for their LOKAD IDs, the earliest is in transaction {coinbase_tx.txid_hex} "
                 f"in block {block.hash} (height 6). Chronik is synced to height 10, but "
                 "this version of Chronik doesn't support automatically re-syncing plugins. "
                 "Either disable the desynced plugins, use -chronikreindex to reindex, or "

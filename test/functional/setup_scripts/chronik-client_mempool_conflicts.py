@@ -67,7 +67,7 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
         tx2 = CTransaction()
         tx2.vin = [
             CTxIn(
-                COutPoint(int(tx1.hash, 16), 1),
+                COutPoint(tx1.txid_int, 1),
                 SCRIPTSIG_OP_TRUE,
             )
         ]
@@ -81,10 +81,10 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
         tx3 = CTransaction()
         tx3.vin = [
             CTxIn(
-                COutPoint(int(tx1.hash, 16), 0),
+                COutPoint(tx1.txid_int, 0),
                 SCRIPTSIG_OP_TRUE,
             ),
-            CTxIn(COutPoint(int(tx2.hash, 16), 0), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 0), SCRIPTSIG_OP_TRUE),
         ]
         tx3.vout = [CTxOut(546, P2SH_OP_TRUE)]
         tx3_txid = node.sendrawtransaction(tx3.serialize().hex())

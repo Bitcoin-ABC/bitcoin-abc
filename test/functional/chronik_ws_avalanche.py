@@ -181,8 +181,8 @@ class AvatestPlugin(Plugin):
             txs.append(tx)
 
         tx0, tx1 = txs
-        txid0 = txs[0].hash
-        txid1 = txs[1].hash
+        txid0 = txs[0].txid_hex
+        txid1 = txs[1].txid_hex
         assert txid0 != txid1
 
         num_subs = 7

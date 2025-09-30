@@ -263,7 +263,7 @@ class MyPluginPlugin(Plugin):
         )
 
         # Test DB UTXO lookup limits
-        last_txid = tx3.hash
+        last_txid = tx3.txid_hex
         last_value = tx3.vout[1].nValue
         extra_txs = []
         for i in range(1001):
@@ -284,7 +284,7 @@ class MyPluginPlugin(Plugin):
             ]
             pad_tx(tx)
             extra_txs.append(tx)
-            last_txid = tx.hash
+            last_txid = tx.txid_hex
         block_height = 102
         block = create_block(
             int(block_hashes[-1], 16),
@@ -297,7 +297,7 @@ class MyPluginPlugin(Plugin):
         # Tx that spends all "all" UTXOs
         spend_all = CTransaction()
         spend_all.vin = [
-            CTxIn(COutPoint(int(tx.hash, 16), 2), SCRIPTSIG_OP_TRUE) for tx in extra_txs
+            CTxIn(COutPoint(tx.txid_int, 2), SCRIPTSIG_OP_TRUE) for tx in extra_txs
         ]
         spend_all.vout = [CTxOut(546, P2SH_OP_TRUE)]
         node.sendrawtransaction(spend_all.serialize().hex())
@@ -321,7 +321,7 @@ class MyPluginPlugin(Plugin):
         # Spend all UTXOs that have an integer as group
         spend_ints = CTransaction()
         spend_ints.vin = [
-            CTxIn(COutPoint(int(tx.hash, 16), 3), SCRIPTSIG_OP_TRUE) for tx in extra_txs
+            CTxIn(COutPoint(tx.txid_int, 3), SCRIPTSIG_OP_TRUE) for tx in extra_txs
         ]
         spend_ints.vout = [CTxOut(546, P2SH_OP_TRUE)]
         node.sendrawtransaction(spend_ints.serialize().hex())

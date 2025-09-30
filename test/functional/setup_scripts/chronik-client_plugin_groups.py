@@ -181,7 +181,7 @@ class MyPluginPlugin(Plugin):
         self.log.info("Step 3: Send a tx to create plugin utxos in different groups")
 
         tx2 = CTransaction()
-        tx2.vin = [CTxIn(COutPoint(tx1.sha256, 5), SCRIPTSIG_OP_TRUE)]
+        tx2.vin = [CTxIn(COutPoint(tx1.txid_int, 5), SCRIPTSIG_OP_TRUE)]
         tx2.vout = [
             CTxOut(0, CScript([OP_RETURN, b"TEST", b"aaa", b"bbb", b"aba"])),
             CTxOut(1000, P2SH_OP_TRUE),
@@ -219,9 +219,9 @@ class MyPluginPlugin(Plugin):
 
         tx3 = CTransaction()
         tx3.vin = [
-            CTxIn(COutPoint(tx2.sha256, 1), SCRIPTSIG_OP_TRUE),
-            CTxIn(COutPoint(tx2.sha256, 2), SCRIPTSIG_OP_TRUE),
-            CTxIn(COutPoint(tx2.sha256, 3), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 1), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 2), SCRIPTSIG_OP_TRUE),
+            CTxIn(COutPoint(tx2.txid_int, 3), SCRIPTSIG_OP_TRUE),
         ]
         tx3.vout = [
             CTxOut(0, CScript([OP_RETURN, b"TEST", b"bba"])),
@@ -294,7 +294,7 @@ class MyPluginPlugin(Plugin):
         self.log.info("Step 9: Create a block with more groups")
 
         # Test DB UTXO lookup limits
-        last_txid = tx3.hash
+        last_txid = tx3.txid_hex
         last_value = tx3.vout[1].nValue
         extra_txs = []
         for i in range(1001):
@@ -315,7 +315,7 @@ class MyPluginPlugin(Plugin):
             ]
             pad_tx(tx)
             extra_txs.append(tx)
-            last_txid = tx.hash
+            last_txid = tx.txid_hex
         block_height = 102
         block = create_block(
             int(block_hashes[-1], 16),
@@ -334,7 +334,7 @@ class MyPluginPlugin(Plugin):
         # Tx that spends all "all" UTXOs
         spend_all = CTransaction()
         spend_all.vin = [
-            CTxIn(COutPoint(int(tx.hash, 16), 2), SCRIPTSIG_OP_TRUE) for tx in extra_txs
+            CTxIn(COutPoint(tx.txid_int, 2), SCRIPTSIG_OP_TRUE) for tx in extra_txs
         ]
         spend_all.vout = [CTxOut(546, P2SH_OP_TRUE)]
         node.sendrawtransaction(spend_all.serialize().hex())
@@ -366,7 +366,7 @@ class MyPluginPlugin(Plugin):
         # Spend all UTXOs that have an integer as group
         spend_ints = CTransaction()
         spend_ints.vin = [
-            CTxIn(COutPoint(int(tx.hash, 16), 3), SCRIPTSIG_OP_TRUE) for tx in extra_txs
+            CTxIn(COutPoint(tx.txid_int, 3), SCRIPTSIG_OP_TRUE) for tx in extra_txs
         ]
         spend_ints.vout = [CTxOut(546, P2SH_OP_TRUE)]
         node.sendrawtransaction(spend_ints.serialize().hex())
