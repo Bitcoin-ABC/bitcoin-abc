@@ -204,11 +204,8 @@ impl ProofBuilder {
     /// Get the limited proof ID.
     #[wasm_bindgen(js_name = getLimitedProofId)]
     pub fn get_limited_proof_id(&self) -> LimitedProofId {
-        let signed_stakes: Vec<SignedStake> = self
-            .stakes
-            .iter()
-            .map(|signed_stake| signed_stake.clone())
-            .collect();
+        let signed_stakes: Vec<SignedStake> =
+            self.stakes.iter().cloned().collect();
 
         Proof::compute_limited_proof_id(
             self.sequence,

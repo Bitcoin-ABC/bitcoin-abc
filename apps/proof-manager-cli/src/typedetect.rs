@@ -6,7 +6,6 @@ use anyhow::{Context, Result};
 use avalanche_lib_wasm::{
     delegation::Delegation, proof::Proof, stake::SignedStake,
 };
-use serde_json;
 
 /// Auto-detection functions for determining object type from content
 pub fn detect_json_type(json_content: &str) -> Result<String> {

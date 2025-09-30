@@ -8,7 +8,6 @@ use anyhow::Result;
 use avalanche_lib_wasm::{
     delegation::Delegation, proof::Proof, stake::SignedStake,
 };
-use serde_json;
 
 use crate::io::{process_input_and_detect_type, write_output};
 use crate::json::delegation::json_to_delegation;

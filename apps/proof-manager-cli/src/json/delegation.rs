@@ -98,7 +98,7 @@ pub fn json_to_delegation(
     // Create delegation using the main constructor
     avalanche_lib_wasm::delegation::Delegation::new(
         &limited_proof_id,
-        &proof_master_bytes,
+        proof_master_bytes,
         levels,
     )
     .map_err(|e| anyhow::anyhow!("Failed to create delegation: {}", e))
@@ -113,7 +113,7 @@ pub fn delegation_to_json(
         master: delegation.proof_master().serialize().to_vec(),
         levels: delegation
             .levels()
-            .into_iter()
+            .iter()
             .map(|level| DelegationLevelJson {
                 pubkey: level.pubkey_bytes(),
                 signature: level.signature().as_ref().to_vec(),
@@ -139,7 +139,7 @@ pub fn delegate_from_proof(
         limitedid: proof.limited_proof_id().to_bytes(),
         master: proof.master_pubkey(),
         levels: vec![DelegationLevelJson {
-            pubkey: hex::decode(&delegated_pubkey_hex).unwrap_or_default(),
+            pubkey: hex::decode(delegated_pubkey_hex).unwrap_or_default(),
             signature: Vec::new(), // Empty signature for unsigned level
         }],
     };
@@ -186,7 +186,7 @@ pub fn delegate_from_delegation(
 
     // Add the new level WITHOUT signature (it's unsigned)
     levels.push(DelegationLevelJson {
-        pubkey: hex::decode(&delegated_pubkey_hex).unwrap_or_default(),
+        pubkey: hex::decode(delegated_pubkey_hex).unwrap_or_default(),
         signature: Vec::new(), // Empty signature for unsigned level
     });
 

@@ -57,7 +57,7 @@ impl Hash256 {
     /// Convert to hex string.
     #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> String {
-        hex::encode(&self.data)
+        hex::encode(self.data)
     }
 
     /// Convert to hex string with bytes in reverse order (little-endian).
@@ -65,7 +65,7 @@ impl Hash256 {
     pub fn to_hex_le(&self) -> String {
         let mut reversed_data = self.data;
         reversed_data.reverse();
-        hex::encode(&reversed_data)
+        hex::encode(reversed_data)
     }
 
     /// Get the raw bytes.
@@ -126,7 +126,7 @@ impl Ord for Hash256 {
 /// Double SHA256 hash, as used in Bitcoin and eCash.
 pub fn sha256d(data: &[u8]) -> [u8; 32] {
     let first_hash = Sha256::digest(data);
-    let second_hash = Sha256::digest(&first_hash);
+    let second_hash = Sha256::digest(first_hash);
     second_hash.into()
 }
 
@@ -192,7 +192,7 @@ impl HashWriter {
     /// Finalize with double SHA256.
     pub fn finalize_double(self) -> [u8; 32] {
         let first_hash = self.hasher.finalize();
-        let second_hash = Sha256::digest(&first_hash);
+        let second_hash = Sha256::digest(first_hash);
         second_hash.into()
     }
 }

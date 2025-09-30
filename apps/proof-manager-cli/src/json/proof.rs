@@ -75,7 +75,7 @@ pub fn json_to_proof(
     let result = avalanche_lib_wasm::proof::Proof::new(
         proof_config.sequence,
         proof_config.expiration as i64,
-        &master_pubkey,
+        master_pubkey,
         &payout_script,
         signed_stakes,
         &signature,

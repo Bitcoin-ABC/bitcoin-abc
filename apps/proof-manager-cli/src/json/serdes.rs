@@ -64,14 +64,14 @@ where
 /// Custom serializer to convert uint256 bytes to little endian hex string for
 /// JSON (Bitcoin standard display)
 pub fn serialize_uint256_to_le_hex<S>(
-    id: &Vec<u8>,
+    id: &[u8],
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
     // Reverse the bytes and encode as hex
-    let mut reversed = id.clone();
+    let mut reversed = id.to_owned();
     reversed.reverse();
     let reversed_hex = hex::encode(reversed);
     serializer.serialize_str(&reversed_hex)

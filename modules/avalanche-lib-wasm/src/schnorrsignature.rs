@@ -54,7 +54,7 @@ impl SchnorrSignature {
     /// Convert to hex string.
     #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> String {
-        hex::encode(&self.data)
+        hex::encode(self.data)
     }
 
     /// Get the raw bytes.

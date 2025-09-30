@@ -25,6 +25,7 @@ use crate::privacy::attempt_history_cleanup;
 use crate::wif::decode_private_key;
 use crate::write_output;
 
+#[allow(clippy::too_many_arguments)]
 pub fn sign_command(
     object_type: Option<String>,
     input: Option<String>,
@@ -107,7 +108,7 @@ pub fn sign_command(
                     stake_config.amount,
                     stake_config.height,
                     stake_config.iscoinbase,
-                    &pubkey_bytes,
+                    pubkey_bytes,
                 )
                 .map_err(|e| {
                     anyhow::anyhow!(
@@ -118,7 +119,7 @@ pub fn sign_command(
                 })?;
 
                 // Create signed stake with existing signature
-                let signature = SchnorrSignature::new(&signature_bytes)
+                let signature = SchnorrSignature::new(signature_bytes)
                     .map_err(|e| {
                         anyhow::anyhow!(
                             "Invalid signature for stake {}: {}",
@@ -191,7 +192,7 @@ pub fn sign_command(
             let master_pubkey_bytes = &wrapped_proof.proof.master;
 
             let commitment =
-                StakeCommitment::new(expiration_time, &master_pubkey_bytes)
+                StakeCommitment::new(expiration_time, master_pubkey_bytes)
                     .map_err(|e| {
                         anyhow::anyhow!("Failed to create commitment: {}", e)
                     })?;
@@ -217,7 +218,7 @@ pub fn sign_command(
                     stake.amount,
                     stake.height,
                     stake.iscoinbase,
-                    &pubkey_bytes,
+                    pubkey_bytes,
                 )
                 .map_err(|e| {
                     anyhow::anyhow!(
@@ -358,7 +359,7 @@ pub fn sign_command(
             // Create delegation from existing signed levels
             let existing_delegation = if is_first_level {
                 // No existing signed levels, create empty delegation
-                Delegation::new(&limited_proof_id, &master_pubkey_bytes, vec![])
+                Delegation::new(&limited_proof_id, master_pubkey_bytes, vec![])
                     .map_err(|e| {
                         anyhow::anyhow!(
                             "Failed to create empty delegation: {}",
@@ -369,7 +370,7 @@ pub fn sign_command(
                 // Create delegation from existing signed levels
                 Delegation::new(
                     &limited_proof_id,
-                    &master_pubkey_bytes,
+                    master_pubkey_bytes,
                     existing_levels,
                 )
                 .map_err(|e| {

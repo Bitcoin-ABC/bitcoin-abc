@@ -46,7 +46,7 @@ impl DelegationBuilder {
         let dgid = Delegation::compute_delegation_id(
             &limited_proof_id,
             &formatted_proof_master,
-            &vec![],
+            &[],
         )?;
 
         Ok(DelegationBuilder {
@@ -184,11 +184,11 @@ impl DelegationBuilder {
             )?);
         }
 
-        Ok(Delegation::new(
+        Delegation::new(
             &self.limited_proof_id,
             &self.levels[0].formatted_pubkey.serialize(),
             delegation_levels,
-        )?)
+        )
     }
 }
 

@@ -28,7 +28,7 @@ pub fn attempt_history_cleanup() -> Result<()> {
     } else if shell.contains("zsh") {
         // For zsh, try to manipulate the history file
         if let Ok(histfile) = env::var("HISTFILE") {
-            if let Err(_) = remove_last_line_from_file(&histfile) {
+            if remove_last_line_from_file(&histfile).is_err() {
                 // Fallback: try to use fc command
                 let output = Command::new("zsh")
                     .arg("-c")
@@ -55,10 +55,10 @@ pub fn attempt_history_cleanup() -> Result<()> {
         ];
 
         for histfile in common_history_files {
-            if std::path::Path::new(&histfile).exists() {
-                if remove_last_line_from_file(&histfile).is_ok() {
-                    return Ok(());
-                }
+            if std::path::Path::new(&histfile).exists()
+                && remove_last_line_from_file(&histfile).is_ok()
+            {
+                return Ok(());
             }
         }
     }

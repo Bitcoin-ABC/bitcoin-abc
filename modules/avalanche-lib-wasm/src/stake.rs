@@ -339,7 +339,7 @@ impl Stake {
         pubkey_bytes: &[u8],
     ) -> StakeId {
         let mut writer = HashWriter::new();
-        writer.write(&utxo.txid().as_ref());
+        writer.write(utxo.txid().as_ref());
         writer.write_u32_le(utxo.vout());
         writer.write_u64_le(amount);
         writer.write_u32_le(height);
@@ -426,7 +426,7 @@ impl SignedStake {
     pub fn serialize(&self) -> Vec<u8> {
         let mut data = Vec::new();
 
-        data.extend_from_slice(&self.stake.utxo.txid().as_ref());
+        data.extend_from_slice(self.stake.utxo.txid().as_ref());
         data.extend_from_slice(&self.stake.utxo.vout().to_le_bytes());
         data.extend_from_slice(&self.stake.amount.to_le_bytes());
         data.extend_from_slice(&self.stake.height_and_coinbase.to_le_bytes());
@@ -521,7 +521,7 @@ impl SignedStake {
         )?;
         offset += pubkey_len as usize;
 
-        if data.len() < offset + 64 as usize {
+        if data.len() < offset + 64_usize {
             return Err("Invalid signed stake format: insufficient data for \
                         64 byte Schnorr signature"
                 .to_string());
@@ -656,7 +656,7 @@ impl SignedStake {
         )?;
         offset += pubkey_size as usize;
 
-        if data.len() < offset + 64 as usize {
+        if data.len() < offset + 64_usize {
             return Err("Invalid signed stake format: insufficient data for \
                         64 byte Schnorr signature"
                 .to_string());

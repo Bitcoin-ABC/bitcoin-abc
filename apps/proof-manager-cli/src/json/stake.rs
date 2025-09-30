@@ -83,7 +83,7 @@ pub fn json_to_signed_stake(
 
     let signature =
         avalanche_lib_wasm::schnorrsignature::SchnorrSignature::new(
-            &signature_bytes,
+            signature_bytes,
         )
         .map_err(|e| anyhow::anyhow!("Invalid signature: {}", e))?;
 
@@ -95,7 +95,7 @@ pub fn json_to_signed_stake(
             stake_config.amount,
             stake_config.height,
             stake_config.iscoinbase,
-            &pubkey_bytes,
+            pubkey_bytes,
         )
         .map_err(|e| anyhow::anyhow!("Invalid stake: {}", e))?,
         signature,

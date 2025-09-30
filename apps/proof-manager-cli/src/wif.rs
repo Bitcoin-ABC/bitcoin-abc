@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use anyhow::{Context, Result};
-use bs58;
 
 /// Private key format enumeration
 #[derive(Debug, PartialEq)]

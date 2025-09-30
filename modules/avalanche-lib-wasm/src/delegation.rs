@@ -94,7 +94,6 @@ impl Delegation {
         let formatted_proof_master =
             FormattedPublicKey::from_slice(proof_master)?;
 
-        let levels = levels;
         let delegation_id = Self::compute_delegation_id(
             limited_proof_id,
             &formatted_proof_master,
@@ -166,8 +165,7 @@ impl Delegation {
             &self.proof_master_bytes(),
         )
         .to_bytes();
-        let mut current_pubkey =
-            self.formatted_proof_master.public_key().clone();
+        let mut current_pubkey = *self.formatted_proof_master.public_key();
 
         // Use reduce_levels with a closure for verification
         let _final_hash = match Self::reduce_levels(
@@ -196,7 +194,7 @@ impl Delegation {
                 }
 
                 // Move to the next level
-                current_pubkey = level.formatted_pubkey.public_key().clone();
+                current_pubkey = *level.formatted_pubkey.public_key();
                 Ok(true) // Continue to next level
             },
         ) {

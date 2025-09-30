@@ -382,7 +382,7 @@ impl<C: Context> Secp256k1<C> {
         let bytes =
             unsafe { ffi::secp256k1_context_preallocated_size(C::FLAGS) };
 
-        (bytes + word_size - 1) / word_size
+        bytes.div_ceil(word_size)
     }
 
     /// (Re)randomizes the Secp256k1 context for extra sidechannel resistance.
@@ -489,7 +489,7 @@ fn to_hex<'a>(src: &[u8], target: &'a mut [u8]) -> Result<&'a str, ()> {
     }
     let result = &target[..hex_len];
     debug_assert!(str::from_utf8(result).is_ok());
-    return unsafe { Ok(str::from_utf8_unchecked(result)) };
+    unsafe { Ok(str::from_utf8_unchecked(result)) }
 }
 
 #[cfg(feature = "rand")]
