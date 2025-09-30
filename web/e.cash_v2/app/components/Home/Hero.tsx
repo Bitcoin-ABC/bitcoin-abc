@@ -139,7 +139,7 @@ export default function Hero() {
 
             <HeroBox
               title="NAKAMOTO"
-              href="/whitepaper.pdf"
+              href="/bitcoin.pdf"
               target="_blank"
               rel="noopener noreferrer"
               text="The trusted Bitcoin Proof-of-Work consensus forms the
@@ -147,7 +147,9 @@ export default function Hero() {
             />
             <HeroBox
               title="AVALANCHE"
-              href="/#avalanche"
+              href="/avalanche.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
               text="A breakthrough consensus protocol integrated with eCash's core technology."
             />
           </motion.div>
