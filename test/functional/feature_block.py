@@ -8,14 +8,8 @@ import struct
 import time
 
 from data import invalid_txs
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-    create_tx_with_script,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import BlockTestMixin, create_coinbase
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
-from test_framework.key import ECKey
 from test_framework.messages import (
     COIN,
     CBlock,
@@ -36,11 +30,6 @@ from test_framework.script import (
     OP_RETURN,
     OP_TRUE,
     CScript,
-)
-from test_framework.signature_hash import (
-    SIGHASH_ALL,
-    SIGHASH_FORKID,
-    SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -71,26 +60,20 @@ class CBrokenBlock(CBlock):
 DUPLICATE_COINBASE_SCRIPT_SIG = b"\x01\x78"
 
 
-class FullBlockTest(BitcoinTestFramework):
+class FullBlockTest(BitcoinTestFramework, BlockTestMixin):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
         # This is a consensus block test, we don't care about tx policy
         self.extra_args = [["-noparkdeepreorg", "-acceptnonstdtxn=1"]]
 
+        self.generate_coinbase_key()
+
     def run_test(self):
         node = self.nodes[0]  # convenience reference to the node
 
         self.bootstrap_p2p()  # Add one p2p connection to the node
 
-        self.block_heights = {}
-        self.coinbase_key = ECKey()
-        self.coinbase_key.generate()
-        self.coinbase_pubkey = self.coinbase_key.get_pubkey().get_bytes()
-        self.tip = None
-        self.blocks = {}
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_heights[self.genesis_hash] = 0
         self.spendable_outputs = []
 
         # Create a new block
@@ -1133,7 +1116,7 @@ class FullBlockTest(BitcoinTestFramework):
         blocks = []
         spend = out[32]
         for i in range(89, LARGE_REORG_SIZE + 89):
-            b = self.next_block(i, spend)
+            b = self.next_block(i, spend=spend)
             tx = CTransaction()
             script_length = LEGACY_MAX_BLOCK_SIZE - len(b.serialize()) - 69
             script_output = CScript([b"\x00" * script_length])
@@ -1188,78 +1171,6 @@ class FullBlockTest(BitcoinTestFramework):
     # Helper methods
     ################
 
-    def add_transactions_to_block(self, block, tx_list):
-        block.vtx.extend(tx_list)
-
-    # this is a little handier to use than the version in blocktools.py
-    def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        return create_tx_with_script(spend_tx, n, amount=value, script_pub_key=script)
-
-    # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in
-    # spend_tx
-    def sign_tx(self, tx, spend_tx):
-        scriptPubKey = bytearray(spend_tx.vout[0].scriptPubKey)
-        if scriptPubKey[0] == OP_TRUE:  # an anyone-can-spend
-            tx.vin[0].scriptSig = CScript()
-            return
-        sighash = SignatureHashForkId(
-            spend_tx.vout[0].scriptPubKey,
-            tx,
-            0,
-            SIGHASH_ALL | SIGHASH_FORKID,
-            spend_tx.vout[0].nValue,
-        )
-        tx.vin[0].scriptSig = CScript(
-            [
-                self.coinbase_key.sign_ecdsa(sighash)
-                + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
-            ]
-        )
-
-    def create_and_sign_transaction(self, spend_tx, value, script=CScript([OP_TRUE])):
-        tx = self.create_tx(spend_tx, 0, value, script)
-        self.sign_tx(tx, spend_tx)
-        return tx
-
-    def next_block(
-        self,
-        number,
-        spend=None,
-        additional_coinbase_value=0,
-        script=CScript([OP_TRUE]),
-        *,
-        version=4,
-    ):
-        if self.tip is None:
-            base_block_hash = self.genesis_hash
-            block_time = int(time.time()) + 1
-        else:
-            base_block_hash = self.tip.sha256
-            block_time = self.tip.nTime + 1
-        # First create the coinbase
-        height = self.block_heights[base_block_hash] + 1
-        coinbase = create_coinbase(height, self.coinbase_pubkey)
-        coinbase.vout[0].nValue += additional_coinbase_value
-        if spend is None:
-            block = create_block(base_block_hash, coinbase, block_time, version=version)
-        else:
-            # all but one satoshi to fees
-            coinbase.vout[0].nValue += spend.vout[0].nValue - 1
-            # spend 1 satoshi
-            tx = self.create_tx(spend, 0, 1, script)
-            self.sign_tx(tx, spend)
-            block = create_block(
-                base_block_hash, coinbase, block_time, version=version, txlist=[tx]
-            )
-        # Block is created. Find a valid nonce.
-        block.solve()
-        self.tip = block
-        self.block_heights[block.sha256] = height
-        assert number not in self.blocks
-        self.blocks[number] = block
-        return block
-
     # save the current tip so it can be spent by a later block
     def save_spendable_output(self):
         self.log.debug(f"saving spendable output {self.tip.vtx[0]}")
@@ -1269,27 +1180,6 @@ class FullBlockTest(BitcoinTestFramework):
     def get_spendable_output(self):
         self.log.debug(f"getting spendable output {self.spendable_outputs[0].vtx[0]}")
         return self.spendable_outputs.pop(0).vtx[0]
-
-    # move the tip back to a previous block
-    def move_tip(self, number):
-        self.tip = self.blocks[number]
-
-    # adds transactions to the block and updates state
-    def update_block(self, block_number, new_transactions, reorder=True):
-        block = self.blocks[block_number]
-        self.add_transactions_to_block(block, new_transactions)
-        old_sha256 = block.sha256
-        if reorder:
-            make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
-        block.solve()
-        # Update the internal state just like in next_block
-        self.tip = block
-        if block.sha256 != old_sha256:
-            self.block_heights[block.sha256] = self.block_heights[old_sha256]
-            del self.block_heights[old_sha256]
-        self.blocks[block_number] = block
-        return block
 
     def bootstrap_p2p(self, timeout=60):
         """Add a P2P connection to the node.

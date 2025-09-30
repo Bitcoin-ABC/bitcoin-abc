@@ -6,8 +6,9 @@
 import struct
 import time
 import unittest
-from typing import Optional
+from typing import Optional, Union
 
+from .key import ECKey
 from .messages import (
     XEC,
     CBlock,
@@ -29,6 +30,11 @@ from .script import (
     CScript,
     CScriptNum,
     CScriptOp,
+)
+from .signature_hash import (
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
 )
 from .txtools import pad_tx
 from .util import assert_equal, satoshi_round
@@ -254,6 +260,138 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         txid = node.sendrawtransaction(signresult["hex"], 0)
         txids.append(txid)
     return txids
+
+
+class BlockTestMixin:
+    """A mixin for functional test classes to factor some common code."""
+
+    BlockNumber = Union[int, str]
+    """Shortcut for type used for block numbers. Can be an int or a string when branch
+    information is to be stored (e.g. "64a", "b56p2"...)"""
+
+    blocks: dict[BlockNumber, CBlock] = {}
+
+    tip: Optional[CBlock] = None
+
+    genesis_hash = int(GENESIS_BLOCK_HASH, 16)
+
+    block_heights: dict[int, int] = {genesis_hash: 0}
+    """A sha256 to block height map"""
+
+    coinbase_key: Optional[ECKey] = None
+    """The key used to sign the coinbase transactions. If None, coinbase transactions
+    will be anyone-can-spend.
+    """
+
+    coinbase_pubkey: Optional[bytes] = None
+
+    # move the tip back to a previous block
+    def move_tip(self, number: BlockNumber):
+        self.tip = self.blocks[number]
+
+    # adds transactions to the block and updates state
+    def update_block(
+        self,
+        block_number: Union[int, str],
+        new_transactions: list[CTransaction],
+        reorder=True,
+    ) -> CBlock:
+        block = self.blocks[block_number]
+        block.vtx.extend(new_transactions)
+        old_sha256 = block.sha256
+        if reorder:
+            make_conform_to_ctor(block)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        # Update the internal state just like in next_block
+        self.tip = block
+        if block.sha256 != old_sha256:
+            self.block_heights[block.sha256] = self.block_heights[old_sha256]
+            del self.block_heights[old_sha256]
+        self.blocks[block_number] = block
+        return block
+
+    def generate_coinbase_key(self):
+        self.coinbase_key = ECKey()
+        self.coinbase_key.generate()
+        self.coinbase_pubkey = self.coinbase_key.get_pubkey().get_bytes()
+
+    # sign a transaction, using the key we know about
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
+    def sign_tx(self, tx: CTransaction, spend_tx: CTransaction):
+        assert self.coinbase_key is not None
+        scriptPubKey = bytearray(spend_tx.vout[0].scriptPubKey)
+        if scriptPubKey[0] == OP_TRUE:  # an anyone-can-spend
+            tx.vin[0].scriptSig = CScript()
+            return
+        sighash = SignatureHashForkId(
+            spend_tx.vout[0].scriptPubKey,
+            tx,
+            0,
+            SIGHASH_ALL | SIGHASH_FORKID,
+            spend_tx.vout[0].nValue,
+        )
+        tx.vin[0].scriptSig = CScript(
+            [
+                self.coinbase_key.sign_ecdsa(sighash)
+                + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
+            ]
+        )
+
+    # this is a little handier to use than create_tx_with_script
+    def create_tx(self, spend_tx, n, value: int, script=CScript([OP_TRUE])):
+        return create_tx_with_script(spend_tx, n, amount=value, script_pub_key=script)
+
+    def create_and_sign_transaction(
+        self, spend_tx: CTransaction, value: int, script=CScript([OP_TRUE])
+    ) -> CTransaction:
+        tx = self.create_tx(spend_tx, 0, value, script)
+        self.sign_tx(tx, spend_tx)
+        return tx
+
+    def next_block(
+        self,
+        number: BlockNumber,
+        *,
+        additional_coinbase_value=0,
+        script=CScript([OP_TRUE]),
+        spend: Optional[CTransaction] = None,
+        version=4,
+        coinbase_time: Optional[int] = None,
+    ) -> CBlock:
+        """Create a new block building on the current tip, and advance the tip to it.
+        The caller is responsible for broadcasting the generated block, either by storing
+        the returned block or by immediately broadcasting self.tip after this method returns.
+        """
+        if self.tip is None:
+            base_block_hash = self.genesis_hash
+            block_time = coinbase_time or int(time.time()) + 1
+        else:
+            base_block_hash = self.tip.sha256
+            block_time = self.tip.nTime + 1
+        # First create the coinbase
+        height = self.block_heights[base_block_hash] + 1
+        coinbase = create_coinbase(height, self.coinbase_pubkey)
+        coinbase.vout[0].nValue += additional_coinbase_value
+        if spend is None:
+            block = create_block(base_block_hash, coinbase, block_time, version=version)
+        else:
+            # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.vout[0].nValue - 1
+            # spend 1 satoshi
+            tx = self.create_tx(spend, 0, 1, script)
+            self.sign_tx(tx, spend)
+            block = create_block(
+                base_block_hash, coinbase, block_time, version=version, txlist=[tx]
+            )
+        # Block is created. Find a valid nonce.
+        block.solve()
+        self.tip = block
+        self.block_heights[block.sha256] = height
+        assert number not in self.blocks
+        self.blocks[number] = block
+        return block
 
 
 class TestFrameworkBlockTools(unittest.TestCase):

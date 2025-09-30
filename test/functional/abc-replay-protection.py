@@ -8,14 +8,7 @@ related to this activation.
 It is derived from the much more complex p2p-fullblocktest.
 """
 
-import time
-
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-    create_tx_with_script,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import BlockTestMixin, create_tx_with_script
 from test_framework.key import ECKey
 from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.p2p import P2PDataStore
@@ -44,46 +37,17 @@ class PreviousSpendableOutput(object):
         self.n = n
 
 
-class ReplayProtectionTest(BitcoinTestFramework):
+class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
         self.noban_tx_relay = True
-        self.block_heights = {}
-        self.tip = None
-        self.blocks = {}
         self.extra_args = [
             [
                 f"-replayprotectionactivationtime={REPLAY_PROTECTION_START_TIME}",
                 "-acceptnonstdtxn=1",
             ]
         ]
-
-    def next_block(self, number):
-        if self.tip is None:
-            base_block_hash = self.genesis_hash
-            block_time = int(time.time()) + 1
-        else:
-            base_block_hash = self.tip.sha256
-            block_time = self.tip.nTime + 1
-        # First create the coinbase
-        height = self.block_heights[base_block_hash] + 1
-        coinbase = create_coinbase(height)
-        block = create_block(base_block_hash, coinbase, block_time)
-
-        # Do PoW, which is cheap on regnet
-        block.solve()
-        self.tip = block
-        self.block_heights[block.sha256] = height
-        assert number not in self.blocks
-        self.blocks[number] = block
-        return block
-
-    def set_tip(self, number: int):
-        """
-        Move the tip back to a previous block.
-        """
-        self.tip = self.blocks[number]
 
     def run_test(self):
         node = self.nodes[0]
@@ -101,22 +65,6 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions):
-            block = self.blocks[block_number]
-            block.vtx.extend(new_transactions)
-            old_sha256 = block.sha256
-            make_conform_to_ctor(block)
-            block.hashMerkleRoot = block.calc_merkle_root()
-            block.solve()
-            # Update the internal state just like in next_block
-            self.tip = block
-            if block.sha256 != old_sha256:
-                self.block_heights[block.sha256] = self.block_heights[old_sha256]
-                del self.block_heights[old_sha256]
-            self.blocks[block_number] = block
-            return block
 
         # shorthand
         block = self.next_block
@@ -181,7 +129,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # And txns get mined in a block properly.
         block(1)
-        update_block(1, txns)
+        self.update_block(1, txns)
         peer.send_blocks_and_test([self.tip], node)
 
         # Replay protected transactions are rejected.
@@ -196,18 +144,18 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # And block containing them are rejected as well.
         block(2)
-        update_block(2, replay_txns)
+        self.update_block(2, replay_txns)
         peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason="blk-bad-inputs"
         )
 
         # Rewind bad block
-        self.set_tip(1)
+        self.move_tip(1)
 
         # Create a block that would activate the replay protection.
         bfork = block(5555)
         bfork.nTime = REPLAY_PROTECTION_START_TIME - 1
-        update_block(5555, [])
+        self.update_block(5555, [])
         peer.send_blocks_and_test([self.tip], node)
 
         activation_blocks = []
@@ -230,13 +178,13 @@ class ReplayProtectionTest(BitcoinTestFramework):
         )
 
         block(3)
-        update_block(3, replay_txns)
+        self.update_block(3, replay_txns)
         peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason="blk-bad-inputs"
         )
 
         # Rewind bad block
-        self.set_tip(5104)
+        self.move_tip(5104)
 
         # Send some non replay protected txns in the mempool to check
         # they get cleaned at activation.
@@ -265,13 +213,13 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # They also cannot be mined
         block(4)
-        update_block(4, txns)
+        self.update_block(4, txns)
         peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason="blk-bad-inputs"
         )
 
         # Rewind bad block
-        self.set_tip(5556)
+        self.move_tip(5556)
 
         # The replay protected transaction is now valid
         replay_tx0_id = send_transaction_to_mempool(replay_txns[0])
@@ -298,7 +246,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # They also can also be mined
         block(5)
-        update_block(5, replay_txns)
+        self.update_block(5, replay_txns)
         peer.send_blocks_and_test([self.tip], node)
 
         # Ok, now we check if a reorg work properly across the activation.
