@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -58,14 +57,12 @@ export default async function BlogPostPage({
         ← Back to Blog
       </Link>
       <div className="mb-8">
-        <div className="relative h-[350px] w-full overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5">
-          <Image
+        <div className="w-full overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5">
+          <img
             src={`https://strapi.fabien.cash${imageUrl}`}
             alt={post.attributes.title}
-            fill
-            className="object-cover"
-            priority
-            unoptimized
+            className="block h-auto w-full"
+            loading="eager"
           />
         </div>
       </div>
