@@ -464,28 +464,31 @@ export default function Navbar({ showBanner }: NavbarProps) {
             </div>
 
             {/* Social media icons */}
-            <div className="mt-8 flex flex-wrap justify-center gap-5 pb-8">
-              {navbarLinks
-                .filter((l) => l.category === "social")
-                .map((link) => (
-                  <Link
-                    key={link.title}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <div className="relative flex h-5 w-5 items-center justify-center">
-                      <Image
-                        src={`/${link.title.toLowerCase()}.svg`}
-                        alt={link.title}
-                        fill
-                        className="h-full w-full object-contain"
-                        sizes="20px"
-                      />
-                    </div>
-                  </Link>
-                ))}
+            <div className="mt-8 w-full pb-8">
+              <div className="grid grid-cols-5 gap-x-4 gap-y-7">
+                {navbarLinks
+                  .filter((l) => l.category === "social")
+                  .map((link) => (
+                    <Link
+                      key={link.title}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center"
+                    >
+                      <div className="relative h-7 w-7 items-center justify-center">
+                        <Image
+                          src={`/${link.title.toLowerCase()}.svg`}
+                          alt={link.title}
+                          fill
+                          className="h-full w-full object-contain"
+                          sizes="20px"
+                        />
+                      </div>
+                    </Link>
+                  ))}
+              </div>
             </div>
           </div>
         </div>

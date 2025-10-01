@@ -97,4 +97,14 @@ export const navbarLinks: NavbarLink[] = [
     href: "https://discord.gg/ecash-official-852595915159896114",
     category: "social",
   },
+  {
+    title: "Reddit",
+    href: "https://reddit.com/r/ecash",
+    category: "social",
+  },
+  {
+    title: "CoinMarketCap",
+    href: "https://coinmarketcap.com/community/profile/eCash/",
+    category: "social",
+  },
 ];
