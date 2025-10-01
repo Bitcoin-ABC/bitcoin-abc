@@ -66,8 +66,8 @@ export default function WhatWeDo() {
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
-        viewport={{ once: true, amount: 0.5 }}
-        className="relative z-10 flex w-full flex-col gap-10 py-14 lg:flex-row lg:items-start lg:justify-between"
+        viewport={{ once: true, amount: 0.3 }}
+        className="relative z-10 flex w-full flex-col gap-10 pb-14 pt-0 lg:flex-row lg:items-start lg:justify-between lg:pb-14 lg:pt-14"
       >
         <div className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
           <PlusHeader text="What we do" />
