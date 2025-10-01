@@ -9,7 +9,7 @@ import { redirects } from "./app/data/redirects";
 const scriptSrc =
   process.env.NODE_ENV === "development"
     ? "'self' 'unsafe-inline' 'unsafe-eval' swapzone.io"
-    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com swapzone.io unsafe-eval";
+    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com swapzone.io 'unsafe-eval'";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
