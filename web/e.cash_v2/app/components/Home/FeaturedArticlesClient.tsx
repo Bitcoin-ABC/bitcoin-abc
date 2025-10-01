@@ -8,7 +8,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatTimestamp, calculateReadTime, BlogPost } from "../../data/blog";
 import PlusHeader from "../Atoms/PlusHeader";
-import Button from "../Atoms/Button";
 import { motion } from "framer-motion";
 
 interface FeaturedArticlesClientProps {
@@ -56,10 +55,10 @@ export default function FeaturedArticlesClient({
             <a
               href={`/blog/${post.attributes.slug}`}
               key={post.id}
-              className="group flex min-w-[90%] max-w-[350px] flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5 lg:w-auto lg:min-w-0 lg:max-w-none"
+              className="hover:bg-white/7 group flex min-w-[90%] max-w-[350px] flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5 transition-all lg:w-auto lg:min-w-0 lg:max-w-none"
             >
               <div className="p-2">
-                <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[300px]">
+                <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[230px]">
                   <Image
                     src={`https://strapi.fabien.cash${imageUrl}`}
                     alt={post.attributes.title}
@@ -81,14 +80,9 @@ export default function FeaturedArticlesClient({
                     {calculateReadTime(post.attributes.content)} min read
                   </span>
                 </div>
-                <h3 className="group-hover:text-underline mb-4 text-xl font-bold leading-tight text-white transition-all lg:text-3xl">
+                <h3 className="group-hover:text-accentLight text-xl font-bold leading-tight text-white transition-all lg:text-2xl">
                   {post.attributes.title}
                 </h3>
-                <div className="mt-auto">
-                  <Button variant="white" className="mt-4">
-                    Read more
-                  </Button>
-                </div>
               </div>
             </a>
           );
