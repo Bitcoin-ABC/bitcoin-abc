@@ -49,7 +49,7 @@ export default async function BlogPostPage({
   const recommendedPost = getNextRecommendedPost(posts, slug);
 
   return (
-    <ContentContainer className="pb-30 max-w-[800px] pt-20">
+    <ContentContainer className="pb-30 max-w-[650px] pt-20">
       <Link
         href="/blog"
         className="text-accentMedium mb-8 inline-block hover:underline"
