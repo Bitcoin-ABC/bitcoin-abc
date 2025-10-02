@@ -49,7 +49,7 @@ const products: Product[] = [
     url: "https://blitzchips.com/",
   },
   {
-    name: "Tinian Stablecoin",
+    name: "Marianas Stablecoin",
     description:
       "The first fully-reserved, fiat-backed stable token issued by a public entity in the United States",
     url: "https://dollar.mp/",
@@ -83,6 +83,12 @@ const products: Product[] = [
     description:
       "Real-time notifications and alerts for eCash network activity",
     url: "https://t.me/eCashHerald",
+  },
+  {
+    name: "Agora.Cash",
+    description:
+      "eToken DEX UI built on Cashtab Agora, offering exchange-style charts and analytics",
+    url: "https://agora.cash/",
   },
   {
     name: "MetaChronik",
@@ -142,7 +148,7 @@ export default function ProductsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{
                 once: true,
-                amount: 0.9,
+                amount: 0.3,
                 margin: "0px 0px -50px 0px",
               }}
               transition={{

@@ -19,13 +19,13 @@ export interface ServiceContent {
 
 export const useCashServices: ServiceContent[] = [
   {
-    id: "TUSDT",
-    title: "Tinian U.S. Dollar Token",
+    id: "MUSD",
+    title: "Marianas U.S. Dollar Token",
     image: "/musd.png",
     content: {
       paragraphs: [
-        "TUSDT is the first fully-reserved, fiat-backed stable token issued by a public entity in the United States. Exclusively issued on the eCash blockchain.",
-        "TUSDT provides the foundation for blockchain development and distribution of the functions for government such as identity, finance, safety, and administration. Ecosystem development partners can quickly build financial services, standards, and applications with direct access to the TUSDT API.",
+        "MUSD is the first fully-reserved, fiat-backed stable token issued by a public entity in the United States. Exclusively issued on the eCash blockchain.",
+        "MUSD provides the foundation for blockchain development and distribution of the functions for government such as identity, finance, safety, and administration. Ecosystem development partners can quickly build financial services, standards, and applications with direct access to the MUSD API.",
       ],
       buttons: [
         {
