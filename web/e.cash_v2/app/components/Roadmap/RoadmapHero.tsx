@@ -20,13 +20,13 @@ export default function RoadmapHero() {
           className="relative z-10 m-auto flex w-full max-w-[600px] flex-col items-center text-center"
         >
           <h1 className="mb-6 text-4xl font-bold tracking-tighter text-white lg:text-6xl lg:leading-[60px]">
-            Our release roadmap
+            Our roadmap
           </h1>
 
           <p>
-            The goal for eCash is to become sound money that is usable by
-            everyone in the world. This is a civilization-changing technology
-            which will dramatically increase human freedom and prosperity.
+            The goal of eCash is to become sound money that is usable by
+            everyone in the world. The scaling roadmap is organized around three
+            main pillars.
           </p>
         </motion.div>
       </ContentContainer>
