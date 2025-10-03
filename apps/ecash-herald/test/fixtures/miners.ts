@@ -413,6 +413,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'Node Miner',
     },
+    // LSoftware DMCC - parsed from payout script
+    {
+        height: '917134',
+        coinbaseHex:
+            '038efe0d044b42df680cfabe6d6d000000000000000000000000000000000000000000000000000000000000000001000000000000000000008daf871ed1e62d0000174c536f66747761726520444d4343206266633539383637',
+        payoutOutputScript:
+            '76a91467e5fd9e06f01bc40627ad0bdbb5a014c743a81788ac',
+        parsed: 'LSoftware DMCC',
+    },
+    // LSoftware DMCC - parsed from coinbase hex fragment
+    {
+        height: '917133',
+        coinbaseHex:
+            '038dfe0d049541df680cfabe6d6d0000000000000000000000000000000000000000000000000000000000000000010000000000000027fffc2cb0f72c102e2d0000174c536f66747761726520444d4343206439306433393437',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'LSoftware DMCC',
+    },
 ];
 
 export default minerTestFixtures;

@@ -175,6 +175,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '6e6f64652f', // "node/" ASCII
             },
         ],
+        [
+            '76a91467e5fd9e06f01bc40627ad0bdbb5a014c743a81788ac',
+            {
+                miner: 'LSoftware DMCC',
+                coinbaseHexFragment: '4c536f66747761726520444d434320', // "LSoftware DMCC " ASCII
+            },
+        ],
     ],
 };
 
