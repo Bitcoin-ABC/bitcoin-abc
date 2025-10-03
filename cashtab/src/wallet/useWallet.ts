@@ -291,7 +291,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
                 // parse tx for notification
                 const parsedTx = parseTx(incomingTxDetails, [
-                    cashtabState.wallets[0].hash,
+                    cashtabState.activeWallet!.hash,
                 ]);
 
                 // Add the new transaction to the beginning of the first page history
