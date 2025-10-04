@@ -193,14 +193,6 @@ export default function DigitalPaymentLandscape() {
           </div>
           <Chart />
         </motion.div>
-        <a
-          href="https://www.capgemini.com/wp-content/uploads/2024/09/WPR_2025_web.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-fira-code text-secondaryText hover:text-accentLight bottom-[30px] right-[30px] order-2 mb-10 text-[8px] lg:absolute lg:mb-0 lg:text-[10px]"
-        >
-          SOURCE: CAPGEMINI RESEARCH INSTITUTE
-        </a>
       </div>
     </ContentContainer>
   );
