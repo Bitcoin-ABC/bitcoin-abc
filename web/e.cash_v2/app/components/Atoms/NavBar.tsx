@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { cn } from "../../utils/cn";
 import { navbarLinks } from "../../data/navbarLinks";
 import Button from "./Button";
+import UpgradeCountdown from "./UpgradeCountdown";
 import { useRef } from "react";
 import { motion } from "framer-motion";
 
@@ -99,19 +100,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
         {/* Banner
          ***** Note: Set the endtime timestamp for the banner in layout.tsx. *****
          */}
-        {showBanner && (
-          <Link
-            href="https://ecashconference.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[30px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs font-medium leading-none transition-all duration-300 lg:text-sm"
-          >
-            <div>
-              Don't miss the 2025 Electronic Cash Conference!
-              <span className="whitespace-nowrap"> Oct 4-5</span>
-            </div>
-          </Link>
-        )}
+        {showBanner && <UpgradeCountdown />}
         <div className="flex w-full max-w-[1400px] items-center justify-between px-4 py-4">
           {/* Left: Logo and main links */}
           <div className="flex items-center gap-12">

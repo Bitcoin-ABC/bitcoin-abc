@@ -68,7 +68,7 @@ export default function RootLayout({
   // Endtime timestamp for the top banner
   // Banner is shown if the current time is before the endtime.
   // We need to set it here so we apply the extra padding to the main content when banner is active.
-  const bannerEndTime = "2025-10-05T05:23:59Z";
+  const bannerEndTime = "2025-12-01T00:00:00Z";
   const showBanner = shouldShowBanner(bannerEndTime);
 
   return (
@@ -77,7 +77,9 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
       >
         <Navbar showBanner={showBanner} />
-        <div className={showBanner ? "pt-[30px]" : ""}>{children}</div>
+        <div className={showBanner ? "pt-[40px] sm:pt-[30px]" : ""}>
+          {children}
+        </div>
         <Footer />
       </body>
     </html>
