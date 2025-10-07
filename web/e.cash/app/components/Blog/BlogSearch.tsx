@@ -34,7 +34,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
   }, [searchQuery, posts]);
 
   const getImageUrl = (post: BlogPost) =>
-    post.attributes.image.data.attributes.formats.small?.url ||
+    post.attributes.image.data.attributes.formats.medium?.url ||
     post.attributes.image.data.attributes.url;
 
   const [latest, ...rest] = filteredPosts;
@@ -107,13 +107,17 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
           >
             <div className="relative h-[550px] w-full">
               <Image
-                src={`https://strapi.fabien.cash${getImageUrl(latest)}`}
+                src={`https://strapi.fabien.cash${
+                  latest.attributes.image.data.attributes.formats.large?.url ||
+                  latest.attributes.image.data.attributes.url
+                }`}
                 alt={latest.attributes.title}
                 fill
                 className="object-cover"
                 priority
                 unoptimized
               />
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
             </div>
             <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-8">
               <div className="text-secondaryText mb-2 flex items-center text-sm">
@@ -126,14 +130,9 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                   {calculateReadTime(latest.attributes.content)} min read
                 </span>
               </div>
-              <h2 className="mb-4 max-w-2xl text-3xl font-bold text-white transition-all group-hover:underline">
+              <h2 className="group-hover:text-accentLight mb-4 max-w-2xl text-3xl font-bold text-white transition-all group-hover:underline">
                 {latest.attributes.title}
               </h2>
-              <div className="mt-4 w-fit">
-                <Button variant="white" className="m-0">
-                  Read more
-                </Button>
-              </div>
             </div>
           </a>
 
@@ -146,7 +145,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                 className="group flex flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5"
               >
                 <div className="p-2">
-                  <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[300px]">
+                  <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[200px]">
                     <Image
                       src={`https://strapi.fabien.cash${getImageUrl(post)}`}
                       alt={post.attributes.title}
@@ -157,7 +156,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                     />
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col p-6">
+                <div className="flex flex-1 flex-col p-6 pt-2">
                   <div className="text-secondaryText mb-2 flex items-center text-sm">
                     {formatTimestamp(
                       post.attributes.publish_date ||
@@ -168,14 +167,9 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                       {calculateReadTime(post.attributes.content)} min read
                     </span>
                   </div>
-                  <h3 className="mb-4 text-xl font-bold leading-tight text-white transition-all group-hover:underline lg:text-2xl">
+                  <h3 className="group-hover:text-accentLight text-lg font-bold leading-tight text-white transition-all group-hover:underline lg:text-xl">
                     {post.attributes.title}
                   </h3>
-                  <div className="mt-auto">
-                    <Button variant="white" className="mt-4">
-                      Read more
-                    </Button>
-                  </div>
                 </div>
               </a>
             ))}
@@ -192,7 +186,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                     href={`/blog/${post.attributes.slug}`}
                     className="group flex flex-col items-start justify-between py-2 lg:flex-row lg:items-center"
                   >
-                    <h3 className="group-hover:text-accentMedium text-xl font-bold transition-all">
+                    <h3 className="group-hover:text-accentMedium text-xl font-bold transition-all group-hover:underline">
                       {post.attributes.title}
                     </h3>
 

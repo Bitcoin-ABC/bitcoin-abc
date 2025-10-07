@@ -43,7 +43,7 @@ export default async function BlogPostPage({
   }
 
   const imageUrl =
-    post.attributes.image.data.attributes.formats.small?.url ||
+    post.attributes.image.data.attributes.formats.medium?.url ||
     post.attributes.image.data.attributes.url;
 
   const recommendedPost = getNextRecommendedPost(posts, slug);
