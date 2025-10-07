@@ -1071,13 +1071,6 @@ builds:
       context: web/e.cash
       port: 3000
       build_args:
-        - "PREVIEW_BUILD=next.preview.js"
-
-  preview-e.cash_v2:
-    docker:
-      context: web/e.cash_v2
-      port: 3000
-      build_args:
         - "PREVIEW_BUILD=next.preview.ts"
 
   preview-chronik.e.cash:

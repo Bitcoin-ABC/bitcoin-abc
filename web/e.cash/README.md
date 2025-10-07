@@ -1,15 +1,18 @@
 # e.Cash Website
 
-Main website for eCash
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Building the site
+## Getting Started
 
-First run `npm ci`
+First, run the development server:
 
-### Develop
+```bash
+npm i
+npm run dev
+```
 
-To run a local instance that dynamically updates as you make changes: `npm run dev`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Build
+## Build
 
 To create an optimized production build: `npm run build`
