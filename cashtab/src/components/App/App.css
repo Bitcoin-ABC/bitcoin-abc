@@ -54,4 +54,30 @@ input[type='number'] {
 html,
 body {
     max-width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Ensure containers respect viewport width, but exclude interactive elements */
+div,
+section,
+article,
+main,
+header,
+footer,
+nav,
+aside {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Allow interactive elements to have their natural behavior */
+input,
+button,
+select,
+textarea,
+[role='button'],
+[role='switch'],
+[role='checkbox'],
+[role='radio'] {
+    box-sizing: border-box;
 }

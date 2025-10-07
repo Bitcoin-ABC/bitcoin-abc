@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.42.3",
+    "version": "3.43.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -29,7 +29,7 @@
         "@aparajita/capacitor-secure-storage": "^7.1.3",
         "@capacitor-community/sqlite": "^7.0.1",
         "@capacitor/android": "^7.4.2",
-        "@capacitor/camera": "^7.0.2",
+        "@capacitor/barcode-scanner": "^2.2.0",
         "@capacitor/core": "^7.4.2",
         "b58-ts": "file:../modules/b58-ts",
         "bignumber.js": "^9.1.2",
@@ -38,7 +38,6 @@
         "ecash-agora": "file:../modules/ecash-agora",
         "ecash-lib": "file:../modules/ecash-lib",
         "ecashaddrjs": "file:../modules/ecashaddrjs",
-        "html5-qrcode": "^2.3.8",
         "localforage": "^1.9.0",
         "qrcode.react": "^3.1.0",
         "react": "^18.2.0",

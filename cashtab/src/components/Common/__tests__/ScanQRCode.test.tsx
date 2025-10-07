@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,47 +10,127 @@ import ScanQRCode from 'components/Common/ScanQRCode';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 
-// Mock html5-qrcode
-jest.mock('html5-qrcode', () => {
-    return {
-        Html5Qrcode: jest.fn().mockImplementation(() => {
-            return {
-                start: jest
-                    .fn((_camera, _config, _onSuccess) => Promise.resolve())
-                    .mockName('start'),
-                stop: jest.fn(() => Promise.resolve()).mockName('stop'),
-                clear: jest.fn(() => undefined).mockName('clear'),
-            };
-        }),
-        Html5QrcodeSupportedFormats: { QR_CODE: 0 },
-    };
-});
+// Mock @capacitor/barcode-scanner
+jest.mock('@capacitor/barcode-scanner', () => ({
+    CapacitorBarcodeScanner: {
+        scanBarcode: jest.fn(),
+    },
+    CapacitorBarcodeScannerTypeHint: {
+        QR_CODE: 'QR_CODE',
+    },
+    CapacitorBarcodeScannerCameraDirection: {
+        BACK: 'BACK',
+    },
+    CapacitorBarcodeScannerScanOrientation: {
+        ADAPTIVE: 'ADAPTIVE',
+    },
+    CapacitorBarcodeScannerAndroidScanningLibrary: {
+        MLKIT: 'MLKIT',
+    },
+}));
+
+// Mock @capacitor/core
+jest.mock('@capacitor/core', () => ({
+    Capacitor: {
+        getPlatform: jest.fn(() => 'web'),
+    },
+}));
 
 describe('<ScanQRCode />', () => {
-    it('Does not render the modal on load, but it can be opened and closed on click', async () => {
+    it('Renders the scan button and calls onScan when QR code is detected', async () => {
+        const mockOnScan = jest.fn();
+        const {
+            CapacitorBarcodeScanner,
+        } = require('@capacitor/barcode-scanner');
+
+        // Mock successful scan result
+        CapacitorBarcodeScanner.scanBarcode.mockResolvedValue({
+            ScanResult: 'test-qr-code-result',
+        });
+
         render(
             <ThemeProvider theme={theme}>
-                <ScanQRCode onScan={() => null} />
+                <ScanQRCode onScan={mockOnScan} />
             </ThemeProvider>,
         );
 
-        // Button to open modal is rendered
-        const StartScanningButton = screen.queryByTitle('Scan QR Code');
-        expect(StartScanningButton).toBeInTheDocument();
+        // Button to start scanning is rendered
+        const scanButton = screen.queryByTitle('Scan QR Code');
+        expect(scanButton).toBeInTheDocument();
 
-        // The modal root component is not rendered
-        expect(screen.queryByTitle('Video Preview')).not.toBeInTheDocument();
+        // Click the scan button
+        await userEvent.click(scanButton!);
 
-        // Click the open modal button
-        await userEvent.click(StartScanningButton!);
+        // Wait for the async scan to complete
+        await new Promise(resolve => setTimeout(resolve, 0));
 
-        // The modal is rendered
-        expect(await screen.findByTitle('Video Preview')).toBeInTheDocument();
+        // Verify that the barcode scanner was called with optimized parameters
+        expect(CapacitorBarcodeScanner.scanBarcode).toHaveBeenCalledWith({
+            scanInstructions: 'Point your camera at a QR code',
+            scanButton: false,
+            scanText: 'Scanning...',
+            hint: 'QR_CODE',
+            cameraDirection: 'BACK',
+            scanOrientation: 'ADAPTIVE',
+            web: {
+                scannerFPS: 17,
+                showCameraSelection: true,
+            },
+        });
 
-        // Click the close button
-        await userEvent.click(screen.getByRole('button', { name: /X/ }));
+        // Verify that onScan was called with the result
+        expect(mockOnScan).toHaveBeenCalledWith('test-qr-code-result');
+    });
 
-        // Expect modal to be closed
-        expect(screen.queryByTitle('Video Preview')).not.toBeInTheDocument();
+    it('Handles scan cancellation gracefully', async () => {
+        const mockOnScan = jest.fn();
+        const {
+            CapacitorBarcodeScanner,
+        } = require('@capacitor/barcode-scanner');
+
+        // Mock cancelled scan (no result)
+        CapacitorBarcodeScanner.scanBarcode.mockResolvedValue({});
+
+        render(
+            <ThemeProvider theme={theme}>
+                <ScanQRCode onScan={mockOnScan} />
+            </ThemeProvider>,
+        );
+
+        const scanButton = screen.queryByTitle('Scan QR Code');
+        await userEvent.click(scanButton!);
+
+        // Wait for the async scan to complete
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // Verify that onScan was not called when scan is cancelled
+        expect(mockOnScan).not.toHaveBeenCalled();
+    });
+
+    it('Handles scan errors gracefully', async () => {
+        const mockOnScan = jest.fn();
+        const {
+            CapacitorBarcodeScanner,
+        } = require('@capacitor/barcode-scanner');
+
+        // Mock scan error
+        CapacitorBarcodeScanner.scanBarcode.mockRejectedValue(
+            new Error('Permission denied'),
+        );
+
+        render(
+            <ThemeProvider theme={theme}>
+                <ScanQRCode onScan={mockOnScan} />
+            </ThemeProvider>,
+        );
+
+        const scanButton = screen.queryByTitle('Scan QR Code');
+        await userEvent.click(scanButton!);
+
+        // Wait for the async scan to complete
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // Verify that onScan was not called when scan fails
+        expect(mockOnScan).not.toHaveBeenCalled();
     });
 });
