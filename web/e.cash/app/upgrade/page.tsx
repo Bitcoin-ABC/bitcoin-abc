@@ -6,7 +6,7 @@ import UpgradeHero from "../components/Upgrade/UpgradeHero";
 import UpgradeContent from "../components/Upgrade/UpgradeContent";
 import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
-const oldVersion = "0.30.13";
+const oldVersion = "0.31.13";
 
 async function getLatestVersion(): Promise<string> {
   try {
@@ -30,7 +30,7 @@ async function getLatestVersion(): Promise<string> {
   } catch (error) {
     console.error("Failed to fetch latest version:", error);
     // Fallback to a default version if API fails
-    return "0.30.13";
+    return "0.32.0";
   }
 }
 
