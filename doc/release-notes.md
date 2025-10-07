@@ -1,7 +1,7 @@
-# Bitcoin ABC 0.31.13 Release Notes
+# Bitcoin ABC 0.32.0 Release Notes
 
-Bitcoin ABC version 0.31.13 is now available from:
+Bitcoin ABC version 0.32.0 is now available from:
 
-  <https://download.bitcoinabc.org/0.31.13/>
+  <https://download.bitcoinabc.org/0.32.0/>
 
 This is a maintenance release with no user-visible change.

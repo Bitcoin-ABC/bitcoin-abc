@@ -20,7 +20,7 @@ MAX_SEEDS_PER_ASN = {
     "ipv6": 10,
 }
 
-MIN_BLOCKS = 888000
+MIN_BLOCKS = 917000
 
 PATTERN_IPV4 = re.compile(r"^((\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})):(\d+)$")
 PATTERN_IPV6 = re.compile(r"^\[([0-9a-z:]+)\]:(\d+)$")
@@ -28,7 +28,7 @@ PATTERN_ONION = re.compile(r"^([abcdefghijklmnopqrstuvwxyz234567]{16}\.onion):(\
 
 # Used to only select nodes with a user agent string compatible with the
 # eCash network.
-PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0\.(30|31)\.(.+)/)")
+PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0\.(31|32)\.(.+)/)")
 
 
 def parseline(line: str) -> Union[dict, None]:
