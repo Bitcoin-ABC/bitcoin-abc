@@ -64,7 +64,7 @@ const nextConfig: NextConfig = {
             object-src 'none';
             base-uri 'self';
             frame-ancestors 'none';
-            frame-src 'self' https://swapspace.co https://swapzone.io;
+            frame-src 'self' https://swapspace.co https://swapzone.io https://www.youtube.com;
             form-action 'self';
             upgrade-insecure-requests;
           `
