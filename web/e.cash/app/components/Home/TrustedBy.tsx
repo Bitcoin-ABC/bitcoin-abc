@@ -7,7 +7,16 @@ import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-const Logos = ["bithumb", "upbit", "binance", "coinex", "indodax"];
+const Logos = [
+  "bithumb",
+  "upbit",
+  "binance",
+  "coinex",
+  "indodax",
+  "now-nodes",
+  "sideshift",
+  "changenow",
+];
 
 export default function TrustedBy() {
   return (
