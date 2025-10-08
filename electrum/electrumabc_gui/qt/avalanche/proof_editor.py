@@ -287,10 +287,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.master_pubkey_view.setReadOnly(True)
         # setReadOnly does not change the style of the widget to indicate it is not
         # editable. setEnabled(False) would prevent selecting and copying the key.
-        # Manually change the background color.
-        self.master_pubkey_view.setStyleSheet(
-            "QLineEdit {background-color: lightGray;}"
-        )
+        # Manually change the style so the widget looks different from a regular
+        # line edit.
+        self.master_pubkey_view.setStyleSheet("QLineEdit {border: none}")
         self.master_pubkey_view.setToolTip("Computed from Master private key")
         layout.addWidget(self.master_pubkey_view)
         layout.addSpacing(10)
