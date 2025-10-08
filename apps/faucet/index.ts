@@ -260,7 +260,7 @@ import { config } from './config';
 
             return res.status(200).json({
                 address: address,
-                amount: config.amount,
+                amount: Number(config.amount),
                 txid: txid,
             });
         },
@@ -287,7 +287,7 @@ import { config } from './config';
             const balance = await getBalanceSats(utxos);
             return res.status(200).json({
                 address: walletAddress,
-                balance: balance,
+                balance: Number(balance),
             });
         });
     }
