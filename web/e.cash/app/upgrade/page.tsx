@@ -7,6 +7,8 @@ import UpgradeContent from "../components/Upgrade/UpgradeContent";
 import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
 const oldVersion = "0.31.13";
+const minVersion = "0.32.0";
+const minMinor = minVersion.slice(0, 4);
 
 async function getLatestVersion(): Promise<string> {
   try {
@@ -26,11 +28,15 @@ async function getLatestVersion(): Promise<string> {
     }
 
     const releases = await response.json();
+
+    if (releases[0].name.slice(0, 4) < minMinor) {
+      return minVersion;
+    }
     return releases[0].name;
   } catch (error) {
     console.error("Failed to fetch latest version:", error);
     // Fallback to a default version if API fails
-    return "0.32.0";
+    return minVersion;
   }
 }
 
