@@ -34,6 +34,7 @@ const stakingRewardBlockTemplate = `"coinbasetxn": {
 
 const rttBlockTemplate = `"rtt": {
     "prevheadertime": [
+      1727793761,
       1727793391,
       1727790158,
       1727785595,
@@ -47,27 +48,35 @@ const rttBlockTemplate = `"rtt": {
 const rttFormulae = `uint32_t compute_next_target(gbt) {
     prevTarget = target_from_compact(gbt.rtt.prevbits);
 
-    diffTime0 = max(1, now - gbt.rtt.prevheadertime[0]);
-    target0 = prevTarget * 4.9192018423e-14 * (diffTime0 ** 5);
-
-    diffTime1 = max(1, now - gbt.rtt.prevheadertime[1]);
-    target1 = prevTarget * 4.8039080491e-17 * (diffTime1 ** 5);
-
-    diffTime2 = max(1, now - gbt.rtt.prevheadertime[2]);
-    target2 = prevTarget * 4.9192018423e-19 * (diffTime2 ** 5);
-
-    diffTime3 = max(1, now - gbt.rtt.prevheadertime[3]);
-    target3 = prevTarget * 4.6913164542e-20 * (diffTime3 ** 5);
-
-    nextTarget = min(target0, target1, target2, target3);
-
-    // The real time target is never higher (less difficult) than the normal
-    // target.
-    if (nextTarget < target_from_compact(gbt.bits)) {
-        return target_to_compact(nextTarget);
-    }
+    // It's either 4 (before November 15, 2025 upgrade) or 5
+    num_windows = len(gbt.rtt.prevheadertime);
     
-    return gbt.bits;
+    filter_coefficient = [
+        5.0372626864e-11, // 1-block window
+        4.9192018423e-14, // 2-blocks window
+        4.8039080491e-17, // 5-blocks window
+        4.9192018423e-19, // 11-blocks window
+        4.6913164542e-20, // 17-blocks window
+    ]
+
+    // After the Nov. 15, 2025 eCash upgrade, there are 5 filter windows.
+    // Before the upgrade, only 4 are present (starting with the 2-block window)
+    // and the first coefficient has to be skipped.
+    filter_index = num_windows > 4 ? 0 : 1;
+
+    // Initialize with the non filtered target
+    nextTarget = target_from_compact(gbt.bits);
+
+    for (i = 0; i < num_windows; i++) {
+        diffTime = max(1, now - gbt.rtt.prevheadertime[i]);
+        target = prevTarget * filter_coefficient[filter_index++] * (diffTime ** 5);
+
+        // The real time target is never higher (less difficult) than the normal
+        // target.
+        nextTarget = min(target, nextTarget);
+    }
+
+    return target_to_compact(nextTarget);
 }`;
 
 export default function MiningContent() {
@@ -479,8 +488,8 @@ export default function MiningContent() {
           >
             <h4 className="text-xl font-semibold text-white">Heartbeat</h4>
             <p>
-              The eCash network will enforce Real Time Targeting (also known as
-              Heartbeat) starting with the{" "}
+              The eCash network enforces Real Time Targeting (also known as
+              Heartbeat) since the{" "}
               <a
                 href="/upgrade"
                 className="text-blue-400 transition-colors hover:text-blue-300"
@@ -540,7 +549,7 @@ export default function MiningContent() {
                 <li className="flex items-start">
                   <span className="mr-2 text-blue-400">•</span>
                   If your local time differs from the "rtt.nodetime" field, you
-                  can use this value to compensate or fix you system time.
+                  can use this value to compensate or fix your system time.
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-blue-400">•</span>
