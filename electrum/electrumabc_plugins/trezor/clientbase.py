@@ -611,8 +611,8 @@ class TrezorClientBase(HardwareClientBase, PrintError):
             return trezorlib.ecash.sign_stake(
                 self.client,
                 address_n,
-                bytes.fromhex(stake.utxo.txid.get_hex()),
-                stake.utxo.n,
+                bytes.fromhex(stake.outpoint.txid.get_hex()),
+                stake.outpoint.n,
                 stake.amount,
                 stake.height,
                 stake.is_coinbase,

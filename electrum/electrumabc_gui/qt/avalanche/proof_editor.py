@@ -166,10 +166,10 @@ class StakesWidget(QtWidgets.QTableWidget):
             height = stake.height
 
             row_index = previous_utxo_count + i
-            txid_item = QtWidgets.QTableWidgetItem(stake.utxo.txid.get_hex())
+            txid_item = QtWidgets.QTableWidgetItem(stake.outpoint.txid.get_hex())
             self.setItem(row_index, 0, txid_item)
 
-            vout_item = QtWidgets.QTableWidgetItem(str(stake.utxo.n))
+            vout_item = QtWidgets.QTableWidgetItem(str(stake.outpoint.n))
             self.setItem(row_index, 1, vout_item)
 
             amount_item = QtWidgets.QTableWidgetItem(
@@ -542,7 +542,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
     def on_add_coins_from_wallet_clicked(self):
         already_added_outpoints = {
-            str(signed_stake.stake.utxo) for signed_stake in self.utxos_wigdet.stakes
+            str(signed_stake.stake.outpoint)
+            for signed_stake in self.utxos_wigdet.stakes
         }
         d = UtxosDialog(self.wallet, already_added_outpoints)
         if d.exec_() == QtWidgets.QDialog.Rejected:
