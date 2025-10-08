@@ -541,7 +541,10 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.add_utxos(utxos)
 
     def on_add_coins_from_wallet_clicked(self):
-        d = UtxosDialog(self.wallet)
+        already_added_outpoints = {
+            str(signed_stake.stake.utxo) for signed_stake in self.utxos_wigdet.stakes
+        }
+        d = UtxosDialog(self.wallet, already_added_outpoints)
         if d.exec_() == QtWidgets.QDialog.Rejected:
             return
         utxos = d.get_selected_utxos()
@@ -933,13 +936,14 @@ def check_utxos(utxos: List[dict], parent: Optional[QtWidgets.QWidget] = None) -
 class UtxosDialog(QtWidgets.QDialog):
     """A widget listing all coins in a wallet and allowing to load multiple coins"""
 
-    def __init__(self, wallet: DeterministicWallet):
+    def __init__(self, wallet: DeterministicWallet, outpoints_to_exclude: set[str]):
         super().__init__()
         self.setMinimumWidth(750)
 
         self.wallet = wallet
         self.utxos: List[dict] = []
         self.selected_rows: List[int] = []
+        self.outpoints_to_exclude = outpoints_to_exclude
 
         layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
@@ -975,7 +979,14 @@ class UtxosDialog(QtWidgets.QDialog):
         self.utxos_table.itemSelectionChanged.connect(self._on_selection_changed)
 
     def _fill_utxos_table(self):
-        self.utxos = [u for u in self.wallet.get_utxos() if u["height"] > 0]
+        def is_usable_utxo(utxo: dict) -> bool:
+            return (
+                utxo["height"] > 0
+                and f'{utxo["prevout_hash"]}:{utxo["prevout_n"]}'
+                not in self.outpoints_to_exclude
+            )
+
+        self.utxos = list(filter(is_usable_utxo, self.wallet.get_utxos()))
         self.utxos.sort(key=lambda u: u["value"], reverse=True)
 
         tip = self.wallet.get_local_height()
