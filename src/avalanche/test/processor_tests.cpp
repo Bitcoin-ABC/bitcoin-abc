@@ -2506,7 +2506,6 @@ BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
 }
 
 BOOST_AUTO_TEST_CASE(stake_contenders) {
-    // setArg("-avalanchestakingpreconsensus", "1");
     bilingual_str error;
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(),
