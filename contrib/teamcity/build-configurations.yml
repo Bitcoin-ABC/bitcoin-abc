@@ -430,6 +430,8 @@ builds:
   build-master:
     cmake_flags:
       - '-DBUILD_CHAINSTATE=ON'
+      - '-DBUILD_CHRONIK=ON'
+      - '-DBUILD_CHRONIK_PLUGINS=ON'
     Werror: true
     targets:
       - - all

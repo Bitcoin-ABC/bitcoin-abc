@@ -46,11 +46,12 @@ class ChronikShutdown(BitcoinTestFramework):
                 fan_tx = CTransaction()
                 fan_tx.vin = [CTxIn(COutPoint(txid, 0))]
                 fan_tx.vout = [CTxOut(1000, CScript([OP_TRUE]))] * 8000
+                fan_txid_int = fan_tx.txid_int
                 txs.append(fan_tx)
                 for j in range(0, 7997, 3):
                     tx = CTransaction()
                     tx.vin = [
-                        CTxIn(COutPoint(fan_tx.txid_int, k)) for k in range(j, j + 3)
+                        CTxIn(COutPoint(fan_txid_int, k)) for k in range(j, j + 3)
                     ]
                     tx.vout = [CTxOut(1000, CScript([OP_TRUE]))]
                     txs.append(tx)
