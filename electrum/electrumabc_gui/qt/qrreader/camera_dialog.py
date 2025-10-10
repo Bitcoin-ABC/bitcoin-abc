@@ -44,7 +44,7 @@ else:
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
 from electrumabc.qrreaders import QrCodeResult, get_qr_reader
-from electrumabc.simple_config import get_config
+from electrumabc.simple_config import SimpleConfig
 
 from ..util import MessageBoxMixin
 from ..utils import FixedAspectRatioLayout, ImageGraphicsEffect
@@ -91,7 +91,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
 
     qr_finished = Signal(bool, str, object)
 
-    def __init__(self, parent):
+    def __init__(self, parent, config: SimpleConfig):
         """Note: make sure parent is a "top_level_window()" as per
         MessageBoxMixin API else bad things can happen on macOS."""
         QtWidgets.QDialog.__init__(self, parent=parent)
@@ -113,7 +113,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.camera_sc_conn = None
         self.resolution: QSize = None
 
-        self.config = get_config()
+        self.config = config
 
         # Try to get the QR reader for this system
         self.qrreader = get_qr_reader()

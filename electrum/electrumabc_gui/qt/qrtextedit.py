@@ -8,6 +8,7 @@ from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import is_verbose, print_error
 from electrumabc.qrreaders import get_qr_reader
+from electrumabc.simple_config import SimpleConfig
 
 from .util import ButtonsTextEdit, ColorScheme, MessageBoxMixin
 
@@ -61,9 +62,10 @@ class ShowQRTextEdit(_QrCodeTextEdit):
 
 
 class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
-    def __init__(self, text="", allow_multi=False):
+    def __init__(self, config: SimpleConfig, text="", allow_multi=False):
         _QrCodeTextEdit.__init__(self, text)
         self.allow_multi = allow_multi
+        self.config = config
         self.setReadOnly(0)
         self.qr_button = self.addButton(
             self.get_qr_icon(), self.qr_input, _("Read QR code")
@@ -173,12 +175,13 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
 
         if ElectrumGui.instance.warn_if_cant_import_qrreader(self):
             return
-        from electrumabc.simple_config import get_config
 
         from .qrreader import QrReaderCameraDialog
 
         try:
-            self.qr_dialog = QrReaderCameraDialog(parent=self.top_level_window())
+            self.qr_dialog = QrReaderCameraDialog(
+                parent=self.top_level_window(), config=self.config
+            )
 
             def _on_qr_reader_finished(success: bool, error: str, result):
                 if self.qr_dialog:
@@ -199,7 +202,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
                     callback(result)
 
             self.qr_dialog.qr_finished.connect(_on_qr_reader_finished)
-            self.qr_dialog.start_scan(get_config().get_video_device())
+            self.qr_dialog.start_scan(self.config.get_video_device())
         except Exception as e:
             if is_verbose:
                 import traceback

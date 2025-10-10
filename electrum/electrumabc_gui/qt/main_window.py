@@ -64,7 +64,6 @@ from electrumabc.ecc import ECPubkey
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import is_verbose
-from electrumabc.simple_config import get_config
 from electrumabc.transaction import (
     SerializationError,
     Transaction,
@@ -2488,7 +2487,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self._qr_dialog = None
         try:
-            self._qr_dialog = QrReaderCameraDialog(parent=self.top_level_window())
+            self._qr_dialog = QrReaderCameraDialog(
+                parent=self.top_level_window(), config=self.config
+            )
 
             def _on_qr_reader_finished(success: bool, error: str, result):
                 if self._qr_dialog:
@@ -2517,7 +2518,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.show_transaction(tx)
 
             self._qr_dialog.qr_finished.connect(_on_qr_reader_finished)
-            self._qr_dialog.start_scan(get_config().get_video_device())
+            self._qr_dialog.start_scan(self.config.get_video_device())
         except Exception as e:
             if is_verbose:
                 traceback.print_exc(file=sys.stderr)
@@ -2547,6 +2548,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("Input raw transaction"),
             _("Transaction:"),
             _("Load transaction"),
+            self.config,
         )
         if not text:
             return
@@ -3191,7 +3193,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def _do_import(self, title, msg, func):
         text = text_dialog(
-            self.top_level_window(), title, msg + " :", _("Import"), allow_multi=True
+            self.top_level_window(),
+            title,
+            msg + " :",
+            _("Import"),
+            self.config,
+            allow_multi=True,
         )
         if not text:
             return

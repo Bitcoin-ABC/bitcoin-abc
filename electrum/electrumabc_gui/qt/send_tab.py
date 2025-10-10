@@ -1450,7 +1450,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             extra += " " + _("or BIP38 keys")
         vbox.addWidget(QtWidgets.QLabel(_("Enter private keys") + extra + " :"))
 
-        keys_e = ScanQRTextEdit(allow_multi=True)
+        keys_e = ScanQRTextEdit(self.config, allow_multi=True)
         keys_e.setTabChangesFocus(True)
         vbox.addWidget(keys_e)
 

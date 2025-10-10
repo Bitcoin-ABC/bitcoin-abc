@@ -518,7 +518,15 @@ class WaitingDialog(WindowModalDialog):
             super().keyPressEvent(e)
 
 
-def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False):
+def text_dialog(
+    parent,
+    title,
+    label,
+    ok_label,
+    config: SimpleConfig,
+    default=None,
+    allow_multi=False,
+):
     from .qrtextedit import ScanQRTextEdit
 
     dialog = WindowModalDialog(parent, title)
@@ -526,7 +534,7 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
     layout = QtWidgets.QVBoxLayout()
     dialog.setLayout(layout)
     layout.addWidget(QtWidgets.QLabel(label))
-    txt = ScanQRTextEdit(allow_multi=allow_multi)
+    txt = ScanQRTextEdit(config, allow_multi=allow_multi)
     if default:
         txt.setText(default)
     layout.addWidget(txt)

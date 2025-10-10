@@ -9,19 +9,6 @@ from . import util
 from .printerror import PrintError, print_error
 from .util import get_user_dir, make_dir
 
-config = None
-
-
-def get_config():
-    global config
-    return config
-
-
-def set_config(c):
-    global config
-    config = c
-
-
 FINAL_CONFIG_VERSION = 2
 
 
@@ -45,7 +32,10 @@ class SimpleConfig(PrintError):
     max_slider_fee / slider_steps)"""
 
     def __init__(
-        self, options=None, read_user_config_function=None, read_user_dir_function=None
+        self,
+        options=None,
+        read_user_config_function=None,
+        read_user_dir_function=None,
     ):
         if options is None:
             options = {}
@@ -84,9 +74,6 @@ class SimpleConfig(PrintError):
         # config upgrade - user config
         if self.requires_upgrade():
             self.upgrade()
-
-        # Make a singleton instance of 'self'
-        set_config(self)
 
     def electrum_path(self):
         # Read electrum_cash_path from command line

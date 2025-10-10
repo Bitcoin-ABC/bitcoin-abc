@@ -61,7 +61,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
 
     def __init__(self, send_tab: SendTab, contact_manager: Contacts):
         CompletionTextEdit.__init__(self)
-        ScanQRTextEdit.__init__(self)
+        ScanQRTextEdit.__init__(self, send_tab.config)
         self.send_tab = send_tab
         self.contact_manager = contact_manager
         self.amount_edit = send_tab.amount_e

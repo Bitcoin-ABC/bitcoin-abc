@@ -469,7 +469,11 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     def text_input(self, title, message, is_valid, allow_multi=False):
         slayout = KeysLayout(
-            parent=self, title=message, is_valid=is_valid, allow_multi=allow_multi
+            self.config,
+            parent=self,
+            title=message,
+            is_valid=is_valid,
+            allow_multi=allow_multi,
         )
         self.exec_layout(slayout, title, next_enabled=False)
         return slayout.get_text()
