@@ -1694,7 +1694,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def show_qr_window(self):
         if not self.qr_window:
-            self.qr_window = qrwindow.QRWindow()
+            self.qr_window = qrwindow.QRWindow(self.config)
             self.qr_window.setAttribute(Qt.WA_DeleteOnClose, True)
             weakSelf = Weak.ref(self)
 

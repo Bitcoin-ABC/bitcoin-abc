@@ -32,6 +32,7 @@ from qtpy.QtCore import Qt
 from electrumabc.amount import format_amount
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
+from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak
 
 from .qrcodewidget import QRCodeWidget, copy_to_clipboard, save_to_file
@@ -42,12 +43,13 @@ if TYPE_CHECKING:
 
 
 class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
-    def __init__(self):
+    def __init__(self, config: SimpleConfig):
         # Top-level window.
         super().__init__()
         self.setWindowTitle(f"{PROJECT_NAME} - " + _("Payment Request"))
         self.label = ""
         self.amount = 0
+        self.config = config
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.MinimumExpanding,
@@ -94,7 +96,7 @@ class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
         weakQ = Weak.ref(self.qrw)
         weakBut = Weak.ref(copyBut)
         copyBut.clicked.connect(lambda: copy_to_clipboard(weakQ(), weakBut()))
-        saveBut.clicked.connect(lambda: save_to_file(weakQ(), weakSelf()))
+        saveBut.clicked.connect(lambda: save_to_file(weakQ(), weakSelf(), self.config))
 
     def set_content(
         self,

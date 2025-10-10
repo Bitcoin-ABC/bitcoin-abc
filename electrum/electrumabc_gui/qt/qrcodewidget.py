@@ -6,8 +6,9 @@ from qtpy.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from electrumabc import util
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
+from electrumabc.simple_config import SimpleConfig
 
-from .util import CloseButton, MessageBoxMixin, WindowModalDialog
+from .util import CloseButton, MessageBoxMixin, WindowModalDialog, getSaveFileName
 
 
 class QRCodeWidget(QtWidgets.QWidget, PrintError):
@@ -108,16 +109,15 @@ class QRCodeWidget(QtWidgets.QWidget, PrintError):
         del qp
 
 
-def save_to_file(qrw, parent):
-    from .main_window import ElectrumWindow
-
+def save_to_file(qrw, parent, config: SimpleConfig):
     p = qrw and qrw.grab()
     if p and not p.isNull():
-        filename = ElectrumWindow.static_getSaveFileName(
+        filename = getSaveFileName(
             title=_("Save QR Image"),
             filename="qrcode.png",
+            config=config,
             parent=parent,
-            filter="*.png",
+            filtr="*.png",
         )
         if filename:
             p.save(filename, "png")
