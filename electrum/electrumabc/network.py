@@ -253,9 +253,9 @@ class Network(util.DaemonThread):
 
     tor_controller: TorController = None
 
-    def __init__(self, config: Optional[SimpleConfig] = None):
+    def __init__(self, config: SimpleConfig):
         util.DaemonThread.__init__(self)
-        self.config = config or SimpleConfig()
+        self.config = config
         self.num_server = 10 if not self.config.get("oneserver") else 0
         self.blockchains = blockchain.read_blockchains(self.config)
         """Dict of blockchains (main chain and forks) indexed by base heights."""
