@@ -274,11 +274,12 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
     def _on_amount_changed(self, value: float):
         if self.fx is None or self.get_currency().lower() != "xec":
             return
+        exchange_rate = self.fx.exchange_rate()
+        if exchange_rate is None:
+            return
 
         fiat_cur = self.fx.get_currency()
-        fiat_amount = self.fx.ccy_amount_str(
-            Decimal(value) * self.fx.exchange_rate(), False
-        )
+        fiat_amount = self.fx.ccy_amount_str(Decimal(value) * exchange_rate, False)
         self.fiat_amount_label.setText(f"{fiat_amount} {fiat_cur}")
 
 
