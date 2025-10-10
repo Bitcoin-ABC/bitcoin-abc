@@ -646,7 +646,7 @@ class Commands:
     def _resolver(self, x):
         if x is None:
             return None
-        out = alias.resolve(x)
+        out = alias.resolve(x, self.config)
         if (
             out.get("type") == "openalias"
             and self.nocheck is False
@@ -899,7 +899,7 @@ class Commands:
     @command("w")
     def getalias(self, key):
         """Retrieve alias. Lookup in your list of contacts, and for an OpenAlias DNS record."""
-        return alias.resolve(key)
+        return alias.resolve(key, self.config)
 
     @command("w")
     def searchcontacts(self, query):
@@ -1089,7 +1089,7 @@ class Commands:
         alias_ = self.config.get("alias")
         if not alias_:
             raise ValueError("No alias in your configuration")
-        data = alias.resolve(alias_)
+        data = alias.resolve(alias_, self.config)
         alias_addr = (data and data.get("address")) or None
         if not alias_addr:
             raise RuntimeError("Alias could not be resolved")

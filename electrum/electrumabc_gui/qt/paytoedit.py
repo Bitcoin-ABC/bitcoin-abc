@@ -324,7 +324,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
 
         def resolve_in_thread():
             try:
-                return alias.resolve(key)
+                return alias.resolve(key, self.send_tab.config)
             except Exception as e:
                 return e
 
