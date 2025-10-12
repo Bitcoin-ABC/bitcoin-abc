@@ -182,7 +182,7 @@ public:
     CCoinsViewCursor *Cursor() const final { return {}; }
     size_t EstimateSize() const final { return m_data.size(); }
 
-    bool BatchWrite(CoinsViewCacheCursor &cursor, const BlockHash &) final {
+    void BatchWrite(CoinsViewCacheCursor &cursor, const BlockHash &) final {
         for (auto it{cursor.Begin()}; it != cursor.End();
              it = cursor.NextAndMaybeErase(*it)) {
             if (it->second.IsDirty()) {
@@ -210,7 +210,6 @@ public:
                 }
             }
         }
-        return true;
     }
 };
 

@@ -59,7 +59,7 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     BlockHash GetBestBlock() const override;
     std::vector<BlockHash> GetHeadBlocks() const override;
-    bool BatchWrite(CoinsViewCacheCursor &cursor,
+    void BatchWrite(CoinsViewCacheCursor &cursor,
                     const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
 

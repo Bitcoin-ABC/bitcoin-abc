@@ -324,7 +324,7 @@ public:
 
     //! Do a bulk modification (multiple Coin changes + BestBlock change).
     //! The passed cursor is used to iterate through the coins.
-    virtual bool BatchWrite(CoinsViewCacheCursor &cursor,
+    virtual void BatchWrite(CoinsViewCacheCursor &cursor,
                             const BlockHash &hashBlock);
 
     //! Get a cursor to iterate over the whole state
@@ -349,7 +349,7 @@ public:
     BlockHash GetBestBlock() const override;
     std::vector<BlockHash> GetHeadBlocks() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CoinsViewCacheCursor &cursor,
+    void BatchWrite(CoinsViewCacheCursor &cursor,
                     const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
@@ -392,7 +392,7 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     BlockHash GetBestBlock() const override;
     void SetBestBlock(const BlockHash &hashBlock);
-    bool BatchWrite(CoinsViewCacheCursor &cursor,
+    void BatchWrite(CoinsViewCacheCursor &cursor,
                     const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override {
         throw std::logic_error(
@@ -446,16 +446,15 @@ public:
      * cause the changes to be forgotten. If false is returned, the state of
      * this cache (and its backing view) will be undefined.
      */
-    bool Flush();
+    void Flush();
 
     /**
      * Push the modifications applied to this cache to its base while retaining
      * the contents of this cache (except for spent coins, which we erase).
      * Failure to call this method or Flush() before destruction will cause the
-     * changes to be forgotten. If false is returned, the state of this cache
-     * (and its backing view) will be undefined.
+     * changes to be forgotten.
      */
-    bool Sync();
+    void Sync();
 
     /**
      * Removes the UTXO with the given outpoint from the cache, if it is not

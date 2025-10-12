@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
         CoinsCacheSizeState::CRITICAL);
 
     view.SetBestBlock(BlockHash(m_rng.rand256()));
-    BOOST_CHECK(view.Flush());
+    view.Flush();
     print_view_mem_usage(view);
 
     BOOST_CHECK_EQUAL(

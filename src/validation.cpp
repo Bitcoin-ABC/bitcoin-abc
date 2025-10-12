@@ -2761,11 +2761,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     // entries).
                     const auto empty_cache{(mode == FlushStateMode::ALWAYS) ||
                                            fCacheLarge || fCacheCritical};
-                    if (empty_cache ? !CoinsTip().Flush()
-                                    : !CoinsTip().Sync()) {
-                        return FatalError(m_chainman.GetNotifications(), state,
-                                          "Failed to write to coin database");
-                    }
+                    empty_cache ? CoinsTip().Flush() : CoinsTip().Sync();
                     full_flush_completed = true;
                     TRACE5(utxocache, flush,
                            int64_t{Ticks<std::chrono::microseconds>(
@@ -2911,8 +2907,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
             return false;
         }
 
-        bool flushed = view.Flush();
-        assert(flushed);
+        view.Flush();
     }
     LogPrint(BCLog::BENCH, "- Disconnect block: %.2fms\n",
              Ticks<MillisecondsDouble>(SteadyClock::now() - time_start));
@@ -3117,8 +3112,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
             Ticks<MillisecondsDouble>(time_3 - time_2),
             Ticks<SecondsDouble>(time_connect_total),
             Ticks<MillisecondsDouble>(time_connect_total) / num_blocks_total);
-        bool flushed = view.Flush();
-        assert(flushed);
+        view.Flush();
     }
 
     const auto time_4{SteadyClock::now()};

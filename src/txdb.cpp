@@ -119,7 +119,7 @@ std::vector<BlockHash> CCoinsViewDB::GetHeadBlocks() const {
     return vhashHeadBlocks;
 }
 
-bool CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
+void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
                               const BlockHash &hashBlock) {
     CDBBatch batch(*m_db);
     size_t count = 0;
@@ -181,7 +181,6 @@ bool CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
              "Committed %u changed transaction outputs (out of "
              "%u) to coin database...\n",
              (unsigned int)changed, (unsigned int)count);
-    return true;
 }
 
 size_t CCoinsViewDB::EstimateSize() const {
