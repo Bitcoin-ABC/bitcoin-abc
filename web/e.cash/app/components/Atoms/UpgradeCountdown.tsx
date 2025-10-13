@@ -16,7 +16,7 @@ interface TimeLeft {
 export default function UpgradeCountdown() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
   const [isExpired, setIsExpired] = useState(false);
-  const targetDate = "2025-11-15T00:00:00Z";
+  const targetDate = "2025-11-15T12:00:00Z";
   const preDateText = "Avalanche Pre-Consensus coming to mainnet!";
   const postDateText =
     "Upgrade complete! Avalanche Pre-Consensus now live on mainnet!";
