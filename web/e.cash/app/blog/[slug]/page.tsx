@@ -5,13 +5,13 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import {
   getBlogPosts,
   sortBlogPostsByDate,
   formatTimestamp,
   calculateReadTime,
   getNextRecommendedPost,
-  BlogPost,
 } from "../../data/blog";
 import ContentContainer from "../../components/Atoms/ContentContainer";
 import BlogRecommendation from "../../components/Blog/BlogRecommendation";
@@ -20,6 +20,78 @@ import BlogRecommendation from "../../components/Blog/BlogRecommendation";
 // Value must be a static export to work with Next.js
 export const revalidate = 43200;
 
+/**
+ * Helper function to get a specific blog post by slug and all posts
+ * This logic is shared between generateMetadata and the page component
+ */
+async function getBlogPostData(slug: string) {
+  const allPosts = await getBlogPosts();
+  const posts = sortBlogPostsByDate(allPosts);
+  const post = posts.find((p) => p.attributes.slug === slug);
+
+  if (!post) {
+    return null;
+  }
+
+  const imageUrl =
+    post.attributes.image.data.attributes.formats.medium?.url ||
+    post.attributes.image.data.attributes.url;
+
+  return {
+    post,
+    posts,
+    imageUrl,
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const data = await getBlogPostData(slug);
+
+    if (!data) {
+      return {
+        title: "Blog Post Not Found",
+      };
+    }
+
+    const { post, imageUrl } = data;
+
+    return {
+      title: post.attributes.title,
+      description: post.attributes.short_content,
+      openGraph: {
+        title: post.attributes.title,
+        description: post.attributes.short_content,
+        images: [
+          {
+            url: `https://strapi.fabien.cash${imageUrl}`,
+            alt: post.attributes.title,
+          },
+        ],
+        type: "article",
+        publishedTime:
+          post.attributes.publish_date || post.attributes.publishedAt,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: post.attributes.title,
+        description: post.attributes.short_content,
+        images: [`https://strapi.fabien.cash${imageUrl}`],
+      },
+    };
+  } catch {
+    return {
+      title: "eCash Blog Post",
+    };
+  }
+}
+
 export default async function BlogPostPage({
   params,
 }: {
@@ -27,25 +99,20 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
 
-  let posts: BlogPost[] = [];
+  let data;
   try {
-    const allPosts = await getBlogPosts();
-    posts = sortBlogPostsByDate(allPosts);
+    data = await getBlogPostData(slug);
   } catch {
     return (
       <div className="text-center text-red-500">Failed to load blog post.</div>
     );
   }
 
-  const post = posts.find((p) => p.attributes.slug === slug);
-  if (!post) {
+  if (!data) {
     notFound();
   }
 
-  const imageUrl =
-    post.attributes.image.data.attributes.formats.medium?.url ||
-    post.attributes.image.data.attributes.url;
-
+  const { post, posts, imageUrl } = data;
   const recommendedPost = getNextRecommendedPost(posts, slug);
 
   return (
