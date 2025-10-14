@@ -7,110 +7,13 @@ import React from "react";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
 import { motion } from "framer-motion";
+import { Product } from "../../data/products";
 
-interface Product {
-  name: string;
-  description: string;
-  url: string;
+interface ProductsSectionProps {
+  products: Product[];
 }
 
-const products: Product[] = [
-  {
-    name: "Cashtab",
-    description:
-      "The official eCash wallet - a secure, user-friendly web wallet for managing XEC and tokens",
-    url: "https://cashtab.com/",
-  },
-  {
-    name: "Electrum ABC",
-    description: "Desktop eCash wallet with advanced features for power users",
-    url: "https://www.bitcoinabc.org/electrum/",
-  },
-  {
-    name: "PayButton",
-    description: "The easiest way to accept eCash on any website",
-    url: "https://www.paybutton.org/",
-  },
-  {
-    name: "XECX",
-    description: "Staking protocol token for eCash. Earn XEC by holding XECX",
-    url: "https://stakedxec.com/",
-  },
-  {
-    name: "Firma",
-    description:
-      "Fully backed stablecoin on the eCash Network with daily native yield and instant liquidity",
-    url: "https://firma.cash/",
-  },
-  {
-    name: "BlitzChips",
-    description:
-      "Provably fair game of chance with instant payouts using Firma",
-    url: "https://blitzchips.com/",
-  },
-  {
-    name: "Marianas Stablecoin",
-    description:
-      "The first fully-reserved, fiat-backed stable token issued by a public entity in the United States",
-    url: "https://dollar.mp/",
-  },
-  {
-    name: "eLPS",
-    description:
-      "Powering the digital economy in the world's #1 Charter City, the eLempira (eLPS) is a stabletoken built on eCash",
-    url: "https://elpstoken.com/",
-  },
-  {
-    name: "TixTown",
-    description:
-      "The fastest, safest, and fairest private event ticketing app, powered by eCash",
-    url: "https://www.tixtown.com/",
-  },
-  {
-    name: "LocaleCash",
-    description:
-      "Trade XEC against fiat, crypto, or goods using a non-custodial escrow",
-    url: "https://localecash.com/",
-  },
-  {
-    name: "eCash Explorer",
-    description:
-      "Blockchain explorer for viewing transactions, blocks, and addresses on the eCash network",
-    url: "https://explorer.e.cash/",
-  },
-  {
-    name: "eCash Herald",
-    description:
-      "Real-time notifications and alerts for eCash network activity",
-    url: "https://t.me/eCashHerald",
-  },
-  {
-    name: "Agora.Cash",
-    description:
-      "eToken DEX UI built on Cashtab Agora, offering exchange-style charts and analytics",
-    url: "https://agora.cash/",
-  },
-  {
-    name: "MetaChronik",
-    description:
-      "Indexes eCash blockchain data from Chronik into a PostgreSQL database for analytics and chart generation",
-    url: "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/metachronik",
-  },
-  {
-    name: "Cashtab Faucet",
-    description:
-      "Server to manage Cashtab rewards tokens. May be modified to support other token back-end tasks.",
-    url: "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/cashtab-faucet",
-  },
-  {
-    name: "Faucet",
-    description:
-      "Simple and fully configurable faucet application that is suitable for sending testnet coins",
-    url: "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/faucet",
-  },
-];
-
-export default function ProductsSection() {
+export default function ProductsSection({ products }: ProductsSectionProps) {
   return (
     <div className="relative w-full py-20" id="products">
       <ContentContainer>

@@ -8,8 +8,15 @@ import BentoGrid from "../components/Home/BentoGrid";
 import { ScrollElement } from "../components/Home/Developers";
 import ProductsSection from "../components/BuildOnEcash/ProductsSection";
 import FAQ from "../components/Home/FAQ";
+import { getProducts } from "../data/products";
 
-export default function Build() {
+// Length of time to cache the page in seconds
+// Value must be a static export to work with Next.js
+export const revalidate = 7200;
+
+export default async function Build() {
+  const products = await getProducts();
+
   return (
     <main>
       <BuildHero />
@@ -22,7 +29,7 @@ export default function Build() {
           ))}
         </div>
       </div>
-      <ProductsSection />
+      <ProductsSection products={products} />
       <FAQ />
     </main>
   );
