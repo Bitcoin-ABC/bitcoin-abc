@@ -10,3 +10,7 @@ This release includes the following features and fixes:
    template, but it should be used with caution as the node might be out of
    consensus with the Avalanche stakers. See the RPC documentation for more
    details.
+ - A new `removetransaction` is added to force remove a transaction from the
+   node mempool. This makes it also possible for miners to remove the
+   transaction from the block template. See the RPC documentation for more
+   details.

@@ -168,6 +168,8 @@ enum class MemPoolRemovalReason {
     CONFLICT,
     //! Removed by avalanche vote
     AVALANCHE,
+    //! Manual removal via RPC
+    MANUAL,
 };
 
 std::string RemovalReasonToString(const MemPoolRemovalReason &r) noexcept;

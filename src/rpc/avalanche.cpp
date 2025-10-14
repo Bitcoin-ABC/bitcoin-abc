@@ -1943,6 +1943,57 @@ static RPCHelpMan finalizetransaction() {
     };
 }
 
+static RPCHelpMan removetransaction() {
+    return RPCHelpMan{
+        "removetransaction",
+        "Remove a transaction and all its descendants from the mempool. If the "
+        "transaction is final it is removed anyway. No attempt is made to poll "
+        "for this transaction and this could cause the node to disagree with "
+        "the network.\n",
+        {
+            {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The id of the transaction to be removed."},
+        },
+        RPCResult{RPCResult::Type::ARR,
+                  "removed_txids",
+                  "The list of the removed txids if any (it can include "
+                  "descendants of the target txid).",
+                  {{
+                      RPCResult::Type::STR_HEX,
+                      "txid",
+                      "The removed transaction id.",
+                  }}},
+        RPCExamples{HelpExampleRpc("removetransaction", "<txid>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+
+            const TxId txid(ParseHashV(request.params[0], "txid"));
+
+            LOCK(mempool.cs);
+            auto iter = mempool.GetIter(txid);
+            if (!iter) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "The transaction is not in the mempool.");
+            }
+
+            // This mostly mimics the CTxMemPool::removeRecursive function so we
+            // can return the list of removed txids
+            CTxMemPool::setEntries setDescendants;
+            mempool.CalculateDescendants(*iter, setDescendants);
+
+            UniValue ret(UniValue::VARR);
+            for (auto &it : setDescendants) {
+                ret.push_back((*it)->GetSharedTx()->GetId().ToString());
+            }
+
+            mempool.RemoveStaged(setDescendants, MemPoolRemovalReason::MANUAL);
+
+            return ret;
+        },
+    };
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1972,6 +2023,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         setflakyproof,             },
         { "avalanche",         getflakyproofs,            },
         { "avalanche",         finalizetransaction,       },
+        { "avalanche",         removetransaction,         },
         { "hidden",            getavailabilityscore,      },
         { "hidden",            getstakecontendervote,     },
     };
