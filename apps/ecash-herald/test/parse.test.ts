@@ -470,7 +470,7 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
-                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
+                    '<b><i>🧮 72 nodes staking <code>251,480,511,703.14</code> XEC ($8.77M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
                     '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
                     '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +
@@ -558,7 +558,7 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
-                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
+                    '<b><i>🧮 72 nodes staking <code>251,480,511,703.14</code> XEC ($8.77M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
                     '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
                     '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +

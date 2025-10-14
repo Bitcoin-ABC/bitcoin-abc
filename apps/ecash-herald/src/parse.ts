@@ -4072,20 +4072,21 @@ export const parseStaker = (
         // Nothing to do
         return;
     }
-    // Find thisStaker in activeStakers
-    const thisStaker = activeStakers.find(
+    // Find all the matching stakers in activeStakers
+    const matchingStakers = activeStakers.filter(
         activeStaker => activeStaker.payoutAddress === staker.staker,
     );
 
-    // If we can't find thisStaker, do not return a parsedStaker
-    // Should never happen. Could happen in edge cases of API errors,
-    // race conditions
-    // So, if we hit such a condition, we do not report on stakers
-    if (typeof thisStaker === 'undefined') {
+    // If we can't find any matching staker, do not return a parsedStaker.
+    // Should never happen. Could happen in edge cases of API errors, race
+    // conditions, ...
+    // So, if we hit such a condition, we do not report on stakers.
+    if (typeof matchingStakers === 'undefined' || matchingStakers.length == 0) {
         return;
     }
 
-    const totalSatsStaked = activeStakers.reduce((acc, current) => {
+    // Compute the stakers total from all matching payouts
+    const stakerTotal = matchingStakers.reduce((acc, current) => {
         // Parse the stake string to float for addition.
         // Note: Assuming stake is always a string with 2 decimal places
         // Cursory review shows values like "stake": "22000000000.00",
@@ -4093,17 +4094,20 @@ export const parseStaker = (
         return acc + BigInt(current.stake.replace('.', ''));
     }, 0n);
 
+    // Compute the network staked total
+    const totalSatsStaked = activeStakers.reduce((acc, current) => {
+        return acc + BigInt(current.stake.replace('.', ''));
+    }, 0n);
+
     // This staker's percent of all staked
     // Also the staker's odds of winning any given block staking reward
     const thisTakerPercentStake =
-        (
-            (100 * parseFloat(thisStaker.stake)) /
-            (Number(totalSatsStaked) / 100)
-        ).toFixed(2) + '%';
+        ((100 * Number(stakerTotal)) / Number(totalSatsStaked)).toFixed(2) +
+        '%';
 
     return {
         oddsThisWinner: thisTakerPercentStake,
-        stakedSatoshisThisWinner: BigInt(thisStaker.stake.replace('.', '')),
+        stakedSatoshisThisWinner: stakerTotal,
         stakedSatoshisTotal: totalSatsStaked,
     };
 };
