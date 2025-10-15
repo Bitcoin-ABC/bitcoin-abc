@@ -105,6 +105,8 @@ class MyPluginPlugin(Plugin):
         ):
             self.restart_node(0, ["-chronik", "-chronikreindex"])
 
+        node.setmocktime(now)
+
         ws1 = chronik.ws()
         ws2 = chronik.ws()
 
