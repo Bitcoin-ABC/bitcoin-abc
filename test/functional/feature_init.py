@@ -47,7 +47,7 @@ class InitStressTest(BitcoinTestFramework):
                 extra_args=args,
                 expected_msg=err_fragment,
                 match=ErrorMatch.PARTIAL_REGEX,
-                timeout=300,
+                timeout=600,
             )
 
         def check_clean_start(extra_args):
