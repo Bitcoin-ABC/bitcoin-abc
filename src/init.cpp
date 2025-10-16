@@ -137,6 +137,7 @@ using node::VerifyLoadedChainstate;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 static constexpr bool DEFAULT_CHRONIK = false;
+static constexpr bool DEFAULT_USEASHADDR = true;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
@@ -810,8 +811,9 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-usecashaddr",
-        "Use Cash Address for destination encoding instead of base58 "
-        "(activate by default on Jan, 14)",
+        strprintf("Use Cash Address for destination encoding instead of legacy "
+                  "base58 addresses (default: %d)",
+                  DEFAULT_USEASHADDR),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 
     argsman.AddArg(
@@ -2712,7 +2714,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.
-    config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
+    config.SetCashAddrEncoding(
+        args.GetBoolArg("-usecashaddr", DEFAULT_USEASHADDR));
 
     // Step 8: load indexers
 
