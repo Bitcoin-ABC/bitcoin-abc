@@ -11,20 +11,14 @@ const scriptSrc =
     ? "'self' 'unsafe-inline' 'unsafe-eval' swapzone.io"
     : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com swapzone.io 'unsafe-eval'";
 
+const strapi = new URL(process.env.NEXT_PUBLIC_STRAPI_URL!);
+const strapiScorecard = new URL(process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL!);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "api.scorecard.cash",
-      },
-      {
-        protocol: "https",
-        hostname: "strapi.fabien.cash",
-      },
-    ],
+    remotePatterns: [strapi, strapiScorecard],
   },
   redirects,
   async headers() {

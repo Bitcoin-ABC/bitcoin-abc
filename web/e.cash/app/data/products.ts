@@ -24,7 +24,7 @@ interface StrapiProductResponse {
  */
 export async function getProducts(): Promise<Product[]> {
   const response = await fetch(
-    "https://strapi.fabien.cash/api/products-built-withs"
+    process.env.NEXT_PUBLIC_STRAPI_URL + "/api/products-built-withs"
   );
 
   if (!response.ok) {

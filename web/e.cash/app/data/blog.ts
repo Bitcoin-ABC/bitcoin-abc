@@ -41,9 +41,9 @@ export interface BlogPost {
 }
 
 export async function getPageCount(): Promise<number> {
-  const response = await fetch("https://strapi.fabien.cash/api/posts").then(
-    (res) => res.json()
-  );
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts"
+  ).then((res) => res.json());
   return response.meta.pagination.pageCount;
 }
 
@@ -52,7 +52,8 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
   let posts: BlogPost[] = [];
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
     const response = await fetch(
-      `https://strapi.fabien.cash/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`
+      process.env.NEXT_PUBLIC_STRAPI_URL +
+        `/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`
     ).then((res) => res.json());
     posts = [...posts, ...response.data];
   }

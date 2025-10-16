@@ -70,7 +70,7 @@ export async function generateMetadata({
         description: post.attributes.short_content,
         images: [
           {
-            url: `https://strapi.fabien.cash${imageUrl}`,
+            url: process.env.NEXT_PUBLIC_STRAPI_URL + imageUrl,
             alt: post.attributes.title,
           },
         ],
@@ -82,7 +82,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: post.attributes.title,
         description: post.attributes.short_content,
-        images: [`https://strapi.fabien.cash${imageUrl}`],
+        images: [process.env.NEXT_PUBLIC_STRAPI_URL + imageUrl],
       },
     };
   } catch {
@@ -126,7 +126,7 @@ export default async function BlogPostPage({
       <div className="mb-8">
         <div className="w-full overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5">
           <img
-            src={`https://strapi.fabien.cash${imageUrl}`}
+            src={process.env.NEXT_PUBLIC_STRAPI_URL + imageUrl}
             alt={post.attributes.title}
             className="block h-auto w-full"
             loading="eager"

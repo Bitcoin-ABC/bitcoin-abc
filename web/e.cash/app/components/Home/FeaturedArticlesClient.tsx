@@ -60,7 +60,7 @@ export default function FeaturedArticlesClient({
               <div className="p-2">
                 <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[230px]">
                   <Image
-                    src={`https://strapi.fabien.cash${imageUrl}`}
+                    src={process.env.NEXT_PUBLIC_STRAPI_URL + imageUrl}
                     alt={post.attributes.title}
                     fill
                     className="object-cover"

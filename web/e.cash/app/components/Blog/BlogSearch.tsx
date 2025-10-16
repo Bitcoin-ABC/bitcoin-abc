@@ -107,10 +107,11 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
           >
             <div className="relative h-[550px] w-full">
               <Image
-                src={`https://strapi.fabien.cash${
-                  latest.attributes.image.data.attributes.formats.large?.url ||
-                  latest.attributes.image.data.attributes.url
-                }`}
+                src={
+                  process.env.NEXT_PUBLIC_STRAPI_URL +
+                  (latest.attributes.image.data.attributes.formats.large?.url ||
+                    latest.attributes.image.data.attributes.url)
+                }
                 alt={latest.attributes.title}
                 fill
                 className="object-cover"
@@ -147,7 +148,9 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                 <div className="p-2">
                   <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[200px]">
                     <Image
-                      src={`https://strapi.fabien.cash${getImageUrl(post)}`}
+                      src={
+                        process.env.NEXT_PUBLIC_STRAPI_URL + getImageUrl(post)
+                      }
                       alt={post.attributes.title}
                       fill
                       className="object-cover"

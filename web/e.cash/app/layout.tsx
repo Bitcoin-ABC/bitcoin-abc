@@ -22,8 +22,8 @@ const siteMeta = {
   title: "eCash | Cash for the Internet",
   description:
     "eCash is a fast, secure, and scalable cryptocurrency designed for the internet. Offering staking, non-custodial solutions, fixed supply, and support for NFTs and etokens, eCash is the future of decentralized digital cash. Look for the ticker symbol XEC, and take your first step towards true financial freedom.",
-  socialImage: "https://e.cash/ecash-social-card.jpg",
-  url: "https://e.cash",
+  socialImage: process.env.NEXT_PUBLIC_SITE_URL + "/ecash-social-card.jpg",
+  url: process.env.NEXT_PUBLIC_SITE_URL,
 };
 
 export const metadata: Metadata = {

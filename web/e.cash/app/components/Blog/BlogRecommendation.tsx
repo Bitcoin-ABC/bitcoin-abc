@@ -27,7 +27,7 @@ export default function BlogRecommendation({ post }: BlogRecommendationProps) {
         <div className="p-2 lg:w-1/2">
           <div className="relative h-[300px] w-full overflow-hidden rounded-xl">
             <Image
-              src={`https://strapi.fabien.cash${imageUrl}`}
+              src={process.env.NEXT_PUBLIC_STRAPI_URL + imageUrl}
               alt={post.attributes.title}
               fill
               className="object-cover"

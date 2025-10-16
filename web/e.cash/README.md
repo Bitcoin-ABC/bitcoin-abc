@@ -4,10 +4,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First set up the mandatory environment variables:
 
 ```bash
-npm i
+# Run from the /web/e.cash/ directory
+echo NEXT_PUBLIC_SITE_URL=https://e.cash > .env
+echo NEXT_PUBLIC_STRAPI_URL=https://strapi.fabien.cash >> .env
+echo NEXT_PUBLIC_STRAPI_SCORECARD_URL=https://api.scorecard.cash >> .env
+```
+
+Then, run the development server:
+
+```bash
+npm ci
 npm run dev
 ```
 

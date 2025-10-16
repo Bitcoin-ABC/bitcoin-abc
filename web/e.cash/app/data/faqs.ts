@@ -77,8 +77,7 @@ export const faqs: FAQ[] = [
   {
     question:
       "I have coins on the Bitcoin Cash (BCH) network. How do I retrieve my eCash?",
-    answer:
-      "If you have Bitcoin Cash from before November 15th 2020, it is possible that you also have corresponding eCash (XEC). This is because eCash and Bitcoin Cash share a common history, and became separate currencies via a blockchain split. You can split the coins and retrieve your eCash by following the instructions in [this article] (https://e.cash/blog/splitting-ecash-bch).",
+    answer: `If you have Bitcoin Cash from before November 15th 2020, it is possible that you also have corresponding eCash (XEC). This is because eCash and Bitcoin Cash share a common history, and became separate currencies via a blockchain split. You can split the coins and retrieve your eCash by following the instructions in [this article](${process.env.NEXT_PUBLIC_SITE_URL}/blog/splitting-ecash-bch).`,
   },
   {
     question: "What's the best way to get technical support?",
