@@ -9,7 +9,7 @@ First set up the mandatory environment variables:
 ```bash
 # Run from the /web/e.cash/ directory
 echo NEXT_PUBLIC_SITE_URL=https://e.cash > .env
-echo NEXT_PUBLIC_STRAPI_URL=https://strapi.fabien.cash >> .env
+echo NEXT_PUBLIC_STRAPI_URL=https://strapi.e.cash >> .env
 echo NEXT_PUBLIC_STRAPI_SCORECARD_URL=https://api.scorecard.cash >> .env
 ```
 
