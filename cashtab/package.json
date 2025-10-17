@@ -31,6 +31,7 @@
         "@capacitor/android": "^7.4.2",
         "@capacitor/barcode-scanner": "^2.2.0",
         "@capacitor/core": "^7.4.2",
+        "@capacitor/ios": "^7.4.3",
         "b58-ts": "file:../modules/b58-ts",
         "bignumber.js": "^9.1.2",
         "bip39": "^3.0.2",

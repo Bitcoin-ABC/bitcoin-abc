@@ -1,0 +1,63 @@
+PODS:
+  - AparajitaCapacitorSecureStorage (7.1.3):
+    - Capacitor
+    - KeychainSwift (~> 21.0)
+  - Capacitor (7.4.3):
+    - CapacitorCordova
+  - CapacitorBarcodeScanner (2.2.0):
+    - Capacitor
+    - OSBarcodeLib (= 2.0.1)
+  - CapacitorCommunitySqlite (7.0.1):
+    - Capacitor
+    - SQLCipher
+    - ZIPFoundation
+  - CapacitorCordova (7.4.3)
+  - KeychainSwift (21.0.0)
+  - OSBarcodeLib (2.0.1)
+  - SQLCipher (4.10.0):
+    - SQLCipher/standard (= 4.10.0)
+  - SQLCipher/common (4.10.0)
+  - SQLCipher/standard (4.10.0):
+    - SQLCipher/common
+  - ZIPFoundation (0.9.20)
+
+DEPENDENCIES:
+  - "AparajitaCapacitorSecureStorage (from `../../node_modules/@aparajita/capacitor-secure-storage`)"
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorBarcodeScanner (from `../../node_modules/@capacitor/barcode-scanner`)"
+  - "CapacitorCommunitySqlite (from `../../node_modules/@capacitor-community/sqlite`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+
+SPEC REPOS:
+  trunk:
+    - KeychainSwift
+    - OSBarcodeLib
+    - SQLCipher
+    - ZIPFoundation
+
+EXTERNAL SOURCES:
+  AparajitaCapacitorSecureStorage:
+    :path: "../../node_modules/@aparajita/capacitor-secure-storage"
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorBarcodeScanner:
+    :path: "../../node_modules/@capacitor/barcode-scanner"
+  CapacitorCommunitySqlite:
+    :path: "../../node_modules/@capacitor-community/sqlite"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+
+SPEC CHECKSUMS:
+  AparajitaCapacitorSecureStorage: 0ee936f927c536e48dada7452c6223fd569f7414
+  Capacitor: 28d6c01026a9a3f7156529498ec1f389a2a28dbc
+  CapacitorBarcodeScanner: 4b6d4ecfff4133af982d09acd423610c14ac0c3f
+  CapacitorCommunitySqlite: 8b2c6bab33e3519280811d481f8bd0fa90343e1b
+  CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
+  KeychainSwift: 4a71a45c802fd9e73906457c2dcbdbdc06c9419d
+  OSBarcodeLib: 57987d2eb1f916f701f4554e20e349b3cb83f023
+  SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
+  ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
+
+PODFILE CHECKSUM: 6edf2045ed6dfcd7addc9905a2440bf75bc3a65a
+
+COCOAPODS: 1.16.2
