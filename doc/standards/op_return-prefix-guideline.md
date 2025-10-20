@@ -25,6 +25,7 @@ Protocol identifiers below are listed how they appear in eCash transaction outpu
 | 61757468            | Authentication via dust tx | eCashChat                           | ecash:qz9aa3yeuspe569xqtmn0f8aaxwmdjz4l58z6hzv9u | N/A                                                           | `<61757468> <utf8 identifier>`               |
 | 54424F58            | Token trollbox             | Cashtab                             | ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l | N/A                                                           | `<54424F58> <tokenId> <msg>`                 |
 | 58454358            | XECX                       | XECX                                | ecash:qqfzls0nhjf7ukgpsmtlly2s2dueq54c5ulydy0h79 | stakedXec.com                                                 | `<58454358> <00> <u64> <u64> <u64> <u16>`    |
+| 4E465400            | NFToa                  | NFToa                | ecash:qrrn6yvaah3p4jjm8uwet935hdh7apufjc6m9w8prz | See ../standards/nftoa.md                    | See spec                                      |
 
 ---
 
