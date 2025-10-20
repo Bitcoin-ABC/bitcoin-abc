@@ -111,6 +111,10 @@ interface PaybuttonAction {
     data: string;
     nonce: string;
 }
+interface NftoaAction {
+    data: string;
+    nonce: string;
+}
 interface EcashChatAction {
     msg: string;
 }
@@ -145,6 +149,7 @@ export interface AppAction {
         | AliasAction
         | AirdropAction
         | PaybuttonAction
+        | NftoaAction
         | EcashChatAction
         | PaywallAction
         | EcashChatArticleReply
@@ -464,6 +469,35 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                                       ).toString('utf8')
                                     : '',
                             nonce: stackArray[3] !== '00' ? stackArray[3] : '',
+                        },
+                    });
+                } else {
+                    appActions.push({
+                        app,
+                        lokadId,
+                        isValid: false,
+                    });
+                }
+                break;
+            }
+            case opReturn.appPrefixesHex.nftoa: {
+                // NFToa tx
+                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/nftoa.md
+                const app = 'NFToa';
+                if (typeof stackArray[1] !== 'undefined') {
+                    // Valid NFToaTx
+                    appActions.push({
+                        lokadId,
+                        app,
+                        isValid: true,
+                        action: {
+                            data: Buffer.from(stackArray[1], 'hex').toString(
+                                'utf8',
+                            ),
+                            nonce:
+                                typeof stackArray[2] !== 'undefined'
+                                    ? stackArray[2]
+                                    : '',
                         },
                     });
                 } else {
@@ -977,6 +1011,14 @@ export const getTxNotificationMsg = (
                         return `${app}: ${xecTxType} ${renderedAmount}${
                             data !== '' ? ` | ${data}` : ''
                         }`;
+                    }
+                    return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
+                }
+                case opReturn.appPrefixesHex.nftoa: {
+                    if (isValid) {
+                        const { data } = action as NftoaAction;
+                        // We do not include nonce in notification
+                        return `${app} | ${xecTxType} ${renderedAmount} | ${data}`;
                     }
                     return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
                 }

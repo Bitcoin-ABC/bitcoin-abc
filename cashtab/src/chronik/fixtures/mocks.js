@@ -10290,6 +10290,184 @@ export const PayButtonBadVersion = {
     },
 };
 
+export const NFToaAuthYesNonce = {
+    tx: {
+        txid: 'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'feedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedface',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41fc1401150778a0d47d5279ccdaa13298cfa43e25d8d37d37570291207a92098beefa8fb25b8fb9cb2c4d7b5f98b7ff377c54932e0e67f4db2fc127ed86e01b1a4121024b60abfca9302b9bf5731faca03fd4f0b06391621a4cd1d57fffd6f1179bb9ba',
+                sequenceNo: 4294967294,
+                outputScript:
+                    // random sender
+                    '76a9144c8f13b8a1b3b9297d553b6b7cd02158b99147e588ac',
+                sats: 10000n,
+            },
+        ],
+        outputs: [
+            // OP_RETURN NFToa Proof of Access
+            {
+                outputScript:
+                    '6a044e465400134c6f67696e20746f2047617564696f2041707008eb0c601b84975437',
+                sats: 0n,
+            },
+            // recipient = your address
+            {
+                outputScript:
+                    '76a914c73d119dede21aca5b3f1d959634bb6fee87899688ac',
+                sats: 550n,
+            },
+        ],
+        lockTime: 0,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+    },
+    parsed: {
+        satoshisSent: 550,
+        replyAddress: 'ecash:qpxg7yac5xemj2ta25akklxsy9vtny28u5m73jvduu',
+        stackArray: [
+            '4e465400',
+            '4c6f67696e20746f2047617564696f20417070',
+            'eb0c601b84975437',
+        ],
+        xecTxType: 'Received',
+        appActions: [
+            {
+                app: 'NFToa',
+                lokadId: '4e465400',
+                isValid: true,
+                action: {
+                    data: 'Login to Gaudio App',
+                    nonce: 'eb0c601b84975437',
+                },
+            },
+        ],
+        parsedTokenEntries: [],
+        recipients: [],
+    },
+};
+
+export const NFToaMsgNoNonce = {
+    tx: {
+        txid: 'dcba4321dcba4321dcba4321dcba4321dcba4321dcba4321dcba4321dcba4321',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'feedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedface',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41fc1401150778a0d47d5279ccdaa13298cfa43e25d8d37d37570291207a92098beefa8fb25b8fb9cb2c4d7b5f98b7ff377c54932e0e67f4db2fc127ed86e01b1a4121024b60abfca9302b9bf5731faca03fd4f0b06391621a4cd1d57fffd6f1179bb9ba',
+                sequenceNo: 4294967294,
+                outputScript:
+                    // random sender
+                    '76a9144c8f13b8a1b3b9297d553b6b7cd02158b99147e588ac',
+                sats: 10000n,
+            },
+        ],
+        outputs: [
+            // OP_RETURN NFToa message (no nonce)
+            {
+                outputScript:
+                    '6a044e4654001648656c6c6f20576f726c642066726f6d204e46546f61',
+                sats: 0n,
+            },
+            // recipient = your address
+            {
+                outputScript:
+                    '76a914c73d119dede21aca5b3f1d959634bb6fee87899688ac',
+                sats: 550n,
+            },
+        ],
+        lockTime: 0,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+    },
+    parsed: {
+        satoshisSent: 550,
+        replyAddress: 'ecash:qpxg7yac5xemj2ta25akklxsy9vtny28u5m73jvduu',
+        stackArray: [
+            '4e465400',
+            '48656c6c6f20576f726c642066726f6d204e46546f61',
+        ],
+        xecTxType: 'Received',
+        appActions: [
+            {
+                app: 'NFToa',
+                lokadId: '4e465400',
+                isValid: true,
+                action: {
+                    data: 'Hello World from NFToa',
+                    nonce: '',
+                },
+            },
+        ],
+        parsedTokenEntries: [],
+        recipients: [],
+    },
+};
+
+export const NFToaOffSpec = {
+    tx: {
+        txid: '0badc0de0badc0de0badc0de0badc0de0badc0de0badc0de0badc0de0badc0de',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'feedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedface',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41fc1401150778a0d47d5279ccdaa13298cfa43e25d8d37d37570291207a92098beefa8fb25b8fb9cb2c4d7b5f98b7ff377c54932e0e67f4db2fc127ed86e01b1a4121024b60abfca9302b9bf5731faca03fd4f0b06391621a4cd1d57fffd6f1179bb9ba',
+                sequenceNo: 4294967294,
+                outputScript:
+                    '76a9144c8f13b8a1b3b9297d553b6b7cd02158b99147e588ac',
+                sats: 10000n,
+            },
+        ],
+        outputs: [
+            // malformed NFToa OP_RETURN
+            {
+                outputScript: '6a044e465400',
+                sats: 550n,
+            },
+            // still sent to your address
+            {
+                outputScript:
+                    '76a914c73d119dede21aca5b3f1d959634bb6fee87899688ac',
+                sats: 0n,
+            },
+        ],
+        lockTime: 0,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+    },
+    parsed: {
+        satoshisSent: 550,
+        replyAddress: 'ecash:qpxg7yac5xemj2ta25akklxsy9vtny28u5m73jvduu',
+        stackArray: ['4e465400'],
+        xecTxType: 'Received',
+        appActions: [
+            {
+                app: 'NFToa',
+                lokadId: '4e465400',
+                isValid: false,
+            },
+        ],
+        recipients: [],
+        parsedTokenEntries: [],
+    },
+};
+
 export const MsgFromElectrum = {
     tx: {
         txid: 'd0c4c5b86016b7a021470180cb4afd1f8456fcf683a19d8b061b2225abd71be4',

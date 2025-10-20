@@ -14,6 +14,7 @@ export const opReturn = {
         airdrop: '64726f70',
         aliasRegistration: '2e786563',
         paybutton: '50415900',
+        nftoa: '4e465400',
         eCashChat: '63686174',
         swap: '53575000',
         paywallPayment: '70617977',

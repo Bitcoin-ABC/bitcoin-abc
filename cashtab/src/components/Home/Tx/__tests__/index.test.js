@@ -34,6 +34,9 @@ import {
     PayButtonYesDataNoNonce,
     PayButtonOffSpec,
     PayButtonBadVersion,
+    NFToaAuthYesNonce,
+    NFToaMsgNoNonce,
+    NFToaOffSpec,
     MsgFromEcashChat,
     offSpecEcashChat,
     SlpV1Mint,
@@ -1525,6 +1528,117 @@ describe('<Tx />', () => {
 
         // We see expected protocol label
         expect(screen.getByText('Invalid PayButton')).toBeInTheDocument();
+    });
+    it('Received NFToa Authentication TX (Proof of Access, with nonce)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...NFToaAuthYesNonce.tx,
+                            parsed: NFToaAuthYesNonce.parsed,
+                        }}
+                        hashes={['c73d119dede21aca5b3f1d959634bb6fee878996']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // Icon (received)
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // Label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // Amount
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // NFToa logo
+        expect(screen.getByTitle('tx-nftoa')).toBeInTheDocument();
+
+        // Nonce
+        expect(screen.getByText('eb0c601b84975437')).toBeInTheDocument();
+
+        // App action
+        expect(screen.getByText('Login to Gaudio App')).toBeInTheDocument();
+    });
+    it('Received NFToa Message TX (without nonce)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...NFToaMsgNoNonce.tx,
+                            parsed: NFToaMsgNoNonce.parsed,
+                        }}
+                        hashes={['c73d119dede21aca5b3f1d959634bb6fee878996']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // Icon (received)
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // Label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // Amount
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // NFToa logo
+        expect(screen.getByTitle('tx-nftoa')).toBeInTheDocument();
+
+        // App action
+        expect(screen.getByText('Hello World from NFToa')).toBeInTheDocument();
+    });
+    it('Off-spec NFToa TX (invalid format)', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...NFToaOffSpec.tx,
+                            parsed: NFToaOffSpec.parsed,
+                        }}
+                        hashes={['c73d119dede21aca5b3f1d959634bb6fee878996']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // Icon (received)
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // Label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // Amount
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // NFToa logo
+        expect(screen.getByTitle('tx-nftoa')).toBeInTheDocument();
+
+        // App action
+        expect(screen.getByText('Invalid NFToa')).toBeInTheDocument();
     });
     it('eCash chat tx', async () => {
         render(

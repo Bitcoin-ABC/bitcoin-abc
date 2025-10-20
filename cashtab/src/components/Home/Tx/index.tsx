@@ -76,6 +76,7 @@ import {
     SolIcon,
     TetherIcon,
     QuestionIcon,
+    NFToaIcon,
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -375,6 +376,33 @@ const Tx: React.FC<TxProps> = ({
                             <>
                                 <IconAndLabel>
                                     <PayButtonIcon />
+                                </IconAndLabel>
+                                {data !== '' && <AppDescMsg>{data}</AppDescMsg>}
+                                {nonce !== '' && (
+                                    <AppDescMsg>{nonce}</AppDescMsg>
+                                )}
+                            </>,
+                        );
+                    }
+                }
+                break;
+            }
+            case opReturn.appPrefixesHex.nftoa: {
+                if (!isValid) {
+                    renderedAppActions.push(
+                        <IconAndLabel>
+                            <NFToaIcon />
+                            <AppDescLabel>Invalid {app}</AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                } else {
+                    if (typeof action !== 'undefined' && 'data' in action) {
+                        const { data, nonce } = action;
+                        // Valid NFToa Tx
+                        renderedAppActions.push(
+                            <>
+                                <IconAndLabel>
+                                    <NFToaIcon />
                                 </IconAndLabel>
                                 {data !== '' && <AppDescMsg>{data}</AppDescMsg>}
                                 {nonce !== '' && (

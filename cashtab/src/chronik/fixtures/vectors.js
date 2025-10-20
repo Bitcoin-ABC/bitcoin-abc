@@ -31,6 +31,9 @@ import {
     PayButtonOffSpec,
     PayButtonEmpty,
     PayButtonYesDataNoNonce,
+    NFToaAuthYesNonce,
+    NFToaMsgNoNonce,
+    NFToaOffSpec,
     MsgFromElectrum,
     MsgFromEcashChat,
     offSpecEcashChat,
@@ -74,6 +77,33 @@ import { getHashes } from 'wallet';
 export default {
     getTxNotificationMsg: {
         expectedReturns: [
+            {
+                description: 'NFToa Authentication TX (Proof of Access)',
+                parsedTx: NFToaAuthYesNonce.parsed,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: undefined,
+                returned: 'NFToa | Received 5.50 XEC | Login to Gaudio App',
+            },
+            {
+                description: 'NFToa Regular Message TX',
+                parsedTx: NFToaMsgNoNonce.parsed,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: undefined,
+                returned: 'NFToa | Received 5.50 XEC | Hello World from NFToa',
+            },
+            {
+                description: 'Off-spec NFToa TX',
+                parsedTx: NFToaOffSpec.parsed,
+                fiatPrice: null,
+                userLocale: 'en-US',
+                selectedFiatTicker: 'USD',
+                genesisInfo: undefined,
+                returned: 'Received 5.50 XEC | Invalid NFToa',
+            },
             {
                 description: 'Staking rewards coinbase tx',
                 parsedTx: stakingRwd.parsed,
@@ -568,6 +598,24 @@ export default {
     },
     parseTx: {
         expectedReturns: [
+            {
+                description: 'NFToa Authentication TX (Proof of Access)',
+                tx: NFToaAuthYesNonce.tx,
+                hashes: ['c73d119dede21aca5b3f1d959634bb6fee878996'],
+                parsed: NFToaAuthYesNonce.parsed,
+            },
+            {
+                description: 'NFToa Regular Message TX (Proof of Access)',
+                tx: NFToaMsgNoNonce.tx,
+                hashes: ['c73d119dede21aca5b3f1d959634bb6fee878996'],
+                parsed: NFToaMsgNoNonce.parsed,
+            },
+            {
+                description: 'Off-spec NFToa TX',
+                tx: NFToaOffSpec.tx,
+                hashes: ['c73d119dede21aca5b3f1d959634bb6fee878996'],
+                parsed: NFToaOffSpec.parsed,
+            },
             {
                 description: 'Staking rewards coinbase tx',
                 tx: stakingRwd.tx,

@@ -15,6 +15,46 @@ import {
 } from 'opreturn';
 import { opReturnVectors } from '../fixtures/vectors';
 
+describe('NFToa Authentication OP_RETURN parsing', () => {
+    const opReturnRawAuth =
+        '044e465400134c6f67696e20746f2047617564696f2041707008eb0c601b84975437';
+    const opReturnRawMsg =
+        '044e4654001648656c6c6f20576f726c642066726f6d204e46546f61';
+
+    it('should correctly parse NFToa Authentication TX raw data', () => {
+        const parsed = parseOpReturnRaw(opReturnRawAuth);
+
+        expect(parsed).toEqual({
+            protocol: 'NFToa',
+            data: 'Data: Login to Gaudio App, Nonce: eb0c601b84975437',
+        });
+    });
+
+    it('should correctly parse NFToa Regular Message TX raw data', () => {
+        const parsed = parseOpReturnRaw(opReturnRawMsg);
+
+        expect(parsed).toEqual({
+            protocol: 'NFToa',
+            data: 'Data: Hello World from NFToa',
+        });
+    });
+
+    it('should contain the correct message text', () => {
+        const parsed = parseOpReturnRaw(opReturnRawAuth);
+        expect(parsed.data).toContain('Login to Gaudio App');
+    });
+
+    it('should contain the correct 8-byte nonce', () => {
+        const parsed = parseOpReturnRaw(opReturnRawAuth);
+        expect(parsed.data).toContain('eb0c601b84975437');
+    });
+
+    it('should identify NFToa as the protocol', () => {
+        const parsed = parseOpReturnRaw(opReturnRawAuth);
+        expect(parsed.protocol).toBe('NFToa');
+    });
+});
+
 describe('Cashtab opreturn methods', () => {
     describe('Cashtab Msg building functions', () => {
         const { expectedReturns, expectedErrors } = opReturnVectors.cashtabMsgs;

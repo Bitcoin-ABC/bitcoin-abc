@@ -8,6 +8,73 @@ import { Script, fromHex } from 'ecash-lib';
 // Test vectors for opreturn output generating functions
 
 export const opReturnVectors = {
+    parseNFToaAuth: {
+        expectedReturns: [
+            {
+                description: 'valid NFToa Authentication tx',
+                tx: {
+                    txid: 'nftoa-auth-example',
+                    outputs: [
+                        {
+                            // 6a = OP_RETURN, then payload
+                            outputScript:
+                                '6a044e465400134c6f67696e20746f2047617564696f2041707008eb0c601b84975437',
+                            sats: 0n,
+                        },
+                    ],
+                },
+                hashes: [],
+                parsed: {
+                    appActions: [
+                        {
+                            lokadId: '4e465400', // "NFT\0" in hex
+                            app: 'NFToa',
+                            isValid: true,
+                            action: {
+                                type: 'Authentication',
+                                data: 'Login to Gaudio App',
+                                nonce: 'eb0c601b84975437',
+                            },
+                        },
+                    ],
+                },
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'NFToa tx missing message or nonce (invalid format)',
+                tx: {
+                    txid: 'nftoa-auth-invalid',
+                    outputs: [
+                        {
+                            // hanya Lokad ID tanpa pushdata berikutnya
+                            outputScript: '6a044e465400',
+                            sats: 0n,
+                        },
+                    ],
+                },
+                hashes: [],
+                msg: 'Invalid NFToa transaction format',
+            },
+            {
+                description: 'NFToa tx missing nonce field',
+                tx: {
+                    txid: 'nftoa-auth-missing-nonce',
+                    outputs: [
+                        {
+                            // tidak ada segmen nonce terakhir (08 <nonce>)
+                            outputScript:
+                                '6a044e465400134c6f67696e20746f2047617564696f20417070',
+                            sats: 0n,
+                        },
+                    ],
+                },
+                hashes: [],
+                msg: 'Invalid NFToa transaction format',
+            },
+        ],
+    },
     cashtabMsgs: {
         expectedReturns: [
             {
