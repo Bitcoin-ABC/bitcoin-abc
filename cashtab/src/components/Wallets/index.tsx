@@ -12,7 +12,7 @@ import {
     BankIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
-import { ModalInput } from 'components/Common/Inputs';
+import { ModalInput, ModalTextArea } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import PrimaryButton, {
     SecondaryButton,
@@ -144,9 +144,7 @@ const Wallets = () => {
      * e.target.value will be input value
      * e.target.name will be name of originating input field
      */
-    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-
+    const handleInputCommon = (name: string, value: string) => {
         if (name === 'renamedWalletName') {
             setFormDataErrors(previous => ({
                 ...previous,
@@ -181,6 +179,16 @@ const Wallets = () => {
             ...previous,
             [name]: value,
         }));
+    };
+
+    const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        handleInputCommon(name, value);
+    };
+
+    const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        handleInputCommon(name, value);
     };
 
     /**
@@ -485,7 +493,7 @@ const Wallets = () => {
             )}
             {showImportWalletModal && (
                 <Modal
-                    height={180}
+                    height={265}
                     title={`Import wallet`}
                     handleOk={importNewWallet}
                     handleCancel={() => setShowImportWalletModal(false)}
@@ -495,13 +503,16 @@ const Wallets = () => {
                         formData.mnemonic === ''
                     }
                 >
-                    <ModalInput
-                        type="text"
+                    <ModalTextArea
                         placeholder="mnemonic (seed phrase)"
                         name="mnemonic"
                         value={formData.mnemonic}
                         error={formDataErrors.mnemonic}
-                        handleInput={handleInput}
+                        handleInput={handleTextAreaInput}
+                        height={96}
+                        spellCheck={false}
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </Modal>
             )}

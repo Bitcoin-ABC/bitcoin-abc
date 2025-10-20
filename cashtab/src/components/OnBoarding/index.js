@@ -15,7 +15,7 @@ import {
 } from 'wallet';
 import { WelcomeCtn, WelcomeLink, WelcomeText } from './styles';
 import Modal from 'components/Common/Modal';
-import { ModalInput } from 'components/Common/Inputs';
+import { ModalTextArea } from 'components/Common/Inputs';
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -75,15 +75,14 @@ const OnBoarding = () => {
         <>
             {showImportWalletModal && (
                 <Modal
-                    height={198}
+                    height={265}
                     title={`Import wallet`}
                     handleOk={importWallet}
                     handleCancel={() => setShowImportWalletModal(false)}
                     showCancelButton
                     disabled={!isValidMnemonic || importedMnemonic === ''}
                 >
-                    <ModalInput
-                        type="text"
+                    <ModalTextArea
                         placeholder="mnemonic (seed phrase)"
                         name="mnemonic"
                         value={importedMnemonic}
@@ -93,6 +92,10 @@ const OnBoarding = () => {
                                 : 'Invalid 12-word mnemonic. Note: all letters must be lowercase.'
                         }
                         handleInput={handleInput}
+                        height={96}
+                        spellCheck={false}
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </Modal>
             )}

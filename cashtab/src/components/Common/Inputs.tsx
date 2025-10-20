@@ -90,6 +90,14 @@ const CashtabTextArea = styled.textarea<{ height: number }>`
     }
 `;
 
+const ModalTextAreaField = styled(CashtabTextArea)<{ invalid?: boolean }>`
+    background-color: transparent;
+    border: ${props =>
+        props.invalid
+            ? `1px solid ${props.theme.formError}`
+            : `1px solid ${props.theme.accent} !important`};
+`;
+
 const LeftInput = styled(CashtabInput)`
     border-radius: 9px 0 0 9px;
 `;
@@ -378,6 +386,56 @@ export const TextArea: React.FC<TextAreaProps> = ({
                         /{max}
                     </CountHolder>
                 )}
+            </CountAndErrorFlex>
+        </CashtabInputWrapper>
+    );
+};
+
+interface ModalTextAreaProps {
+    placeholder: string;
+    name: string;
+    value: string | null;
+    handleInput?: React.ChangeEventHandler<HTMLTextAreaElement>;
+    disabled?: boolean;
+    height?: number;
+    error?: string | boolean;
+    autocomplete?: string;
+    spellCheck?: boolean;
+    autoCorrect?: string;
+    autoCapitalize?: string;
+}
+export const ModalTextArea: React.FC<ModalTextAreaProps> = ({
+    placeholder = '',
+    name = '',
+    value = '',
+    handleInput,
+    disabled = false,
+    height = 142,
+    error = false,
+    autocomplete = 'off',
+    spellCheck = false,
+    autoCorrect = 'off',
+    autoCapitalize = 'off',
+}) => {
+    return (
+        <CashtabInputWrapper>
+            <ModalTextAreaField
+                placeholder={placeholder}
+                name={name}
+                value={value === null ? '' : value}
+                height={height}
+                disabled={disabled}
+                onChange={handleInput}
+                invalid={typeof error === 'string'}
+                autoComplete={autocomplete}
+                spellCheck={spellCheck}
+                autoCorrect={autoCorrect}
+                autoCapitalize={autoCapitalize}
+            />
+            <CountAndErrorFlex>
+                <TextAreaErrorMsg>
+                    {typeof error === 'string' ? error : ''}
+                </TextAreaErrorMsg>
             </CountAndErrorFlex>
         </CashtabInputWrapper>
     );
