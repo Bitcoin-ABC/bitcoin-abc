@@ -30,6 +30,7 @@ body {
         'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #111313; /* Match Cashtab primary background */
 }
 
 code {
@@ -55,6 +56,18 @@ html,
 body {
     max-width: 100%;
     overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Respect iOS safe areas to avoid overlapping the status bar and home indicator */
+body {
+    padding-top: constant(safe-area-inset-top); /* iOS < 11.2 */
+    padding-top: env(safe-area-inset-top); /* iOS >= 11.2 */
+    padding-left: constant(safe-area-inset-left);
+    padding-left: env(safe-area-inset-left);
+    padding-right: constant(safe-area-inset-right);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Ensure containers respect viewport width, but exclude interactive elements */

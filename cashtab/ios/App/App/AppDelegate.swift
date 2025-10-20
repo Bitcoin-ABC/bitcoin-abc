@@ -7,7 +7,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Match native window background to Cashtab primary background
+        window?.backgroundColor = UIColor(red: 0x11/255.0, green: 0x13/255.0, blue: 0x13/255.0, alpha: 1.0)
+        application.statusBarStyle = .lightContent
         return true
     }
 
