@@ -115,7 +115,7 @@ export const isValidXecSendAmount = (
         : toSatoshis(Number(sendAmount));
 
     if (sendAmountSatoshis <= 0) {
-        return 'Amount must be greater than 0';
+        return 'Amount must be > 0';
     }
     if (sendAmountSatoshis < appConfig.dustSats) {
         return `Send amount must be at least ${toXec(appConfig.dustSats)} ${
@@ -1043,10 +1043,10 @@ export const isValidTokenSendOrBurnAmount = (
         return 'Amount is required';
     }
     if (amount === '0') {
-        return `Amount must be greater than 0`;
+        return `Amount must be > 0`;
     }
     if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
-        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+        return `Invalid amount format`;
     }
     // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
     // The user is not inputting decimals
@@ -1069,9 +1069,7 @@ export const isValidTokenSendOrBurnAmount = (
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
-            return `This token supports no more than ${decimals} decimal place${
-                decimals === 1 ? '' : 's'
-            }`;
+            return `Max ${decimals} decimal place${decimals === 1 ? '' : 's'}`;
         }
     }
     return true;
@@ -1095,10 +1093,10 @@ export const isValidTokenMintAmount = (
         return 'Amount is required';
     }
     if (amount === '0') {
-        return `Amount must be greater than 0`;
+        return `Amount must be > 0`;
     }
     if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
-        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+        return `Invalid amount format`;
     }
     // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
     // The user is not inputting decimals
@@ -1108,9 +1106,7 @@ export const isValidTokenMintAmount = (
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
-            return `This token supports no more than ${decimals} decimal place${
-                decimals === 1 ? '' : 's'
-            }`;
+            return `Max ${decimals} decimal place${decimals === 1 ? '' : 's'}`;
         }
     }
     // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
@@ -1357,7 +1353,7 @@ export const getAgoraPartialAcceptTokenQtyError = (
         !STRINGIFIED_DECIMALIZED_REGEX.test(takeTokenDecimalizedQty) ||
         takeTokenDecimalizedQty.length === 0
     ) {
-        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+        return `Invalid amount format`;
     }
     if (takeTokenDecimalizedQty.includes('.')) {
         if (
@@ -1366,9 +1362,7 @@ export const getAgoraPartialAcceptTokenQtyError = (
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
-            return `This token supports no more than ${decimals} decimal place${
-                decimals === 1 ? '' : 's'
-            }`;
+            return `Max ${decimals} decimal place${decimals === 1 ? '' : 's'}`;
         }
     }
 
@@ -1432,34 +1426,32 @@ export const getReceiveAmountError = (
         // If we have just the address, cashtab will allow user input of an amount
         // We may update this later to allow arbitrary user-entered token amounts,
         // but the send screen needs to be upgraded for arbitrary token sends
-        return 'Amount is required for bip21 token sends';
+        return 'Amount required';
     }
     if (amount === '0') {
-        return `Amount must be greater than 0`;
+        return `Amount must be > 0`;
     }
     if (
         (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) &&
         amount !== ''
     ) {
-        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+        return `Invalid amount format`;
     }
 
     if (amount.includes('.')) {
         if (amount.toString().split('.')[1].length > decimals) {
             if (isXec) {
-                return `XEC supports up to ${decimals} decimal places`;
+                return `Max ${decimals} decimal places`;
             }
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
-            return `This token supports no more than ${decimals} decimal place${
-                decimals === 1 ? '' : 's'
-            }`;
+            return `Max ${decimals} decimal place${decimals === 1 ? '' : 's'}`;
         }
     }
 
     if (isXec && parseFloat(amount) < Number(DEFAULT_DUST_SATS) / 100) {
-        return `XEC send amounts cannot be less than dust (5.46 XEC)`;
+        return `Minimum 5.46 XEC`;
     }
     return false;
 };

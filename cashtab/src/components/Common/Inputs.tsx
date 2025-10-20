@@ -158,6 +158,7 @@ const ErrorMsg = styled.div`
     line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
+    min-height: 1.25rem; /* Reserve space to prevent content jumping */
 `;
 
 export const InputFlex = styled.div`
@@ -322,6 +323,7 @@ const TextAreaErrorMsg = styled.div`
     line-height: var(--text-sm--line-height);
     color: ${props => props.theme.formError};
     word-break: break-all;
+    min-height: 1.25rem; /* Reserve space to prevent content jumping */
 `;
 
 interface TextAreaProps {

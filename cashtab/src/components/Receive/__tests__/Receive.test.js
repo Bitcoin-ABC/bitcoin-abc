@@ -111,9 +111,7 @@ describe('<Receive />', () => {
         );
 
         // We see expected validation error bc an eCash amount cannot have more than 2 decimal places
-        expect(
-            screen.getByText('XEC supports up to 2 decimal places'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Max 2 decimal places')).toBeInTheDocument();
 
         // Enter a valid amount
         await userEvent.clear(
@@ -165,9 +163,7 @@ describe('<Receive />', () => {
 
         // If we switch back to XEC, form validation catches 4 decimal places
         await user.click(screen.getByTitle('Toggle Firma'));
-        expect(
-            screen.getByText('XEC supports up to 2 decimal places'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Max 2 decimal places')).toBeInTheDocument();
     });
     it('Renders the Receive screen with QR code of expected width for smallest supported mobile view', async () => {
         // Reset the width to mobile

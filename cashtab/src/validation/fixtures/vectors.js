@@ -1528,7 +1528,7 @@ export default {
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Amount must be greater than 0`,
+                returned: `Amount must be > 0`,
             },
             {
                 description:
@@ -1801,7 +1801,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 0,
                 tokenProtocol: 'SLP',
-                returned: 'Amount must be greater than 0',
+                returned: 'Amount must be > 0',
             },
             {
                 description: 'Blank input is rejected',
@@ -1826,8 +1826,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input multiple decimal points',
@@ -1835,8 +1834,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -1845,8 +1843,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input containing non-decimal characters',
@@ -1854,8 +1851,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -1873,7 +1869,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned: 'This token supports no more than 1 decimal place',
+                returned: 'Max 1 decimal place',
             },
             {
                 description:
@@ -1882,7 +1878,7 @@ export default {
                 tokenBalance: '100',
                 decimals: 2,
                 tokenProtocol: 'SLP',
-                returned: 'This token supports no more than 2 decimal places',
+                returned: 'Max 2 decimal places',
             },
             {
                 description:
@@ -2022,7 +2018,7 @@ export default {
                 amount: '0',
                 decimals: 0,
                 tokenProtocol: 'SLP',
-                returned: 'Amount must be greater than 0',
+                returned: 'Amount must be > 0',
             },
             {
                 description: 'Blank input is rejected',
@@ -2044,16 +2040,14 @@ export default {
                 amount: '95,1',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input with multiple decimal points',
                 amount: '95.1.23',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -2061,16 +2055,14 @@ export default {
                 amount: '95..23',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input containing non-decimal characters',
                 amount: '100.a',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -2078,7 +2070,7 @@ export default {
                 amount: '99.12',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned: 'This token supports no more than 1 decimal place',
+                returned: 'Max 1 decimal place',
             },
             {
                 description:
@@ -2086,7 +2078,7 @@ export default {
                 amount: '99.123',
                 decimals: 2,
                 tokenProtocol: 'SLP',
-                returned: 'This token supports no more than 2 decimal places',
+                returned: 'Max 2 decimal places',
             },
             {
                 description:
@@ -2772,8 +2764,7 @@ export default {
                 decimalizedTokenQtyMax: '100',
                 decimals: 0,
                 userLocale: 'en-US',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects multiple non-consecutive decimal points',
@@ -2782,8 +2773,7 @@ export default {
                 decimalizedTokenQtyMax: '100',
                 decimals: 0,
                 userLocale: 'en-US',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects multiple consecutive decimal points',
@@ -2792,8 +2782,7 @@ export default {
                 decimalizedTokenQtyMax: '100',
                 decimals: 0,
                 userLocale: 'en-US',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input containing a non-decimal character',
@@ -2802,8 +2791,7 @@ export default {
                 decimalizedTokenQtyMax: '100',
                 decimals: 0,
                 userLocale: 'en-US',
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -2883,7 +2871,7 @@ export default {
                 tokenProtocol: 'ALP',
                 tokenBalance: '100',
                 userLocale: 'en-US',
-                returned: 'Amount must be greater than 0',
+                returned: 'Amount must be > 0',
             },
             {
                 description: 'We give the required min qty if input is too low',
@@ -2942,21 +2930,21 @@ export default {
                 amount: '0',
                 decimals: 2,
                 isXec: true,
-                returned: 'Amount must be greater than 0',
+                returned: 'Amount must be > 0',
             },
             {
                 description: 'Token: 0 is rejected',
                 amount: '0',
                 decimals: 4,
                 isXec: false,
-                returned: 'Amount must be greater than 0',
+                returned: 'Amount must be > 0',
             },
             {
                 description: 'Token: blank input is rejected',
                 amount: '',
                 decimals: 0,
                 isXec: false,
-                returned: 'Amount is required for bip21 token sends',
+                returned: 'Amount required',
             },
             {
                 description: 'XEC: Rejects non-string input',
@@ -2976,8 +2964,7 @@ export default {
                 amount: '95,1',
                 decimals: 1,
                 isXec: true,
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -2985,16 +2972,14 @@ export default {
                 amount: '95,1',
                 decimals: 1,
                 isXec: false,
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input multiple decimal points',
                 amount: '95.1.23',
                 decimals: 1,
                 isXec: false,
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description:
@@ -3002,31 +2987,28 @@ export default {
                 amount: '95..23',
                 decimals: 1,
                 isXec: false,
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'Rejects input containing non-decimal characters',
                 amount: '100.a',
                 decimals: 1,
                 isXec: false,
-                returned:
-                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+                returned: 'Invalid amount format',
             },
             {
                 description: 'We get an error for too many XEC decimals',
                 amount: '99.123',
                 decimals: 2,
                 isXec: true,
-                returned: 'XEC supports up to 2 decimal places',
+                returned: 'Max 2 decimal places',
             },
             {
                 description: 'We get an error for XEC amounts below dust',
                 amount: '5.45',
                 decimals: 2,
                 isXec: true,
-                returned:
-                    'XEC send amounts cannot be less than dust (5.46 XEC)',
+                returned: 'Minimum 5.46 XEC',
             },
             {
                 description: 'We accept 5.46 XEC',
@@ -3048,7 +3030,7 @@ export default {
                 amount: '99.12',
                 decimals: 1,
                 isXec: false,
-                returned: 'This token supports no more than 1 decimal place',
+                returned: 'Max 1 decimal place',
             },
             {
                 description:
@@ -3056,7 +3038,7 @@ export default {
                 amount: '99.123',
                 decimals: 2,
                 isXec: false,
-                returned: 'This token supports no more than 2 decimal places',
+                returned: 'Max 2 decimal places',
             },
             {
                 description:

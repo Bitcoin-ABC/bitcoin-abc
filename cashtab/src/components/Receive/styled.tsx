@@ -24,12 +24,17 @@ export const Row = styled.div<{ qrWidth?: number }>`
 
 export const FirmaRow = styled.div<{ qrWidth: number }>`
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex-direction: row;
     width: 100%;
     gap: 12px;
     max-width: ${props => props.qrWidth}px;
     color: ${props => props.theme.primaryText};
+
+    /* Align switch with the input field (not the error message) */
+    & > div:first-child {
+        margin-top: 12px;
+    }
 `;
 
 export const ReceiveCtn = styled.div`
