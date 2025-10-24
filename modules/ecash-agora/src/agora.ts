@@ -752,6 +752,7 @@ export class Agora {
      */
     public async selectParams(
         params: Omit<AgoraPartialParams, 'enforcedLockTime'> | AgoraPartial,
+        scriptIntegerBits: bigint = 32n,
     ): Promise<AgoraPartial> {
         // Assumes MTP is not more than 14 days in the past
         const maxLockTime = new Date().getTime() / 1000 - 14 * 24 * 3600;
@@ -772,10 +773,13 @@ export class Agora {
             const newParams =
                 params instanceof AgoraPartial
                     ? new AgoraPartial({ ...params, enforcedLockTime })
-                    : AgoraPartial.approximateParams({
-                          ...params,
-                          enforcedLockTime,
-                      });
+                    : AgoraPartial.approximateParams(
+                          {
+                              ...params,
+                              enforcedLockTime,
+                          },
+                          scriptIntegerBits,
+                      );
             const agoraScript = newParams.script();
             const utxos = await this.chronik
                 .script('p2sh', toHex(shaRmd160(agoraScript.bytecode)))

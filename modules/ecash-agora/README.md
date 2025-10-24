@@ -203,3 +203,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.2.0
 
 -   Add `src/actions.ts` to support preparing payment Actions for `ecash-wallet`, and add `actions.test.ts` to show implementation [D18673](https://reviews.bitcoinabc.org/D18673)
+
+### 2.3.0
+
+-   Expose precision param to allow app creation of 64-bit int offers [D18829](https://reviews.bitcoinabc.org/D18829)
