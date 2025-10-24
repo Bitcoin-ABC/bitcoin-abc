@@ -1,6 +1,6 @@
 {
     "name": "chronik-client",
-    "version": "3.4.0",
+    "version": "3.4.1",
     "description": "A client for accessing the Chronik Indexer API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -38,6 +38,7 @@
         "axios": "^1.6.3",
         "ecashaddrjs": "file:../ecashaddrjs",
         "isomorphic-ws": "^4.0.1",
+        "long": "^4.0.0",
         "protobufjs": "^6.8.8",
         "ws": "^8.3.0"
     }

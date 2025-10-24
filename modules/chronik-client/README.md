@@ -129,3 +129,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   3.2.0 - Add "UNKNOWN" token protocol type [D18155](https://reviews.bitcoinabc.org/D18155)
 -   3.3.0 - Add support for `subscribetoTxid` and `unsubscribeFromTxid` websocket methods [D18251](https://reviews.bitcoinabc.org/D18251)
 -   3.4.0 - Add support for transactions finalization and invalidation websocket messages [D18482](https://reviews.bitcoinabc.org/D18482)
+-   3.4.1 - Add `long` as a dependency. This should be resolved as a dependency of protobufjs, but for some package managers (e.g. `pnpm`) this is having issues. [D18831](https://reviews.bitcoinabc.org/D18831)
