@@ -10,6 +10,7 @@ import {
     TxHistoryPage,
     Utxo,
     WsEndpoint,
+    ScriptUtxo,
 } from 'chronik-client';
 import {
     alpSend,
@@ -35,8 +36,14 @@ import {
     TxBuilderOutput,
     TxInput,
     TxOutput,
+    ALL_BIP143,
 } from 'ecash-lib';
+import { BuiltAction, Wallet } from 'ecash-wallet';
 
+import {
+    getAgoraPartialAcceptFuelInputs,
+    getAgoraOneshotAcceptFuelInputs,
+} from './inputs';
 import {
     AgoraOneshot,
     AgoraOneshotCancelSignatory,
@@ -118,7 +125,7 @@ export class AgoraOffer {
     }
 
     /**
-     * Build a tx accepting this offer.
+     * Build and broadcast an acceptTx, effectively taking this offer.
      *
      * Agora offers are UTXOs on the blockchain that can be accepted by anyone
      * sending sufficient satoshis to a required output.
@@ -174,6 +181,122 @@ export class AgoraOffer {
             allowUnspendable,
         });
         return txBuild.sign({ feePerKb, dustSats });
+    }
+
+    /**
+     * Build and broadcast a tx that accepts an agora offer
+     * according to user-provided params, to a user-provided
+     * ecash-wallet Wallet
+     *
+     * NB there is no option to "only build" by passing a Wallet, but this can be
+     * accomplished using the acceptTx method above
+     */
+    public async take(
+        /**
+         * NB these params are identical to the params required for acceptTx method above,
+         * except
+         *
+         * 1) We require a Wallet
+         * 2) We get fuelInputs from the provided wallet instead of accepting them
+         *    as a param
+         */
+        params: {
+            /**
+             * An initialized Wallet from ecash-wallet
+             * This is the wallet that will take the offer
+             */
+            wallet: Wallet;
+            /**
+             * Arbitrary secret key to sign the accept tx with. Recommended to set
+             * this to a random key. Must be paired with covenantSk.
+             */
+            covenantSk: Uint8Array;
+            /**
+             * Arbitrary public key to sign the accept tx with, must be paired with
+             * covenantSk.
+             */
+            covenantPk: Uint8Array;
+            /** Script to send the tokens and the leftover sats (if any) to. */
+            recipientScript: Script;
+            /** For partial offers: Number of accepted atoms (base tokens) */
+            acceptedAtoms?: bigint;
+            /** Dust amount to use for the token output. */
+            dustSats?: bigint;
+            /** Fee per kB to use when building the tx. */
+            feePerKb?: bigint;
+            /** Allow accepting an offer such that the remaining quantity is unacceptable */
+            allowUnspendable?: boolean;
+        },
+    ): Promise<
+        | {
+              success: boolean;
+              broadcasted: string[];
+              unbroadcasted: string[];
+              errors: string[];
+          }
+        | {
+              success: boolean;
+              broadcasted: string[];
+              unbroadcasted?: undefined;
+              errors?: undefined;
+          }
+    > {
+        // Use default params for unspecified
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
+        const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
+        const allowUnspendable = params.allowUnspendable ?? false;
+
+        const wallet = params.wallet;
+
+        // Get fuel inputs
+        let fuelUtxos: ScriptUtxo[];
+        if (this.variant.type === 'ONESHOT') {
+            fuelUtxos = getAgoraOneshotAcceptFuelInputs(
+                this,
+                wallet.spendableSatsOnlyUtxos(),
+                params.feePerKb,
+            );
+        } else if (typeof params.acceptedAtoms === 'bigint') {
+            fuelUtxos = getAgoraPartialAcceptFuelInputs(
+                this,
+                wallet.spendableSatsOnlyUtxos(),
+                params.acceptedAtoms,
+                params.feePerKb,
+            );
+        } else {
+            throw new Error(
+                'Must provide acceptedAtoms to accept a partial offer',
+            );
+        }
+
+        // Sign inputs using Wallet
+        // NB the take() method only supports ALL_BIP143 sighash type (for now),
+        // i.e. "normal" eCash txs and not postage
+        const finalizedInputs = fuelUtxos.map(utxo =>
+            wallet.p2pkhUtxoToBuilderInput(utxo, ALL_BIP143),
+        );
+
+        // Build the tx using available ecash-agora method
+        const txBuild = this._acceptTxBuilder({
+            covenantSk: params.covenantSk,
+            covenantPk: params.covenantPk,
+            fuelInputs: finalizedInputs,
+            extraOutputs: [
+                {
+                    sats: dustSats,
+                    script: params.recipientScript,
+                },
+                params.recipientScript,
+            ],
+            acceptedAtoms: params.acceptedAtoms,
+            allowUnspendable,
+        });
+        const signedTx = txBuild.sign({ feePerKb, dustSats });
+
+        // Broadcast using Wallet, and match the return type of ecash-wallet broadcasts
+        const builtAction = new BuiltAction(wallet, [signedTx], feePerKb);
+        const broadcastResult = await builtAction.broadcast();
+        return broadcastResult;
     }
 
     /**

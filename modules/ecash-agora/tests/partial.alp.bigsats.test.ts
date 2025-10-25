@@ -53,7 +53,10 @@ async function makeBuilderInputs(
     runner: TestRunner,
     values: bigint[],
 ): Promise<TxBuilderInput[]> {
-    const txid = await runner.sendToScript(values, makerScript);
+    const txid = await runner.sendToTwoScripts(
+        { script: makerScript, sats: values[0] },
+        { script: takerScript, sats: values[1] },
+    );
     return values.map((sats, outIdx) => ({
         input: {
             prevOut: {
@@ -84,10 +87,7 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -133,7 +133,6 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms: agoraPartial.offeredAtoms(),
         });
 
@@ -178,10 +177,7 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 2p48-1 small accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -229,7 +225,6 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms,
         });
 
@@ -282,10 +277,7 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 2p47-1 full accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -330,7 +322,6 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms: agoraPartial.offeredAtoms(),
         });
 
@@ -378,10 +369,7 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -429,7 +417,6 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms,
         });
 
@@ -482,10 +469,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 100 full accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -529,7 +513,6 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms: 100n,
         });
         const acceptTx = await chronik.tx(acceptTxid);
@@ -574,10 +557,7 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
     });
 
     it('AgoraPartial ALP 7450M XEC vs 100 small accept', async () => {
-        const [fuelInput, takerInput] = await makeBuilderInputs(runner, [
-            10000n,
-            BIGSATS,
-        ]);
+        const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
         const agoraPartial = await agora.selectParams({
@@ -617,7 +597,6 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
             chronik,
             offer,
             takerSk,
-            takerInput,
             acceptedAtoms: 1n,
         });
         const acceptTx = await chronik.tx(acceptTxid);

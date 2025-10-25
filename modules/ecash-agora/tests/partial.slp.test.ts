@@ -56,7 +56,10 @@ describe('AgoraPartial SLP', () => {
     async function makeBuilderInputs(
         values: bigint[],
     ): Promise<TxBuilderInput[]> {
+        // NB for these "not big sats" tests, we can just send to both, no need to sendToTwoScripts
         const txid = await runner.sendToScript(values, makerScript);
+        // Send some cash to the taker, since the accept() tests spend from this wallet
+        await runner.sendToScript(values, takerScript);
         return values.map((sats, outIdx) => ({
             input: {
                 prevOut: {
@@ -484,10 +487,7 @@ describe('AgoraPartial SLP', () => {
             });
             const askedSats = agoraPartial.askedSats(testCase.acceptedAtoms);
             const requiredSats = askedSats + 2000n;
-            const [fuelInput, takerInput] = await makeBuilderInputs([
-                4000n,
-                requiredSats,
-            ]);
+            const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
 
             const offer = await makeSlpOffer({
                 chronik,
@@ -499,7 +499,6 @@ describe('AgoraPartial SLP', () => {
                 chronik,
                 takerSk,
                 offer,
-                takerInput,
                 acceptedAtoms: testCase.acceptedAtoms,
                 allowUnspendable: testCase.allowUnspendable,
             });
@@ -655,10 +654,7 @@ describe('AgoraPartial SLP', () => {
         });
         const askedSats = agoraPartial.askedSats(thisTestCase.acceptedAtoms);
         const requiredSats = askedSats + 2000n;
-        const [fuelInput, takerInput] = await makeBuilderInputs([
-            4000n,
-            requiredSats,
-        ]);
+        const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
 
         const offer = await makeSlpOffer({
             chronik,
@@ -683,7 +679,6 @@ describe('AgoraPartial SLP', () => {
                 chronik,
                 takerSk,
                 offer,
-                takerInput,
                 acceptedAtoms: thisTestCase.acceptedAtoms,
                 allowUnspendable: false,
             }),
@@ -713,10 +708,7 @@ describe('AgoraPartial SLP', () => {
         const acceptedAtoms = 500n;
         const askedSats = agoraPartial.askedSats(acceptedAtoms);
         const requiredSats = askedSats + 2000n;
-        const [fuelInput, takerInput] = await makeBuilderInputs([
-            4000n,
-            requiredSats,
-        ]);
+        const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
 
         const offer = await makeSlpOffer({
             chronik,
@@ -739,7 +731,6 @@ describe('AgoraPartial SLP', () => {
                 chronik,
                 takerSk,
                 offer,
-                takerInput,
                 acceptedAtoms: acceptedAtoms,
                 allowUnspendable: false,
             }),
@@ -752,7 +743,6 @@ describe('AgoraPartial SLP', () => {
                 chronik,
                 takerSk,
                 offer,
-                takerInput,
                 acceptedAtoms: acceptedAtoms,
                 allowUnspendable: undefined,
             }),
@@ -765,7 +755,6 @@ describe('AgoraPartial SLP', () => {
                 chronik,
                 takerSk,
                 offer,
-                takerInput,
                 acceptedAtoms: acceptedAtoms,
             }),
             expectedError,

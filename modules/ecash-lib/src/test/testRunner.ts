@@ -193,6 +193,42 @@ export class TestRunner {
         return (await this.chronik.broadcastTx(setupTx.ser())).txid;
     }
 
+    /**
+     * Fund two addresses with sats
+     * Specifically for assigning sats to the maker and taker
+     * of an agora offer, it is not generalized for 'n' scripts
+     */
+    public async sendToTwoScripts(
+        maker: { script: Script; sats: bigint },
+        taker: { script: Script; sats: bigint },
+    ): Promise<string> {
+        const coinValue = this.coinValue!;
+        const setupTxBuilder = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: this.getOutpoint(),
+                        script: ANYONE_SCRIPT_SIG,
+                        sequence: 0xffffffff,
+                        signData: {
+                            sats: coinValue,
+                        },
+                    },
+                },
+            ],
+            outputs: [
+                { sats: maker.sats, script: maker.script },
+                { sats: taker.sats, script: taker.script },
+                Script.fromOps([OP_RETURN]), // burn leftover
+            ],
+        });
+        const setupTx = setupTxBuilder.sign({
+            feePerKb: 1000n,
+            dustSats: 546n,
+        });
+        return (await this.chronik.broadcastTx(setupTx.ser())).txid;
+    }
+
     public generate() {
         this.runner.send('generate');
     }

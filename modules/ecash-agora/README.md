@@ -207,3 +207,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.3.0
 
 -   Expose precision param to allow app creation of 64-bit int offers [D18829](https://reviews.bitcoinabc.org/D18829)
+
+### 2.4.0
+
+-   Add new `take` method to `AgoraOffer` that will automatically build and broadcast an agora Take tx given a `Wallet` from `ecash-wallet` [D18833](https://reviews.bitcoinabc.org/D18833)

@@ -16,6 +16,7 @@ import {
     TxBuilderInput,
     TxBuilderOutput,
 } from 'ecash-lib';
+import { Wallet } from 'ecash-wallet';
 import { expect } from 'chai';
 
 import { AgoraPartial } from '../src/partial.js';
@@ -124,22 +125,23 @@ export async function takeAlpOffer(params: {
     chronik: ChronikClient;
     offer: AgoraOffer;
     takerSk: Uint8Array;
-    takerInput: TxBuilderInput;
     acceptedAtoms: bigint;
     allowUnspendable?: boolean;
 }) {
     const takerSk = params.takerSk;
-    const takerPk = new Ecc().derivePubkey(takerSk);
-    const takerPkh = shaRmd160(takerPk);
-    const takerP2pkh = Script.p2pkh(takerPkh);
-    const acceptTx = params.offer.acceptTx({
-        covenantSk: params.takerSk,
+    const takerWallet = Wallet.fromSk(takerSk, params.chronik);
+    const takerPk = takerWallet.pk;
+    const takerP2pkh = takerWallet.script;
+
+    await takerWallet.sync();
+    const broadcastResult = await params.offer.take({
+        wallet: takerWallet,
+        covenantSk: takerSk,
         covenantPk: takerPk,
-        fuelInputs: [params.takerInput],
         recipientScript: takerP2pkh,
         acceptedAtoms: params.acceptedAtoms,
         allowUnspendable: params.allowUnspendable,
     });
-    const acceptTxid = (await params.chronik.broadcastTx(acceptTx.ser())).txid;
+    const acceptTxid = broadcastResult.broadcasted[0];
     return acceptTxid;
 }
