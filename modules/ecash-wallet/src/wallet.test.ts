@@ -45,6 +45,7 @@ import {
     paymentOutputsToTxOutputs,
     getNftChildGenesisInput,
     getUtxoFromOutput,
+    ChainedTxType,
 } from './wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
@@ -1061,7 +1062,7 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: false,
                 missingSats: 1000n,
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     'Insufficient sats to complete tx. Need 1000 additional satoshis to complete this Action.',
                 ],
@@ -1082,7 +1083,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 1000n,
                 utxos: [],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Return success true for a non-token tx with insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1106,7 +1107,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 500n },
                     { ...DUMMY_UTXO, sats: 300n },
                 ],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Return success true for a non-token tx with sufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1130,7 +1131,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 500n },
                     { ...DUMMY_UTXO, sats: 600n },
                 ],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Return success true for a token tx with sufficient tokens but insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1166,7 +1167,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 500n,
                 utxos: [{ ...DUMMY_UTXO, sats: 500n }, getDummySlpUtxo(2n)],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Return failure for a token tx with missing tokens even if ATTEMPT_SATS strategy', () => {
@@ -1212,7 +1213,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1251,7 +1252,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_500n }, getDummySlpUtxo(2n)],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('For an XEC-only tx, returns non-token utxos with sufficient sats', () => {
@@ -1270,7 +1271,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 750n },
                     { ...DUMMY_UTXO, sats: 750n },
                 ],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
@@ -1285,7 +1286,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_000n }],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Returns expected object if we have insufficient token utxos', () => {
@@ -1325,7 +1326,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1425,7 +1426,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1525,7 +1526,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1559,7 +1560,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 10_000n }, getDummySlpUtxo(1n)],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx', () => {
@@ -1634,7 +1635,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: spendableUtxos,
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx if gasless', () => {
@@ -1714,7 +1715,7 @@ describe('Support functions', () => {
                 success: true,
                 utxos: spendableUtxos,
                 missingSats: 546n,
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
         it('Returns detailed summary of missing token inputs for a gasless tx', () => {
@@ -1815,7 +1816,7 @@ describe('Support functions', () => {
                         },
                     ],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing required token utxos: 1111111111111111111111111111111111111111111111111111111111111111 => Missing mint baton,` +
                         ` 2222222222222222222222222222222222222222222222222222222222222222 => Missing 10 atoms,` +
@@ -1850,7 +1851,7 @@ describe('Support functions', () => {
                 missingTokens: new Map([
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -1891,10 +1892,11 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 // NB the parent input is at index 0
                 utxos: [mockNftParentInput, DUMMY_UTXO],
-                requiresTxChain: false,
+                // No chained tx required as qty1 is already available
+                chainedTxType: ChainedTxType.NONE,
             });
         });
-        it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
+        it('Returns utxos with chainedTxType: NFT_MINT_FANOUT for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
             const action = {
                 outputs: [
                     { sats: 0n },
@@ -1925,15 +1927,10 @@ describe('Support functions', () => {
             };
             const spendableUtxos = [DUMMY_UTXO, mockNftParentBigInput];
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
-                success: false,
+                success: true,
                 missingSats: 0n,
-                missingTokens: new Map([
-                    ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
-                ]),
-                requiresTxChain: false,
-                errors: [
-                    `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111. You must split your qty-100 input into qty-1 inputs.`,
-                ],
+                utxos: [mockNftParentBigInput, DUMMY_UTXO],
+                chainedTxType: ChainedTxType.NFT_MINT_FANOUT,
             });
         });
         it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we are missing the SLP_TOKEN_TYPE_NFT1_GROUP input and also sats', () => {
@@ -1964,7 +1961,7 @@ describe('Support functions', () => {
                 missingTokens: new Map([
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -2004,7 +2001,7 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: false,
                 missingSats: 99999454n,
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
                 errors: [
                     'Insufficient sats to complete tx. Need 99999454 additional satoshis to complete this Action.',
                 ],
@@ -2051,10 +2048,10 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 100000000n,
                 utxos: [mockNftParentInput],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
-        it('Returns utxos with requiresTxChain: false for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have exact atoms', () => {
+        it('Returns utxos with chainedTxType: NONE for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have exact atoms', () => {
             const action = {
                 outputs: [
                     { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
@@ -2087,10 +2084,10 @@ describe('Support functions', () => {
                     getDummySlpUtxo(2n),
                     { ...DUMMY_UTXO, sats: 10_000n },
                 ],
-                requiresTxChain: false,
+                chainedTxType: ChainedTxType.NONE,
             });
         });
-        it('Returns utxos with requiresTxChain: true for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have enough atoms but not exact atoms', () => {
+        it('Returns utxos with chainedTxType: INTENTIONAL_BURN for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have enough atoms but not exact atoms', () => {
             const action = {
                 outputs: [
                     { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
@@ -2118,7 +2115,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 utxos: [getDummySlpUtxo(45n), { ...DUMMY_UTXO, sats: 10_000n }],
-                requiresTxChain: true,
+                chainedTxType: ChainedTxType.INTENTIONAL_BURN,
             });
         });
     });
@@ -2355,6 +2352,43 @@ describe('Support functions', () => {
 
             const result = getNftChildGenesisInput(tokenId, spendableUtxos);
             expect(result).to.equal(undefined);
+        });
+
+        it('Prefers qty-1 input over higher quantity inputs', () => {
+            const tokenId = '55'.repeat(32);
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 1000n },
+                {
+                    ...DUMMY_UTXO,
+                    token: {
+                        tokenId,
+                        atoms: 10n, // Higher quantity input
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+                {
+                    ...DUMMY_UTXO,
+                    token: {
+                        tokenId,
+                        atoms: 1n, // qty-1 input (should be preferred)
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+                {
+                    ...DUMMY_UTXO,
+                    token: {
+                        tokenId,
+                        atoms: 5n, // Another higher quantity input
+                        isMintBaton: false,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    },
+                },
+            ];
+
+            const result = getNftChildGenesisInput(tokenId, spendableUtxos);
+            expect(result?.token?.atoms).to.equal(1n);
         });
     });
     context('paymentOutputsToTxOutputs', () => {

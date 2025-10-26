@@ -40,6 +40,7 @@ import {
     SLP_TOKEN_TYPE_NFT1_CHILD,
     toHexRev,
     sha256d,
+    SLP_TOKEN_TYPE_NFT1_GROUP,
 } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
@@ -290,20 +291,32 @@ class WalletAction {
      * Chained txs fulfill a limited number of known cases
      * Incrementally add to this method to cover them all
      * [x] Intentional SLP burn where we do not have exact atoms available
-     * [] SLP_TOKEN_TYPE_NFT1_CHILD mints where we do not have a qty-1 input
+     * [x] SLP_TOKEN_TYPE_NFT1_CHILD mints where we do not have a qty-1 input
      * [] Token txs with outputs exceeding spec per-tx limits, or ALP txs where outputs and data pushes exceed OP_RETURN limits
      * [] XEC or XEC-and-token txs where outputs would cause tx to exceed 100kb broadcast limit
      */
     private _buildChained(sighash = ALL_BIP143): BuiltAction {
-        // For now, we only support intentional SLP burns where we do not have exact atoms available
-        // This is a private method and that is currently the only way ecash-wallet can get here
-        // As we add more cases, we will need to add logic to distinguish what kind of chained tx we are building
+        // Check the specific chained transaction type
+        switch (this.selectUtxosResult.chainedTxType) {
+            case ChainedTxType.INTENTIONAL_BURN:
+                return this._buildIntentionalBurnChained(sighash);
+            case ChainedTxType.NFT_MINT_FANOUT:
+                return this._buildNftMintFanoutChained(sighash);
+            default:
+                // For now, we only support intentional SLP burns and NFT mint fanouts
+                throw new Error(
+                    `Unsupported chained transaction type: ${this.selectUtxosResult.chainedTxType}`,
+                );
+        }
+    }
 
+    private _buildIntentionalBurnChained(sighash = ALL_BIP143): BuiltAction {
         const { tokenActions } = this.action;
         const burnAction = tokenActions?.find(action => action.type === 'BURN');
         if (!burnAction) {
+            // Not expected to ever happen
             throw new Error(
-                'ecash-wallet only supports chained txs for intentional SLP burns where we do not have exact atoms available',
+                'No burn action found in _buildIntentionalBurnChained for intentional SLP burn',
             );
         }
         const { tokenId, burnAtoms, tokenType } =
@@ -348,6 +361,66 @@ class WalletAction {
         return new BuiltAction(this._wallet, chainedTxs, feePerKb);
     }
 
+    private _buildNftMintFanoutChained(sighash = ALL_BIP143): BuiltAction {
+        const { tokenActions } = this.action;
+        const genesisAction = tokenActions?.find(
+            action => action.type === 'GENESIS',
+        );
+        if (!genesisAction) {
+            // Not expected to ever happen
+            throw new Error(
+                'No GENESIS action found in _buildNftMintFanoutChained for NFT mint fanout',
+            );
+        }
+        const { groupTokenId } = genesisAction as payment.GenesisAction;
+
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        // An NFT mint requires two actions if a properly-sized input is not available
+        // 1. A SEND action to create a utxo of the correct size (qty-1 of the groupTokenId)
+        // 2. The user's original GENESIS action to mint the NFT
+
+        const chainedTxs: Tx[] = [];
+
+        // 1. A SEND action to create a utxo with qty-1 of the groupTokenId
+        const sendAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                // This is the utxo that will be used for the BURN action
+                // So, we note that its outIdx is 1
+                {
+                    sats: dustSats,
+                    script: this._wallet.script,
+                    tokenId: groupTokenId,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: groupTokenId as string,
+                    // NB the fant out is a SEND of the SLP_TOKEN_TYPE_NFT1_GROUP token
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            ],
+        };
+
+        // Create the NFT mint input
+        const sendTx = this._wallet.action(sendAction).build(sighash);
+
+        chainedTxs.push(sendTx.txs[0]);
+
+        // 2. The user's original GENESIS action to mint the NFT
+        const nftMintTx = this._wallet
+            .action(this.action)
+            .build(sighash) as BuiltAction;
+
+        chainedTxs.push(nftMintTx.txs[0]);
+
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+    }
+
     /**
      * Build (but do not broadcast) an eCash tx to handle the
      * action specified by the constructor
@@ -378,7 +451,7 @@ class WalletAction {
             );
         }
 
-        if (this.selectUtxosResult.requiresTxChain) {
+        if (this.selectUtxosResult.chainedTxType !== ChainedTxType.NONE) {
             // Special handling for chained txs
             return this._buildChained(sighash);
         }
@@ -1383,6 +1456,15 @@ export enum SatsSelectionStrategy {
     NO_SATS = 'NO_SATS',
 }
 
+export enum ChainedTxType {
+    /** We can complete this Action in a single tx */
+    NONE = 'NONE',
+    /** We need to chain a tx to fan-out an NFT mint */
+    NFT_MINT_FANOUT = 'NFT_MINT_FANOUT',
+    /** We need to chain a tx to intentional burn an SLP token */
+    INTENTIONAL_BURN = 'INTENTIONAL_BURN',
+}
+
 interface SelectUtxosResult {
     /** Were we able to select all required utxos */
     success: boolean;
@@ -1402,7 +1484,12 @@ interface SelectUtxosResult {
      */
     missingSats: bigint;
     /**
-     * Whether the action requires multiple "chained" txs
+     * For a tx that requires multiple "chained" txs, the specific type
+     * We need to pass a type as each requires distinct handling
+     *
+     * For a tx that DOES NOT require "chained" txs, this has a defined
+     * enum for "NONE"
+     *
      * Note that chained txs are not just multiple txs. "chained" implies that each tx
      * requires a utxo from the previous tx as an input
      *
@@ -1412,10 +1499,10 @@ interface SelectUtxosResult {
      * - Token sends where we send to more outputs than the token protocol allows
      * - XEC or mixed token/XEC sends where the tx size will exceed 100kb
      *
-     * If requiresTxChain is false, then we can complete the action with a single tx
-     * If requiresTxChain is true, then a chained tx is required to fulfill the action
+     * If chainedTxType is NONE, then we can complete the action with a single tx
+     * If chainedTxType is not NONE, then a chained tx is required to fulfill the action
      */
-    requiresTxChain: boolean;
+    chainedTxType: ChainedTxType;
     /**
      * Error messages if selection failed
      */
@@ -1476,8 +1563,8 @@ export const selectUtxos = (
 ): SelectUtxosResult => {
     const { sats, tokens, groupTokenId } = getActionTotals(action);
 
-    // Init "requiresTxChain" as false
-    let requiresTxChain = false;
+    // Init "chainedTxType" as NONE
+    let chainedTxType = ChainedTxType.NONE;
 
     let tokenIdsWithRequiredUtxos: string[] = [];
 
@@ -1510,13 +1597,16 @@ export const selectUtxos = (
     if (typeof groupTokenId !== 'undefined') {
         nftMintInput = getNftChildGenesisInput(groupTokenId, spendableUtxos);
         if (typeof nftMintInput === 'undefined') {
-            // We do not have the inputs we need
-            // So that we can still use the existing tokens and sats logic of this function
-            // below, add this as a missing token
+            // We do not have any inputs for this groupTokenId
             needsNftMintInput = true;
-        } else if (nftMintInput.token?.atoms && nftMintInput.token.atoms > 1n) {
-            // We have it but not the right qty
+        } else if (nftMintInput.token?.atoms === 1n) {
+            // We have a qty-1 input, we can mint directly
+            // nftMintInput is already set correctly
+        } else {
+            // We have an input but it's not qty-1, we need to fan out
+            // nftMintInput is already set to the highest qty input
             needsNftFanout = true;
+            chainedTxType = ChainedTxType.NFT_MINT_FANOUT;
         }
     }
 
@@ -1530,13 +1620,11 @@ export const selectUtxos = (
     // Add NFT mint input if we have one
     if (
         typeof groupTokenId !== 'undefined' &&
-        typeof nftMintInput !== 'undefined' &&
-        !needsNftFanout
+        typeof nftMintInput !== 'undefined'
     ) {
-        // We only add if it is a qty-1 input
-        // Technically, a higher qty input would "work" per spec
-        // But we enforce using only qty-1 inputs
-        // TODO we could perhaps auto-fan-and-mint using this library
+        // We add the input regardless of qty for chained tx handling
+        // For qty-1 inputs, we can mint directly
+        // For qty >1 inputs, we'll use a chained tx to fan out first
         selectedUtxos.push(nftMintInput);
         selectedUtxosSats += nftMintInput.sats;
     }
@@ -1551,7 +1639,7 @@ export const selectUtxos = (
 
         if (!hasExact) {
             // If we do not have utxos with the exact burn atoms, we must have a chained tx for an intentional BURN
-            requiresTxChain = true;
+            chainedTxType = ChainedTxType.INTENTIONAL_BURN;
         }
 
         for (const utxo of burnUtxos) {
@@ -1598,7 +1686,7 @@ export const selectUtxos = (
                 // Only expected to be > 0n if satsStrategy is NO_SATS
                 missingSats:
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
-                requiresTxChain,
+                chainedTxType,
             };
         }
     }
@@ -1651,7 +1739,7 @@ export const selectUtxos = (
                                 selectedUtxosSats >= sats
                                     ? 0n
                                     : sats - selectedUtxosSats,
-                            requiresTxChain,
+                            chainedTxType,
                         };
                     }
                 } else if (
@@ -1700,7 +1788,7 @@ export const selectUtxos = (
                                 selectedUtxosSats >= sats
                                     ? 0n
                                     : sats - selectedUtxosSats,
-                            requiresTxChain,
+                            chainedTxType,
                         };
                     }
                 }
@@ -1728,15 +1816,14 @@ export const selectUtxos = (
         if (
             selectedUtxosSats >= sats &&
             tokenIdsWithRequiredUtxos.length === 0 &&
-            !needsNftMintInput &&
-            !needsNftFanout
+            !needsNftMintInput
         ) {
             return {
                 success: true,
                 utxos: selectedUtxos,
                 // Always 0 here, determined by condition of this if block
                 missingSats: 0n,
-                requiresTxChain,
+                chainedTxType,
             };
         }
     }
@@ -1771,12 +1858,12 @@ export const selectUtxos = (
             missingTokens: tokens,
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
-            requiresTxChain,
+            chainedTxType,
             errors,
         };
     }
 
-    if (needsNftMintInput || needsNftFanout) {
+    if (needsNftMintInput) {
         // Special case where user wants to mint an NFT but lacks any inputs
         const missingTokensCustom = new Map();
         missingTokensCustom.set(groupTokenId, {
@@ -1788,14 +1875,10 @@ export const selectUtxos = (
             missingTokens: missingTokensCustom,
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
-            requiresTxChain,
-            errors: needsNftMintInput
-                ? [
-                      `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
-                  ]
-                : [
-                      `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}. You must split your qty-${nftMintInput?.token?.atoms} input into qty-1 inputs.`,
-                  ],
+            chainedTxType,
+            errors: [
+                `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
+            ],
         };
     }
 
@@ -1808,11 +1891,16 @@ export const selectUtxos = (
         );
     }
 
+    if (needsNftFanout) {
+        // We handle this with a chained tx, to eliminate the (confusing) need for fan-out txs
+        chainedTxType = ChainedTxType.NFT_MINT_FANOUT;
+    }
+
     if (satsStrategy === SatsSelectionStrategy.REQUIRE_SATS) {
         return {
             success: false,
             missingSats,
-            requiresTxChain,
+            chainedTxType,
             errors,
         };
     }
@@ -1824,7 +1912,7 @@ export const selectUtxos = (
         utxos: selectedUtxos,
         missingSats,
         // NB we do not have errors for missingSats with these strategies
-        requiresTxChain,
+        chainedTxType,
     };
 };
 

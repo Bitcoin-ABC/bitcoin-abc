@@ -1771,12 +1771,18 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        expect(() =>
-            slpNftWallet.clone().action(nftMintAlpha).build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Missing qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${slpGenesisTokenId}. You must split your qty-1000 input into qty-1 inputs.`,
-        );
+        // We can immediately mint an NFT without a fan-out tx by using a chained tx
+        const alphaNftResp = await slpNftWallet
+            .action(nftMintAlpha)
+            .build()
+            .broadcast();
+
+        // NB the genesis tx here is the SECOND of the broadcasted txs, at index 1
+        const nftMintAlphaTxid = alphaNftResp.broadcasted[1];
+
+        // It's a valid SLP genesis tx
+        const alphaTokenInfo = await chronik.token(nftMintAlphaTxid);
+        expect(alphaTokenInfo.genesisInfo).to.deep.equal(nftAlphaGenesisInfo);
 
         // We conduct a fan-out tx to mint a SLP_TOKEN_TYPE_NFT1_CHILD token
         const slpFanoutAction: payment.Action = {
@@ -1817,16 +1823,46 @@ describe('Wallet can build and broadcast on regtest', () => {
         // Broadcast the fanout tx
         await slpNftWallet.action(slpFanoutAction).build().broadcast();
 
+        const nftBetaGenesisInfo = {
+            tokenTicker: 'B',
+            tokenName: 'BETA',
+            url: 'cashtab.com',
+            decimals: 0,
+            hash: '',
+        };
+        const nftMintBeta: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** The NFT */
+                {
+                    sats: 546n,
+                    script: slpNftWallet.script,
+                    tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                /** SLP mint action */
+                {
+                    type: 'GENESIS',
+                    groupTokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: nftBetaGenesisInfo,
+                },
+            ],
+        };
+
         // Now we can mint the NFT
-        const alphaNftResp = await slpNftWallet
-            .action(nftMintAlpha)
+        const betaNftResp = await slpNftWallet
+            .action(nftMintBeta)
             .build()
             .broadcast();
-        const nftMintAlphaTxid = alphaNftResp.broadcasted[0];
+        const nftMintBetaTxid = betaNftResp.broadcasted[0];
 
         // It's a valid SLP genesis tx
-        const alphaTokenInfo = await chronik.token(nftMintAlphaTxid);
-        expect(alphaTokenInfo.genesisInfo).to.deep.equal(nftAlphaGenesisInfo);
+        const betaTokenInfo = await chronik.token(nftMintBetaTxid);
+        expect(betaTokenInfo.genesisInfo).to.deep.equal(nftBetaGenesisInfo);
 
         // We can send an NFT
         const nftSendAction: payment.Action = {
@@ -1863,14 +1899,14 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(utxoAtMockDestination?.token?.atoms).to.equal(1n);
 
         // We can mint another NFT
-        const nftBetaGenesisInfo = {
-            tokenTicker: 'B',
-            tokenName: 'BETA',
+        const nftGammaGenesisInfo = {
+            tokenTicker: 'G',
+            tokenName: 'GAMMA',
             url: 'cashtab.com',
             decimals: 0,
             hash: '',
         };
-        const nftMintBeta: payment.Action = {
+        const nftMintGamma: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
@@ -1888,20 +1924,20 @@ describe('Wallet can build and broadcast on regtest', () => {
                     type: 'GENESIS',
                     groupTokenId: slpGenesisTokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
-                    genesisInfo: nftBetaGenesisInfo,
+                    genesisInfo: nftGammaGenesisInfo,
                 },
             ],
         };
 
-        const betaNftResp = await slpNftWallet
-            .action(nftMintBeta)
+        const gammaNftResp = await slpNftWallet
+            .action(nftMintGamma)
             .build()
             .broadcast();
-        const nftMintBetaTxid = betaNftResp.broadcasted[0];
+        const nftMintGammaTxid = gammaNftResp.broadcasted[0];
 
         // It's a valid SLP genesis tx
-        const betaTokenInfo = await chronik.token(nftMintBetaTxid);
-        expect(betaTokenInfo.genesisInfo).to.deep.equal(nftBetaGenesisInfo);
+        const gammaTokenInfo = await chronik.token(nftMintGammaTxid);
+        expect(gammaTokenInfo.genesisInfo).to.deep.equal(nftGammaGenesisInfo);
 
         // We can burn an NFT
         const nftBurnAction: payment.Action = {
@@ -1940,14 +1976,14 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(utxosThisNft.utxos.length).to.equal(0);
 
         // We cannot mint an NFT with atoms of > 1n
-        const nftGammaGenesisInfo = {
-            tokenTicker: 'G',
-            tokenName: 'GAMMA',
+        const nftDeltaGenesisInfo = {
+            tokenTicker: 'D',
+            tokenName: 'DELTA',
             url: 'cashtab.com',
             decimals: 0,
             hash: '',
         };
-        const nftGammaBeta: payment.Action = {
+        const nftDeltaBeta: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
                 { sats: 0n },
@@ -1965,13 +2001,13 @@ describe('Wallet can build and broadcast on regtest', () => {
                     type: 'GENESIS',
                     groupTokenId: slpGenesisTokenId,
                     tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
-                    genesisInfo: nftGammaGenesisInfo,
+                    genesisInfo: nftDeltaGenesisInfo,
                 },
             ],
         };
 
         expect(() =>
-            slpNftWallet.clone().action(nftGammaBeta).build(ALL_BIP143),
+            slpNftWallet.clone().action(nftDeltaBeta).build(ALL_BIP143),
         ).to.throw(
             Error,
             `An SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx must have 1 atom at outIdx 1. Found 2 atoms.`,

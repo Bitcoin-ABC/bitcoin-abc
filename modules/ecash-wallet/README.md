@@ -38,6 +38,7 @@ See tests for detailed methods.
     [x] SLP_TOKEN_TYPE_NFT1_CHILD (Mint NFTs)
     [x] DataAction for ALP_TOKEN_TYPE_STANDARD txs
     [X] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
+    [X] One-step mints for SLP NFTs
 -   Agora actions (PARTIAL and ONESHOT)
     [] SLP (requires "chained" txs)
     [] ALP
@@ -102,3 +103,9 @@ See tests for detailed methods.
 [D18673](https://reviews.bitcoinabc.org/D18673)
 
 -   Type errors uncovered when using `ecash-wallet` as a dep in `ecash-agora`
+
+# 2.1.0
+
+[D18834](https://reviews.bitcoinabc.org/D18834)
+
+-   Support chained txs for minting SLP NFTs without requiring a "fan-out" tx
