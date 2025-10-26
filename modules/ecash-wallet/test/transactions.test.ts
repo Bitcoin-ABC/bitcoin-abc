@@ -29,6 +29,8 @@ import {
     SLP_TOKEN_TYPE_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_CHILD,
     ALL_BIP143,
+    MAX_TX_SERSIZE,
+    OP_RETURN,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 import { Wallet } from '../src/wallet';
@@ -42,6 +44,9 @@ const COIN_VALUE = 1100000000n;
 
 const MOCK_DESTINATION_ADDRESS = Address.p2pkh('deadbeef'.repeat(5)).toString();
 const MOCK_DESTINATION_SCRIPT = Script.fromAddress(MOCK_DESTINATION_ADDRESS);
+
+// Discovered through empirical testing
+const MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT = 2935;
 
 // Helper function
 const getDustOutputs = (count: number) => {
@@ -76,7 +81,7 @@ describe('Wallet can build and broadcast on regtest', () => {
         runner.stop();
     });
 
-    it('We can send an eCash tx to a single recipient', async () => {
+    it('We can send an eCash tx to a single recipient or multiple recipients', async () => {
         // Init the wallet
         const testWallet = Wallet.fromSk(fromHex('12'.repeat(32)), chronik);
 
@@ -135,24 +140,396 @@ describe('Wallet can build and broadcast on regtest', () => {
             'a62b0564fcefa5e3fc857e8ad90a408c00421608d7fdc3d13f335a52f29b3fc8',
         );
 
-        // We see expected error if we try to broadcast a tx above the size limit
-        // Load up some more sats to build too many outputs (10M XEC)
+        // We can go on to broadcast XEC in a chained tx to so many outputs that it would exceed the
+        // broadcast size limit of a single tx
+
+        // Send more sats to the wallet so we can afford this
         await runner.sendToScript(10_000_000_00n, testWallet.script);
 
-        const threeThousandOutputs = getDustOutputs(3_000);
+        // We got 2,936 by iteratively testing what number of outputs will be "just over" the max size in this case
+        const willNeedChainedTxOutputCount = getDustOutputs(
+            MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT +
+                1,
+        );
 
-        const tooBigFailure = await testWallet
+        // We DO NOT get a size error if we build and do not broadcast
+        await testWallet.sync();
+        const builtOversized = testWallet
             .action({
-                outputs: threeThousandOutputs,
+                outputs: willNeedChainedTxOutputCount,
+            })
+            .build();
+
+        // We get 2 txs in this chain
+        expect(builtOversized.builtTxs).to.have.length(2);
+
+        // Both are under the max size
+        expect(builtOversized.builtTxs[0].size()).to.equal(99977);
+        expect(builtOversized.builtTxs[1].size()).to.equal(219);
+
+        // We can broadcast the txs
+        const chainedTxBroadcastResult = await builtOversized.broadcast();
+        expect(chainedTxBroadcastResult.success).to.equal(true);
+        expect(chainedTxBroadcastResult.broadcasted).to.have.length(2);
+    });
+    it('We can send a chained eCash tx to cover outputs that would create create a tx exceeding the broadcast limit', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('19'.repeat(32)), chronik);
+
+        // Send 1M
+        await runner.sendToScript(8_000_000n, testWallet.script);
+
+        const willNeedChainedTxOutputCount = getDustOutputs(
+            MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT +
+                1,
+        );
+
+        // If we do not have the utxos to even cover one tx, we throw the usual msg
+        // Build without syncing to check
+        expect(() =>
+            testWallet
+                .action({
+                    outputs: willNeedChainedTxOutputCount,
+                })
+                .build(),
+        ).to.throw(
+            Error,
+            `Insufficient sats to complete tx. Need 1603056 additional satoshis to complete this Action.`,
+        );
+
+        // Sync this time
+        await testWallet.sync();
+        const builtOversized = testWallet
+            .action({
+                outputs: willNeedChainedTxOutputCount,
+            })
+            .build();
+
+        // We get 2 txs in this chain
+        expect(builtOversized.builtTxs).to.have.length(2);
+
+        // Both are under the max size
+        expect(builtOversized.builtTxs[0].size()).to.equal(99977);
+        expect(builtOversized.builtTxs[1].size()).to.equal(219);
+
+        // We can broadcast the txs
+        const chainedTxBroadcastResult = await builtOversized.broadcast();
+        expect(chainedTxBroadcastResult.success).to.equal(true);
+        expect(chainedTxBroadcastResult.broadcasted).to.have.length(2);
+
+        // The chained tx covers all outputs from the initial action, though they are not at the same outIdx after the chained outputs
+        const chainTxAlpha = await chronik.tx(
+            chainedTxBroadcastResult.broadcasted[0],
+        );
+        const chainTxBeta = await chronik.tx(
+            chainedTxBroadcastResult.broadcasted[1],
+        );
+        const allOutputsInChain = [
+            ...chainTxAlpha.outputs,
+            ...chainTxBeta.outputs,
+        ];
+
+        // All of the action-requested outputs are in the chained txs that executed the action
+        for (const requestedOutput of willNeedChainedTxOutputCount) {
+            const outputInChain = allOutputsInChain.find(
+                o => o.outputScript === requestedOutput.script.toHex(),
+            );
+            expect(outputInChain).to.not.equal(undefined);
+            expect(outputInChain!.sats).to.equal(requestedOutput.sats);
+        }
+
+        // The chained tx had all requested outputs, plus
+        // +1 for user change
+        // +1 for the input of the 2nd required tx
+        expect(allOutputsInChain).to.have.length(
+            willNeedChainedTxOutputCount.length + 2,
+        );
+    });
+    it('We throw expected error if we can cover the outputs of an action that must be sent with chainedTxs but not the fee of such a tx', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('20'.repeat(32)), chronik);
+
+        // We choose the exact amount where we could cover a theoretical tx with too many outputs in one tx,
+        // but are unable to afford the marginal cost of chaining the action, i.e. the additional tx fees required
+        // for multiple txs
+        // Got this number through iteratively testing
+        await runner.sendToScript(8701019n, testWallet.script);
+
+        // Use many inputs so that the marginal fee of the chained tx is greater than dust, in this case it is 833 sats
+        const willNeedChainedTxOutputCount = getDustOutputs(15000);
+
+        // If we do not have the utxos to even cover one tx, we throw the usual msg
+        // Build without syncing to scheck
+        expect(() =>
+            testWallet
+                .action({
+                    outputs: willNeedChainedTxOutputCount,
+                })
+                .build(),
+        ).to.throw(
+            Error,
+            `Insufficient sats to complete tx. Need 8190000 additional satoshis to complete this Action.`,
+        );
+
+        // If we have enough utxos to cover the standard tx but not the chained tx, we throw
+        await testWallet.sync();
+        expect(() =>
+            testWallet
+                .action({
+                    outputs: willNeedChainedTxOutputCount,
+                })
+                .build(),
+        ).to.throw(
+            Error,
+            `Insufficient input sats (8701019) to complete required chained tx output sats`,
+        );
+    });
+    it('We can send a large chained tx with more than 3 txs', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('20'.repeat(32)), chronik);
+
+        // 1M XEC
+        await runner.sendToScript(100000000n, testWallet.script);
+
+        // Enough inputs so we need > 3 txs
+        const willNeedChainedTxOutputCount = getDustOutputs(15000);
+
+        // Send it
+        await testWallet.sync();
+        const result = await testWallet
+            .action({
+                outputs: willNeedChainedTxOutputCount,
             })
             .build()
             .broadcast();
-        expect(tooBigFailure.success).to.equal(false);
-        expect(tooBigFailure.broadcasted).to.have.length(0);
-        expect(tooBigFailure.unbroadcasted).to.have.length(1);
-        expect(tooBigFailure.errors).to.deep.equal([
-            `Error: Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: tx-size`,
-        ]);
+        expect(result.success).to.equal(true);
+    });
+    it('We can broadcast a tx that is exactly MAX_TX_SERSIZE', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('21'.repeat(32)), chronik);
+
+        // Send 10M XEC to the wallet (in fact, this is not enough to cover our tx)
+        await runner.sendToScript(10_800_000_00n, testWallet.script);
+
+        // Create the max outputs for a p2pkh one-input tx, XEC only, under broadcast size limit
+        const maxOutputsOnSingleTxUnderBroadcastSizeLimit = getDustOutputs(
+            MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT,
+        );
+
+        // Confirm this tx will be broadcast with a single tx
+        await testWallet.sync();
+        const builtSingleTx = testWallet
+            .action({
+                outputs: maxOutputsOnSingleTxUnderBroadcastSizeLimit,
+            })
+            .build();
+        expect(builtSingleTx.builtTxs).to.have.length(1);
+        expect(builtSingleTx.builtTxs[0].size()).to.equal(99977);
+
+        // Well let's add an OP_RETURN that will make this tx the EXACT size of the broadcast limit
+        const EXTRA_MARGINAL_BYTES_FOR_OP_RETURN_AND_OUTPUT = 10; // guess and check
+        const opReturnOutput = {
+            sats: 0n,
+            script: new Script(
+                new Uint8Array([
+                    OP_RETURN,
+                    ...Array(
+                        MAX_TX_SERSIZE -
+                            99977 -
+                            EXTRA_MARGINAL_BYTES_FOR_OP_RETURN_AND_OUTPUT,
+                    ).fill(0),
+                ]),
+            ),
+        };
+
+        // OP_RETURN is 14 bytes, its impact on the tx is +23 bytes
+        expect(opReturnOutput.script.toHex()).to.equal(
+            '6a00000000000000000000000000',
+        );
+        await testWallet.sync();
+        const exactLimitBroadcasted = await testWallet
+            .action({
+                outputs: [
+                    opReturnOutput,
+                    ...maxOutputsOnSingleTxUnderBroadcastSizeLimit,
+                ],
+            })
+            .build()
+            .broadcast();
+
+        // We have a single tx here that is exactly MAX_TX_SERSIZE
+        expect(exactLimitBroadcasted.broadcasted).to.have.length(1);
+
+        // We have the OP_RETURN
+        const tx = await chronik.tx(exactLimitBroadcasted.broadcasted[0]);
+        expect(tx.outputs[0].outputScript).to.equal(
+            opReturnOutput.script.toHex(),
+        );
+    });
+    it('If an OP_RETURN field pushes a tx over MAX_TX_SERSIZE, we can handle with a chained tx', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('22'.repeat(32)), chronik);
+
+        // Send 10M XEC to the wallet (in fact, this is not enough to cover our tx)
+        await runner.sendToScript(10_800_000_00n, testWallet.script);
+
+        // Create the max outputs for a p2pkh one-input tx, XEC only, under broadcast size limit
+        const maxOutputsOnSingleTxUnderBroadcastSizeLimit = getDustOutputs(
+            MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT,
+        );
+
+        // Confirm this tx will be broadcast with a single tx
+        await testWallet.sync();
+        const builtSingleTx = testWallet
+            .action({
+                outputs: maxOutputsOnSingleTxUnderBroadcastSizeLimit,
+            })
+            .build();
+        expect(builtSingleTx.builtTxs).to.have.length(1);
+        expect(builtSingleTx.builtTxs[0].size()).to.equal(99977);
+
+        // Well let's add an OP_RETURN that will make this tx the EXACT size of the broadcast limit
+        const EXTRA_MARGINAL_BYTES_FOR_OP_RETURN_AND_OUTPUT = 10; // guess and check
+        const opReturnOutput = {
+            sats: 0n,
+            script: new Script(
+                new Uint8Array([
+                    OP_RETURN,
+                    ...Array(
+                        MAX_TX_SERSIZE -
+                            99977 -
+                            EXTRA_MARGINAL_BYTES_FOR_OP_RETURN_AND_OUTPUT,
+                    ).fill(0),
+                ]),
+            ),
+        };
+
+        // OP_RETURN is 14 bytes, its impact on the tx is +23 bytes
+        expect(opReturnOutput.script.toHex()).to.equal(
+            '6a00000000000000000000000000',
+        );
+        await testWallet.sync();
+        const exactLimitBuiltTx = testWallet
+            .action({
+                outputs: [
+                    opReturnOutput,
+                    ...maxOutputsOnSingleTxUnderBroadcastSizeLimit,
+                ],
+            })
+            .build();
+
+        // We have a single tx here that is exactly MAX_TX_SERSIZE
+        expect(exactLimitBuiltTx.builtTxs).to.have.length(1);
+        expect(exactLimitBuiltTx.builtTxs[0].size()).to.equal(MAX_TX_SERSIZE);
+
+        // OK well let's make the OP_RETURN a single byte longer
+        const opReturnOutputTooLong = {
+            sats: 0n,
+            script: new Script(
+                new Uint8Array([
+                    OP_RETURN,
+                    ...Array(
+                        MAX_TX_SERSIZE -
+                            99977 -
+                            EXTRA_MARGINAL_BYTES_FOR_OP_RETURN_AND_OUTPUT +
+                            1,
+                    ).fill(0),
+                ]),
+            ),
+        };
+        expect(opReturnOutputTooLong.script.toHex()).to.equal(
+            '6a0000000000000000000000000000',
+        );
+        await testWallet.sync();
+
+        const oneByteTooLargeBroadcasted = await testWallet
+            .action({
+                outputs: [
+                    opReturnOutputTooLong,
+                    ...maxOutputsOnSingleTxUnderBroadcastSizeLimit,
+                ],
+            })
+            .build()
+            .broadcast();
+        expect(oneByteTooLargeBroadcasted.broadcasted).to.have.length(2);
+
+        // We have the OP_RETURN in the first tx
+        const opReturnTx = await chronik.tx(
+            oneByteTooLargeBroadcasted.broadcasted[0],
+        );
+        expect(opReturnTx.outputs[0].outputScript).to.equal(
+            opReturnOutputTooLong.script.toHex(),
+        );
+
+        // But not the second
+        const chainTxOmegaTx = await chronik.tx(
+            oneByteTooLargeBroadcasted.broadcasted[1],
+        );
+        expect(chainTxOmegaTx.outputs[0].outputScript).to.equal(
+            '76a9140000000000000000000000000000000000000b7588ac',
+        );
+    });
+    it('We can handle a chained tx with exactly enough outputs that a 3rd tx is required', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('23'.repeat(32)), chronik);
+
+        // Send 10M XEC
+        await runner.sendToScript(10_000_000_00n, testWallet.script);
+
+        // Iteratively discovered, this is true for 2 txs that each have 1 p2pkh input, all outputs p2pkh, no OP_RETURN
+        const exactlyEnoughOutputsForThreeMaxSizeTxs = 5870;
+
+        const exactlyEnoughOutputsForTwoMaxSizeTxs = getDustOutputs(
+            exactlyEnoughOutputsForThreeMaxSizeTxs,
+        );
+
+        // Sync this time
+        await testWallet.sync();
+        const twoFullTxsBuilt = testWallet
+            .clone()
+            .action({
+                outputs: exactlyEnoughOutputsForTwoMaxSizeTxs,
+            })
+            .build();
+
+        // We get 2 txs in this chain
+        expect(twoFullTxsBuilt.builtTxs).to.have.length(2);
+
+        // Both are JUST under the max size
+        expect(twoFullTxsBuilt.builtTxs[0].size()).to.equal(99977);
+        expect(twoFullTxsBuilt.builtTxs[1].size()).to.equal(99977);
+
+        const exactlyEnoughOutputsForAThirdTx = getDustOutputs(
+            exactlyEnoughOutputsForThreeMaxSizeTxs + 1,
+        );
+
+        // Let's add just one more output
+        await testWallet.sync();
+        const threeTxsBuilt = testWallet
+            .action({
+                outputs: exactlyEnoughOutputsForAThirdTx,
+            })
+            .build();
+        // We get 2 txs in this chain
+        expect(threeTxsBuilt.builtTxs).to.have.length(3);
+
+        // Both are JUST under the max size
+        expect(threeTxsBuilt.builtTxs[0].size()).to.equal(99977);
+        expect(threeTxsBuilt.builtTxs[1].size()).to.equal(99977);
+        expect(threeTxsBuilt.builtTxs[2].size()).to.equal(219);
+
+        // We can broadcast the txs
+        const chainedTxBroadcastResult = await threeTxsBuilt.broadcast();
+        expect(chainedTxBroadcastResult.success).to.equal(true);
+        expect(chainedTxBroadcastResult.broadcasted).to.have.length(3);
+
+        // The last tx has 2 outputs, because when we added one more output to total actions, we needed another chain tx, and we had
+        // to make room for that by using a change output in the second tx which was no longer chainTxOmega
+        const chainTxOmega = await chronik.tx(
+            chainedTxBroadcastResult.broadcasted[2],
+        );
+        expect(chainTxOmega.inputs.length).to.equal(1);
+        expect(chainTxOmega.outputs.length).to.equal(2);
     });
     it('We can handle SLP SLP_TOKEN_TYPE_FUNGIBLE token actions', async () => {
         // Init the wallet

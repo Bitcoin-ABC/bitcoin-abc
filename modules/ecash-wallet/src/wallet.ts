@@ -41,8 +41,41 @@ import {
     toHexRev,
     sha256d,
     SLP_TOKEN_TYPE_NFT1_GROUP,
+    MAX_TX_SERSIZE,
+    fromHex,
+    EccDummy,
+    P2PKH_OUTPUT_SIZE,
 } from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
+
+const eccDummy = new EccDummy();
+export const DUMMY_SK = fromHex(
+    '112233445566778899001122334455667788990011223344556677889900aabb',
+);
+export const DUMMY_PK = eccDummy.derivePubkey(DUMMY_SK);
+const DUMMY_P2PKH = Script.p2pkh(
+    fromHex('0123456789012345678901234567890123456789'),
+);
+const DUMMY_P2PKH_INPUT = {
+    input: {
+        prevOut: { txid: '00'.repeat(32), outIdx: 0 },
+        signData: {
+            sats: DEFAULT_DUST_SATS,
+            outputScript: DUMMY_P2PKH,
+        },
+    },
+    signatory: P2PKHSignatory(DUMMY_SK, DUMMY_PK, ALL_BIP143),
+};
+export const DUMMY_P2PKH_OUTPUT = {
+    sats: DEFAULT_DUST_SATS,
+    script: Script.p2pkh(fromHex('11'.repeat(20))),
+};
+
+// User change and a utxo for the next chainedTx
+const CHAINED_TX_ALPHA_RESERVED_OUTPUTS = 2;
+
+// A tx in a chain that is not the first tx will always have exactly 1 input
+const NTH_TX_IN_CHAIN_INPUTS = 1;
 
 /**
  * Wallet
@@ -345,6 +378,7 @@ class WalletAction {
                 },
             ],
             tokenActions: [{ type: 'SEND', tokenId, tokenType }],
+            // We do not pass noChange here; all chained txs ignore dev-specified noChange
         };
 
         const sendTx = this._wallet.action(sendAction).build(sighash);
@@ -404,6 +438,7 @@ class WalletAction {
                     tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
                 },
             ],
+            // We do not pass noChange here; all chained txs ignore dev-specified noChange
         };
 
         // Create the NFT mint input
@@ -419,6 +454,428 @@ class WalletAction {
         chainedTxs.push(nftMintTx.txs[0]);
 
         return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+    }
+
+    private _buildSizeLimitExceededChained(
+        oversizedBuiltAction: BuiltAction,
+        sighash = ALL_BIP143,
+    ): BuiltAction {
+        /**
+         * Build a chained tx to satisfy an Action while remaining
+         * under maxTxSersize for each tx in the chain
+         *
+         * Approach (see chained.md for an extended discussion)
+         *
+         * - The first tx in the chain will use all necessary utxos. It will determine
+         *   the max outputs it can have while remaining under maxTxSersize
+         * - The first tx in the chain must include a change output that will cover
+         *   everything else in the chain
+         *
+         * To support problem understanding and code organization, we introduce
+         * the following terms:
+         *
+         * 1. chainTxAlpha, the first tx in a chained tx
+         *
+         * Unique properties of chainTxAlpha:
+         * - chainTxAlpha is expected to have all the inputs needed for all the txs in the chain
+         * - chainTxAlpha must determine a change output that will cover required sats for
+         *   every other tx in the chain
+         * - chainTxAlpha may or may not have a change output that is the actual change, i.e.
+         *   leftover from the inputs not required to complete the rest of the txs; but it
+         *   will always be able to cover the fees and sats of the whole chain if this output exists
+         *
+         * 2. chainTx, the second thru "n-1" tx(s) in a chained tx
+         *
+         * Unique properties of chainTx:
+         * - May or may not exist; i.e. if we only need 2 txs, we have only chainTxAlpha and chainTxOmega
+         * - Exactly one input from the previous tx in the chain
+         * - Change output that will cover required sats for all following txs in the chain
+         *
+         * 3. chainTxOmega, the last tx in a chained tx
+         *
+         * Unique properties of chainTxOmega:
+         * - Like chainTx, exactly one input
+         * - No change output, we exactly consume our inputs to fulfill the specified Action
+         *
+         * ASSUMPTIONS
+         * - All inputs are p2pkh
+         * - All outputs are p2pkh
+         */
+
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+        const maxTxSersize = this.action.maxTxSersize || MAX_TX_SERSIZE;
+
+        // Throw if we have a token tx that is (somehow) breaking size limits
+        // Only expected in edge case as pure token send txs are restricted by OP_RETURN limits
+        // long before they hit maxTxSersize
+        if (this.action.tokenActions && this.action.tokenActions.length > 0) {
+            throw new Error(
+                `This token tx exceeds maxTxSersize ${maxTxSersize} and cannot be split into a chained tx. Try breaking it into smaller txs, e.g. by handling the token outputs in their own txs.`,
+            );
+        }
+
+        // Get inputs needed for the chained tx
+        const chainedTxInputsAndFees = this._getInputsAndFeesForChainedTx(
+            oversizedBuiltAction.builtTxs[0],
+        );
+
+        // These inputs will determine the shape of the rest of the chain
+
+        // Get number of inputs
+        const chainTxAlphaInputCount = chainedTxInputsAndFees.inputs.length;
+
+        // Determine number of outputs based on max p2pkh and OP_RETURN, if any
+        const indexZeroOutput = this.action.outputs[0];
+        const hasOpReturn =
+            indexZeroOutput &&
+            'script' in indexZeroOutput &&
+            typeof indexZeroOutput.script !== 'undefined' &&
+            indexZeroOutput.script.bytecode[0] === OP_RETURN;
+        const opReturnSize = hasOpReturn
+            ? indexZeroOutput.script!.bytecode.length
+            : 0;
+
+        const maxP2pkhOutputsInChainTxAlpha = getMaxP2pkhOutputs(
+            chainTxAlphaInputCount,
+            opReturnSize,
+            maxTxSersize,
+        );
+
+        // We know the total fees, and we know the outputs we need to cover, so we can determine
+        // - Total sats we need for fees
+        // - Total sats we need for outputs
+        // - The size of the next-chain-input output in chainTx Alpha
+        // - The size of the user change output, if any, in chainTxAlpha
+
+        // Total sats we need for fees
+        const chainedTxFeeArray = chainedTxInputsAndFees.fees;
+        const totalSatsNeededForFeesForAllChainedTxs =
+            chainedTxInputsAndFees.fees.reduce((a, b) => a + b, 0n);
+
+        // Total sats we need for the outputs
+        const totalSatsNeededForOutputsForAllChainedTxs =
+            this.action.outputs.reduce((a, b) => a + (b.sats || 0n), 0n);
+
+        // To size the required sats for the next-chain-input output in chainTxAlpha, we remove chainTxAlpha fees and chainTxAlpha output sats
+        const chainTxAlphaActionOutputCount =
+            maxP2pkhOutputsInChainTxAlpha - CHAINED_TX_ALPHA_RESERVED_OUTPUTS;
+        const chainedTxAlphaCoveredOutputs = this.action.outputs.slice(
+            0,
+            chainTxAlphaActionOutputCount,
+        );
+        const chainedTxAlphaCoveredOutputsSats =
+            chainedTxAlphaCoveredOutputs.reduce(
+                (a, b) => a + (b.sats || 0n),
+                0n,
+            );
+        const chainedTxAlphaFeeSats = chainedTxInputsAndFees.fees[0];
+
+        // To size the sats we need for the next input, start with current input sats and remove everything you cover in chainedTxAlpha
+        let nextTxInputSats =
+            totalSatsNeededForOutputsForAllChainedTxs -
+            chainedTxAlphaCoveredOutputsSats +
+            totalSatsNeededForFeesForAllChainedTxs -
+            chainedTxAlphaFeeSats;
+
+        // Determine if we need a user change output
+        const chainedTxAlphaInputSats = chainedTxInputsAndFees.inputs.reduce(
+            (a, b) => a + b.input.signData!.sats,
+            0n,
+        );
+        const userChange =
+            chainedTxAlphaInputSats -
+            chainedTxAlphaCoveredOutputsSats -
+            nextTxInputSats -
+            chainedTxAlphaFeeSats;
+
+        const needsUserChange = userChange >= DEFAULT_DUST_SATS;
+
+        // Build chainedTxAlpha
+        const chainedTxAlphaOutputs = this.action.outputs.slice(
+            0,
+            chainTxAlphaActionOutputCount,
+        );
+
+        // Add user change, if necessary
+        // NB if we do not need change, we could technically fit another action output in chainedTxAlpha.
+        // To simplify the design, we do not handle that complication.
+        if (needsUserChange) {
+            // NB if we do not need user change, we could technically fit another output here, but we won't bc we've
+            // already got our calcs sorted for this
+            const userChangeOutput = {
+                sats: userChange,
+                script: this._wallet.script,
+            };
+            chainedTxAlphaOutputs.push(userChangeOutput);
+        }
+
+        // Add the input for the next tx in the chain
+        const chainTxNextInput = {
+            sats: nextTxInputSats,
+            script: this._wallet.script,
+        };
+        chainedTxAlphaOutputs.push(chainTxNextInput);
+
+        const chainedTxAlphaAction = {
+            // We need to specify utxos here as we determined them manually from our chain build method
+            // If we do not specify, then build() could select enough utxos for one tx (that is too big to broadcast), instead of
+            // enough utxos to cover the entire chain
+            requiredUtxos: chainedTxInputsAndFees.inputs.map(
+                input => input.input.prevOut,
+            ),
+            outputs: chainedTxAlphaOutputs,
+            // We are manually specifying change so we do not allow ecash-wallet to "help" us figure it out
+            noChange: true,
+        };
+
+        const chainedTxAlpha = this._wallet
+            .action(chainedTxAlphaAction)
+            .build(sighash);
+
+        // Remove the first fee, which is the fee for chainTxAlpha, since this is already covered
+        chainedTxFeeArray.splice(0, 1);
+
+        // Input utxo for next tx is the last output in chainTxAlpha
+        const nextTxUtxoOutIdx = chainedTxAlphaAction.outputs.length - 1;
+
+        let nextTxUtxoOutpoint = {
+            txid: chainedTxAlpha.txs[0].txid(),
+            outIdx: nextTxUtxoOutIdx,
+        };
+
+        // Build the first tx in the chain, "chainTxAlpha"
+        const chainedTxs: Tx[] = [chainedTxAlpha.txs[0]];
+
+        // Iterate through remaining outputs and build the other txs in the chain
+        const remainingOutputs = this.action.outputs.slice(
+            chainedTxAlpha.txs[0].outputs.length -
+                CHAINED_TX_ALPHA_RESERVED_OUTPUTS,
+        );
+
+        // Use a while loop to build the rest of the chain
+        // Each run through the loop will build either chainedTx or chainedTxOmega
+        while (true) {
+            // Either chainedTx or chainedTxOmega
+
+            const chainedTxMaxOutputs = getMaxP2pkhOutputs(
+                NTH_TX_IN_CHAIN_INPUTS,
+                0,
+                maxTxSersize,
+            );
+
+            if (chainedTxMaxOutputs >= remainingOutputs.length) {
+                // chainedTxOmega
+                const chainedTxOmegaAction = {
+                    outputs: remainingOutputs,
+                    requiredUtxos: [nextTxUtxoOutpoint],
+                    noChange: true,
+                };
+                const chainedTxOmega = this._wallet
+                    .action(chainedTxOmegaAction)
+                    .build(sighash);
+                chainedTxs.push(chainedTxOmega.txs[0]);
+                // Get out of the while loop, we have finished populating chainedTxs
+                break;
+            } else {
+                // We remove the outputs we are using from remainingOutputs
+                const outputsInThisTx = remainingOutputs.splice(
+                    0,
+                    chainedTxMaxOutputs - 1,
+                );
+
+                const feeThisTx = chainedTxFeeArray.splice(0, 1);
+
+                const coveredOutputSatsThisTx = outputsInThisTx.reduce(
+                    (a, b) => a + b.sats!,
+                    0n,
+                );
+
+                nextTxInputSats -= coveredOutputSatsThisTx;
+                nextTxInputSats -= feeThisTx[0];
+                const chainedTxNextInputAsOutput = {
+                    sats: nextTxInputSats,
+                    script: this._wallet.script,
+                };
+
+                const chainedTxAction = {
+                    outputs: [...outputsInThisTx, chainedTxNextInputAsOutput],
+                    requiredUtxos: [nextTxUtxoOutpoint],
+                    noChange: true,
+                };
+                const chainedTx = this._wallet
+                    .action(chainedTxAction)
+                    .build(sighash);
+                chainedTxs.push(chainedTx.txs[0]);
+
+                const nextUtxoTxid = chainedTx.txs[0].txid();
+                const nextUtxoOutIdx = chainedTx.txs[0].outputs.length - 1;
+
+                // Update the nextTxUtxoOutpoint
+                nextTxUtxoOutpoint = {
+                    txid: nextUtxoTxid,
+                    outIdx: nextUtxoOutIdx,
+                };
+            }
+        }
+
+        // Build and broadcast the chained txs
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+    }
+
+    /**
+     * selectUtxos may not have enough inputs to cover the total fee
+     * requirements of a chained tx
+     *
+     * In this case, we need to add more inputs and adjust the fee to
+     * make sure we can cover every output in our chained tx
+     */
+    private _getInputsAndFeesForChainedTx(oversizedBuiltTx: BuiltTx): {
+        inputs: TxBuilderInput[];
+        fees: bigint[];
+    } {
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+        const maxTxSersize = this.action.maxTxSersize || MAX_TX_SERSIZE;
+
+        // First, get the fees. Maybe we already have enough
+        const feeArray = getFeesForChainedTx(oversizedBuiltTx, maxTxSersize);
+
+        // Do, do the inputs of chainTxAlpha cover the fees for the whole chain?
+        const totalFee = feeArray.reduce((a, b) => a + b, 0n);
+
+        const oversizedTx = oversizedBuiltTx.tx;
+
+        // NB inputSats goes up by the sats of each added input, since all the inputs are always in chainTxAlpha
+        let inputSats = oversizedTx.inputs.reduce(
+            (a, b) => a + b.signData!.sats,
+            0n,
+        );
+
+        // NB outputSats will be re-calculated for each chain as it depends on the required chainTxAlpha change output
+        // that can fund all subsequent txs in the chain
+        const outputSats = oversizedTx.outputs.reduce((a, b) => a + b.sats, 0n);
+        const coveredFee = inputSats - outputSats;
+
+        // Do we need another input?
+        // Note this check is more sophisticated than just totalFee > coveredFee, bc the change output size would also change
+        // What we really need to check is, does the current user change output have enough sats to cover the marginal extra fee of chained txs?
+        // What we need to check is, did the original overSizedBuiltAction have a change output? If so, how big is it?
+        // We can check this by examining the original user specified outputs vs the oversizedTx outputs
+        if (oversizedTx.outputs.length > this.action.outputs.length) {
+            // We have a change output as the last output
+            const changeOutput =
+                oversizedTx.outputs[oversizedTx.outputs.length - 1];
+            const changeSats = changeOutput.sats;
+            // Would these change sats cover the marginal increase in fee?
+            const marginalFeeIncrease = totalFee - coveredFee;
+            if (changeSats >= marginalFeeIncrease) {
+                // We have enough change sats to cover the marginal fee increase
+                // Our existing inputs are acceptable
+                const txBuilder = TxBuilder.fromTx(oversizedTx);
+                return {
+                    inputs: [...txBuilder.inputs],
+                    fees: feeArray,
+                };
+            }
+        }
+
+        // Otherwise look at adding more inputs to cover the fee of the chained tx
+        // The selectUtxo function lacks the necessary logic to handle this, as it does not
+        // test txs against size restrictions
+
+        // Something of an edge case to get here For the most part, the marginal cost of making a
+        // chained tx vs an impossible-to-broadcast super large tx is very small, on the order of
+        // 100s of sats for a chained tx covering 15,000 outputs
+
+        // Get the currently selected utxos
+        // Clone to avoid mutating the original
+        const currentlySelectedUtxos = structuredClone(
+            this.selectUtxosResult.utxos as ScriptUtxo[],
+        );
+
+        // Get available spendable utxos
+        const spendableUtxos = this._wallet.spendableSatsOnlyUtxos();
+
+        // Get the spendable utxos that are not already selected
+        const unusedAndAvailableSpendableUtxos = spendableUtxos.filter(
+            utxo =>
+                !currentlySelectedUtxos.some(
+                    selectedUtxo =>
+                        selectedUtxo.outpoint.txid === utxo.outpoint.txid &&
+                        selectedUtxo.outpoint.outIdx === utxo.outpoint.outIdx,
+                ),
+        );
+
+        // Init a new array to store the utxos needed for the chained tx so we
+        // do not mutate this.selectUtxosResult
+        const additionalUtxosToCoverChainedTx: ScriptUtxo[] = [];
+        const additionalTxInputsToCoverChainedTx: TxBuilderInput[] = [];
+
+        for (const utxo of unusedAndAvailableSpendableUtxos) {
+            // Add an input and try again
+            additionalUtxosToCoverChainedTx.push(utxo);
+            inputSats += utxo.sats;
+
+            // NB adding an input has some known and potential consequences
+            // Known: we increase the tx size by 141 bytes
+            // Potential: we need another tx in the chain, increasing the total chain tx size by an
+            //            amount that must be calculated and added to the fee
+
+            // Get the tx builder from the built tx
+            const txBuilder = TxBuilder.fromTx(oversizedTx);
+
+            // Prepare the new (dummy) input so we can test the tx for fees
+            // NB we use ALL_BIP143, chained txs are NOT (yet) supported by postage
+            const newInput = this._wallet.p2pkhUtxoToBuilderInput(
+                utxo,
+                ALL_BIP143,
+            );
+            additionalTxInputsToCoverChainedTx.push(newInput);
+
+            const newTxBuilder = new TxBuilder({
+                inputs: [
+                    ...txBuilder.inputs,
+                    ...additionalTxInputsToCoverChainedTx,
+                ],
+                outputs: txBuilder.outputs,
+            });
+
+            const newTx = newTxBuilder.sign({ feePerKb, dustSats });
+
+            const newBuiltTx = new BuiltTx(newTx, feePerKb);
+
+            // Check the fees again
+            const newFeeArray = getFeesForChainedTx(newBuiltTx, maxTxSersize);
+            const newTotalFee = newFeeArray.reduce((a, b) => a + b, 0n);
+
+            // Are we getting this appropriately?
+            // Well, it does not have to be "right" here; the input just has to cover the fee
+            // Will be sized later
+            const newOutputSats = newTx.outputs.reduce(
+                (a, b) => a + b.sats,
+                0n,
+            );
+            const newCoveredFee = inputSats - newOutputSats;
+
+            // Do we need another input
+            const needsAnotherInput = newTotalFee > newCoveredFee;
+
+            if (!needsAnotherInput) {
+                // We have what we need for this chained tx
+                return {
+                    inputs: [
+                        ...txBuilder.inputs,
+                        ...additionalTxInputsToCoverChainedTx,
+                    ],
+                    fees: newFeeArray,
+                };
+            }
+        }
+
+        // Throw an error, we can't afford it
+        throw new Error(
+            `Insufficient input sats (${inputSats}) to complete required chained tx output sats`,
+        );
     }
 
     /**
@@ -471,6 +928,7 @@ class WalletAction {
 
         const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
         const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+        const maxTxSersize = this.action.maxTxSersize || MAX_TX_SERSIZE;
 
         /**
          * Validate outputs AND add token-required generated outputs
@@ -500,8 +958,18 @@ class WalletAction {
             paymentOutputs,
             feePerKb,
             dustSats,
+            maxTxSersize,
         );
         if (builtActionResult.success && builtActionResult.builtAction) {
+            // Check we do not exceed broadcast size
+            const builtSize = builtActionResult.builtAction.builtTxs[0].size();
+            if (builtSize > maxTxSersize) {
+                // We will need to split this tx into multiple smaller txs that do not exceed maxTxSersize
+                return this._buildSizeLimitExceededChained(
+                    builtActionResult.builtAction,
+                    sighash,
+                );
+            }
             return builtActionResult.builtAction;
         } else {
             needsAnotherUtxo = true;
@@ -545,11 +1013,22 @@ class WalletAction {
                     paymentOutputs,
                     feePerKb,
                     dustSats,
+                    maxTxSersize,
                 );
                 if (
                     builtActionResult.success &&
                     builtActionResult.builtAction
                 ) {
+                    // Check we do not exceed broadcast size
+                    const builtSize =
+                        builtActionResult.builtAction.builtTxs[0].size();
+                    if (builtSize > maxTxSersize) {
+                        // We will need to split this tx into multiple smaller txs that do not exceed maxTxSersize
+                        return this._buildSizeLimitExceededChained(
+                            builtActionResult.builtAction,
+                            sighash,
+                        );
+                    }
                     return builtActionResult.builtAction;
                 } else {
                     needsAnotherUtxo = true;
@@ -659,7 +1138,10 @@ class WalletAction {
         // NB we do not expect an XEC change output to be added to finalizedOutputs by finalizeOutputs, but it will be in the Tx outputs (if we have one)
         // NB that token change outputs WILL be returned in the paymentOutputs of finalizedOutputs return
         // So, we need to add a change output to the outputs we iterate over for utxo creation, if we have one
-        if (tx.outputs.length > finalizedOutputs.length) {
+        if (
+            !this.action.noChange &&
+            tx.outputs.length > finalizedOutputs.length
+        ) {
             // We have XEC change added by the txBuilder
             const changeOutIdx = tx.outputs.length - 1;
             const changeOutput = tx.outputs[changeOutIdx];
@@ -683,6 +1165,9 @@ class WalletAction {
      * This is used for postage scenarios where fuel inputs will be added later
      */
     public buildPostage(sighash = ALL_ANYONECANPAY_BIP143): PostageTx {
+        if (this.action.noChange) {
+            throw new Error('noChange param is not supported for postage txs');
+        }
         if (
             this.selectUtxosResult.success === false ||
             typeof this.selectUtxosResult.utxos === 'undefined'
@@ -755,6 +1240,10 @@ class WalletAction {
     /**
      * We need to build and sign a tx to confirm
      * we have sufficient inputs
+     *
+     * We update the utxo set if the build is successful
+     * We DO NOT update the utxo set if the build is unsuccessful or if the built tx
+     * exceeds the broadcast size limit, requiring a chained tx
      */
     private _getBuiltAction = (
         inputs: TxBuilderInput[],
@@ -763,13 +1252,18 @@ class WalletAction {
         paymentOutputs: payment.PaymentOutput[],
         feePerKb: bigint,
         dustSats: bigint,
+        maxTxSersize: number,
     ): { success: boolean; builtAction?: BuiltAction } => {
         // Can you cover the tx without fuelUtxos?
         try {
+            // Conditionally add change output based on noChange parameter
+            const outputs = this.action.noChange
+                ? txOutputs
+                : [...txOutputs, this._wallet.script];
+
             const txBuilder = new TxBuilder({
                 inputs,
-                // ecash-wallet always adds a leftover output
-                outputs: [...txOutputs, this._wallet.script],
+                outputs,
             });
             const thisTx = txBuilder.sign({
                 feePerKb,
@@ -786,13 +1280,15 @@ class WalletAction {
             // Do your inputs cover outputSum + txFee?
             if (inputSats >= this.actionTotal.sats + txFee) {
                 // mightTheseUtxosWork --> now we have confirmed they will work
-                // Update utxos
-                const txid = toHexRev(sha256d(thisTx.ser()));
-                this._updateUtxosAfterSuccessfulBuild(
-                    thisTx,
-                    txid,
-                    paymentOutputs,
-                );
+                // Update utxos if this tx can be broadcasted
+                if (txSize <= maxTxSersize) {
+                    const txid = toHexRev(sha256d(thisTx.ser()));
+                    this._updateUtxosAfterSuccessfulBuild(
+                        thisTx,
+                        txid,
+                        paymentOutputs,
+                    );
+                }
                 return {
                     success: true,
                     builtAction: new BuiltAction(
@@ -1380,6 +1876,9 @@ export const getActionTotals = (action: payment.Action): ActionTotal => {
     // Group burn action tokenIds into two sets with different input requirements
     burnActionTokenIds.forEach(tokenId => {
         if (sendActionTokenIds.has(tokenId)) {
+            // ALP tokens burn with SEND and do not require burnAllTokenIds handling,
+            // i.e. they do not require exactly-sized utxos nor do they require chained
+            // txs to burn atoms that do not exactly match available utxos
             burnWithChangeTokenIds.add(tokenId);
         } else {
             burnAllTokenIds.add(tokenId);
@@ -1507,6 +2006,21 @@ export enum SatsSelectionStrategy {
     NO_SATS = 'NO_SATS',
 }
 
+/**
+ * Interface used to identify a known required chained tx type
+ * that is discernable from selectUtxos
+ *
+ *
+ * Note
+ * For some types of chained txs, we cannot immediately know from
+ * the utxo set alone, e.g. for a tx that exceeds the max serSize
+ * we must actually try and sign the tx with selected inputs to
+ * determine if the max size is exceeded
+ *
+ * Sometimes we could "know" e.g. if we have 5000 outputs but we still
+ * need to exact fees to determine the exact cutoffs for chained txs, and
+ * we cannot do this without signing or dummy signing
+ */
 export enum ChainedTxType {
     /** We can complete this Action in a single tx */
     NONE = 'NONE',
@@ -1514,6 +2028,13 @@ export enum ChainedTxType {
     NFT_MINT_FANOUT = 'NFT_MINT_FANOUT',
     /** We need to chain a tx to intentional burn an SLP token */
     INTENTIONAL_BURN = 'INTENTIONAL_BURN',
+
+    /**
+     * NB we intentionally omit EXCEEDS_MAX_SERSIZE as we cannot
+     * determine this from selectUtxos, this specific case is handled
+     * at the point where we know it to be true, i.e. once we know
+     * exactly how many inputs and outputs the tx has and its serSize
+     */
 }
 
 interface SelectUtxosResult {
@@ -1626,6 +2147,9 @@ export const selectUtxos = (
 ): SelectUtxosResult => {
     const { sats, tokens, groupTokenId } = getActionTotals(action);
 
+    // Clone spendableUtxos so that we can mutate it in this function without mutating the original
+    const clonedSpendableUtxos = structuredClone(spendableUtxos);
+
     // Init "chainedTxType" as NONE
     let chainedTxType = ChainedTxType.NONE;
 
@@ -1658,7 +2182,10 @@ export const selectUtxos = (
     let needsNftMintInput: boolean = false;
     let needsNftFanout: boolean = false;
     if (typeof groupTokenId !== 'undefined') {
-        nftMintInput = getNftChildGenesisInput(groupTokenId, spendableUtxos);
+        nftMintInput = getNftChildGenesisInput(
+            groupTokenId,
+            clonedSpendableUtxos,
+        );
         if (typeof nftMintInput === 'undefined') {
             // We do not have any inputs for this groupTokenId
             needsNftMintInput = true;
@@ -1680,22 +2207,185 @@ export const selectUtxos = (
     const selectedUtxos: ScriptUtxo[] = [];
     let selectedUtxosSats = 0n;
 
-    // Add NFT mint input if we have one
+    // We add requiredUtxos first, if any are specified
+    if (
+        typeof action.requiredUtxos !== 'undefined' &&
+        action.requiredUtxos.length > 0
+    ) {
+        for (const requiredUtxoOutpoint of action.requiredUtxos) {
+            // We remove this utxo from clonedSpendableUtxos and add it to selectedUtxos
+            const addedRequiredUtxoIndexInSpendableUtxos =
+                clonedSpendableUtxos.findIndex(
+                    spendableUtxo =>
+                        spendableUtxo.outpoint.txid ===
+                            requiredUtxoOutpoint.txid &&
+                        spendableUtxo.outpoint.outIdx ===
+                            requiredUtxoOutpoint.outIdx,
+                );
+            if (typeof addedRequiredUtxoIndexInSpendableUtxos === 'undefined') {
+                throw new Error(
+                    `Required UTXO ${requiredUtxoOutpoint.txid}:${requiredUtxoOutpoint.outIdx} not available in spendableUtxos`,
+                );
+            }
+            const addedRequiredUtxo = clonedSpendableUtxos.splice(
+                addedRequiredUtxoIndexInSpendableUtxos,
+                1,
+            )[0];
+            // We add to selected utxos
+            selectedUtxos.push(addedRequiredUtxo);
+
+            // Bump sats
+            selectedUtxosSats += addedRequiredUtxo.sats;
+
+            // Check if this utxo fulfills any token requirements for this action and update them appropriately
+            if (
+                typeof addedRequiredUtxo.token !== 'undefined' &&
+                tokenIdsWithRequiredUtxos.includes(
+                    addedRequiredUtxo.token.tokenId,
+                )
+            ) {
+                // If we have remaining requirements for a utxo with this tokenId
+                // to complete this user-specified Action
+
+                const requiredTokenInputsThisToken = tokens!.get(
+                    addedRequiredUtxo.token.tokenId,
+                ) as RequiredTokenInputs;
+
+                if (
+                    addedRequiredUtxo.token.isMintBaton &&
+                    requiredTokenInputsThisToken.needsMintBaton
+                ) {
+                    // Now we no longer need a mint baton as we already added this utxo
+                    requiredTokenInputsThisToken.needsMintBaton = false;
+
+                    if (
+                        requiredTokenInputsThisToken.atoms === 0n &&
+                        !requiredTokenInputsThisToken.needsMintBaton
+                    ) {
+                        // If we no longer require any utxos for this tokenId,
+                        // remove it from tokenIdsWithRequiredUtxos
+                        tokenIdsWithRequiredUtxos =
+                            tokenIdsWithRequiredUtxos.filter(
+                                tokenId =>
+                                    tokenId !==
+                                    addedRequiredUtxo.token!.tokenId,
+                            );
+                    }
+                } else if (
+                    !addedRequiredUtxo.token.isMintBaton &&
+                    requiredTokenInputsThisToken.atoms > 0n
+                ) {
+                    // If this is a token utxo and we needed its atoms, track that we now need less
+
+                    // We now require fewer atoms of this tokenId. Update.
+                    const requiredAtomsRemainingThisToken =
+                        (requiredTokenInputsThisToken.atoms -=
+                            addedRequiredUtxo.token.atoms);
+
+                    // Update required atoms remaining for this token
+                    requiredTokenInputsThisToken.atoms =
+                        requiredAtomsRemainingThisToken > 0n
+                            ? requiredAtomsRemainingThisToken
+                            : 0n;
+
+                    if (
+                        requiredTokenInputsThisToken.atoms === 0n &&
+                        !requiredTokenInputsThisToken.needsMintBaton
+                    ) {
+                        // If we no longer require utxos for this tokenId,
+                        // remove tokenId from tokenIdsWithRequiredUtxos
+                        tokenIdsWithRequiredUtxos =
+                            tokenIdsWithRequiredUtxos.filter(
+                                tokenId =>
+                                    tokenId !==
+                                    addedRequiredUtxo.token!.tokenId,
+                            );
+                    }
+                }
+            }
+        }
+        // Return utxos if we have enough
+        // NB for requiredUtxos, we do this check only after they have all been added
+        // It is possible for a user to include "too many" utxos, at least as far as
+        // ecash-wallet is concerned,by using requiredUtxos
+        if (
+            (selectedUtxosSats >= sats ||
+                satsStrategy === SatsSelectionStrategy.NO_SATS) &&
+            tokenIdsWithRequiredUtxos.length === 0
+        ) {
+            return {
+                success: true,
+                utxos: selectedUtxos,
+                // Only expected to be > 0n if satsStrategy is NO_SATS
+                missingSats:
+                    selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
+                chainedTxType,
+                satsStrategy,
+            };
+        }
+    }
+
+    // Add NFT mint input if we have one and it was not already added by
+    // the user with requiredUtxos
     if (
         typeof groupTokenId !== 'undefined' &&
         typeof nftMintInput !== 'undefined'
     ) {
-        // We add the input regardless of qty for chained tx handling
-        // For qty-1 inputs, we can mint directly
-        // For qty >1 inputs, we'll use a chained tx to fan out first
-        selectedUtxos.push(nftMintInput);
-        selectedUtxosSats += nftMintInput.sats;
+        // Although we do not anticipate requiredUtxos being used to specify which qty-1
+        // groupTokenId utxo to mint an NFT with, it is easy enough to check for it, so
+        // we support this use case
+        const userSpecifiedNftMintInput = getNftChildGenesisInput(
+            groupTokenId,
+            selectedUtxos,
+        );
+
+        if (typeof userSpecifiedNftMintInput === 'undefined') {
+            // If the user has not specified a custom preferred nft mint input, we add the one that is available
+
+            // We add the input regardless of qty for chained tx handling
+            // For qty-1 inputs, we can mint directly
+            // For qty >1 inputs, we'll use a chained tx to fan out first
+            selectedUtxos.push(nftMintInput);
+            selectedUtxosSats += nftMintInput.sats;
+
+            // There's a good chance this is all we need for our tx, as we likely have
+            // a 546-sat input and a single 546-sat output specified
+
+            // Check and return
+            if (
+                (selectedUtxosSats >= sats ||
+                    satsStrategy === SatsSelectionStrategy.NO_SATS) &&
+                tokenIdsWithRequiredUtxos.length === 0
+            ) {
+                return {
+                    success: true,
+                    utxos: selectedUtxos,
+                    // Only expected to be > 0n if satsStrategy is NO_SATS
+                    missingSats:
+                        selectedUtxosSats >= sats
+                            ? 0n
+                            : sats - selectedUtxosSats,
+                    chainedTxType,
+                    satsStrategy,
+                };
+            }
+        }
     }
 
     // Handle burnAll tokenIds first
     for (const burnAllTokenId of burnAllTokenIds) {
+        if (typeof action.requiredUtxos !== 'undefined') {
+            // It gets pretty hairy trying to check if the user already required some or all
+            // of the exact-atoms utxos for this type of burn
+
+            // The requiredUtxos feature is not expected to be used for this type of action,
+            // so it is better to simply omit support
+            throw new Error(
+                'ecash-wallet does not support requiredUtxos for SLP burn txs',
+            );
+        }
         const { hasExact, burnUtxos } = getTokenUtxosWithExactAtoms(
-            spendableUtxos,
+            clonedSpendableUtxos,
             burnAllTokenId,
             tokens!.get(burnAllTokenId)!.atoms,
         );
@@ -1755,7 +2445,7 @@ export const selectUtxos = (
         }
     }
 
-    for (const utxo of spendableUtxos) {
+    for (const utxo of clonedSpendableUtxos) {
         if ('token' in utxo && typeof utxo.token !== 'undefined') {
             // If this is a token utxo
             if (tokenIdsWithRequiredUtxos.includes(utxo.token.tokenId)) {
@@ -3423,6 +4113,201 @@ export const getUtxoFromOutput = (
             isCoinbase: false,
         };
     }
+};
+
+/**
+ * Determine the maximum number of p2pkh outputs that can be
+ * included in a tx while remaining under maxTxSersize,
+ * given the number of schnorr-signed p2pkh inputs and any
+ * required OP_RETURN
+ */
+export const getMaxP2pkhOutputs = (
+    inputCount: number,
+    opReturnSize = 0,
+    maxTxSersize = MAX_TX_SERSIZE,
+): number => {
+    // Build outputs
+    const outputs = [DUMMY_P2PKH_OUTPUT];
+    if (opReturnSize > 0) {
+        // Include an OP_RETURN output if present
+        outputs.unshift({
+            sats: DEFAULT_DUST_SATS,
+            script: new Script(new Uint8Array(opReturnSize)),
+        });
+    }
+
+    // Build a dummy tx that includes minimum required outputs for a HolderPaymentTx
+    const minTxBuilder = new TxBuilder({
+        inputs: Array(inputCount).fill(DUMMY_P2PKH_INPUT),
+        outputs,
+    });
+    const tx = minTxBuilder.sign({ ecc: eccDummy });
+
+    // Get the size of the tx in bytes
+    const txSizeBytes = tx.serSize();
+
+    const sizeAvailableForMoreOutputs = maxTxSersize - txSizeBytes;
+
+    // How many p2pkh outputs fit into size remaining
+    const maxAdditionalP2pkhOutputs = Math.floor(
+        sizeAvailableForMoreOutputs / P2PKH_OUTPUT_SIZE,
+    );
+
+    // Account for the 1 in minTxBuilder
+    const maxP2pkhOutputsThisTx = 1 + maxAdditionalP2pkhOutputs;
+
+    if (maxP2pkhOutputsThisTx < 1) {
+        // Unlikely to run into this as we need 709 inputs
+        // For now, ecash-wallet does not support automatic utxo-consolidation
+        // But, it would not be too complicated to add this support
+        throw new Error(
+            `Total inputs exceed maxTxSersize of ${maxTxSersize} bytes. You must consolidate utxos to fulfill this action.`,
+        );
+    }
+
+    // Max p2pkh outputs is the 1 in our dummy + the maxAdditionalP2pkhOutputs
+    return 1 + maxAdditionalP2pkhOutputs;
+};
+
+/**
+ * Calculate the fee for a p2pkh tx
+ * NB this function assumes no OP_RETURN outputs
+ */
+export const getP2pkhTxFee = (
+    p2pkhInputCount: number,
+    p2pkhOutputCount: number,
+    feePerKb = DEFAULT_FEE_SATS_PER_KB,
+) => {
+    // Build a dummy tx to get size and fee
+    const minTxBuilder = new TxBuilder({
+        inputs: Array(p2pkhInputCount).fill(DUMMY_P2PKH_INPUT),
+        outputs: Array(p2pkhOutputCount).fill(DUMMY_P2PKH_OUTPUT),
+    });
+    const tx = minTxBuilder.sign({ ecc: eccDummy });
+    const txSizeBytes = tx.serSize();
+    const txFee = calcTxFee(txSizeBytes, feePerKb);
+    return txFee;
+};
+
+/**
+ * Return an array of fees such that each entry in the array is the fee for
+ * the chained tx corresponding to its index in the array
+ *
+ * e.g.
+ *
+ * result = getFeesForChainedTx(builtTx)
+ * result[0] = fee for chainTxAlpha
+ * result[1] = fee for chainedTx
+ * result[n] = fee for chainedTx n
+ * result[result.length-1] = fee for chainedTxOmega
+ */
+export const getFeesForChainedTx = (
+    oversizedBuiltTx: BuiltTx,
+    maxTxSersize = MAX_TX_SERSIZE,
+): bigint[] => {
+    const oversizedTx = oversizedBuiltTx.tx;
+
+    // Get number of inputs and outputs
+    const chainTxAlphaInputCount = oversizedTx.inputs.length;
+    const chainedActionOutputCount = oversizedTx.outputs.length;
+
+    // Parse for an OP_RETURN output
+    // NB potentially we want to support including this OP_RETURN in every tx in the chain
+    // But, it is hard to assume this, so should be gated by a param
+    // For now just add it for the first tx. _buildSizeLimitExceededChained for now only supports non-token txs
+    // so there is no functional requirement for OP_RETURN in every tx
+
+    // NB ecash-wallet only supports OP_RETURN outputs at outIdx 0, so this is the only output we check
+    const indexZeroOutput = oversizedTx.outputs[0];
+    const hasOpReturn =
+        indexZeroOutput &&
+        'script' in indexZeroOutput &&
+        typeof indexZeroOutput.script !== 'undefined' &&
+        indexZeroOutput.script.bytecode[0] === OP_RETURN;
+
+    const opReturnSize = hasOpReturn
+        ? indexZeroOutput.script!.bytecode.length
+        : 0;
+
+    // The max outputs in chainTxAlpha depends on input count and OP_RETURN size
+    const maxP2pkhOutputsInChainTxAlpha = getMaxP2pkhOutputs(
+        chainTxAlphaInputCount,
+        opReturnSize,
+        maxTxSersize,
+    );
+
+    // Init chainTxDummyHelper, which will help us determine the fee for each tx in the chain, and
+    // hence the total sats required to complete the full chain
+    const chainTxDummyHelper = [
+        {
+            inputCount: oversizedTx.inputs.length,
+            outputCount: maxP2pkhOutputsInChainTxAlpha,
+        },
+    ];
+
+    // Init a tracker for actionAssignedOutputs, which we decrement as these are covered by the txs in the chain
+    let unassignedActionOutputs = chainedActionOutputCount;
+
+    // SPECIAL CONDITIONS FOR chainTxAlpha
+    // - chainTxAlpha always has 1 output that is the exact input needed to cover the rest of the chain
+    // - When we calc fees and estimate size, we assume that chainTxAlpha will also have 1 output to
+    //   cover change back to the sender. In practice, we may sometimes not need this, so we may sometimes
+    //   undersize chainTxAlpha by 1 output. This is deemed acceptable.
+    const chainTxAlphaActionAssignedOutputs =
+        maxP2pkhOutputsInChainTxAlpha - CHAINED_TX_ALPHA_RESERVED_OUTPUTS;
+
+    unassignedActionOutputs -= chainTxAlphaActionAssignedOutputs;
+
+    while (unassignedActionOutputs > 0) {
+        // All txs after chainTxAlpha will have no OP_RETURN and exactly 1 input
+
+        // We do not (currently) support OP_RETURN in chained txs after chainTxAlpha
+        const nextTxMaxOutputs = getMaxP2pkhOutputs(
+            NTH_TX_IN_CHAIN_INPUTS,
+            0,
+            maxTxSersize,
+        );
+
+        // Now that we are using the noChange param to build a chained tx,
+        // design decision that we include the actual change, if any, from the whole action
+        // back to the creating wallet in chainTxAlpha
+
+        // If nextTxMaxOutputs is greater than or equal to actionSpecifiedOutputsLeftToAssign,
+        // then this is the last tx in the chain
+        const isChainedTxOmega = nextTxMaxOutputs >= unassignedActionOutputs;
+
+        if (isChainedTxOmega) {
+            chainTxDummyHelper.push({
+                inputCount: NTH_TX_IN_CHAIN_INPUTS,
+                outputCount: unassignedActionOutputs,
+            });
+
+            // Will trivially break the while loop, so we just break instead
+            // actionSpecifiedOutputsLeftToAssign -= actionSpecifiedOutputsLeftToAssign;
+            break;
+        } else {
+            // chainedTx
+            // A chained tx will cover max outputs minus 1, as it will need change which is not an action-specified output
+            const actionSpecifiedOutputsAssignedThisTx = nextTxMaxOutputs - 1; // Less 1 as the change does not handle an output
+
+            chainTxDummyHelper.push({
+                inputCount: NTH_TX_IN_CHAIN_INPUTS,
+                // We always max our outputs in chained txs
+                outputCount: nextTxMaxOutputs,
+            });
+            unassignedActionOutputs -= actionSpecifiedOutputsAssignedThisTx;
+        }
+    }
+
+    // Get the fee for each tx planned in this chain
+    const feeArray = chainTxDummyHelper.map(tx => {
+        return getP2pkhTxFee(
+            tx.inputCount,
+            tx.outputCount,
+            oversizedBuiltTx.feePerKb,
+        );
+    });
+    return feeArray;
 };
 
 /**

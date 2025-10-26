@@ -25,13 +25,15 @@ import {
     SLP_TOKEN_TYPE_NFT1_GROUP,
     SLP_TOKEN_TYPE_NFT1_CHILD,
     ALL_BIP143,
+    MAX_TX_SERSIZE,
+    OP_RETURN_MAX_BYTES,
 } from 'ecash-lib';
 import {
     OutPoint,
-    ScriptUtxo,
     ChronikClient,
     Token,
     TokenType,
+    ScriptUtxo,
 } from 'chronik-client';
 import { MockChronikClient } from 'mock-chronik-client';
 import {
@@ -46,6 +48,7 @@ import {
     getNftChildGenesisInput,
     getUtxoFromOutput,
     ChainedTxType,
+    getMaxP2pkhOutputs,
 } from './wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
@@ -369,6 +372,106 @@ describe('wallet.ts', () => {
                 .build()
                 .builtTxs[0].fee(),
         ).to.deep.equal(1800n);
+    });
+
+    it('Can build transaction without XEC change output when noChange is true', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock a chaintip
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Mock a utxo set
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+
+        // Sync the wallet
+        await testWallet.sync();
+
+        // Build a transaction with noChange: true
+        const builtAction = testWallet
+            .action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 1000n,
+                    },
+                ],
+                noChange: true,
+            })
+            .build(ALL_BIP143);
+
+        const tx = builtAction.builtTxs[0];
+
+        // The transaction should have exactly 1 output (no change output)
+        expect(tx.tx.outputs).to.have.length(1);
+
+        // The single output should be the destination output
+        expect(tx.tx.outputs[0].script.toHex()).to.equal(
+            MOCK_DESTINATION_SCRIPT.toHex(),
+        );
+        expect(tx.tx.outputs[0].sats).to.equal(1000n);
+    });
+
+    it('Can build transaction with XEC change output when noChange is false or undefined', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock a chaintip
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Mock a utxo set
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+
+        // Sync the wallet
+        await testWallet.sync();
+
+        // Build a transaction with noChange: false
+        const builtAction = testWallet
+            .action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 1000n,
+                    },
+                ],
+                noChange: false,
+            })
+            .build(ALL_BIP143);
+
+        const tx = builtAction.builtTxs[0];
+
+        // The transaction should have exactly 2 outputs (destination + change)
+        expect(tx.tx.outputs).to.have.length(2);
+
+        // The first output should be the destination output
+        expect(tx.tx.outputs[0].script.toHex()).to.equal(
+            MOCK_DESTINATION_SCRIPT.toHex(),
+        );
+        expect(tx.tx.outputs[0].sats).to.equal(1000n);
+
+        // The second output should be the change output (wallet's script)
+        expect(tx.tx.outputs[1].script.toHex()).to.equal(
+            testWallet.script.toHex(),
+        );
+        expect(tx.tx.outputs[1].sats).to.be.greaterThan(0);
     });
     it('Throw error on sync() fail', async () => {
         const mockChronik = new MockChronikClient();
@@ -1282,6 +1385,34 @@ describe('Support functions', () => {
                 satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
+        it('For an XEC-only tx with more than enough sats in requiredUtxos, returns all requiredUtxos', () => {
+            // NB we must give each utxo unique outpoints so that selectUtxos can properly
+            // remove requiredUtxos from spendable
+            // This is how it would work with "real" utxos which would always have unique txid:outpoint combos
+            const requiredUtxos: OutPoint[] = [
+                { txid: '1', outIdx: 0 },
+                { txid: '2', outIdx: 0 },
+                { txid: '3', outIdx: 0 },
+                { txid: '4', outIdx: 0 },
+                { txid: '5', outIdx: 0 },
+            ];
+            const action = {
+                outputs: [{ sats: 1_000n, script: MOCK_DESTINATION_SCRIPT }],
+                requiredUtxos,
+            };
+            // We require all of the utxos
+            const spendableUtxos = [];
+            for (const outpoint of requiredUtxos) {
+                spendableUtxos.push({ ...DUMMY_UTXO, sats: 750n, outpoint });
+            }
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: spendableUtxos,
+                chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+            });
+        });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
             const action = {
                 outputs: [{ sats: 1_000n, script: MOCK_DESTINATION_SCRIPT }],
@@ -1907,8 +2038,53 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: true,
                 missingSats: 0n,
+                utxos: [mockNftParentInput],
+                chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+            });
+        });
+        it('Returns expected utxos for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input that is exactly specified by the requiredUtxos param', () => {
+            const mockNftParentInput = {
+                ...DUMMY_UTXO,
+                outpoint: {
+                    // Unique outpoint so it is picked up as a requiredUtxo
+                    txid: 'unique',
+                    outIdx: 0,
+                },
+                token: {
+                    tokenId: '11'.repeat(32),
+                    atoms: 1n,
+                    isMintBaton: false,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            };
+            const action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: 1n,
+                    },
+                ],
+                requiredUtxos: [mockNftParentInput.outpoint],
+                tokenActions: [
+                    {
+                        type: 'GENESIS' as const,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {},
+                        groupTokenId: '11'.repeat(32),
+                    },
+                ],
+            };
+
+            const spendableUtxos = [DUMMY_UTXO, mockNftParentInput];
+            expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
+                success: true,
+                missingSats: 0n,
                 // NB the parent input is at index 0
-                utxos: [mockNftParentInput, DUMMY_UTXO],
+                utxos: [mockNftParentInput],
                 chainedTxType: ChainedTxType.NONE,
                 satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
@@ -1948,7 +2124,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 chainedTxType: ChainedTxType.NFT_MINT_FANOUT,
                 satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
-                utxos: [mockNftParentBigInput, DUMMY_UTXO],
+                utxos: [mockNftParentBigInput],
             });
         });
         it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we are missing the SLP_TOKEN_TYPE_NFT1_GROUP input and also sats', () => {
@@ -2071,6 +2247,37 @@ describe('Support functions', () => {
                 chainedTxType: ChainedTxType.NONE,
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
             });
+        });
+        it('Throws if we specify requiredUtxos for an SLP_TOKEN_TYPE_FUNGIBLE burn tx', () => {
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        atoms: 1n,
+                    },
+                ],
+                requiredUtxos: [getDummySlpUtxo(1000n).outpoint],
+                tokenActions: [
+                    {
+                        type: 'BURN',
+                        tokenId: DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE,
+                        tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                        burnAtoms: 42n,
+                    },
+                ] as payment.TokenAction[],
+            };
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 10_000n },
+                getDummySlpUtxo(40n),
+                getDummySlpUtxo(2n),
+            ];
+            expect(() => selectUtxos(action, spendableUtxos)).to.throw(
+                Error,
+                'ecash-wallet does not support requiredUtxos for SLP burn txs',
+            );
         });
         it('Returns utxos with chainedTxType: NONE for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have exact atoms', () => {
             const action = {
@@ -6038,6 +6245,68 @@ describe('static methods', () => {
             expect(Wallet.sumUtxosSats(ALL_SUPPORTED_UTXOS)).to.equal(
                 93754368n,
             );
+        });
+    });
+});
+
+describe('getMaxP2pkhOutputs', () => {
+    context('More inputs and larger OP_RETURN allow fewer max outputs', () => {
+        it('Returns correct max outputs for minimal inputs and no OP_RETURN', () => {
+            expect(getMaxP2pkhOutputs(1, 0)).to.equal(2936);
+        });
+
+        it('Returns correct max outputs with max OP_RETURN', () => {
+            expect(getMaxP2pkhOutputs(1, OP_RETURN_MAX_BYTES)).to.equal(2929);
+        });
+
+        it('Returns correct max outputs for multiple inputs and no OP_RETURN', () => {
+            expect(getMaxP2pkhOutputs(10, 0)).to.equal(2899);
+        });
+
+        it('Returns correct max outputs for multiple inputs and max OP_RETURN', () => {
+            expect(getMaxP2pkhOutputs(10, OP_RETURN_MAX_BYTES)).to.equal(2892);
+        });
+    });
+
+    context('Edge cases', () => {
+        it('Handles zero inputs correctly, tho in practice this tx is not happening', () => {
+            expect(getMaxP2pkhOutputs(0, 100)).to.equal(2937);
+        });
+    });
+
+    context('Error cases', () => {
+        it('Throws error when inputs (just) exceeds MAX_TX_SERSIZE', () => {
+            expect(() => getMaxP2pkhOutputs(709, 0)).to.throw(
+                `Total inputs exceed maxTxSersize of ${MAX_TX_SERSIZE} bytes. You must consolidate utxos to fulfill this action.`,
+            );
+        });
+
+        it('Does not throw when inputs are less than MAX_TX_SERSIZE', () => {
+            // 709 p2pkh inputs is 99,969 bytes, leaving room for 31 p2pkh outputs
+            // Enough to build a chained tx since you really only need 2 for chainedTxAlpha
+            expect(() => getMaxP2pkhOutputs(708, 0)).to.not.throw();
+        });
+    });
+
+    context('Custom maxTxSersize parameter', () => {
+        it('Works with a higher maxTxSersize value', () => {
+            const higherMaxSize = MAX_TX_SERSIZE * 2;
+            const resultWithDefault = getMaxP2pkhOutputs(1, 0);
+            const resultWithHigher = getMaxP2pkhOutputs(1, 0, higherMaxSize);
+
+            expect(resultWithDefault).to.equal(2936);
+            // Higher size gives higher result
+            expect(resultWithHigher).to.equal(5877);
+        });
+
+        it('Works with a lower maxTxSersize value', () => {
+            const lowerMaxSize = MAX_TX_SERSIZE / 2;
+            const resultWithLower = getMaxP2pkhOutputs(1, 0, lowerMaxSize);
+            const resultWithDefault = getMaxP2pkhOutputs(1, 0);
+
+            expect(resultWithDefault).to.equal(2936);
+            // Lower size gives lower result
+            expect(resultWithLower).to.equal(1466);
         });
     });
 });

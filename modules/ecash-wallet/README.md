@@ -45,7 +45,7 @@ See tests for detailed methods.
 
 ### Phase Two, extended functionality
 
-[] Support for chained XEC txs, i.e. handling an Action that requires more than one tx due to the 100kb tx size restriction
+[x] Support for chained XEC txs, i.e. handling an Action that requires more than one tx due to the 100,000 byte tx size restriction
 [] Support for chained token txs, i.e. handling an Action that requires more than one tx due to token protocol per-tx output limits
 
 ### Phase Three, wishlist
@@ -133,3 +133,9 @@ See tests for detailed methods.
 [D18837](https://reviews.bitcoinabc.org/D18837)
 
 -   Update the `PostageTx` class to support client/server postage interactions
+
+# 2.3.0
+
+[D18867](https://reviews.bitcoinabc.org/D18867)
+
+-   Support chained txs to handle XEC-only Actions that would exceed MAX_TX_SERSIZE if built in a single tx
