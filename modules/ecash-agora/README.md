@@ -210,4 +210,8 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 ### 2.4.0
 
--   Add new `take` method to `AgoraOffer` that will automatically build and broadcast an agora Take tx given a `Wallet` from `ecash-wallet` [D18833](https://reviews.bitcoinabc.org/D18833)
+-   Add new `take` method to `AgoraOffer` that will automatically build and broadcast an agora acceptTx given a `Wallet` from `ecash-wallet` [D18833](https://reviews.bitcoinabc.org/D18833)
+
+### 2.5.0
+
+-   Add new `cancel` method to `AgoraOffer` that will automatically build and broadcast an agora cancelTx given a `Wallet` from `ecash-wallet` [D18842](https://reviews.bitcoinabc.org/D18842)

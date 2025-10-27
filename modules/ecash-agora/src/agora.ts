@@ -43,6 +43,7 @@ import { BuiltAction, Wallet } from 'ecash-wallet';
 import {
     getAgoraPartialAcceptFuelInputs,
     getAgoraOneshotAcceptFuelInputs,
+    getAgoraCancelFuelInputs,
 } from './inputs';
 import {
     AgoraOneshot,
@@ -496,6 +497,81 @@ export class AgoraOffer {
             ],
         });
         return txBuild.sign({ feePerKb, dustSats });
+    }
+
+    /**
+     * Convenience method to cancel an offer using a Wallet
+     * The cancel tx is broadcast by the Wallet and canceled
+     * tokens / leftover sats are returned to this wallet
+     *
+     * NB this wallet must have the correct cancelSk to
+     * actually cancel the offer, otherwise expect an error
+     *
+     * NB you can see in the oneshot.test.ts that cancelTx can be used
+     * to "relist" an agora oneshot offer; this method will not do this
+     *
+     * Though we could add a relist() method to also simplify that procedure
+     */
+    public async cancel(params: {
+        /**
+         * An initialized Wallet from ecash-wallet
+         * This is the wallet that will take the offer
+         *
+         * Note this wallet must have the correct cancelSk
+         * for the method to work
+         *
+         * This is also the wallet that will receive canceled
+         * tokens and leftover sats
+         */
+        wallet: Wallet;
+        /** Dust amount to use for the token output. */
+        dustSats?: bigint;
+        /** Fee per kB to use when building the tx. */
+        feePerKb?: bigint;
+    }): Promise<{
+        success: boolean;
+        broadcasted: string[];
+        unbroadcasted?: string[];
+        errors?: string[];
+    }> {
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
+        const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
+
+        // Determine fuel utxos
+        const fuelUtxos = getAgoraCancelFuelInputs(
+            this,
+            params.wallet.spendableSatsOnlyUtxos(),
+            params.feePerKb,
+        );
+
+        // Sign inputs using Wallet
+        // NB the cancel() method only supports ALL_BIP143 sighash type (for now),
+        // i.e. "normal" eCash txs and not postage
+        const fuelInputs = fuelUtxos.map(utxo =>
+            params.wallet.p2pkhUtxoToBuilderInput(utxo, ALL_BIP143),
+        );
+
+        const txBuild = this._cancelTxBuilder({
+            cancelSk: params.wallet.sk,
+            fuelInputs,
+            extraOutputs: [
+                {
+                    sats: dustSats,
+                    script: params.wallet.script,
+                },
+                params.wallet.script,
+            ],
+        });
+        const signedTx = txBuild.sign({ feePerKb, dustSats });
+
+        // Broadcast using Wallet, and match the return type of ecash-wallet broadcasts
+        const builtAction = new BuiltAction(
+            params.wallet,
+            [signedTx],
+            feePerKb,
+        );
+        const broadcastResult = await builtAction.broadcast();
+        return broadcastResult;
     }
 
     /**

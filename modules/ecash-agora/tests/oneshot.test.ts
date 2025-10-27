@@ -32,6 +32,7 @@ import {
 } from '../src/oneshot.js';
 import { Agora, AgoraOffer } from '../src/agora.js';
 import { EventEmitter, once } from 'node:events';
+import { Wallet } from 'ecash-wallet/src/wallet.js';
 
 use(chaiAsPromised);
 
@@ -703,5 +704,294 @@ describe('SLP', () => {
             numTxs: 3,
             numPages: 1,
         });
+    });
+    it('We can cancel an Agora Oneshot offer using cancel()', async () => {
+        // Create Agora object to access trades
+        const agora = new Agora(chronik);
+
+        const cancelerSk = fromHex('99'.repeat(32));
+        const cancelerWallet = Wallet.fromSk(cancelerSk, chronik);
+
+        const cancelerPk = cancelerWallet.pk;
+
+        const cancelerP2pkh = cancelerWallet.script;
+
+        await runner.sendToScript(50000n, cancelerP2pkh);
+
+        await cancelerWallet.sync();
+
+        const utxos = cancelerWallet.utxos;
+        expect(utxos.length).to.equal(1);
+        const utxo = utxos[0];
+
+        // 1. Seller creates an NFT1 GROUP token
+        const txBuildGenesisGroup = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData: {
+                            sats: utxo.sats,
+                            outputScript: cancelerP2pkh,
+                        },
+                    },
+                    signatory: P2PKHSignatory(
+                        cancelerSk,
+                        cancelerPk,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    script: slpGenesis(
+                        SLP_NFT1_GROUP,
+                        {
+                            tokenTicker: 'SLP NFT1 GROUP TOKEN',
+                            decimals: 4,
+                        },
+                        1n,
+                    ),
+                },
+                { sats: 10000n, script: cancelerP2pkh },
+            ],
+        });
+        const genesisTx = txBuildGenesisGroup.sign();
+        const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
+        const groupTokenId = genesisTxid;
+
+        expect(await chronik.token(genesisTxid)).to.deep.equal({
+            tokenId: groupTokenId,
+            tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+            genesisInfo: {
+                tokenTicker: 'SLP NFT1 GROUP TOKEN',
+                tokenName: '',
+                url: '',
+                hash: '',
+                decimals: 4,
+            },
+            timeFirstSeen: 1300000000,
+        });
+
+        // 2. Seller creates an NFT1 CHILD token using the group token
+        const txBuildGenesisChild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: genesisTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: 10000n,
+                            outputScript: cancelerP2pkh,
+                        },
+                    },
+                    signatory: P2PKHSignatory(
+                        cancelerSk,
+                        cancelerPk,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    script: slpGenesis(
+                        SLP_NFT1_CHILD,
+                        {
+                            tokenTicker: 'SLP NFT1 CHILD TOKEN',
+                            decimals: 0,
+                        },
+                        1n,
+                    ),
+                },
+                { sats: 8000n, script: cancelerP2pkh },
+            ],
+        });
+        const genesisChildTx = txBuildGenesisChild.sign();
+        const genesisChildTxid = (
+            await chronik.broadcastTx(genesisChildTx.ser())
+        ).txid;
+        const childTokenId = genesisChildTxid;
+
+        expect(await chronik.token(childTokenId)).to.deep.equal({
+            tokenId: childTokenId,
+            tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+            genesisInfo: {
+                tokenTicker: 'SLP NFT1 CHILD TOKEN',
+                tokenName: '',
+                url: '',
+                hash: '',
+                decimals: 0,
+            },
+            timeFirstSeen: 1300000000,
+        });
+
+        const emitter = new EventEmitter();
+        const ws = chronik.ws({
+            onMessage: async msg => {
+                if (!emitter.emit('ws', msg)) {
+                    console.warn('Emitted msg without any listeners', msg);
+                }
+            },
+        });
+        await ws.waitForOpen();
+        agora.subscribeWs(ws, {
+            type: 'TOKEN_ID',
+            tokenId: childTokenId,
+        });
+        const listenNext = () => once(emitter, 'ws') as Promise<[MsgTxClient]>;
+
+        // 3. Seller sends the NFT to an ad setup output for an Agora Oneshot
+        //    covenant that asks for 80000 sats
+        const enforcedOutputs: TxOutput[] = [
+            {
+                sats: BigInt(0),
+                script: slpSend(childTokenId, SLP_NFT1_CHILD, [0n, 1n]),
+            },
+            { sats: BigInt(80000), script: cancelerP2pkh },
+        ];
+        const agoraOneshot = new AgoraOneshot({
+            enforcedOutputs,
+            cancelPk: cancelerPk,
+        });
+        const agoraAdScript = agoraOneshot.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+        const txBuildAdSetup = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: genesisChildTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: 8000n,
+                            outputScript: cancelerP2pkh,
+                        },
+                    },
+                    signatory: P2PKHSignatory(
+                        cancelerSk,
+                        cancelerPk,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [1n]),
+                },
+                { sats: 7000n, script: agoraAdP2sh },
+            ],
+        });
+        const adSetupTx = txBuildAdSetup.sign();
+        const adSetupTxid = (await chronik.broadcastTx(adSetupTx.ser())).txid;
+
+        // 4. Seller finishes offer setup + sends NFT to the advertised P2SH
+        const agoraScript = agoraOneshot.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+        const txBuildOffer = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: 7000n,
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraOneshotAdSignatory(cancelerSk),
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [1n]),
+                },
+                { sats: 546n, script: agoraP2sh },
+            ],
+        });
+        const offerTx = txBuildOffer.sign();
+        const offerPromise = listenNext();
+        const offerTxid = (await chronik.broadcastTx(offerTx.ser())).txid;
+        const offerOutpoint: OutPoint = {
+            txid: offerTxid,
+            outIdx: 1,
+        };
+        const offerTxBuilderInput: TxInput = {
+            prevOut: offerOutpoint,
+            signData: {
+                redeemScript: agoraScript,
+                sats: 546n,
+            },
+        };
+
+        // Expected created offer
+        const expectedOffer = new AgoraOffer({
+            variant: {
+                type: 'ONESHOT',
+                params: agoraOneshot,
+            },
+            outpoint: offerOutpoint,
+            txBuilderInput: offerTxBuilderInput,
+            token: {
+                tokenId: childTokenId,
+                tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                atoms: 1n,
+                isMintBaton: false,
+            },
+            status: 'OPEN',
+        });
+
+        const [offerMsg] = await offerPromise;
+        expect(offerMsg.type).to.equal('Tx');
+        expect(offerMsg.msgType).to.equal('TX_ADDED_TO_MEMPOOL');
+        expect(offerMsg.txid).to.equal(offerTxid);
+
+        // 5. Buyer searches for NFT trades, finds the advertised one
+        expect(await agora.allOfferedTokenIds()).to.deep.equal([childTokenId]);
+
+        // Query by group token ID
+        expect(
+            await agora.activeOffersByGroupTokenId(groupTokenId),
+        ).to.deep.equal([expectedOffer]);
+
+        // Query by child token ID
+        expect(await agora.activeOffersByTokenId(childTokenId)).to.deep.equal([
+            expectedOffer,
+        ]);
+
+        // Query by cancelPk
+        expect(
+            await agora.activeOffersByPubKey(toHex(cancelerPk)),
+        ).to.deep.equal([expectedOffer]);
+
+        // We can cancel the offer using cancel()
+        // We need a utxo to spend to cancel this offer
+        await runner.sendToScript(50000n, cancelerP2pkh);
+        await cancelerWallet.sync();
+        await expectedOffer.cancel({
+            wallet: cancelerWallet,
+        });
+
+        // We can no longer find the offer
+        expect(await agora.allOfferedTokenIds()).to.deep.equal([]);
+        expect(await agora.offeredGroupTokenIds()).to.deep.equal([]);
+        expect(await agora.offeredFungibleTokenIds()).to.deep.equal([]);
+        expect(
+            await agora.activeOffersByGroupTokenId(groupTokenId),
+        ).to.deep.equal([]);
+        expect(await agora.activeOffersByTokenId(childTokenId)).to.deep.equal(
+            [],
+        );
+        expect(
+            await agora.activeOffersByPubKey(toHex(cancelerPk)),
+        ).to.deep.equal([]);
     });
 });
