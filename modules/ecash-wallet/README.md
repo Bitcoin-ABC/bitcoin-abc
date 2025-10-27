@@ -115,3 +115,9 @@ See tests for detailed methods.
 [D18839](https://reviews.bitcoinabc.org/D18839)
 
 -   Patch type issue in returning `SelectUtxosResult`
+
+# 2.1.2
+
+[D18840](https://reviews.bitcoinabc.org/D18840)
+
+-   Export the `BuiltAction` class to support the user of `Wallet` in the `ecash-agora` `AgoraOffer` `take` method

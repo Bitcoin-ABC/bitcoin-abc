@@ -810,7 +810,7 @@ class BuiltTx {
  * Although most actions are expected to be one-tx, it is deemed more important to keep a
  * constant interface than to optimze for one-tx actions
  */
-class BuiltAction {
+export class BuiltAction {
     private _wallet: Wallet;
     public txs: Tx[];
     public builtTxs: BuiltTx[];
