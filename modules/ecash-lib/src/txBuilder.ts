@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -117,6 +117,19 @@ export class TxBuilder {
             }
         }
         return { fixedOutputSum, leftoverIdx, outputs };
+    }
+
+    /**
+     * Create a TxBuilder from the given tx.
+     * This is useful if tx is unsigned/partially signed and needs to be completed.
+     **/
+    public static fromTx(tx: Tx): TxBuilder {
+        return new TxBuilder({
+            version: tx.version,
+            inputs: tx.inputs.map(input => ({ input: copyTxInput(input) })),
+            outputs: tx.outputs.map(output => copyTxOutput(output)),
+            locktime: tx.locktime,
+        });
     }
 
     /** Sign the tx built by this builder and return a Tx */
