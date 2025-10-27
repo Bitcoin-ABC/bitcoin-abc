@@ -109,3 +109,9 @@ See tests for detailed methods.
 [D18834](https://reviews.bitcoinabc.org/D18834)
 
 -   Support chained txs for minting SLP NFTs without requiring a "fan-out" tx
+
+# 2.1.1
+
+[D18839](https://reviews.bitcoinabc.org/D18839)
+
+-   Patch type issue in returning `SelectUtxosResult`

@@ -1852,15 +1852,20 @@ export const selectUtxos = (
         });
         errors.push(`Missing required token utxos:${tokenErrorMsg.join(',')}`);
 
-        // Missing tokens always cause failure, regardless of strategy
-        return {
+        const selectedUtxosResult: SelectUtxosResult = {
             success: false,
-            missingTokens: tokens,
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
             chainedTxType,
             errors,
         };
+
+        if (typeof tokens !== 'undefined') {
+            selectedUtxosResult.missingTokens = tokens;
+        }
+
+        // Missing tokens always cause failure, regardless of strategy
+        return selectedUtxosResult;
     }
 
     if (needsNftMintInput) {
