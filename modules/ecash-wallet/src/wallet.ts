@@ -713,20 +713,43 @@ class WalletAction {
             dustSats,
         );
 
+        /**
+         * NB we DO NOT currently add a change output to the txOutputs
+         * It would need to be properly sized to cover the fee, according to
+         * the fuel utxo that the payer will be using
+         * So, if this info is known, we could accept it as a param
+         *
+         * Possible approaches
+         * - buildPostage could accept fuelUtxoSats and fuelScript as params, if the
+         *   size of the fuelUtxos is known and the script is known
+         * - Stick with no change and the fuel server has discretely-sized
+         *   small utxos, say 1000 sats, and there is never change
+         */
+
         // Create inputs with the specified sighash
         const finalizedInputs = selectedUtxos.map(utxo =>
             this._wallet.p2pkhUtxoToBuilderInput(utxo, sighash),
         );
 
-        // Create a PostageTx (structurally valid but financially insufficient)
-        return new PostageTx(
-            this._wallet,
-            finalizedInputs,
-            txOutputs,
+        // NB we could remove these utxos from the wallet's utxo set, but this would
+        // only partially match the API of the build() method
+        // In build(), we know the txid of the tx, so we can also add the change utxos created
+        // by the tx
+        // In this case, we cannot know the txid until after the tx is broadcast. So, we must
+        // let the app dev handle this problem
+
+        // Create a signed tx, missing fuel inputs
+        const txBuilder = new TxBuilder({
+            inputs: finalizedInputs,
+            outputs: txOutputs,
+        });
+        const partiallySignedTx = txBuilder.sign({
             feePerKb,
             dustSats,
-            this.actionTotal,
-        );
+        });
+
+        // Create a PostageTx (structurally valid but financially insufficient)
+        return new PostageTx(partiallySignedTx);
     }
 
     /**
@@ -874,28 +897,13 @@ export class BuiltAction {
  * PostageTx represents a transaction that is structurally valid but financially insufficient
  * It can be used for postage scenarios where fuel inputs need to be added later
  */
-class PostageTx {
-    private _wallet: Wallet;
-    public inputs: TxBuilderInput[];
-    public outputs: TxBuilderOutput[];
-    public feePerKb: bigint;
-    public dustSats: bigint;
-    public actionTotal: ActionTotal;
+export class PostageTx {
+    public partiallySignedTx: Tx;
+    public txBuilder: TxBuilder;
 
-    constructor(
-        wallet: Wallet,
-        inputs: TxBuilderInput[],
-        outputs: TxBuilderOutput[],
-        feePerKb: bigint,
-        dustSats: bigint,
-        actionTotal: ActionTotal,
-    ) {
-        this._wallet = wallet;
-        this.inputs = inputs;
-        this.outputs = outputs;
-        this.feePerKb = feePerKb;
-        this.dustSats = dustSats;
-        this.actionTotal = actionTotal;
+    constructor(partiallySignedTx: Tx) {
+        this.partiallySignedTx = partiallySignedTx;
+        this.txBuilder = TxBuilder.fromTx(partiallySignedTx);
     }
 
     /**
@@ -904,7 +912,23 @@ class PostageTx {
      */
     public addFuelAndSign(
         fuelWallet: Wallet,
+        /**
+         * The party that finalizes and broadcasts the tx cannot know
+         * the value of the inputs in the partiallySignedTx by inspecting
+         * the partiallySignedTx, as this info is lost when the tx is serialized
+         *
+         * We leave it to the app dev to determine how to share this info
+         * with the postage payer. It could easily be included in an API POST
+         * request alongside the serialized partially signed tx, or in many cases
+         * it could be assumed (token utxos could have known sats of DEFAULT_DUST_SATS
+         * for many app use cases)
+         */
+        prePostageInputSats: bigint,
         sighash = ALL_BIP143,
+        // feePerKb and dustSats may be set by the user completing the tx
+        // after all, they're paying for it
+        feePerKb = DEFAULT_FEE_SATS_PER_KB,
+        dustSats = DEFAULT_DUST_SATS,
     ): BuiltAction {
         const fuelUtxos = fuelWallet.spendableSatsOnlyUtxos();
         if (fuelUtxos.length === 0) {
@@ -912,13 +936,10 @@ class PostageTx {
         }
 
         // Start with postage inputs (token UTXOs with insufficient sats)
-        const allInputs = [...this.inputs];
-        let inputSats = allInputs.reduce(
-            (sum, input) => sum + input.input.signData!.sats,
-            0n,
-        );
-        const baseOutputs = [...this.outputs];
-        const outputSats = baseOutputs.reduce((sum, output) => {
+        const allInputs = [...this.txBuilder.inputs];
+
+        // NB we do not expect to have inputSats, as signatory will be undefined after ser/deser
+        const outputSats = this.txBuilder.outputs.reduce((sum, output) => {
             if ('sats' in output) {
                 return sum + output.sats;
             } else {
@@ -926,54 +947,73 @@ class PostageTx {
             }
         }, 0n);
 
-        // Add a leftover output (change) as just the Script, not {script, sats}
-        const outputsWithChange = [
-            ...baseOutputs,
-            fuelWallet.script, // This signals TxBuilder to calculate change and fee
-        ];
+        let thisTxNeededFee = 0n;
+        let inputSats = prePostageInputSats;
 
-        // Try to build with just postage inputs first
-        try {
-            const txBuilder = new TxBuilder({
-                inputs: allInputs,
-                outputs: outputsWithChange,
-            });
-            const signedTx = txBuilder.sign({
-                feePerKb: this.feePerKb,
-                dustSats: this.dustSats,
-            });
-            return new BuiltAction(fuelWallet, [signedTx], this.feePerKb);
-        } catch {
-            // Expected - postage inputs are insufficient
-        }
-
-        // If we get here, we need fuel UTXOs
         // Add fuel UTXOs one by one and try to build after each addition
         for (const fuelUtxo of fuelUtxos) {
-            inputSats += fuelUtxo.sats;
+            const fuelUtxoSats = fuelUtxo.sats;
             allInputs.push(
                 fuelWallet.p2pkhUtxoToBuilderInput(fuelUtxo, sighash),
             );
+            inputSats += fuelUtxoSats;
 
-            // Try to build with current inputs
-            try {
-                const txBuilder = new TxBuilder({
-                    inputs: allInputs,
-                    outputs: outputsWithChange,
-                });
-                const signedTx = txBuilder.sign({
-                    feePerKb: this.feePerKb,
-                    dustSats: this.dustSats,
-                });
-                return new BuiltAction(fuelWallet, [signedTx], this.feePerKb);
-            } catch {
-                // Continue to next fuel UTXO
+            if (inputSats > outputSats) {
+                // NB > and not >= as we always need > 0n sats for the fee
+
+                // We should have enough sats to cover the tx
+                // But, we may not, as we have added inputs which will
+                // increase the fee
+
+                // So we build a tx, check if it covers the fee, broadcast if it does,
+                // otherwise more fuel
+
+                // NB when we sign this type of tx, an error is not thrown if the fee
+                // is covered the way it would be when signing a tx with defined input sats
+
+                // Try to build with current inputs
+                try {
+                    const txBuilder = new TxBuilder({
+                        inputs: allInputs,
+                        outputs: this.txBuilder.outputs,
+                    });
+                    const signedTx = txBuilder.sign({
+                        feePerKb: feePerKb,
+                        dustSats: dustSats,
+                    });
+
+                    // Determine the size of the tx
+                    const txSize = signedTx.serSize();
+                    // Determine the fee for the tx
+                    // NB that selectUtxos knows nothing about the tx fee, it just makes sure
+                    // inputs meet or exceed outputs in determining missingSats
+                    thisTxNeededFee = calcTxFee(txSize, feePerKb);
+
+                    const thisTxPaysFee = inputSats - outputSats;
+                    if (thisTxPaysFee > thisTxNeededFee) {
+                        // We have enough sats to cover the fee
+                        // So we can broadcast the tx
+                        return new BuiltAction(
+                            fuelWallet,
+                            [signedTx],
+                            feePerKb,
+                        );
+                    }
+
+                    // Else continue to the next fuel UTXO
+                } catch (err) {
+                    // Continue to next fuel UTXO
+                    // NB we do not expect an error here as txBuilder.sign will not throw
+                    // even if we do not cover the fee
+                    // But not using try...catch still ... feels wrong
+                    console.error('Error building tx in addFuelAndSign:', err);
+                }
             }
         }
 
         // If we run out of fuel UTXOs without success, we can't afford this tx
         throw new Error(
-            `Insufficient fuel: cannot cover outputs (${outputSats}) + fee with available fuel UTXOs (${inputSats} total sats)`,
+            `Insufficient fuel: insufficient sats in impliedInputSats (${inputSats}) to cover output sats (${outputSats}) + fee (${thisTxNeededFee}) with available fuel UTXOs`,
         );
     }
 }
@@ -1881,6 +1921,7 @@ export const selectUtxos = (
 
         const selectedUtxosResult: SelectUtxosResult = {
             success: false,
+            missingTokens: tokens || new Map(),
             missingSats:
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
             chainedTxType,

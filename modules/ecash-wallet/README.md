@@ -127,3 +127,9 @@ See tests for detailed methods.
 [D18841](https://reviews.bitcoinabc.org/D18841)
 
 -   Return sats selection strategy used to select utxos with `SelectUtxosResult`
+
+# 2.2.0
+
+[D18837](https://reviews.bitcoinabc.org/D18837)
+
+-   Update the `PostageTx` class to support client/server postage interactions
