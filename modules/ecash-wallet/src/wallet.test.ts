@@ -1066,6 +1066,7 @@ describe('Support functions', () => {
                 errors: [
                     'Insufficient sats to complete tx. Need 1000 additional satoshis to complete this Action.',
                 ],
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Return success true for a non-token tx with insufficient sats if NO_SATS strategy', () => {
@@ -1084,6 +1085,7 @@ describe('Support functions', () => {
                 missingSats: 1000n,
                 utxos: [],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
             });
         });
         it('Return success true for a non-token tx with insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1108,6 +1110,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 300n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
             });
         });
         it('Return success true for a non-token tx with sufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1132,6 +1135,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 600n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
             });
         });
         it('Return success true for a token tx with sufficient tokens but insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1168,6 +1172,7 @@ describe('Support functions', () => {
                 missingSats: 500n,
                 utxos: [{ ...DUMMY_UTXO, sats: 500n }, getDummySlpUtxo(2n)],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
             });
         });
         it('Return failure for a token tx with missing tokens even if ATTEMPT_SATS strategy', () => {
@@ -1214,6 +1219,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1253,6 +1259,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_500n }, getDummySlpUtxo(2n)],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
             });
         });
         it('For an XEC-only tx, returns non-token utxos with sufficient sats', () => {
@@ -1272,6 +1279,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 750n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
@@ -1287,6 +1295,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_000n }],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Returns expected object if we have insufficient token utxos', () => {
@@ -1327,6 +1336,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1427,6 +1437,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1527,6 +1538,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1561,6 +1573,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 10_000n }, getDummySlpUtxo(1n)],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx', () => {
@@ -1636,6 +1649,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: spendableUtxos,
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Returns sufficient token utxos for a complicated token tx if gasless', () => {
@@ -1716,6 +1730,7 @@ describe('Support functions', () => {
                 utxos: spendableUtxos,
                 missingSats: 546n,
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
             });
         });
         it('Returns detailed summary of missing token inputs for a gasless tx', () => {
@@ -1817,6 +1832,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
                 errors: [
                     `Missing required token utxos: 1111111111111111111111111111111111111111111111111111111111111111 => Missing mint baton,` +
                         ` 2222222222222222222222222222222222222222222222222222222222222222 => Missing 10 atoms,` +
@@ -1852,6 +1868,7 @@ describe('Support functions', () => {
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -1892,8 +1909,8 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 // NB the parent input is at index 0
                 utxos: [mockNftParentInput, DUMMY_UTXO],
-                // No chained tx required as qty1 is already available
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Returns utxos with chainedTxType: NFT_MINT_FANOUT for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
@@ -1929,8 +1946,9 @@ describe('Support functions', () => {
             expect(selectUtxos(action, spendableUtxos)).to.deep.equal({
                 success: true,
                 missingSats: 0n,
-                utxos: [mockNftParentBigInput, DUMMY_UTXO],
                 chainedTxType: ChainedTxType.NFT_MINT_FANOUT,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                utxos: [mockNftParentBigInput, DUMMY_UTXO],
             });
         });
         it('Returns expected error for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we are missing the SLP_TOKEN_TYPE_NFT1_GROUP input and also sats', () => {
@@ -1962,6 +1980,7 @@ describe('Support functions', () => {
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -2002,6 +2021,7 @@ describe('Support functions', () => {
                 success: false,
                 missingSats: 99999454n,
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
                 errors: [
                     'Insufficient sats to complete tx. Need 99999454 additional satoshis to complete this Action.',
                 ],
@@ -2049,6 +2069,7 @@ describe('Support functions', () => {
                 missingSats: 100000000n,
                 utxos: [mockNftParentInput],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
             });
         });
         it('Returns utxos with chainedTxType: NONE for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have exact atoms', () => {
@@ -2085,6 +2106,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 10_000n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
         it('Returns utxos with chainedTxType: INTENTIONAL_BURN for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have enough atoms but not exact atoms', () => {
@@ -2116,6 +2138,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [getDummySlpUtxo(45n), { ...DUMMY_UTXO, sats: 10_000n }],
                 chainedTxType: ChainedTxType.INTENTIONAL_BURN,
+                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
             });
         });
     });

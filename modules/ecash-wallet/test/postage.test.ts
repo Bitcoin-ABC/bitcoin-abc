@@ -175,19 +175,13 @@ describe('Postage mechanism for eCash transactions', () => {
         expect(postageTx.outputs.length).to.equal(3);
 
         // Verify that calling .build() instead of .buildPostage() would throw an error
-        try {
-            await tokenWallet
+        expect(() => {
+            tokenWallet
                 .action(postageAction, SatsSelectionStrategy.NO_SATS)
                 .build();
-            // If we get here, the test should fail
-            expect.fail(
-                'Expected build() to throw an error due to insufficient funds',
-            );
-        } catch (error) {
-            expect((error as Error).message).to.include(
-                'Insufficient sats to complete tx',
-            );
-        }
+        }).to.throw(
+            'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
+        );
 
         // Step 6: Add fuel inputs and create a broadcastable transaction
         const broadcastableTx = postageTx.addFuelAndSign(fuelWallet);

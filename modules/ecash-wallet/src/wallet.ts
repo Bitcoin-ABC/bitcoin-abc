@@ -432,6 +432,17 @@ class WalletAction {
      */
     public build(sighash = ALL_BIP143): BuiltAction {
         if (
+            this.selectUtxosResult.satsStrategy ===
+            SatsSelectionStrategy.NO_SATS
+        ) {
+            // Potentially we want to just call this.buildPostage here, but then the build method
+            // would no longer return a single type. The methods are distinct enough to warrant
+            // distinct methods
+            throw new Error(
+                `You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS`,
+            );
+        }
+        if (
             this.selectUtxosResult.success === false ||
             typeof this.selectUtxosResult.utxos === 'undefined' ||
             this.selectUtxosResult.missingSats > 0n
@@ -1507,6 +1518,18 @@ interface SelectUtxosResult {
      * Error messages if selection failed
      */
     errors?: string[];
+    /**
+     * We need to return the satsStrategy used to select the utxos, because
+     * it is not always possible to infer
+     *
+     * For example, we may wish to send a token tx with 1 input and one output
+     * and SatsSelectionStrategy.NO_SATS
+     *
+     * Such a tx would give us success true and missingSats 0n. If this tx
+     * were passed to build(), it would just add fuel utxos up to the point of
+     * the fee being covered
+     */
+    satsStrategy: SatsSelectionStrategy;
 }
 
 /**
@@ -1687,6 +1710,7 @@ export const selectUtxos = (
                 missingSats:
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
                 chainedTxType,
+                satsStrategy,
             };
         }
     }
@@ -1740,6 +1764,7 @@ export const selectUtxos = (
                                     ? 0n
                                     : sats - selectedUtxosSats,
                             chainedTxType,
+                            satsStrategy,
                         };
                     }
                 } else if (
@@ -1789,6 +1814,7 @@ export const selectUtxos = (
                                     ? 0n
                                     : sats - selectedUtxosSats,
                             chainedTxType,
+                            satsStrategy,
                         };
                     }
                 }
@@ -1824,6 +1850,7 @@ export const selectUtxos = (
                 // Always 0 here, determined by condition of this if block
                 missingSats: 0n,
                 chainedTxType,
+                satsStrategy,
             };
         }
     }
@@ -1858,6 +1885,7 @@ export const selectUtxos = (
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
             chainedTxType,
             errors,
+            satsStrategy,
         };
 
         if (typeof tokens !== 'undefined') {
@@ -1884,6 +1912,7 @@ export const selectUtxos = (
             errors: [
                 `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
             ],
+            satsStrategy,
         };
     }
 
@@ -1907,6 +1936,7 @@ export const selectUtxos = (
             missingSats,
             chainedTxType,
             errors,
+            satsStrategy,
         };
     }
 
@@ -1918,6 +1948,7 @@ export const selectUtxos = (
         missingSats,
         // NB we do not have errors for missingSats with these strategies
         chainedTxType,
+        satsStrategy,
     };
 };
 

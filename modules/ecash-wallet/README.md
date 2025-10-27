@@ -121,3 +121,9 @@ See tests for detailed methods.
 [D18840](https://reviews.bitcoinabc.org/D18840)
 
 -   Export the `BuiltAction` class to support the user of `Wallet` in the `ecash-agora` `AgoraOffer` `take` method
+
+# 2.1.3
+
+[D18841](https://reviews.bitcoinabc.org/D18841)
+
+-   Return sats selection strategy used to select utxos with `SelectUtxosResult`
