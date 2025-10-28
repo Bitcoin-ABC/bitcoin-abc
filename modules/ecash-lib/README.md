@@ -103,3 +103,4 @@ console.log(toHex(rawTx));
 -   4.3.3 - Modify payment.GenesisAction to support minting NFTs (SLP_TOKEN_TYPE_NFT1_CHILD genesis txs) [D18557](https://reviews.bitcoinabc.org/D18557)
 -   4.4.0 - Add `parse` methods to support parsing of OP_RETURN outputScript strings as returned by chronik-client [D18659](https://reviews.bitcoinabc.org/D18659)
 -   4.5.0 - Add `fromTx` method to support creating a `TxBuilder` from a `Tx`, useful for creating a `TxBuilder` from a serialized partially-signed `Tx` in order to add postage and broadcast [D18838](https://reviews.bitcoinabc.org/D18838)
+-   4.5.1 - Add updated `testRunner` to support CI builds of monorepo apps that rely on this from the published version, e.g. `ecash-agora` [D18844](https://reviews.bitcoinabc.org/D18844)
