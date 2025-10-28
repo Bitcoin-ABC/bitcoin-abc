@@ -131,14 +131,12 @@ export async function takeAlpOffer(params: {
     const takerSk = params.takerSk;
     const takerWallet = Wallet.fromSk(takerSk, params.chronik);
     const takerPk = takerWallet.pk;
-    const takerP2pkh = takerWallet.script;
 
     await takerWallet.sync();
     const broadcastResult = await params.offer.take({
         wallet: takerWallet,
         covenantSk: takerSk,
         covenantPk: takerPk,
-        recipientScript: takerP2pkh,
         acceptedAtoms: params.acceptedAtoms,
         allowUnspendable: params.allowUnspendable,
     });

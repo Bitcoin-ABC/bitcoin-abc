@@ -217,8 +217,6 @@ export class AgoraOffer {
              * covenantSk.
              */
             covenantPk: Uint8Array;
-            /** Script to send the tokens and the leftover sats (if any) to. */
-            recipientScript: Script;
             /** For partial offers: Number of accepted atoms (base tokens) */
             acceptedAtoms?: bigint;
             /** Dust amount to use for the token output. */
@@ -285,9 +283,9 @@ export class AgoraOffer {
             extraOutputs: [
                 {
                     sats: dustSats,
-                    script: params.recipientScript,
+                    script: params.wallet.script,
                 },
-                params.recipientScript,
+                params.wallet.script,
             ],
             acceptedAtoms: params.acceptedAtoms,
             allowUnspendable,

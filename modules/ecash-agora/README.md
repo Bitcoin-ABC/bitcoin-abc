@@ -219,3 +219,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.5.1
 
 -   Improve flaky behavior by better organizing sats for the test taker wallet [D18846](https://reviews.bitcoinabc.org/D18846)
+
+### 2.5.2
+
+-   Enforce `take()` method accepting agora offer at calling wallet param [D18846](https://reviews.bitcoinabc.org/D18846)
