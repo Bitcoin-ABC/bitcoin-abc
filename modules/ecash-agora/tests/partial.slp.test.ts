@@ -54,13 +54,15 @@ describe('AgoraPartial SLP', () => {
     let runner: TestRunner;
     let chronik: ChronikClient;
 
+    async function makeTakerInputs(sats: bigint[]): Promise<void> {
+        await runner.sendToScript(sats, takerScript);
+    }
+
     async function makeBuilderInputs(
         values: bigint[],
     ): Promise<TxBuilderInput[]> {
-        // NB for these "not big sats" tests, we can just send to both, no need to sendToTwoScripts
         const txid = await runner.sendToScript(values, makerScript);
-        // Send some cash to the taker, since the accept() tests spend from this wallet
-        await runner.sendToScript(values, takerScript);
+
         return values.map((sats, outIdx) => ({
             input: {
                 prevOut: {
@@ -490,7 +492,7 @@ describe('AgoraPartial SLP', () => {
             const askedSats = agoraPartial.askedSats(testCase.acceptedAtoms);
             const requiredSats = askedSats + 2000n;
             const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
-
+            await makeTakerInputs([10_000n, requiredSats]);
             const offer = await makeSlpOffer({
                 chronik,
                 agoraPartial,

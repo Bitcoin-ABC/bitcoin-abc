@@ -215,3 +215,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.5.0
 
 -   Add new `cancel` method to `AgoraOffer` that will automatically build and broadcast an agora cancelTx given a `Wallet` from `ecash-wallet` [D18842](https://reviews.bitcoinabc.org/D18842)
+
+### 2.5.1
+
+-   Improve flaky behavior by better organizing sats for the test taker wallet [D18846](https://reviews.bitcoinabc.org/D18846)
