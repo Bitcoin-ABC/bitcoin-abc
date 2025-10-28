@@ -1549,7 +1549,20 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
         sigHashType = sigHashType.withForkValue(0xff0000 | newForkValue);
     }
 
-    if (sigHashType.hasForkId() && (flags & SCRIPT_ENABLE_SIGHASH_FORKID)) {
+    const bool use_forkid_sighash =
+        sigHashType.hasForkId() && (flags & SCRIPT_ENABLE_SIGHASH_FORKID);
+
+    // Check for invalid use of SIGHASH_SINGLE
+    if (!use_forkid_sighash &&
+        (sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
+        (nIn >= txTo.vout.size())) {
+        //  nOut out of range
+        return uint256::ONE;
+    }
+
+    HashWriter ss{};
+
+    if (use_forkid_sighash) {
         uint256 hashPrevouts;
         uint256 hashSequence;
         uint256 hashOutputs;
@@ -1563,18 +1576,16 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
             (sigHashType.getBaseType() != BaseSigHashType::NONE)) {
             hashSequence = cache ? cache->hashSequence : GetSequenceHash(txTo);
         }
-
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) &&
             (sigHashType.getBaseType() != BaseSigHashType::NONE)) {
             hashOutputs = cache ? cache->hashOutputs : GetOutputsHash(txTo);
         } else if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
                    (nIn < txTo.vout.size())) {
-            HashWriter ss{};
-            ss << txTo.vout[nIn];
-            hashOutputs = ss.GetHash();
+            HashWriter inner_ss{};
+            inner_ss << txTo.vout[nIn];
+            hashOutputs = inner_ss.GetHash();
         }
 
-        HashWriter ss{};
         // Version
         ss << txTo.nVersion;
         // Input prevouts/nSequence (none/all, depending on flags)
@@ -1591,27 +1602,17 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
         ss << hashOutputs;
         // Locktime
         ss << txTo.nLockTime;
-        // Sighash type
-        ss << sigHashType;
+    } else {
+        // Wrapper to serialize only the necessary parts of the transaction
+        // being signed
+        CTransactionSignatureSerializer<T> txTmp(txTo, scriptCode, nIn,
+                                                 sigHashType);
 
-        return ss.GetHash();
+        ss << txTmp;
     }
 
-    // Check for invalid use of SIGHASH_SINGLE
-    if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
-        (nIn >= txTo.vout.size())) {
-        //  nOut out of range
-        return uint256::ONE;
-    }
-
-    // Wrapper to serialize only the necessary parts of the transaction being
-    // signed
-    CTransactionSignatureSerializer<T> txTmp(txTo, scriptCode, nIn,
-                                             sigHashType);
-
-    // Serialize and hash
-    HashWriter ss{};
-    ss << txTmp << sigHashType;
+    // Add sighash type and hash
+    ss << sigHashType;
     return ss.GetHash();
 }
 
