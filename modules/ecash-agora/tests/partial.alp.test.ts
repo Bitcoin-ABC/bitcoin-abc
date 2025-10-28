@@ -726,4 +726,99 @@ describe('AgoraPartial ALP', () => {
             expectedError,
         );
     });
+    it('We can relist an ALP agora partial tx using the available relist() method', async () => {
+        const testCase = {
+            offeredAtoms: 0x7fffffffffffn,
+            info: '0.001sat/token, max sats accept',
+            priceNanoSatsPerAtom: 1000000n,
+            acceptedAtoms: 799999983616n,
+            askedSats: 1041666816n,
+        };
+        // Chosen at random from the above vectors
+
+        const agora = new Agora(chronik);
+        const agoraPartial = await agora.selectParams({
+            offeredAtoms: testCase.offeredAtoms,
+            priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
+            minAcceptedAtoms: testCase.acceptedAtoms,
+            makerPk,
+            ...BASE_PARAMS_ALP,
+        });
+        const [fuelInput] = await makeBuilderInputs([
+            4000n,
+            testCase.askedSats,
+        ]);
+
+        // Create an offer
+        const offer = await makeAlpOffer({
+            chronik,
+            agoraPartial,
+            makerSk,
+            fuelInput,
+        });
+
+        const createdTokenId = offer.token.tokenId;
+
+        // A valid offer is created with the expected price and offeredAtoms
+        const priceThisOffer = offer.askedSats(testCase.acceptedAtoms);
+        expect(priceThisOffer).to.equal(testCase.askedSats);
+
+        // NB for 32-bit, the offered atoms are very unlikely to be what we asked for with selectParams
+        const atomsThisOffer = 140737488158720n;
+        expect(offer.token.atoms).to.equal(atomsThisOffer);
+
+        // Relist it
+
+        // First, create the partial we want to relist
+        const relistParams = {
+            // Compare 0x7fffffffffffn
+            offeredAtoms: 0x00ffffffffffn,
+            // Reduce by a factor of 100
+            priceNanoSatsPerAtom: 10000n,
+            // Compare 799999983616n
+            acceptedAtoms: 799999983716n,
+        };
+
+        const relistPartial = await agora.selectParams({
+            offeredAtoms: relistParams.offeredAtoms,
+            priceNanoSatsPerAtom: relistParams.priceNanoSatsPerAtom,
+            // Unchanged
+            minAcceptedAtoms: relistParams.acceptedAtoms,
+            makerPk,
+            ...BASE_PARAMS_ALP,
+            tokenId: createdTokenId,
+        });
+
+        // Create the relist wallet
+        const relistWallet = Wallet.fromSk(makerSk, chronik);
+        await relistWallet.sync();
+
+        // Relist our existing offer
+        await offer.relist({
+            wallet: relistWallet,
+            updatedPartial: relistPartial,
+        });
+
+        // Query for this offer
+        const activeOffers = await agora.activeOffersByTokenId(
+            offer.token.tokenId,
+        );
+        // We only have one active offer
+        expect(activeOffers.length).to.equal(1);
+        const relistedOffer = activeOffers[0];
+
+        // The price of the original acceptedAtoms is different
+        expect(relistedOffer.askedSats(testCase.acceptedAtoms)).to.equal(
+            8032606n,
+        );
+        // Not the same as the original offer price
+        expect(relistedOffer.askedSats(testCase.acceptedAtoms)).not.to.equal(
+            offer.askedSats(testCase.acceptedAtoms),
+        );
+
+        // So is the listed quantity
+        expect(relistedOffer.token.atoms).to.equal(1099511562240n); // vs prev 140737488158720n
+        // Not the same as the original offer quantity
+        expect(relistedOffer.token.atoms).not.to.equal(offer.token.atoms);
+    });
 });

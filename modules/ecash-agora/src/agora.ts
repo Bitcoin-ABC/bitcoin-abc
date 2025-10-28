@@ -573,6 +573,245 @@ export class AgoraOffer {
     }
 
     /**
+     * Update an AgoraOffer by changing its price or quantity
+     *
+     * We use the method name "relist" as this method will cancel the existing AgoraOffer
+     * and create a new one. What it is doing is closer to "updating" ... but we do
+     * in fact relist and lose this AgoraOffer
+     *
+     * Under the hood, this is canceling an offer and relisting it in a single tx
+     *
+     * While this is technically possible to do on SLP, e.g. you can see
+     * an example in oneshot.test.ts, for now we only support ALP
+     * as it is easier to implement and anticipated to have more use cases
+     */
+    public async relist(params: {
+        /**
+         * An initialized Wallet from ecash-wallet
+         * This is the wallet that will take the offer
+         *
+         * Note this wallet must have the correct cancelSk
+         * for the method to work
+         *
+         * This is also the wallet that will receive canceled
+         * tokens and leftover sats
+         */
+        wallet: Wallet;
+        /**
+         * The updated offer to relist
+         *
+         * After 64-bit ints, we may consider simply accepting updated terms like
+         * priceNanoSatsPerAtom and offeredAtoms
+         *
+         * But for now, we can't assure that the created offer will reasonably reflect
+         * user wants, so we accept their already-prepared offer
+         */
+        updatedPartial: AgoraPartial;
+        /** Dust amount to use for the token output. */
+        dustSats?: bigint;
+        /** Fee per kB to use when building the tx. */
+        feePerKb?: bigint;
+    }): Promise<{
+        success: boolean;
+        broadcasted: string[];
+        unbroadcasted?: string[];
+        errors?: string[];
+    }> {
+        if (this.variant.type !== 'PARTIAL') {
+            throw new Error('relist() only supports partial offers');
+        }
+        if (this.variant.params.tokenProtocol !== 'ALP') {
+            throw new Error('relist() only supports ALP offers');
+        }
+        if (params.updatedPartial.tokenProtocol !== 'ALP') {
+            throw new Error('The updated offer must be an ALP offer');
+        }
+        if (this.variant.params.tokenId !== params.updatedPartial.tokenId) {
+            throw new Error('The updated offer must be for the same token');
+        }
+        if (toHex(this.variant.params.makerPk) !== toHex(params.wallet.pk)) {
+            // If this offer was not created by this wallet
+            // We cannot cancel it
+            throw new Error(
+                `Cannot relist this offer with this wallet, offer can only be relisted by pk ${toHex(
+                    this.variant.params.makerPk,
+                )}. This wallet pk is ${toHex(params.wallet.pk)}.`,
+            );
+        }
+
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
+        const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
+        const tokenId = this.variant.params.tokenId;
+
+        // We manually build this tx using wallet params, then we can broadcast it using the wallet
+        // Input is canceled offer
+        const cancelSignatory = AgoraPartialCancelSignatory(
+            // Note we must use the sk that corresponds with cancelPk
+            params.wallet.sk,
+            this.variant.params.tokenProtocol,
+        );
+
+        // Required input to cancel the tx
+        const inputs: TxBuilderInput[] = [
+            {
+                input: this.txBuilderInput,
+                signatory: cancelSignatory,
+            },
+        ];
+
+        // Build EMPP script for output
+        // Note we may be adjusting price and quantity based on offerToCreate
+        // If quantity is being adjusted, we may also need to adjust token inputs
+        // and we will definitely need to adjust token outputs
+
+        const prevAtoms = this.token.atoms;
+        const newAtoms = params.updatedPartial.offeredAtoms();
+
+        const sendAmountAtomsArr: bigint[] = [];
+
+        if (prevAtoms === newAtoms) {
+            // Quantity may match the old offer
+            sendAmountAtomsArr.push(prevAtoms);
+        } else {
+            sendAmountAtomsArr.push(newAtoms);
+            if (newAtoms > prevAtoms) {
+                // Get non-mintbaton utxos for this tokenId
+                const utxosThisToken = params.wallet.utxos.filter(
+                    utxo =>
+                        utxo.token?.tokenId === this.token.tokenId &&
+                        utxo.token?.isMintBaton === false,
+                );
+
+                // We already have prevAtoms from the canceled offer as token utxos
+                let atomsTheseInputs = prevAtoms;
+                let sufficientTokenInputs = false;
+
+                for (const utxo of utxosThisToken) {
+                    atomsTheseInputs += utxo!.token!.atoms;
+                    inputs.push(params.wallet.p2pkhUtxoToBuilderInput(utxo));
+
+                    if (atomsTheseInputs >= newAtoms) {
+                        sufficientTokenInputs = true;
+                        break;
+                    }
+                }
+
+                if (!sufficientTokenInputs) {
+                    // We can't afford to list this quantity
+                    throw new Error(
+                        `Insufficient token utxos to re-list ${newAtoms} atoms of ${tokenId}. ${atomsTheseInputs} atoms available from previous offer and this wallet.`,
+                    );
+                }
+
+                // Determine change
+                const change = atomsTheseInputs - newAtoms;
+
+                // We always have change in this block
+                sendAmountAtomsArr.push(change);
+            } else {
+                // If newAtoms < prevAtoms, we can calculate change right here, no new inputs
+                const change = prevAtoms - newAtoms;
+                // We always have change in this block
+                sendAmountAtomsArr.push(change);
+            }
+        }
+
+        const agoraScript = params.updatedPartial.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        // Output is same as a listing (listing + alpSend EMPP)
+        const outputs: TxBuilderOutput[] = [
+            // EMPP script for agora offer and ALP send at index 0
+            {
+                sats: 0n,
+                script: emppScript([
+                    params.updatedPartial.adPushdata(),
+                    alpSend(
+                        tokenId,
+                        params.updatedPartial.tokenType,
+                        sendAmountAtomsArr,
+                    ),
+                ]),
+            },
+            // Agora offer at index 1
+            { sats: dustSats, script: agoraP2sh },
+        ];
+
+        // Token change if we have it
+        if (sendAmountAtomsArr.length > 1) {
+            outputs.push({ sats: dustSats, script: params.wallet.script });
+        }
+
+        // XEC change for the relisting wallet
+        outputs.push(params.wallet.script);
+
+        const availableFuelUtxos = params.wallet.spendableSatsOnlyUtxos();
+
+        // Assume we cannot cover the tx with dust cancel utxo and immediately add fuel
+        let inputSats = inputs.reduce(
+            (acc, input) => acc + input.input.signData!.sats,
+            0n,
+        );
+        const outputSats = outputs.reduce((acc, output) => {
+            if ('sats' in output) {
+                return acc + output.sats;
+            } else {
+                return acc;
+            }
+        }, 0n);
+        for (const utxo of availableFuelUtxos) {
+            inputs.push(params.wallet.p2pkhUtxoToBuilderInput(utxo));
+            inputSats += utxo.sats;
+
+            try {
+                const alpRelistTxBuilder = new TxBuilder({
+                    inputs: inputs,
+                    outputs,
+                });
+
+                const alpRelistTx = alpRelistTxBuilder.sign({
+                    feePerKb,
+                    dustSats,
+                });
+
+                const txSer = alpRelistTx.ser();
+
+                /**
+                 * Build and broadcast in a way where we
+                 * mimic the return type used by ecash-wallet
+                 */
+
+                // txids that broadcast succcessfully
+                const broadcasted: string[] = [];
+
+                const txsToBroadcast = [toHex(txSer)];
+
+                try {
+                    const { txid } = await params.wallet.chronik.broadcastTx(
+                        txSer,
+                    );
+                    broadcasted.push(txid);
+                } catch (err) {
+                    console.error(`Error broadcasting tx 1 of 1:`, err);
+                    return {
+                        success: false,
+                        broadcasted,
+                        unbroadcasted: txsToBroadcast.slice(0),
+                        errors: [`${err}`],
+                    };
+                }
+                return { success: true, broadcasted };
+            } catch {
+                // We need another fuel utxo
+            }
+        }
+        // We do not have enough fuel utxos
+        throw new Error(
+            `Insufficient fuel: cannot cover outputs (${outputSats}) + fee with available fuel UTXOs (${inputSats} total sats)`,
+        );
+    }
+
+    /**
      * How many extra satoshis are required to fuel cancelling this offer,
      * so the cancel tx can be broadcast on the network, excluding the asked
      * sats and a dust amount to receive the tokens.

@@ -223,3 +223,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.5.2
 
 -   Enforce `take()` method accepting agora offer at calling wallet param [D18846](https://reviews.bitcoinabc.org/D18846)
+
+### 2.6.0
+
+-   Add new `relist` method to `AgoraOffer` that will automatically build and broadcast an agora tx that cancels an existing offer and relists the same token at new terms (updated price, quantity, and/or other params) [D18847](https://reviews.bitcoinabc.org/D18847)
