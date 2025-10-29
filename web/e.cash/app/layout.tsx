@@ -3,10 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Space_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Atoms/NavBar";
 import Footer from "./components/Atoms/Footer";
+import Analytics from "./components/Analytics";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -76,6 +78,9 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
       >
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
         <Navbar showBanner={showBanner} />
         <div className={showBanner ? "pt-[40px] sm:pt-[30px]" : ""}>
           {children}

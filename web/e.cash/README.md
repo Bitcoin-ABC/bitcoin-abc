@@ -11,6 +11,7 @@ First set up the mandatory environment variables:
 echo NEXT_PUBLIC_SITE_URL=https://e.cash > .env
 echo NEXT_PUBLIC_STRAPI_URL=https://strapi.e.cash >> .env
 echo NEXT_PUBLIC_STRAPI_SCORECARD_URL=https://api.scorecard.cash >> .env
+echo NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX >> .env
 ```
 
 Then, run the development server:
