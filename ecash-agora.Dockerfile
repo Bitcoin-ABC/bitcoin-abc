@@ -1,28 +1,26 @@
-# Copyright (c) 2024 The Bitcoin developers
+# Copyright (c) 2024-2025 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# Stage 1 - Node image for running npm publish
+# Node image for running npm publish
+
 # Note we do not need the wasmbuilder stage here
 # as we pull ecash-lib from npmjs for publishing ecash-agora
 FROM node:22-bookworm-slim
 
 WORKDIR /app/modules/ecash-agora
 COPY modules/ecash-agora .
-# Install ecash-lib from npm, so that module users install it automatically
-RUN npm install ecash-lib@latest
-# Install chronik-client from npm, so that module users install it automatically
-RUN npm install chronik-client@latest
 
-# Install ecash-wallet from npm
-# This is a dev dependency so potentially no issue, but we still want to avoid the
-# published package-lock.json including local refs
-RUN npm install -D ecash-wallet@latest
+# Replace local file: dependencies with npm registry versions to avoid workspace/file resolution in Docker
+RUN npm pkg set dependencies.ecash-lib=latest \
+    && npm pkg set dependencies.chronik-client=latest \
+    && npm pkg delete dependencies.ecash-wallet \
+    && npm pkg set devDependencies.ecash-wallet=latest
 
-# Install the rest of dependencies
-RUN npm ci
-# Build ecash-agora
-RUN npm run build
+# Clean existing lockfile that may contain local file: refs, then install and build
+RUN rm -f package-lock.json \
+    && npm install \
+    && npm run build
 
 # Publish ecash-agora
 CMD [ "npm", "publish" ]
