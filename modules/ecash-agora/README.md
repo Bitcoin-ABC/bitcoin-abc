@@ -227,3 +227,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.0
 
 -   Add new `relist` method to `AgoraOffer` that will automatically build and broadcast an agora tx that cancels an existing offer and relists the same token at new terms (updated price, quantity, and/or other params) [D18847](https://reviews.bitcoinabc.org/D18847)
+
+### 2.6.1
+
+-   `ecash-wallet` is now a dependency and not a dev dependency, and must be specified as such for apps that use `ecash-agora` to avoid missing dep errors. [D18852](https://reviews.bitcoinabc.org/D18852)
