@@ -235,3 +235,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.2
 
 -   Patch deployment to make sure we actually get our dependencies installed [D18854](https://reviews.bitcoinabc.org/D18854)
+
+### 2.6.3
+
+-   Another deployment patch; make sure we pin our versions to latest instead of using "latest" [D18857](https://reviews.bitcoinabc.org/D18857)

@@ -12,9 +12,18 @@ WORKDIR /app/modules/ecash-agora
 COPY modules/ecash-agora .
 
 # Replace local file: dependencies with npm registry versions to avoid workspace/file resolution in Docker
-RUN npm pkg set dependencies.ecash-lib=latest \
-    && npm pkg set dependencies.chronik-client=latest \
-    && npm pkg set devDependencies.ecash-wallet=latest
+RUN ECLIB_VERSION=$(npm view ecash-lib version) \
+    && CCLIENT_VERSION=$(npm view chronik-client version) \
+    && EWALLET_VERSION=$(npm view ecash-wallet version) \
+    && echo "Latest versions from npm:" \
+    && echo "  ecash-lib: $ECLIB_VERSION" \
+    && echo "  chronik-client: $CCLIENT_VERSION" \
+    && echo "  ecash-wallet: $EWALLET_VERSION" \
+    && npm pkg set dependencies.ecash-lib=$ECLIB_VERSION \
+    && npm pkg set dependencies.chronik-client=$CCLIENT_VERSION \
+    && npm pkg set dependencies.ecash-wallet=$EWALLET_VERSION \
+    && echo "Updated package.json dependencies:" \
+    && cat package.json | grep -A 5 '"dependencies"'
 
 # Clean existing lockfile that may contain local file: refs, then install and build
 RUN rm -f package-lock.json \
