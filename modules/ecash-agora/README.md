@@ -231,3 +231,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.1
 
 -   `ecash-wallet` is now a dependency and not a dev dependency, and must be specified as such for apps that use `ecash-agora` to avoid missing dep errors. [D18852](https://reviews.bitcoinabc.org/D18852)
+
+### 2.6.2
+
+-   Patch deployment to make sure we actually get our dependencies installed [D18854](https://reviews.bitcoinabc.org/D18854)

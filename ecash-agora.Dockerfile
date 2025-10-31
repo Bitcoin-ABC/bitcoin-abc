@@ -14,7 +14,6 @@ COPY modules/ecash-agora .
 # Replace local file: dependencies with npm registry versions to avoid workspace/file resolution in Docker
 RUN npm pkg set dependencies.ecash-lib=latest \
     && npm pkg set dependencies.chronik-client=latest \
-    && npm pkg delete dependencies.ecash-wallet \
     && npm pkg set devDependencies.ecash-wallet=latest
 
 # Clean existing lockfile that may contain local file: refs, then install and build
