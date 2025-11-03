@@ -53,13 +53,14 @@ BOOST_FIXTURE_TEST_CASE(options_dumpinterval_test, ArgsTestingSetup) {
         {seeder::DEFAULT_DUMP_INTERVAL_SECONDS, seeder::CONTINUE_EXECUTION},
         {9999, seeder::CONTINUE_EXECUTION}};
 
-    for (const auto entry : expectedResults) {
-        const std::string testArg = "-dumpinterval=" + ToString(entry.first);
+    for (const auto &[dump_interval, code] : expectedResults) {
+        const std::string testArg = "-dumpinterval=" + ToString(dump_interval);
         const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
                               testArg.c_str()};
-        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
-        if (entry.second == seeder::CONTINUE_EXECUTION) {
-            BOOST_CHECK(opts.dumpInterval == std::chrono::seconds(entry.first));
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == code);
+        if (code == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.dumpInterval ==
+                        std::chrono::seconds(dump_interval));
         }
     }
 }
@@ -73,13 +74,13 @@ BOOST_FIXTURE_TEST_CASE(options_threads_test, ArgsTestingSetup) {
         {seeder::DEFAULT_NUM_THREADS, seeder::CONTINUE_EXECUTION},
         {9999, seeder::CONTINUE_EXECUTION}};
 
-    for (const auto entry : expectedResults) {
-        const std::string testArg = "-threads=" + ToString(entry.first);
+    for (const auto &[num_threads, code] : expectedResults) {
+        const std::string testArg = "-threads=" + ToString(num_threads);
         const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
                               testArg.c_str()};
-        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
-        if (entry.second == seeder::CONTINUE_EXECUTION) {
-            BOOST_CHECK(opts.nThreads == entry.first);
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == code);
+        if (code == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nThreads == num_threads);
         }
     }
 }
@@ -93,13 +94,13 @@ BOOST_FIXTURE_TEST_CASE(options_dns_threads_test, ArgsTestingSetup) {
         {seeder::DEFAULT_NUM_DNS_THREADS, seeder::CONTINUE_EXECUTION},
         {9999, seeder::CONTINUE_EXECUTION}};
 
-    for (const auto entry : expectedResults) {
-        const std::string testArg = "-dnsthreads=" + ToString(entry.first);
+    for (const auto &[num_threads, code] : expectedResults) {
+        const std::string testArg = "-dnsthreads=" + ToString(num_threads);
         const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
                               testArg.c_str()};
-        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
-        if (entry.second == seeder::CONTINUE_EXECUTION) {
-            BOOST_CHECK(opts.nDnsThreads == entry.first);
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == code);
+        if (code == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nDnsThreads == num_threads);
         }
     }
 }
@@ -119,13 +120,13 @@ BOOST_FIXTURE_TEST_CASE(options_port_test, ArgsTestingSetup) {
         {65536, EXIT_FAILURE},
         {999999, EXIT_FAILURE}};
 
-    for (const auto entry : expectedResults) {
-        const std::string testArg = "-port=" + ToString(entry.first);
+    for (const auto &[port, code] : expectedResults) {
+        const std::string testArg = "-port=" + ToString(port);
         const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
                               testArg.c_str()};
-        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
-        if (entry.second == seeder::CONTINUE_EXECUTION) {
-            BOOST_CHECK(opts.nPort == entry.first);
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == code);
+        if (code == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nPort == port);
         }
     }
 }
