@@ -17,7 +17,7 @@ CommentPragmas:  '@DISABLE FORMATING FOR THIS COMMENT@'
 KeepEmptyLinesAtTheStartOfBlocks: false
 ---
 Language:             Cpp
-Standard:             Cpp11
+Standard:             c++20
 ---
 Language:             ObjC
 ObjCBlockIndentWidth: 4

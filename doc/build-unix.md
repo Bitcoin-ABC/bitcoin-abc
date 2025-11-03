@@ -5,7 +5,7 @@ Some notes on how to build Bitcoin ABC in Unix.
 To Build
 ---------------------
 
-Before you start building, please make sure that your compiler supports C++17.
+Before you start building, please make sure that your compiler supports C++20.
 
 It is recommended to create a build directory to build out-of-tree.
 
