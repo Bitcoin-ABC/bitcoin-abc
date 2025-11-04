@@ -33,7 +33,7 @@ chronik-plugin = { path = "../chronik-plugin" }
 chronik-util = { path = "../chronik-util" }
 
 # Bridge to C++
-cxx = "1.0"
+cxx = "1.0.138"
 
 # Derive error enums
 thiserror = "2.0.3"
@@ -43,4 +43,4 @@ tokio = { version = "1.32", features = ["sync", "rt", "rt-multi-thread"] }
 
 [build-dependencies]
 # Build scripts for the cxx crate
-cxx-build = "1.0"
+cxx-build = "1.0.138"
