@@ -206,7 +206,7 @@ builds:
       - '-DENABLE_SANITIZERS=address'
     templates:
       - check+secp256k1
-    timeout: 2400
+    timeout: 3600
     env:
       ASAN_OPTIONS: log_path=stdout
       LSAN_OPTIONS: log_path=stdout
