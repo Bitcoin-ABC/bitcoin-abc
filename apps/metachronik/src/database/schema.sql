@@ -61,7 +61,18 @@ CREATE TABLE IF NOT EXISTS days (
     tx_count_genesis_slp_token_type_mint_vault INTEGER NOT NULL,
     tx_count_genesis_slp_token_type_nft1_group INTEGER NOT NULL,
     tx_count_genesis_slp_token_type_nft1_child INTEGER NOT NULL,
-    price_usd DECIMAL(12, 8)
+    price_usd DECIMAL(12, 8),
+    -- Generated columns for USD volume calculated at the time of each day
+    -- Convert sats to XEC (divide by 100), then multiply by price to get USD
+    agora_volume_firma_usd DECIMAL(20, 2) GENERATED ALWAYS AS (
+        (agora_volume_firma_sats / 100.0) * COALESCE(price_usd, 0)
+    ) STORED,
+    agora_volume_xecx_usd DECIMAL(20, 2) GENERATED ALWAYS AS (
+        (agora_volume_xecx_sats / 100.0) * COALESCE(price_usd, 0)
+    ) STORED,
+    agora_volume_usd DECIMAL(20, 2) GENERATED ALWAYS AS (
+        (agora_volume_sats / 100.0) * COALESCE(price_usd, 0)
+    ) STORED
 );
 
 -- Indexes for efficient queries
@@ -78,7 +89,11 @@ SELECT
     date,
     SUM(agora_volume_sats) OVER (ORDER BY date) as cumulative_agora_volume_sats,
     SUM(agora_volume_xecx_sats) OVER (ORDER BY date) as cumulative_agora_volume_xecx_sats,
-    SUM(agora_volume_firma_sats) OVER (ORDER BY date) as cumulative_agora_volume_firma_sats
+    SUM(agora_volume_firma_sats) OVER (ORDER BY date) as cumulative_agora_volume_firma_sats,
+    -- Cumulative USD volumes calculated from daily USD values (snapshot at time of each day)
+    SUM(agora_volume_usd) OVER (ORDER BY date) as cumulative_agora_volume_usd,
+    SUM(agora_volume_xecx_usd) OVER (ORDER BY date) as cumulative_agora_volume_xecx_usd,
+    SUM(agora_volume_firma_usd) OVER (ORDER BY date) as cumulative_agora_volume_firma_usd
 FROM days
 ORDER BY date;
 

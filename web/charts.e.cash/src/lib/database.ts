@@ -96,10 +96,9 @@ interface DailyAgoraVolumeUSDRow {
 
 interface CumulativeAgoraVolumeUSDRow {
     date: string;
-    cumulative_agora_volume_sats: string | number;
-    cumulative_agora_volume_xecx_sats: string | number;
-    cumulative_agora_volume_firma_sats: string | number;
-    price_usd: string | number;
+    cumulative_agora_volume_usd: string | number;
+    cumulative_agora_volume_xecx_usd: string | number;
+    cumulative_agora_volume_firma_usd: string | number;
 }
 
 interface CountRow {
@@ -710,66 +709,51 @@ export class DatabaseService {
         try {
             let query = `
                 SELECT 
-                    cav.date,
-                    cav.cumulative_agora_volume_sats,
-                    cav.cumulative_agora_volume_xecx_sats,
-                    cav.cumulative_agora_volume_firma_sats,
-                    d.price_usd
-                FROM cumulative_agora_volume cav
-                JOIN days d ON cav.date = d.date
+                    to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    cumulative_agora_volume_usd,
+                    cumulative_agora_volume_xecx_usd,
+                    cumulative_agora_volume_firma_usd
+                FROM cumulative_agora_volume
             `;
 
             const params: (string | number)[] = [];
             const conditions: string[] = [];
 
             if (startDate && endDate) {
-                conditions.push('cav.date BETWEEN $1 AND $2');
+                conditions.push('date BETWEEN $1 AND $2');
                 params.push(startDate, endDate);
             }
 
             // Filter out incomplete days (current day)
             const today = new Date().toISOString().split('T')[0];
-            conditions.push('cav.date < $' + (params.length + 1));
+            conditions.push('date < $' + (params.length + 1));
             params.push(today);
 
             if (conditions.length > 0) {
                 query += ' WHERE ' + conditions.join(' AND ');
             }
 
-            query += ' ORDER BY cav.date';
+            query += ' ORDER BY date';
 
             const result = await client.query(query, params);
 
-            let cumulativeUSD = 0;
-            let cumulativeXecxUSD = 0;
-            let cumulativeFirmaUSD = 0;
-            let cumulativeOtherUSD = 0;
-
             return result.rows.map((row: CumulativeAgoraVolumeUSDRow) => {
-                const totalSats = Number(row.cumulative_agora_volume_sats);
-                const xecxSats = Number(row.cumulative_agora_volume_xecx_sats);
-                const firmaSats = Number(
-                    row.cumulative_agora_volume_firma_sats,
-                );
-                const price = Number(row.price_usd) || 0;
-
-                // Convert sats to USD (1 XEC = 100 sats)
-                const totalUSD = (totalSats / 100) * price;
-                const xecxUSD = (xecxSats / 100) * price;
-                const firmaUSD = (firmaSats / 100) * price;
+                // cumulative_agora_volume_usd is the cumulative total of ALL agora volume
+                // cumulative_agora_volume_xecx_usd is cumulative xecx
+                // cumulative_agora_volume_firma_usd is cumulative firma
+                const totalUSD = Number(row.cumulative_agora_volume_usd) || 0;
+                const xecxUSD =
+                    Number(row.cumulative_agora_volume_xecx_usd) || 0;
+                const firmaUSD =
+                    Number(row.cumulative_agora_volume_firma_usd) || 0;
                 const otherUSD = totalUSD - xecxUSD - firmaUSD;
-
-                cumulativeUSD = totalUSD;
-                cumulativeXecxUSD = xecxUSD;
-                cumulativeFirmaUSD = firmaUSD;
-                cumulativeOtherUSD = otherUSD;
 
                 return {
                     date: row.date,
-                    usd: cumulativeUSD,
-                    xecx_usd: cumulativeXecxUSD,
-                    firma_usd: cumulativeFirmaUSD,
-                    other_usd: cumulativeOtherUSD,
+                    usd: totalUSD,
+                    xecx_usd: xecxUSD,
+                    firma_usd: firmaUSD,
+                    other_usd: otherUSD,
                 };
             });
         } finally {
