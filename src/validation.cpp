@@ -2334,8 +2334,6 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetId(), o))) {
-                    LogPrintf("ERROR: ConnectBlock(): tried to overwrite "
-                              "transaction\n");
                     return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                                          "bad-txns-BIP30",
                                          "tried to overwrite transaction");
@@ -2395,9 +2393,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         // disk, and older versions may have saved a weird block.
         // - its checks are not applied to pre-CTOR chains, which we might visit
         // with checkpointing off.
-        LogPrintf("ERROR: ConnectBlock(): tried to overwrite transaction\n");
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                             "tx-duplicate");
+                             "tx-duplicate", "tried to overwrite transaction");
     }
 
     size_t txIndex = 0;
@@ -2421,19 +2418,16 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                               tx_state.GetRejectReason(),
                               tx_state.GetDebugMessage() + " in transaction " +
                                   tx.GetId().ToString());
-
-                return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
-                             tx.GetId().ToString(), state.ToString());
+                break;
             }
             nFees += txfee;
         }
 
         if (!MoneyRange(nFees)) {
-            LogPrintf("ERROR: %s: accumulated fee in the block out of range.\n",
-                      __func__);
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                                 "bad-txns-accumulated-fee-outofrange",
-                                 "accumulated fee in the block out of range");
+            state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                          "bad-txns-accumulated-fee-outofrange",
+                          "accumulated fee in the block out of range");
+            break;
         }
 
         // The following checks do not apply to the coinbase.
@@ -2450,12 +2444,11 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         }
 
         if (!SequenceLocks(tx, nLockTimeFlags, prevheights, *pindex)) {
-            LogPrintf("ERROR: %s: contains a non-BIP68-final transaction\n",
-                      __func__);
-            return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                                 "bad-txns-nonfinal",
-                                 "contains a non-BIP68-final transaction " +
-                                     tx.GetHash().ToString());
+            state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                          "bad-txns-nonfinal",
+                          "contains a non-BIP68-final transaction " +
+                              tx.GetHash().ToString());
+            break;
         }
 
         // Don't cache results if we're actually connecting blocks (still
@@ -2483,8 +2476,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                           tx_state.GetRejectReason(),
                           tx_state.GetDebugMessage());
-            return error("Script validation error in block: %s\n",
-                         state.ToString());
+            break;
         }
 
         control.Add(std::move(vChecks));
@@ -2513,11 +2505,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     const Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
-    if (block.vtx[0]->GetValueOut() > blockReward) {
-        LogPrintf("ERROR: ConnectBlock(): coinbase pays too much (actual=%d vs "
-                  "limit=%d)\n",
-                  block.vtx[0]->GetValueOut(), blockReward);
-        return state.Invalid(
+    if (block.vtx[0]->GetValueOut() > blockReward && state.IsValid()) {
+        state.Invalid(
             BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
             strprintf("coinbase pays too much (actual=%d vs limit=%d)",
                       block.vtx[0]->GetValueOut(), blockReward));
@@ -2528,12 +2517,15 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     }
 
     auto parallel_result = control.Complete();
-    if (parallel_result.has_value()) {
-        return state.Invalid(
-            BlockValidationResult::BLOCK_CONSENSUS,
-            strprintf("mandatory-script-verify-flag-failed (%s)",
-                      ScriptErrorString(parallel_result->first)),
-            parallel_result->second);
+    if (parallel_result.has_value() && state.IsValid()) {
+        state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
+                      strprintf("mandatory-script-verify-flag-failed (%s)",
+                                ScriptErrorString(parallel_result->first)),
+                      parallel_result->second);
+    }
+    if (!state.IsValid()) {
+        LogInfo("Block validation error: %s\n", state.ToString());
+        return false;
     }
     const auto time_4{SteadyClock::now()};
     time_verify += time_4 - time_2;
