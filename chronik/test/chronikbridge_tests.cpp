@@ -129,6 +129,7 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
     // ones are default
     chronik_bridge::Tx query_tx = {
         .txid = {},
+        .version = 2,
         .inputs =
             {
                 {.prev_out = {chronik::util::HashToArray(txid), 0},
