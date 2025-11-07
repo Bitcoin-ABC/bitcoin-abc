@@ -16,9 +16,9 @@ export default function BrandContent() {
       category: "primary",
     },
     {
-      hex: "#0671c0",
-      rgb: "rgb(6, 113, 192)",
-      cmyk: "C:97 M:41 Y:0 K:25",
+      hex: "#0074c2",
+      rgb: "rgb(0, 116, 194)",
+      cmyk: "C:86 M:51 Y:0 K:0",
       category: "primary",
     },
     {
