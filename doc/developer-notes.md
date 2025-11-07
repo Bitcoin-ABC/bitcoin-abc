@@ -339,7 +339,7 @@ LCOV can be used to generate a test coverage report based upon some test targets
 execution. Some packages are required to generate the coverage report:
 `c++filt`, `gcov`, `genhtml`, `lcov` and `python3`.
 
-To install these dependencies on Debian 10:
+To install these dependencies on Debian:
 
 ```shell
 sudo apt install binutils-common g++ lcov python3

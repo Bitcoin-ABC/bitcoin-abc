@@ -137,7 +137,7 @@ enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
 will have to install the following:
 
-Install all the code formatting tools on Debian Bullseye/Bookworm (11/12) or
+Install all the code formatting tools on Debian Bookworm/Trixie (12/13) or
 Ubuntu 24.04:
 ```
 sudo apt-get install clang-format-16 clang-tidy-16 python3-pip php-codesniffer shellcheck yamllint
@@ -161,11 +161,6 @@ Standalone binaries are available for download on
 **Note**: In order for arcanist to detect the `shellcheck` executable, you need to make it available in your `PATH`;
 if another version is already installed, make sure the recent one is found first.
 Arcanist will tell you what version is expected and what is found when running `arc lint` against a shell script.
-
-If you are running Debian 10, it is also available in the backports repository:
-```
-sudo apt-get -t buster-backports install shellcheck
-```
 
 If you are modifying Rust files, you will need to install a stable rust version,
 plus a nightly toolchain called "abc-nightly" for formatting:

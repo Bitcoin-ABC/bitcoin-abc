@@ -65,13 +65,13 @@ Build requirements:
 
     sudo apt-get install bsdmainutils build-essential cmake libssl-dev libevent-dev lld ninja-build python3 python3-pytest
 
-**Installing cmake on older distribution (Debian < 11 or Ubuntu < 20.04):**
+**Installing cmake on older distribution of Debian or Ubuntu:**
 
-On Debian Buster (10), `cmake` should be installed from the backports repository:
+On Debian, `cmake` should be installed from the backports repository:
 
-    echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
+    echo "deb http://deb.debian.org/debian $(lsb_release -cs)-backports main" | sudo tee -a /etc/apt/sources.list
     sudo apt-get update
-    sudo apt-get -t buster-backports install cmake
+    sudo apt-get -t "$(lsb_release -cs)-backports" install cmake
 
 If the `cmake` packaged version is too old it can be installed from the Kitware APT repository:
 
