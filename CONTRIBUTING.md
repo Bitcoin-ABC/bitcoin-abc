@@ -144,7 +144,7 @@ sudo apt-get install clang-format-16 clang-tidy-16 python3-pip php-codesniffer s
 
 # Depending on your distribution policy you might need to pass the
 # --break-system-packages to the below pip3 call
-pip3 install "black>=25.0" "isort>=5.6.4" "mypy>=0.910" "flynt>=0.78" "flake8>=5" flake8-comprehensions flake8-builtins "djlint>=1.34.1"
+pip3 install "ruff>=0.14.0" "isort>=5.6.4" "mypy>=0.910" "flynt>=0.78" "flake8>=5" flake8-comprehensions flake8-builtins "djlint>=1.34.1"
 
 echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc

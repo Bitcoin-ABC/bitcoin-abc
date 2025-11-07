@@ -154,9 +154,9 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
                         " the process of being indexed."
                     )
             else:
-                assert (
-                    False
-                ), "The isfinaltransaction RPC call did not throw as expected."
+                assert False, (
+                    "The isfinaltransaction RPC call did not throw as expected."
+                )
 
             sync_txindex(self, node)
 

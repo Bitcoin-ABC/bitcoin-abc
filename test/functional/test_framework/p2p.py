@@ -941,15 +941,15 @@ class P2PDataStore(P2PInterface):
             if success:
                 # Check that all txs are now in the mempool
                 for tx in txs:
-                    assert (
-                        tx.txid_hex in raw_mempool
-                    ), f"{tx.txid_hex} not found in mempool"
+                    assert tx.txid_hex in raw_mempool, (
+                        f"{tx.txid_hex} not found in mempool"
+                    )
             else:
                 # Check that none of the txs are now in the mempool
                 for tx in txs:
-                    assert (
-                        tx.txid_hex not in raw_mempool
-                    ), f"{tx.txid_hex} tx found in mempool"
+                    assert tx.txid_hex not in raw_mempool, (
+                        f"{tx.txid_hex} tx found in mempool"
+                    )
 
         if reject_reason:
             with node.assert_debug_log(expected_msgs=[reject_reason]):

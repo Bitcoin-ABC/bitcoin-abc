@@ -105,8 +105,8 @@ def randbool(p=0.5):
 def gen_invalid_vectors():
     """Generate invalid test vectors"""
     # start with some manual edge-cases
-    yield "",
-    yield "x",
+    yield ("",)
+    yield ("x",)
     while True:
         # kinds of invalid vectors:
         #   invalid prefix
@@ -124,7 +124,7 @@ def gen_invalid_vectors():
                     n = random.randint(0, len(val))
                     val = val[0:n] + random.choice(b58chars) + val[n + 1 :]
             if not is_valid(val):
-                yield val,
+                yield (val,)
 
 
 if __name__ == "__main__":

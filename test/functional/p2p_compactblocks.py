@@ -924,7 +924,6 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # Test the simple parallel download case...
         for num_missing in [1, 5, 20]:
-
             # Remaining low-bandwidth peer is stalling_peer, who announces first
             assert_equal(
                 [peer["bip152_hb_to"] for peer in node.getpeerinfo()],

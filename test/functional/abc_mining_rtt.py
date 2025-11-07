@@ -24,7 +24,6 @@ THE_FUTURE = 2100000000
 
 
 class LongpollThread(threading.Thread):
-
     def __init__(self, node, longpollid):
         threading.Thread.__init__(self)
         self.longpollid = longpollid

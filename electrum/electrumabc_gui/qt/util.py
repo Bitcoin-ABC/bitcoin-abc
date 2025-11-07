@@ -103,9 +103,9 @@ class WWLabel(QtWidgets.QLabel):
 # --- Help widgets
 class HelpMixin:
     def __init__(self, help_text, *, custom_parent=None):
-        assert isinstance(
-            self, QtWidgets.QWidget
-        ), "HelpMixin must be a QWidget instance!"
+        assert isinstance(self, QtWidgets.QWidget), (
+            "HelpMixin must be a QWidget instance!"
+        )
         self.help_text = help_text
         self.custom_parent = custom_parent
         if isinstance(self, QtWidgets.QLabel):
@@ -615,7 +615,9 @@ def filename_field(config, defaultname, select_msg):
         _filter = (
             "*.csv"
             if text.endswith(".csv")
-            else "*.json" if text.endswith(".json") else None
+            else "*.json"
+            if text.endswith(".json")
+            else None
         )
         p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
@@ -989,9 +991,9 @@ class RateLimiter(PrintError):
     def invoke(cls, rate, ts_after, func, args, kwargs):
         """Calls _invoke() on an existing RateLimiter object (or creates a new
         one for the given function on first run per target object instance)."""
-        assert args and isinstance(
-            args[0], object
-        ), "@rate_limited decorator may only be used with object instance methods"
+        assert args and isinstance(args[0], object), (
+            "@rate_limited decorator may only be used with object instance methods"
+        )
         assert threading.current_thread() is threading.main_thread(), (
             "@rate_limited decorator may only be used with functions called in the main"
             " thread"
@@ -1120,9 +1122,9 @@ class RateLimiterClassLvl(RateLimiter):
 
     @classmethod
     def invoke(cls, rate, ts_after, func, args, kwargs):
-        assert args and not isinstance(
-            args[0], type
-        ), "@rate_limited decorator may not be used with static or class methods"
+        assert args and not isinstance(args[0], type), (
+            "@rate_limited decorator may not be used with static or class methods"
+        )
         obj = args[0]
         objcls = obj.__class__
         args = list(args)
@@ -1209,9 +1211,9 @@ def destroyed_print_error(qobject, msg=None):
     """Supply a message to be printed via print_error when obj is destroyed (Qt C++ deleted).
     This is useful for debugging memory leaks. Note that this function is a no-op unless debug_destroyed is True.
     """
-    assert isinstance(
-        qobject, QObject
-    ), "destroyed_print_error can only be used on QObject instances!"
+    assert isinstance(qobject, QObject), (
+        "destroyed_print_error can only be used on QObject instances!"
+    )
     if not debug_destroyed:
         return
     if msg is None:

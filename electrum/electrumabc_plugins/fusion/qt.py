@@ -1207,7 +1207,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.lineEdit().textEdited.connect(self.user_changed_server)
         self.combo_server_host.addItems(
             [
-                f'{s[0]} ({s[1]}{" - ssl" if s[2] else ""})'
+                f"{s[0]} ({s[1]}{' - ssl' if s[2] else ''})"
                 for s in Global.Defaults.ServerList
             ]
         )

@@ -195,10 +195,10 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
             },
         }
         data_list = phab.differential.revision.search(**revisionSearchArgs).data
-        assert (
-            len(data_list) == 1
-        ), "differential.revision.search({}): Expected 1 revision, got: {}".format(
-            revisionSearchArgs, data_list
+        assert len(data_list) == 1, (
+            "differential.revision.search({}): Expected 1 revision, got: {}".format(
+                revisionSearchArgs, data_list
+            )
         )
         summary = data_list[0]["fields"]["summary"]
 

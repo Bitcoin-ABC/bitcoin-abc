@@ -47,7 +47,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block_txs("00" * 31).err(400).msg,
-            f'400: Not a hash or height: {"00" * 31}',
+            f"400: Not a hash or height: {'00' * 31}",
         )
         assert_equal(
             chronik.block_txs("01").err(400).msg, "400: Not a hash or height: 01"

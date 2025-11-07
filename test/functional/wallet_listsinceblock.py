@@ -265,9 +265,9 @@ class ListSinceBlockTest(BitcoinTestFramework):
         self.sync_all()
 
         # gettransaction should work for txid1
-        assert (
-            self.nodes[0].gettransaction(txid1)["txid"] == txid1
-        ), "gettransaction failed to find txid1"
+        assert self.nodes[0].gettransaction(txid1)["txid"] == txid1, (
+            "gettransaction failed to find txid1"
+        )
 
         # listsinceblock(lastblockhash) should now include txid1, as seen from
         # nodes[0]

@@ -8,7 +8,6 @@ this does not cause a deadlock.
 See https://github.com/bitcoin/bitcoin/pull/27981
 """
 
-
 import threading
 
 from test_framework.blocktools import create_block

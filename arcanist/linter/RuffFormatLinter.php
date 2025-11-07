@@ -1,28 +1,28 @@
 <?php
 
 /**
- * Uses the black tool to format python code
+ * Uses the ruff tool to format python code
  */
-final class BlackFormatLinter extends ArcanistExternalLinter {
+final class RuffFormatLinter extends ArcanistExternalLinter {
 
   public function getInfoName() {
-    return 'black';
+    return 'ruff-format';
   }
 
   public function getInfoURI() {
-    return 'https://black.readthedocs.io/en/stable/';
+    return 'https://docs.astral.sh/ruff/';
   }
 
   public function getInfoDescription() {
-    return pht('The uncompromising python formatter');
+    return pht('Fast Python linter and code formatter');
   }
 
   public function getLinterName() {
-    return 'black';
+    return 'ruff-format';
   }
 
   public function getLinterConfigurationName() {
-    return 'black';
+    return 'ruff-format';
   }
 
   public function getLinterConfigurationOptions() {
@@ -31,7 +31,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
   }
 
   /**
-   * To make black write the output to stdout, pass the input via stdin.
+   * To make ruff write the output to stdout, pass the input via stdin.
    */
   protected function buildFutures(array $paths) {
     $executable = $this->getExecutableCommand();
@@ -53,7 +53,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
   }
 
   public function getDefaultBinary() {
-    return 'black';
+    return 'ruff';
   }
 
   public function getVersion() {
@@ -62,7 +62,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
     $matches = array();
 
     /* Support a.b or a.b.c version numbering scheme */
-    $regex = '/^black, (?P<version>\d+\.\d+(?:\.\d+)?)/';
+    $regex = '/^ruff (?P<version>\d+\.\d+(?:\.\d+)?)/';
 
     if (preg_match($regex, $stdout, $matches)) {
       return $matches['version'];
@@ -72,7 +72,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
   }
 
   public function getInstallInstructions() {
-    return pht('pip install black');
+    return pht('pip install ruff');
   }
 
   public function shouldExpectCommandErrors() {
@@ -80,7 +80,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
   }
 
   protected function getMandatoryFlags() {
-    return array();
+    return array('format');
   }
 
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
@@ -100,7 +100,7 @@ final class BlackFormatLinter extends ArcanistExternalLinter {
       ->setLine(1)
       ->setChar(1)
       ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
-      ->setCode('BLACK')
+      ->setCode('RUFF')
       ->setSeverity(ArcanistLintSeverity::SEVERITY_AUTOFIX)
       ->setName('Code style violation')
       ->setDescription("'$path' has code style errors.")

@@ -181,7 +181,7 @@ class ElectrumGui:
 
     def print_addresses(self):
         messages = (
-            f'{str(addr):>30}    {self.wallet.labels.get(addr, ""):>30}       '
+            f"{str(addr):>30}    {self.wallet.labels.get(addr, ''):>30}       "
             for addr in self.wallet.get_addresses()
         )
         self.print_list(messages, "            Address                      Label ")

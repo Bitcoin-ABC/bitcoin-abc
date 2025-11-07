@@ -618,9 +618,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.accept_signal.emit()
 
     def run_task_without_blocking_gui(self, task, *, msg=None):
-        assert (
-            self.gui_thread == threading.current_thread()
-        ), "must be called from GUI thread"
+        assert self.gui_thread == threading.current_thread(), (
+            "must be called from GUI thread"
+        )
         if msg is None:
             msg = _("Please wait...")
 

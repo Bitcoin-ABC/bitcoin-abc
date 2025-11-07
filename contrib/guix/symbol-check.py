@@ -326,7 +326,7 @@ if __name__ == "__main__":
                 if not func(binary):
                     failed.append(name)
             if failed:
-                print(f'{filename}: failed {" ".join(failed)}')
+                print(f"{filename}: failed {' '.join(failed)}")
                 retval = 1
         except IOError:
             print(f"{filename}: cannot open")

@@ -53,10 +53,13 @@ class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
             "Generate blocks on the node with no required chainwork, and verify nodes "
             "1 and 2 have no new headers in their headers tree"
         )
-        with self.nodes[1].assert_debug_log(
-            expected_msgs=["Ignoring low-work chain (height=14)"]
-        ), self.nodes[2].assert_debug_log(
-            expected_msgs=["Ignoring low-work chain (height=14)"]
+        with (
+            self.nodes[1].assert_debug_log(
+                expected_msgs=["Ignoring low-work chain (height=14)"]
+            ),
+            self.nodes[2].assert_debug_log(
+                expected_msgs=["Ignoring low-work chain (height=14)"]
+            ),
         ):
             self.generate(self.nodes[0], NODE1_BLOCKS_REQUIRED - 1, sync_fun=self.no_op)
 

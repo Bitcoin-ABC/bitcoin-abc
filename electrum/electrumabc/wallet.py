@@ -1337,9 +1337,8 @@ class AbstractWallet(PrintError, SPVDelegate):
                             ":",
                             repr(e),
                         )
-                        if (
-                            not keep_running()
-                        ):  # in case we got a network timeout *and* the wallet was closed
+                        # in case we got a network timeout *and* the wallet was closed
+                        if not keep_running():
                             return
                         continue
                     if not keep_running():

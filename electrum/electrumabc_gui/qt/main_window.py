@@ -152,7 +152,8 @@ try:
     # with PySide2!).
     from qtpy.QtMultimedia import QCameraInfo
 
-    del QCameraInfo  # defensive programming: not always available so don't keep name around
+    # defensive programming: not always available so don't keep name around
+    del QCameraInfo
 except ImportError:
     pass  # we tried to pre-load it, failure is ok; camera just won't be available
 
@@ -3844,9 +3845,9 @@ class TxUpdateMgr(QObject, PrintError):
     the appropriate GUI controls in the main_window in an efficient manner."""
 
     def __init__(self, main_window_parent: ElectrumWindow):
-        assert isinstance(
-            main_window_parent, ElectrumWindow
-        ), "TxUpdateMgr must be constructed with an ElectrumWindow as its parent"
+        assert isinstance(main_window_parent, ElectrumWindow), (
+            "TxUpdateMgr must be constructed with an ElectrumWindow as its parent"
+        )
         super().__init__(main_window_parent)
         self.cleaned_up = False
         self.lock = threading.Lock()  # used to lock thread-shared attrs below

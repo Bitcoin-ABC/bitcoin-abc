@@ -46,7 +46,7 @@ class ChronikTxTest(BitcoinTestFramework):
         assert_equal(chronik.tx("123").err(400).msg, "400: Not a txid: 123")
         assert_equal(chronik.tx("1234f").err(400).msg, "400: Not a txid: 1234f")
         assert_equal(
-            chronik.tx("00" * 31).err(400).msg, f'400: Not a txid: {"00" * 31}'
+            chronik.tx("00" * 31).err(400).msg, f"400: Not a txid: {'00' * 31}"
         )
         assert_equal(chronik.tx("01").err(400).msg, "400: Not a txid: 01")
         assert_equal(
@@ -55,7 +55,7 @@ class ChronikTxTest(BitcoinTestFramework):
 
         assert_equal(
             chronik.tx("00" * 32).err(404).msg,
-            f'404: Transaction {"00" * 32} not found in the index',
+            f"404: Transaction {'00' * 32} not found in the index",
         )
 
         from test_framework.chronik.test_data import genesis_cb_tx

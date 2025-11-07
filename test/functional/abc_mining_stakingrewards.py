@@ -27,7 +27,6 @@ STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
 
 
 class LongpollThread(threading.Thread):
-
     def __init__(self, node, longpollid):
         threading.Thread.__init__(self)
         self.longpollid = longpollid
@@ -381,9 +380,9 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             assert not thr.is_alive()
 
             assert_equal(thr.longpoll_template["previousblockhash"], expected_tip)
-            assert (
-                "stakingrewards" in thr.longpoll_template["coinbasetxn"]
-            ), thr.longpoll_template
+            assert "stakingrewards" in thr.longpoll_template["coinbasetxn"], (
+                thr.longpoll_template
+            )
             assert_equal(
                 thr.longpoll_template["coinbasetxn"]["stakingrewards"],
                 {

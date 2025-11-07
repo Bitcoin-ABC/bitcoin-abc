@@ -39,7 +39,6 @@ class ChronikClientTokenAlp(SetupFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-
         # Init
         node = self.nodes[0]
         peer = node.add_p2p_connection(P2PDataStore())

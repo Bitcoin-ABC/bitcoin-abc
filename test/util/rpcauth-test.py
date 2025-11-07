@@ -3,6 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test share/rpcauth/rpcauth.py"""
+
 import base64
 import configparser
 import hmac

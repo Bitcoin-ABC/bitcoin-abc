@@ -222,7 +222,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
                 # address length (COMPACTSIZE(513))
                 "fd0102"
                 # address
-                f'{"ab" * 513}'
+                f"{'ab' * 513}"
                 # port
                 "208d"
             ),

@@ -143,9 +143,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
-        assert hasattr(
-            self, "num_nodes"
-        ), "Test must set self.num_nodes in set_test_params()"
+        assert hasattr(self, "num_nodes"), (
+            "Test must set self.num_nodes in set_test_params()"
+        )
 
         try:
             self.setup()
@@ -543,7 +543,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         wallet_name = (
             self.default_wallet_name
             if self.wallet_names is None
-            else self.wallet_names[i] if i < len(self.wallet_names) else False
+            else self.wallet_names[i]
+            if i < len(self.wallet_names)
+            else False
         )
         if wallet_name is not False:
             n = self.nodes[i]

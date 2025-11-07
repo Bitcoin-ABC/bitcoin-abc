@@ -45,9 +45,7 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
     QLabel, QLabel link {{
         border-radius: {0}px;
     }}
-    """.format(
-        BORDER_RADIUS
-    )
+    """.format(BORDER_RADIUS)
 
     CONFIRM_TEXT = _("I UNDERSTAND THE RISK").upper()
 

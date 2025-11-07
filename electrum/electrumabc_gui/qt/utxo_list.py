@@ -154,10 +154,10 @@ class UTXOList(MyTreeWidget):
         return wrapper
 
     def get_name(self, x):
-        return x.get("prevout_hash") + f':{x.get("prevout_n")}'
+        return x.get("prevout_hash") + f":{x.get('prevout_n')}"
 
     def get_name_short(self, x):
-        return x.get("prevout_hash")[:10] + "..." + f':{x.get("prevout_n")}'
+        return x.get("prevout_hash")[:10] + "..." + f":{x.get('prevout_n')}"
 
     @rate_limited(1.0, ts_after=True)
     def update(self):
@@ -342,13 +342,15 @@ class UTXOList(MyTreeWidget):
                 # Determine the "alt copy text" "Legacy Address" or "Cash Address"
                 copy_text = coin.address.to_ui_string()
                 if Address.FMT_UI == Address.FMT_LEGACY:
-                    alt_copy_text, alt_column_title = coin.address.to_full_string(
-                        Address.FMT_CASHADDR
-                    ), _("Cash Address")
+                    alt_copy_text, alt_column_title = (
+                        coin.address.to_full_string(Address.FMT_CASHADDR),
+                        _("Cash Address"),
+                    )
                 else:
-                    alt_copy_text, alt_column_title = coin.address.to_full_string(
-                        Address.FMT_LEGACY
-                    ), _("Legacy Address")
+                    alt_copy_text, alt_column_title = (
+                        coin.address.to_full_string(Address.FMT_LEGACY),
+                        _("Legacy Address"),
+                    )
             else:
                 copy_text = item.text(col)
             if copy_text:

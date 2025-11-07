@@ -983,7 +983,7 @@ class UtxosDialog(QtWidgets.QDialog):
         def is_usable_utxo(utxo: dict) -> bool:
             return (
                 utxo["height"] > 0
-                and f'{utxo["prevout_hash"]}:{utxo["prevout_n"]}'
+                and f"{utxo['prevout_hash']}:{utxo['prevout_n']}"
                 not in self.outpoints_to_exclude
             )
 

@@ -409,7 +409,7 @@ class _Req(threading.Thread, PrintError):
         self.aborted = True
 
     def diagnostic_name(self):
-        return f"{__class__.__name__}@{id(self) & 0xffff}"
+        return f"{__class__.__name__}@{id(self) & 0xFFFF}"
 
     def run(self):
         self.checker._dl_prog.emit(self, 10)

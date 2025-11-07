@@ -410,7 +410,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
                         INSTALL_ERROR_MESSAGES[
                             ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD
                         ]
-                    ),
+                    )
                     return
                 run_hook("init_qt", self.main_window.gui_object)
             self.refresh_ui()

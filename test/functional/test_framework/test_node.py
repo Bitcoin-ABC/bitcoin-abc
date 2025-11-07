@@ -844,11 +844,14 @@ class TestNode:
         Will throw if an expected_msg is provided and it does not match bitcoind's stdout.
         """
         assert not self.running
-        with tempfile.NamedTemporaryFile(
-            dir=self.stderr_dir, delete=False
-        ) as log_stderr, tempfile.NamedTemporaryFile(
-            dir=self.stdout_dir, delete=False
-        ) as log_stdout:
+        with (
+            tempfile.NamedTemporaryFile(
+                dir=self.stderr_dir, delete=False
+            ) as log_stderr,
+            tempfile.NamedTemporaryFile(
+                dir=self.stdout_dir, delete=False
+            ) as log_stdout,
+        ):
             try:
                 self.start(
                     extra_args, stdout=log_stdout, stderr=log_stderr, *args, **kwargs

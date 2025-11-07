@@ -689,9 +689,9 @@ class Weak:
     def finalization_print_error(obj, msg=None):
         """Supply a message to be printed via print_error when obj is
         finalized (Python GC'd). This is useful for debugging memory leaks."""
-        assert not isinstance(
-            obj, type
-        ), "finaliztion_print_error can only be used on instance objects!"
+        assert not isinstance(obj, type), (
+            "finaliztion_print_error can only be used on instance objects!"
+        )
         if msg is None:
             if isinstance(obj, PrintError):
                 name = obj.diagnostic_name()

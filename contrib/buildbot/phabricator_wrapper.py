@@ -54,10 +54,10 @@ class PhabWrapper(Phabricator):
             },
         }
         data_list = self.differential.diff.search(**diffSearchArgs).data
-        assert (
-            len(data_list) == 1
-        ), "differential.diff.search({}): Expected 1 diff, got: {}".format(
-            diffSearchArgs, data_list
+        assert len(data_list) == 1, (
+            "differential.diff.search({}): Expected 1 diff, got: {}".format(
+                diffSearchArgs, data_list
+            )
         )
         diffdata = data_list[0]
         revisionPHID = diffdata["fields"]["revisionPHID"]
@@ -70,10 +70,10 @@ class PhabWrapper(Phabricator):
             },
         }
         data_list = self.differential.revision.search(**revisionSearchArgs).data
-        assert (
-            len(data_list) == 1
-        ), "differential.revision.search({}): Expected 1 revision, got: {}".format(
-            revisionSearchArgs, data_list
+        assert len(data_list) == 1, (
+            "differential.revision.search({}): Expected 1 revision, got: {}".format(
+                revisionSearchArgs, data_list
+            )
         )
         diffdata = data_list[0]
         revisionId = diffdata["id"]
@@ -88,10 +88,10 @@ class PhabWrapper(Phabricator):
             },
         }
         rev_list = self.differential.revision.search(**revisionSearchArgs).data
-        assert (
-            len(rev_list) == 1
-        ), "differential.revision.search({}): Expected 1 revision, got: {}".format(
-            revisionSearchArgs, rev_list
+        assert len(rev_list) == 1, (
+            "differential.revision.search({}): Expected 1 revision, got: {}".format(
+                revisionSearchArgs, rev_list
+            )
         )
 
         # Fetch revision author
@@ -101,9 +101,9 @@ class PhabWrapper(Phabricator):
             },
         }
         author_list = self.user.search(**userSearchArgs).data
-        assert (
-            len(author_list) == 1
-        ), f"user.search({userSearchArgs}): Expected 1 user, got: {author_list}"
+        assert len(author_list) == 1, (
+            f"user.search({userSearchArgs}): Expected 1 user, got: {author_list}"
+        )
         return author_list[0]
 
     def getRevisionPHIDsFromCommits(self, commitHashes):
@@ -116,10 +116,10 @@ class PhabWrapper(Phabricator):
         }
         commits = self.diffusion.commit.search(**commitSearchArgs).data
         expectedNumCommits = len(commitHashes)
-        assert (
-            len(commits) == expectedNumCommits
-        ), "diffusion.commit.search({}): Expected {} commits, got: {}".format(
-            expectedNumCommits, commitSearchArgs, commits
+        assert len(commits) == expectedNumCommits, (
+            "diffusion.commit.search({}): Expected {} commits, got: {}".format(
+                expectedNumCommits, commitSearchArgs, commits
+            )
         )
 
         # Attempt to get revisions for all commit objects (not all commits have
@@ -164,10 +164,10 @@ class PhabWrapper(Phabricator):
             },
         }
         revs = self.differential.revision.search(**revisionSearchArgs).data
-        assert len(revs) == len(
-            revisionPHIDs
-        ), "differential.revision.search({}): Expected {} revisions, got: {}".format(
-            revisionSearchArgs, len(revisionPHIDs), revs
+        assert len(revs) == len(revisionPHIDs), (
+            "differential.revision.search({}): Expected {} revisions, got: {}".format(
+                revisionSearchArgs, len(revisionPHIDs), revs
+            )
         )
 
         # Decorate revision authors

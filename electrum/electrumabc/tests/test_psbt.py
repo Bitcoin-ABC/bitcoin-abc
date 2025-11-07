@@ -30,7 +30,6 @@ psbt_data = bytes.fromhex(
 
 
 class TestPSBT(unittest.TestCase):
-
     def test_deserialize(self):
         psbt0 = psbt.PSBT.deserialize(BytesIO(psbt_data))
 

@@ -109,7 +109,6 @@ _WORDLIST_CACHE: dict[str, "Wordlist"] = {}
 
 
 class Wordlist(tuple):
-
     def __init__(self, words: Sequence[str]):
         super().__init__()
         index_from_word = {w: i for i, w in enumerate(words)}

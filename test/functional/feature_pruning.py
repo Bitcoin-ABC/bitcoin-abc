@@ -157,9 +157,9 @@ class PruneTest(BitcoinTestFramework):
         )
 
     def test_height_min(self):
-        assert os.path.isfile(
-            os.path.join(self.prunedir, "blk00000.dat")
-        ), "blk00000.dat is missing, pruning too early"
+        assert os.path.isfile(os.path.join(self.prunedir, "blk00000.dat")), (
+            "blk00000.dat is missing, pruning too early"
+        )
         self.log.info("Success")
         self.log.info(
             "Though we're already using more than 550MiB, current usage: "

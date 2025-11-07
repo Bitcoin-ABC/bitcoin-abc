@@ -186,7 +186,6 @@ class InvalidECPointException(Exception):
 
 
 class ECPubkey(object):
-
     def __init__(self, b: Optional[bytes]):
         self._x, self._y = None, None
         if b is not None:
@@ -557,7 +556,6 @@ class ECPrivkey(ECPubkey):
         *,
         sigtype: SignatureType = SignatureType.ECASH,
     ) -> bytes:
-
         def bruteforce_recid(sig_string):
             for recid in range(4):
                 sig65 = construct_sig65(sig_string, recid, is_compressed)

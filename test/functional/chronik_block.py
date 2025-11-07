@@ -55,7 +55,7 @@ class ChronikBlockTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block("00" * 31).err(400).msg,
-            f'400: Not a hash or height: {"00" * 31}',
+            f"400: Not a hash or height: {'00' * 31}",
         )
         assert_equal(chronik.block("01").err(400).msg, "400: Not a hash or height: 01")
         assert_equal(
@@ -72,7 +72,7 @@ class ChronikBlockTest(BitcoinTestFramework):
         assert_equal(chronik.block(1).err(404).msg, "404: Block not found: 1")
         # Block "0000...0000" not found
         assert_equal(
-            chronik.block("00" * 32).err(404).msg, f'404: Block not found: {"00" * 32}'
+            chronik.block("00" * 32).err(404).msg, f"404: Block not found: {'00' * 32}"
         )
 
         # Generate 100 blocks, verify they form a chain

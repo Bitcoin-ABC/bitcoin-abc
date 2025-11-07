@@ -8,6 +8,7 @@ what the test is doing. It's the first thing people see when they open
 the file and should give the reader information about *what* the test
 is testing and *how* it's being tested
 """
+
 # Imports should be in PEP8 ordering (std library first, then third party
 # libraries then local imports).
 from collections import defaultdict

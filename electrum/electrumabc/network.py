@@ -529,9 +529,9 @@ class Network(util.DaemonThread):
                 # an interface in the future
                 return message_id
         # Now, if no interface, we will raise AssertionError
-        assert isinstance(
-            interface, Interface
-        ), f"queue_request: No interface! (request={method} params={params})"
+        assert isinstance(interface, Interface), (
+            f"queue_request: No interface! (request={method} params={params})"
+        )
         if self.debug:
             self.print_error(interface.host, "-->", method, params, message_id)
         interface.queue_request(method, params, message_id)

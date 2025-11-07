@@ -109,7 +109,7 @@ class ExpiringCache:
         )
         return (
             f'<{__class__.__name__} "{name}" at {address},'
-            f' {length} item{"s" if length != 1 else ""} (maxlen={maxlen} timeout={timeout})>'
+            f" {length} item{'s' if length != 1 else ''} (maxlen={maxlen} timeout={timeout})>"
         )
 
 

@@ -28,7 +28,6 @@ from .util import ButtonsTextEdit
 
 
 class CompletionTextEdit(ButtonsTextEdit):
-
     def __init__(self, parent=None):
         super(CompletionTextEdit, self).__init__(parent)
         self.completer = None

@@ -48,7 +48,7 @@ class ChronikHeaderTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block_header("00" * 31).err(400).msg,
-            f'400: Not a hash or height: {"00" * 31}',
+            f"400: Not a hash or height: {'00' * 31}",
         )
         assert_equal(
             chronik.block_header("01").err(400).msg, "400: Not a hash or height: 01"
@@ -70,7 +70,7 @@ class ChronikHeaderTest(BitcoinTestFramework):
         # Block "0000...0000" not found
         assert_equal(
             chronik.block_header("00" * 32).err(404).msg,
-            f'404: Block not found: {"00" * 32}',
+            f"404: Block not found: {'00' * 32}",
         )
 
         self.log.info("Test the /headers endpoint before mining any block")
@@ -80,7 +80,7 @@ class ChronikHeaderTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block_headers(-(2**31), 0).err(400).msg,
-            f"400: Invalid block start height: {-2**31}",
+            f"400: Invalid block start height: {-(2**31)}",
         )
         assert_equal(
             chronik.block_headers(2, 1).err(400).msg, "400: Invalid block end height: 1"

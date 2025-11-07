@@ -129,9 +129,9 @@ class ChronikPauseTest(BitcoinTestFramework):
         peer.send_blocks_and_test([blockB1, blockB2], node)
 
         self.log.info("Reorg returns tx to mempool")
-        assert (
-            conflict_tx.txid_hex in node.getrawmempool()
-        ), f"{conflict_tx.txid_hex} not found in mempool"
+        assert conflict_tx.txid_hex in node.getrawmempool(), (
+            f"{conflict_tx.txid_hex} not found in mempool"
+        )
 
         self.log.info("Chronik still thinks blockA exists")
         time.sleep(0.1)

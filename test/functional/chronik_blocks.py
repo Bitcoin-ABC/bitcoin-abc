@@ -30,7 +30,7 @@ class ChronikBlockRangeTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.blocks(-(2**31), 0).err(400).msg,
-            f"400: Invalid block start height: {-2**31}",
+            f"400: Invalid block start height: {-(2**31)}",
         )
         assert_equal(
             chronik.blocks(2, 1).err(400).msg, "400: Invalid block end height: 1"

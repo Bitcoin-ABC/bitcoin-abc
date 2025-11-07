@@ -616,9 +616,9 @@ class Blockchain(PrintError):
                     return MAX_BITS
 
             anchor = self.get_asert_anchor(prior, daa_mtp, chunk)
-            assert (
-                anchor is not None
-            ), "Failed to find ASERT anchor block for chain {!r}".format(self)
+            assert anchor is not None, (
+                "Failed to find ASERT anchor block for chain {!r}".format(self)
+            )
 
             return networks.net.asert_daa.next_bits_aserti3_2d(
                 anchor.bits, prev_ts - anchor.prev_time, prevheight - anchor.height

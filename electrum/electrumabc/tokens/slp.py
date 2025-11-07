@@ -1014,9 +1014,9 @@ class WalletData(PrintError):
         # just the output.  Comment this out when that becomes clear.
         # For now I'm doing what the EC-SLP wallet did rejecting this
         # genesis message here.
-        assert (
-            r_type == bitcoin.TYPE_ADDRESS
-        ), "Token genesis/mint: output 1 != TYPE_ADDRESS, ignoring tx"
+        assert r_type == bitcoin.TYPE_ADDRESS, (
+            "Token genesis/mint: output 1 != TYPE_ADDRESS, ignoring tx"
+        )
 
         # neither of the below 2 can ever be negative due to how we read the bytes
         baton_vout = so.message.mint_baton_vout

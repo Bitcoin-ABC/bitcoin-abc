@@ -1697,7 +1697,9 @@ class EndpointStatusTestCase(ABCBotFixture):
                 color=(
                     "lightgrey"
                     if status == BuildStatus.Unknown
-                    else "brightgreen" if status == BuildStatus.Success else "red"
+                    else "brightgreen"
+                    if status == BuildStatus.Success
+                    else "red"
                 ),
             )
             return '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |\n'.format(

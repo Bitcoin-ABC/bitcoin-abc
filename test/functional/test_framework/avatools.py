@@ -513,9 +513,9 @@ def can_find_inv_in_poll(
                 r = response
                 found_hash = True
 
-            assert inv.hash not in (
-                unexpected_hashes or []
-            ), f"Unexpected inv hash {inv.hash} found in list {unexpected_hashes}"
+            assert inv.hash not in (unexpected_hashes or []), (
+                f"Unexpected inv hash {inv.hash} found in list {unexpected_hashes}"
+            )
 
             votes.append(AvalancheVote(r, inv.hash))
 

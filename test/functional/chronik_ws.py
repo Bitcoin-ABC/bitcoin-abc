@@ -303,9 +303,9 @@ class ChronikWsTest(BitcoinTestFramework):
         try:
             ws.recv()
         except TimeoutError as e:
-            assert str(e).startswith(
-                "No message received"
-            ), "The websocket did receive an unexpected message"
+            assert str(e).startswith("No message received"), (
+                "The websocket did receive an unexpected message"
+            )
             pass
         except Exception:
             assert False, "The websocket did not time out as expected"
@@ -579,9 +579,9 @@ class ChronikWsTest(BitcoinTestFramework):
         try:
             ws.recv()
         except TimeoutError as e:
-            assert str(e).startswith(
-                "No message received"
-            ), "The websocket did receive an unexpected message"
+            assert str(e).startswith("No message received"), (
+                "The websocket did receive an unexpected message"
+            )
             pass
         except Exception:
             assert False, "The websocket did not time out as expected"

@@ -676,9 +676,9 @@ class Bip38Key:
     def __init__(self, enc, *, net=None):
         if isinstance(enc, (bytearray, bytes)):
             enc = enc.decode("ascii")
-        assert isinstance(
-            enc, str
-        ), "Bip38Key must be instantiated with an encrypted bip38 key string!"
+        assert isinstance(enc, str), (
+            "Bip38Key must be instantiated with an encrypted bip38 key string!"
+        )
         if not enc.startswith("6P"):
             raise Bip38Key.DecodeError(
                 "Provided bip38 key string appears to not be valid. Expected a '6P'"

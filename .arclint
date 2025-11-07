@@ -16,9 +16,9 @@
                 "(^src/bench/nanobench.h$)"
             ]
         },
-        "black": {
-            "type": "black",
-            "version": ">=25.0.0",
+        "ruff-format": {
+            "type": "ruff-format",
+            "version": ">=0.14.0",
             "include": [
                 "(\\.py$)",
                 "(^electrum/electrum-abc$)"
