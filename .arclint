@@ -255,13 +255,6 @@
                 "--non-interactive"
             ]
         },
-        "lint-python-mutable-default": {
-            "type": "lint-python-mutable-default",
-            "include": "(\\.py$)",
-            "exclude": [
-                "(^contrib/apple-sdk-tools/)"
-            ]
-        },
         "prettier": {
             "type": "prettier",
             "version": ">=2.6.0",

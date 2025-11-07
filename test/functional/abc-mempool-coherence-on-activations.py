@@ -100,7 +100,7 @@ def create_fund_and_post_fork_only_tx(spend):
 
 
 class PreviousSpendableOutput(object):
-    def __init__(self, tx=CTransaction(), n=-1):
+    def __init__(self, tx: CTransaction, n=-1):
         self.tx = tx
         self.n = n
 

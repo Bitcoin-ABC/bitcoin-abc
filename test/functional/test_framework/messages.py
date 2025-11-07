@@ -1067,7 +1067,7 @@ class AvalancheResponse:
 class TCPAvalancheResponse:
     __slots__ = ("response", "sig")
 
-    def __init__(self, response=AvalancheResponse(), sig=b"\0" * 64):
+    def __init__(self, response: AvalancheResponse, sig=b"\0" * 64):
         self.response = response
         self.sig = sig
 
@@ -1147,7 +1147,7 @@ class AvalancheDelegation:
 class AvalancheHello:
     __slots__ = ("delegation", "sig")
 
-    def __init__(self, delegation=AvalancheDelegation(), sig=b"\0" * 64):
+    def __init__(self, delegation: AvalancheDelegation, sig=b"\0" * 64):
         self.delegation = delegation
         self.sig = sig
 
@@ -2029,7 +2029,7 @@ class msg_tcpavaresponse:
     msgtype = b"avaresponse"
 
     def __init__(self):
-        self.response = TCPAvalancheResponse()
+        self.response = TCPAvalancheResponse(AvalancheResponse())
 
     def deserialize(self, f):
         self.response.deserialize(f)
@@ -2046,7 +2046,7 @@ class msg_avahello:
     msgtype = b"avahello"
 
     def __init__(self):
-        self.hello = AvalancheHello()
+        self.hello = AvalancheHello(AvalancheDelegation())
 
     def deserialize(self, f):
         self.hello.deserialize(f)

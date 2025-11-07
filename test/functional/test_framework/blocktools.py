@@ -142,7 +142,7 @@ def create_coinbase(
 
 
 def create_tx_with_script(
-    prevtx, n, script_sig=b"", *, amount, script_pub_key=CScript()
+    prevtx, n, script_sig=b"", *, amount, script_pub_key: Optional[CScript] = None
 ):
     """Return one-input, one-output transaction object
     spending the prevtx's n-th output with the given amount.
@@ -150,6 +150,7 @@ def create_tx_with_script(
     Can optionally pass scriptPubKey and scriptSig, default is anyone-can-spend output.
     """
     tx = CTransaction()
+    script_pub_key = script_pub_key or CScript()
     assert n < len(prevtx.vout)
     tx.vin.append(CTxIn(COutPoint(prevtx.txid_int, n), script_sig, 0xFFFFFFFF))
     tx.vout.append(CTxOut(amount, script_pub_key))
@@ -343,12 +344,14 @@ class BlockTestMixin:
         )
 
     # this is a little handier to use than create_tx_with_script
-    def create_tx(self, spend_tx, n, value: int, script=CScript([OP_TRUE])):
+    def create_tx(self, spend_tx, n, value: int, script: Optional[CScript] = None):
+        script = script or CScript([OP_TRUE])
         return create_tx_with_script(spend_tx, n, amount=value, script_pub_key=script)
 
     def create_and_sign_transaction(
-        self, spend_tx: CTransaction, value: int, script=CScript([OP_TRUE])
+        self, spend_tx: CTransaction, value: int, script: Optional[CScript] = None
     ) -> CTransaction:
+        script = script or CScript([OP_TRUE])
         tx = self.create_tx(spend_tx, 0, value, script)
         self.sign_tx(tx, spend_tx)
         return tx
@@ -358,7 +361,7 @@ class BlockTestMixin:
         number: BlockNumber,
         *,
         additional_coinbase_value=0,
-        script=CScript([OP_TRUE]),
+        script: Optional[CScript] = None,
         spend: Optional[CTransaction] = None,
         version=4,
         coinbase_time: Optional[int] = None,
@@ -367,6 +370,7 @@ class BlockTestMixin:
         The caller is responsible for broadcasting the generated block, either by storing
         the returned block or by immediately broadcasting self.tip after this method returns.
         """
+        script = script or CScript([OP_TRUE])
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = coinbase_time or int(time.time()) + 1

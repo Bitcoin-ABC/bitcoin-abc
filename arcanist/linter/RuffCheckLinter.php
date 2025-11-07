@@ -36,10 +36,6 @@ final class RuffCheckLinter extends ArcanistExternalLinter {
    * This method could be removed if we did only checking, but with the
    * --fix option we also want to apply some fixes automatically, and
    * arcanist needs to get the modified file content back.
-   *
-   * This has drawbacks, for instance failing checks will be printed without
-   * filenames. Maybe we should split this linter into a checker and a
-   * formatter in the future.
    */
   protected function buildFutures(array $paths) {
     $executable = $this->getExecutableCommand();
@@ -98,7 +94,7 @@ final class RuffCheckLinter extends ArcanistExternalLinter {
       '--ignore',
       'A003,E203,E303,E305,E501,C901',
       '--select',
-      'E,F,A,C,I'
+      'E,F,A,C,I,B006,B008'
     );
   }
 

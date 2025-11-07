@@ -32,7 +32,7 @@ INVALID_SIGNATURE_ERROR = (
 
 
 class PreviousSpendableOutput(object):
-    def __init__(self, tx=CTransaction(), n=-1):
+    def __init__(self, tx: CTransaction, n=-1):
         self.tx = tx
         self.n = n
 

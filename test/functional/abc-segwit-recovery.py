@@ -45,7 +45,7 @@ RPC_EVAL_FALSE_ERROR = f"{EVAL_FALSE_ERROR}ent)"
 
 
 class PreviousSpendableOutput(object):
-    def __init__(self, tx=CTransaction(), n=-1):
+    def __init__(self, tx: CTransaction, n=-1):
         self.tx = tx
         self.n = n
 

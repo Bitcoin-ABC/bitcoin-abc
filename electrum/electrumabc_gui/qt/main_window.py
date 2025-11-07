@@ -2265,7 +2265,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d = SeedDialog(self.top_level_window(), seed, passphrase, derivation, seed_type)
         d.exec_()
 
-    def show_qrcode(self, data, title=_("QR code"), parent=None):
+    def show_qrcode(self, data, title, parent=None):
         if not data:
             return
         d = QRDialog(data, parent or self, title)

@@ -485,7 +485,7 @@ def can_find_inv_in_poll(
     response=AvalancheVoteError.ACCEPTED,
     other_response=AvalancheVoteError.ACCEPTED,
     unexpected_hashes=None,
-    response_map={},
+    response_map: Optional[dict] = None,
 ):
     found_hash = False
 
@@ -505,7 +505,7 @@ def can_find_inv_in_poll(
             # Vote to everything but our searched inv
             r = other_response
 
-            if response_map.get(inv.type, None):
+            if response_map is not None and response_map.get(inv.type, None):
                 r = response_map[inv.type]
 
             # Look for what we expect

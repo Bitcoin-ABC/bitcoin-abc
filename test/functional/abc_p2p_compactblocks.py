@@ -13,6 +13,7 @@ this one can be extended, to cover the checks done for bigger blocks
 import random
 import time
 from collections import deque
+from typing import Optional
 
 from test_framework.blocktools import (
     create_block,
@@ -38,7 +39,7 @@ from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput:
-    def __init__(self, tx=CTransaction(), n=-1):
+    def __init__(self, tx: CTransaction, n=-1):
         self.tx = tx
         # the output we're spending
         self.n = n
@@ -94,8 +95,14 @@ class FullBlockTest(BitcoinTestFramework):
         block.vtx.extend(tx_list)
 
     def next_block(
-        self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0
+        self,
+        number,
+        spend=None,
+        script: Optional[CScript] = None,
+        block_size=0,
+        extra_txns=0,
     ):
+        script = script or CScript([OP_TRUE])
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1

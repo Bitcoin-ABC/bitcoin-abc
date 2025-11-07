@@ -23,7 +23,7 @@ from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput:
-    def __init__(self, tx=CTransaction(), n=-1):
+    def __init__(self, tx: CTransaction, n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
 

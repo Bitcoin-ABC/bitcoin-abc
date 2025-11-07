@@ -26,8 +26,8 @@ def instance():
 
 
 class Response:
-    def __init__(self, content=json.dumps({}), status_code=requests.codes.ok):
-        self.content = content
+    def __init__(self, content=None, status_code=requests.codes.ok):
+        self.content = content or json.dumps({})
         self.status_code = status_code
 
 

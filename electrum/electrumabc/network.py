@@ -101,13 +101,15 @@ def filter_protocol(hostmap, protocol="s"):
     return eligible
 
 
-def get_eligible_servers(hostmap=None, protocol="s", exclude_set=set()):
+def get_eligible_servers(hostmap=None, protocol="s", exclude_set: Optional[set] = None):
     if hostmap is None:
         hostmap = networks.net.DEFAULT_SERVERS
+    exclude_set = exclude_set or set()
     return list(set(filter_protocol(hostmap, protocol)) - exclude_set)
 
 
-def pick_random_server(hostmap=None, protocol="s", exclude_set=set()):
+def pick_random_server(hostmap=None, protocol="s", exclude_set: Optional[set] = None):
+    exclude_set = exclude_set or set()
     eligible = get_eligible_servers(hostmap, protocol, exclude_set)
     return random.choice(eligible) if eligible else None
 

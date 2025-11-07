@@ -2,6 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+from typing import Optional
+
 from test_framework.messages import CTransaction
 from test_framework.util import assert_equal
 
@@ -12,19 +14,19 @@ class TokenTx:
         *,
         tx: CTransaction,
         status=0,
-        entries=[],
-        inputs=[],
-        outputs=[],
-        failed_parsings=[],
+        entries: Optional[list] = None,
+        inputs: Optional[list] = None,
+        outputs: Optional[list] = None,
+        failed_parsings: Optional[list] = None,
         token_info=None,
     ):
         self.tx = tx
         self.txid = tx.txid_hex
         self.status = status
-        self.entries = entries
-        self.inputs = inputs
-        self.outputs = outputs
-        self.failed_parsings = failed_parsings
+        self.entries = entries or []
+        self.inputs = inputs or []
+        self.outputs = outputs or []
+        self.failed_parsings = failed_parsings or []
         self.token_info = token_info
 
     def send(self, chronik, error=None):
