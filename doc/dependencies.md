@@ -11,7 +11,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | CMake |  | [3.16](https://cmake.org/download/) |  |  |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
 | FreeType | [2.11.0](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
-| GCC |  | [10](https://gcc.gnu.org/) |  |  |  |
+| GCC |  | [12](https://gcc.gnu.org/) |  |  |  |
 | glibc | | [2.31](https://www.gnu.org/software/libc/) |  |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
