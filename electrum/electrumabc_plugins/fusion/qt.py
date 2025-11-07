@@ -71,8 +71,8 @@ from .server import Params
 from .util import get_coin_name
 
 if TYPE_CHECKING:
-    from electrumabc_gui.qt.address_list import AddressList
     from electrumabc_gui.qt import ElectrumGui
+    from electrumabc_gui.qt.address_list import AddressList
 
 from pathlib import Path
 

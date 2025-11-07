@@ -4,11 +4,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import test.mocks.slackbot
 import unittest
 
 import mock
 
+import test.mocks.slackbot
 from slackbot import SlackBot
 
 

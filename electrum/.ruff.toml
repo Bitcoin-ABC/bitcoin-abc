@@ -1,0 +1,2 @@
+[lint.isort]
+known-first-party = ["electrum", "electrum_gui", "electrum_plugins"]

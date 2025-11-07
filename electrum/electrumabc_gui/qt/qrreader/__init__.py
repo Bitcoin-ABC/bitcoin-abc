@@ -23,14 +23,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .camera_dialog import CameraError  # noqa: F401
-from .camera_dialog import MissingQrDetectionLib  # noqa: F401
-from .camera_dialog import NoCameraResolutionsFound  # noqa: F401
-from .camera_dialog import NoCamerasFound  # noqa: F401
-from .camera_dialog import QrReaderCameraDialog  # noqa: F401
-from .validator import AbstractQrReaderValidator  # noqa: F401
-from .validator import QrReaderValidatorColorizing  # noqa: F401
-from .validator import QrReaderValidatorCounted  # noqa: F401
-from .validator import QrReaderValidatorCounting  # noqa: F401
-from .validator import QrReaderValidatorResult  # noqa: F401
-from .validator import QrReaderValidatorStrong  # noqa: F401
+from .camera_dialog import (
+    CameraError,  # noqa: F401
+    MissingQrDetectionLib,  # noqa: F401
+    NoCameraResolutionsFound,  # noqa: F401
+    NoCamerasFound,  # noqa: F401
+    QrReaderCameraDialog,  # noqa: F401
+)
+from .validator import (
+    AbstractQrReaderValidator,  # noqa: F401
+    QrReaderValidatorColorizing,  # noqa: F401
+    QrReaderValidatorCounted,  # noqa: F401
+    QrReaderValidatorCounting,  # noqa: F401
+    QrReaderValidatorResult,  # noqa: F401
+    QrReaderValidatorStrong,  # noqa: F401
+)

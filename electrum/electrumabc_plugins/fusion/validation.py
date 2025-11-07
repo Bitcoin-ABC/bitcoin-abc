@@ -34,9 +34,8 @@ from electrumabc.address import Address
 from electrumabc.bitcoin import TYPE_ADDRESS
 from electrumabc.transaction import get_address_from_output_script
 
-from . import encrypt
+from . import encrypt, pedersen
 from . import fusion_pb2 as pb
-from . import pedersen
 from .protocol import Protocol
 from .util import (
     FusionError,

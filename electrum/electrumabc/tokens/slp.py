@@ -24,8 +24,11 @@
 
 from typing import List, Set, Tuple
 
-from .. import address  # for ScriptOutput, OpCodes, ScriptError, Script
-from .. import bitcoin, caches
+from .. import (
+    address,  # for ScriptOutput, OpCodes, ScriptError, Script
+    bitcoin,
+    caches,
+)
 from ..printerror import PrintError
 from ..transaction import Transaction
 from .exceptions import (

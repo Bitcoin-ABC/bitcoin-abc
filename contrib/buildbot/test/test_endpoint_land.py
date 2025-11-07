@@ -5,13 +5,13 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
-import test.mocks.fixture
-import test.mocks.teamcity
 import unittest
-from test.abcbot_fixture import ABCBotFixture
 
 import requests
 
+import test.mocks.fixture
+import test.mocks.teamcity
+from test.abcbot_fixture import ABCBotFixture
 from testutil import AnyWith
 
 

@@ -9,15 +9,15 @@ import hmac
 import json
 import os
 import shutil
+import unittest
+from pathlib import Path
+
+import server
 import test.mocks.cirrus
 import test.mocks.fixture
 import test.mocks.phabricator
 import test.mocks.slackbot
 import test.mocks.teamcity
-import unittest
-from pathlib import Path
-
-import server
 
 # Setup global parameters
 TEST_USER = "TESTUSER"

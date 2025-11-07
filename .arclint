@@ -278,19 +278,6 @@
                 "(^web/explorer/explorer-server/templates/)"
             ]
         },
-        "lint-python-isort": {
-            "type": "lint-python-isort",
-            "version": ">=5.6.4",
-            "include": [
-                "(\\.py$)",
-                "(^electrum/electrum-abc$)"
-            ],
-            "exclude": [
-                "(^contrib/apple-sdk-tools/)",
-                "(^electrum/electrumabc_gui/qt/icons.py)",
-                "(\\_pb2.py$)"
-            ]
-        },
         "rustfmt": {
             "type": "rustfmt",
             "version": ">=1.5.1",

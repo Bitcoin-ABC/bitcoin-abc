@@ -5,7 +5,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
-import test.mocks.teamcity
 import time
 import unittest
 from urllib.parse import urljoin
@@ -13,6 +12,7 @@ from urllib.parse import urljoin
 import mock
 import requests
 
+import test.mocks.teamcity
 from teamcity_wrapper import TeamcityRequestException
 from testutil import AnyWith
 

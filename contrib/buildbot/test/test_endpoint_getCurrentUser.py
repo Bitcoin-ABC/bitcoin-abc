@@ -5,6 +5,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import unittest
+
 from test.abcbot_fixture import TEST_USER, ABCBotFixture
 
 

@@ -136,11 +136,11 @@ def check_imports():
         import requests  # pylint: disable=C0415  # noqa: F401
     except ImportError as i_e:
         sys.exit("Error: %s. Try 'sudo pip install <module-name>'" % str(i_e))
-    from google.protobuf import descriptor  # pylint: disable=C0415,W0611  # noqa: F401
-    from google.protobuf import message  # pylint: disable=C0415,W0611  # noqa: F401
-    from google.protobuf import reflection  # pylint: disable=C0415,W0611  # noqa: F401
     from google.protobuf import (  # pylint: disable=C0415,W0611  # noqa: F401
+        descriptor,  # pylint: disable=C0415,W0611  # noqa: F401
         descriptor_pb2,
+        message,  # pylint: disable=C0415,W0611  # noqa: F401
+        reflection,  # pylint: disable=C0415,W0611  # noqa: F401
     )
     from jsonrpclib import (  # pylint: disable=C0415,W0611  # noqa: F401
         SimpleJSONRPCServer,

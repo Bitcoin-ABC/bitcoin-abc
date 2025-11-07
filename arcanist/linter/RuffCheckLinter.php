@@ -44,11 +44,15 @@ final class RuffCheckLinter extends ArcanistExternalLinter {
   protected function buildFutures(array $paths) {
     $executable = $this->getExecutableCommand();
 
-    $bin = csprintf('%C %Ls -', $executable, $this->getCommandFlags());
-
     $futures = array();
     foreach ($paths as $path) {
       $disk_path = $this->getEngine()->getFilePathOnDisk($path);
+      $bin = csprintf(
+        '%C %Ls --stdin-filename %s -',
+        $executable,
+        $this->getCommandFlags(),
+        $disk_path
+      );
       $future = new ExecFuture('%C', $bin);
       /* Write the input file to stdin */
       $input = file_get_contents($disk_path);
@@ -94,7 +98,7 @@ final class RuffCheckLinter extends ArcanistExternalLinter {
       '--ignore',
       'A003,E203,E303,E305,E501,C901',
       '--select',
-      'E,F,A,C'
+      'E,F,A,C,I'
     );
   }
 

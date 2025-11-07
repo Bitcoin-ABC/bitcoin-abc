@@ -5,12 +5,12 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import os
-import test.mocks.phabricator
 import unittest
 from base64 import b64encode
 
 import mock
 
+import test.mocks.phabricator
 from build import BuildStatus, BuildTarget
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID, BITCOIN_ABC_REPO
 

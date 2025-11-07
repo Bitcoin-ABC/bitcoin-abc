@@ -6,15 +6,15 @@
 
 import itertools
 import json
-import test.mocks.phabricator
-import test.mocks.teamcity
 import unittest
-from test.abcbot_fixture import ABCBotFixture
 from unittest.mock import call
 
 import mock
 
+import test.mocks.phabricator
+import test.mocks.teamcity
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
+from test.abcbot_fixture import ABCBotFixture
 
 
 class EndpointTriggerCITestCase(ABCBotFixture):

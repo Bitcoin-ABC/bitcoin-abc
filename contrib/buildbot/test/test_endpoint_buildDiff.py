@@ -6,15 +6,15 @@
 
 
 import json
-import test.mocks.teamcity
 import unittest
-from test.abcbot_fixture import ABCBotFixture
 from unittest.mock import call
 
 import mock
 import requests
 
+import test.mocks.teamcity
 from build import Build, BuildStatus
+from test.abcbot_fixture import ABCBotFixture
 from testutil import AnyWith
 
 

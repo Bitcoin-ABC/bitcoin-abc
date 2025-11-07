@@ -4,11 +4,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import test.mocks.phabricator
 import unittest
-from test.abcbot_fixture import ABCBotFixture
 
 import mock
+
+import test.mocks.phabricator
+from test.abcbot_fixture import ABCBotFixture
 
 
 class EndpointBackportcheckTestCase(ABCBotFixture):
