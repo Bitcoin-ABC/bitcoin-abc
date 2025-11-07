@@ -309,7 +309,7 @@ class KeepKeyPlugin(HWPluginBase):
             )
         elif method == TIM_MNEMONIC:
             item = str(item).strip()
-            if not len(item.split()) in [12, 18, 24]:
+            if len(item.split()) not in [12, 18, 24]:
                 raise Exception(_("The mnemonic needs to be 12, 18 or 24 words."))
             pin = pin_protection  # It's the pin, not a boolean
             client.load_device_by_mnemonic(

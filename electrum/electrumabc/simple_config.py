@@ -334,7 +334,7 @@ def read_user_config(path: str) -> dict:
     except Exception:
         print_error("Warning: Cannot read config file.", config_path)
         return {}
-    if not type(result) is dict:
+    if not isinstance(result, dict):
         return {}
     return result
 

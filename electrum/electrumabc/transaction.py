@@ -1824,7 +1824,7 @@ class Transaction:
                                 repr(e),
                             )
 
-                    for txid, l in need_dl_txids.items():
+                    for txid, _prevout_n in need_dl_txids.items():
                         wallet.network.queue_request(
                             "blockchain.transaction.get",
                             [txid],

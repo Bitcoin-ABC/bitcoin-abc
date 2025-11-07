@@ -282,8 +282,8 @@ class MempoolLimitTest(BitcoinTestFramework):
             fee=child_fee,
             target_size=target_size_each,
         )
-        assert not tx_parent_just_below["txid"] in node.getrawmempool()
-        assert not tx_child_just_above["txid"] in node.getrawmempool()
+        assert tx_parent_just_below["txid"] not in node.getrawmempool()
+        assert tx_child_just_above["txid"] not in node.getrawmempool()
         # This package ranks below the lowest tx in the mempool
         assert_greater_than(
             worst_feerate_xecvb,

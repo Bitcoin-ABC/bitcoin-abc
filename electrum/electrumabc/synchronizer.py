@@ -428,7 +428,7 @@ class Synchronizer(ThreadJob):
             # self.limit_change_subs addresses at a time
             with self.lock:
                 self.new_addresses_for_change.update(
-                    {addr: None for addr in self.wallet.get_change_addresses()}
+                    dict.fromkeys(self.wallet.get_change_addresses())
                 )
 
     def _pop_new_addresses(self) -> Tuple[Set[Address], Iterable[Address]]:

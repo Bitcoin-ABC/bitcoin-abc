@@ -352,7 +352,7 @@ if __name__ == "__main__":
     blkmap = mkblockmap(blkindex)
 
     # Block hash map won't be byte-reversed. Neither should the genesis hash.
-    if not settings["genesis"] in blkmap:
+    if settings["genesis"] not in blkmap:
         print("Genesis block not found in hashlist")
     else:
         BlockDataCopier(settings, blkindex, blkmap).run()

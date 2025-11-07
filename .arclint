@@ -29,9 +29,9 @@
                 "(\\_pb2.py$)"
             ]
         },
-        "flake8": {
-            "type": "flake8",
-            "version": ">=5.0",
+        "ruff-check": {
+            "type": "ruff-check",
+            "version": ">=0.14.0",
             "include": [
                 "(\\.py$)",
                 "(^electrum/electrum-abc$)"
@@ -40,10 +40,6 @@
                 "(^contrib/apple-sdk-tools/)",
                 "(^electrum/electrumabc_gui/qt/icons.py)",
                 "(\\_pb2.py$)"
-            ],
-            "flags": [
-                "--ignore=A003,E203,E303,E305,E501,E704,W503,W504",
-                "--require-plugins=flake8-comprehensions,flake8-builtins"
             ]
         },
         "lint-format-strings": {

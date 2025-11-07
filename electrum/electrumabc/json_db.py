@@ -336,7 +336,7 @@ class JsonDB(PrintError):
         if self.get("wallet_type") == "imported":
             addresses = self.get("addresses")
             if type(addresses) is list:
-                addresses = {x: None for x in addresses}
+                addresses = dict.fromkeys(addresses)
                 self.put("addresses", addresses)
         elif self.get("wallet_type") == "standard":
             if self.get("keystore").get("type") == "imported":
