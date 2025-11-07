@@ -2,8 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-""" Tests the validation:* tracepoint API interface.
-    See https://github.com/bitcoin/bitcoin/blob/master/doc/tracing.md#context-validation
+"""Tests the validation:* tracepoint API interface.
+See https://github.com/bitcoin/bitcoin/blob/master/doc/tracing.md#context-validation
 """
 
 import ctypes

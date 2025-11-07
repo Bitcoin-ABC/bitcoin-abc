@@ -2,8 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-"""  Tests the net:* tracepoint API interface.
-     See https://github.com/bitcoin/bitcoin/blob/master/doc/tracing.md#context-net
+"""Tests the net:* tracepoint API interface.
+See https://github.com/bitcoin/bitcoin/blob/master/doc/tracing.md#context-net
 """
 
 import ctypes

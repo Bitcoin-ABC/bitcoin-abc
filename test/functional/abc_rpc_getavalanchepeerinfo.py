@@ -98,7 +98,6 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
         assert_equal(len(avapeerinfo), 1)
         assert_equal(avapeerinfo[0]["proof"], target_proof)
 
-
     def run_test(self):
         self.test_proofs_and_nodecounts()
 

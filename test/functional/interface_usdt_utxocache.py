@@ -2,8 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-""" Tests the utxocache:* tracepoint API interface.
-    https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/tracing.md#context-utxocache
+"""Tests the utxocache:* tracepoint API interface.
+https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/tracing.md#context-utxocache
 """
 
 import ctypes

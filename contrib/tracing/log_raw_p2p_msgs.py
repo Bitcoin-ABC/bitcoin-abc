@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-""" Demonstration of eBPF limitations and the effect on USDT with the
-    net:inbound_message and net:outbound_message tracepoints. """
+"""Demonstration of eBPF limitations and the effect on USDT with the
+net:inbound_message and net:outbound_message tracepoints."""
 
 # This script shows a limitation of eBPF when data larger than 32kb is passed to
 # user-space. It uses BCC (https://github.com/iovisor/bcc) to load a sandboxed

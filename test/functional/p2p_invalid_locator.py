@@ -1,8 +1,7 @@
 # Copyright (c) 2015-2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test node responses to invalid locators.
-"""
+"""Test node responses to invalid locators."""
 
 from test_framework.messages import MAX_LOCATOR_SZ, msg_getblocks, msg_getheaders
 from test_framework.p2p import P2PInterface

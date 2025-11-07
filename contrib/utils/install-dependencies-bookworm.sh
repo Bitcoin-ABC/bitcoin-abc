@@ -155,7 +155,7 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-hw.txt"
 
 # Required python linters
-pip3 install black==24.4.2 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0 flake8-builtins==2.5.0 flake8-comprehensions==3.14.0 djlint==1.34.1
+pip3 install black==25.9.0 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0 flake8-builtins==2.5.0 flake8-comprehensions==3.14.0 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
 # Install nodejs v22.x (includes npm v10.x)

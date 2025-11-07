@@ -239,7 +239,7 @@ class AssumeutxoTest(BitcoinTestFramework):
             ],
             # Amount exceeds MAX_MONEY
             [
-                b"\xCA\xD2\x8F\x5A",
+                b"\xca\xd2\x8f\x5a",
                 36,
                 None,
                 "[snapshot] bad snapshot data after deserializing 0 coins - bad tx out value",

@@ -45,8 +45,8 @@
 //!    4. OP_PUSHDATA4
 //!
 //! 5. Unlike data in scriptSig, the op doesn’t have to be encoded minimally.
-//!    All of these are considered valid for pushing the payload 0x77:
-//!    0x0177, 0x4c0177, 0x4d010077, 0x4e0100000077.
+//!    All of these are considered valid for pushing the payload 0x77: 0x0177,
+//!    0x4c0177, 0x4d010077, 0x4e0100000077.
 
 mod parse;
 

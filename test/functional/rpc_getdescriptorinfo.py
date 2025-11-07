@@ -1,8 +1,7 @@
 # Copyright (c) 2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test getdescriptorinfo RPC.
-"""
+"""Test getdescriptorinfo RPC."""
 
 from test_framework.descriptors import descsum_create
 from test_framework.test_framework import BitcoinTestFramework

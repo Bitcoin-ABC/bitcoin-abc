@@ -34,4 +34,3 @@ def json_decode(x):
         return json.loads(x, parse_float=Decimal)
     except Exception:
         return x
-

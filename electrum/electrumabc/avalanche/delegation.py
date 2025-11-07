@@ -22,8 +22,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""This module deals with building avalanche proof delegation.
-"""
+"""This module deals with building avalanche proof delegation."""
 from __future__ import annotations
 
 import base64

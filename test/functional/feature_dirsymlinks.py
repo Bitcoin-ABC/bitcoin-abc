@@ -1,8 +1,7 @@
 # Copyright (c) 2022 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test successful startup with symlinked directories.
-"""
+"""Test successful startup with symlinked directories."""
 
 import os
 import sys

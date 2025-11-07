@@ -186,7 +186,7 @@ class ChronikWs:
         self.ping_interval = kwargs.get("ping_interval", 10)
         self.ping_timeout = kwargs.get("ping_timeout", 5)
         self.is_open = False
-        ws_protocol = 'wss' if client.https else 'ws'
+        ws_protocol = "wss" if client.https else "ws"
         self.ws_url = (
             f"{ws_protocol}://{client.host}:{client.port}{client.path_prefix}/ws"
         )

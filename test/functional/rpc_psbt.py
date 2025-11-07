@@ -1,8 +1,7 @@
 # Copyright (c) 2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the Partially Signed Transaction RPCs.
-"""
+"""Test the Partially Signed Transaction RPCs."""
 
 import json
 import os

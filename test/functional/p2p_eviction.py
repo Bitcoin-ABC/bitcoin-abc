@@ -2,7 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-""" Test node eviction logic
+"""Test node eviction logic
 
 When the number of peers has reached the limit of maximum connections,
 the next connecting inbound peer will trigger the eviction mechanism.

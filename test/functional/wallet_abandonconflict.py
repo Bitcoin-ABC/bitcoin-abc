@@ -3,11 +3,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the abandontransaction RPC.
 
- The abandontransaction RPC marks a transaction and all its in-wallet
- descendants as abandoned which allows their inputs to be respent. It can be
- used to replace "stuck" or evicted transactions. It only works on transactions
- which are not included in a block and are not currently in the mempool. It has
- no effect on transactions which are already abandoned.
+The abandontransaction RPC marks a transaction and all its in-wallet
+descendants as abandoned which allows their inputs to be respent. It can be
+used to replace "stuck" or evicted transactions. It only works on transactions
+which are not included in a block and are not currently in the mempool. It has
+no effect on transactions which are already abandoned.
 """
 from decimal import Decimal
 
