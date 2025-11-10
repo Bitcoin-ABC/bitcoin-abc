@@ -75,7 +75,7 @@ class ExchangeBase(PrintError):
     @staticmethod
     def get_json(site, get_string):
         # APIs must have https
-        url = "".join(["https://", site, get_string])
+        url = f"https://{site}{get_string}"
         response = requests.request(
             "GET", url, headers={"User-Agent": f"{PROJECT_NAME}"}, timeout=10
         )
@@ -85,7 +85,7 @@ class ExchangeBase(PrintError):
 
     @staticmethod
     def get_csv(site, get_string):
-        url = "".join(["https://", site, get_string])
+        url = f"https://{site}{get_string}"
         response = requests.request(
             "GET", url, headers={"User-Agent": f"{PROJECT_NAME}"}
         )

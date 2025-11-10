@@ -205,7 +205,7 @@ def deserialize_server(server_str):
 
 
 def serialize_server(host, port, protocol):
-    return str(":".join([host, port, protocol]))
+    return str(f"{host}:{port}:{protocol}")
 
 
 bypass_proxy_filters = [check_proxy_bypass_tor_control]

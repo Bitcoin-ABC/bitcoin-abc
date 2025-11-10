@@ -423,7 +423,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             if not support_arbitrary_prefix and prefix != net.CASHADDR_PREFIX:
                 raise AddressError(f"address has unexpected prefix {prefix}")
         else:
-            full_string = ":".join([net.CASHADDR_PREFIX, string])
+            full_string = f"{net.CASHADDR_PREFIX}:{string}"
             try:
                 prefix, kind, addr_hash = cashaddr.decode(full_string)
             except ValueError as e:
@@ -614,9 +614,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             net = networks.net
         text = self.to_string(fmt, net=net)
         if fmt == self.FMT_CASHADDR:
-            text = ":".join([net.CASHADDR_PREFIX, text])
+            text = f"{net.CASHADDR_PREFIX}:{text}"
         if fmt == self.FMT_CASHADDR_BCH:
-            text = ":".join([net.CASHADDR_PREFIX_BCH, text])
+            text = f"{net.CASHADDR_PREFIX_BCH}:{text}"
         return text
 
     def to_ui_string_without_prefix(self, *, net=None) -> str:

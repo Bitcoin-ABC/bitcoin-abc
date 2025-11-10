@@ -1,6 +1,6 @@
 [lint.per-file-ignores]
 # don't enforce f-strings in the Electrum codebase for now
-"./*" = ["FLY002", "UP031", "UP032"]
+"./*" = ["UP031", "UP032"]
 
 [lint.isort]
 known-first-party = ["electrum", "electrum_gui", "electrum_plugins"]

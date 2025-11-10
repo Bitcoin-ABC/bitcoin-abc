@@ -506,17 +506,12 @@ class SatochipSettingsDialog(WindowModalDialog):
             txt_result += "\n\n" + text_cert_chain
             client.handler.show_message(txt_result)
         else:
-            txt_result = "".join(
-                [
-                    "Error: could not authenticate the issuer of this card! \n",
-                    "Reason: ",
-                    txt_error,
-                    "\n\n",
-                    "If you did not load the card yourself, be extremely careful! \n",
-                    "Contact support(at)satochip.io to report a suspicious device.",
-                ]
-            )
-            txt_result += "\n\n" + text_cert_chain
+            txt_result = (
+                f"Error: could not authenticate the issuer of this card! \n"
+                f"Reason: {txt_error}\n\nIf you did not load the card yourself, "
+                f"be extremely careful! \nContact support(at)satochip.io to "
+                f"report a suspicious device.\n\n"
+            ) + text_cert_chain
             client.handler.show_error(txt_result)
 
     def card_verify_authenticity(self, client):  # todo: add this function in pysatochip
@@ -525,14 +520,10 @@ class SatochipSettingsDialog(WindowModalDialog):
             cert_pem = client.cc.card_export_perso_certificate()
             print_error("Cert PEM: " + str(cert_pem))
         except CardError:
-            txt_error = "".join(
-                [
-                    "Unable to get device certificate: feature unsupported! \n",
-                    (
-                        "Authenticity validation is only available starting with"
-                        " Satochip v0.12 and higher"
-                    ),
-                ]
+            txt_error = (
+                "Unable to get device certificate: feature unsupported! \n"
+                "Authenticity validation is only available starting with Satochip "
+                "v0.12 and higher"
             )
         except CardNotPresentError:
             txt_error = "No card found! Please insert card."

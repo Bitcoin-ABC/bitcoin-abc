@@ -186,7 +186,9 @@ class SettingsDialog(WindowModalDialog):
             + "\n\n"
             + _("The following alias providers are available:")
             + "\n"
-            + "\n".join(["https://cryptoname.co/", "http://xmr.link/"])
+            + "https://cryptoname.co/"
+            + "\n"
+            + "http://xmr.link/"
             + "\n\n"
             + _("For more information, see http://openalias.org")
         )
