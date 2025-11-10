@@ -23,6 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """This module defines base types used by more complex types."""
+
 from __future__ import annotations
 
 from io import BytesIO

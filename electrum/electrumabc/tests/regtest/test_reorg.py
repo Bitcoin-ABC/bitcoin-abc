@@ -24,6 +24,7 @@
 """
 Test how the software behaves in a reorg
 """
+
 import time
 import unittest
 

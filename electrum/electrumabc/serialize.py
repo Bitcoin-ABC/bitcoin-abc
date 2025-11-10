@@ -25,6 +25,7 @@
 """This module contains serialization tools for various basic data structures used by
 data structures.
 """
+
 from __future__ import annotations
 
 import struct

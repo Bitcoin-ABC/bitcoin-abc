@@ -23,6 +23,7 @@
 """
 This module provides coin consolidation tools.
 """
+
 from typing import Iterator, List, Optional, Tuple
 
 from . import wallet

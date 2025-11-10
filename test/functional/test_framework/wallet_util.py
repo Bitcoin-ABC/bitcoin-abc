@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Useful util functions for testing the wallet"""
+
 from collections import namedtuple
 
 from test_framework.address import byte_to_base58, key_to_p2pkh, script_to_p2sh

@@ -34,6 +34,7 @@ Test is as follows:
     node1 can't write to disk.
 
 """
+
 import os
 import time
 from decimal import Decimal

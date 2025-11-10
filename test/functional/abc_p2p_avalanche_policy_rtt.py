@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the real time targeting policy."""
+
 from test_framework.avatools import (
     assert_response,
     can_find_inv_in_poll,

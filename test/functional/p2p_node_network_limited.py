@@ -7,6 +7,7 @@ Tests that a node configured with -prune=550 signals NODE_NETWORK_LIMITED correc
 and that it responds to getdata requests for blocks correctly:
     - send a block within 288 + 2 of the tip
     - disconnect peers who request blocks older than that."""
+
 from test_framework.messages import (
     MSG_BLOCK,
     NODE_BLOOM,

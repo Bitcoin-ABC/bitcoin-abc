@@ -8,6 +8,7 @@ RPCs tested are:
     - listaddressgroupings
     - setlabel
 """
+
 from collections import defaultdict
 
 from test_framework.blocktools import COINBASE_MATURITY

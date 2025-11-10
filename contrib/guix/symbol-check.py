@@ -10,6 +10,7 @@ Example usage:
 
     find ../path/to/guix/binaries -type f -executable | xargs python3 contrib/guix/symbol-check.py
 """
+
 import sys
 
 import lief

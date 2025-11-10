@@ -11,6 +11,7 @@ Example usage:
 
     find ../path/to/guix/binaries -type f -executable | xargs python3 contrib/guix/security-check.py
 """
+
 import sys
 from typing import List
 

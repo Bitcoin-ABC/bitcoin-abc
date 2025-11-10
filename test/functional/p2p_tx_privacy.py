@@ -19,6 +19,7 @@ if it was received after spy's version handshake completed.
 5. tx_originator sends tx2
 6. We check that only tx2 is announced on the spy interface
 """
+
 from test_framework.messages import MSG_TX, CInv, msg_tx, msg_verack
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework

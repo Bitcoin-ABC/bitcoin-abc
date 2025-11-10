@@ -29,6 +29,7 @@ confirm 1/2/3/4 balances are same as before.
 Shutdown again, restore using importwallet,
 and confirm again balances are correct.
 """
+
 import os
 import shutil
 from decimal import Decimal

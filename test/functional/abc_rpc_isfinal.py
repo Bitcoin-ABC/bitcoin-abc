@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the isfinalxxx RPCS."""
+
 import random
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE

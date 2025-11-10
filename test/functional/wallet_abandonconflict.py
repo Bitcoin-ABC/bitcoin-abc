@@ -9,6 +9,7 @@ used to replace "stuck" or evicted transactions. It only works on transactions
 which are not included in a block and are not currently in the mempool. It has
 no effect on transactions which are already abandoned.
 """
+
 from decimal import Decimal
 
 from test_framework.blocktools import COINBASE_MATURITY

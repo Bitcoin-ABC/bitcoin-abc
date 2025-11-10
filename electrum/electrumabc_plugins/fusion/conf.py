@@ -26,6 +26,7 @@
 """
 CashFusion - conf.py - configuration & settings management
 """
+
 from collections import namedtuple
 from typing import List, Optional, Tuple, Union
 

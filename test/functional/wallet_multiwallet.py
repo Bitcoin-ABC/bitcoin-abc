@@ -5,6 +5,7 @@
 
 Verify that a bitcoind node can load multiple wallet files
 """
+
 import os
 import shutil
 import stat

@@ -4,6 +4,7 @@
 """
 A test for RPC users with restricted permissions
 """
+
 import http.client
 import os
 import urllib.parse

@@ -3,6 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the -alertnotify, -blocknotify and -walletnotify options."""
+
 import os
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, keyhash_to_p2pkh

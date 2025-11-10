@@ -26,6 +26,7 @@
 """
 Base plugin (non-GUI)
 """
+
 import math
 import random  # only used to select random coins
 import threading

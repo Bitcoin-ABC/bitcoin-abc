@@ -11,6 +11,7 @@ address/netgroup since in the current framework, all peers are connecting from
 the same local address. See Issue #14210 for more info.
 Therefore, this test is limited to the remaining protection criteria.
 """
+
 import time
 
 from test_framework.avatools import (

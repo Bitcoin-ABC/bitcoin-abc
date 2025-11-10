@@ -22,6 +22,7 @@ Verify node behaviour and debug log when launching bitcoind in these cases:
 The tests are order-independent.
 
 """
+
 import os
 import shutil
 

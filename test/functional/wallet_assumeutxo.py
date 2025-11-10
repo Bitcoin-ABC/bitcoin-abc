@@ -9,6 +9,7 @@ See feature_assumeutxo.py for background.
 - TODO: test loading a wallet (backup) on a pruned node
 
 """
+
 from test_framework.descriptors import descsum_create
 from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework

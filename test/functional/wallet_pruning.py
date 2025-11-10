@@ -3,6 +3,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 """Test wallet import on pruned node."""
+
 import os
 
 from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase

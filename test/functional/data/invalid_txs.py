@@ -18,6 +18,7 @@ Invalid tx cases not covered here can be found by running:
       <(grep -IEho "bad-txns[a-zA-Z-]+" test/functional/data/invalid_txs.py | sort -u)
 
 """
+
 import abc
 from typing import Optional
 

@@ -26,6 +26,7 @@
 """
 Protobuf communications system and a generic server+client
 """
+
 import queue
 import socket
 import sys

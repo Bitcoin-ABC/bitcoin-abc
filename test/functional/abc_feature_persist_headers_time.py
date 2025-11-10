@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test dumping/loading the headers receive time to/from file."""
+
 import time
 
 from test_framework.messages import uint256_from_compact

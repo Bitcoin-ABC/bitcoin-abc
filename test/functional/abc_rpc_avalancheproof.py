@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test building avalanche proofs and using them to add avalanche peers."""
+
 import base64
 from decimal import Decimal
 

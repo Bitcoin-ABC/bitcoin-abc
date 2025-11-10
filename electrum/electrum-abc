@@ -32,6 +32,7 @@
 """
 Electrum ABC - lightweight eCash client
 """
+
 from __future__ import annotations
 
 import argparse

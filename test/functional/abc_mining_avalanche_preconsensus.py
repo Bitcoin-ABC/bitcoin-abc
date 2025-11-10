@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mining with avalanche preconsensus."""
+
 import random
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface

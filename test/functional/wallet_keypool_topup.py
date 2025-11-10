@@ -9,6 +9,7 @@ Two nodes. Node1 is under test. Node0 is providing transactions and generating b
 - Generate 110 keys (enough to drain the keypool). Store key 90 (in the initial keypool) and key 110 (beyond the initial keypool). Send funds to key 90 and key 110.
 - Stop node1, clear the datadir, move wallet file back into the datadir and restart node1.
 - connect node1 to node0. Verify that they sync and node1 receives its funds."""
+
 import os
 import shutil
 

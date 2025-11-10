@@ -4,6 +4,7 @@
 """
 Test Chronik's electrum interface: blockchain.* methods
 """
+
 import time
 
 from test_framework.address import (

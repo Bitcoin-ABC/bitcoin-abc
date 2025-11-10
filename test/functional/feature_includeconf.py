@@ -13,6 +13,7 @@ Verify that:
 4. multiple includeconf arguments can be specified in the main config
    file.
 """
+
 import os
 
 from test_framework.test_framework import BitcoinTestFramework

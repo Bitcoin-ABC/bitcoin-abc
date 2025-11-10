@@ -9,6 +9,7 @@ Usage:
     gen_base58_test_vectors.py valid 50 > ../../src/test/data/base58_keys_valid.json
     gen_base58_test_vectors.py invalid 50 > ../../src/test/data/base58_keys_invalid.json
 """
+
 # 2012 Wladimir J. van der Laan
 # Released under MIT License
 import os

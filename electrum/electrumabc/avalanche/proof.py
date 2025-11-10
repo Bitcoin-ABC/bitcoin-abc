@@ -28,6 +28,7 @@
 This requires serializing some keys and UTXO metadata (stakes), and signing
 the hash of the stakes to prove ownership of the UTXO.
 """
+
 from __future__ import annotations
 
 import struct

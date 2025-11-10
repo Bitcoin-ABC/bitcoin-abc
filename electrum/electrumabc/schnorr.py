@@ -10,6 +10,7 @@ A Python-only Schnorr sign/verify is available as a fallback if secp256k1 is
 unavailable. Note that this is much less secure as it contains side channel
 vulnerabilities, and must not be used in an automated-signing environment.
 """
+
 import hashlib
 import hmac
 from ctypes import byref, c_size_t, c_void_p, cast, create_string_buffer

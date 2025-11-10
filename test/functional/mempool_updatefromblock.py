@@ -6,6 +6,7 @@
 Test mempool update of transaction descendants/ancestors information (count, size)
 when transactions have been re-added from a disconnected block to the mempool.
 """
+
 import time
 from decimal import Decimal
 

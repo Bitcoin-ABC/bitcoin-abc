@@ -22,6 +22,7 @@ Interesting starting states could be loading a snapshot when the current chain t
 - TODO: A descendant of the snapshot block
 
 """
+
 import os
 import time
 from dataclasses import dataclass

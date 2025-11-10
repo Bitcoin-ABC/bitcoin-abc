@@ -4,6 +4,7 @@
 """
 Test Chronik's electrum interface
 """
+
 import json
 
 import websocket
