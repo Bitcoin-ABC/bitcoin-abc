@@ -104,3 +104,4 @@ console.log(toHex(rawTx));
 -   4.4.0 - Add `parse` methods to support parsing of OP_RETURN outputScript strings as returned by chronik-client [D18659](https://reviews.bitcoinabc.org/D18659)
 -   4.5.0 - Add `fromTx` method to support creating a `TxBuilder` from a `Tx`, useful for creating a `TxBuilder` from a serialized partially-signed `Tx` in order to add postage and broadcast [D18838](https://reviews.bitcoinabc.org/D18838)
 -   4.5.1 - Add updated `testRunner` to support CI builds of monorepo apps that rely on this from the published version, e.g. `ecash-agora` [D18844](https://reviews.bitcoinabc.org/D18844)
+-   4.5.2 - Export constants used in `ecash-wallet` to calculate chained XEC-only txs for txs that would otherwise exceed `MAX_TX_SERSIZE`. There is no change in behavior. [D18918](https://reviews.bitcoinabc.org/D18918)

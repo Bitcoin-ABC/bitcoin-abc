@@ -30,3 +30,12 @@ export const COINBASE_MATURITY = 100;
  * for this limit in ALP token action validation.
  */
 export const OP_RETURN_MAX_BYTES = 223;
+
+/**
+ * The node will throw an error on broadcasting a tx
+ * with serSize() greater than this value in bytes
+ */
+export const MAX_TX_SERSIZE = 100_000;
+
+// The size in bytes of a p2pkh output
+export const P2PKH_OUTPUT_SIZE = 34;

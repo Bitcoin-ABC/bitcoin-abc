@@ -4,6 +4,7 @@
 
 import { GenesisInfo, TokenType } from '../token/common.js';
 import { PaymentOutput } from './output.js';
+import { OutPoint } from '../tx.js';
 
 /**
  * Action
@@ -34,10 +35,47 @@ export interface Action {
      * blank output, i.e. {sats: 0n}, at index 0 of Action.outputs[]
      */
     tokenActions?: TokenAction[];
+    /**
+     * A user may optionally specify any utxos that wish to be included in the action by
+     * passing their OutPoint(s)
+     *
+     * Use cases
+     * - Apps that support 0-conf and want to make sure a return tx includes the payment utxo,
+     *   so that if the payment is doublespent, both txs are invalidated
+     * - Users looking to build a chained tx, where the change of 1 tx provides the input for
+     *   the next tx in the chain
+     * - Unknown future use cases where some tx or app actions may require specific utxos
+     *   for a spec not yet supported by ecash-wallet or ecash-lib
+     *
+     * If requiredUtxos is specified, the Action will include every ScriptUtxo specified in the
+     * first tx of the built action. If it is unable to do so due to fee or size constraints,
+     * it will throw an error rather than partially exclude specified inputs
+     *
+     * We specify these utxos by OutPoint which uniquely identifies them. ecash-wallet still must
+     * check that these utxos are actually available in the wallet.
+     */
+    requiredUtxos?: OutPoint[];
+    /**
+     * If true, the Action will not include any change outputs in the built txs
+     * For power users who want to exactly specify the inputs and outputs of a tx,
+     * and to support building deterministic chained txs
+     *
+     * If unspecified, ecash-wallet will always automatically include change
+     *
+     * Note that if noChange is specified as true, unless the outputs specify reasonable change or
+     * just so happen to about correspond with input + fee, we are likely to get an
+     * error on build or broadcast from the fee being too crazy
+     *
+     * TODO extend this to also block token change when we add support for chained
+     * token send txs, as we also want these to be deterministic
+     */
+    noChange?: boolean;
     /** Dust sats associated with this tx, defaults to DEFAULT_DUST_SATS */
     dustSats?: bigint;
     /** Fee per kb to be used for tx(s) of this action, defaults to DEFAULT_FEE_SATS_PER_KB */
     feePerKb?: bigint;
+    /** Maximum tx sersize to be used for tx(s) of this action, defaults to MAX_TX_SERSIZE */
+    maxTxSersize?: number;
 }
 
 /**
