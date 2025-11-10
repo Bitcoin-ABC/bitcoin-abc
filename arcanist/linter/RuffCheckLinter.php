@@ -94,7 +94,7 @@ final class RuffCheckLinter extends ArcanistExternalLinter {
       '--ignore',
       'A003,E203,E303,E305,E501,C901',
       '--select',
-      'E,F,A,C,I,B006,B008'
+      'E,F,A,C,I,FLY,B006,B008,UP031,UP032'
     );
   }
 

@@ -59,7 +59,7 @@ def print_event(event):
             event.duration,
             FLUSH_MODES[event.mode],
             event.coins_count,
-            "{:.2f} kB".format(event.coins_mem_usage / 1000),
+            f"{event.coins_mem_usage / 1000:.2f} kB",
             str(event.is_flush_for_prune),
         )
     )

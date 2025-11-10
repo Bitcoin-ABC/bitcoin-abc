@@ -37,10 +37,7 @@ class Cirrus:
         if response.status_code != requests.codes.ok:
             raise AssertionError(
                 "Cirrus get_default_branch_status() failed for repository"
-                " {}\nResponse:\n{}".format(
-                    repo_id,
-                    vars(response),
-                )
+                f" {repo_id}\nResponse:\n{vars(response)}"
             )
 
         json_data = json.loads(response.content)

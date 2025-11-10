@@ -182,7 +182,7 @@ class ZMQTest(BitcoinTestFramework):
         rawtx = subs[3]
 
         num_blocks = 5
-        self.log.info("Generate {0} blocks (and {0} coinbase txes)".format(num_blocks))
+        self.log.info(f"Generate {num_blocks} blocks (and {num_blocks} coinbase txes)")
         genhashes = self.generatetoaddress(
             self.nodes[0], num_blocks, ADDRESS_ECREG_UNSPENDABLE
         )

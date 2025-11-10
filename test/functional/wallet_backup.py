@@ -141,9 +141,7 @@ class WalletBackupTest(BitcoinTestFramework):
         not_created_wallet_file = os.path.join(
             node.datadir, self.chain, "wallets", wallet_name
         )
-        error_message = "Wallet file verification failed. Failed to load database path '{}'. Data is not in recognized format.".format(
-            not_created_wallet_file
-        )
+        error_message = f"Wallet file verification failed. Failed to load database path '{not_created_wallet_file}'. Data is not in recognized format."
         assert_raises_rpc_error(
             -18, error_message, node.restorewallet, wallet_name, invalid_wallet_file
         )

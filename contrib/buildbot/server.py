@@ -196,9 +196,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
         }
         data_list = phab.differential.revision.search(**revisionSearchArgs).data
         assert len(data_list) == 1, (
-            "differential.revision.search({}): Expected 1 revision, got: {}".format(
-                revisionSearchArgs, data_list
-            )
+            f"differential.revision.search({revisionSearchArgs}): Expected 1 revision, got: {data_list}"
         )
         summary = data_list[0]["fields"]["summary"]
 
@@ -245,7 +243,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                 }
 
                 for prefix, url in supportedRepos.items():
-                    regEx = r"{}#(\d*)".format(prefix)
+                    regEx = rf"{prefix}#(\d*)"
                     line = re.sub(regEx, replacePRWithLink(url, prefix), line)
 
             newSummary += line
@@ -290,7 +288,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
             if value is None:
                 raise AssertionError(
                     "Calling /buildDiff endpoint with missing mandatory argument"
-                    " {}:\n{}".format(argument, request.args)
+                    f" {argument}:\n{request.args}"
                 )
             return value
 
@@ -728,10 +726,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
         # Log the project changes if any
         if (len(removed_projects) + len(added_projects)) > 0:
             app.logger.info(
-                "Teamcity project list has changed.\nRemoved: {}\nAdded: {}".format(
-                    removed_projects,
-                    added_projects,
-                )
+                f"Teamcity project list has changed.\nRemoved: {removed_projects}\nAdded: {added_projects}"
             )
 
         # Construct a dictionary from teamcity build type id to build name.
@@ -782,12 +777,8 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
             # Log the build changes if any
             if (len(removed_builds) + len(added_builds)) > 0:
                 app.logger.info(
-                    "Teamcity build list has changed for project {}.\nRemoved:"
-                    " {}\nAdded: {}".format(
-                        project_id,
-                        removed_builds,
-                        added_builds,
-                    )
+                    f"Teamcity build list has changed for project {project_id}.\nRemoved:"
+                    f" {removed_builds}\nAdded: {added_builds}"
                 )
 
             # From here only the build that triggered the call need to be
@@ -835,12 +826,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                 )
 
                 panel_content = add_line_to_panel(
-                    '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |'.format(
-                        url,
-                        build_name_map[build_type_id],
-                        badge_url,
-                        build_status_message,
-                    )
+                    f'| [[{url} | {build_name_map[build_type_id]}]] | {{image uri="{badge_url}", alt="{build_status_message}"}} |'
                 )
             panel_content = add_line_to_panel("")
 
@@ -848,8 +834,8 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
 
     def update_coverage_panel(build_type_id, project_name, coverage_summary):
         coverage_permalink = (
-            "**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId={}&tab=report__Root_Code_Coverage&guest=1"
-            " | {} coverage report ]]**\n\n".format(build_type_id, project_name)
+            f"**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId={build_type_id}&tab=report__Root_Code_Coverage&guest=1"
+            f" | {project_name} coverage report ]]**\n\n"
         )
 
         coverage_report = "| Granularity | % hit | # hit | # total |\n"
@@ -962,7 +948,7 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     slackbot.postMessage(
                         "infra",
                         "<!subteam^S012TUC9S2Z> There was an infrastructure failure in"
-                        " '{}': {}".format(buildName, guest_url),
+                        f" '{buildName}': {guest_url}",
                     )
 
                     # Normally a comment of the build status is provided on diffs. Since no useful debug
@@ -990,9 +976,9 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     landBotMessage = "Successfully landed your change:"
 
                 landBotMessage = (
-                    "{}\nRevision: https://reviews.bitcoinabc.org/{}\nBuild: {}".format(
-                        landBotMessage, revisionId, guest_url
-                    )
+                    f"{landBotMessage}\n"
+                    f"Revision: https://reviews.bitcoinabc.org/{revisionId}\n"
+                    f"Build: {guest_url}"
                 )
 
                 # Send a direct message to the revision author

@@ -119,9 +119,7 @@ def print_message(event, inbound):
     print(
         "{} {} msg '{}' from peer {} ({}, {}) with {} bytes: {}".format(
             (
-                "Warning: incomplete message (only {} out of {} bytes)!".format(
-                    len(event.msg), event.msg_size
-                )
+                f"Warning: incomplete message (only {len(event.msg)} out of {event.msg_size} bytes)!"
                 if len(event.msg) < event.msg_size
                 else ""
             ),

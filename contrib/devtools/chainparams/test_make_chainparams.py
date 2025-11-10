@@ -56,9 +56,7 @@ class MockRPC:
         self.test.assertEqual(
             block,
             self.expectedBlock,
-            "Called 'getblockhash {}' when expected was 'getblockhash {}'".format(
-                block, self.expectedBlock
-            ),
+            f"Called 'getblockhash {block}' when expected was 'getblockhash {self.expectedBlock}'",
         )
         return self.blockHash
 
@@ -69,9 +67,7 @@ class MockRPC:
         self.test.assertEqual(
             blockHash,
             self.blockHash,
-            "Called 'getblockheader {}' when expected was 'getblockheader {}'".format(
-                blockHash, self.blockHash
-            ),
+            f"Called 'getblockheader {blockHash}' when expected was 'getblockheader {self.blockHash}'",
         )
         return {
             "hash": blockHash,
@@ -205,14 +201,10 @@ class GenerateChainParamsTests(unittest.TestCase):
         }
         self.assertEqual(
             GenerateChainParams(args),
-            "\n".join(
-                [
-                    "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                    "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
-                    "194",
-                    "3",
-                ]
-            ),
+            "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8\n"
+            "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1\n"
+            "194\n"
+            "3",
         )
 
     def test_happy_path_testnet(self):
@@ -232,14 +224,10 @@ class GenerateChainParamsTests(unittest.TestCase):
         }
         self.assertEqual(
             GenerateChainParams(args),
-            "\n".join(
-                [
-                    "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                    "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
-                    "61",
-                    "2",
-                ]
-            ),
+            "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8\n"
+            "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1\n"
+            "61\n"
+            "2",
         )
 
     def test_specific_block(self):
@@ -259,14 +247,10 @@ class GenerateChainParamsTests(unittest.TestCase):
         }
         self.assertEqual(
             GenerateChainParams(args),
-            "\n".join(
-                [
-                    "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8",
-                    "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1",
-                    "194",
-                    "3",
-                ]
-            ),
+            "0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8\n"
+            "000000000000000000000000000000000000000000f2537ccf2e07bbe15e70e1\n"
+            "194\n"
+            "3",
         )
 
     def test_wrong_chain(self):

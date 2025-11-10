@@ -105,9 +105,7 @@ def parse_function_calls(function_name, source_code):
         for line in source_code.split("\n")
         if not line.strip().startswith("#")
     ]
-    return re.findall(
-        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), f" {' '.join(lines)}"
-    )
+    return re.findall(rf"[^a-zA-Z_](?=({function_name}\(.*).*)", f" {' '.join(lines)}")
 
 
 def normalize(s):
@@ -420,9 +418,7 @@ def main(args_in):
                     continue
                 if len(parts) < 3 + skip_arguments:
                     print(
-                        '{}: Could not parse function call string "{}(...)": {}'.format(
-                            f.name, function_name, relevant_function_call_str
-                        )
+                        f'{f.name}: Could not parse function call string "{function_name}(...)": {relevant_function_call_str}'
                     )
                     continue
                 argument_count = len(parts) - 3 - skip_arguments
@@ -430,13 +426,8 @@ def main(args_in):
                 format_specifier_count = count_format_specifiers(format_str)
                 if format_specifier_count != argument_count:
                     print(
-                        "{}: Expected {} argument(s) after format string but found {}"
-                        " argument(s): {}".format(
-                            f.name,
-                            format_specifier_count,
-                            argument_count,
-                            relevant_function_call_str,
-                        )
+                        f"{f.name}: Expected {format_specifier_count} argument(s) after format string but found {argument_count}"
+                        f" argument(s): {relevant_function_call_str}"
                     )
                     continue
 

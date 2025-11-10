@@ -886,10 +886,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                     "url": self.teamcity.build_url(
                         "app/rest/builds",
                         {
-                            "locator": "buildType:{},sinceDate:{}".format(
-                                data.buildTypeId,
-                                self.teamcity.formatTime(1590000000 - 60 * 60 * 24 * 5),
-                            ),
+                            "locator": f"buildType:{data.buildTypeId},sinceDate:{self.teamcity.formatTime(1590000000 - 60 * 60 * 24 * 5)}",
                             "fields": "build",
                         },
                     )
@@ -928,10 +925,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                     "url": self.teamcity.build_url(
                         "app/rest/builds",
                         {
-                            "locator": "buildType:{},sinceDate:{}".format(
-                                data.buildTypeId,
-                                self.teamcity.formatTime(1590000000 - 60 * 60 * 24 * 5),
-                            ),
+                            "locator": f"buildType:{data.buildTypeId},sinceDate:{self.teamcity.formatTime(1590000000 - 60 * 60 * 24 * 5)}",
                             "fields": "build",
                         },
                     )
@@ -1313,9 +1307,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             self.teamcity.session.send.side_effect = [
                 test.mocks.teamcity.buildInfo(build_id=build_id, buildqueue=True),
             ]
-            url = "build?buildTypeId=staging&ref=refs/tags/phabricator/diffs/{}&PHID={}&abcBuildName={}".format(
-                build_id, data.buildTargetPHID, build_name
-            )
+            url = f"build?buildTypeId=staging&ref=refs/tags/phabricator/diffs/{build_id}&PHID={data.buildTargetPHID}&abcBuildName={build_name}"
             response = self.app.post(url, headers=self.headers)
             self.assertEqual(response.status_code, 200)
 
@@ -1490,7 +1482,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             text=(
                 "Successfully landed your change:\n"
                 "Revision: https://reviews.bitcoinabc.org/D1234\n"
-                "Build: {}".format(expectedBuildUrl)
+                f"Build: {expectedBuildUrl}"
             ),
         )
 
@@ -1515,7 +1507,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             text=(
                 "Failed to land your change:\n"
                 "Revision: https://reviews.bitcoinabc.org/D1234\n"
-                "Build: {}".format(expectedBuildUrl)
+                f"Build: {expectedBuildUrl}"
             ),
         )
 
@@ -1542,9 +1534,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                 " Phabricator profile so the landbot can send you direct messages:"
                 " https://reviews.bitcoinabc.org/people/editprofile/5678\nFailed to"
                 " land your change:\nRevision:"
-                " https://reviews.bitcoinabc.org/D1234\nBuild: {}".format(
-                    expectedBuildUrl
-                )
+                f" https://reviews.bitcoinabc.org/D1234\nBuild: {expectedBuildUrl}"
             ),
         )
 
@@ -1702,12 +1692,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                     else "red"
                 ),
             )
-            return '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |\n'.format(
-                url,
-                teamcity_build_name,
-                badge_url,
-                status_message,
-            )
+            return f'| [[{url} | {teamcity_build_name}]] | {{image uri="{badge_url}", alt="{status_message}"}} |\n'
 
         # No build in config file, should bail out and not edit the panel with
         # teamcity content
@@ -1906,9 +1891,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             except AssertionError:
                 return
             raise AssertionError(
-                "Expected {} to not have been called.".format(
-                    self._format_mock_call_signature(args, kwargs)
-                )
+                f"Expected {self._format_mock_call_signature(args, kwargs)} to not have been called."
             )
 
         mock.Mock.assert_not_called_with = _assert_not_called_with

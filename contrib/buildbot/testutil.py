@@ -12,34 +12,26 @@ def AnyWith(cls, attrs=None):
         def __eq__(self, other):
             if not isinstance(other, cls):
                 raise AssertionError(
-                    "Argument class type did not match.\nExpected:\n{}\n\nActual:\n{}".format(
-                        pformat(cls), pformat(other)
-                    )
+                    f"Argument class type did not match.\nExpected:\n{pformat(cls)}\n\nActual:\n{pformat(other)}"
                 )
             if attrs is not None:
                 for attr, expectedValue in attrs.items():
                     if not hasattr(other, attr):
                         raise AssertionError(
-                            "Argument missing expected attribute:\n{}\n\nArgument"
-                            " has:\n{}".format(pformat(attr), pformat(dir(other)))
+                            f"Argument missing expected attribute:\n{pformat(attr)}\n\nArgument"
+                            f" has:\n{pformat(dir(other))}"
                         )
                     actualValue = getattr(other, attr)
                     if not isinstance(expectedValue, type(actualValue)):
                         raise AssertionError(
                             "Argument attribute type did not"
-                            " match.\nExpected:\n{}\n\nActual:\n{}\nFor expected"
-                            " value:\n{}".format(
-                                type(expectedValue).__name__,
-                                type(actualValue).__name__,
-                                pformat(expectedValue),
-                            )
+                            f" match.\nExpected:\n{type(expectedValue).__name__}\n\nActual:\n{type(actualValue).__name__}\nFor expected"
+                            f" value:\n{pformat(expectedValue)}"
                         )
                     if expectedValue != actualValue:
                         raise AssertionError(
                             "Argument attribute value did not"
-                            " match.\nExpected:\n{}\n\nActual:\n{}".format(
-                                pformat(expectedValue), pformat(actualValue)
-                            )
+                            f" match.\nExpected:\n{pformat(expectedValue)}\n\nActual:\n{pformat(actualValue)}"
                         )
             return True
 

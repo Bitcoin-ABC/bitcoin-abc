@@ -18,9 +18,7 @@ def main(input_file, output_file):
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print(
-            "Invalid parameters\nUsage: {} input_file output_file".format(
-                Path(sys.argv[0]).name
-            )
+            f"Invalid parameters\nUsage: {Path(sys.argv[0]).name} input_file output_file"
         )
         sys.exit(1)
 

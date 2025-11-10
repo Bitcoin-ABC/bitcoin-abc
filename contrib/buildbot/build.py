@@ -33,8 +33,8 @@ class BuildTarget:
     def update_build_status(self, build_id, status):
         if build_id not in self.builds:
             raise AssertionError(
-                "Attempting to update the build id {} to status {} that does not belong"
-                " to the build target {}".format(build_id, status, self.phid)
+                f"Attempting to update the build id {build_id} to status {status} that does not belong"
+                f" to the build target {self.phid}"
             )
         self.builds[build_id].status = status
 

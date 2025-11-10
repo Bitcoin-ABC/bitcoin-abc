@@ -197,12 +197,7 @@ class BlockDataCopier:
 
         if (self.blkCountOut % 1000) == 0:
             print(
-                "{} blocks scanned, {} blocks written (of {}, {:.1f}% complete)".format(
-                    self.blkCountIn,
-                    self.blkCountOut,
-                    len(self.blkindex),
-                    100.0 * self.blkCountOut / len(self.blkindex),
-                )
+                f"{self.blkCountIn} blocks scanned, {self.blkCountOut} blocks written (of {len(self.blkindex)}, {100.0 * self.blkCountOut / len(self.blkindex):.1f}% complete)"
             )
 
     def inFileName(self, fn):

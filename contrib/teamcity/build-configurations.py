@@ -84,17 +84,15 @@ class BuildConfiguration:
         # it should not be empty.
         if not config.get("builds", None):
             raise AssertionError(
-                'Invalid configuration file {}: the "builds" element is missing or'
-                " empty".format(str(self.config_file))
+                f'Invalid configuration file {str(self.config_file)}: the "builds" element is missing or'
+                " empty"
             )
 
         # Check the target build has an entry in the configuration file
         build = config["builds"].get(self.name, None)
         if not build:
             raise AssertionError(
-                "{} is not a valid build identifier. Valid identifiers are {}".format(
-                    self.name, list(config.keys())
-                )
+                f"{self.name} is not a valid build identifier. Valid identifiers are {list(config.keys())}"
             )
 
         dependencies = build.get("depends", [])
@@ -117,8 +115,8 @@ class BuildConfiguration:
             # Raise an error if the template does not exist
             if template_name not in templates:
                 raise AssertionError(
-                    "Build {} configuration inherits from template {}, but the template"
-                    " does not exist.".format(self.name, template_name)
+                    f"Build {self.name} configuration inherits from template {template_name}, but the template"
+                    " does not exist."
                 )
             always_merger.merge(template_config, templates.get(template_name))
 
@@ -222,7 +220,7 @@ class BuildConfiguration:
             for arg in docker_config.get("build_args", []):
                 docker_build_args.extend(["--build-arg", arg])
 
-            tag_name = "-".join([self.name, self.project_commit])
+            tag_name = f"{self.name}-{self.project_commit}"
 
             # Docker build
             self.build_steps.append(
@@ -318,8 +316,8 @@ class BuildConfiguration:
         targets = self.config.get("targets", None)
         if not targets:
             raise AssertionError(
-                "No build target has been provided for build {} and no script is"
-                " defined, aborting".format(self.name)
+                f"No build target has been provided for build {self.name} and no script is"
+                " defined, aborting"
             )
 
         # Some more flags for the build_cmake.sh script
@@ -632,15 +630,11 @@ class UserBuild:
                     self.run_build(step["bin"], step["args"]), timeout
                 )
                 if return_code != 0:
-                    message = "Build {} failed with exit code {}".format(
-                        self.configuration.name, return_code
-                    )
+                    message = f"Build {self.configuration.name} failed with exit code {return_code}"
                     return
 
         except asyncio.TimeoutError:
-            message = "Build {} timed out after {:.1f}s".format(
-                self.configuration.name, round(timeout, 1)
-            )
+            message = f"Build {self.configuration.name} timed out after {round(timeout, 1):.1f}s"
             # The process is killed, set return code to 128 + 9 (SIGKILL) = 137
             return_code = 137
         finally:
@@ -772,9 +766,7 @@ def main():
     parser.add_argument(
         "--config",
         "-c",
-        help="Path to the builds configuration file (default to {})".format(
-            str(default_config_path)
-        ),
+        help=f"Path to the builds configuration file (default to {str(default_config_path)})",
     )
     parser.add_argument(
         "--ramdisk",

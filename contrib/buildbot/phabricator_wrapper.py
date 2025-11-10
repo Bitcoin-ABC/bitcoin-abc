@@ -55,9 +55,7 @@ class PhabWrapper(Phabricator):
         }
         data_list = self.differential.diff.search(**diffSearchArgs).data
         assert len(data_list) == 1, (
-            "differential.diff.search({}): Expected 1 diff, got: {}".format(
-                diffSearchArgs, data_list
-            )
+            f"differential.diff.search({diffSearchArgs}): Expected 1 diff, got: {data_list}"
         )
         diffdata = data_list[0]
         revisionPHID = diffdata["fields"]["revisionPHID"]
@@ -71,9 +69,7 @@ class PhabWrapper(Phabricator):
         }
         data_list = self.differential.revision.search(**revisionSearchArgs).data
         assert len(data_list) == 1, (
-            "differential.revision.search({}): Expected 1 revision, got: {}".format(
-                revisionSearchArgs, data_list
-            )
+            f"differential.revision.search({revisionSearchArgs}): Expected 1 revision, got: {data_list}"
         )
         diffdata = data_list[0]
         revisionId = diffdata["id"]
@@ -89,9 +85,7 @@ class PhabWrapper(Phabricator):
         }
         rev_list = self.differential.revision.search(**revisionSearchArgs).data
         assert len(rev_list) == 1, (
-            "differential.revision.search({}): Expected 1 revision, got: {}".format(
-                revisionSearchArgs, rev_list
-            )
+            f"differential.revision.search({revisionSearchArgs}): Expected 1 revision, got: {rev_list}"
         )
 
         # Fetch revision author
@@ -117,9 +111,7 @@ class PhabWrapper(Phabricator):
         commits = self.diffusion.commit.search(**commitSearchArgs).data
         expectedNumCommits = len(commitHashes)
         assert len(commits) == expectedNumCommits, (
-            "diffusion.commit.search({}): Expected {} commits, got: {}".format(
-                expectedNumCommits, commitSearchArgs, commits
-            )
+            f"diffusion.commit.search({expectedNumCommits}): Expected {commitSearchArgs} commits, got: {commits}"
         )
 
         # Attempt to get revisions for all commit objects (not all commits have
@@ -165,9 +157,7 @@ class PhabWrapper(Phabricator):
         }
         revs = self.differential.revision.search(**revisionSearchArgs).data
         assert len(revs) == len(revisionPHIDs), (
-            "differential.revision.search({}): Expected {} revisions, got: {}".format(
-                revisionSearchArgs, len(revisionPHIDs), revs
-            )
+            f"differential.revision.search({revisionSearchArgs}): Expected {len(revisionPHIDs)} revisions, got: {revs}"
         )
 
         # Decorate revision authors
@@ -237,9 +227,7 @@ class PhabWrapper(Phabricator):
             )
         else:
             self.logger.info(
-                "Comment creation skipped due to deployment environment: '{}'".format(
-                    self.deployment
-                )
+                f"Comment creation skipped due to deployment environment: '{self.deployment}'"
             )
 
     def getBrokenBuildTaskTitle(self, buildName):
@@ -253,9 +241,7 @@ class PhabWrapper(Phabricator):
             }
         )
         self.logger.info(
-            "Response from 'maniphest.search' querying for title '{}': {}".format(
-                taskTitle, response
-            )
+            f"Response from 'maniphest.search' querying for title '{taskTitle}': {response}"
         )
         return response
 
@@ -281,9 +267,7 @@ class PhabWrapper(Phabricator):
             objectIdentifier=task_data[0]["phid"],
         )
         self.logger.info(
-            "Response from 'maniphest.edit' updating status to '{}': {}".format(
-                status, updatedTask
-            )
+            f"Response from 'maniphest.edit' updating status to '{status}': {updatedTask}"
         )
         return updatedTask["object"]
 
@@ -314,9 +298,7 @@ class PhabWrapper(Phabricator):
             ]
         )
         self.logger.info(
-            "Response from 'maniphest.edit' creating new task with title '{}': {}".format(
-                title, newTask
-            )
+            f"Response from 'maniphest.edit' creating new task with title '{title}': {newTask}"
         )
         return newTask["object"]
 
@@ -336,9 +318,7 @@ class PhabWrapper(Phabricator):
             )
         else:
             self.logger.info(
-                "Update of revision summary skipped due to deployment environment: '{}'".format(
-                    self.deployment
-                )
+                f"Update of revision summary skipped due to deployment environment: '{self.deployment}'"
             )
 
     def get_project_members(self, project_PHID):
@@ -354,9 +334,7 @@ class PhabWrapper(Phabricator):
 
         if len(project_data) != 1:
             self.logger.info(
-                "Found {} project(s) while searching for Bitcoin ABC: '{}'".format(
-                    len(project_data), project_data
-                )
+                f"Found {len(project_data)} project(s) while searching for Bitcoin ABC: '{project_data}'"
             )
             return []
 
@@ -392,9 +370,7 @@ class PhabWrapper(Phabricator):
 
         if len(user_data) != 1:
             self.logger.info(
-                "Found {} user(s) while searching for {}: '{}'".format(
-                    len(user_data), user_PHID, user_data
-                )
+                f"Found {len(user_data)} user(s) while searching for {user_PHID}: '{user_data}'"
             )
             return []
 
@@ -430,12 +406,7 @@ class PhabWrapper(Phabricator):
 
         def file_not_found(data):
             raise AssertionError(
-                "File {} not found in master commit {} for repository {}:\n{}".format(
-                    path,
-                    latest_commit_hash,
-                    BITCOIN_ABC_REPO,
-                    data,
-                )
+                f"File {path} not found in master commit {latest_commit_hash} for repository {BITCOIN_ABC_REPO}:\n{data}"
             )
 
         # Browse the parent directory to extract the file hash.
@@ -486,13 +457,8 @@ class PhabWrapper(Phabricator):
 
         if file_data["tooSlow"] or file_data["tooHuge"]:
             raise AssertionError(
-                "File {} from commit {} for repository {} is oversized or took too long"
-                " to download: {}".format(
-                    path,
-                    latest_commit_hash,
-                    BITCOIN_ABC_REPO,
-                    file_data,
-                )
+                f"File {path} from commit {latest_commit_hash} for repository {BITCOIN_ABC_REPO} is oversized or took too long"
+                f" to download: {file_data}"
             )
 
         file_content = self.file.download(phid=file_data["filePHID"]).response
@@ -525,8 +491,8 @@ class PhabWrapper(Phabricator):
 
         if response.get("error", None):
             raise AssertionError(
-                "Failed to edit panel {} with content:\n{}\n\nPhabricator"
-                " responded:\n{}\n".format(panel_id, content, response)
+                f"Failed to edit panel {panel_id} with content:\n{content}\n\nPhabricator"
+                f" responded:\n{response}\n"
             )
 
     def update_build_target_status(self, build_target, build_id=None, status=None):
@@ -560,12 +526,7 @@ class PhabWrapper(Phabricator):
         # same object.
         if len(tokens) > 1:
             self.logger.info(
-                "Found {} tokens for user {} on object {}: {}".format(
-                    len(tokens),
-                    self.get_current_user_phid(),
-                    object_PHID,
-                    tokens,
-                )
+                f"Found {len(tokens)} tokens for user {self.get_current_user_phid()} on object {object_PHID}: {tokens}"
             )
 
         return tokens[0]["tokenPHID"]

@@ -399,7 +399,7 @@ COPYRIGHT = r"Copyright \(c\)"
 YEAR = "20[0-9][0-9]"
 YEAR_RANGE = f"({YEAR})(-{YEAR})?"
 HOLDER = "The Bitcoin developers"
-UPDATEABLE_LINE_COMPILED = re.compile(" ".join([COPYRIGHT, YEAR_RANGE, HOLDER]))
+UPDATEABLE_LINE_COMPILED = re.compile(f"{COPYRIGHT} {YEAR_RANGE} {HOLDER}")
 
 DISTRIBUTION_LINE = re.compile(
     r"Distributed under the MIT software license, see the accompanying"

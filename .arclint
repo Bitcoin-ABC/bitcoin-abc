@@ -292,15 +292,6 @@
                 "(^src/)",
                 "(next-env.d.ts)"
             ]
-        },
-        "lint-python-flynt": {
-            "type": "lint-python-flynt",
-            "version": ">=0.78",
-            "include": "(\\.py$)",
-            "exclude": [
-                "(^contrib/apple-sdk-tools/)",
-                "(^electrum/)"
-            ]
         }
     }
 }

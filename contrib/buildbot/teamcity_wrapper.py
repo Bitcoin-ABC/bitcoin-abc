@@ -78,9 +78,7 @@ class TeamCity:
             # Log the entire response, because something went wrong
             if self.logger:
                 self.logger.info(
-                    "Request:\n{}\n\nResponse:\n{}".format(
-                        pprint(vars(request)), pprint(vars(response))
-                    )
+                    f"Request:\n{pprint(vars(request))}\n\nResponse:\n{pprint(vars(response))}"
                 )
             raise TeamcityRequestException(
                 f"Unexpected Teamcity API error! Status code: {response.status_code}"
