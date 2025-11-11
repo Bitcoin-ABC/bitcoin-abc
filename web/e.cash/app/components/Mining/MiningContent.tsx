@@ -226,16 +226,6 @@ export default function MiningContent() {
                   </li>
                   <li>
                     <a
-                      href="https://zergpool.com/site/block?coin=XEC"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 transition-colors hover:text-blue-300"
-                    >
-                      Zergpool
-                    </a>
-                  </li>
-                  <li>
-                    <a
                       href="https://zpool.ca/"
                       target="_blank"
                       rel="noopener noreferrer"
