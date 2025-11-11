@@ -469,7 +469,7 @@ describe('Postage mechanism for eCash transactions', () => {
                     tokenId: tokenId,
                     atoms: 100n,
                 },
-                /** And somre more y not */
+                /** And some more y not */
                 {
                     sats: 546n,
                     script: MOCK_DESTINATION_SCRIPT,
@@ -602,5 +602,191 @@ describe('Postage mechanism for eCash transactions', () => {
 
         // We have 6 inputs, our original token input and the 5 fuel inputs we added
         expect(tx.inputs.length).to.equal(6);
+    });
+
+    it('We can broadcast a postage-built tx with no postage added if it happens to have enough sats', async () => {
+        /**
+         * The most common time we expect to see this case is a tx
+         * combining several token input utxos to produce 1 or 2 token
+         * outputs. In this case, the sats in the inputs could
+         * be enough to cover sats in the outputs + fee, without
+         * any postage added
+         */
+
+        // Step 1: Create one wallet for tokens, and one for fuel
+        const tokenWallet = Wallet.fromSk(fromHex('21'.repeat(32)), chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('22'.repeat(32)), chronik);
+
+        // Send XEC to your token wallet
+        // NB we intentionally do not send XEC to the fuel wallet to show we broadcast without it
+        const tokenWalletSats = 1_000_000_00n; // 1M XEC
+        await runner.sendToScript(tokenWalletSats, tokenWallet.script);
+        await tokenWallet.sync();
+
+        // Step 2: Create a token genesis transaction
+        const alpGenesisInfo = {
+            tokenTicker: 'TSPFIPTT',
+            tokenName: 'Token Sats Pay For It Postage Test Token',
+            url: 'cashtab.com',
+            decimals: 0,
+        };
+
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Create 5 mint qty outputs with 1 token apiece */
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: tokenWallet.script,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: tokenWallet.script,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: tokenWallet.script,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: tokenWallet.script,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: tokenWallet.script,
+                    atoms: 1n,
+                },
+                /** Mint baton after qty outputs */
+                {
+                    sats: 546n,
+                    script: tokenWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                /** ALP genesis action */
+                {
+                    type: 'GENESIS',
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis transaction
+        const genesisResp = await tokenWallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const tokenId = genesisResp.broadcasted[0];
+
+        const token = await chronik.token(tokenId);
+        console.log('token', token);
+
+        // Sync to get the new token UTXOs
+        await tokenWallet.sync();
+
+        // Step 3: Build a transaction with NO_SATS strategy. Include a single output to minimize the sats needed for fee
+
+        // We build with the NO_SATS strategy but this tx will happen to have enough sats
+        // by virtue of including enough dust in the required token inputs
+        const postageAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Send all tokens to destination, so token change is not expected*/
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: tokenId,
+                    atoms: 5n,
+                    isMintBaton: false,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // Verify that calling .build() instead of .buildPostage() would throw an error
+        // Even though we would have enough sats, the user has specified NO_SATS and should thus call buildPostage()
+        expect(() =>
+            tokenWallet
+                .clone()
+                .action(postageAction, SatsSelectionStrategy.NO_SATS)
+                .build(),
+        ).to.throw(
+            'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
+        );
+
+        // Step 4: Prepare the fuel utxos of the fuel wallet
+        // We intentionally skip this step here as we do not plan to need fuel
+
+        // Step 5: Build a postage transaction
+        // This creates a transaction that's structurally valid but financially insufficient
+        const postageTx = tokenWallet
+            .action(postageAction, SatsSelectionStrategy.NO_SATS)
+            .buildPostage();
+
+        // The postage tx has 5 inputs, as we need all the qty-1 minted token inputs to cover the qty-5 token output
+        expect(postageTx.txBuilder.inputs.length).to.equal(5);
+
+        // We only have 2 output as there is no token change (the OP_RETURN and the token receiving output)
+        expect(postageTx.txBuilder.outputs.length).to.equal(2);
+
+        // Step 6: Serialize the postage transaction, the way it would be serialized for a server pass
+        const serializedTx = postageTx.partiallySignedTx.ser();
+        // Step 7: Deserialize the postage transaction, the way the server would do it before adding fuel inputs
+        const deserializedTx = Tx.deser(serializedTx);
+
+        const serverConstructedPostageTx = new PostageTx(deserializedTx);
+
+        // Determine prePostageInputSats by making an educated guess
+        // In this case, say our server knows the user is making a token tx with a wallet that uses DEFAULT_DUST_SATS for its token inputs
+        const prePostageInputSats =
+            BigInt(postageTx.txBuilder.inputs.length) * DEFAULT_DUST_SATS;
+
+        // Step 8: We call addFuelAndSign, which correctly realizes we do not need to add fuel
+        const broadcastableTx = serverConstructedPostageTx.addFuelAndSign(
+            fuelWallet,
+            prePostageInputSats,
+        );
+
+        // Check how many inputs we added
+        const addedInputs =
+            broadcastableTx.txs[0].inputs.length -
+            postageTx.txBuilder.inputs.length;
+        // It's zero
+        expect(addedInputs).to.equal(0);
+
+        // Step 9: Broadcast the complete transaction
+        const broadcastResp = await broadcastableTx.broadcast();
+
+        // Inspect the tx from chronik
+        const tx = await chronik.tx(broadcastResp.broadcasted[0]);
+
+        // It's a valid token tx
+        expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // We have our original 5 token inputs
+        expect(tx.inputs.length).to.equal(5);
     });
 });

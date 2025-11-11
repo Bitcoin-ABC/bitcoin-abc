@@ -139,3 +139,9 @@ See tests for detailed methods.
 [D18867](https://reviews.bitcoinabc.org/D18867)
 
 -   Support chained txs to handle XEC-only Actions that would exceed MAX_TX_SERSIZE if built in a single tx
+
+# 2.3.1
+
+[D18920](https://reviews.bitcoinabc.org/D18920)
+
+-   Prevent `addFuelAndSign` from adding unnecessary postage
