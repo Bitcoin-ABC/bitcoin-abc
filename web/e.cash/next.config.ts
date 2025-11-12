@@ -8,8 +8,8 @@ import { redirects } from "./app/data/redirects";
 
 const scriptSrc =
   process.env.NODE_ENV === "development"
-    ? "'self' 'unsafe-inline' 'unsafe-eval' swapzone.io"
-    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com swapzone.io 'unsafe-eval'";
+    ? "'self' 'unsafe-inline' 'unsafe-eval'"
+    : "'self' 'unsafe-inline' googletagmanager.com google-analytics.com 'unsafe-eval'";
 
 const strapi = new URL(process.env.NEXT_PUBLIC_STRAPI_URL!);
 const strapiScorecard = new URL(process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL!);
@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
             object-src 'none';
             base-uri 'self';
             frame-ancestors 'none';
-            frame-src 'self' https://swapspace.co https://swapzone.io https://www.youtube.com;
+            frame-src 'self' https://www.youtube.com;
             form-action 'self';
             upgrade-insecure-requests;
           `

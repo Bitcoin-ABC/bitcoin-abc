@@ -4,7 +4,6 @@
 
 "use client";
 import React from "react";
-import Script from "next/script";
 import ContentContainer from "../Atoms/ContentContainer";
 import { motion } from "motion/react";
 import Image from "next/image";
@@ -108,28 +107,8 @@ export default function GetEcashContent({
               Instant Exchanges
             </h2>
             <p className="mx-auto max-w-2xl">
-              Swap your crypto into XEC quickly with the Swapzone or Swapspace
-              aggregator — or choose your preferred instant exchange from the
-              list below.
+              Swap your crypto into XEC quickly with an instant exchange.
             </p>
-          </div>
-
-          <div id="swapzone" className="widget-container">
-            <div
-              id="swapzoneExchangeWidget"
-              data-logo="true"
-              data-size="full"
-              data-refid="68y-3PwW6z"
-              data-from="eth"
-              data-to="xec"
-            />
-            <div>
-              <iframe
-                id="swapspace"
-                src="https://swapspace.co/widget/b3fdadc148b1b02f250975eb"
-                frameBorder="0"
-              />
-            </div>
           </div>
 
           {instantExchanges.length > 0 ? (
@@ -215,11 +194,6 @@ export default function GetEcashContent({
           </div>
         </motion.div>
       </ContentContainer>
-      <Script
-        src="https://swapzone.io/script/exchange-widget.js"
-        id="swapzone"
-        strategy="lazyOnload"
-      />
     </div>
   );
 }
