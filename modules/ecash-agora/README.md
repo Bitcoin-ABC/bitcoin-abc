@@ -243,3 +243,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.4
 
 -   Publish to reflect updated `ecash-wallet` and `ecash-lib` deps [D18921](https://reviews.bitcoinabc.org/D18921)
+
+### 2.6.5
+
+-   Publish to catch updated `ecash-wallet` dep [D18925](https://reviews.bitcoinabc.org/D18925)
