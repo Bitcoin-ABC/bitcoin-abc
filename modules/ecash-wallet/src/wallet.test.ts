@@ -27,6 +27,7 @@ import {
     ALL_BIP143,
     MAX_TX_SERSIZE,
     OP_RETURN_MAX_BYTES,
+    Tx,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -49,6 +50,7 @@ import {
     getUtxoFromOutput,
     ChainedTxType,
     getMaxP2pkhOutputs,
+    removeSpentUtxos,
 } from './wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
@@ -6308,5 +6310,324 @@ describe('getMaxP2pkhOutputs', () => {
             // Lower size gives lower result
             expect(resultWithLower).to.equal(1466);
         });
+    });
+});
+
+describe('removeSpentUtxos', () => {
+    let mockChronik: MockChronikClient;
+    let testWallet: Wallet;
+
+    beforeEach(() => {
+        mockChronik = new MockChronikClient();
+        testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+    });
+
+    it('Removes a single UTXO when transaction has one matching input', () => {
+        // Create a wallet with multiple UTXOs
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+        const utxo2: ScriptUtxo = {
+            outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 1000n,
+            isFinal: true,
+        };
+        const utxo3: ScriptUtxo = {
+            outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 2000n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1, utxo2, utxo3];
+        expect(testWallet.utxos.length).to.equal(3);
+
+        // Create a transaction that spends utxo2
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '22'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // utxo2 should be removed, utxo1 and utxo3 should remain
+        expect(testWallet.utxos.length).to.equal(2);
+        expect(testWallet.utxos).to.deep.include(utxo1);
+        expect(testWallet.utxos).to.deep.include(utxo3);
+        expect(testWallet.utxos).to.not.deep.include(utxo2);
+    });
+
+    it('Removes multiple UTXOs when transaction has multiple matching inputs', () => {
+        // Create a wallet with multiple UTXOs
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+        const utxo2: ScriptUtxo = {
+            outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 1000n,
+            isFinal: true,
+        };
+        const utxo3: ScriptUtxo = {
+            outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 2000n,
+            isFinal: true,
+        };
+        const utxo4: ScriptUtxo = {
+            outpoint: { txid: '44'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 3000n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1, utxo2, utxo3, utxo4];
+        expect(testWallet.utxos.length).to.equal(4);
+
+        // Create a transaction that spends utxo1 and utxo3
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '11'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+                {
+                    prevOut: {
+                        txid: '33'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // utxo1 and utxo3 should be removed, utxo2 and utxo4 should remain
+        expect(testWallet.utxos.length).to.equal(2);
+        expect(testWallet.utxos).to.deep.include(utxo2);
+        expect(testWallet.utxos).to.deep.include(utxo4);
+        expect(testWallet.utxos).to.not.deep.include(utxo1);
+        expect(testWallet.utxos).to.not.deep.include(utxo3);
+    });
+
+    it('Does not remove UTXOs when transaction has no matching inputs', () => {
+        // Create a wallet with UTXOs
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+        const utxo2: ScriptUtxo = {
+            outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 1000n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1, utxo2];
+        expect(testWallet.utxos.length).to.equal(2);
+
+        // Create a transaction that spends a UTXO not in the wallet
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '99'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // All UTXOs should remain
+        expect(testWallet.utxos.length).to.equal(2);
+        expect(testWallet.utxos).to.deep.include(utxo1);
+        expect(testWallet.utxos).to.deep.include(utxo2);
+    });
+
+    it('Handles transaction with no inputs', () => {
+        // Create a wallet with UTXOs
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1];
+        expect(testWallet.utxos.length).to.equal(1);
+
+        // Create a transaction with no inputs
+        const tx = new Tx({
+            inputs: [],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // All UTXOs should remain
+        expect(testWallet.utxos.length).to.equal(1);
+        expect(testWallet.utxos).to.deep.include(utxo1);
+    });
+
+    it('Handles wallet with no UTXOs', () => {
+        // Wallet starts with no UTXOs
+        expect(testWallet.utxos.length).to.equal(0);
+
+        // Create a transaction with inputs
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '11'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // Wallet should still have no UTXOs
+        expect(testWallet.utxos.length).to.equal(0);
+    });
+
+    it('Matches UTXOs by both txid and outIdx', () => {
+        // Create UTXOs with same txid but different outIdx
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+        const utxo2: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 1 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 1000n,
+            isFinal: true,
+        };
+        const utxo3: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 2 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 2000n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1, utxo2, utxo3];
+        expect(testWallet.utxos.length).to.equal(3);
+
+        // Create a transaction that spends only utxo2 (same txid, different outIdx)
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '11'.repeat(32),
+                        outIdx: 1,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // Only utxo2 should be removed
+        expect(testWallet.utxos.length).to.equal(2);
+        expect(testWallet.utxos).to.deep.include(utxo1);
+        expect(testWallet.utxos).to.deep.include(utxo3);
+        expect(testWallet.utxos).to.not.deep.include(utxo2);
+    });
+
+    it('Handles partial matches correctly - removes only matching UTXOs', () => {
+        // Create a wallet with multiple UTXOs
+        const utxo1: ScriptUtxo = {
+            outpoint: { txid: '11'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 546n,
+            isFinal: true,
+        };
+        const utxo2: ScriptUtxo = {
+            outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 1000n,
+            isFinal: true,
+        };
+        const utxo3: ScriptUtxo = {
+            outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+            blockHeight: DUMMY_TIPHEIGHT,
+            isCoinbase: false,
+            sats: 2000n,
+            isFinal: true,
+        };
+
+        testWallet.utxos = [utxo1, utxo2, utxo3];
+        expect(testWallet.utxos.length).to.equal(3);
+
+        // Create a transaction with one matching input and one non-matching input
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '22'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+                {
+                    prevOut: {
+                        txid: '99'.repeat(32),
+                        outIdx: 0,
+                    },
+                },
+            ],
+        });
+
+        // Remove spent UTXOs
+        removeSpentUtxos(testWallet, tx);
+
+        // Only utxo2 should be removed
+        expect(testWallet.utxos.length).to.equal(2);
+        expect(testWallet.utxos).to.deep.include(utxo1);
+        expect(testWallet.utxos).to.deep.include(utxo3);
+        expect(testWallet.utxos).to.not.deep.include(utxo2);
     });
 });

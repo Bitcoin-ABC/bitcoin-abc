@@ -145,3 +145,9 @@ See tests for detailed methods.
 [D18920](https://reviews.bitcoinabc.org/D18920)
 
 -   Prevent `addFuelAndSign` from adding unnecessary postage
+
+# 2.3.2
+
+[D18924](https://reviews.bitcoinabc.org/D18924)
+
+-   Automatically remove consumed postage utxos from the postage wallet in `addFuelAndSign` method

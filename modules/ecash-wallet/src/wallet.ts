@@ -1061,21 +1061,7 @@ class WalletAction {
         finalizedOutputs: payment.PaymentOutput[],
     ) {
         // Remove spent utxos
-        const { inputs } = tx;
-        for (const input of inputs) {
-            // Find the utxo used to create this input
-            const { prevOut } = input;
-            const { txid, outIdx } = prevOut;
-            const utxo = this._wallet.utxos.find(
-                utxo =>
-                    utxo.outpoint.txid === txid &&
-                    utxo.outpoint.outIdx === outIdx,
-            );
-            if (utxo) {
-                // Remove the utxo from the utxo set
-                this._wallet.utxos.splice(this._wallet.utxos.indexOf(utxo), 1);
-            }
-        }
+        removeSpentUtxos(this._wallet, tx);
 
         for (let i = 0; i < finalizedOutputs.length; i++) {
             const finalizedOutput = finalizedOutputs[i];
@@ -1470,6 +1456,11 @@ export class PostageTx {
                 if (thisTxPaysFee > thisTxNeededFee) {
                     // We have enough sats to cover the fee
                     // So we can broadcast the tx
+
+                    // Remove spent utxos from the postage wallet
+                    removeSpentUtxos(fuelWallet, signedTx);
+
+                    // Return the built action for broadcast
                     return new BuiltAction(fuelWallet, [signedTx], feePerKb);
                 }
 
@@ -1509,6 +1500,9 @@ export class PostageTx {
                     thisTxNeededFee = calcTxFee(txSize, feePerKb);
                     const thisTxPaysFee = inputSats - outputSats;
                     if (thisTxPaysFee > thisTxNeededFee) {
+                        // Remove spent utxos from the postage wallet
+                        removeSpentUtxos(fuelWallet, signedTx);
+
                         return new BuiltAction(
                             fuelWallet,
                             [signedTx],
@@ -4326,6 +4320,38 @@ export const getFeesForChainedTx = (
         );
     });
     return feeArray;
+};
+
+/**
+ * The addFuelAndSign method in a PostageTx consumes postage inputs from the postage wallet
+ * It DOES NOT create utxos for the postage wallet, at least not in its current implementation
+ *
+ * It's worth having a streamlined way to automatically remove these utxos from the postage wallet's utxo set
+ * A postage wallet could, for example, have 10,000 10-XEC utxos
+ *
+ * It would be slow and wasteful to sync() such a wallet before each postage tx. Instead, the wallet should
+ * sync on server start and then automatically consume utxos; perhaps sync at some regular interval in the
+ * background.
+ *
+ * Another thing to look at for the future here is paginated utxos and utxos() chronik calls that return
+ * some kind of filtered set
+ */
+export const removeSpentUtxos = (wallet: Wallet, tx: Tx) => {
+    // Remove spent utxos
+    const { inputs } = tx;
+    for (const input of inputs) {
+        // Find the utxo used to create this input
+        const { prevOut } = input;
+        const { txid, outIdx } = prevOut;
+        const utxoIndex = wallet.utxos.findIndex(
+            utxo =>
+                utxo.outpoint.txid === txid && utxo.outpoint.outIdx === outIdx,
+        );
+        if (utxoIndex >= 0) {
+            // Remove the utxo from the utxo set
+            wallet.utxos.splice(utxoIndex, 1);
+        }
+    }
 };
 
 /**

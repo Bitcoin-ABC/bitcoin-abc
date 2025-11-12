@@ -541,6 +541,10 @@ describe('Postage mechanism for eCash transactions', () => {
             .broadcast();
         await fuelWallet.sync();
 
+        // We have 19 fuel utxos
+        const INITIAL_FUEL_UTXOS_COUNT = 19;
+        expect(fuelWallet.utxos.length).to.equal(INITIAL_FUEL_UTXOS_COUNT);
+
         // Step 5: Build a postage transaction
         // This creates a transaction that's structurally valid but financially insufficient
         const postageTx = tokenWallet
@@ -583,6 +587,9 @@ describe('Postage mechanism for eCash transactions', () => {
             fuelWallet,
             prePostageInputSats,
         );
+
+        // The fuel wallet's utxo set has automatically removed the consumed postage utxos
+        expect(fuelWallet.utxos.length).to.equal(INITIAL_FUEL_UTXOS_COUNT - 5);
 
         // Check how many inputs we added
         const addedInputs =
@@ -692,9 +699,6 @@ describe('Postage mechanism for eCash transactions', () => {
             .broadcast();
 
         const tokenId = genesisResp.broadcasted[0];
-
-        const token = await chronik.token(tokenId);
-        console.log('token', token);
 
         // Sync to get the new token UTXOs
         await tokenWallet.sync();
