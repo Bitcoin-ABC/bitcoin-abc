@@ -2887,4 +2887,105 @@ describe('<Token /> available actions rendered', () => {
             ),
         ).toBeInTheDocument();
     });
+    it('We do not allow users to list FIRMA below the bid price', async () => {
+        // Mock Math.random()
+        jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
+
+        // Mock a bid price
+        when(fetch)
+            .calledWith(`https://firma.cash/api/bid`)
+            .mockResolvedValue({
+                json: () => Promise.resolve({ bid: 40000.0 }),
+            });
+
+        // Mock a hot wallet balance for FIRMA_REDEEM_WALLET
+        mockedChronik.setUtxosByAddress(FIRMA_REDEEM_ADDRESS, [
+            { sats: 1_000_000_00n },
+        ]);
+
+        // Make sure it's cached
+        mockedChronik.setTx(FIRMA.tx.txid, FIRMA.tx);
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+
+        // Mock response for agora select params check
+        // Note
+        // We obtain EXPECTED_OFFER_P2SH by adding
+        // console.log(toHex(shaRmd160(agoraScript.bytecode)));
+        // to ecash-agora lib and running this test
+        // Note that Date() and Math.random() must be mocked to keep this deterministic
+        const EXPECTED_OFFER_P2SH = 'ceac7641e43382d9b9d96d72f60d60c7f0bb1a43';
+
+        // We mock no existing utxos
+        mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
+
+        // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
+        // agora object to build the partial
+        // This means we cannot mock firma offers in the OrderBook for this test
+        const agora = new Agora(mockedChronik);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={agora}
+                route={`/send-token/${FIRMA.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = FIRMA.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // Firma token icon is rendered
+        expect(
+            await screen.findByAltText(`icon for ${FIRMA.tokenId}`),
+        ).toBeInTheDocument();
+
+        // Token actions are available
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // On load, default action for FIRMA is to redeem it
+        expect(screen.getByTitle('Toggle Redeem FIRMA')).toBeEnabled();
+
+        // We can though manually click to list it
+        await userEvent.click(screen.getByTitle('Toggle Sell Token'));
+
+        // We can try to list for less than $1
+        await userEvent.type(screen.getByPlaceholderText('Offered qty'), '1');
+        // List for 1,000 XEC
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter list price (per token)'),
+            '1000',
+        );
+
+        // Make sure the min buy is correct
+        await userEvent.clear(screen.getByPlaceholderText('Min qty'));
+        await userEvent.type(screen.getByPlaceholderText('Min qty'), '1');
+
+        // The redeem button is disabled on load
+        const listButton = await screen.findByRole('button', {
+            name: /List Firma/,
+        });
+
+        // try to list
+        await userEvent.click(listButton);
+
+        screen.debug(null, Infinity);
+
+        // Async as we must wait for multiple partials
+        expect(await screen.findByText('List FIRMA?')).toBeInTheDocument();
+
+        // We see a warning msg about the poorly selected price
+        expect(
+            await screen.findByText(
+                `⚠️ Warning: You are listing FIRMA for 1,000.03 XEC per token, which is below FIRMA's current buy price of 40,000 XEC per token. You should redeem FIRMA instead to get the best price.`,
+            ),
+        ).toBeInTheDocument();
+
+        // The "OK" button is disabled
+        expect(screen.getByText('OK')).toBeDisabled();
+    });
 });
