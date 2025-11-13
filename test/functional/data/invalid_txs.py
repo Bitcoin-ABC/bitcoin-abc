@@ -39,6 +39,10 @@ from test_framework.txtools import pad_tx
 
 basic_p2sh = sc.CScript([sc.OP_HASH160, hash160(sc.CScript([sc.OP_0])), sc.OP_EQUAL])
 
+NON_PUSH_SCRIPTSIG_REJECT_REASON = (
+    "mandatory-script-verify-flag-failed (Only push operators allowed in signatures)"
+)
+
 
 class BadTxTemplate:
     """Allows simple construction of a certain kind of invalid tx. Base class to be subclassed."""
@@ -195,8 +199,8 @@ class CreateSumTooLarge(BadTxTemplate):
 
 class InvalidOPIFConstruction(BadTxTemplate):
     reject_reason = "mandatory-script-verify-flag-failed (Invalid OP_IF construction)"
+    block_reject_reason = NON_PUSH_SCRIPTSIG_REJECT_REASON
     expect_disconnect = True
-    valid_in_block = True
 
     def get_tx(self):
         return create_tx_with_script(
@@ -221,9 +225,9 @@ def getDisabledOpcodeTemplate(opcode):
         (BadTxTemplate,),
         {
             "reject_reason": "disabled opcode",
+            "block_reject_reason": NON_PUSH_SCRIPTSIG_REJECT_REASON,
             "expect_disconnect": True,
             "get_tx": get_tx,
-            "valid_in_block": True,
         },
     )
 

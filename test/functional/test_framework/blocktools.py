@@ -31,12 +31,7 @@ from .script import (
     CScriptNum,
     CScriptOp,
 )
-from .signature_hash import (
-    SIGHASH_ALL,
-    SIGHASH_FORKID,
-    SignatureHashForkId,
-)
-from .txtools import pad_tx
+from .txtools import pad_tx, sign_input
 from .util import assert_equal, satoshi_round
 
 # Genesis block data (regtest)
@@ -329,18 +324,12 @@ class BlockTestMixin:
         if scriptPubKey[0] == OP_TRUE:  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        sighash = SignatureHashForkId(
-            spend_tx.vout[0].scriptPubKey,
+        sign_input(
             tx,
             0,
-            SIGHASH_ALL | SIGHASH_FORKID,
+            spend_tx.vout[0].scriptPubKey,
+            self.coinbase_key,
             spend_tx.vout[0].nValue,
-        )
-        tx.vin[0].scriptSig = CScript(
-            [
-                self.coinbase_key.sign_ecdsa(sighash)
-                + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
-            ]
         )
 
     # this is a little handier to use than create_tx_with_script

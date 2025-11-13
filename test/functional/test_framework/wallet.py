@@ -27,12 +27,7 @@ from test_framework.script import (
     OP_HASH160,
     CScript,
 )
-from test_framework.signature_hash import (
-    SIGHASH_ALL,
-    SIGHASH_FORKID,
-    SignatureHashForkId,
-)
-from test_framework.txtools import pad_tx
+from test_framework.txtools import pad_tx, sign_input
 from test_framework.util import (
     assert_equal,
     assert_greater_than_or_equal,
@@ -156,22 +151,17 @@ class MiniWallet:
         if self._mode == MiniWalletMode.RAW_P2PK:
             assert amount is not None, "Amount is required to sign in P2PK mode"
 
-            sighash = SignatureHashForkId(
-                CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
-            )
             # for exact fee calculation, create only signatures with fixed size by
             # default (>49.89% probability):
             #   65 bytes: high-R val (33 bytes) + low-S val (32 bytes)
-            # with the DER header/skeleton data of 6 bytes added, this leads to a
-            # target size of 71 bytes
-            der_sig = b""
-            while not len(der_sig) == 71:
-                der_sig = self._priv_key.sign_ecdsa(sighash)
+            # with the DER header/skeleton data of 6 bytes added, plus 2 bytes scriptSig overhead
+            # (OP_PUSHn and SIGHASH_ALL), this leads to a scriptSig target size of 73 byte
+            tx.vin[0].scriptSig = b""
+            while not len(tx.vin[0].scriptSig) == 73:
+                tx.vin[0].scriptSig = b""
+                sign_input(tx, 0, self._scriptPubKey, self._priv_key, amount=amount)
                 if not fixed_length:
                     break
-            tx.vin[0].scriptSig = CScript(
-                [der_sig + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))]
-            )
         elif self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
             for i in range(len(tx.vin)):
                 tx.vin[i].scriptSig = SCRIPTSIG_OP_TRUE

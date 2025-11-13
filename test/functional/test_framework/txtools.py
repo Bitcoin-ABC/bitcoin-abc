@@ -4,6 +4,11 @@ import unittest
 from .cdefs import MIN_TX_SIZE
 from .messages import CTransaction, CTxOut, FromHex, ToHex
 from .script import OP_RETURN, CScript
+from .signature_hash import (
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
+    SignatureHashForkId,
+)
 
 MAX_OP_RETURN_PAYLOAD = 220
 VOUT_VALUE_SIZE = 8
@@ -75,6 +80,19 @@ def pad_raw_tx(rawtx_hex, min_size=MIN_TX_SIZE, deterministic=False):
     FromHex(tx, rawtx_hex)
     pad_tx(tx, min_size, deterministic)
     return ToHex(tx)
+
+
+def sign_input(tx, input_index, input_scriptpubkey, privkey, amount):
+    """Add legacy ECDSA signature for a given transaction input. Note that the signature
+    is prepended to the scriptSig field, i.e. additional data pushes necessary for more
+    complex spends than P2PK (e.g. pubkey for P2PKH) can be already set before."""
+    sighash_type = SIGHASH_ALL | SIGHASH_FORKID
+    sighash = SignatureHashForkId(input_scriptpubkey, tx, 0, sighash_type, amount)
+    der_sig = privkey.sign_ecdsa(sighash)
+    tx.vin[input_index].scriptSig = (
+        bytes(CScript([der_sig + bytes([sighash_type])]))
+        + tx.vin[input_index].scriptSig
+    )
 
 
 class TestFrameworkScript(unittest.TestCase):
