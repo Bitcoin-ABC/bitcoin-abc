@@ -34,11 +34,16 @@ fn main() {
         .define("ENABLE_MODULE_ECDH", Some("1"))
         .define("ENABLE_MODULE_SCHNORRSIG", Some("1"))
         .define("ENABLE_MODULE_SCHNORR", Some("1"))
-        .define("ENABLE_MODULE_EXTRAKEYS", Some("1"))
-        // upstream sometimes introduces calls to printf, which we cannot
-        // compile with WASM due to its lack of libc. printf is never
-        // necessary and we can just #define it away.
-        .define("printf(...)", Some(""));
+        .define("ENABLE_MODULE_EXTRAKEYS", Some("1"));
+
+    // upstream sometimes introduces calls to printf, which we cannot
+    // compile with WASM due to its lack of libc. printf is never
+    // necessary and we can just #define it away.
+    // Do NOT apply this on MinGW: recent winpthreads stdio.h breaks under
+    // `#define printf(...)`.
+    if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "wasm32" {
+        base_config.define("printf(...)", Some(""));
+    }
 
     if cfg!(feature = "lowmemory") {
         // A low-enough value to consume negligible memory
