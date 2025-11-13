@@ -34,7 +34,7 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.p2p import P2PDataStore
-from test_framework.script import OP_RETURN, OP_TRUE, CScript
+from test_framework.script import OP_NOP, OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -464,7 +464,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         )
 
         tx_obj = FromHex(CTransaction(), raw_tx_reference)
-        tx_obj.vin[0].scriptSig = b"aaaaaaaaaaaaaaa"
+        tx_obj.vin[0].scriptSig = CScript([OP_NOP])
         response = self.client.blockchain.transaction.broadcast(ToHex(tx_obj))
         assert_equal(
             response.error,

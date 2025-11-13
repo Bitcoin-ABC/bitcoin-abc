@@ -39,8 +39,12 @@ from test_framework.txtools import pad_tx
 
 basic_p2sh = sc.CScript([sc.OP_HASH160, hash160(sc.CScript([sc.OP_0])), sc.OP_EQUAL])
 
-NON_PUSH_SCRIPTSIG_REJECT_REASON = (
-    "mandatory-script-verify-flag-failed (Only push operators allowed in signatures)"
+NONPUSH_SCRIPTSIG_REJECT_REASON = "(Only push operators allowed in signatures)"
+MEMPOOL_NONPUSH_REJECT_REASON = (
+    "non-mandatory-script-verify-flag " + NONPUSH_SCRIPTSIG_REJECT_REASON
+)
+BLOCK_NONPUSH_REJECT_REASON = (
+    "mandatory-script-verify-flag-failed " + NONPUSH_SCRIPTSIG_REJECT_REASON
 )
 
 
@@ -199,12 +203,23 @@ class CreateSumTooLarge(BadTxTemplate):
 
 class InvalidOPIFConstruction(BadTxTemplate):
     reject_reason = "mandatory-script-verify-flag-failed (Invalid OP_IF construction)"
-    block_reject_reason = NON_PUSH_SCRIPTSIG_REJECT_REASON
+    block_reject_reason = BLOCK_NONPUSH_REJECT_REASON
     expect_disconnect = True
 
     def get_tx(self):
         return create_tx_with_script(
             self.spend_tx, 0, script_sig=b"\x64" * 35, amount=(self.spend_avail // 2)
+        )
+
+
+class NonPushScriptSig(BadTxTemplate):
+    reject_reason = MEMPOOL_NONPUSH_REJECT_REASON
+    block_reject_reason = BLOCK_NONPUSH_REJECT_REASON
+    expect_disconnect = False
+
+    def get_tx(self):
+        return create_tx_with_script(
+            self.spend_tx, 0, script_sig=b"\x61", amount=(self.spend_avail // 2)
         )
 
 
@@ -225,7 +240,7 @@ def getDisabledOpcodeTemplate(opcode):
         (BadTxTemplate,),
         {
             "reject_reason": "disabled opcode",
-            "block_reject_reason": NON_PUSH_SCRIPTSIG_REJECT_REASON,
+            "block_reject_reason": BLOCK_NONPUSH_REJECT_REASON,
             "expect_disconnect": True,
             "get_tx": get_tx,
         },
