@@ -27,3 +27,7 @@ yarn-error.log*
 *.zip
 *.pem
 dist/
+
+# Android keystore files
+*.jks
+*.keystore
