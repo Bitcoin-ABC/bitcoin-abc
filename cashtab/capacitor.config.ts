@@ -5,7 +5,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-    appId: 'org.bitcoinabc.cashtab',
+    appId: 'com.cashtab.app',
     appName: 'Cashtab',
     webDir: 'build',
 };

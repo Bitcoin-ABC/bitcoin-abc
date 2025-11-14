@@ -44,8 +44,8 @@ if ! adb devices | grep -q "device$"; then
 fi
 
 # Clear the app data
-echo "Clearing app data for org.bitcoinabc.cashtab..."
-if adb shell pm clear org.bitcoinabc.cashtab; then
+echo "Clearing app data for com.cashtab.app..."
+if adb shell pm clear com.cashtab.app; then
     echo "✅ Successfully wiped Cashtab storage!"
     echo "The app will start fresh on next launch."
 else

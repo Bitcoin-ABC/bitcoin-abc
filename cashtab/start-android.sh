@@ -17,7 +17,7 @@ cd android
 ./gradlew installDebug
 
 echo "[startAndroid] Launching app activity..."
-adb shell am start -n org.bitcoinabc.cashtab/.MainActivity
+adb shell am start -n com.cashtab.app/.MainActivity
 
 echo "[startAndroid] Done."
 

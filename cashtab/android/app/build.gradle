@@ -8,10 +8,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "org.bitcoinabc.cashtab"
+    namespace "com.cashtab.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "org.bitcoinabc.cashtab"
+        applicationId "com.cashtab.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 34600

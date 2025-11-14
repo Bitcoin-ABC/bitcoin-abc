@@ -1,4 +1,4 @@
-package org.bitcoinabc.cashtab;
+package com.cashtab.app;
 
 import android.graphics.Color;
 import android.os.Build;
