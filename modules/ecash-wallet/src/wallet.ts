@@ -3558,7 +3558,7 @@ export const finalizeOutputs = (
                     }
                     if (
                         'atoms' in output &&
-                        output.isMintBaton === false &&
+                        !output.isMintBaton &&
                         'tokenId' in output &&
                         sendActionTokenIds.has(output.tokenId)
                     ) {

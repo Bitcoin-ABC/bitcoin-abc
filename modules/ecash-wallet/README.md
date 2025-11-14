@@ -151,3 +151,9 @@ See tests for detailed methods.
 [D18924](https://reviews.bitcoinabc.org/D18924)
 
 -   Automatically remove consumed postage utxos from the postage wallet in `addFuelAndSign` method
+
+# 2.3.3
+
+[D18932](https://reviews.bitcoinabc.org/D18932)
+
+-   Tolerate token outputs without the `isMintBaton` key, but always classify such inputs as if they were `isMintBaton: false`
