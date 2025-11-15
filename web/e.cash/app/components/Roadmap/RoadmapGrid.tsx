@@ -76,7 +76,7 @@ const roadmapData: RoadmapCategory[] = [
       {
         title: "Avalanche Pre-consensus",
         description: "Instant transactions & real-time processing",
-        status: "underway",
+        status: "complete",
       },
       {
         title: "CashAddr",
