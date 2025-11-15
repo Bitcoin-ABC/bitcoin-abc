@@ -89,6 +89,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Schumpeter activation.
         {896974, BlockHash::fromHex("0000000000000000051b048b2d7801b854dbbe3fcd"
                                     "f8f28e995d2bbbd29e7cf5")},
+        // Shibusawa activation.
+        {923348, BlockHash::fromHex("00000000000000004eb0a7a410071b9ff243ed02ea"
+                                    "61ce3d566081dd05c05576")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -145,6 +148,9 @@ static CCheckpointData testNetCheckpointData = {
         // Schumpeter activation.
         {1661274, BlockHash::fromHex("00000000000ec2a59f7dbddebfa9f5b82a918085d"
                                      "d6174da26eb9d7ad005c219")},
+        // Shibusawa activation.
+        {1687664, BlockHash::fromHex("00000000000a09cd4a16996bed7fb6afc58cb52f3"
+                                     "df7b1c8ce0bc90e5c56982f")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
