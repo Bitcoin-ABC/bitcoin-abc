@@ -233,16 +233,16 @@ describe('<Token /> available actions rendered', () => {
 
         // SLP1 ad prep
         const adPrepHex =
-            '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda0100000064414feb64ffdf50b0eb40a6fe0c34da65e94e0cbbbc2e58f2b290f3b2bf31480b34a57c4862ee177129dc8a1ce645573cd240e5e83d336d19ff22c3a7675bc903564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064410f0461f0e843cc5b78196e3fdb3b89d64948629645f3b44ea960c2a5ac8f5835189697165a01cc259a0f4eff931c83e110019ee5c7721a43e0dde11ba04e068d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d80000000800000000001d9600060500000000000017a914e49e695e2f466e34447cb253567b8b277b60e3908722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '0200000002666de5d5852807a13612b6ea0373643266d435822daeb39c29e5d4b67e893cda010000006441776561347d87c5954e4ca2e53769c46e25bcbc7d9fc7e9c1a3b33344714f82c3aa4a8d171f84e50fa8a8060e98bac758cdcf71773619a4a5f9eba9ba8e15c9744121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441a6f8466e87a65b28102fd20a5f44bcafacb842d367185ea71019d5a12ecc88760a47d5727dc317f8dc8e43c0ba3fbcb33ce63e527988bb42b175d8bd71081f184121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d9600060500000000000017a91472065f43eb5358b84763ecf40440d0fc9914e6c887a4300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const adPrepTxid =
-            '280b6fda5a11a94145f3b4203fb4f199d875d3621c8e4cc9d63501e73b9649bc';
+            '61d59a3ee0be1d1819e443bf8e3bb23b024ab7ee2ba13f1219bb4a1cd27e5025';
         mockedChronik.setBroadcastTx(adPrepHex, adPrepTxid);
 
         // SLP1 ad list
         const adListHex =
-            '0200000001bc49963be70135d6c94c8e1c62d375d899f1b43f20b4f34541a9115ada6f0b2801000000dd0441475230075041525449414c41b11b013fb8140dcce13f93ee99584b1c6b547ee076ed63f9ec0a6c0068ad84c5420ecd608af68134366576bae4196a83f6a8f521c50dea4acc75dda6215c7fec414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000000000000000300dbf30400000000003dc7010000000000d226af0c000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d8000000220200000000000017a91472df09389a835adb0e13e32bf1c91144ed107eef8700000000';
+            '020000000125507ed21c4abb19123fa12beeb74a023bb23b8ebf43e419181dbee03e9ad56101000000dd0441475230075041525449414c415ac2555265bee9f3d46231737d6a3f0d47fe8b99f43665ed095af75405c41373eae8d55012d6d5bce6258d84bbf284b7f306d1f9ac5ae880f27e1865b5d1c179414c8c4c766a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8080000000000000000000024d6f304000000006fb0ad0e3cc701000078e4b2601aaf0c2099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001010453454e442020a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f80800000019d81d9600220200000000000017a91483a664c10582186f7dd3607b068770eb972b441b8700000000';
         const adListTxid =
-            '823f652e22d154fc7bdd77ee9d9fa37c77e9649235f1430958bef68b7428b9ae';
+            '30f9d9a822dc55c62c86d737243bab322fe6ce91b4be42f4f1ffd3179bb27cde';
         mockedChronik.setBroadcastTx(adListHex, adListTxid);
 
         // Mock response for agora select params check
@@ -251,7 +251,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '72df09389a835adb0e13e32bf1c91144ed107eef';
+        const EXPECTED_OFFER_P2SH = '83a664c10582186f7dd3607b068770eb972b441b';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -405,13 +405,13 @@ describe('<Token /> available actions rendered', () => {
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
         // Offered qty (actual, calculated from AgoraOffer)
-        const actualOfferedQty = '110.998061056';
+        const actualOfferedQty = '111.000000000';
         expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
         // Min by (actual, calculated from AgoraOffer)
-        expect(screen.getByText('11.005853696')).toBeInTheDocument();
+        expect(screen.getByText('11.000000000')).toBeInTheDocument();
         const userInputPricePerToken = '1.6667 XEC';
         // Actual price calculated from AgoraOffer
-        const actualPricePerToken = '1.6600 XEC';
+        const actualPricePerToken = '1.6609 XEC';
         expect(screen.getByText(userInputPricePerToken)).toBeInTheDocument();
         // User input price
         expect(screen.getByText(actualPricePerToken)).toBeInTheDocument();
@@ -1737,9 +1737,9 @@ describe('<Token /> available actions rendered', () => {
 
         // ALP offer tx
         const offerHex =
-            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441d32ae72fa880a40975a475147443a3a7fe10308178ad38d80e6a2428921732b0699849443d8e24124a8ee5b75f1e9f74628fdb8cd0c9704d8cd0c70df65828e94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064415fc18bb026bc3122776e708b8cdba9225494c704c1feca7aefb36b592abed96568cd57cb3504769bc4019ec0f36990c28c57012cefe805e4d3b046cc308bc86b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000866a504b41475230075041525449414c01009b630800000000005532000000000000d6b24701000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d37534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c0200420f000000400000000000220200000000000017a91450eb4978c85ec89b63e37e6b87409c9f5815c7058722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac83300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441179e733d61c688af3d0343298ad775b0be085d21aa89713e7166d7646ed2b6b154c7de4525a1185c2ed71bcad4db3fb6d2408dd0e31c80855e8b2f56b4eb5e074121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644173b937d1dba9e61bdef2e29bc748011a57a7509a4d2a7b2376abd3824896497060f65293c17b3c672307dd05887e0e8a3cbbce80db17449a92a498e5a5f73af24121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c00002eee837863080000c3f51ad354320000e0e487a193ad47012099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c0140420f000000220200000000000017a9141803a62d179c74adb3568dccfd71712690f6ebd287f6320f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const offerTxid =
-            'e00be7011ee5d585cbd54049570ea0754ab0d5c05acf6cb01c25afa3aa61663d';
+            'e66a82a4c4ed23ab1a490073f6820cbebe24c8683f7581b22b20a7618870c278';
         mockedChronik.setBroadcastTx(offerHex, offerTxid);
 
         // Mock response for agora select params check
@@ -1748,7 +1748,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '50eb4978c85ec89b63e37e6b87409c9f5815c705';
+        const EXPECTED_OFFER_P2SH = '1803a62d179c74adb3568dccfd71712690f6ebd2';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -1906,10 +1906,10 @@ describe('<Token /> available actions rendered', () => {
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
         // Offered qty (actual, calculated from AgoraOffer)
-        const actualOfferedQty = '99.9936';
-        expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
+        const actualOfferedQty = '100.0000';
+        expect(screen.getAllByText(actualOfferedQty)).toHaveLength(2);
         // Min buy (actual, calculated from AgoraOffer)
-        expect(screen.getByText('1.0240')).toBeInTheDocument();
+        expect(screen.getByText('1.0000')).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
         const actualPricePerTokenForMinBuy = '16.67 XEC';
         expect(
@@ -1943,9 +1943,9 @@ describe('<Token /> available actions rendered', () => {
 
         // XECX offer tx
         const offerHex =
-            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441c664c7bc3a13726a17771588813eb43276b297b91f5475435c70d08f5653646d979911c752445ebbd8f973ac218978d3bbf814952b9aae5c6d0630dbd2b74dd04121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441dfaa9df0a82c895fe97837d7622d16cf9cfda9f3f21fae7294556b235effd2fc01b33d3b59c0d813bf586bc100a661d45ef2f13de50560f1d8240c3c4390eaff4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c000063080000000000006308000000000000c09ef87f000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e44d44ecf795494b063aa10be876868880df8ef822577c1a546fb1cd9b6c2f57bc60140420f000000220200000000000017a9149c3889f324767ca4462614f85835776ab68990a987f6320f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c2501000000644166af6a3b90fc43f96a2f39850b997229ea62949d998d62b6f5a61a5aa86bed5916f045c47aad6a2b1ac497d691af1cd4fd77bbfa5466c63e84e3a64919aafefc4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644138334b25b9ecd2a5382e1986113c4d039aa7d49401ee5d15a3f7eb0a227718e52276c6082c04411a2b5d5c82276de49b6f07e395d0975ddafac438235b14d2bd4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c00002a9e437b630800002a9e437b63080000805e24849cf7ff7f2099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e44d44ecf795494b063aa10be876868880df8ef822577c1a546fb1cd9b6c2f57bc60140420f000000220200000000000017a9146bb29d3d6088183f80fceb07bd5e203f166d954687f6320f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const offerTxid =
-            'b32c2b51155cc4ffe9260d81aa7ce2d9c370f5a5b555ca44bfda578e3604aa85';
+            '0fececf1b26c5991c14fe254e776304409d795d4a231f14dcf6c5c368b0be670';
         mockedChronik.setBroadcastTx(offerHex, offerTxid);
 
         // Mock response for agora select params check
@@ -1954,7 +1954,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+        const EXPECTED_OFFER_P2SH = '6bb29d3d6088183f80fceb07bd5e203f166d9546';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -1988,10 +1988,10 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
         // On load, default action for XECX is to redeem it
-        expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
+        expect(await screen.findByTitle('Toggle Redeem XECX')).toBeEnabled();
 
         // The redeem button is disabled on load
-        const redeemButton = screen.getByRole('button', {
+        const redeemButton = await screen.findByRole('button', {
             name: /Redeem XECX for XEC/,
         });
 
@@ -2084,7 +2084,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+        const EXPECTED_OFFER_P2SH = '6bb29d3d6088183f80fceb07bd5e203f166d9546';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -2174,7 +2174,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '9c3889f324767ca4462614f85835776ab68990a9';
+        const EXPECTED_OFFER_P2SH = '6bb29d3d6088183f80fceb07bd5e203f166d9546';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -2266,9 +2266,9 @@ describe('<Token /> available actions rendered', () => {
 
         // FIRMA offer tx
         const offerHex =
-            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441243d709268b45b7917eb446ed0cb447fa71eec05977b7b558cb2d7cbae3b1b8bc190810e03b84ceb037b7295bca76e76ad83d48a8f8d9f891de93995adca244d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441c9656b6789947fe5fe369072e95fb3f39a1b21f37b6a1602ee609840ce5b77c55d0b5d1e455020629d28c4791fa705b535e0dd0a4563e130bdcbb5129b5a57ef4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000866a504b41475230075041525449414c0000e253000000000000360000000000000040b9fe7f000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d37534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302a08601000000a0bb0d000000220200000000000017a914d269ef0be66e9b689bee7a071d08cc0a7151b32a8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac83300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c250100000064414bdd340346f20694bafbd98016dee5f3655ed6c53c29f16246f23056d6d2105ce91b0879b26c0144a73fdbd84bc5cfe9bc2c7bf2225228807f513f5934f2554e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064419b636cb0910e02a8717c1e855fb8316f28a9dd048c4d25cc033d072a645fd8a10c0df68d03fcd61d9cd8e05304ed61b8b127e90c20e6eb1a5de6481e7c6c9bec4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000866a504b41475230075041525449414c0000705e00d6e2530000f41ee5af3500000000a61950caffff7f2099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d37534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302a08601000000a0bb0d000000220200000000000017a91412b672fccd4a0202fe588746b3c0aba2b77cfb2e8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac83300f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const offerTxid =
-            '322da86c0fd6b008298bc21f6a344647d225f3ed20ff597860d7e9ab9f5428f7';
+            'aced88185673377c357b2f27d32cbec7c78e5f24be32b25cce02f33c8147b0f5';
         mockedChronik.setBroadcastTx(offerHex, offerTxid);
 
         // Make sure it's cached
@@ -2281,13 +2281,10 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '28967de39bdb1af326e5cb2ffecf1f320dedfb04';
-        // Note we have to create a second partial to get an acceptable price
-        const EXPECTED_SECOND_P2SH = 'd269ef0be66e9b689bee7a071d08cc0a7151b32a';
+        const EXPECTED_OFFER_P2SH = '12b672fccd4a0202fe588746b3c0aba2b77cfb2e';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
-        mockedChronik.setUtxosByScript('p2sh', EXPECTED_SECOND_P2SH, []);
 
         // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
         // agora object to build the partial
@@ -2377,7 +2374,7 @@ describe('<Token /> available actions rendered', () => {
             screen.getByText(`${actualOfferedQty} $FIRMA`),
         ).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
-        const actualPricePerTokenForMinBuy = '39,766.67 XEC';
+        const actualPricePerTokenForMinBuy = '40,000.00 XEC';
         // We see the price once; it is not previewed as we need to calculate it before we
         // show the modal
         expect(
@@ -2385,7 +2382,7 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
         // We see the full receive XEC amount
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(screen.getByText('397,666.67 XEC')).toBeInTheDocument();
+        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
 
         // We can cancel and not create this listing
         await userEvent.click(screen.getByText('Cancel'));
@@ -2436,13 +2433,10 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '28967de39bdb1af326e5cb2ffecf1f320dedfb04';
-        // Note we have to create a second partial to get an acceptable price
-        const EXPECTED_SECOND_P2SH = 'd269ef0be66e9b689bee7a071d08cc0a7151b32a';
+        const EXPECTED_OFFER_P2SH = '12b672fccd4a0202fe588746b3c0aba2b77cfb2e';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
-        mockedChronik.setUtxosByScript('p2sh', EXPECTED_SECOND_P2SH, []);
 
         // Note that we cannot use mockedAgora to avoid agoraQueryErrors, as we need a proper
         // agora object to build the partial
@@ -2514,7 +2508,7 @@ describe('<Token /> available actions rendered', () => {
             screen.getByText(`${actualOfferedQty} $FIRMA`),
         ).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
-        const actualPricePerTokenForMinBuy = '39,766.67 XEC';
+        const actualPricePerTokenForMinBuy = '40,000.00 XEC';
         // We see the price once; it is not previewed as we need to calculate it before we
         // show the modal
         expect(
@@ -2522,7 +2516,7 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
         // We see the full receive XEC amount
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(screen.getByText('397,666.67 XEC')).toBeInTheDocument();
+        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
 
         // We see an alert as the hot wallet cannot cover this redemption
         expect(
@@ -2776,15 +2770,15 @@ describe('<Token /> available actions rendered', () => {
         // MINT VAULT offer tx
         // NB SLP listings require 2 txs
         const adPrepHex =
-            '0200000002e227ad0b23242a4678fc79104cdf1c80914862a3c808066aebc65ef35b52b56f01000000644174065d671f0e08e90fb978b679a069cd3e49d842a5254dd6c0533008827da5a4c48f0cb1af8dcd68729a27f1e5c3a775f15b8e74dc0c88ff58db18b5f8e41efd4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064417a064abf440e3286975e8bf3d9be65e362a223d5d41610a041c899b1ed7e360a4cf88aee6a3f23c23a33326d9ee47f3a36f12421a76cba3085f3f129c0bc7bc04121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba325108000000000000006408000000000001863c060500000000000017a914b3d9292d4facf172a31ba4a75b73fd56a58d50ad8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+            '0200000002e227ad0b23242a4678fc79104cdf1c80914862a3c808066aebc65ef35b52b56f0100000064418b973660f26d8bc641a3b32689efd086826726a0e3954eb908eac0c0a133374ae70868589bd732ce786336c8bd60f7177ca174e04b4cc97e442d1bc19a0aa7c94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441e03e8383e6768e192e212b40b0ef1cde139e03c365706e79f5f6a6e8fe5e059bc403cc2b0b3810e6763a6e2f4eed16feba173fb4bc2452e60dce689a485c38314121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba325108000000000000006408000000000001863c060500000000000017a9143372e00e99d216de6ef5d3f5b6e527537bac02fc8722020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac2c2e0f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const adPrepTxid =
-            '53fcd26eb28a1cd5cf5be80ba5d6c950d838bc6592b496ab61faf0e03c55562f';
+            'a14a9727515520f137163512ecc393a055c2a371726a4d1f68891b4c40ea7f61';
         mockedChronik.setBroadcastTx(adPrepHex, adPrepTxid);
 
         const offerHex =
-            '02000000012f56553ce0f0fa61ab96b49265bc38d850c9d6a50be85bcfd51c8ab26ed2fc5301000000dd0441475230075041525449414c410e110dc50dbd3c468db5a244e43386b92fdeadc53817d2ba90c23378ffa9e10a9285834144f71861940694e8d356f64833b2a84d396e3b16a4347a4a198e54c0414c8c4c766a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba32510800000000000000000000b1a5470100000000c64603000000000026e2ad07000000002099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251080000000000000064220200000000000017a9142c4d4e40520269461cfac4764915ffb1d1de71628700000000';
+            '0200000001617fea404c1b89681f4d6a7271a3c255a093c3ec12351637f120555127974aa101000000dd0441475230075041525449414c4117daccdf91d897e050295b46e8f6221f6ae7e79c74dcc4b0053744615e6ef03ece2055e467a470eee9f920a4e76ea24da8a260b417137fc41d7136bb06031342414c8c4c766a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba32510800000000000000000000b7ec10ffb0a5470135a6d4e3c64603004a8c65fa25e2ad072099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d01557f77ad075041525449414c88044147523087ffffffff020000000000000000376a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251080000000000000064220200000000000017a914e219eaeb3198314f300f2e168d86a20ff2b90dd18700000000';
         const offerTxid =
-            'ad34ebf9e04be21e447b08d04e5578e57a6e41db84913d53b9d853ff5ea845e5';
+            '27d326266e47c89b31f027d2fddda5cd9b6e9122d587d92dec556ee4c6274e24';
         mockedChronik.setBroadcastTx(offerHex, offerTxid);
 
         // Mock response for agora select params check
@@ -2793,7 +2787,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = '2c4d4e40520269461cfac4764915ffb1d1de7162';
+        const EXPECTED_OFFER_P2SH = 'e219eaeb3198314f300f2e168d86a20ff2b90dd1';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -2913,7 +2907,7 @@ describe('<Token /> available actions rendered', () => {
         // console.log(toHex(shaRmd160(agoraScript.bytecode)));
         // to ecash-agora lib and running this test
         // Note that Date() and Math.random() must be mocked to keep this deterministic
-        const EXPECTED_OFFER_P2SH = 'ceac7641e43382d9b9d96d72f60d60c7f0bb1a43';
+        const EXPECTED_OFFER_P2SH = '840d485a7de0117b289606cfb68cf1b8407c763b';
 
         // We mock no existing utxos
         mockedChronik.setUtxosByScript('p2sh', EXPECTED_OFFER_P2SH, []);
@@ -2973,15 +2967,13 @@ describe('<Token /> available actions rendered', () => {
         // try to list
         await userEvent.click(listButton);
 
-        screen.debug(null, Infinity);
-
         // Async as we must wait for multiple partials
         expect(await screen.findByText('List FIRMA?')).toBeInTheDocument();
 
         // We see a warning msg about the poorly selected price
         expect(
             await screen.findByText(
-                `⚠️ Warning: You are listing FIRMA for 1,000.03 XEC per token, which is below FIRMA's current buy price of 40,000 XEC per token. You should redeem FIRMA instead to get the best price.`,
+                `⚠️ Warning: You are listing FIRMA for 1,000 XEC per token, which is below FIRMA's current buy price of 40,000 XEC per token. You should redeem FIRMA instead to get the best price.`,
             ),
         ).toBeInTheDocument();
 

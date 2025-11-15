@@ -62,7 +62,7 @@ const appConfig: AppConfig = {
     tokenLogo: tokenLogo,
     localStorageMaxCharacters: 24,
     monitorExtension: true,
-    scriptIntegerBits: 32n, // TODO swap to 64, or make 64 the default in ecash-agora after Nov 15, 2025
+    scriptIntegerBits: 64n,
     vipTokens: {
         grumpy: {
             tokenId:
