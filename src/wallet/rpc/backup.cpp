@@ -455,8 +455,7 @@ RPCHelpMan importprunedfunds() {
             }
             uint256 txid = tx.GetId();
 
-            CDataStream ssMB(ParseHexV(request.params[1], "proof"), SER_NETWORK,
-                             PROTOCOL_VERSION);
+            DataStream ssMB{ParseHexV(request.params[1], "proof")};
             CMerkleBlock merkleBlock;
             ssMB >> merkleBlock;
 

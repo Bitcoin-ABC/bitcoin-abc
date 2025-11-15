@@ -548,9 +548,8 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
 BOOST_AUTO_TEST_CASE(coin_serialization) {
     // Good example
-    CDataStream ss1(
-        ParseHex("97f23c835800816115944e077fe7c803cfa57f29b36bf87c1d35"),
-        SER_DISK, CLIENT_VERSION);
+    DataStream ss1{
+        ParseHex("97f23c835800816115944e077fe7c803cfa57f29b36bf87c1d35")};
     Coin c1;
     ss1 >> c1;
     BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
@@ -561,9 +560,8 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
                           "816115944e077fe7c803cfa57f29b36bf87c1d35"))))));
 
     // Good example
-    CDataStream ss2(
-        ParseHex("8ddf77bbd123008c988f1a4a4de2161e0f50aac7f17e7f9555caa4"),
-        SER_DISK, CLIENT_VERSION);
+    DataStream ss2{
+        ParseHex("8ddf77bbd123008c988f1a4a4de2161e0f50aac7f17e7f9555caa4")};
     Coin c2;
     ss2 >> c2;
     BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
@@ -574,7 +572,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
                           "8c988f1a4a4de2161e0f50aac7f17e7f9555caa4"))))));
 
     // Smallest possible example
-    CDataStream ss3(ParseHex("000006"), SER_DISK, CLIENT_VERSION);
+    DataStream ss3{ParseHex("000006")};
     Coin c3;
     ss3 >> c3;
     BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
@@ -583,7 +581,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0U);
 
     // scriptPubKey that ends beyond the end of the stream
-    CDataStream ss4(ParseHex("000007"), SER_DISK, CLIENT_VERSION);
+    DataStream ss4{ParseHex("000007")};
     try {
         Coin c4;
         ss4 >> c4;
@@ -592,11 +590,11 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     }
 
     // Very large scriptPubKey (3*10^9 bytes) past the end of the stream
-    CDataStream tmp(SER_DISK, CLIENT_VERSION);
+    DataStream tmp{};
     uint64_t x = 3000000000ULL;
     tmp << VARINT(x);
     BOOST_CHECK_EQUAL(HexStr(tmp), "8a95c0bb00");
-    CDataStream ss5(ParseHex("00008a95c0bb00"), SER_DISK, CLIENT_VERSION);
+    DataStream ss5{ParseHex("00008a95c0bb00")};
     try {
         Coin c5;
         ss5 >> c5;

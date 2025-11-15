@@ -234,7 +234,7 @@ static bool rest_headers(Config &config, const std::any &context,
 
     switch (rf) {
         case RetFormat::BINARY: {
-            CDataStream ssHeader(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssHeader{};
             for (const CBlockIndex *pindex : headers) {
                 ssHeader << pindex->GetBlockHeader();
             }
@@ -246,7 +246,7 @@ static bool rest_headers(Config &config, const std::any &context,
         }
 
         case RetFormat::HEX: {
-            CDataStream ssHeader(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssHeader{};
             for (const CBlockIndex *pindex : headers) {
                 ssHeader << pindex->GetBlockHeader();
             }
@@ -317,7 +317,7 @@ static bool rest_block(const Config &config, const std::any &context,
 
     switch (rf) {
         case RetFormat::BINARY: {
-            CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssBlock{};
             ssBlock << block;
             std::string binaryBlock = ssBlock.str();
             req->WriteHeader("Content-Type", "application/octet-stream");
@@ -326,7 +326,7 @@ static bool rest_block(const Config &config, const std::any &context,
         }
 
         case RetFormat::HEX: {
-            CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssBlock{};
             ssBlock << block;
             std::string strHex = HexStr(ssBlock) + "\n";
             req->WriteHeader("Content-Type", "text/plain");
@@ -486,7 +486,7 @@ static bool rest_tx(Config &config, const std::any &context, HTTPRequest *req,
 
     switch (rf) {
         case RetFormat::BINARY: {
-            CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssTx{};
             ssTx << tx;
 
             std::string binaryTx = ssTx.str();
@@ -496,7 +496,7 @@ static bool rest_tx(Config &config, const std::any &context, HTTPRequest *req,
         }
 
         case RetFormat::HEX: {
-            CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssTx{};
             ssTx << tx;
 
             std::string strHex = HexStr(ssTx) + "\n";
@@ -598,7 +598,7 @@ static bool rest_getutxos(Config &config, const std::any &context,
                                        "raw post data is not allowed");
                     }
 
-                    CDataStream oss(SER_NETWORK, PROTOCOL_VERSION);
+                    DataStream oss{};
                     oss << strRequestMutable;
                     oss >> fCheckMemPool;
                     oss >> vOutPoints;
@@ -694,7 +694,7 @@ static bool rest_getutxos(Config &config, const std::any &context,
         case RetFormat::BINARY: {
             // serialize data
             // use exact same output as mentioned in Bip64
-            CDataStream ssGetUTXOResponse(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssGetUTXOResponse{};
             ssGetUTXOResponse << active_height << active_hash << bitmap << outs;
             std::string ssGetUTXOResponseString = ssGetUTXOResponse.str();
 
@@ -704,7 +704,7 @@ static bool rest_getutxos(Config &config, const std::any &context,
         }
 
         case RetFormat::HEX: {
-            CDataStream ssGetUTXOResponse(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ssGetUTXOResponse{};
             ssGetUTXOResponse << active_height << active_hash << bitmap << outs;
             std::string strHex = HexStr(ssGetUTXOResponse) + "\n";
 
@@ -781,7 +781,7 @@ static bool rest_blockhash_by_height(Config &config, const std::any &context,
     }
     switch (rf) {
         case RetFormat::BINARY: {
-            CDataStream ss_blockhash(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ss_blockhash{};
             ss_blockhash << pblockindex->GetBlockHash();
             req->WriteHeader("Content-Type", "application/octet-stream");
             req->WriteReply(HTTP_OK, ss_blockhash.str());

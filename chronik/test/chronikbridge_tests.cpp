@@ -221,8 +221,8 @@ BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
     BOOST_CHECK_EQUAL(bridge.load_block(tip)->GetHash(), tip.GetBlockHash());
 
     {
-        CDataStream expected(SER_NETWORK, PROTOCOL_VERSION);
-        CDataStream actual(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream expected{};
+        DataStream actual{};
         expected << chainman.GetParams().GenesisBlock();
         actual << *bridge.load_block(*tip.GetAncestor(0));
         BOOST_CHECK_EQUAL(HexStr(actual), HexStr(expected));
@@ -313,7 +313,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
 
     {
         // Failed broadcast: mempool rejected tx
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         ss << tx;
         rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
                                           ss.size()};
@@ -334,7 +334,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
 
     {
         // Failed broadcast from excessive fee (10000 > 9999).
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         ss << tx;
         rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
                                           ss.size()};
@@ -350,7 +350,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
 
     {
         // Successful broadcast
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         ss << tx;
         rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
                                           ss.size()};

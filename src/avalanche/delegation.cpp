@@ -20,7 +20,7 @@ bool Delegation::FromHex(Delegation &dg, const std::string &dgHex,
         return false;
     }
 
-    CDataStream ss(ParseHex(dgHex), SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ss{ParseHex(dgHex)};
 
     try {
         ss >> dg;

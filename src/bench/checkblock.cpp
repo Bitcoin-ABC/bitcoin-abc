@@ -16,8 +16,7 @@
 // compact block relay.
 
 static void DeserializeBlockTest(benchmark::Bench &bench) {
-    CDataStream stream(benchmark::data::block413567, SER_NETWORK,
-                       PROTOCOL_VERSION);
+    DataStream stream{benchmark::data::block413567};
     std::byte a{0};
     // Prevent compaction
     stream.write({&a, 1});
@@ -31,8 +30,7 @@ static void DeserializeBlockTest(benchmark::Bench &bench) {
 }
 
 static void DeserializeAndCheckBlockTest(benchmark::Bench &bench) {
-    CDataStream stream(benchmark::data::block413567, SER_NETWORK,
-                       PROTOCOL_VERSION);
+    DataStream stream{benchmark::data::block413567};
     std::byte a{0};
     // Prevent compaction
     stream.write({&a, 1});

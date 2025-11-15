@@ -205,11 +205,11 @@ class BerkeleyBatch : public DatabaseBatch {
     };
 
 private:
-    bool ReadKey(CDataStream &&key, CDataStream &value) override;
-    bool WriteKey(CDataStream &&key, CDataStream &&value,
+    bool ReadKey(DataStream &&key, DataStream &value) override;
+    bool WriteKey(DataStream &&key, DataStream &&value,
                   bool overwrite = true) override;
-    bool EraseKey(CDataStream &&key) override;
-    bool HasKey(CDataStream &&key) override;
+    bool EraseKey(DataStream &&key) override;
+    bool HasKey(DataStream &&key) override;
 
 protected:
     Db *pdb;
@@ -233,7 +233,7 @@ public:
     void Close() override;
 
     bool StartCursor() override;
-    bool ReadAtCursor(CDataStream &ssKey, CDataStream &ssValue,
+    bool ReadAtCursor(DataStream &ssKey, DataStream &ssValue,
                       bool &complete) override;
     void CloseCursor() override;
     bool TxnBegin() override;

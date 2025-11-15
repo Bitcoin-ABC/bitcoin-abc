@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     {
         CBlockHeaderAndShortTxIDs shortIDs(block);
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -152,7 +152,7 @@ public:
     std::vector<PrefilledTransaction> prefilledtxn;
 
     explicit TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs &orig) {
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << orig;
         stream >> *this;
     }
@@ -160,7 +160,7 @@ public:
         : TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block)) {}
 
     uint64_t GetShortID(const TxHash &txhash) const {
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << *this;
         CBlockHeaderAndShortTxIDs base;
         stream >> base;
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[0]->GetHash());
         shortIDs.shorttxids[1] = shortIDs.GetShortID(block.vtx[2]->GetHash());
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -281,7 +281,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         shortIDs.shorttxids.resize(1);
         shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[1]->GetHash());
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
     {
         CBlockHeaderAndShortTxIDs shortIDs(block);
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream stream{};
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestSerializationTest) {
     req1.indices[2] = 3;
     req1.indices[3] = 4;
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << req1;
 
     BlockTransactionsRequest req2;
@@ -406,7 +406,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationMaxTest) {
 
     req0.indices[0] = MAX_SIZE;
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << req0;
 
     BlockTransactionsRequest req1;
@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationOverflowTest) {
     req0.indices[0] = 0x7000;
     req0.indices[1] = 0x100000000 - 0x7000 - 2;
     req0.indices[2] = 0;
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << req0.blockhash;
     WriteCompactSize(stream, req0.indices.size());
     WriteCompactSize(stream, req0.indices[0]);
@@ -462,14 +462,14 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
         cb.prefilledtxn.push_back({firstIndex, MakeTransactionRef()});
         cb.prefilledtxn.push_back({0u, MakeTransactionRef()});
 
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         BOOST_CHECK_EXCEPTION(ss << cb, std::ios_base::failure,
                               HasReason("differential value overflow"));
     }
 
     auto checkShortdTxIdsSizeException = [&](size_t compactSize,
                                              const std::string &reason) {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()
@@ -490,7 +490,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
 
     auto checkPrefilledTxnSizeException = [&](size_t compactSize,
                                               const std::string &reason) {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
 
     auto checkPrefilledTxnIndexSizeException = [&](size_t compactSize,
                                                    const std::string &reason) {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()
@@ -552,7 +552,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
     uint32_t remainder = uint32_t(overflow - ((MAX_SIZE + 1) * overflowIter));
 
     {
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()
@@ -575,7 +575,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
     }
 
     {
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()
@@ -603,7 +603,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
     }
 
     {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         // header, nonce
         ss << CBlockHeader() << uint64_t(0);
         // shorttxids.size()

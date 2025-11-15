@@ -172,7 +172,7 @@ std::string ScriptToAsmStr(const CScript &script,
 }
 
 std::string EncodeHexTx(const CTransaction &tx) {
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssTx{};
     ssTx << tx;
     return HexStr(ssTx);
 }

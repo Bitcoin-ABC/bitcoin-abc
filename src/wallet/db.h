@@ -23,11 +23,11 @@ void SplitWalletPath(const fs::path &wallet_path, fs::path &env_directory,
 /** RAII class that provides access to a WalletDatabase */
 class DatabaseBatch {
 private:
-    virtual bool ReadKey(CDataStream &&key, CDataStream &value) = 0;
-    virtual bool WriteKey(CDataStream &&key, CDataStream &&value,
+    virtual bool ReadKey(DataStream &&key, DataStream &value) = 0;
+    virtual bool WriteKey(DataStream &&key, DataStream &&value,
                           bool overwrite = true) = 0;
-    virtual bool EraseKey(CDataStream &&key) = 0;
-    virtual bool HasKey(CDataStream &&key) = 0;
+    virtual bool EraseKey(DataStream &&key) = 0;
+    virtual bool HasKey(DataStream &&key) = 0;
 
 public:
     explicit DatabaseBatch() {}
@@ -40,7 +40,7 @@ public:
     virtual void Close() = 0;
 
     template <typename K, typename T> bool Read(const K &key, T &value) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        DataStream ssKey{};
         ssKey.reserve(1000);
         ssKey << key;
 
@@ -58,7 +58,7 @@ public:
 
     template <typename K, typename T>
     bool Write(const K &key, const T &value, bool fOverwrite = true) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        DataStream ssKey{};
         ssKey.reserve(1000);
         ssKey << key;
 
@@ -70,7 +70,7 @@ public:
     }
 
     template <typename K> bool Erase(const K &key) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        DataStream ssKey{};
         ssKey.reserve(1000);
         ssKey << key;
 
@@ -78,7 +78,7 @@ public:
     }
 
     template <typename K> bool Exists(const K &key) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        DataStream ssKey{};
         ssKey.reserve(1000);
         ssKey << key;
 
@@ -86,7 +86,7 @@ public:
     }
 
     virtual bool StartCursor() = 0;
-    virtual bool ReadAtCursor(CDataStream &ssKey, CDataStream &ssValue,
+    virtual bool ReadAtCursor(DataStream &ssKey, DataStream &ssValue,
                               bool &complete) = 0;
     virtual void CloseCursor() = 0;
     virtual bool TxnBegin() = 0;
@@ -166,22 +166,20 @@ public:
 /** RAII class that provides access to a DummyDatabase. Never fails. */
 class DummyBatch : public DatabaseBatch {
 private:
-    bool ReadKey(CDataStream &&key, CDataStream &value) override {
-        return true;
-    }
-    bool WriteKey(CDataStream &&key, CDataStream &&value,
+    bool ReadKey(DataStream &&key, DataStream &value) override { return true; }
+    bool WriteKey(DataStream &&key, DataStream &&value,
                   bool overwrite = true) override {
         return true;
     }
-    bool EraseKey(CDataStream &&key) override { return true; }
-    bool HasKey(CDataStream &&key) override { return true; }
+    bool EraseKey(DataStream &&key) override { return true; }
+    bool HasKey(DataStream &&key) override { return true; }
 
 public:
     void Flush() override {}
     void Close() override {}
 
     bool StartCursor() override { return true; }
-    bool ReadAtCursor(CDataStream &ssKey, CDataStream &ssValue,
+    bool ReadAtCursor(DataStream &ssKey, DataStream &ssValue,
                       bool &complete) override {
         return true;
     }

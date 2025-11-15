@@ -279,7 +279,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
     auto &newTx = transaction.getWtx();
     wallet().commitTransaction(newTx, {} /* mapValue */, std::move(vOrderForm));
 
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssTx{};
     ssTx << *newTx;
     transaction_array.append((const char *)ssTx.data(), ssTx.size());
 

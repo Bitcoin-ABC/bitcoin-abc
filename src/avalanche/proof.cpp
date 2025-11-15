@@ -56,7 +56,7 @@ bool Proof::FromHex(Proof &proof, const std::string &hexProof,
         return false;
     }
 
-    CDataStream ss(ParseHex(hexProof), SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ss{ParseHex(hexProof)};
 
     try {
         ss >> proof;
@@ -69,7 +69,7 @@ bool Proof::FromHex(Proof &proof, const std::string &hexProof,
 }
 
 std::string Proof::ToHex() const {
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ss{};
     ss << *this;
     return HexStr(ss);
 }

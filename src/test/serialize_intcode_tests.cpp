@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(example_intcode_valid_json) {
 
         const std::vector<uint8_t> encoded = ParseHex(encodedHex);
 
-        CDataStream ss(SER_DISK, 0);
+        DataStream ss{};
         WriteIntcode(ss, num);
         BOOST_CHECK_EQUAL(HexStr(ss), encodedHex);
 
@@ -69,14 +69,14 @@ BOOST_AUTO_TEST_CASE(example_intcode_invalid_json) {
     for (size_t idx = 0; idx < tests.size(); idx++) {
         const std::string &hex = tests[idx].get_str();
         const std::vector<uint8_t> invalid = ParseHex(hex);
-        CDataStream ss(invalid, SER_DISK, 0);
+        DataStream ss{invalid};
         BOOST_CHECK_THROW(ReadIntcode(ss), std::ios_base::failure);
     }
 }
 
 BOOST_AUTO_TEST_CASE(rng_roundtrip) {
     MMIXLinearCongruentialGenerator lcg;
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
 
     for (int i = 0; i < 1000000; ++i) {
         uint64_t bits = (uint64_t(lcg.next()) << 32) | lcg.next();

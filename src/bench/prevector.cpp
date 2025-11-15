@@ -65,7 +65,7 @@ template <typename T> static void PrevectorResize(benchmark::Bench &bench) {
 
 template <typename T>
 static void PrevectorDeserialize(benchmark::Bench &bench) {
-    CDataStream s0(SER_NETWORK, 0);
+    DataStream s0{};
     prevector<CScriptBase::STATIC_SIZE, T> t0;
     t0.resize(CScriptBase::STATIC_SIZE);
     for (auto x = 0; x < 900; ++x) {

@@ -149,7 +149,7 @@ Python code to generate the below hashes:
 == '43d0c82591953c4eafe114590d392676a01585d25b25d433557f0d7878b23f96'
 */
 BOOST_AUTO_TEST_CASE(floats) {
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
     // encode
     for (int i = 0; i < 1000; i++) {
         ss << float(i);
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(floats) {
 }
 
 BOOST_AUTO_TEST_CASE(doubles) {
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
     // encode
     for (int i = 0; i < 1000; i++) {
         ss << double(i);
@@ -187,8 +187,8 @@ BOOST_AUTO_TEST_CASE(doubles) {
 BOOST_AUTO_TEST_CASE(varints) {
     // encode
 
-    CDataStream ss(SER_DISK, 0);
-    CDataStream::size_type size = 0;
+    DataStream ss{};
+    DataStream::size_type size = 0;
     for (int i = 0; i < 100000; i++) {
         ss << VARINT_MODE(i, VarIntMode::NONNEGATIVE_SIGNED);
         size +=
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(varints) {
 }
 
 BOOST_AUTO_TEST_CASE(varints_bitpatterns) {
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
     ss << VARINT_MODE(0, VarIntMode::NONNEGATIVE_SIGNED);
     BOOST_CHECK_EQUAL(HexStr(ss), "00");
     ss.clear();
@@ -280,7 +280,7 @@ static bool isTooLargeException(const std::ios_base::failure &ex) {
 }
 
 BOOST_AUTO_TEST_CASE(compactsize) {
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
     std::vector<char>::size_type i, j;
 
     for (i = 1; i <= MAX_SIZE; i *= 2) {
@@ -334,7 +334,7 @@ BOOST_AUTO_TEST_CASE(vector_bool) {
 BOOST_AUTO_TEST_CASE(noncanonical) {
     // Write some non-canonical CompactSize encodings, and make sure an
     // exception is thrown when read back.
-    CDataStream ss(SER_DISK, 0);
+    DataStream ss{};
     std::vector<char>::size_type n;
 
     // zero encoded with three bytes:
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(class_methods) {
                                           charstrval, tx_ref, proofval);
     CSerializeMethodsTestSingle methodtest3;
     CSerializeMethodsTestMany methodtest4;
-    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    DataStream ss{};
     BOOST_CHECK(methodtest1 == methodtest2);
     ss << methodtest1;
     ss >> methodtest4;
@@ -439,7 +439,7 @@ static void checkDifferentialEncodingRoundtrip() {
     const std::vector<T> indicesIn{0, 1, 2, 5, 10, 20, 50, 100};
     std::vector<T> indicesOut;
 
-    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    DataStream ss{};
     formatter.Ser(ss, indicesIn);
     formatter.Unser(ss, indicesOut);
     BOOST_CHECK_EQUAL_COLLECTIONS(indicesIn.begin(), indicesIn.end(),
@@ -453,7 +453,7 @@ static void checkDifferentialEncodingOverflow() {
     {
         const std::vector<T> indicesIn{1, 0};
 
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        DataStream ss{};
         BOOST_CHECK_EXCEPTION(formatter.Ser(ss, indicesIn),
                               std::ios_base::failure,
                               HasReason("differential value overflow"));
@@ -469,7 +469,7 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
         std::vector<uint32_t> indicesIn{0, 1, 2, 5, 10, 20, 50, 100};
         std::vector<uint32_t> indicesOut;
 
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        DataStream ss{};
         formatter.Ser(ss, indicesIn);
 
         // Check the stream is differentially encoded. Don't care about the
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
             uint32_t(overflow - ((MAX_SIZE + 1) * overflowIter));
 
         auto buildStream = [&](uint32_t lastItemDifference) {
-            CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+            DataStream ss{};
             WriteCompactSize(ss, overflowIter + 1);
             for (uint32_t i = 0; i < overflowIter; i++) {
                 WriteCompactSize(ss, MAX_SIZE);

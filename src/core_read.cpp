@@ -203,7 +203,7 @@ bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx) {
 
     std::vector<uint8_t> txData(ParseHex(strHexTx));
 
-    CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssData{txData};
     try {
         ssData >> tx;
         if (ssData.eof()) {
@@ -222,7 +222,7 @@ bool DecodeHexBlockHeader(CBlockHeader &header, const std::string &hex_header) {
     }
 
     const std::vector<uint8_t> header_data{ParseHex(hex_header)};
-    CDataStream ser_header(header_data, SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ser_header{header_data};
     try {
         ser_header >> header;
     } catch (const std::exception &) {
@@ -237,7 +237,7 @@ bool DecodeHexBlk(CBlock &block, const std::string &strHexBlk) {
     }
 
     std::vector<uint8_t> blockData(ParseHex(strHexBlk));
-    CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssBlock{blockData};
     try {
         ssBlock >> block;
     } catch (const std::exception &) {

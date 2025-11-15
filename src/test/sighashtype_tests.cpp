@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(sighash_serialization_test) {
 
             // Check serialization/deserialization.
             uint32_t unserializedOutput;
-            (CDataStream(SER_DISK, 0) << tbase) >> unserializedOutput;
+            (DataStream{} << tbase) >> unserializedOutput;
             BOOST_CHECK_EQUAL(unserializedOutput, rawType);
         }
     }

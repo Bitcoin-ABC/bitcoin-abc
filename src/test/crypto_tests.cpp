@@ -2036,7 +2036,7 @@ BOOST_AUTO_TEST_CASE(muhash_tests) {
         "0000000000000000000000000000000000000000000000000000000000000000000000"
         "0000000000000000000000000000000000000000000000000000000000000000000000"
         "000000000000000000000000000000000000000000000000000000000000000000";
-    CDataStream ss_chk(SER_DISK, PROTOCOL_VERSION);
+    DataStream ss_chk{};
     ss_chk << serchk;
     BOOST_CHECK_EQUAL(ser_exp, HexStr(ss_chk.str()));
 
@@ -2050,33 +2050,31 @@ BOOST_AUTO_TEST_CASE(muhash_tests) {
 
     // Test MuHash3072 overflow, meaning the internal data is larger than the
     // modulus.
-    CDataStream ss_max(
-        ParseHex(
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            "ffffffffffffffffffffffffffffffffffffffffff010000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000000000000000000000000000000000000000000000000000"
-            "000000000000000000"),
-        SER_DISK, PROTOCOL_VERSION);
+    DataStream ss_max{ParseHex(
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffff010000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000")};
     MuHash3072 overflowchk;
     ss_max >> overflowchk;
 

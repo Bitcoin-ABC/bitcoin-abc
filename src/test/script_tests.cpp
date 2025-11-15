@@ -171,7 +171,7 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
     }
 
 #if defined(HAVE_CONSENSUS_LIB)
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << tx;
     uint32_t libconsensus_flags =
         flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
@@ -3241,7 +3241,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_returns_true) {
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << spendTx;
 
     bitcoinconsensus_error err;
@@ -3265,7 +3265,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_index_err) {
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << spendTx;
 
     bitcoinconsensus_error err;
@@ -3289,7 +3289,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_size) {
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << spendTx;
 
     bitcoinconsensus_error err;
@@ -3313,7 +3313,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_serialization) {
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << 0xffffffff;
 
     bitcoinconsensus_error err;
@@ -3338,7 +3338,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_amount_required_err) {
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << spendTx;
 
     bitcoinconsensus_error err;
@@ -3361,7 +3361,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_invalid_flags) {
     const CTransaction creditTx(
         BuildCreditingTransaction(scriptPubKey, SATOSHI));
     const CTransaction spendTx(BuildSpendingTransaction(scriptSig, creditTx));
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
     stream << spendTx;
 
     bitcoinconsensus_error err;

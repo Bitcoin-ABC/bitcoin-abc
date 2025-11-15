@@ -20,13 +20,12 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     LOCK2(m_wallet.cs_wallet, spk_man->cs_KeyStore);
 
     // Create prevtxs and add to wallet
-    CDataStream s_prev_tx1(
+    DataStream s_prev_tx1{
         ParseHex("020000000158e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f54"
                  "5887bb2abdd7501000000171600145f275f436b09a8cc9a2eb2a2f528485c"
                  "68a56323feffffff02d8231f1b0100000017a914aed962d6654f9a2b36608"
                  "eb9d64d2b260db4f1118700c2eb0b0000000017a914f6539307e3a48d1e01"
-                 "36d061f5d1fe19e1a240898765000000"),
-        SER_NETWORK, PROTOCOL_VERSION);
+                 "36d061f5d1fe19e1a240898765000000")};
 
     CTransactionRef prev_tx1;
     s_prev_tx1 >> prev_tx1;
@@ -34,15 +33,13 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
                                std::forward_as_tuple(prev_tx1->GetId()),
                                std::forward_as_tuple(prev_tx1));
 
-    CDataStream s_prev_tx2(
-        ParseHex(
-            "0200000001aad73931018bd25f84ae400b68848be09db706eac2ac18298babee71"
-            "ab656f8b0000000048473044022058f6fc7c6a33e1b31548d481c826c015bd3013"
-            "5aad42cd67790dab66d2ad243b02204a1ced2604c6735b6393e5b41691dd78b00f"
-            "0c5942fb9f751856faa938157dba01feffffff0280f0fa020000000017a9140fb9"
-            "463421696b82c833af241c78c17ddbde493487d0f20a270100000017a91429ca74"
-            "f8a08f81999428185c97b5d852e4063f618765000000"),
-        SER_NETWORK, PROTOCOL_VERSION);
+    DataStream s_prev_tx2{ParseHex(
+        "0200000001aad73931018bd25f84ae400b68848be09db706eac2ac18298babee71"
+        "ab656f8b0000000048473044022058f6fc7c6a33e1b31548d481c826c015bd3013"
+        "5aad42cd67790dab66d2ad243b02204a1ced2604c6735b6393e5b41691dd78b00f"
+        "0c5942fb9f751856faa938157dba01feffffff0280f0fa020000000017a9140fb9"
+        "463421696b82c833af241c78c17ddbde493487d0f20a270100000017a91429ca74"
+        "f8a08f81999428185c97b5d852e4063f618765000000")};
     CTransactionRef prev_tx2;
     s_prev_tx2 >> prev_tx2;
     m_wallet.mapWallet.emplace(std::piecewise_construct,
@@ -51,20 +48,18 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
 
     // Add scripts
     CScript rs1;
-    CDataStream s_rs1(
+    DataStream s_rs1{
         ParseHex("475221029583bf39ae0a609747ad199addd634fa6108559d6c5cd39b4c218"
                  "3f1ab96e07f2102dab61ff49a14db6a7d02b0cd1fbb78fc4b18312b5b4e54"
-                 "dae4dba2fbfef536d752ae"),
-        SER_NETWORK, PROTOCOL_VERSION);
+                 "dae4dba2fbfef536d752ae")};
     s_rs1 >> rs1;
     spk_man->AddCScript(rs1);
 
     CScript rs2;
-    CDataStream s_rs2(
+    DataStream s_rs2{
         ParseHex("47522103089dc10c7ac6db54f91329af617333db388cead0c231f723379d1"
                  "b99030b02dc21023add904f3d6dcf59ddb906b0dee23529b7ffb9ed50e5e8"
-                 "6151926860221f0e7352ae"),
-        SER_NETWORK, PROTOCOL_VERSION);
+                 "6151926860221f0e7352ae")};
     s_rs2 >> rs2;
     spk_man->AddCScript(rs2);
 

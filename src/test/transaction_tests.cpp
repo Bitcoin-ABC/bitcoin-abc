@@ -106,8 +106,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
             }
 
             std::string transaction = test[1].get_str();
-            CDataStream stream(ParseHex(transaction), SER_NETWORK,
-                               PROTOCOL_VERSION);
+            DataStream stream{ParseHex(transaction)};
             CTransaction tx(deserialize, stream);
 
             TxValidationState state;
@@ -206,8 +205,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
             }
 
             std::string transaction = test[1].get_str();
-            CDataStream stream(ParseHex(transaction), SER_NETWORK,
-                               PROTOCOL_VERSION);
+            DataStream stream{ParseHex(transaction)};
             CTransaction tx(deserialize, stream);
 
             TxValidationState state;
@@ -264,7 +262,7 @@ BOOST_AUTO_TEST_CASE(basic_transaction_tests) {
         0xed, 0x51, 0xf5, 0xfe, 0x95, 0xe7, 0x25, 0x59, 0xf2, 0xcc, 0x70, 0x43,
         0xf9, 0x88, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00};
     std::vector<uint8_t> vch(ch, ch + sizeof(ch) - 1);
-    CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
+    DataStream stream{vch};
     CMutableTransaction tx;
     stream >> tx;
     TxValidationState state;
@@ -317,7 +315,7 @@ static void CreateCreditAndSpend(const FillableSigningProvider &keystore,
     outputm.vout.resize(1);
     outputm.vout[0].nValue = SATOSHI;
     outputm.vout[0].scriptPubKey = outscript;
-    CDataStream ssout(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssout{};
     ssout << outputm;
     ssout >> output;
     BOOST_CHECK_EQUAL(output->vin.size(), 1UL);
@@ -335,7 +333,7 @@ static void CreateCreditAndSpend(const FillableSigningProvider &keystore,
     bool ret =
         SignSignature(keystore, *output, inputm, 0, SigHashType().withForkId());
     BOOST_CHECK_EQUAL(ret, success);
-    CDataStream ssin(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ssin{};
     ssin << inputm;
     ssin >> input;
     BOOST_CHECK_EQUAL(input.vin.size(), 1UL);

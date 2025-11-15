@@ -518,8 +518,8 @@ bool BerkeleyDatabase::Rewrite(const char *pszSkip) {
 
                     if (db.StartCursor()) {
                         while (fSuccess) {
-                            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-                            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+                            DataStream ssKey{};
+                            DataStream ssValue{};
                             bool complete;
                             bool ret1 =
                                 db.ReadAtCursor(ssKey, ssValue, complete);
@@ -739,7 +739,7 @@ bool BerkeleyBatch::StartCursor() {
     return ret == 0;
 }
 
-bool BerkeleyBatch::ReadAtCursor(CDataStream &ssKey, CDataStream &ssValue,
+bool BerkeleyBatch::ReadAtCursor(DataStream &ssKey, DataStream &ssValue,
                                  bool &complete) {
     complete = false;
     if (m_cursor == nullptr) {
@@ -759,10 +759,8 @@ bool BerkeleyBatch::ReadAtCursor(CDataStream &ssKey, CDataStream &ssValue,
     }
 
     // Convert to streams
-    ssKey.SetType(SER_DISK);
     ssKey.clear();
     ssKey.write({BytePtr(datKey.get_data()), datKey.get_size()});
-    ssValue.SetType(SER_DISK);
     ssValue.clear();
     ssValue.write({BytePtr(datValue.get_data()), datValue.get_size()});
     return true;
@@ -810,7 +808,7 @@ std::string BerkeleyDatabaseVersion() {
     return DbEnv::version(nullptr, nullptr, nullptr);
 }
 
-bool BerkeleyBatch::ReadKey(CDataStream &&key, CDataStream &value) {
+bool BerkeleyBatch::ReadKey(DataStream &&key, DataStream &value) {
     if (!pdb) {
         return false;
     }
@@ -826,7 +824,7 @@ bool BerkeleyBatch::ReadKey(CDataStream &&key, CDataStream &value) {
     return false;
 }
 
-bool BerkeleyBatch::WriteKey(CDataStream &&key, CDataStream &&value,
+bool BerkeleyBatch::WriteKey(DataStream &&key, DataStream &&value,
                              bool overwrite) {
     if (!pdb) {
         return false;
@@ -845,7 +843,7 @@ bool BerkeleyBatch::WriteKey(CDataStream &&key, CDataStream &&value,
     return (ret == 0);
 }
 
-bool BerkeleyBatch::EraseKey(CDataStream &&key) {
+bool BerkeleyBatch::EraseKey(DataStream &&key) {
     if (!pdb) {
         return false;
     }
@@ -859,7 +857,7 @@ bool BerkeleyBatch::EraseKey(CDataStream &&key) {
     return (ret == 0 || ret == DB_NOTFOUND);
 }
 
-bool BerkeleyBatch::HasKey(CDataStream &&key) {
+bool BerkeleyBatch::HasKey(DataStream &&key) {
     if (!pdb) {
         return false;
     }

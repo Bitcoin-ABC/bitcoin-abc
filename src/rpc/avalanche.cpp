@@ -524,7 +524,7 @@ static RPCHelpMan delegateavalancheproof() {
                                    "Unable to build the delegation");
             }
 
-            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ss{};
             ss << dgb->build();
             return HexStr(ss);
         },
@@ -1343,7 +1343,7 @@ static RPCHelpMan getrawavalancheproof() {
 
             UniValue ret(UniValue::VOBJ);
 
-            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            DataStream ss{};
             ss << *proof;
             ret.pushKV("proof", HexStr(ss));
             ret.pushKV("immature", isImmature);

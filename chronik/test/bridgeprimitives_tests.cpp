@@ -174,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
                                  bridgedGenesisTx.undo_pos),
                   bridgedGenesisTx.tx);
 
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream ss{};
     ss << genesisBlock.vtx[0];
     BOOST_CHECK_EQUAL(HexStr(ss),
                       HexStr(bridge.load_raw_tx(bridgedGenesisBlock.file_num,
@@ -334,7 +334,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
     }
 
     for (size_t i = 0; i < testBlock.vtx.size(); ++i) {
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         ss << testBlock.vtx[i];
         BOOST_CHECK_EQUAL(HexStr(ss), HexStr(bridge.load_raw_tx(
                                           bridgedTestBlock.file_num,

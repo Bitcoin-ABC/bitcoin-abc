@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
     std::string tx_hex = args.GetArg("-tx", "");
     std::vector<uint8_t> tx_raw = ParseHex(tx_hex);
-    CDataStream tx_stream(MakeByteSpan(tx_raw), 0, 0);
+    DataStream tx_stream(MakeByteSpan(tx_raw));
     CMutableTransaction tx;
     tx_stream >> tx;
 

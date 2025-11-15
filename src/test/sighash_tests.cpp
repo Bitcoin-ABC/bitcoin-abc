@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
         BOOST_CHECK(shrepabcdef == manualshrepabcdef);
 
 #if defined(PRINT_SIGHASH_JSON)
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream ss{};
         ss << txTo;
 
         std::cout << "\t[\"";
@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data) {
             sigHashOldHex = test[5].get_str();
             sigHashRepHex = test[6].get_str();
 
-            CDataStream stream(ParseHex(raw_tx), SER_NETWORK, PROTOCOL_VERSION);
+            DataStream stream{ParseHex(raw_tx)};
             stream >> tx;
 
             TxValidationState state;

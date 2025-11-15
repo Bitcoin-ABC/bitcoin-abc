@@ -55,11 +55,9 @@ BOOST_AUTO_TEST_CASE(sig_pubkey_hash_variations) {
      * Making CachingTransactionSignatureChecker requires a tx. So we make a
      * dummy transaction (doesn't matter what it is) to construct it.
      */
-    CDataStream stream(
-        ParseHex(
-            "010000000122739e70fbee987a8be1788395a2f2e6ad18ccb7ff611cd798071539"
-            "dde3c38e000000000151ffffffff010000000000000000016a00000000"),
-        SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{ParseHex(
+        "010000000122739e70fbee987a8be1788395a2f2e6ad18ccb7ff611cd798071539"
+        "dde3c38e000000000151ffffffff010000000000000000016a00000000")};
     CTransaction dummyTx(deserialize, stream);
     PrecomputedTransactionData txdata(dummyTx);
     SignatureCache signature_cache{DEFAULT_SIGNATURE_CACHE_BYTES};

@@ -167,7 +167,7 @@ void RecentRequestsTableModel::addNewRequest(
     newEntry.date = QDateTime::currentDateTime();
     newEntry.recipient = recipient;
 
-    CDataStream ss(SER_DISK, CLIENT_VERSION);
+    DataStream ss{};
     ss << newEntry;
 
     if (!walletModel->saveReceiveRequest(recipient.address.toStdString(),
@@ -181,7 +181,7 @@ void RecentRequestsTableModel::addNewRequest(
 // called from ctor when loading from wallet
 void RecentRequestsTableModel::addNewRequest(const std::string &recipient) {
     std::vector<uint8_t> data(recipient.begin(), recipient.end());
-    CDataStream ss(data, SER_DISK, CLIENT_VERSION);
+    DataStream ss{data};
 
     RecentRequestEntry entry;
     ss >> entry;

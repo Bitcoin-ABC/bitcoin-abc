@@ -27,11 +27,11 @@ private:
 
     void SetupSQLStatements();
 
-    bool ReadKey(CDataStream &&key, CDataStream &value) override;
-    bool WriteKey(CDataStream &&key, CDataStream &&value,
+    bool ReadKey(DataStream &&key, DataStream &value) override;
+    bool WriteKey(DataStream &&key, DataStream &&value,
                   bool overwrite = true) override;
-    bool EraseKey(CDataStream &&key) override;
-    bool HasKey(CDataStream &&key) override;
+    bool EraseKey(DataStream &&key) override;
+    bool HasKey(DataStream &&key) override;
 
 public:
     explicit SQLiteBatch(SQLiteDatabase &database);
@@ -43,7 +43,7 @@ public:
     void Close() override;
 
     bool StartCursor() override;
-    bool ReadAtCursor(CDataStream &key, CDataStream &value,
+    bool ReadAtCursor(DataStream &key, DataStream &value,
                       bool &complete) override;
     void CloseCursor() override;
     bool TxnBegin() override;
