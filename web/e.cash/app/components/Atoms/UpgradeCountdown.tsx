@@ -125,7 +125,7 @@ export default function UpgradeCountdown() {
 
   return (
     <Link
-      href={isExpired ? "/upgrade" : "/blog/preconsensus-pr"}
+      href={isExpired ? "/blog/preconsensus-launch" : "/blog/preconsensus-pr"}
       target="_blank"
       rel="noopener noreferrer"
       className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[40px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs font-medium leading-none transition-all duration-300 sm:h-[30px] lg:text-sm"
