@@ -775,7 +775,6 @@ namespace {
                          int64_t seconds) override {
             RPCRunLater(name, std::move(fn), seconds);
         }
-        int rpcSerializationFlags() override { return RPCSerializationFlags(); }
         util::SettingsValue getSetting(const std::string &name) override {
             return gArgs.GetSetting(name);
         }

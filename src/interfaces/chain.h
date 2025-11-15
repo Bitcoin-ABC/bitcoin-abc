@@ -290,9 +290,6 @@ public:
     virtual void rpcRunLater(const std::string &name, std::function<void()> fn,
                              int64_t seconds) = 0;
 
-    //! Current RPC serialization flags.
-    virtual int rpcSerializationFlags() = 0;
-
     //! Get settings value.
     virtual util::SettingsValue getSetting(const std::string &arg) = 0;
 

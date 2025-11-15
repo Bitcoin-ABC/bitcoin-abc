@@ -211,7 +211,7 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
     LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s to %s\n",
              pindex->GetBlockHash().GetHex(), this->address);
 
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     CBlock block;
     if (!m_get_block_by_index(block, *pindex)) {
         zmqError("Can't read block from disk");
@@ -228,7 +228,7 @@ bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
     TxId txid = transaction.GetId();
     LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s to %s\n", txid.GetHex(),
              this->address);
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << transaction;
     return SendZmqMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
 }

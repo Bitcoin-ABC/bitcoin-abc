@@ -171,8 +171,8 @@ std::string ScriptToAsmStr(const CScript &script,
     return str;
 }
 
-std::string EncodeHexTx(const CTransaction &tx, const int serializeFlags) {
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | serializeFlags);
+std::string EncodeHexTx(const CTransaction &tx) {
+    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << tx;
     return HexStr(ssTx);
 }
@@ -220,8 +220,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 }
 
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
-              UniValue &entry, bool include_hex, int serialize_flags,
-              const CTxUndo *txundo) {
+              UniValue &entry, bool include_hex, const CTxUndo *txundo) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
     // Transaction version is actually unsigned in consensus checks, just
@@ -297,6 +296,6 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
     if (include_hex) {
         // The hex-encoded transaction. Used the name "hex" to be consistent
         // with the verbose output of "getrawtransaction".
-        entry.pushKV("hex", EncodeHexTx(tx, serialize_flags));
+        entry.pushKV("hex", EncodeHexTx(tx));
     }
 }

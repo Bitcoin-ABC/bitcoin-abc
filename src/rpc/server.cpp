@@ -678,8 +678,4 @@ void RPCRunLater(const std::string &name, std::function<void()> func,
                   timerInterface->NewTimer(func, nSeconds * 1000)));
 }
 
-int RPCSerializationFlags() {
-    return 0;
-}
-
 CRPCTable tableRPC;

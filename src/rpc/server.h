@@ -247,9 +247,4 @@ void StopRPC();
 std::string JSONRPCExecBatch(const Config &config, RPCServer &rpcServer,
                              const JSONRPCRequest &req, const UniValue &vReq);
 
-/**
- * Retrieves any serialization flags requested in command line argument
- */
-int RPCSerializationFlags();
-
 #endif // BITCOIN_RPC_SERVER_H

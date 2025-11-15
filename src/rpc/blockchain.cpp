@@ -196,8 +196,7 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
             const CTxUndo *txundo =
                 (have_undo && i) ? &blockUndo.vtxundo.at(i - 1) : nullptr;
             UniValue objTx(UniValue::VOBJ);
-            TxToUniv(*tx, BlockHash(), objTx, true, RPCSerializationFlags(),
-                     txundo);
+            TxToUniv(*tx, BlockHash(), objTx, true, txundo);
             txs.push_back(objTx);
         }
     } else {
@@ -817,8 +816,7 @@ static RPCHelpMan getblock() {
                 GetBlockChecked(chainman.m_blockman, *pblockindex);
 
             if (verbosity <= 0) {
-                CDataStream ssBlock(SER_NETWORK,
-                                    PROTOCOL_VERSION | RPCSerializationFlags());
+                CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
                 ssBlock << block;
                 std::string strHex = HexStr(ssBlock);
                 return strHex;
