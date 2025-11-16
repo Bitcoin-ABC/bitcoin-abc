@@ -15,7 +15,7 @@
     "@splinetool/react-spline": "^4.0.0",
     "clsx": "^2.1.1",
     "motion": "^12.23.7",
-    "next": "15.3.2",
+    "next": "15.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-syntax-highlighter": "^15.6.1",
