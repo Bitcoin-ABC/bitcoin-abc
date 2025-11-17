@@ -18,15 +18,34 @@ import {
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { token as tokenConfig } from 'config/token';
 
-// Mock the recaptcha-v3 library
+// Mock the react-google-recaptcha library
 const MOCKED_RECAPTCHA_TOKEN = 'mocked-recaptcha-token';
-jest.mock('recaptcha-v3', () => ({
-    load: jest.fn(async () => {
-        return {
-            execute: jest.fn(() => Promise.resolve(MOCKED_RECAPTCHA_TOKEN)),
-        };
-    }),
-}));
+jest.mock('react-google-recaptcha', () => {
+    const React = require('react');
+    return React.forwardRef(function MockReCAPTCHA({ onChange }, ref) {
+        const reset = React.useCallback(() => {
+            // Reset clears the token
+            if (onChange) {
+                onChange(null);
+            }
+        }, [onChange]);
+
+        React.useImperativeHandle(ref, () => ({
+            reset,
+        }));
+
+        // Auto-trigger onChange with mock token when component mounts
+        React.useEffect(() => {
+            if (onChange) {
+                onChange(MOCKED_RECAPTCHA_TOKEN);
+            }
+        }, [onChange]);
+
+        return React.createElement('div', {
+            'data-testid': 'mock-recaptcha',
+        });
+    });
+});
 
 describe('<Rewards />', () => {
     beforeEach(() => {

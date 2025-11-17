@@ -23,7 +23,6 @@ interface CashtabFaucetConfig {
     limiter: CashtabFaucetRateLimits;
     tokenLimiter: CashtabFaucetRateLimits;
     recaptchaUrl: string;
-    recaptchaThreshold: number;
 }
 
 const config: CashtabFaucetConfig = {
@@ -78,7 +77,6 @@ const config: CashtabFaucetConfig = {
         },
     },
     recaptchaUrl: 'https://www.google.com/recaptcha/api/siteverify',
-    recaptchaThreshold: 0.9,
 };
 
 export default config;

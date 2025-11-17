@@ -9,7 +9,7 @@ import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
-import { load } from 'recaptcha-v3';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { PageHeader } from 'components/Common/Atoms';
 import { RewardIcon } from 'components/Common/CustomIcons';
 
@@ -35,6 +35,8 @@ const Rewards = () => {
         useState<null | NodeJS.Timeout>(null);
     // Set to true while we wait on a server response to prevent multiple claims
     const [claimPending, setClaimPending] = useState<boolean>(false);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
     const getIsEligible = async (address: string) => {
         let serverResponse;
@@ -63,10 +65,11 @@ const Rewards = () => {
             // We do not support claims if we do not have a defined key
             return;
         }
+        if (!recaptchaToken) {
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
         setClaimPending(true);
-        // Get a recaptcha score
-        const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
-        const token = await recaptcha.execute('claimcachet');
         // Hit token-server API for rewards
         let claimResponse;
         try {
@@ -78,7 +81,7 @@ const Rewards = () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token }),
+                        body: JSON.stringify({ token: recaptchaToken }),
                     },
                 )
             ).json();
@@ -106,13 +109,25 @@ const Rewards = () => {
             }
             toast.success('Rewards claimed!');
 
-            // Reset rewards eligibility
+            // Reset rewards eligibility and reCAPTCHA
             getIsEligible(address);
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         } catch (err) {
             console.error(err);
             toast.error(`${err}`);
             setClaimPending(false);
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         }
+    };
+
+    const handleRecaptchaChange = (token: string | null) => {
+        setRecaptchaToken(token);
     };
 
     const getParsedTimeRemaining = (timeRemainingMs: number) => {
@@ -195,24 +210,46 @@ const Rewards = () => {
                 Rewards <RewardIcon />
             </PageHeader>
             {process.env.REACT_APP_TESTNET !== 'true' ? (
-                <PrimaryButton
-                    disabled={!isEligible || claimPending}
-                    onClick={handleClaim}
-                >
-                    {isEligible === null || claimPending ? (
-                        <center>
-                            <InlineLoader />
-                        </center>
-                    ) : isEligible ? (
-                        'Claim Reward'
-                    ) : timeRemainingMs !== null ? (
-                        `Come back in ${hours}:${minutes}:${seconds}`
-                    ) : (
-                        <center>
-                            <InlineLoader />
-                        </center>
+                <>
+                    {isEligible && (
+                        <div
+                            style={{
+                                marginBottom: '12px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <ReCAPTCHA
+                                ref={recaptchaRef}
+                                sitekey={
+                                    process.env.REACT_APP_RECAPTCHA_SITE_KEY ||
+                                    ''
+                                }
+                                onChange={handleRecaptchaChange}
+                            />
+                        </div>
                     )}
-                </PrimaryButton>
+                    <PrimaryButton
+                        disabled={
+                            !isEligible || claimPending || !recaptchaToken
+                        }
+                        onClick={handleClaim}
+                    >
+                        {isEligible === null || claimPending ? (
+                            <center>
+                                <InlineLoader />
+                            </center>
+                        ) : isEligible ? (
+                            'Claim Reward'
+                        ) : timeRemainingMs !== null ? (
+                            `Come back in ${hours}:${minutes}:${seconds}`
+                        ) : (
+                            <center>
+                                <InlineLoader />
+                            </center>
+                        )}
+                    </PrimaryButton>
+                </>
             ) : (
                 <p>Token Rewards are not enabled for Testnet</p>
             )}

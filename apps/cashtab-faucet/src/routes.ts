@@ -173,20 +173,6 @@ export const startExpressServer = (
                         error: `Recaptcha check failed. Are you a bot?`,
                     });
                 }
-                // We also check the score
-                if (
-                    typeof recaptchaVerification.data.score === 'undefined' ||
-                    recaptchaVerification.data.score < config.recaptchaThreshold
-                ) {
-                    console.error(
-                        `Recaptcha check failed: score ${recaptchaVerification.data.score} is less than ${config.recaptchaThreshold} threshold`,
-                    );
-                    return res.status(500).json({
-                        address,
-                        error: `Recaptcha check suspicious. Are you a bot?`,
-                        msg: `🤔`,
-                    });
-                }
             } catch (err) {
                 console.error('Error verifying recaptcha-response', err);
                 return res.status(500).json({
@@ -319,20 +305,6 @@ export const startExpressServer = (
                     return res.status(500).json({
                         address,
                         error: `Recaptcha check failed. Are you a bot?`,
-                    });
-                }
-                // We also check the score
-                if (
-                    typeof recaptchaVerification.data.score === 'undefined' ||
-                    recaptchaVerification.data.score < config.recaptchaThreshold
-                ) {
-                    console.error(
-                        `Recaptcha check failed: score ${recaptchaVerification.data.score} is less than ${config.recaptchaThreshold} threshold`,
-                    );
-                    return res.status(500).json({
-                        address,
-                        error: `Recaptcha check suspicious. Are you a bot?`,
-                        msg: `🤔`,
                     });
                 }
             } catch (err) {

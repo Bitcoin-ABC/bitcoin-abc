@@ -18,7 +18,7 @@ import PrimaryButton, {
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
-import { load } from 'recaptcha-v3';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -92,16 +92,20 @@ const Home: React.FC = () => {
 
     const [airdropPending, setAirdropPending] = useState(false);
     const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
     const claimAirdropForNewWallet = async () => {
         if (typeof process.env.REACT_APP_RECAPTCHA_SITE_KEY === 'undefined') {
             // Recaptcha env var must be set to claimAirdropForNewWallet
             return;
         }
+        if (!recaptchaToken) {
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
         // Disable the button to prevent double claims
         setAirdropPending(true);
-        const recaptcha = await load(process.env.REACT_APP_RECAPTCHA_SITE_KEY);
-        const token = await recaptcha.execute('claimxec');
 
         // Claim rewards
         // We only show this option if wallet has no tx history. Such a wallet is always
@@ -116,7 +120,7 @@ const Home: React.FC = () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token }),
+                        body: JSON.stringify({ token: recaptchaToken }),
                     },
                 )
             ).json();
@@ -129,11 +133,23 @@ const Home: React.FC = () => {
             // Note we do not setAirdropPending(false) on a successful claim
             // The button will disappear when the tx is seen by the wallet
             // We do not want the button to be enabled before this
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         } catch (err) {
             setAirdropPending(false);
             console.error(err);
             toast.error(`${err}`);
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         }
+    };
+
+    const handleRecaptchaChange = (token: string | null) => {
+        setRecaptchaToken(token);
     };
 
     const claimTokenRewardsForNewWallet = async () => {
@@ -226,12 +242,34 @@ const Home: React.FC = () => {
                                     process.env.REACT_APP_TESTNET !==
                                         'true' && (
                                         <>
+                                            <div
+                                                style={{
+                                                    marginBottom: '12px',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <ReCAPTCHA
+                                                    ref={recaptchaRef}
+                                                    sitekey={
+                                                        process.env
+                                                            .REACT_APP_RECAPTCHA_SITE_KEY ||
+                                                        ''
+                                                    }
+                                                    onChange={
+                                                        handleRecaptchaChange
+                                                    }
+                                                />
+                                            </div>
                                             {wallets.length === 1 ? (
                                                 <AirdropButton
                                                     onClick={
                                                         claimAirdropForNewWallet
                                                     }
-                                                    disabled={airdropPending}
+                                                    disabled={
+                                                        airdropPending ||
+                                                        !recaptchaToken
+                                                    }
                                                 >
                                                     {airdropPending ? (
                                                         <InlineLoader />
@@ -245,7 +283,8 @@ const Home: React.FC = () => {
                                                         claimTokenRewardsForNewWallet
                                                     }
                                                     disabled={
-                                                        tokenRewardsPending
+                                                        tokenRewardsPending ||
+                                                        !recaptchaToken
                                                     }
                                                 >
                                                     {tokenRewardsPending ? (
