@@ -7,6 +7,15 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Read version from package.json
+def packageJsonFile = file("${rootProject.rootDir}/../package.json")
+def packageJson = new groovy.json.JsonSlurper().parse(packageJsonFile)
+def appVersionName = packageJson.version
+// Convert version string (e.g., "3.47.0") to versionCode (e.g., 34700)
+// Format: major * 10000 + minor * 100 + patch
+def (major, minor, patch) = appVersionName.split('\\.').collect { it.toInteger() }
+def appVersionCode = major * 10000 + minor * 100 + patch
+
 android {
     namespace "com.cashtab.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -14,8 +23,8 @@ android {
         applicationId "com.cashtab.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 34600
-        versionName "3.46.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -74,6 +83,14 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Task to print version information
+task printVersion {
+    doLast {
+        println "versionCode: ${appVersionCode}"
+        println "versionName: ${appVersionName}"
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')

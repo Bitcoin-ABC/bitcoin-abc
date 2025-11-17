@@ -32,8 +32,14 @@ npm run build
 echo "[buildAndroidRelease] Syncing Capacitor Android platform..."
 npx cap sync android
 
-echo "[buildAndroidRelease] Building release APK..."
+echo "[buildAndroidRelease] Checking version..."
 cd android
+./gradlew :app:printVersion
+
+echo "[buildAndroidRelease] Cleaning previous builds..."
+./gradlew clean
+
+echo "[buildAndroidRelease] Building release APK..."
 
 # Build release APK
 ./gradlew assembleRelease
