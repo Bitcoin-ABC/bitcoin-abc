@@ -193,7 +193,7 @@ describe('AgoraPartial enforcedLockTime', () => {
         });
         await assert.isRejected(
             chronik.broadcastTx(failedAcceptTx.ser(), true),
-            'Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: mandatory-script-verify-flag-failed (Script failed an OP_EQUALVERIFY operation)',
+            /Failed getting \/broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: mandatory-script-verify-flag-failed \(Script failed an OP_EQUALVERIFY operation\)/,
         );
 
         // This example shows that it's important to choose different locktimes
