@@ -9,7 +9,7 @@ edition = "2021"
 rust-version.workspace = true
 
 [[bin]]
-name = "proof-manager"
+name = "proof-manager-cli"
 path = "src/main.rs"
 
 [dependencies]

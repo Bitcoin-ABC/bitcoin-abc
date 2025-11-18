@@ -10,7 +10,7 @@ use tempfile::NamedTempFile;
 /// Helper function to create a test command
 #[allow(dead_code)]
 pub fn proof_manager_cmd() -> Command {
-    Command::cargo_bin("proof-manager").unwrap()
+    Command::cargo_bin("proof-manager-cli").unwrap()
 }
 
 /// Helper function to create a temporary file with content
