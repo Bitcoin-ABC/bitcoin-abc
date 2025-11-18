@@ -366,6 +366,7 @@ mkdir -p "$DISTSRC"
       -DCMAKE_INSTALL_PREFIX="${INSTALLPATH}" \
       -DCCACHE=OFF \
       -DBUILD_CHRONIK=ON \
+      -DBUILD_PROOF_MANAGER_CLI=ON \
       "${CMAKE_EXTRA_OPTIONS[@]}" \
       "${CMAKE_C_FLAGS}" \
       "${CMAKE_CXX_FLAGS}" \
@@ -391,6 +392,7 @@ EOF
     case "$HOST" in
         *mingw*)
             ninja install-debug
+            ninja install-proof-manager-cli
             # Generate NSIS installer
             ninja package
             mv ${DISTNAME}*setup-unsigned.exe ${OUTDIR}/
@@ -408,6 +410,7 @@ EOF
             ;;
         *linux*)
             ninja install-debug
+            ninja install-proof-manager-cli
             pushd installed
             find ${DISTNAME} -not -name "*.dbg" -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
             find ${DISTNAME} -name "*.dbg" -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
@@ -432,6 +435,8 @@ EOF
 
             ninja osx-zip
             mv "${OSX_VOLNAME}.zip" ${OUTDIR}/${DISTNAME}-osx-unsigned.zip
+
+            ninja install-proof-manager-cli
 
             pushd installed
             find . -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
