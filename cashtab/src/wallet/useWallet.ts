@@ -51,6 +51,8 @@ import {
 import { Agora } from 'ecash-agora';
 import { Ecc } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * We keep the first page of tx history in context
@@ -164,6 +166,10 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const currentCashtabStateRef = useRef<CashtabState>(cashtabState);
     const currentFiatPriceRef = useRef<number | null>(fiatPrice);
     const currentCashtabLoadedRef = useRef<boolean>(cashtabLoaded);
+    // Use ref to store current websocket to avoid closure issues in app lifecycle handlers
+    const wsRef = useRef<WsEndpoint | null>(null);
+    // Track app state to prevent reconnection attempts when backgrounded
+    const isAppActiveRef = useRef<boolean>(true);
 
     // Update refs whenever state changes
     useEffect(() => {
@@ -177,6 +183,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     useEffect(() => {
         currentCashtabLoadedRef.current = cashtabLoaded;
     }, [cashtabLoaded]);
+
+    // Update wsRef whenever ws changes
+    useEffect(() => {
+        wsRef.current = ws;
+    }, [ws]);
 
     // Refresh transaction history when active wallet changes
     useEffect(() => {
@@ -1194,6 +1205,57 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
         updateWebsocket();
     }, [cashtabState, fiatPrice, ws, cashtabLoaded]);
+
+    // Handle app lifecycle events to keep websocket alive on mobile
+    useEffect(() => {
+        // Only set up app lifecycle listeners on native platforms
+        if (Capacitor.isNativePlatform()) {
+            console.log(
+                `Setting up app lifecycle listeners on native platform`,
+            );
+            let appStateListener: { remove: () => void } | null = null;
+
+            const setupAppListeners = async () => {
+                // Listen for app state changes (foreground/background)
+                appStateListener = await App.addListener(
+                    'appStateChange',
+                    state => {
+                        if (state.isActive) {
+                            // App came to foreground - update state and resume websocket
+                            isAppActiveRef.current = true;
+                            console.log(
+                                'App came to foreground, resuming websocket...',
+                            );
+                            const currentWs = wsRef.current;
+                            if (currentWs) {
+                                currentWs.resume();
+                            }
+                        } else {
+                            // App went to background - pause websocket to save resources
+                            isAppActiveRef.current = false;
+                            const currentWs = wsRef.current;
+                            if (currentWs) {
+                                currentWs.pause();
+                                console.log(
+                                    'App went to background, paused websocket',
+                                );
+                            } else {
+                                console.log('App went to background');
+                            }
+                        }
+                    },
+                );
+            };
+
+            setupAppListeners();
+
+            return () => {
+                if (appStateListener) {
+                    appStateListener.remove();
+                }
+            };
+        }
+    }, []);
 
     /**
      * Handle activating a copied wallet by only updating the activeWalletAddress in storage

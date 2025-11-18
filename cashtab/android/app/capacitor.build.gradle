@@ -11,6 +11,7 @@ apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
     implementation project(':aparajita-capacitor-secure-storage')
     implementation project(':capacitor-community-sqlite')
+    implementation project(':capacitor-app')
     implementation project(':capacitor-barcode-scanner')
 
 }

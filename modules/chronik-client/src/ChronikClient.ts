@@ -1025,6 +1025,47 @@ export class WsEndpoint {
         this.ws?.close();
     }
 
+    /**
+     * Pause the WebSocket connection by disabling auto-reconnect and closing
+     * the connection. Useful when the app is backgrounded to save resources.
+     *
+     * Because we cannot predict the behavior of mobile operating systems handling
+     * websocket connections, it is better for the app developer to manually handle.
+     *
+     * We provide standard methods to accomplish this.
+     */
+    public pause() {
+        this.autoReconnect = false;
+        if (this.ws) {
+            // Note we DO NOT set manuallyClosed to true here, unlike the
+            // public close() method, because we plan to re-open the websocket,
+            // and we do not want to cycle through the failover proxy servers.
+            this.ws.close();
+        }
+    }
+
+    /**
+     * Resume the WebSocket connection by re-enabling auto-reconnect and
+     * reconnecting if the connection is closed. Useful when the app comes
+     * to foreground.
+     */
+    public async resume() {
+        // Don't resume if websocket was manually closed
+        if (this.manuallyClosed) {
+            return;
+        }
+        this.autoReconnect = true;
+        // If the connection is closed, reconnect
+        if (
+            !this.ws ||
+            this.ws.readyState === WebSocket.CLOSING ||
+            this.ws.readyState === WebSocket.CLOSED
+        ) {
+            await this._proxyInterface.connectWs(this);
+            await this.connected;
+        }
+    }
+
     private _subUnsubBlocks(isUnsub: boolean) {
         // Blocks subscription is empty object
         const BLOCKS_SUBSCRIPTION: proto.WsSubBlocks = {};

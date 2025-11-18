@@ -46,6 +46,8 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let get_mixed_output_txid: Promise<string>;
     let get_final_txid: Promise<string>;
     let get_invalid_txid: Promise<string>;
+    let get_paused_txid: Promise<string>;
+    let get_resumed_txid: Promise<string>;
     const statusEvent = new EventEmitter();
     // Collect websocket msgs in an array for analysis in each step
     let msgCollector: Array<WsMsgClient> = [];
@@ -172,6 +174,18 @@ describe('Test expected websocket behavior of chronik-client', () => {
                     resolve(message.invalid_txid);
                 });
             }
+
+            if (message && message.paused_txid) {
+                get_paused_txid = new Promise(resolve => {
+                    resolve(message.paused_txid);
+                });
+            }
+
+            if (message && message.resumed_txid) {
+                get_resumed_txid = new Promise(resolve => {
+                    resolve(message.resumed_txid);
+                });
+            }
         });
 
         await once(statusEvent, 'ready');
@@ -239,6 +253,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
 
     let finalTxid = '';
     let invalidTxid = '';
+    let resumedTxid = '';
 
     let ws: WsEndpoint;
 
@@ -902,5 +917,39 @@ describe('Test expected websocket behavior of chronik-client', () => {
             msgType: 'TX_INVALIDATED',
             txid: invalidTxid,
         });
+
+        // Pause the websocket at the end of this step
+        ws.pause();
+    });
+    it('We do not get ws msgs if we pause', async () => {
+        await get_paused_txid;
+
+        // Wait a bit to ensure any messages would have arrived
+        // NB we have no exact method of waiting for 0 msgs
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // We should receive no messages while paused
+        expect(msgCollector.length).to.eql(0);
+
+        // Resume the websocket at the end of this step
+        await ws.resume();
+    });
+    it('We get ws msgs after resuming', async () => {
+        resumedTxid = await get_resumed_txid;
+
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
+
+        // We should receive the message for the tx sent after resuming
+        const txMsg = msgCollector.shift();
+
+        expect(txMsg).to.deep.equal({
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
+            txid: resumedTxid,
+        });
+
+        // This is the only msg we receive
+        expect(msgCollector.length).to.eql(0);
     });
 });

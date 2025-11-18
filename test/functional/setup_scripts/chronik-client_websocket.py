@@ -345,6 +345,16 @@ class ChronikClient_Websocket_Setup(SetupFramework):
 
         yield True
 
+        self.log.info("Step 17: Send a tx while websocket is paused")
+        paused_txid = node.sendtoaddress(p2pkh_address, 1000)
+        send_ipc_message({"paused_txid": paused_txid})
+        yield True
+
+        self.log.info("Step 18: Send a tx after websocket is resumed")
+        resumed_txid = node.sendtoaddress(p2pkh_address, 1000)
+        send_ipc_message({"resumed_txid": resumed_txid})
+        yield True
+
 
 if __name__ == "__main__":
     ChronikClient_Websocket_Setup().main()
