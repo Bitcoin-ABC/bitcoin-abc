@@ -3385,87 +3385,106 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
     }
 
     std::shared_ptr<const CBlock> pblock;
+    auto handle_block_read_error = [&]() {
+        if (WITH_LOCK(m_chainman.GetMutex(),
+                      return m_chainman.m_blockman.IsBlockPruned(*pindex))) {
+            LogDebug(BCLog::NET,
+                     "Block was pruned before it could be read, disconnect "
+                     "peer=%s\n",
+                     pfrom.GetId());
+        } else {
+            LogError("Cannot load block from disk, disconnect peer=%d\n",
+                     pfrom.GetId());
+        }
+        pfrom.fDisconnect = true;
+    };
+
     if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
         pblock = a_recent_block;
+    } else if (!inv.IsMsgCmpctBlk()) {
+        // Fast-path: in this case it is possible to serve the block directly
+        // from disk, as the network format matches the format on disk
+        std::vector<uint8_t> block_data;
+        if (!m_chainman.m_blockman.ReadRawBlockFromDisk(block_data,
+                                                        block_pos)) {
+            handle_block_read_error();
+            return;
+        }
+        m_connman.PushMessage(
+            &pfrom, msgMaker.Make(NetMsgType::BLOCK, Span{block_data}));
+        // Don't set pblock as we've sent the block
     } else {
         // Send block from disk
         std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
         if (!m_chainman.m_blockman.ReadBlockFromDisk(*pblockRead, block_pos)) {
-            if (WITH_LOCK(
-                    m_chainman.GetMutex(),
-                    return m_chainman.m_blockman.IsBlockPruned(*pindex))) {
-                LogPrint(BCLog::NET,
-                         "Block was pruned before it could be read, disconnect "
-                         "peer=%s\n",
-                         pfrom.GetId());
-            } else {
-                LogPrintLevel(
-                    BCLog::NET, BCLog::Level::Error,
-                    "Cannot load block from disk, disconnect peer=%d\n",
-                    pfrom.GetId());
-            }
-            pfrom.fDisconnect = true;
+            handle_block_read_error();
             return;
         }
         pblock = pblockRead;
     }
-    if (inv.IsMsgBlk()) {
-        m_connman.PushMessage(&pfrom,
-                              msgMaker.Make(NetMsgType::BLOCK, *pblock));
-    } else if (inv.IsMsgFilteredBlk()) {
-        bool sendMerkleBlock = false;
-        CMerkleBlock merkleBlock;
-        if (auto tx_relay = peer.GetTxRelay()) {
-            LOCK(tx_relay->m_bloom_filter_mutex);
-            if (tx_relay->m_bloom_filter) {
-                sendMerkleBlock = true;
-                merkleBlock = CMerkleBlock(*pblock, *tx_relay->m_bloom_filter);
+    if (pblock) {
+        if (inv.IsMsgBlk()) {
+            m_connman.PushMessage(&pfrom,
+                                  msgMaker.Make(NetMsgType::BLOCK, *pblock));
+        } else if (inv.IsMsgFilteredBlk()) {
+            bool sendMerkleBlock = false;
+            CMerkleBlock merkleBlock;
+            if (auto tx_relay = peer.GetTxRelay()) {
+                LOCK(tx_relay->m_bloom_filter_mutex);
+                if (tx_relay->m_bloom_filter) {
+                    sendMerkleBlock = true;
+                    merkleBlock =
+                        CMerkleBlock(*pblock, *tx_relay->m_bloom_filter);
+                }
             }
-        }
-        if (sendMerkleBlock) {
-            m_connman.PushMessage(
-                &pfrom, msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
-            // CMerkleBlock just contains hashes, so also push any
-            // transactions in the block the client did not see. This avoids
-            // hurting performance by pointlessly requiring a round-trip.
-            // Note that there is currently no way for a node to request any
-            // single transactions we didn't send here - they must either
-            // disconnect and retry or request the full block. Thus, the
-            // protocol spec specified allows for us to provide duplicate
-            // txn here, however we MUST always provide at least what the
-            // remote peer needs.
-            typedef std::pair<size_t, uint256> PairType;
-            for (PairType &pair : merkleBlock.vMatchedTxn) {
+            if (sendMerkleBlock) {
                 m_connman.PushMessage(
                     &pfrom,
-                    msgMaker.Make(NetMsgType::TX, *pblock->vtx[pair.first]));
+                    msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
+                // CMerkleBlock just contains hashes, so also push any
+                // transactions in the block the client did not see. This avoids
+                // hurting performance by pointlessly requiring a round-trip.
+                // Note that there is currently no way for a node to request any
+                // single transactions we didn't send here - they must either
+                // disconnect and retry or request the full block. Thus, the
+                // protocol spec specified allows for us to provide duplicate
+                // txn here, however we MUST always provide at least what the
+                // remote peer needs.
+                typedef std::pair<size_t, uint256> PairType;
+                for (PairType &pair : merkleBlock.vMatchedTxn) {
+                    m_connman.PushMessage(
+                        &pfrom, msgMaker.Make(NetMsgType::TX,
+                                              *pblock->vtx[pair.first]));
+                }
             }
-        }
-        // else
-        // no response
-    } else if (inv.IsMsgCmpctBlk()) {
-        // If a peer is asking for old blocks, we're almost guaranteed they
-        // won't have a useful mempool to match against a compact block, and
-        // we don't feel like constructing the object for them, so instead
-        // we respond with the full, non-compact block.
-        int nSendFlags = 0;
-        if (can_direct_fetch &&
-            pindex->nHeight >= tip->nHeight - MAX_CMPCTBLOCK_DEPTH) {
-            if (a_recent_compact_block &&
-                a_recent_compact_block->header.GetHash() ==
-                    pindex->GetBlockHash()) {
-                m_connman.PushMessage(&pfrom,
-                                      msgMaker.Make(NetMsgType::CMPCTBLOCK,
-                                                    *a_recent_compact_block));
+            // else
+            // no response
+        } else if (inv.IsMsgCmpctBlk()) {
+            // If a peer is asking for old blocks, we're almost guaranteed they
+            // won't have a useful mempool to match against a compact block, and
+            // we don't feel like constructing the object for them, so instead
+            // we respond with the full, non-compact block.
+            int nSendFlags = 0;
+            if (can_direct_fetch &&
+                pindex->nHeight >= tip->nHeight - MAX_CMPCTBLOCK_DEPTH) {
+                if (a_recent_compact_block &&
+                    a_recent_compact_block->header.GetHash() ==
+                        pindex->GetBlockHash()) {
+                    m_connman.PushMessage(
+                        &pfrom, msgMaker.Make(NetMsgType::CMPCTBLOCK,
+                                              *a_recent_compact_block));
+                } else {
+                    CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
+                    m_connman.PushMessage(&pfrom,
+                                          msgMaker.Make(nSendFlags,
+                                                        NetMsgType::CMPCTBLOCK,
+                                                        cmpctblock));
+                }
             } else {
-                CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
                 m_connman.PushMessage(
-                    &pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
-                                          cmpctblock));
+                    &pfrom,
+                    msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
             }
-        } else {
-            m_connman.PushMessage(
-                &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
         }
     }
 

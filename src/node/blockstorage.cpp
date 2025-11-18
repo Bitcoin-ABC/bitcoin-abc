@@ -998,6 +998,54 @@ bool BlockManager::ReadBlockFromDisk(CBlock &block,
     return true;
 }
 
+bool BlockManager::ReadRawBlockFromDisk(std::vector<uint8_t> &block,
+                                        const FlatFilePos &pos) const {
+    FlatFilePos hpos = pos;
+    // If nPos is less than 8 the pos is null and we don't have the block data
+    // Return early to prevent undefined behavior of unsigned int underflow
+    if (hpos.nPos < 8) {
+        LogError("%s: OpenBlockFile failed for %s\n", __func__, pos.ToString());
+        return false;
+    }
+    hpos.nPos -= 8; // Seek back 8 bytes for meta header
+    AutoFile filein{OpenBlockFile(hpos, true)};
+    if (filein.IsNull()) {
+        LogError("%s: OpenBlockFile failed for %s\n", __func__, pos.ToString());
+        return false;
+    }
+
+    try {
+        CMessageHeader::MessageMagic blk_start;
+        unsigned int blk_size;
+
+        filein >> blk_start >> blk_size;
+
+        if (blk_start != GetParams().DiskMagic()) {
+            LogError("%s: Block magic mismatch for %s: %s versus expected %s\n",
+                     __func__, pos.ToString(), HexStr(blk_start),
+                     HexStr(GetParams().DiskMagic()));
+            return false;
+        }
+
+        if (blk_size > MAX_SIZE) {
+            LogError("%s: Block data is larger than maximum deserialization "
+                     "size for %s: %s versus %s\n",
+                     __func__, pos.ToString(), blk_size, MAX_SIZE);
+            return false;
+        }
+
+        // Zeroing of memory is intentional here
+        block.resize(blk_size);
+        filein.read(MakeWritableByteSpan(block));
+    } catch (const std::exception &e) {
+        LogError("%s: Read from block file failed: %s for %s\n", __func__,
+                 e.what(), pos.ToString());
+        return false;
+    }
+
+    return true;
+}
+
 bool BlockManager::ReadTxFromDisk(CMutableTransaction &tx,
                                   const FlatFilePos &pos) const {
     // Open history file to read
