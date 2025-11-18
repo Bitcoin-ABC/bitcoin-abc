@@ -755,10 +755,11 @@ builds:
     runOnDiffRegex:
       - modules/avalanche-lib-wasm/
       - apps/proof-manager-cli/
-    script: |
-      pushd "${TOPLEVEL}/apps/proof-manager-cli"
-      cargo build
-      cargo test
+    cmake_flags:
+      - '-DBUILD_PROOF_MANAGER_CLI=ON'
+    targets:
+      - - install-proof-manager-cli
+      - - check-proof-manager-cli
 
   cashtab-tests:
     runOnDiffRegex:

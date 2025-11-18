@@ -158,4 +158,9 @@ add_subdirectory(electrum)
 add_subdirectory(contrib)
 add_subdirectory(doc)
 
+option(BUILD_PROOF_MANAGER_CLI "Build the proof-manager-cli tool" OFF)
+if (BUILD_PROOF_MANAGER_CLI)
+    add_subdirectory(apps/proof-manager-cli)
+endif()
+
 include(PackageOptions.cmake)
