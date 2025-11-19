@@ -15,7 +15,7 @@ import sys
 
 FALSE_POSITIVES = [
     ("src/dbwrapper.cpp", "vsnprintf(p, limit - p, format, backup_ap)"),
-    ("src/index/base.cpp", "FatalError(const char *fmt, const Args &...args)"),
+    ("src/index/base.cpp", "FatalErrorf(const char *fmt, const Args &...args)"),
     (
         "src/netbase.cpp",
         (
@@ -58,7 +58,7 @@ FALSE_POSITIVES = [
 ]
 
 FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
-    ("FatalError", 0),
+    ("FatalErrorf", 0),
     ("fprintf", 1),
     ("LogConnectFailure", 1),
     ("LogError", 0),
