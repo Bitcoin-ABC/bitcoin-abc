@@ -98,3 +98,6 @@ add_custom_target(check-proof-manager-cli
 )
 add_dependencies(check-proof-manager-cli proof-manager-cli)
 add_dependencies(check-all check-proof-manager-cli)
+
+include(InstallationHelper)
+install_manpages(proof-manager-cli)

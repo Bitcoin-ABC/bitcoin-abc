@@ -33,6 +33,7 @@ add_to_symbols_check(iguana)
 add_to_security_check(iguana)
 
 install_target(iguana)
+install_manpages(iguana)
 
 include(TestSuite)
 add_test_custom_target(check-iguana
