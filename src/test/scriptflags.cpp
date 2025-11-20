@@ -32,7 +32,6 @@ static std::map<std::string, uint32_t> mapFlagNames = {
     {"DISALLOW_SEGWIT_RECOVERY", SCRIPT_DISALLOW_SEGWIT_RECOVERY},
     {"SCHNORR_MULTISIG", SCRIPT_ENABLE_SCHNORR_MULTISIG},
     {"INPUT_SIGCHECKS", SCRIPT_VERIFY_INPUT_SIGCHECKS},
-    {"63BIT_INTS", SCRIPT_ENABLE_63_BIT_INTS},
 };
 
 uint32_t ParseScriptFlags(std::string strFlags) {

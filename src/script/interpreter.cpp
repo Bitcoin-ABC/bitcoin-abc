@@ -226,9 +226,7 @@ bool ScriptInterpreter::RunNextOpInner() {
     bool fExec = vfExec.all_true();
 
     // Maximum integer byte size
-    const size_t nMaxNumSize = (flags & SCRIPT_ENABLE_63_BIT_INTS) != 0
-                                   ? MAX_SCRIPTNUM_BYTE_SIZE_63_BIT
-                                   : MAX_SCRIPTNUM_BYTE_SIZE_31_BIT;
+    const size_t nMaxNumSize = MAX_SCRIPTNUM_BYTE_SIZE;
 
     //
     // Read instruction

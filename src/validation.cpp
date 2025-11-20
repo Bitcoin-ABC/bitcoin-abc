@@ -2103,10 +2103,6 @@ static uint32_t GetNextBlockScriptFlags(const CBlockIndex *pindex,
         flags |= SCRIPT_ENFORCE_SIGCHECKS;
     }
 
-    if (IsShibusawaEnabled(consensusparams, pindex)) {
-        flags |= SCRIPT_ENABLE_63_BIT_INTS;
-    }
-
     // We make sure this node will have replay protection during the next hard
     // fork.
     if (IsReplayProtectionEnabled(

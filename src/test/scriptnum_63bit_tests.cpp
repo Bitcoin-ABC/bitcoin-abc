@@ -22,11 +22,8 @@ const i128_t MAX_SCRIPT_INT = 0x7fff'ffff'ffff'ffff;
 const i128_t MIN_SCRIPT_INT = -0x7fff'ffff'ffff'ffff;
 const static std::vector<uint32_t> flaglist({
     SCRIPT_VERIFY_NONE,
-    SCRIPT_VERIFY_NONE | SCRIPT_ENABLE_63_BIT_INTS,
     STANDARD_SCRIPT_VERIFY_FLAGS,
-    STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_63_BIT_INTS,
     MANDATORY_SCRIPT_VERIFY_FLAGS,
-    MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_63_BIT_INTS,
 });
 const static std::vector<valtype> interesting_numbers({
     {}, // 0
@@ -113,11 +110,8 @@ static bool IsInScriptResultBounds(const i128_t &num_int) {
 }
 
 static bool AnyOverflows(const stacktype &stack, uint32_t flags) {
-    const size_t nMaxNumSize = (flags & SCRIPT_ENABLE_63_BIT_INTS) != 0
-                                   ? MAX_SCRIPTNUM_BYTE_SIZE_63_BIT
-                                   : MAX_SCRIPTNUM_BYTE_SIZE_31_BIT;
     for (const valtype &stackitem : stack) {
-        if (stackitem.size() > nMaxNumSize) {
+        if (stackitem.size() > MAX_SCRIPTNUM_BYTE_SIZE) {
             return true;
         }
     }

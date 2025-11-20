@@ -502,7 +502,9 @@ OP  0: OP_CHECKSIG
 def test_redeem_script_exception():
     redeem_script = CScript([OP_ADD])
     tx = CTransaction()
-    tx.vin = [CTxIn(COutPoint(), CScript([b"111111", b"222222", bytes(redeem_script)]))]
+    tx.vin = [
+        CTxIn(COutPoint(), CScript([b"111111111", b"222222222", bytes(redeem_script)]))
+    ]
     script_hash = hash160(redeem_script)
     script_pub_key = CScript([OP_HASH160, script_hash, OP_EQUAL])
     stdout = iguana(
@@ -517,39 +519,39 @@ def test_redeem_script_exception():
         == f"""\
 ======= scriptSig =======
        Stack (0 items): (empty stack)
-OP  0: 0x06 313131313131
+OP  0: 0x09 313131313131313131
        Stack (1 item):
-         0: 313131313131
-OP  1: 0x06 323232323232
+         0: 313131313131313131
+OP  1: 0x09 323232323232323232
        Stack (2 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
 OP  2: 0x01 93
 ======= scriptPubKey =======
        Stack (3 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
          2: 93
 OP  0: OP_HASH160
        Stack (3 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
          2: {script_hash.hex()}
 OP  1: 0x14 {script_hash.hex()}
        Stack (4 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
          2: {script_hash.hex()}
          3: {script_hash.hex()}
 OP  2: OP_EQUAL
        Stack (3 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
          2: 01
 ======= redeemScript =======
        Stack (2 items):
-         0: 313131313131
-         1: 323232323232
+         0: 313131313131313131
+         1: 323232323232323232
 OP  0: OP_ADD
 """
     )

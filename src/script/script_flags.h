@@ -104,9 +104,6 @@ enum {
 
     // A utility flag to decide whether we must enforce sigcheck limits.
     SCRIPT_ENFORCE_SIGCHECKS = (1U << 23),
-
-    // Enable 63+sign-bit integers in script execution (31+sign otherwise).
-    SCRIPT_ENABLE_63_BIT_INTS = (1U << 24),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H

@@ -612,11 +612,11 @@ BOOST_AUTO_TEST_CASE(type_conversion_test) {
     // NUM2BIN require 2 elements on the stack.
     CheckNum2BinError({{0x00}}, ScriptError::INVALID_STACK_OPERATION);
 
-    // Values that do not fit in 4 bytes are considered out of range for
+    // Values that do not fit in 8 bytes are considered out of range for
     // BIN2NUM.
-    CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0x80}},
+    CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0xde, 0xad, 0xbe, 0xef, 0x80}},
                       ScriptError::INTEGER_OVERFLOW);
-    CheckBin2NumError({{0x00, 0x00, 0x00, 0x80, 0x80}},
+    CheckBin2NumError({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80}},
                       ScriptError::INTEGER_OVERFLOW);
 
     // NUM2BIN must not generate oversized push.
@@ -713,10 +713,9 @@ static void CheckDivMod(const valtype &a, const valtype &b,
     // a % b % b = a % b
     CheckTestResultForAllFlags(
         {a, b},
-        CScript()
-            << OP_MOD
-            << CScriptNum(b, true, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT).getint()
-            << OP_MOD,
+        CScript() << OP_MOD
+                  << CScriptNum(b, true, MAX_SCRIPTNUM_BYTE_SIZE).getint()
+                  << OP_MOD,
         {modExpected});
 }
 
@@ -731,13 +730,15 @@ BOOST_AUTO_TEST_CASE(div_and_mod_opcode_tests) {
     CheckDivModError({{}}, ScriptError::INVALID_STACK_OPERATION);
 
     // CheckOps not valid numbers
+    CheckDivModError({{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09},
+                      {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09}},
+                     ScriptError::INTEGER_OVERFLOW);
     CheckDivModError(
-        {{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
+        {{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09}, {0x01}},
         ScriptError::INTEGER_OVERFLOW);
-    CheckDivModError({{0x01, 0x02, 0x03, 0x04, 0x05}, {0x01}},
-                     ScriptError::INTEGER_OVERFLOW);
-    CheckDivModError({{0x01, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05}},
-                     ScriptError::INTEGER_OVERFLOW);
+    CheckDivModError(
+        {{0x01, 0x05}, {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09}},
+        ScriptError::INTEGER_OVERFLOW);
 
     // 0x185377af / 0x85f41b01 = -4
     // 0x185377af % 0x85f41b01 = 0x00830bab

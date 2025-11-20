@@ -124,23 +124,12 @@ static void CheckCompare(const int64_t &num1, const int64_t &num2) {
 
 static void RunCreate(const int64_t &num) {
     CScriptNum scriptnum(num);
-
-    // Test in 31+sign-bit context
-    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE_31_BIT) {
-        CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT);
+    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE) {
+        CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE);
     } else {
-        BOOST_CHECK_EXCEPTION(
-            CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_31_BIT),
-            scriptnum_overflow_error, HasReason("script number overflow"));
-    }
-
-    // Test in 63+sign-bit context
-    if (scriptnum.getvch().size() <= MAX_SCRIPTNUM_BYTE_SIZE_63_BIT) {
-        CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_63_BIT);
-    } else {
-        BOOST_CHECK_EXCEPTION(
-            CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE_63_BIT),
-            scriptnum_overflow_error, HasReason("script number overflow"));
+        BOOST_CHECK_EXCEPTION(CheckCreateVch(num, MAX_SCRIPTNUM_BYTE_SIZE),
+                              scriptnum_overflow_error,
+                              HasReason("script number overflow"));
     }
 }
 
