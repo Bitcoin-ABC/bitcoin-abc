@@ -247,3 +247,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.5
 
 -   Publish to catch updated `ecash-wallet` dep [D18925](https://reviews.bitcoinabc.org/D18925)
+
+### 2.6.6
+
+-   Publish to catch updated `chronik-client` dep [D18976](https://reviews.bitcoinabc.org/D18976)
