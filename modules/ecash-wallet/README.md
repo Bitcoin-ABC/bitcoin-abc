@@ -157,3 +157,9 @@ See tests for detailed methods.
 [D18932](https://reviews.bitcoinabc.org/D18932)
 
 -   Tolerate token outputs without the `isMintBaton` key, but always classify such inputs as if they were `isMintBaton: false`
+
+# 2.3.4
+
+[D18975](https://reviews.bitcoinabc.org/D18975)
+
+-   Publish to catch updated `chronik-client` dep
