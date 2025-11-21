@@ -713,6 +713,7 @@ add_library(server
 	script/scriptcache.cpp
 	script/sigcache.cpp
 	shutdown.cpp
+	streams.cpp
 	timedata.cpp
 	torcontrol.cpp
 	txdb.cpp
@@ -928,6 +929,7 @@ if(BUILD_CHAINSTATE)
 		script/sigencoding.cpp
 		script/standard.cpp
 		shutdown.cpp
+		streams.cpp
 		support/cleanse.cpp
 		support/lockedpool.cpp
 		sync.cpp
