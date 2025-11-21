@@ -430,7 +430,7 @@ namespace {
         }
         if (block.m_data) {
             REVERSE_LOCK(lock);
-            if (!blockman.ReadBlockFromDisk(*block.m_data, *index)) {
+            if (!blockman.ReadBlock(*block.m_data, *index)) {
                 block.m_data->SetNull();
             }
         }

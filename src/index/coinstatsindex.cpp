@@ -120,7 +120,7 @@ bool CoinStatsIndex::WriteBlock(const CBlock &block,
 
     // Ignore genesis block
     if (pindex->nHeight > 0) {
-        if (!m_chainstate->m_blockman.UndoReadFromDisk(block_undo, *pindex)) {
+        if (!m_chainstate->m_blockman.ReadBlockUndo(block_undo, *pindex)) {
             return false;
         }
 
@@ -310,7 +310,7 @@ bool CoinStatsIndex::Rewind(const CBlockIndex *current_tip,
         do {
             CBlock block;
 
-            if (!m_chainstate->m_blockman.ReadBlockFromDisk(block, *iter_tip)) {
+            if (!m_chainstate->m_blockman.ReadBlock(block, *iter_tip)) {
                 LogError("%s: Failed to read block %s from disk\n", __func__,
                          iter_tip->GetBlockHash().ToString());
                 return false;
@@ -447,7 +447,7 @@ bool CoinStatsIndex::ReverseBlock(const CBlock &block,
 
     // Ignore genesis block
     if (pindex->nHeight > 0) {
-        if (!m_chainstate->m_blockman.UndoReadFromDisk(block_undo, *pindex)) {
+        if (!m_chainstate->m_blockman.ReadBlockUndo(block_undo, *pindex)) {
             return false;
         }
 

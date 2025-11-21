@@ -241,7 +241,7 @@ bool BlockFilterIndex::WriteBlock(const CBlock &block,
     uint256 prev_header;
 
     if (pindex->nHeight > 0) {
-        if (!m_chainstate->m_blockman.UndoReadFromDisk(block_undo, *pindex)) {
+        if (!m_chainstate->m_blockman.ReadBlockUndo(block_undo, *pindex)) {
             return false;
         }
 

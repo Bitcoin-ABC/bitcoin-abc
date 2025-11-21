@@ -26,44 +26,44 @@ static CBlock CreateTestBlock() {
     return block;
 }
 
-static void SaveBlockBench(benchmark::Bench &bench) {
+static void WriteBlockBench(benchmark::Bench &bench) {
     const auto testing_setup{
         MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
     auto &blockman{testing_setup->m_node.chainman->m_blockman};
     const CBlock block{CreateTestBlock()};
     bench.run([&] {
-        const auto pos{blockman.SaveBlockToDisk(block, 413'567)};
+        const auto pos{blockman.WriteBlock(block, 413'567)};
         assert(!pos.IsNull());
     });
 }
 
-static void ReadBlockFromDiskBench(benchmark::Bench &bench) {
+static void ReadBlockBench(benchmark::Bench &bench) {
     const auto testing_setup{
         MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
     auto &blockman{testing_setup->m_node.chainman->m_blockman};
-    const auto pos{blockman.SaveBlockToDisk(CreateTestBlock(), 413'567)};
+    const auto pos{blockman.WriteBlock(CreateTestBlock(), 413'567)};
     CBlock block;
     bench.run([&] {
-        const auto success{blockman.ReadBlockFromDisk(block, pos)};
+        const auto success{blockman.ReadBlock(block, pos)};
         assert(success);
     });
 }
 
-static void ReadRawBlockFromDiskBench(benchmark::Bench &bench) {
+static void ReadRawBlockBench(benchmark::Bench &bench) {
     const auto testing_setup{
         MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
 
     auto &blockman{testing_setup->m_node.chainman->m_blockman};
-    const auto pos{blockman.SaveBlockToDisk(CreateTestBlock(), 413'567)};
+    const auto pos{blockman.WriteBlock(CreateTestBlock(), 413'567)};
     std::vector<uint8_t> block_data;
     // warmup
-    blockman.ReadRawBlockFromDisk(block_data, pos);
+    blockman.ReadRawBlock(block_data, pos);
     bench.run([&] {
-        const auto success{blockman.ReadRawBlockFromDisk(block_data, pos)};
+        const auto success{blockman.ReadRawBlock(block_data, pos)};
         assert(success);
     });
 }
 
-BENCHMARK(SaveBlockBench);
-BENCHMARK(ReadBlockFromDiskBench);
-BENCHMARK(ReadRawBlockFromDiskBench);
+BENCHMARK(WriteBlockBench);
+BENCHMARK(ReadBlockBench);
+BENCHMARK(ReadRawBlockBench);

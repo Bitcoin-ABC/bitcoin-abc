@@ -310,7 +310,7 @@ static bool rest_block(const Config &config, const std::any &context,
                            hashStr + " not available (pruned data)");
         }
     }
-    if (!chainman.m_blockman.ReadBlockFromDisk(block, *pblockindex)) {
+    if (!chainman.m_blockman.ReadBlock(block, *pblockindex)) {
         return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
     }
 

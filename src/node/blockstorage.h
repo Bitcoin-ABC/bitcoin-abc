@@ -54,7 +54,7 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 
-/** Size of header written by SaveBlockToDisk before a serialized CBlock */
+/** Size of header written by WriteBlock before a serialized CBlock */
 static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE{
     CMessageHeader::MESSAGE_START_SIZE + sizeof(unsigned int)};
 
@@ -319,8 +319,8 @@ public:
     /** Get block file info entry for one block file */
     CBlockFileInfo *GetBlockFileInfo(size_t n);
 
-    bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
-                               BlockValidationState &state, CBlockIndex &block)
+    bool WriteBlockUndo(const CBlockUndo &blockundo,
+                        BlockValidationState &state, CBlockIndex &block)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /**
@@ -333,7 +333,7 @@ public:
      *          to
      *          in case of an error, an empty FlatFilePos
      */
-    FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight);
+    FlatFilePos WriteBlock(const CBlock &block, int nHeight);
 
     /**
      * Update blockfile info while processing a block during reindex. The block
@@ -434,12 +434,11 @@ public:
     void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) const;
 
     /** Functions for disk access for blocks */
-    bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos) const;
-    bool ReadBlockFromDisk(CBlock &block, const CBlockIndex &index) const;
-    bool ReadRawBlockFromDisk(std::vector<uint8_t> &block,
-                              const FlatFilePos &pos) const;
-    bool UndoReadFromDisk(CBlockUndo &blockundo,
-                          const CBlockIndex &index) const;
+    bool ReadBlock(CBlock &block, const FlatFilePos &pos) const;
+    bool ReadBlock(CBlock &block, const CBlockIndex &index) const;
+    bool ReadRawBlock(std::vector<uint8_t> &block,
+                      const FlatFilePos &pos) const;
+    bool ReadBlockUndo(CBlockUndo &blockundo, const CBlockIndex &index) const;
 
     /** Functions for disk access for txs */
     bool ReadTxFromDisk(CMutableTransaction &tx, const FlatFilePos &pos) const;

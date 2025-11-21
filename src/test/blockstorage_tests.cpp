@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     for (int32_t height = 0; height < 100; ++height) {
         CBlockIndex *pindex = active_tip->GetAncestor(height);
         CBlock block;
-        BOOST_CHECK(chainman.m_blockman.ReadBlockFromDisk(block, *pindex));
+        BOOST_CHECK(chainman.m_blockman.ReadBlock(block, *pindex));
         // + 81 = CBlockHeader + CompactSize
         CheckReadTx(
             chainman.m_blockman,

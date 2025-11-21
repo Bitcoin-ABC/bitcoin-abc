@@ -196,8 +196,8 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
             CBlockUndo blockUndo;
             const bool is_not_pruned{WITH_LOCK(
                 ::cs_main, return !blockman.IsBlockPruned(blockindex))};
-            const bool have_undo{is_not_pruned && blockman.UndoReadFromDisk(
-                                                      blockUndo, blockindex)};
+            const bool have_undo{is_not_pruned &&
+                                 blockman.ReadBlockUndo(blockUndo, blockindex)};
             for (size_t i = 0; i < block.vtx.size(); ++i) {
                 const CTransactionRef &tx = block.vtx.at(i);
                 // coinbase transaction (i == 0) doesn't have undo data
@@ -667,7 +667,7 @@ static CBlock GetBlockChecked(BlockManager &blockman,
         }
     }
 
-    if (!blockman.ReadBlockFromDisk(block, blockindex)) {
+    if (!blockman.ReadBlock(block, blockindex)) {
         // Block not found on disk. This could be because we have the block
         // header in our index but not yet have the block or did not accept the
         // block. Or if the block was pruned right after we released the lock
@@ -690,7 +690,7 @@ static CBlockUndo GetUndoChecked(BlockManager &blockman,
         }
     }
 
-    if (!blockman.UndoReadFromDisk(blockUndo, blockindex)) {
+    if (!blockman.ReadBlockUndo(blockUndo, blockindex)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Can't read undo data from disk");
     }
 

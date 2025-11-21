@@ -2465,7 +2465,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     g_zmq_notification_interface = CZMQNotificationInterface::Create(
         [&chainman = node.chainman](CBlock &block, const CBlockIndex &index) {
             assert(chainman);
-            return chainman->m_blockman.ReadBlockFromDisk(block, index);
+            return chainman->m_blockman.ReadBlock(block, index);
         });
 
     if (g_zmq_notification_interface) {

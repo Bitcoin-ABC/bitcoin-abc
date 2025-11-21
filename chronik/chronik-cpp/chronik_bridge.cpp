@@ -272,7 +272,7 @@ ChronikBridge::get_block_hashes_by_range(int start, int end) const {
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;
-    if (!m_node.chainman->m_blockman.ReadBlockFromDisk(block, bindex)) {
+    if (!m_node.chainman->m_blockman.ReadBlock(block, bindex)) {
         throw std::runtime_error("Reading block data failed");
     }
     return std::make_unique<CBlock>(std::move(block));
@@ -283,7 +283,7 @@ ChronikBridge::load_block_undo(const CBlockIndex &bindex) const {
     CBlockUndo block_undo;
     // Read undo data (genesis block doesn't have undo data)
     if (bindex.nHeight > 0) {
-        if (!m_node.chainman->m_blockman.UndoReadFromDisk(block_undo, bindex)) {
+        if (!m_node.chainman->m_blockman.ReadBlockUndo(block_undo, bindex)) {
             throw std::runtime_error("Reading block undo data failed");
         }
     }
