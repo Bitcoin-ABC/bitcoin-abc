@@ -36,7 +36,8 @@ bool SerializeDB(const CChainParams &chainParams, Stream &stream,
         hashwriter << chainParams.DiskMagic() << data;
         stream << hashwriter.GetHash();
     } catch (const std::exception &e) {
-        return error("%s: Serialize or I/O error - %s", __func__, e.what());
+        LogError("%s: Serialize or I/O error - %s\n", __func__, e.what());
+        return false;
     }
 
     return true;
@@ -56,8 +57,9 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
     if (fileout.IsNull()) {
         fileout.fclose();
         remove(pathTmp);
-        return error("%s: Failed to open file %s", __func__,
-                     fs::PathToString(pathTmp));
+        LogError("%s: Failed to open file %s\n", __func__,
+                 fs::PathToString(pathTmp));
+        return false;
     }
 
     // Serialize
@@ -69,15 +71,17 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
     if (!FileCommit(fileout.Get())) {
         fileout.fclose();
         remove(pathTmp);
-        return error("%s: Failed to flush file %s", __func__,
-                     fs::PathToString(pathTmp));
+        LogError("%s: Failed to flush file %s\n", __func__,
+                 fs::PathToString(pathTmp));
+        return false;
     }
     fileout.fclose();
 
     // replace existing file, if any, with new file
     if (!RenameOver(pathTmp, path)) {
         remove(pathTmp);
-        return error("%s: Rename-into-place failed", __func__);
+        LogError("%s: Rename-into-place failed\n", __func__);
+        return false;
     }
 
     return true;

@@ -73,8 +73,9 @@ bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
     }
     auto lock = std::make_unique<fsbridge::FileLock>(pathLockFile);
     if (!lock->TryLock()) {
-        return error("Error while attempting to lock directory %s: %s",
-                     fs::PathToString(directory), lock->GetReason());
+        LogError("Error while attempting to lock directory %s: %s\n",
+                 fs::PathToString(directory), lock->GetReason());
+        return false;
     }
     if (!probe_only) {
         // Lock successful and we're not just probing, put it into the map

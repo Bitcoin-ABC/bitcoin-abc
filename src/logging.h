@@ -460,9 +460,4 @@ static inline void LogPrintf_(std::source_location &&source_loc,
 #define LogPrintToBeContinued LogPrint
 #define LogPrintLevelToBeContinued LogPrintLevel
 
-template <typename... Args> bool error(const char *fmt, const Args &...args) {
-    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
-    return false;
-}
-
 #endif // BITCOIN_LOGGING_H
