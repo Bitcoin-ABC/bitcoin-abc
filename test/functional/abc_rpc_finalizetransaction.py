@@ -3,12 +3,12 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the finalizetransaction and removetransaction RPCs."""
 
+import time
+
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet import MiniWallet
-
-THE_FUTURE = 2100000000
 
 
 class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
@@ -19,7 +19,6 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
             [
                 # This is disabled by default on the test framework
                 "-avalanchepreconsensusmining=1",
-                f"-shibusawaactivationtime={THE_FUTURE}",
             ],
         ]
 
@@ -28,11 +27,8 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
 
         wallet = MiniWallet(node)
 
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-        self.generate(wallet, 6)[0]
-
-        assert node.getinfo()["avalanche_mining_preconsensus"]
 
         # The node needs a peer connection for the block template to be
         # generated

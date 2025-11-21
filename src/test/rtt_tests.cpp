@@ -22,19 +22,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(rtt_tests, BasicTestingSetup)
 
-struct RTTShibusawaTestingSetup : public BasicTestingSetup {
-    RTTShibusawaTestingSetup() : BasicTestingSetup() {
-        ArgsManager &argsman = *Assert(m_node.args);
-        argsman.ForceSetArg("-shibusawaactivationtime", "0");
-    }
-
-    ~RTTShibusawaTestingSetup() {
-        ArgsManager &argsman = *Assert(m_node.args);
-        argsman.ClearForcedArg("-shibusawaactivationtime");
-    }
-};
-
-void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
+BOOST_FIXTURE_TEST_CASE(check_rtt_next_work_required, BasicTestingSetup) {
     const Consensus::Params &consensusParams = Params().GetConsensus();
 
     int64_t now = GetTime();
@@ -51,16 +39,6 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
         lastBlock = &block;
     }
     blocks[0].nBits = prevWork.GetCompact();
-
-    const bool fShibusawa = IsShibusawaEnabled(consensusParams, &blocks[0]);
-    BOOST_CHECK_EQUAL(fShibusawa, expectedShibusawa);
-    if (fShibusawa) {
-        BOOST_CHECK(GetRTTFactorIndices(consensusParams, &blocks[0]) ==
-                    std::vector<size_t>({1, 2, 5, 11, 17}));
-    } else {
-        BOOST_CHECK(GetRTTFactorIndices(consensusParams, &blocks[0]) ==
-                    std::vector<size_t>({2, 5, 11, 17}));
-    }
 
     // No RTT applied if any of the previous block was read from disk.
     for (size_t i = 1; i < 18; i++) {
@@ -105,14 +83,10 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
     // The RTT target is less (more difficult) than the DAA one
     BOOST_CHECK(target_lt(*workZeroTimeDiff, prevWork.GetCompact()));
 
-    if (fShibusawa) {
-        // Before Shibusawa upgrade, RTT is computed starting with indice 2 so
-        // we assign the same received time for pprev.
-        // After Shibusawa we want the first factor at indice one to be the
-        // limiting (and only accounted) factor in the test so we move the pprev
-        // receive time in the past.
-        blocks[0].pprev->nTimeReceived = now - 18000;
-    }
+    // We want the first factor at indice one to be the limiting (and only
+    // accounted) factor in the test so we move the pprev receive time in
+    // the past.
+    blocks[0].pprev->nTimeReceived = now - 18000;
 
     // From there each second elapsed the RTT target will increase (lowering the
     // mining difficulty)
@@ -130,10 +104,6 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
                 block.nTimeReceived = now - 18000 + offset;
             }
             blocks[0].nTimeReceived = now + offset;
-            if (!fShibusawa) {
-                // See above for rationale
-                blocks[0].pprev->nTimeReceived = now + offset;
-            }
             BOOST_CHECK(*nextWork == *GetNextRTTWorkRequired(&blocks[0],
                                                              now + offset + t,
                                                              consensusParams));
@@ -146,10 +116,6 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
             block.nTimeReceived = now - 18000;
         }
         blocks[0].nTimeReceived = now;
-        if (!fShibusawa) {
-            // See above for rationale
-            blocks[0].pprev->nTimeReceived = now;
-        }
     }
 
     // The RTT can never be less difficult than the pow limit.
@@ -157,7 +123,7 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
     blocks[0].nBits = prevWork.GetCompact();
     // Initially it's higher difficulty than the pow limit.
     // The 114s/115s and 458s/459s values are specific to RTT_K=6.
-    for (int64_t t : {-1, 0, 1, 10, 100, fShibusawa ? 114 : 458}) {
+    for (int64_t t : {-1, 0, 1, 10, 100, 114}) {
         auto minWork =
             GetNextRTTWorkRequired(&blocks[0], now + t, consensusParams);
         BOOST_CHECK(minWork.has_value());
@@ -165,8 +131,7 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
     }
     // Then the RTT computation returns nullopt as the value would be lower
     // difficulty than the pow limit
-    for (int64_t t : {fShibusawa ? 115 : 459, 600, 1000, 3600, 24 * 60 * 60,
-                      365 * 24 * 60 * 60}) {
+    for (int64_t t : {115, 600, 1000, 3600, 24 * 60 * 60, 365 * 24 * 60 * 60}) {
         auto minWork =
             GetNextRTTWorkRequired(&blocks[0], now + t, consensusParams);
         BOOST_CHECK(!minWork.has_value());
@@ -195,23 +160,20 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
     // RTT is higher (lower difficulty) than DAA in this case
     BOOST_CHECK(target_lt(prevWork.GetCompact(), *nextWork));
 
-    if (fShibusawa) {
-        // Blocks too close over the last 1 block window (average < 0.25x
-        // expected spacing). For RTT_K = 6, the DAA crossing point happens at
-        // 115s.
-        nextWork = getNextWorkForPastDifftimes({114, 600, 600, 600, 600, 600,
-                                                600, 600, 600, 600, 600, 600,
-                                                600, 600, 600, 600, 600});
-        BOOST_CHECK(nextWork.has_value());
-        // RTT is lower (higher difficulty) than DAA in this case
-        BOOST_CHECK(target_lt(*nextWork, prevWork.GetCompact()));
-        nextWork = getNextWorkForPastDifftimes({115, 600, 600, 600, 600, 600,
-                                                600, 600, 600, 600, 600, 600,
-                                                600, 600, 600, 600, 600});
-        BOOST_CHECK(nextWork.has_value());
-        // RTT is higher (lower difficulty) than DAA in this case
-        BOOST_CHECK(target_lt(prevWork.GetCompact(), *nextWork));
-    }
+    // Blocks too close over the last 1 block window (average < 0.25x expected
+    // spacing). For RTT_K = 6, the DAA crossing point happens at 115s.
+    nextWork = getNextWorkForPastDifftimes({114, 600, 600, 600, 600, 600, 600,
+                                            600, 600, 600, 600, 600, 600, 600,
+                                            600, 600, 600});
+    BOOST_CHECK(nextWork.has_value());
+    // RTT is lower (higher difficulty) than DAA in this case
+    BOOST_CHECK(target_lt(*nextWork, prevWork.GetCompact()));
+    nextWork = getNextWorkForPastDifftimes({115, 600, 600, 600, 600, 600, 600,
+                                            600, 600, 600, 600, 600, 600, 600,
+                                            600, 600, 600});
+    BOOST_CHECK(nextWork.has_value());
+    // RTT is higher (lower difficulty) than DAA in this case
+    BOOST_CHECK(target_lt(prevWork.GetCompact(), *nextWork));
 
     // Blocks too close over the last 2 blocks window (average < 1x expected
     // spacing). For RTT_K = 6, the DAA crossing point happens at 459s.
@@ -335,15 +297,6 @@ void check_GeNextRTTWorkRequired(bool expectedShibusawa) {
         // The difficulty decreases, i.e. the target increaes
         BOOST_CHECK(target_lt(lastWork, *nextWork));
     }
-}
-
-BOOST_FIXTURE_TEST_CASE(check_rtt_next_work_required, BasicTestingSetup) {
-    check_GeNextRTTWorkRequired(false);
-}
-
-BOOST_FIXTURE_TEST_CASE(check_rtt_next_work_required_shibusawa,
-                        RTTShibusawaTestingSetup) {
-    check_GeNextRTTWorkRequired(true);
 }
 
 BOOST_AUTO_TEST_CASE(rtt_policy) {

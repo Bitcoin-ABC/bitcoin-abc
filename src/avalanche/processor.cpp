@@ -1512,12 +1512,11 @@ bool Processor::GetLocalAcceptance::operator()(
 }
 
 bool Processor::isPreconsensusActivated(const CBlockIndex *pprev) const {
-    return m_preConsensus && IsShibusawaEnabled(chainman.GetConsensus(), pprev);
+    return m_preConsensus;
 }
 
 bool Processor::isStakingPreconsensusActivated(const CBlockIndex *pprev) const {
-    return m_stakingPreConsensus &&
-           IsShibusawaEnabled(chainman.GetConsensus(), pprev);
+    return m_stakingPreConsensus;
 }
 
 } // namespace avalanche

@@ -114,17 +114,17 @@ bool IsCowperthwaiteEnabled(const Consensus::Params &params,
     return IsCowperthwaiteEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsShibusawaEnabled(const Consensus::Params &params,
+bool IsObolenskyEnabled(const Consensus::Params &params,
                         int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetIntArg("-shibusawaactivationtime",
-                                              params.shibusawaActivationTime);
+    return nMedianTimePast >= gArgs.GetIntArg("-obolenskyactivationtime",
+                                              params.obolenskyActivationTime);
 }
 
-bool IsShibusawaEnabled(const Consensus::Params &params,
+bool IsObolenskyEnabled(const Consensus::Params &params,
                         const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsShibusawaEnabled(params, pindexPrev->GetMedianTimePast());
+    return IsObolenskyEnabled(params, pindexPrev->GetMedianTimePast());
 }

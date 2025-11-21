@@ -4,6 +4,7 @@
 """Test mining with avalanche preconsensus."""
 
 import random
+import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import AvalancheTxVoteError
@@ -12,8 +13,6 @@ from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
@@ -31,8 +30,6 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
                 "-avaminquorumconnectedstakeratio=0.5",
                 # Preconsensus disabled
                 "-avalanchepreconsensus=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
             [
                 "-avacooldown=0",
@@ -46,8 +43,6 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
                 # Disable staking reward preconsensus to speedup the test and
                 # avoid bloating the polling space
                 "-avalanchestakingpreconsensus=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
 
@@ -55,12 +50,9 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
         node_non_preconsensus = self.nodes[0]
         node_preconsensus = self.nodes[1]
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         node_non_preconsensus.setmocktime(now)
         node_preconsensus.setmocktime(now)
-
-        self.generate(node_non_preconsensus, 6)
 
         assert not node_non_preconsensus.getinfo()["avalanche_preconsensus"]
         assert not node_non_preconsensus.getinfo()["avalanche_mining_preconsensus"]

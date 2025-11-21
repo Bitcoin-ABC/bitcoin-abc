@@ -6,6 +6,7 @@ Tests for Bitcoin ABC mining with heartbeat
 """
 
 import threading
+import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import uint256_from_compact
@@ -20,7 +21,6 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
 
 
 class LongpollThread(threading.Thread):
@@ -52,12 +52,13 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
             ],
         ]
 
-    def check_rtt(self, now, num_prev_headers):
+    def check_rtt(self):
         node = self.nodes[0]
+
+        now = int(time.time())
 
         node.add_p2p_connection(P2PInterface())
 
@@ -78,20 +79,16 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
         self.generate(node, 20)
 
         node.bumpmocktime(10)
-        check_gbt_rtt(node.getblocktemplate(), [now] * num_prev_headers)
+        check_gbt_rtt(node.getblocktemplate(), [now] * 5)
         node.bumpmocktime(10)
-        check_gbt_rtt(node.getblocktemplate(), [now] * num_prev_headers)
+        check_gbt_rtt(node.getblocktemplate(), [now] * 5)
 
         self.generate(node, 1)
         now += 20
         gbt = node.getblocktemplate()
-        if num_prev_headers == 4:
-            # All the previous blocks (indices 2, 5, 11, 17) are at now - 20
-            check_gbt_rtt(gbt, [now - 20] * num_prev_headers)
-        else:
-            # The last block (indice 1) is at now, the previous ones (indices 2,
-            # 5, 11, 17) are at now - 20
-            check_gbt_rtt(gbt, [now] + [now - 20] * (num_prev_headers - 1))
+        # The last block (indice 1) is at now, the previous ones (indices 2, 5,
+        # 11, 17) are at now - 20
+        check_gbt_rtt(gbt, [now] + [now - 20] * 4)
 
         self.log.info(
             "Check the node tries to mine blocks with the real time difficulty"
@@ -167,31 +164,18 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
         # Note that get_ava_p2p_interface mines a block to generate the proof
         # associated with the peer, so there is one block mined for each peer in
         # the quorum.
-        prev_header_times = (
-            [
-                # Block N-2: 200s
-                now - 200,
-                # Block N-5: 200s + 100s + 600s + 100s from the test + 600s from the quorum
-                now - 1600,
-                # Block N-11: 200s + 100s + 600s + 100s from the test + 6 * 600s from the quorum
-                now - 5200,
-                # Block N-17: 200s + 100s + 600s + 100s from the test + 12 * 600s from the quorum
-                now - 8800,
-            ]
-            if num_prev_headers == 4
-            else [
-                # Block N-1
-                now,
-                # Block N-2: 200s
-                now - 200,
-                # Block N-5: 200s + 100s + 600s + 100s from the test + 600s from the quorum
-                now - 1600,
-                # Block N-11: 200s + 100s + 600s + 100s from the test + 6 * 600s from the quorum
-                now - 5200,
-                # Block N-17: 200s + 100s + 600s + 100s from the test + 12 * 600s from the quorum
-                now - 8800,
-            ]
-        )
+        prev_header_times = [
+            # Block N-1
+            now,
+            # Block N-2: 200s
+            now - 200,
+            # Block N-5: 200s + 100s + 600s + 100s from the test + 600s from the quorum
+            now - 1600,
+            # Block N-11: 200s + 100s + 600s + 100s from the test + 6 * 600s from the quorum
+            now - 5200,
+            # Block N-17: 200s + 100s + 600s + 100s from the test + 12 * 600s from the quorum
+            now - 8800,
+        ]
 
         gbt = node.getblocktemplate()
         check_gbt_rtt(gbt, prev_header_times)
@@ -217,12 +201,7 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
         )
 
     def run_test(self):
-        now = THE_FUTURE - 1000000
-        self.check_rtt(now, 4)
-
-        now = THE_FUTURE
-        self.restart_node(0, extra_args=self.extra_args[0] + [f"-mocktime={now}"])
-        self.check_rtt(now, 5)
+        self.check_rtt()
 
 
 if __name__ == "__main__":

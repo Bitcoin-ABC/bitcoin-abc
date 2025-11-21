@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test whether Chronik indexes the avalanche state correctly."""
 
+import time
+
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     ADDRESS_ECREG_UNSPENDABLE,
@@ -22,8 +24,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikAvalancheTest(BitcoinTestFramework):
@@ -40,8 +40,6 @@ class ChronikAvalancheTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
                 "-persistavapeers=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -54,11 +52,8 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum():

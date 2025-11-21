@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test transaction upload"""
 
+import time
+
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import MSG_TX, AvalancheTxVoteError, CInv, msg_getdata
 from test_framework.p2p import P2PDataStore, P2PTxInvStore, p2p_lock
@@ -11,8 +13,6 @@ from test_framework.util import assert_equal
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class P2PNode(P2PDataStore):
@@ -32,8 +32,6 @@ class P2PLeakTxTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
 
@@ -42,11 +40,8 @@ class P2PLeakTxTest(BitcoinTestFramework):
         self.gen_node = self.nodes[0]
         self.miniwallet = MiniWallet(self.gen_node)
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         self.nodes[0].setmocktime(now)
-        self.generate(self.gen_node, 6)
-        assert self.gen_node.getinfo()["avalanche_preconsensus"]
 
         self.test_tx_in_block()
         self.test_notfound_on_avalanche_invalidated_tx()

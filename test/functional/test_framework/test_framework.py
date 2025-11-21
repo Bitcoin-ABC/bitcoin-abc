@@ -291,11 +291,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help="Run test using a descriptor wallet",
         )
         parser.add_argument(
-            "--with-shibusawaactivation",
-            dest="shibusawaactivation",
+            "--with-obolenskyactivation",
+            dest="obolenskyactivation",
             default=False,
             action="store_true",
-            help=f"Activate Shibusawa update on timestamp {TIMESTAMP_IN_THE_PAST}",
+            help=f"Activate Obolensky update on timestamp {TIMESTAMP_IN_THE_PAST}",
         )
         parser.add_argument(
             "--timeout-factor",
@@ -614,9 +614,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.shibusawaactivation:
+            if self.options.obolenskyactivation:
                 self.nodes[i].extend_default_args(
-                    [f"-shibusawaactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-obolenskyactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
     def start_node(self, i, *args, **kwargs):
@@ -979,9 +979,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.shibusawaactivation:
+            if self.options.obolenskyactivation:
                 self.nodes[CACHE_NODE_ID].extend_default_args(
-                    [f"-shibusawaactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-obolenskyactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
             self.start_node(CACHE_NODE_ID)

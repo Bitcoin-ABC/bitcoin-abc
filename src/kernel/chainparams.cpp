@@ -149,9 +149,6 @@ public:
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;
 
-        // Nov. 15, 2025 12:00:00 UTC protocol upgrade
-        consensus.shibusawaActivationTime = 1763208000;
-
         // May 15, 2026 12:00:00 UTC protocol upgrade
         consensus.obolenskyActivationTime = 1778846400;
 
@@ -323,9 +320,6 @@ public:
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;
 
-        // Nov. 15, 2025 12:00:00 UTC protocol upgrade
-        consensus.shibusawaActivationTime = 1763208000;
-
         // May 15, 2026 12:00:00 UTC protocol upgrade
         consensus.obolenskyActivationTime = 1778846400;
 
@@ -478,9 +472,6 @@ public:
 
         // May 15, 2025 12:00:00 UTC protocol upgrade
         consensus.schumpeterActivationTime = 1747310400;
-
-        // Nov. 15, 2025 12:00:00 UTC protocol upgrade
-        consensus.shibusawaActivationTime = 1763208000;
 
         // May 15, 2026 12:00:00 UTC protocol upgrade
         consensus.obolenskyActivationTime = 1778846400;

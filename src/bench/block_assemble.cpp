@@ -77,9 +77,7 @@ static void BlockAssemblerAddPackageTxns(benchmark::Bench &bench) {
 
 static void BlockAssemblerAddPackageTxnsPreconsensus(benchmark::Bench &bench) {
     FastRandomContext det_rand{true};
-    auto testing_setup = MakeNoLogFileContext<AvalancheTestChain100Setup>(
-        ChainType::REGTEST,
-        {"-avalanchepreconsensus=1", "-shibusawaactivationtime=0"});
+    auto testing_setup = MakeNoLogFileContext<AvalancheTestChain100Setup>();
     testing_setup->PopulateMempool(det_rand, /*num_transactions=*/1000,
                                    /*submit=*/true);
     const Config &config = testing_setup->m_node.chainman->GetConfig();

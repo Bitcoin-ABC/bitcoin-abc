@@ -5,6 +5,8 @@
 Setup script to exercise the chronik-client js library script endpoints
 """
 
+import time
+
 import pathmagic  # noqa
 from ipc import send_ipc_message
 from setup_framework import SetupFramework
@@ -21,8 +23,6 @@ from test_framework.script import OP_CHECKSIG, CScript
 from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikClient_Websocket_Setup(SetupFramework):
@@ -39,8 +39,6 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
                 "-acceptnonstdtxn=1",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ]
         ]
 
@@ -52,11 +50,8 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         # Init
         node = self.nodes[0]
 
-        # Before avalanche preconsensus activation. We don't poll the txs yet to
-        # save some time.
-        now = THE_FUTURE - 10000
+        now = int(time.time())
         node.setmocktime(now)
-        assert not node.getinfo()["avalanche_preconsensus"]
 
         yield True
 
@@ -286,12 +281,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         send_ipc_message({"next_blockhash": next_blockhash})
         assert_equal(node.getblockcount(), finalized_height + 2)
 
-        # Activate avalanche preconsensus for the next step. The future is now.
-        now = THE_FUTURE
-        node.setmocktime(now)
-        tip = self.generate(node, 6)[-1]
-        assert node.getinfo()["avalanche_preconsensus"]
-
+        tip = node.getbestblockhash()
         self.wait_until(lambda: is_finalblock(tip))
 
         yield True

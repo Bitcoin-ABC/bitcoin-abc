@@ -32,7 +32,7 @@ class GetInfoRPCTest(BitcoinTestFramework):
         info = node.getinfo()
         assert_equal(info["avalanche"], True)
         assert_equal(info["avalanche_staking_rewards"], True)
-        assert_equal(info["avalanche_staking_preconsensus"], False)
+        assert_equal(info["avalanche_staking_preconsensus"], True)
 
 
 if __name__ == "__main__":

@@ -113,14 +113,6 @@ static const std::vector<double> RTT_CONSTANT_FACTOR = {
     RTT_CONSTANT_FACTOR_17,
 };
 
-std::vector<size_t> GetRTTFactorIndices(const Consensus::Params &params,
-                                        const CBlockIndex *pprev) {
-    if (!IsShibusawaEnabled(params, pprev)) {
-        return {2, 5, 11, 17};
-    }
-    return {1, 2, 5, 11, 17};
-}
-
 std::optional<uint32_t>
 GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
                        const Consensus::Params &consensusParams) {
@@ -150,7 +142,7 @@ GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
     const double prevTargetDouble = prevTarget.getdouble();
 
     double minTarget = UintToArith256(consensusParams.powLimit).getdouble();
-    for (size_t i : GetRTTFactorIndices(consensusParams, pprev)) {
+    for (size_t i : {1, 2, 5, 11, 17}) {
         // Zero (or negative) difftime are not possible, so clamp to minimum 1s
         const int64_t diffTime =
             std::max<int64_t>(1, now - prevHeaderReceivedTime[i]);

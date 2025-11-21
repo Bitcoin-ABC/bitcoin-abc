@@ -21,8 +21,6 @@ from test_framework.util import assert_equal
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheCooldownTest(BitcoinTestFramework):
@@ -39,20 +37,14 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-avacooldown=10000",
                 "-persistavapeers=0",
-                # For polling transactions
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
 
     def run_test(self):
         node = self.nodes[0]
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum():

@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test whether Chronik sends WebSocket messages correctly."""
 
+import time
+
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     ADDRESS_ECREG_UNSPENDABLE,
@@ -25,8 +27,6 @@ from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, chronik_sub_script, uint256_hex
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikWsScriptTest(BitcoinTestFramework):
@@ -42,8 +42,6 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -56,11 +54,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_preconsensus"]
 
         peer = node.add_p2p_connection(P2PDataStore())
 

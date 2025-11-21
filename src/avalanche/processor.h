@@ -265,7 +265,8 @@ class Processor final : public NetEventsInterface {
               bool preConsensus, bool stakingPreConsensus);
 
     const bool m_preConsensus{false};
-    const bool m_stakingPreConsensus{false};
+    // Not const for testing purpose
+    bool m_stakingPreConsensus{false};
 
 public:
     ~Processor();

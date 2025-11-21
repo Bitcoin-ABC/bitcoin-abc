@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction finalization."""
 
+import time
+
 from test_framework.avatools import (
     assert_response,
     can_find_inv_in_poll,
@@ -23,8 +25,6 @@ from test_framework.util import assert_equal, assert_greater_than_or_equal, uint
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
@@ -45,8 +45,6 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
                 "-persistavapeers=0",
                 # Make the test faster by avoiding unwanted polls
                 "-avalanchestakingpreconsensus=0",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ]
         ]
 
@@ -530,12 +528,8 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
             self.generate(self.wallet, 1)
 
     def init(self):
-        # Activate preconsensus
-        self.now = THE_FUTURE
+        self.now = int(time.time())
         self.nodes[0].setmocktime(self.now)
-
-        self.generate(self.nodes[0], 6)
-        assert self.nodes[0].getinfo()["avalanche_preconsensus"]
 
         def get_quorum():
             return [

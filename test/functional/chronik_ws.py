@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test whether Chronik sends WebSocket messages correctly."""
 
+import time
+
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.cashaddr import decode
@@ -28,8 +30,6 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class ChronikWsTest(BitcoinTestFramework):
@@ -50,8 +50,6 @@ class ChronikWsTest(BitcoinTestFramework):
                 "-avalanchestakingpreconsensus=0",
                 # Use a high thresold to avoid stalling transactions
                 "-avastalevotethreshold=100000",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ],
         ]
         self.supports_cli = False
@@ -63,11 +61,8 @@ class ChronikWsTest(BitcoinTestFramework):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
 
-        # Activate the shibusawa upgrade
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum():

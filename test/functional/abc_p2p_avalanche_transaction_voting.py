@@ -4,6 +4,7 @@
 """Test avalanche transaction voting."""
 
 import random
+import time
 from decimal import Decimal
 
 from test_framework.avatools import (
@@ -39,8 +40,6 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet, MiniWalletMode
 
 QUORUM_NODE_COUNT = 16
-THE_FUTURE = 2100000000
-REPLAY_PROTECTION = THE_FUTURE + 100000000
 
 
 class AvalancheTransactionVotingTest(BitcoinTestFramework):
@@ -56,21 +55,14 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-avastalevotethreshold=256",
-                f"-shibusawaactivationtime={THE_FUTURE}",
-                f"-replayprotectionactivationtime={REPLAY_PROTECTION}",
             ]
         ]
 
     def run_test(self):
         node = self.nodes[0]
 
-        now = THE_FUTURE
+        now = int(time.time())
         node.setmocktime(now)
-
-        # Activate the shibusawa upgrade to enable preconsensus
-        assert not node.getinfo()["avalanche_preconsensus"]
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_preconsensus"]
 
         poll_node = get_ava_p2p_interface(self, node)
         peer = node.add_p2p_connection(P2PDataStore())

@@ -98,6 +98,10 @@ namespace {
             return p.setContenderStatusForLocalWinners(pindex,
                                                        pollableContenders);
         }
+
+        static void setStakingPreconsensus(Processor &p, bool enabled) {
+            p.m_stakingPreConsensus = enabled;
+        }
     };
 } // namespace
 
@@ -116,6 +120,10 @@ CService ip(uint32_t i) {
 }
 
 struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
+    AvalancheProcessorTestingSetup() : AvalancheTestChain100Setup() {
+        AvalancheTest::setStakingPreconsensus(*m_node.avalanche, false);
+    }
+
     CNode *ConnectNode(ServiceFlags nServices) {
         static NodeId id = 0;
 
@@ -1117,6 +1125,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
 
     auto queryTimeDuration = std::chrono::milliseconds(10);
     setArg("-avatimeout", ToString(queryTimeDuration.count()));
+    // This would fail the test for blocks
+    setArg("-avalanchestakingpreconsensus", "0");
 
     bilingual_str error;
     m_node.avalanche = Processor::MakeProcessor(
@@ -1833,6 +1843,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     setArg("-avastalevotethreshold",
            ToString(AVALANCHE_VOTE_STALE_MIN_THRESHOLD));
     setArg("-avastalevotefactor", "2");
+    // This would fail the test for blocks
+    setArg("-avalanchestakingpreconsensus", "0");
 
     const std::vector<std::tuple<int, int>> testCases = {
         // {number of yes votes, number of neutral votes}
@@ -2516,15 +2528,12 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     auto now = GetTime<std::chrono::seconds>();
     SetMockTime(now);
 
+    AvalancheTest::setStakingPreconsensus(*m_node.avalanche, true);
+
     ChainstateManager &chainman = *Assert(m_node.chainman);
     Chainstate &active_chainstate = chainman.ActiveChainstate();
     CBlockIndex *chaintip =
         WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
-
-    // Activate the Shibusawa upgrade
-    int64_t activationTime = chaintip->GetMedianTimePast();
-    setArg("-shibusawaactivationtime", ToString(activationTime));
-    BOOST_CHECK(m_node.avalanche->isStakingPreconsensusActivated(chaintip));
 
     auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId proofid1 = proof1->getId();

@@ -56,7 +56,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 "-avastalevotethreshold=500",
                 "-avastalevotefactor=1",
                 "-simplegbt",
-                f"-shibusawaactivationtime={int(time.time()) - 1000}",
             ],
         ]
         self.supports_cli = False
@@ -70,12 +69,6 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         # Set mock time so we can control when proofs will be considered for staking rewards
         now = int(time.time())
         node.setmocktime(now)
-
-        # Activate the Shibusawa upgrade
-        assert node.getinfo()["avalanche_staking_rewards"]
-        assert not node.getinfo()["avalanche_staking_preconsensus"]
-        self.generate(node, 6)
-        assert node.getinfo()["avalanche_staking_preconsensus"]
 
         # Build a fake quorum of nodes.
         def get_quorum(stake_utxo_confirmations=1, proof_data=None):
