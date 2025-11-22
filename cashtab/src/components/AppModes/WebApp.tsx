@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 import { isMobile } from 'helpers';
+import { platformInfo } from 'platform/detection';
 
 interface ExtendedWindow {
     bitcoinAbc?: 'cashtab';
@@ -116,7 +117,7 @@ const WebApp = () => {
     };
 
     const handleExtensionStatus = async () => {
-        if (appConfig.monitorExtension) {
+        if (appConfig.monitorExtension && platformInfo.platform === 'web') {
             const extensionInstalled = await getExtensionInstallationStatus();
             console.info(
                 `Cashtab browser extension: ${
