@@ -239,6 +239,10 @@ bool TxPool::HaveTxToReconsider(NodeId peer) {
 void TxPool::EraseForBlock(const CBlock &block) {
     LOCK(m_mutex);
 
+    if (m_pool_txs.empty()) {
+        return;
+    }
+
     std::vector<TxId> vTxErase;
 
     for (const CTransactionRef &ptx : block.vtx) {
