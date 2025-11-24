@@ -61,6 +61,7 @@ struct WsSub {
 
 enum WsSubType {
     Blocks,
+    Txs,
     TxId(TxId),
     Script(ScriptVariant),
     TokenId(TokenId),
@@ -69,6 +70,7 @@ enum WsSubType {
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
+type SubRecvTxs = Option<broadcast::Receiver<TxMsg>>;
 type SubRecvTxIds = HashMap<TxId, broadcast::Receiver<TxMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 type SubRecvTokenId = HashMap<TokenId, broadcast::Receiver<TxMsg>>;
@@ -77,6 +79,7 @@ type SubRecvPluginGroups = HashMap<PluginGroup, broadcast::Receiver<TxMsg>>;
 
 struct SubRecv {
     blocks: SubRecvBlocks,
+    txs: SubRecvTxs,
     txids: SubRecvTxIds,
     scripts: SubRecvScripts,
     token_ids: SubRecvTokenId,
@@ -90,6 +93,7 @@ impl SubRecv {
         tokio::select! {
             biased;
             action = Self::recv_blocks(&mut self.blocks) => action,
+            action = Self::recv_txs(&mut self.txs) => action,
             action = Self::recv_txids(&mut self.txids) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
             action = Self::recv_token_ids(&mut self.token_ids) => action,
@@ -102,6 +106,13 @@ impl SubRecv {
     async fn recv_blocks(blocks: &mut SubRecvBlocks) -> Result<WsAction> {
         match blocks {
             Some(blocks) => sub_block_msg_action(blocks.recv().await),
+            None => futures::future::pending().await,
+        }
+    }
+
+    async fn recv_txs(txs: &mut SubRecvTxs) -> Result<WsAction> {
+        match txs {
+            Some(txs) => sub_tx_msg_action(txs.recv().await),
             None => futures::future::pending().await,
         }
     }
@@ -204,6 +215,18 @@ impl SubRecv {
                     // Silently ignore multiple subs to blocks
                     if self.blocks.is_none() {
                         self.blocks = Some(subs.sub_to_block_msgs());
+                    }
+                }
+            }
+            WsSubType::Txs => {
+                if sub.is_unsub {
+                    log_chronik!("WS unsubscribe from all txs\n");
+                    self.txs = None;
+                } else {
+                    log_chronik!("WS subscribe to all txs\n");
+                    // Silently ignore multiple subs to all txs
+                    if self.txs.is_none() {
+                        self.txs = Some(subs.sub_to_tx_msgs());
                     }
                 }
             }
@@ -343,6 +366,7 @@ fn sub_client_msg_action(
                     Some(SubType::Plugin(plugin)) => {
                         WsSubType::PluginGroup(plugin.plugin_name, plugin.group)
                     }
+                    Some(SubType::Txs(_)) => WsSubType::Txs,
                 },
             }))
         }
@@ -440,6 +464,7 @@ pub async fn handle_subscribe_socket(
 ) {
     let mut recv = SubRecv {
         blocks: Default::default(),
+        txs: Default::default(),
         txids: Default::default(),
         scripts: Default::default(),
         token_ids: Default::default(),

@@ -455,6 +455,8 @@ message WsSub {
     oneof sub_type {
         // Subscription to block updates
         WsSubBlocks blocks = 2;
+        // Subscription to all txs
+        WsSubTxs txs = 8;
         // Subscription to a script
         WsSubScript script = 3;
         // Subscription to a token ID
@@ -471,6 +473,9 @@ message WsSub {
 // Subscription to blocks. They will be sent any time a block got connected,
 // disconnected or finalized.
 message WsSubBlocks {}
+
+// Subscription to all txs.
+message WsSubTxs {}
 
 // Subscription to a script. They will be sent every time a tx spending the
 // given script or sending to the given script has been added to/removed from

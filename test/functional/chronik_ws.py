@@ -23,7 +23,9 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import (
     assert_equal,
+    assert_recv_all_any_order,
     chronik_sub_to_blocks,
+    chronik_sub_to_txs,
     chronik_sub_txid,
     uint256_hex,
 )
@@ -78,6 +80,9 @@ class ChronikWsTest(BitcoinTestFramework):
         # Connect, but don't subscribe yet
         ws = chronik.ws()
 
+        # WS subscribing to all txs
+        ws_all = chronik.ws()
+
         # Pick one node from the quorum for polling.
         # ws will not receive msgs because it's not subscribed to blocks yet.
         quorum = get_quorum()
@@ -102,6 +107,9 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # Now subscribe to blocks, we'll get block updates from now on
         chronik_sub_to_blocks(ws, node)
+
+        # Subscribe to all txs
+        chronik_sub_to_txs(ws_all, node)
 
         # Bump time so next blocks are mined with now as a time (instead of now
         # plus something to accommodate the MTP increase rule).
@@ -327,15 +335,14 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # Tx added to the mempool
         wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                    txid=bytes.fromhex(txid)[::-1],
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                txid=bytes.fromhex(txid)[::-1],
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         # Tx confirmed
         tip = self.generate(wallet, 1)[0]
@@ -348,17 +355,28 @@ class ChronikWsTest(BitcoinTestFramework):
                 )
             ),
         )
+        assert_recv_all_any_order(
+            ws_all,
+            [
+                pb.WsMsg(
+                    tx=pb.MsgTx(
+                        msg_type=pb.TX_CONFIRMED,
+                        txid=bytes.fromhex(txid)[::-1],
+                    )
+                )
+                for txid in node.getblock(tip)["tx"]
+            ],
+        )
 
         node.parkblock(tip)
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                    txid=bytes.fromhex(txid)[::-1],
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                txid=bytes.fromhex(txid)[::-1],
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo, fee_rate=1000)
 
@@ -392,17 +410,40 @@ class ChronikWsTest(BitcoinTestFramework):
         peer = node.add_p2p_connection(P2PDataStore())
         peer.send_blocks_and_test([block], node)
 
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                txid=bytes.fromhex(txid)[::-1],
+            )
+        )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
+
+        assert_recv_all_any_order(
+            ws_all,
+            [
+                pb.WsMsg(
+                    tx=pb.MsgTx(
+                        msg_type=pb.TX_CONFIRMED,
+                        txid=bytes.fromhex(txid)[::-1],
+                    )
+                )
+                for txid in node.getblock(block.hash_hex)["tx"]
+            ],
+        )
+
+        node.parkblock(block.hash_hex)
+
         assert_equal(
-            ws.recv(),
+            ws_all.recv(),
             pb.WsMsg(
                 tx=pb.MsgTx(
-                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
-                    txid=bytes.fromhex(txid)[::-1],
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(conflicting_tx["txid"])[::-1],
                 )
             ),
         )
 
-        node.parkblock(block.hash_hex)
         node.unparkblock(tip)
         assert_equal(
             ws.recv(),
@@ -413,19 +454,53 @@ class ChronikWsTest(BitcoinTestFramework):
                 )
             ),
         )
-
-        self.wait_until(lambda: has_finalized_tip(tip))
         assert_equal(
-            ws.recv(),
+            ws_all.recv(),
             pb.WsMsg(
                 tx=pb.MsgTx(
-                    msg_type=pb.TX_FINALIZED,
-                    txid=bytes.fromhex(txid)[::-1],
-                    finalization_reason=pb.TxFinalizationReason(
-                        finalization_type=pb.TX_FINALIZATION_REASON_POST_CONSENSUS
-                    ),
+                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                    txid=bytes.fromhex(conflicting_tx["txid"])[::-1],
                 )
             ),
+        )
+        assert_recv_all_any_order(
+            ws_all,
+            [
+                pb.WsMsg(
+                    tx=pb.MsgTx(
+                        msg_type=pb.TX_CONFIRMED,
+                        txid=bytes.fromhex(txid)[::-1],
+                    )
+                )
+                for txid in node.getblock(tip)["tx"]
+            ],
+        )
+
+        self.wait_until(lambda: has_finalized_tip(tip))
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_FINALIZED,
+                txid=bytes.fromhex(txid)[::-1],
+                finalization_reason=pb.TxFinalizationReason(
+                    finalization_type=pb.TX_FINALIZATION_REASON_POST_CONSENSUS
+                ),
+            ),
+        )
+        assert_equal(ws.recv(), msg)
+        assert_recv_all_any_order(
+            ws_all,
+            [
+                pb.WsMsg(
+                    tx=pb.MsgTx(
+                        msg_type=pb.TX_FINALIZED,
+                        txid=bytes.fromhex(txid)[::-1],
+                        finalization_reason=pb.TxFinalizationReason(
+                            finalization_type=pb.TX_FINALIZATION_REASON_POST_CONSENSUS
+                        ),
+                    ),
+                )
+                for txid in node.getblock(tip)["tx"]
+            ],
         )
 
         chronik_sub_txid(ws, node, txid, is_unsub=True)
@@ -438,15 +513,14 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # Tx added to the mempool
         wallet.sendrawtransaction(from_node=node, tx_hex=tx["hex"])
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                    txid=bytes.fromhex(txid)[::-1],
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                txid=bytes.fromhex(txid)[::-1],
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         def finalize_tx(txid):
             def vote_until_final():
@@ -460,18 +534,17 @@ class ChronikWsTest(BitcoinTestFramework):
             self.wait_until(vote_until_final)
 
         finalize_tx(txid)
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_FINALIZED,
-                    txid=bytes.fromhex(txid)[::-1],
-                    finalization_reason=pb.TxFinalizationReason(
-                        finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
-                    ),
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_FINALIZED,
+                txid=bytes.fromhex(txid)[::-1],
+                finalization_reason=pb.TxFinalizationReason(
+                    finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
+                ),
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         def invalidate_tx(txid):
             def vote_until_final():
@@ -499,15 +572,14 @@ class ChronikWsTest(BitcoinTestFramework):
         chronik_sub_txid(ws, node, txid3)
 
         wallet.sendrawtransaction(from_node=node, tx_hex=tx2["hex"])
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                    txid=bytes.fromhex(txid2)[::-1],
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                txid=bytes.fromhex(txid2)[::-1],
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         # It's a conflicting tx so it goes to the conflicting pool, and we
         # expect no message. We can't just use sendrawtransaction here as the tx
@@ -520,72 +592,69 @@ class ChronikWsTest(BitcoinTestFramework):
         invalidate_tx(txid2)
         # We first get the tx2 removal message, then the conflicting tx3 is
         # added to the mempool, then tx2 is invalidated
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
-                    txid=bytes.fromhex(txid2)[::-1],
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                txid=bytes.fromhex(txid2)[::-1],
+            )
         )
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                    txid=bytes.fromhex(txid3)[::-1],
-                )
-            ),
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                txid=bytes.fromhex(txid3)[::-1],
+            )
         )
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_INVALIDATED,
-                    txid=bytes.fromhex(txid2)[::-1],
-                )
-            ),
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_INVALIDATED,
+                txid=bytes.fromhex(txid2)[::-1],
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         finalize_tx(txid3)
-        assert_equal(
-            ws.recv(),
-            pb.WsMsg(
-                tx=pb.MsgTx(
-                    msg_type=pb.TX_FINALIZED,
-                    txid=bytes.fromhex(txid3)[::-1],
-                    finalization_reason=pb.TxFinalizationReason(
-                        finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
-                    ),
-                )
-            ),
+        msg = pb.WsMsg(
+            tx=pb.MsgTx(
+                msg_type=pb.TX_FINALIZED,
+                txid=bytes.fromhex(txid3)[::-1],
+                finalization_reason=pb.TxFinalizationReason(
+                    finalization_type=pb.TX_FINALIZATION_REASON_PRE_CONSENSUS
+                ),
+            )
         )
+        assert_equal(ws.recv(), msg)
+        assert_equal(ws_all.recv(), msg)
 
         # Unsubscribe
         chronik_sub_txid(ws, node, txid, is_unsub=True)
         chronik_sub_txid(ws, node, txid2, is_unsub=True)
         chronik_sub_txid(ws, node, txid3, is_unsub=True)
+        chronik_sub_to_txs(ws_all, node, is_unsub=True)
 
         # Tx confirmed
         tip = self.generate(wallet, 1)[0]
         assert_equal(len(node.getrawmempool()), 0)
 
-        try:
-            ws.recv()
-        except TimeoutError as e:
-            assert str(e).startswith("No message received"), (
-                "The websocket did receive an unexpected message"
-            )
-            pass
-        except Exception:
-            assert False, "The websocket did not time out as expected"
-            raise
-        else:
-            assert False, "The websocket did receive an unexpected message"
-            raise
+        for ws_item in [ws, ws_all]:
+            ws_item.timeout = 2
+            try:
+                ws_item.recv()
+            except TimeoutError as e:
+                assert str(e).startswith("No message received"), (
+                    "The websocket did receive an unexpected message"
+                )
+            except Exception:
+                assert False, "The websocket did not time out as expected"
+            else:
+                assert False, "The websocket did receive an unexpected message"
 
         ws.close()
+        ws_all.close()
 
 
 if __name__ == "__main__":

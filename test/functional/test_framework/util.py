@@ -214,6 +214,25 @@ def assert_array_result(object_array, to_match, expected, should_not_find=False)
         raise AssertionError(f"Objects were found {to_match}")
 
 
+def assert_recv_all_any_order(ws, expected_msgs):
+    actual_msgs = []
+    for _ in expected_msgs:
+        try:
+            actual_msgs.append(ws.recv())
+        except TimeoutError as ex:
+            raise TimeoutError(
+                f"Expected {len(expected_msgs)} messages, but only got {len(actual_msgs)}. {ex}"
+            )
+
+    def k(s):
+        return s.SerializeToString()
+
+    if sorted(actual_msgs, key=k) != sorted(expected_msgs, key=k):
+        raise AssertionError(
+            f"Expected {expected_msgs} to be received, but got {actual_msgs}"
+        )
+
+
 # Utility functions
 ###################
 
@@ -773,6 +792,13 @@ def chronik_sub_to_blocks(ws, node, *, is_unsub=False) -> None:
     subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"
     with node.assert_debug_log([f"WS {subscribe_log} blocks"]):
         ws.sub_to_blocks(is_unsub=is_unsub)
+
+
+def chronik_sub_to_txs(ws, node, *, is_unsub=False) -> None:
+    """Subscribe to all tx events and make sure the subscription is active before returning"""
+    subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"
+    with node.assert_debug_log([f"WS {subscribe_log} all txs"]):
+        ws.sub_to_txs(is_unsub=is_unsub)
 
 
 def chronik_sub_txid(ws, node, txid: str, *, is_unsub=False) -> None:
