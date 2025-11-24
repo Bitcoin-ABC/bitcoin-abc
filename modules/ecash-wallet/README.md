@@ -163,3 +163,9 @@ See tests for detailed methods.
 [D18975](https://reviews.bitcoinabc.org/D18975)
 
 -   Publish to catch updated `chronik-client` dep
+
+# 2.3.5
+
+[D18994](https://reviews.bitcoinabc.org/D18994)
+
+-   Publish to catch updated `chronik-client` dep
