@@ -104,6 +104,9 @@ class StakesWidget(QtWidgets.QTableWidget):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.create_menu)
 
+        # By default sort by descending amount
+        self.sortByColumn(2, QtCore.Qt.DescendingOrder)
+
         self.stakes: List[Union[SignedStake, StakeAndSigningData]] = []
 
         # We assume that the tip height is not going to change much during the lifetime
@@ -166,6 +169,7 @@ class StakesWidget(QtWidgets.QTableWidget):
     def add_stakes(self, stakes: List[Union[SignedStake, StakeAndSigningData]]):
         previous_utxo_count = len(self.stakes)
         self.stakes += stakes
+        self.setSortingEnabled(False)
         self.setRowCount(len(self.stakes))
 
         for i, ss in enumerate(stakes):
@@ -221,6 +225,7 @@ class StakesWidget(QtWidgets.QTableWidget):
             self.setCellWidget(row_index, 4, del_button)
 
         self.update_total_amount()
+        self.setSortingEnabled(True)
 
 
 class AvaProofEditor(CachedWalletPasswordWidget):
@@ -983,6 +988,8 @@ class UtxosDialog(QtWidgets.QDialog):
         self.utxos_table.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch
         )
+        # By default sort by descending amount
+        self.utxos_table.sortByColumn(2, QtCore.Qt.DescendingOrder)
         layout.addWidget(self.utxos_table)
         self._fill_utxos_table()
 
@@ -1014,6 +1021,7 @@ class UtxosDialog(QtWidgets.QDialog):
 
         tip = self.wallet.get_local_height()
 
+        self.utxos_table.setSortingEnabled(False)
         self.utxos_table.setRowCount(len(self.utxos))
 
         for row_index, utxo in enumerate(self.utxos):
@@ -1059,6 +1067,8 @@ class UtxosDialog(QtWidgets.QDialog):
                     f"valid after block {utxo_validity_height}."
                 )
             self.utxos_table.setItem(row_index, 3, height_item)
+
+        self.utxos_table.setSortingEnabled(True)
 
     def _on_selection_changed(self):
         self.selected_rows = [
