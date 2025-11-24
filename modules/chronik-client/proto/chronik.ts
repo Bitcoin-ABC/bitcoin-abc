@@ -780,6 +780,8 @@ export interface WsSub {
     isUnsub: boolean;
     /** Subscription to block updates */
     blocks?: WsSubBlocks | undefined;
+    /** Subscription to all txs */
+    txs?: WsSubTxs | undefined;
     /** Subscription to a script */
     script?: WsSubScript | undefined;
     /** Subscription to a token ID */
@@ -797,6 +799,9 @@ export interface WsSub {
  * disconnected or finalized.
  */
 export interface WsSubBlocks {}
+
+/** Subscription to all txs. */
+export interface WsSubTxs {}
 
 /**
  * Subscription to a script. They will be sent every time a tx spending the
@@ -5517,6 +5522,7 @@ function createBaseWsSub(): WsSub {
     return {
         isUnsub: false,
         blocks: undefined,
+        txs: undefined,
         script: undefined,
         tokenId: undefined,
         lokadId: undefined,
@@ -5538,6 +5544,9 @@ export const WsSub = {
                 message.blocks,
                 writer.uint32(18).fork(),
             ).ldelim();
+        }
+        if (message.txs !== undefined) {
+            WsSubTxs.encode(message.txs, writer.uint32(66).fork()).ldelim();
         }
         if (message.script !== undefined) {
             WsSubScript.encode(
@@ -5590,6 +5599,13 @@ export const WsSub = {
                         reader,
                         reader.uint32(),
                     );
+                    continue;
+                case 8:
+                    if (tag !== 66) {
+                        break;
+                    }
+
+                    message.txs = WsSubTxs.decode(reader, reader.uint32());
                     continue;
                 case 3:
                     if (tag !== 26) {
@@ -5652,6 +5668,7 @@ export const WsSub = {
             blocks: isSet(object.blocks)
                 ? WsSubBlocks.fromJSON(object.blocks)
                 : undefined,
+            txs: isSet(object.txs) ? WsSubTxs.fromJSON(object.txs) : undefined,
             script: isSet(object.script)
                 ? WsSubScript.fromJSON(object.script)
                 : undefined,
@@ -5677,6 +5694,9 @@ export const WsSub = {
         }
         if (message.blocks !== undefined) {
             obj.blocks = WsSubBlocks.toJSON(message.blocks);
+        }
+        if (message.txs !== undefined) {
+            obj.txs = WsSubTxs.toJSON(message.txs);
         }
         if (message.script !== undefined) {
             obj.script = WsSubScript.toJSON(message.script);
@@ -5705,6 +5725,10 @@ export const WsSub = {
         message.blocks =
             object.blocks !== undefined && object.blocks !== null
                 ? WsSubBlocks.fromPartial(object.blocks)
+                : undefined;
+        message.txs =
+            object.txs !== undefined && object.txs !== null
+                ? WsSubTxs.fromPartial(object.txs)
                 : undefined;
         message.script =
             object.script !== undefined && object.script !== null
@@ -5777,6 +5801,50 @@ export const WsSubBlocks = {
         _: I,
     ): WsSubBlocks {
         const message = createBaseWsSubBlocks();
+        return message;
+    },
+};
+
+function createBaseWsSubTxs(): WsSubTxs {
+    return {};
+}
+
+export const WsSubTxs = {
+    encode(_: WsSubTxs, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): WsSubTxs {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseWsSubTxs();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(_: any): WsSubTxs {
+        return {};
+    },
+
+    toJSON(_: WsSubTxs): unknown {
+        const obj: any = {};
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<WsSubTxs>, I>>(base?: I): WsSubTxs {
+        return WsSubTxs.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<WsSubTxs>, I>>(_: I): WsSubTxs {
+        const message = createBaseWsSubTxs();
         return message;
     },
 };

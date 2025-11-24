@@ -320,6 +320,10 @@ export class FailoverProxy {
                         if (wsEndpoint.subs.blocks === true) {
                             wsEndpoint.subscribeToBlocks();
                         }
+                        // Subscribe to txs method, if previously subscribed
+                        if (wsEndpoint.subs.txs === true) {
+                            wsEndpoint.subscribeToTxs();
+                        }
                         resolve(msg);
                         if (wsEndpoint.onConnect !== undefined) {
                             wsEndpoint.onConnect(msg);

@@ -766,6 +766,7 @@ export class WsEndpoint {
             lokadIds: [],
             plugins: [],
             blocks: false,
+            txs: false,
         };
         this._proxyInterface = proxyInterface;
     }
@@ -793,6 +794,26 @@ export class WsEndpoint {
         this.subs.blocks = false;
         if (this.ws?.readyState === WebSocket.OPEN) {
             this._subUnsubBlocks(true);
+        }
+    }
+
+    /**
+     * Subscribe to all tx messages
+     */
+    public subscribeToTxs() {
+        this.subs.txs = true;
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubTxs(false);
+        }
+    }
+
+    /**
+     * Unsubscribe from all tx messages
+     */
+    public unsubscribeFromTxs() {
+        this.subs.txs = false;
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubTxs(true);
         }
     }
 
@@ -1072,6 +1093,19 @@ export class WsEndpoint {
         const encodedSubscription = proto.WsSub.encode({
             isUnsub,
             blocks: BLOCKS_SUBSCRIPTION,
+        }).finish();
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubTxs(isUnsub: boolean) {
+        // Txs subscription is empty object
+        const TXS_SUBSCRIPTION: proto.WsSubTxs = {};
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            txs: TXS_SUBSCRIPTION,
         }).finish();
         if (this.ws === undefined) {
             throw new Error('Invalid state; _ws is undefined');
@@ -2291,4 +2325,6 @@ interface WsSubscriptions {
     plugins: WsSubPluginClient[];
     /** Subscription to blocks */
     blocks: boolean;
+    /** Subscription to all txs */
+    txs: boolean;
 }

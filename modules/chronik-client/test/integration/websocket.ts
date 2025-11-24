@@ -48,6 +48,11 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let get_invalid_txid: Promise<string>;
     let get_paused_txid: Promise<string>;
     let get_resumed_txid: Promise<string>;
+    let get_misc_txid_1: Promise<string>;
+    let get_misc_txid_2: Promise<string>;
+    let get_misc_txid_3: Promise<string>;
+    let get_misc_txid_4: Promise<string>;
+    let get_misc_txid_5: Promise<string>;
     const statusEvent = new EventEmitter();
     // Collect websocket msgs in an array for analysis in each step
     let msgCollector: Array<WsMsgClient> = [];
@@ -186,6 +191,36 @@ describe('Test expected websocket behavior of chronik-client', () => {
                     resolve(message.resumed_txid);
                 });
             }
+
+            if (message && message.misc_txid_1) {
+                get_misc_txid_1 = new Promise(resolve => {
+                    resolve(message.misc_txid_1);
+                });
+            }
+
+            if (message && message.misc_txid_2) {
+                get_misc_txid_2 = new Promise(resolve => {
+                    resolve(message.misc_txid_2);
+                });
+            }
+
+            if (message && message.misc_txid_3) {
+                get_misc_txid_3 = new Promise(resolve => {
+                    resolve(message.misc_txid_3);
+                });
+            }
+
+            if (message && message.misc_txid_4) {
+                get_misc_txid_4 = new Promise(resolve => {
+                    resolve(message.misc_txid_4);
+                });
+            }
+
+            if (message && message.misc_txid_5) {
+                get_misc_txid_5 = new Promise(resolve => {
+                    resolve(message.misc_txid_5);
+                });
+            }
         });
 
         await once(statusEvent, 'ready');
@@ -254,6 +289,11 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let finalTxid = '';
     let invalidTxid = '';
     let resumedTxid = '';
+    let miscTxid1 = '';
+    let miscTxid2 = '';
+    let miscTxid3 = '';
+    let miscTxid4 = '';
+    let miscTxid5 = '';
 
     let ws: WsEndpoint;
 
@@ -390,6 +430,14 @@ describe('Test expected websocket behavior of chronik-client', () => {
         // We can unsubscribe from blocks
         ws.unsubscribeFromBlocks();
         expect(ws.subs.blocks).to.eql(false);
+
+        // We can subscribe to txs
+        ws.subscribeToTxs();
+        expect(ws.subs.txs).to.eql(true);
+
+        // We can unsubscribe from txs
+        ws.unsubscribeFromTxs();
+        expect(ws.subs.txs).to.eql(false);
 
         // Test some thrown errors
         // These are exhaustively unit tested in src/test/test.ts
@@ -951,5 +999,39 @@ describe('Test expected websocket behavior of chronik-client', () => {
 
         // This is the only msg we receive
         expect(msgCollector.length).to.eql(0);
+
+        // Unsub from prev sub for next test
+        ws.unsubscribeFromScript('p2pkh', p2pkhHash);
+
+        // Subscribe to txs for next test
+        ws.subscribeToTxs();
+        expect(ws.subs.txs).to.eql(true);
+    });
+    it('After subscribing to txs, we get 5 misc txs despite not being subscribed to their scripts', async () => {
+        miscTxid1 = await get_misc_txid_1;
+        miscTxid2 = await get_misc_txid_2;
+        miscTxid3 = await get_misc_txid_3;
+        miscTxid4 = await get_misc_txid_4;
+        miscTxid5 = await get_misc_txid_5;
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
+        // We get all 5 tx messages even though we're not subscribed to their scripts
+        const txids = [miscTxid1, miscTxid2, miscTxid3, miscTxid4, miscTxid5];
+        const expectedTxMsgs = [];
+        for (const txid of txids) {
+            expectedTxMsgs.push({
+                type: 'Tx',
+                msgType: 'TX_ADDED_TO_MEMPOOL',
+                txid: txid,
+            });
+        }
+
+        // Expect a msg for each tx
+        expect(msgCollector).to.have.deep.members(expectedTxMsgs);
+
+        // Only the 5 Tx msgs are left in msgCollector
+        expect(msgCollector.length).to.eql(5);
     });
 });

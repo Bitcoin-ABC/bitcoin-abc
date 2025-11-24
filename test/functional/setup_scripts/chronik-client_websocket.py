@@ -345,6 +345,25 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         send_ipc_message({"resumed_txid": resumed_txid})
         yield True
 
+        self.log.info("Step 19: Send 5 miscellaneous txs")
+        # Send 5 txs to addresses we're not subscribed to
+        # These should still be received because we're subscribed to all txs
+        misc_txid_1 = node.sendtoaddress(node.getnewaddress(), 1000)
+        send_ipc_message({"misc_txid_1": misc_txid_1})
+
+        misc_txid_2 = node.sendtoaddress(node.getnewaddress(), 1000)
+        send_ipc_message({"misc_txid_2": misc_txid_2})
+
+        misc_txid_3 = node.sendtoaddress(node.getnewaddress(), 1000)
+        send_ipc_message({"misc_txid_3": misc_txid_3})
+
+        misc_txid_4 = node.sendtoaddress(node.getnewaddress(), 1000)
+        send_ipc_message({"misc_txid_4": misc_txid_4})
+
+        misc_txid_5 = node.sendtoaddress(node.getnewaddress(), 1000)
+        send_ipc_message({"misc_txid_5": misc_txid_5})
+        yield True
+
 
 if __name__ == "__main__":
     ChronikClient_Websocket_Setup().main()
