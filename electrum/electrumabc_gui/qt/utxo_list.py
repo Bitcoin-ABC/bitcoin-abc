@@ -520,6 +520,7 @@ class UTXOList(MyTreeWidget):
         """
         dialog = AvaProofDialog(
             wallet=self.wallet,
+            config=self.config,
             receive_address=self.main_window.receive_address,
             parent=self,
         )
