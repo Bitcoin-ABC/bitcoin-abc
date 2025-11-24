@@ -146,8 +146,8 @@ class SettingsDialog(WindowModalDialog):
         nz_label = HelpLabel(_("Zeros after decimal point") + ":", nz_help)
         self.nz = QtWidgets.QSpinBox()
         self.nz.setMinimum(0)
-        self.nz.setMaximum(self.config.get("decimal_point", 2))
-        self.nz.setValue(int(self.config.get("num_zeros", 2)))
+        self.nz.setMaximum(self.config.get_decimal_point())
+        self.nz.setValue(self.config.get_num_zeros())
         if not self.config.is_modifiable("num_zeros"):
             for w in [self.nz, nz_label]:
                 w.setEnabled(False)
@@ -732,7 +732,7 @@ class SettingsDialog(WindowModalDialog):
 
     def on_nz(self):
         value = self.nz.value()
-        if self.config.get("num_zeros", 2) != value:
+        if self.config.get_num_zeros() != value:
             self.config.set_key("num_zeros", value, True)
             self.num_zeros_changed.emit()
 

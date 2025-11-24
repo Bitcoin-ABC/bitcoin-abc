@@ -1082,10 +1082,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.on_timer_signal.emit()
 
     def get_decimal_point(self) -> int:
-        return self.config.get("decimal_point", 2)
+        return self.config.get_decimal_point()
 
     def get_num_zeros(self) -> int:
-        return int(self.config.get("num_zeros", 2))
+        return self.config.get_num_zeros()
 
     def base_unit(self):
         return base_unit(self.config)

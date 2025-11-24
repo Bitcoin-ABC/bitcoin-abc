@@ -126,15 +126,15 @@ def format_amount(x, config: SimpleConfig, is_diff=False, whitespaces=False) -> 
     """Wrapper for format_satoshis with a config parameter"""
     return format_satoshis(
         x,
-        config.get("num_zeros", 2),
-        config.get("decimal_point", 2),
+        config.get_num_zeros(),
+        config.get_decimal_point(),
         is_diff=is_diff,
         whitespaces=whitespaces,
     )
 
 
 def base_unit(config: SimpleConfig):
-    decimal_point = config.get("decimal_point", 2)
+    decimal_point = config.get_decimal_point()
     if decimal_point in BASE_UNITS_BY_DECIMALS:
         return BASE_UNITS_BY_DECIMALS[decimal_point]
     raise Exception("Unknown base unit")
@@ -153,7 +153,5 @@ def format_fee_satoshis(fee, num_zeros=0):
 
 
 def format_fee_rate(fee_rate, config: SimpleConfig):
-    sats_per_byte = format_fee_satoshis(
-        fee_rate / 1000, max(config.get("num_zeros", 2), 1)
-    )
+    sats_per_byte = format_fee_satoshis(fee_rate / 1000, max(config.get_num_zeros(), 1))
     return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)

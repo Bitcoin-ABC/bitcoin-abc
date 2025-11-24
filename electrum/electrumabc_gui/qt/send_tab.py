@@ -127,7 +127,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
 
-        self.amount_e = XECAmountEdit(self.config.get("decimal_point", 2))
+        self.amount_e = XECAmountEdit(self.config.get_decimal_point())
         self.payto_e = PayToEdit(self, self.wallet.contacts)
         # NB: the translators hopefully will not have too tough a time with this
         # *fingers crossed* :)

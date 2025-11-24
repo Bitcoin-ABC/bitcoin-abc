@@ -6,6 +6,7 @@ from copy import deepcopy
 from decimal import Decimal as PyDecimal
 
 from . import util
+from .constants import XEC
 from .printerror import PrintError, print_error
 from .util import get_user_dir, make_dir
 
@@ -314,6 +315,13 @@ class SimpleConfig(PrintError):
 
     def set_current_block_locktime_enabled(self, flag: bool):
         self.set_key("enable_current_block_locktime", flag, save=True)
+
+    def get_decimal_point(self) -> int:
+        return self.get("decimal_point", XEC.decimals)
+
+    def get_num_zeros(self) -> int:
+        # by default, we want to display the full precision down to sats
+        return self.get("num_zeros", XEC.decimals)
 
 
 def read_user_config(path: str) -> dict:

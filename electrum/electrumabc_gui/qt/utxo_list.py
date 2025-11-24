@@ -195,8 +195,8 @@ class UTXOList(MyTreeWidget):
             label = self.wallet.get_label(x["prevout_hash"])
             amount = format_satoshis(
                 x["value"],
-                int(self.config.get("num_zeros", 2)),
-                self.config.get("decimal_point", 2),
+                self.config.get_num_zeros(),
+                self.config.get_decimal_point(),
                 whitespaces=True,
             )
             utxo_item = SortableTreeWidgetItem(
