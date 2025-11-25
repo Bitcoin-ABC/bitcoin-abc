@@ -132,3 +132,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   3.4.1 - Add `long` as a dependency. This should be resolved as a dependency of protobufjs, but for some package managers (e.g. `pnpm`) this is having issues. [D18831](https://reviews.bitcoinabc.org/D18831)
 -   3.5.0 - Add `pause` and `resume` methods to support use of `chronik-client` websockets in mobile apps [D18960](https://reviews.bitcoinabc.org/D18960)
 -   3.6.0 - Add new websocket subscription method `subscribeToTxs` to listen to all txs on the network [D18993](https://reviews.bitcoinabc.org/D18993)
+-   3.6.1 - Patch for CI publication including correct `ecashaddrjs` dep [D18997](https://reviews.bitcoinabc.org/D18997)
