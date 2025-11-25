@@ -1,5 +1,27 @@
 # Release notes
 
+## Release 5.4.3
+
+- Update the functional test framework to use a Chronik Electrum backend
+  rather than Fulcrum (D18293).
+- Support PyQt6 and PySide6 for the GUI (D18306, D18309, D18311, D18339,
+  D18345).
+- Fix the unit for the fee in the preferences menu (D18330).
+- Fix the updating of amounts in the send and receive tabs when the unit
+  is changed in the preferences menu (D18331).
+- Update the list of backend servers (D18388).
+- Allow disabling SSL for localhost in the Network > Server menu (D18554).
+- Improve the derivation path scanner to scan also mainnet paths in testnet
+  mode and vice versa (D18676).
+- Don't show already added UTXOs when selecting additional stakes from the
+  current wallet in the Avalanche proof editor (D18770), and enable sorting
+  of UTXOs by block height or by amount (D18990).
+- Fix a bug that caused an error message to be shown when the exchange rate
+  API is unreachable (D18783).
+- Fix a bug preventing the saving of QR code to file. The feature was broken
+  in v5.2.7 (D18782).
+
+
 ## Release 5.4.2
 
 - Enable downgrading of Trezor firmware (D17482).
