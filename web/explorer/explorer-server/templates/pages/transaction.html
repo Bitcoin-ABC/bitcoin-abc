@@ -12,6 +12,16 @@
                     {% if tx.is_coinbase %}
                         <div class="tx-header__label ui green label">Coinbase</div>
                     {% endif %}
+                    {% if tx.is_final %}
+                        <div class="finalized-indicator">
+                            Finalized
+                            <img class="final-icon"
+                                 src="/assets/checkmark.svg"
+                                 alt="Finalized by Avalanche" />
+                        </div>
+                    {% else %}
+                        <div class="finalizing-indicator">Finalizing...</div>
+                    {% endif %}
                 </div>
                 <div class="six wide column">
                     <div class="toggle-wrapper">
@@ -110,16 +120,6 @@
                         <div>{{ timestamp|human_time }}</div>
                     </div>
                     <div class="tx-details-row">
-                        <div>Final</div>
-                        <div>
-                            {% if tx.is_final %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="tx-details-row">
                         <div>Block</div>
                         <div>
                             {% match tx.block %}
@@ -127,9 +127,9 @@
                                 <a href="/block/{{ block_meta.hash|to_le_hex }}">{{ block_meta.height|to_i128|render_integer|safe }}</a>
                                 ({{ confirmations|to_i128|render_integer|safe }}
                                 {% if confirmations|to_i128 > 1 %}
-                                    confirmations)
+                                    blocks ago)
                                 {% else %}
-                                    confirmation)
+                                    block ago)
                                 {% endif %}
                                 {% when None %}
                                 Not mined yet

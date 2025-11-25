@@ -856,6 +856,42 @@ table.dataTable thead .sorting {
     margin-right: 2px;
 }
 
+.final-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.finalized-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    padding: 3px 4px 3px 10px;
+    border-radius: 100px;
+    width: fit-content;
+    margin-left: 15px;
+    background: var(--primary-background);
+    border: 1px solid var(--accent);
+}
+
+.finalized-indicator .final-icon {
+    width: 18px;
+    height: 18px;
+    margin-left: 5px;
+}
+
+.finalizing-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    width: fit-content;
+    margin-left: 15px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .main.menu {
     background-color: var(--primary-background);
     border-radius: 0;
@@ -989,9 +1025,15 @@ table.dataTable thead .sorting {
     font-size: 12px !important;
 }
 
+.tx-header__container {
+    display: flex !important;
+    align-items: center;
+}
+
 .tx-header__title {
     width: fit-content;
     float: left;
+    margin-bottom: 0px !important;
 }
 
 .tx-header__label {

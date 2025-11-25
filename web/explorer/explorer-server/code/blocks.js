@@ -15,7 +15,7 @@ const renderTemplate = height =>
     '<a href="/block-height/' + height + '">' + renderInt(height) + '</a>';
 const renderFinal = isFinal => {
     if (isFinal) {
-        return 'Yes';
+        return '<img class="final-icon" src="/assets/checkmark.svg" alt="Finalized by Avalanche" />';
     }
     return 'No';
 };

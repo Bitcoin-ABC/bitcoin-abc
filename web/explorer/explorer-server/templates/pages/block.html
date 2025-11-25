@@ -6,7 +6,19 @@
     <div class="page_ctn">
         <div class="ui container">
             <div class="block-header">
-                <h1>Block #{{ block_info.height }}</h1>
+                <div class="tx-header__container">
+                    <h1>Block #{{ block_info.height }}</h1>
+                    {% if block_info.is_final %}
+                        <div class="finalized-indicator">
+                            Finalized
+                            <img class="final-icon"
+                                 src="/assets/checkmark.svg"
+                                 alt="Finalized by Avalanche" />
+                        </div>
+                    {% else %}
+                        <div class="finalizing-indicator">Finalizing...</div>
+                    {% endif %}
+                </div>
                 <div class="next-block-ctn">
                     {% if block_info.height != 0 %}
                         <a class="nextblock-btn"
@@ -55,27 +67,6 @@
                                 <tr>
                                     <td>Unix Timestamp</td>
                                     <td>{{ block_info.timestamp|to_i128|render_integer|safe }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Confirmations</td>
-                                    <td>
-                                        {{ confirmations }}
-                                        {% if block_info.is_final %}
-                                            (Final)
-                                        {% else %}
-                                            (Not final)
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Final</td>
-                                    <td>
-                                        {% if block_info.is_final %}
-                                            Yes
-                                        {% else %}
-                                            No
-                                        {% endif %}
-                                    </td>
                                 </tr>
                             </tbody>
                         </table>
