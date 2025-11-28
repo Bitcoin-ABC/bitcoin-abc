@@ -398,6 +398,9 @@ class ChronikClient:
             f"/block-headers/{start_height}/{end_height}{query}", pb.BlockHeaders
         )
 
+    def unconfirmed_txs(self) -> ChronikResponse:
+        return self._request_get("/unconfirmed-txs", pb.TxHistoryPage)
+
     def chronik_info(self) -> ChronikResponse:
         return self._request_get("/chronik-info", pb.ChronikInfo)
 

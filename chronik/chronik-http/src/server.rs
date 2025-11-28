@@ -167,6 +167,7 @@ impl ChronikServer {
                 "/block-headers/:start/:end",
                 routing::get(handle_block_headers),
             )
+            .route("/unconfirmed-txs", routing::get(handle_unconfirmed_txs))
             .route("/chronik-info", routing::get(handle_chronik_info))
             .route("/tx/:txid", routing::get(handle_tx))
             .route("/token/:txid", routing::get(handle_token_info))
@@ -359,6 +360,16 @@ async fn handle_block_txs(
             &node,
         )
         .await?,
+    ))
+}
+
+async fn handle_unconfirmed_txs(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_unconfirmed_txs(&indexer, &node).await?,
     ))
 }
 

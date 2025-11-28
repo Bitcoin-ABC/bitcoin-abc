@@ -93,6 +93,15 @@ pub async fn handle_block_txs(
     blocks.block_txs(hash_or_height, page_num as usize, page_size as usize)
 }
 
+/// Return a page of the txs from the mempool.
+pub async fn handle_unconfirmed_txs(
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::TxHistoryPage> {
+    let txs = indexer.txs(node);
+    txs.unconfirmed_txs()
+}
+
 fn get_group_member(
     script_type: &str,
     payload: &str,

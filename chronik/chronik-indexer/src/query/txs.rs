@@ -193,4 +193,58 @@ impl<'a> QueryTxs<'a> {
             time_first_seen: token_info.time_first_seen,
         })
     }
+
+    /// Query the mempool txs. This doesn't provide pagination (yet):
+    ///  - It's consistent with other unconfirmed txs endpoints.
+    ///  - Mempool txs are volatile, so pagination might not be very useful.
+    ///
+    /// So it currently returns a single page with all the txs which is
+    /// consistent with the other unconfirmed txs endpoints.
+    pub fn unconfirmed_txs(&self) -> Result<proto::TxHistoryPage> {
+        let mut txs = self
+            .mempool
+            .txs()
+            .iter()
+            .map(|(txid, entry)| {
+                let is_final_preconsensus = self
+                    .node
+                    .bridge
+                    .is_avalanche_finalized_preconsensus(txid.as_bytes());
+                Ok(make_tx_proto(MakeTxProtoParams {
+                    tx: &entry.tx,
+                    outputs_spent: &OutputsSpent::new_mempool(
+                        self.mempool.spent_by().outputs_spent(txid),
+                    ),
+                    time_first_seen: entry.time_first_seen,
+                    is_coinbase: false,
+                    block: None,
+                    avalanche: self.avalanche,
+                    token: TxTokenData::from_mempool(
+                        self.mempool.tokens(),
+                        &entry.tx,
+                    )
+                    .as_ref(),
+                    plugin_outputs: &read_plugin_outputs(
+                        self.db,
+                        self.mempool,
+                        &entry.tx,
+                        None,
+                        !self.plugin_name_map.is_empty(),
+                    )?,
+                    plugin_name_map: self.plugin_name_map,
+                    is_final_preconsensus,
+                }))
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        txs.sort_by_key(|tx| {
+            (tx.time_first_seen, TxId::try_from(&tx.txid[..]).unwrap())
+        });
+
+        Ok(proto::TxHistoryPage {
+            num_pages: if txs.is_empty() { 0 } else { 1 },
+            num_txs: txs.len() as u32,
+            txs,
+        })
+    }
 }
