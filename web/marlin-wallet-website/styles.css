@@ -1,0 +1,326 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --background: #090916;
+    --accent-light: #01a0e0;
+    --accent-medium: #0671c0;
+    --accent-dark: #224da8;
+    --primary-text: #ffffff;
+    --secondary-text: #cccccc;
+    --border-light: rgba(255, 255, 255, 0.1);
+    --card-background: rgba(255, 255, 255, 0.05);
+    --card-hover: rgba(255, 255, 255, 0.08);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--background);
+    color: var(--primary-text);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.logo {
+    width: 200px;
+    height: auto;
+    background-color: #667eea;
+    clip-path: circle(50%);
+    padding: 20px;
+}
+
+.hero {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(
+        135deg,
+        var(--background) 0%,
+        rgba(34, 77, 168, 0.1) 100%
+    );
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+}
+
+.hero-title {
+    font-size: clamp(48px, 8vw, 72px);
+    font-weight: 700;
+    margin: 24px;
+}
+
+.hero-subtitle {
+    font-size: clamp(18px, 3vw, 24px);
+    color: var(--secondary-text);
+    margin-bottom: 48px;
+    font-weight: 300;
+    line-height: 1.5;
+}
+
+.download-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+}
+
+.arrow-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.qr-code {
+    width: 200px;
+    height: 200px;
+    background: var(--primary-text);
+    border-radius: 12px;
+}
+
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 32px;
+    background: linear-gradient(
+        135deg,
+        var(--accent-medium) 0%,
+        var(--accent-dark) 100%
+    );
+    color: var(--primary-text);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(1, 160, 224, 0.3);
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(1, 160, 224, 0.4);
+    background: linear-gradient(
+        135deg,
+        var(--accent-light) 0%,
+        var(--accent-medium) 100%
+    );
+}
+
+.download-btn:active {
+    transform: translateY(0);
+}
+
+.features {
+    padding: 100px 20px;
+}
+
+.section-title {
+    font-size: clamp(36px, 5vw, 48px);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 64px;
+    color: var(--primary-text);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: var(--card-background);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 40px 32px;
+    text-align: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.feature-card:hover {
+    background: var(--card-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(1, 160, 224, 0.2);
+    border-color: var(--accent-medium);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    color: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(1, 160, 224, 0.1);
+    border-radius: 16px;
+}
+
+.feature-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.feature-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--primary-text);
+}
+
+.feature-description {
+    font-size: 16px;
+    color: var(--secondary-text);
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.footer {
+    padding: 60px 20px 40px;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-text {
+    font-size: 16px;
+    color: var(--secondary-text);
+    margin-bottom: 16px;
+    font-weight: 300;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    color: var(--accent-light);
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s ease;
+    font-weight: 400;
+}
+
+.footer-link:hover {
+    color: var(--primary-text);
+}
+
+.footer-separator {
+    color: var(--secondary-text);
+    font-weight: 300;
+}
+
+@media (max-width: 768px) {
+    .hero {
+        min-height: 70vh;
+        padding: 60px 20px;
+    }
+
+    .features {
+        padding: 60px 20px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .feature-card {
+        padding: 32px 24px;
+    }
+
+    .privacy {
+        padding: 60px 20px;
+    }
+
+    .download-btn {
+        padding: 14px 28px;
+        font-size: 16px;
+    }
+
+    .qr-code {
+        display: none;
+    }
+
+    .arrow-icon {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 42px;
+    }
+
+    .hero-subtitle {
+        font-size: 18px;
+    }
+
+    .section-title {
+        font-size: 32px;
+    }
+
+    .feature-card {
+        padding: 24px 20px;
+    }
+
+    .feature-icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    .feature-title {
+        font-size: 20px;
+    }
+
+    .feature-description {
+        font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+a:focus,
+button:focus {
+    outline: 2px solid var(--accent-light);
+    outline-offset: 4px;
+}
