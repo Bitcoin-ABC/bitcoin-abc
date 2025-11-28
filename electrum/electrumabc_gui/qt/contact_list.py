@@ -219,7 +219,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 column_title += f" ({len(selected)})"
             menu.addAction(
                 _("Copy {}").format(column_title),
-                copy_to_clipboard(column_data),
+                lambda: copy_to_clipboard(column_data),
             )
             if (
                 item
