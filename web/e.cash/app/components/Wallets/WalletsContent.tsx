@@ -35,6 +35,13 @@ const wallets = [
     features: ["Message Signing", "Multi-sig wallets", "Bip-70"],
   },
   {
+    name: "Marlin Wallet",
+    text: "A super simple eCash wallet, focusing on user experience and security",
+    image: "/marlin-wallet.png",
+    link: "https://marlinwallet.com/",
+    availableOn: ["Android", "Wear OS"],
+  },
+  {
     name: "RaiPay",
     text: "RaiPay is a non-custodial mobile wallet for storing & managing eCash (XEC) & eTokens. With RaiPay you can experience the power and speed of eCash (XEC) and eTokens online, in person, and everywhere else. It's available for both Android & iOS devices.",
     image: "/raipay.png",
