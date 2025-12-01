@@ -395,7 +395,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
                         + ")"
                     )
 
-                extra = run_hook("not_enough_funds_extra", self)
+                extra = run_hook("not_enough_funds_extra", self.wallet, self.config)
                 if isinstance(extra, str) and extra:
                     text += " ({})".format(extra)
 
@@ -445,7 +445,6 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         vbox.addWidget(self.invoice_list)
         vbox.setStretchFactor(self.invoice_list, 1000)
         self.searchable_list = self.invoice_list
-        run_hook("create_send_tab", grid)
 
         self.payment_request_ok_signal.connect(self.payment_request_ok)
         self.payment_request_error_signal.connect(self.payment_request_error)
@@ -797,9 +796,6 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.do_send(preview=True)
 
     def do_send(self, preview=False):
-        if run_hook("abort_send", self):
-            return
-
         # paranoia -- force a resolve right away in case user pasted an
         # openalias and hit preview too quickly.
         self.payto_e.resolve(force_if_has_focus=True)
@@ -908,8 +904,6 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         """Sign the transaction in a separate thread.  When done, calls
         the callback with a success code of True or False.
         """
-        # call hook to see if plugin needs gui interaction
-        run_hook("sign_tx", self, tx)
 
         def on_signed(result):
             callback(True)
@@ -1313,16 +1307,15 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.opreturn_rawhex_cb.setVisible(self.config.get("enable_opreturn", False))
         self.opreturn_label.setVisible(self.config.get("enable_opreturn", False))
         self.window.update_status()
-        run_hook("do_clear", self)
 
     def get_coins(self, isInvoice=False):
         if self.pay_from:
             coins = copy.deepcopy(self.pay_from)
         else:
             coins = self.wallet.get_spendable_coins(None, self.config, isInvoice)
-        run_hook(
-            "spendable_coin_filter", self, coins
-        )  # may modify coins -- used by CashShuffle if in shuffle = ENABLED mode.
+        # may modify coins -- used by CashFusion if the 'spend only fused coins' option
+        # is enabled
+        run_hook("spendable_coin_filter", self.wallet, self.tx_external_keypairs, coins)
         if self.pay_from:
             # coins may have been filtered, so indicate this in the UI
             self.redraw_from_list(spendable=coins)
@@ -1331,7 +1324,6 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
     def spend_coins(self, coins):
         self.set_pay_from(coins)
         self.show_tab_signal.emit()
-        run_hook("on_spend_coins", self, coins)
         self.update_fee()
 
     def paytomany(self):

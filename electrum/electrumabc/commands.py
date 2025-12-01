@@ -745,7 +745,6 @@ class Commands:
         if locktime is not None:
             tx.locktime = locktime
         if not unsigned:
-            run_hook("sign_tx", self.wallet, tx)
             self.wallet.sign_transaction(tx, password)
             if addtransaction:
                 self.wallet.add_transaction(tx.txid(), tx)

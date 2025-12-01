@@ -71,6 +71,7 @@ from .server import Params
 from .util import get_coin_name
 
 if TYPE_CHECKING:
+    from electrumabc.simple_config import SimpleConfig
     from electrumabc_gui.qt import ElectrumGui
     from electrumabc_gui.qt.address_list import AddressList
 
@@ -288,8 +289,8 @@ class Plugin(FusionPlugin, QObject):
             return
 
         # NEW! Set up the send tab "Spend only fused coins" checkbox/control
-        if hasattr(window, "send_tab_extra_plugin_controls_hbox"):
-            hbox = window.send_tab_extra_plugin_controls_hbox
+        if hasattr(window.send_tab, "send_tab_extra_plugin_controls_hbox"):
+            hbox = window.send_tab.send_tab_extra_plugin_controls_hbox
             label, tooltip = self.get_spend_only_fused_coins_checkbox_attributes(wallet)
             spend_only_fused_chk = QtWidgets.QCheckBox(label)
             spend_only_fused_chk.setObjectName("spend_only_fused_chk")
@@ -428,23 +429,26 @@ class Plugin(FusionPlugin, QObject):
             item.setText(col, _("Unfused"))
 
     @hook
-    def spendable_coin_filter(self, window, coins):
+    def spendable_coin_filter(
+        self,
+        wallet: AbstractWallet,
+        tx_external_keypairs: dict[bytes, tuple[bytes, bool]],
+        coins,
+    ):
         """Invoked by the send tab to filter out coins that aren't fused if the wallet has
         'spend only fused coins' enabled."""
-        if not coins or not hasattr(window, "wallet"):
+        if not coins:
             return
 
-        wallet = window.wallet
         if not Conf(wallet).spend_only_fused_coins or not self.wallet_can_fuse(wallet):
             return
 
         # external_coins_addresses is only ever used if they are doing a sweep. in which case we always allow the coins
         # involved in the sweep
         external_coin_addresses = set()
-        if hasattr(window, "tx_external_keypairs"):
-            for pubkey in window.tx_external_keypairs:
-                a = Address.from_pubkey(pubkey)
-                external_coin_addresses.add(a)
+        for pubkey in tx_external_keypairs:
+            a = Address.from_pubkey(pubkey)
+            external_coin_addresses.add(a)
 
         # we can ONLY spend fused coins + ununfused living on a fused coin address
         fuz_adrs_seen = set()
@@ -483,9 +487,10 @@ class Plugin(FusionPlugin, QObject):
                         fuz_coins_seen.add(name)
 
     @hook
-    def not_enough_funds_extra(self, window) -> Optional[str]:
+    def not_enough_funds_extra(
+        self, wallet: AbstractWallet, config: SimpleConfig
+    ) -> Optional[str]:
         """Called by the Qt UI if there is a "not enough funds" error in the send tab"""
-        wallet = window.wallet
         if not self.wallet_can_fuse(wallet):
             return
         conf = Conf(wallet)
@@ -496,13 +501,12 @@ class Plugin(FusionPlugin, QObject):
             for coin in wallet.get_utxos(
                 exclude_frozen=True,
                 mature=True,
-                confirmed_only=bool(window.config.get("confirmed_only", False)),
+                confirmed_only=bool(config.get("confirmed_only", False)),
             )
             if not self.is_fuz_coin(wallet, coin, require_depth=conf.fuse_depth - 1)
         ]
         total = sum(c["value"] for c in needs_fuz)
         n_coins = len(needs_fuz)
-        config = window.config
         if total and needs_fuz:
             return ngettext(
                 "{total_bch} in {n_coins} unfused coin",
