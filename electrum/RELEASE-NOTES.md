@@ -1,5 +1,12 @@
 # Release notes
 
+## Release 5.4.4
+
+- Fix the context menu in the Contacts tab, broken in v5.4.3 (D19006).
+- Fix partial signing of muiltisig transactions, broken in v5.4.3 (D19009).
+- Fix "spend only fused coins" feature, broken in v5.4.3 (D19010).
+
+
 ## Release 5.4.3
 
 - Update the functional test framework to use a Chronik Electrum backend
