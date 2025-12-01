@@ -593,7 +593,8 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         )
 
         can_sign = not self.tx.is_complete() and (
-            self.wallet.can_sign(self.tx) or bool(self.main_window.tx_external_keypairs)
+            self.wallet.can_sign(self.tx)
+            or bool(self.main_window.send_tab.tx_external_keypairs)
         )
         self.sign_button.setEnabled(can_sign)
         self.tx_hash_e.setText(tx_hash or _("Unknown"))

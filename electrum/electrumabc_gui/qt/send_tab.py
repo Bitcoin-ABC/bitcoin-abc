@@ -897,7 +897,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         def sign_done(success):
             if success:
                 if not tx.is_complete():
-                    self.show_transaction(tx, tx_desc)
+                    self.window.show_transaction(tx, tx_desc)
                     self.do_clear()
                 else:
                     self.broadcast_transaction(tx, tx_desc)
