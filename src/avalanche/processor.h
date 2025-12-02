@@ -266,7 +266,7 @@ class Processor final : public NetEventsInterface {
 
     const bool m_preConsensus{false};
     // Not const for testing purpose
-    bool m_stakingPreConsensus{false};
+    std::atomic_bool m_stakingPreConsensus{false};
 
 public:
     ~Processor();
