@@ -44,6 +44,7 @@ body {
 
 .hero {
     min-height: 60vh;
+    padding-bottom: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
