@@ -5,8 +5,8 @@
 "use client";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
+import Button from "../Atoms/Button";
 import { motion } from "motion/react";
-import Image from "next/image";
 
 export default function VisionSection() {
   return (
@@ -42,23 +42,32 @@ export default function VisionSection() {
               </p>
             </motion.div>
 
-            {/* Right Content Area - 3D Graphic */}
+            {/* Right Content Area - YouTube Video */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeInOut", delay: 0.3 }}
               viewport={{ once: true }}
-              className="custom-box relative flex h-[400px] min-h-[400px] w-full flex-1 items-center justify-center rounded-2xl bg-white/5 lg:h-[500px] lg:min-h-[500px]"
+              className="flex w-full flex-1 flex-col items-center justify-center gap-6 self-stretch"
             >
-              <div className="relative flex h-[200px] w-[200px] items-center justify-center lg:h-[300px] lg:w-[300px]">
-                <Image
-                  src="/spline-preview.png"
-                  alt="eCash"
-                  fill
-                  className="object-contain"
-                  sizes="200px lg:300px"
+              <div
+                className="relative w-full overflow-hidden rounded-2xl"
+                style={{ paddingBottom: "56.25%" }}
+              >
+                <iframe
+                  className="absolute left-0 top-0 h-full w-full"
+                  src="https://www.youtube.com/embed/9mMMloxbwRg?si=-tjWTc3KsMRXe14q"
+                  title="Why Crypto - Final Episode: Money"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                 />
               </div>
+              <Button
+                href="https://www.youtube.com/@eCashOfficial/videos"
+                variant="ghost"
+              >
+                More Videos
+              </Button>
             </motion.div>
           </div>
         </div>
