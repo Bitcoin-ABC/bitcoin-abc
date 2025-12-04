@@ -1,0 +1,335 @@
+<!--
+Copyright (c) 2025 The Bitcoin developers
+Distributed under the MIT software license, see the accompanying
+file COPYING or http://www.opensource.org/licenses/mit-license.php.
+-->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Marlin Wallet</title>
+    </head>
+    <body>
+        <!-- Loading Screen -->
+        <div id="loading" class="loading-screen" style="display: none">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div
+            id="error-modal-overlay"
+            class="error-modal-overlay"
+            style="display: none"
+        >
+            <div class="error-modal-content">
+                <h3 class="error-modal-title">Error</h3>
+                <p class="error-modal-message">An error occurred</p>
+                <button id="error-modal-close" class="btn btn-primary">
+                    Close
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Screen -->
+        <div id="main-screen" class="screen">
+            <!-- Header -->
+            <div class="header">
+                <div class="title">
+                    <img id="marlin-logo" alt="Marlin Wallet" />
+                    <h1>Marlin Wallet</h1>
+                </div>
+                <div class="header-buttons">
+                    <div class="history-btn">
+                        <button class="history-button" onclick="openHistory()">
+                            <img
+                                id="history-icon"
+                                alt="History"
+                                width="24"
+                                height="24"
+                            />
+                        </button>
+                    </div>
+                    <div class="settings-btn">
+                        <button
+                            class="settings-button"
+                            onclick="openSettings()"
+                        >
+                            <img
+                                id="settings-icon"
+                                alt="Settings"
+                                width="24"
+                                height="24"
+                            />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <!-- Main Wallet Card -->
+                <div id="wallet-card" class="card">
+                    <!-- Balance -->
+                    <div class="balance-container">
+                        <div class="card-label">Available Balance</div>
+                        <div class="balance" id="balance">
+                            0 <span id="ticker-balance"></span>
+                        </div>
+                        <div
+                            class="transitional-balance hidden"
+                            id="transitional-balance"
+                        ></div>
+                    </div>
+
+                    <!-- Address Section -->
+                    <div class="address-section">
+                        <div class="card-label">Your Receiving Address</div>
+                        <div class="address" id="address">
+                            Generating wallet...
+                        </div>
+
+                        <!-- QR Code -->
+                        <div class="qr-code" id="qr-code">
+                            <!-- QR code will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan Button -->
+                <div class="scan-section">
+                    <button class="scan-btn" id="scan-btn" title="Scan QR Code">
+                        <img id="qr-icon" alt="Scan QR Code" />
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Screen -->
+        <div id="send-screen" class="screen hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="back-btn">
+                    <img alt="Back" class="back-arrow-icon" />
+                </button>
+                <h2>Send eCash</h2>
+            </div>
+
+            <div class="container">
+                <!-- PayButton logo (shown when op_return_raw is a PayButton transaction) -->
+                <div
+                    id="paybutton-logo-container"
+                    class="paybutton-logo-container"
+                    style="display: none"
+                >
+                    <img
+                        id="paybutton-logo"
+                        alt="PayButton"
+                        class="paybutton-logo"
+                    />
+                </div>
+                <div class="card">
+                    <div class="form-group">
+                        <label for="recipient-address">Recipient Address</label>
+                        <input
+                            type="text"
+                            id="recipient-address"
+                            placeholder="Enter eCash address"
+                            readonly
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="send-amount"
+                            >Amount (<span id="ticker-label"></span>)</label
+                        >
+                        <input
+                            type="number"
+                            id="send-amount"
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                        />
+                        <div class="slider-wrapper">
+                            <input
+                                type="range"
+                                id="amount-slider"
+                                min="5.46"
+                                max="100"
+                                step="0.01"
+                                value="5.46"
+                            />
+                        </div>
+                        <div class="slider-labels">
+                            <span class="slider-min"
+                                >5.46 <span id="ticker-slider-min"></span
+                            ></span>
+                            <span class="slider-max" id="slider-max-label"
+                                >100 <span id="ticker-slider-max"></span
+                            ></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fee-display" class="card" style="display: none"></div>
+
+                <div class="send-actions">
+                    <button class="btn btn-secondary" id="cancel-send">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary" id="confirm-send">
+                        <span>Send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Screen -->
+        <div id="history-screen" class="screen hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="history-back-btn">
+                    <img alt="Back" class="back-arrow-icon" />
+                </button>
+                <h2>Transaction History</h2>
+            </div>
+
+            <div class="container">
+                <div class="card">
+                    <div class="transaction-list" id="transaction-list">
+                        <div class="loading-transactions">
+                            <div class="loading-spinner"></div>
+                            <p>Loading transactions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="settings-back-btn">
+                    <img alt="Back" class="back-arrow-icon" />
+                </button>
+                <h2>Settings</h2>
+            </div>
+
+            <div class="container">
+                <div class="card">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Require Hold to Send</h3>
+                            <p>
+                                When enabled, you must hold the send button for
+                                1 second to confirm the transaction.
+                            </p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input
+                                type="checkbox"
+                                id="hold-to-send-toggle"
+                                checked
+                            />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Wallet Mnemonic</h3>
+                            <p>
+                                Your 12-word recovery phrase. Make sure to back
+                                it up securely!
+                            </p>
+                        </div>
+                        <button class="btn btn-primary" id="edit-mnemonic-btn">
+                            Edit
+                        </button>
+                    </div>
+                    <div class="mnemonic-display" id="mnemonic-display">
+                        <textarea id="mnemonic-text" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mnemonic Edit Modal -->
+        <div
+            class="modal-overlay hidden"
+            id="mnemonic-edit-modal"
+            style="display: none"
+        >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Mnemonic</h3>
+                    <button class="close-btn" id="close-mnemonic-modal">
+                        ×
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">
+                        Enter your 12-word recovery phrase.
+                    </p>
+                    <p class="modal-warning">
+                        <span class="warning-icon">⚠️</span>
+                        <strong>This will replace your current wallet.</strong>
+                    </p>
+                    <textarea
+                        id="mnemonic-edit-text"
+                        placeholder="Enter 12 words separated by spaces"
+                    ></textarea>
+                    <div
+                        class="validation-message"
+                        id="mnemonic-validation"
+                        style="display: none"
+                    ></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-mnemonic-edit">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary" id="save-mnemonic-edit">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Modal -->
+        <div class="camera-modal hidden" id="camera-modal">
+            <div class="camera-container">
+                <div class="camera-header">
+                    <h3>Scan QR Code</h3>
+                    <button class="close-btn" id="close-camera">×</button>
+                </div>
+                <div class="camera-content">
+                    <video id="camera-video" autoplay playsinline></video>
+                    <canvas id="qr-canvas" class="hidden"></canvas>
+                    <div class="scan-overlay"></div>
+                    <!-- No camera fallback -->
+                    <div
+                        id="no-camera-fallback"
+                        class="no-camera-fallback hidden"
+                    >
+                        <img id="no-camera-icon" alt="Camera" />
+                        <!-- <div class="no-camera-icon">📷</div> -->
+                        <h3>No Camera Available</h3>
+                        <p>
+                            Camera access is not available on this device. Use
+                            the "Manual Entry" button below to enter an address.
+                        </p>
+                    </div>
+                </div>
+                <div class="camera-footer">
+                    <button
+                        class="btn btn-secondary manual-entry-btn"
+                        id="manual-entry-btn"
+                    >
+                        <img id="edit-icon" alt="Edit" />
+                        Manual Entry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

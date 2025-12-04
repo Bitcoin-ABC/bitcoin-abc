@@ -1,0 +1,36 @@
+{
+    "name": "marlin-wallet-web",
+    "version": "1.5.0",
+    "description": "Marlin Wallet Web Application",
+    "main": "index.html",
+    "scripts": {
+        "build": "webpack --mode production",
+        "dev": "webpack serve --mode development",
+        "start": "npm run build && http-server dist -p 3000 -c-1"
+    },
+    "dependencies": {
+        "@types/bip39": "^2.4.2",
+        "@types/qrcode": "^1.5.5",
+        "bip39": "^3.1.0",
+        "buffer": "^6.0.3",
+        "chronik-client": "^3.0.0",
+        "ecash-lib": "^4.3.3",
+        "ecash-wallet": "^1.5.0",
+        "pulltorefreshjs": "^0.1.22",
+        "qr-scanner": "^1.4.2",
+        "qrcode": "^1.5.4",
+        "randombytes": "^2.1.0"
+    },
+    "devDependencies": {
+        "@types/pulltorefreshjs": "^0.1.7",
+        "css-loader": "^7.1.2",
+        "html-webpack-plugin": "^5.5.3",
+        "http-server": "^14.1.1",
+        "style-loader": "^4.0.0",
+        "ts-loader": "^9.4.4",
+        "typescript": "^5.1.6",
+        "webpack": "^5.88.0",
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^5.2.2"
+    }
+}
