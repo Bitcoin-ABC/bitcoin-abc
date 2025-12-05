@@ -247,6 +247,17 @@ export class ChronikClient {
     }
 
     /**
+     * Fetch unconfirmed transactions from the mempool.
+     *
+     * NB this endpoint is NOT paginated, even though it does return the TxHistoryPage shape
+     */
+    public async unconfirmedTxs(): Promise<TxHistoryPage> {
+        const data = await this._proxyInterface.get(`/unconfirmed-txs`);
+        const unconfirmedTxs = proto.TxHistoryPage.decode(data);
+        return convertToTxHistoryPage(unconfirmedTxs);
+    }
+
+    /**
      * Fetch block info of a range of blocks.
      * `startHeight` and `endHeight` are inclusive ranges.
      */
