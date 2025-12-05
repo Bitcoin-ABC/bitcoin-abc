@@ -39,11 +39,15 @@ ALLOWED_EXECUTABLE_SHEBANG = {
 
 # JS files are treated as common files rather than source files, as they frequently
 # use mixedCase in their names.
-ALLOWED_FILENAME_EXCEPTION = "web/e.cash/app/blog/[slug]/page.tsx"
+ALLOWED_FILENAME_EXCEPTION_REGEXPS = (
+    "^web/e.cash/app/blog/\[slug\]/page.tsx$",
+    "^apps/marlin-wallet/ios/",
+)
 ALLOWED_SOURCE_FILENAME_EXCEPTION_REGEXPS = (
     "^src/(secp256k1/|test/fuzz/FuzzedDataProvider.h)",
     "^cmake/utils/EventCheckVersion.cpp$",
     "^contrib/buildbot/test/test_endpoint_",
+    "^apps/marlin-wallet/ios/",
 )
 # Executable files that may not have a standard shebang
 ALLOWED_PERMISSION_EXECUTABLES_EXCEPTIONS = (
@@ -100,6 +104,16 @@ def get_git_file_metadata() -> Dict[str, FileMeta]:
     return files
 
 
+def filename_matches_exception(
+    exception_regex: str, filename: str
+) -> Optional[re.Match[str]]:
+    """
+    Checks if a filename matches an exception regex.
+    """
+    filename_exception_regex = re.compile(exception_regex)
+    return filename_exception_regex.match(filename)
+
+
 def check_all_filenames(files) -> int:
     """
     Checks every file in the repository against an allowed regexp to make sure only
@@ -110,9 +124,9 @@ def check_all_filenames(files) -> int:
     filename_regex = re.compile(ALLOWED_FILENAME_REGEXP)
     failed_tests = 0
     for filename in filenames:
-        if (
-            not filename_regex.match(filename)
-            and filename != ALLOWED_FILENAME_EXCEPTION
+        if not filename_regex.match(filename) and not any(
+            filename_matches_exception(regex, filename)
+            for regex in ALLOWED_FILENAME_EXCEPTION_REGEXPS
         ):
             print(
                 f'File "{filename!r}" does not not match the allowed filename regexp '
@@ -141,13 +155,8 @@ def check_source_filenames(files) -> int:
     filename_regex = re.compile(ALLOWED_SOURCE_FILENAME_REGEXP)
     failed_tests = 0
     for filename in filenames:
-
-        def filename_matches_exception(exception_regex: str) -> Optional[re.Match[str]]:
-            filename_exception_regex = re.compile(exception_regex)
-            return filename_exception_regex.match(filename)
-
         if not filename_regex.match(filename) and not any(
-            filename_matches_exception(regex)
+            filename_matches_exception(regex, filename)
             for regex in ALLOWED_SOURCE_FILENAME_EXCEPTION_REGEXPS
         ):
             print(
