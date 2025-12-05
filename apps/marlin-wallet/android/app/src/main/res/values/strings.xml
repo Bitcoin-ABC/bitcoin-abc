@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Marlin Wallet</string>
+    <string name="nfc_service_description">Marlin Wallet</string>
+    <string name="nfc_aid_group_description">Marlin Wallet BIP21 URI</string>
+</resources>

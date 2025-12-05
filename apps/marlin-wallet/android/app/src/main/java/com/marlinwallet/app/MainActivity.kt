@@ -1,0 +1,233 @@
+// Copyright (c) 2025 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+package com.marlinwallet.app
+
+import android.content.Intent
+import android.graphics.Color
+import android.nfc.NfcAdapter
+import android.nfc.NdefMessage
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.ReactHost
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
+import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.facebook.react.modules.core.DeviceEventManagerModule
+
+class MainActivity : ReactActivity() {
+
+  private val TAG = "MainActivity"
+  private var pendingPaymentUri: String? = null
+  private var reactActivityDelegate: ReactActivityDelegate? = null
+  
+  /**
+   * Returns the name of the main component registered from JavaScript. This is used to schedule
+   * rendering of the component.
+   */
+  override fun getMainComponentName(): String = "MarlinWallet"
+
+  /**
+   * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
+   * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
+   */
+  override fun createReactActivityDelegate(): ReactActivityDelegate {
+    val delegate = DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+    reactActivityDelegate = delegate
+    return delegate
+  }
+  
+  /**
+   * Override getReactHost to return the ReactHost from Application (New Architecture)
+   */
+  override fun getReactHost(): ReactHost {
+    // Cast directly to MainApplication to access non-nullable reactHost
+    val mainApp = application as? MainApplication
+      ?: throw IllegalStateException("Application must be MainApplication")
+    return mainApp.reactHost
+  }
+  
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    
+    // Configure window for Android 15+ (API 35)
+    // Enable edge-to-edge display for safe area insets
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    
+    // Make status bar transparent - padding is handled in React Native
+    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+    window.statusBarColor = Color.TRANSPARENT
+    
+    // Make navigation bar transparent - padding is handled in React Native
+    window.navigationBarColor = Color.TRANSPARENT
+    
+    // Reset listener state on app launch
+    PaymentRequestModule.reset()
+    handleNfcIntent(intent)
+  }
+  
+  override fun onResume() {
+    super.onResume()
+    
+    // Check if we have a pending payment request to send
+    if (pendingPaymentUri != null) {
+      tryToSendPendingPaymentRequest()
+    }
+  }
+  
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    
+    // Ignore NFC intents when app is already running (foreground)
+    // But allow ACTION_VIEW (camera QR, web links) since those are intentional user actions
+    if (intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+      return
+    }
+    
+    // Handle ACTION_VIEW even in foreground
+    if (intent.action == Intent.ACTION_VIEW) {
+      val uri = intent.data?.toString()
+      if (uri != null) {
+        // App is already running, send payment request immediately
+        sendPaymentRequestImmediately(uri)
+      }
+    }
+  }
+  
+  /**
+   * Handle payment request intents (NFC, deep links, etc.) when app is launched from background
+   */
+  private fun handleNfcIntent(intent: Intent?) {
+    if (intent == null) {
+      return
+    }
+    
+    when (intent.action) {
+      // Handle NFC NDEF discovery
+      NfcAdapter.ACTION_NDEF_DISCOVERED -> {
+        val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+        if (rawMessages != null && rawMessages.isNotEmpty()) {
+          val ndefMessage = rawMessages[0] as NdefMessage
+          val records = ndefMessage.records
+          
+          if (records.isNotEmpty()) {
+            val record = records[0]
+            
+            // Check if it's a URI record (TNF = 0x01, Type = "U")
+            if (record.tnf.toInt() == 0x01) {
+              val payload = record.payload
+              if (payload.isNotEmpty()) {
+                // First byte is the URI identifier code
+                val uriBytes = payload.copyOfRange(1, payload.size)
+                val uri = String(uriBytes, Charsets.UTF_8)
+                sendPaymentRequest(uri)
+              }
+            }
+          }
+        }
+      }
+      
+      // Handle deep links (camera QR scanner, web links, etc.)
+      Intent.ACTION_VIEW -> {
+        val uri = intent.data?.toString()
+        if (uri != null) {
+          // Send to React Native - validation happens in TypeScript using config.ts
+          sendPaymentRequest(uri)
+        }
+      }
+    }
+  }
+  
+  /**
+   * Store a payment request URI and schedule sending to React Native (for app launch)
+   */
+  private fun sendPaymentRequest(uri: String) {
+    pendingPaymentUri = uri
+    tryToSendPendingPaymentRequest()
+  }
+  
+  /**
+   * Get ReactContext from ReactActivityDelegate (New Architecture)
+   */
+  private fun getReactContext(): com.facebook.react.bridge.ReactContext? {
+    return try {
+      reactActivityDelegate?.reactHost?.currentReactContext
+    } catch (e: Exception) {
+      null
+    }
+  }
+  
+  /**
+   * Send payment request immediately when app is already running
+   */
+  private fun sendPaymentRequestImmediately(uri: String) {
+    val reactContext = getReactContext()
+    if (reactContext != null) {
+      try {
+        reactContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit("PAYMENT_REQUEST", uri)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error sending payment request", e)
+        // Fallback: store for later
+        sendPaymentRequest(uri)
+      }
+    } else {
+      // ReactContext not available yet, store for later
+      sendPaymentRequest(uri)
+    }
+  }
+  
+  
+  /**
+   * Retry sending payment request after a delay
+   */
+  private fun retryPaymentRequest(attempt: Int) {
+    if (attempt < 30) {
+      Handler(Looper.getMainLooper()).postDelayed({
+        tryToSendPendingPaymentRequest(attempt + 1)
+      }, 200)
+    }
+  }
+  
+  /**
+   * Try to send pending payment request to React Native (New Architecture)
+   * Waits for listener to be ready
+   */
+  private fun tryToSendPendingPaymentRequest(attempt: Int = 0) {
+    if (pendingPaymentUri == null) {
+      return
+    }
+    
+    val uri = pendingPaymentUri
+    
+    // Check if listener is ready
+    if (!PaymentRequestModule.isListenerReady()) {
+      retryPaymentRequest(attempt)
+      return
+    }
+    
+    val reactContext = getReactContext()
+    if (reactContext == null) {
+      retryPaymentRequest(attempt)
+      return
+    }
+    
+    try {
+      reactContext
+        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit("PAYMENT_REQUEST", uri)
+      pendingPaymentUri = null
+    } catch (e: Exception) {
+      Log.e(TAG, "Error sending payment request", e)
+      retryPaymentRequest(attempt)
+    }
+  }
+}

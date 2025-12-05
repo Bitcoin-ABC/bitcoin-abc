@@ -1,0 +1,40 @@
+{
+    "name": "MarlinWallet",
+    "version": "1.5.0",
+    "private": true,
+    "scripts": {
+        "android": "npm run build-web && npm run copy-web-android && react-native run-android",
+        "build-android-release-aab": "npm run build-web && npm run copy-web-android && cd android && ./gradlew bundleRelease",
+        "build-android-release-apk": "npm run build-web && npm run copy-web-android && cd android && ./gradlew assembleRelease",
+        "build-web": "cd web && npm run build && cd ..",
+        "clean-android": "cd android && ./gradlew clean",
+        "copy-web-android": "mkdir -p android/app/src/main/assets/web/ && cp -r web/dist/* android/app/src/main/assets/web/"
+    },
+    "dependencies": {
+        "react": "19.1.1",
+        "react-native": "^0.82.0",
+        "react-native-haptic-feedback": "^2.3.3",
+        "react-native-keychain": "^10.0.0",
+        "react-native-linear-gradient": "^2.8.3",
+        "react-native-safe-area-context": "^5.6.0",
+        "react-native-webview": "^13.14.1"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.20.0",
+        "@babel/preset-env": "^7.20.0",
+        "@babel/runtime": "^7.20.0",
+        "@react-native-community/cli": "^20.0.2",
+        "@react-native/babel-preset": "^0.82.0",
+        "@react-native/eslint-config": "^0.82.0",
+        "@react-native/metro-config": "^0.82.0",
+        "@react-native/typescript-config": "^0.82.0",
+        "@types/react": "^19.1.1",
+        "@types/react-test-renderer": "^19.0.0",
+        "prettier": "2.8.8",
+        "react-test-renderer": "19.1.1",
+        "typescript": "5.0.4"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}

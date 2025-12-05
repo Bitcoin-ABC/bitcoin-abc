@@ -1,0 +1,61 @@
+// Copyright (c) 2025 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+// Shared build configuration
+// This script provides shared keystore properties loading and common signing/build configs
+
+// Load keystore properties if they exist (shared across all modules)
+// Set on rootProject so it's available to all modules
+if (!rootProject.ext.has('keystorePropertiesFile')) {
+    rootProject.ext.keystorePropertiesFile = rootProject.file("keystore.properties")
+    rootProject.ext.keystoreProperties = new Properties()
+    if (rootProject.ext.keystorePropertiesFile.exists()) {
+        rootProject.ext.keystoreProperties.load(new FileInputStream(rootProject.ext.keystorePropertiesFile))
+    }
+}
+
+// Define common signing configs and build types
+// These blocks will be merged into the android block when this script is applied
+android.signingConfigs {
+    debug {
+        storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+    }
+    release {
+        if (rootProject.ext.keystorePropertiesFile.exists()) {
+            // Resolve keystore path relative to android directory
+            def keystorePath = rootProject.ext.keystoreProperties['RELEASE_STORE_FILE']
+            def keystoreFile
+            if (keystorePath.startsWith('/')) {
+                keystoreFile = file(keystorePath)
+            } else {
+                // Resolve relative to android directory
+                def androidDir = rootProject.rootDir
+                def keystoreAbsolutePath = new File(androidDir, keystorePath).getAbsolutePath()
+                keystoreFile = file(keystoreAbsolutePath)
+            }
+            storeFile keystoreFile
+            storePassword rootProject.ext.keystoreProperties['RELEASE_STORE_PASSWORD']
+            keyAlias rootProject.ext.keystoreProperties['RELEASE_KEY_ALIAS']
+            keyPassword rootProject.ext.keystoreProperties['RELEASE_KEY_PASSWORD']
+        }
+    }
+}
+
+android.buildTypes {
+    debug {
+        signingConfig android.signingConfigs.debug
+    }
+    release {
+        if (rootProject.ext.keystorePropertiesFile.exists()) {
+            signingConfig android.signingConfigs.release
+        } else {
+            // Fallback to debug if keystore.properties doesn't exist
+            signingConfig android.signingConfigs.debug
+        }
+    }
+}
+
