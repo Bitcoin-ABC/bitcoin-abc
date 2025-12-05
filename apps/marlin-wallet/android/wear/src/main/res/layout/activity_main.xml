@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.wear.widget.BoxInsetLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- QR Code screen container -->
+    <LinearLayout
+        android:id="@+id/qrCodeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+        
+        <!-- Logo at top (very small fixed height) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="36dp">
+            
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/marlinwalletlogo"
+                android:scaleType="fitCenter"
+                android:background="@drawable/logo_background"
+                android:contentDescription="eCash Logo" />
+        </FrameLayout>
+        
+        <!-- QR Code in center (takes ALL remaining space with weight) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/qrCode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:contentDescription="QR Code" />
+        </FrameLayout>
+        
+        <!-- Payment amount label at bottom (fixed height, positioned higher) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp">
+            
+            <TextView
+                android:id="@+id/qrAmountLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center_horizontal"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+    
+    </LinearLayout>
+    
+    <!-- "Open on phone" UI (visible when no address) -->
+    <LinearLayout
+        android:id="@+id/openOnPhoneContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:boxedEdges="all">
+        
+        <ImageView
+            android:id="@+id/phoneIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_smartphone"
+            android:contentDescription="Phone" />
+        
+        <TextView
+            android:id="@+id/openPhoneText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Open the phone app\nto initialize"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textAlignment="center"
+            android:gravity="center" />
+    
+    </LinearLayout>
+    
+    <!-- Amount entry screen (full screen, shown when user taps QR code) -->
+    <androidx.wear.widget.SwipeDismissFrameLayout
+        android:id="@+id/swipeDismissLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+        
+        <FrameLayout
+            android:id="@+id/amountEntryScreen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000"
+            app:boxedEdges="all">
+        
+        <!-- Title at top -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment Request"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="16dp" />
+        
+        <!-- Center content container (units + amount) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:layout_marginBottom="20dp"
+            android:gravity="center">
+            
+            <!-- Unit selector -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+                
+                <TextView
+                    android:id="@+id/unitXec"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="XEC"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textColor="#444444"
+                    android:textSize="11sp"
+                    android:paddingLeft="1dp"
+                    android:paddingRight="1dp" />
+                
+                <TextView
+                    android:id="@+id/unitKxec"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="kXEC"
+                    android:textColor="#888888"
+                    android:textSize="11sp"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textColor="#444444"
+                    android:textSize="11sp"
+                    android:paddingLeft="1dp"
+                    android:paddingRight="1dp" />
+                
+                <TextView
+                    android:id="@+id/unitMxec"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MXEC"
+                    android:textColor="#888888"
+                    android:textSize="11sp"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+            
+            <!-- Amount display -->
+            <TextView
+                android:id="@+id/amountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5.46 XEC"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:background="@drawable/rounded_background" />
+        
+        </LinearLayout>
+        
+        <!-- Action buttons at bottom (circular) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:id="@+id/clearBtn"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="✕"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/button_circle_red"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginRight="16dp" />
+            
+            <TextView
+                android:id="@+id/applyBtn"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="✓"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/button_circle_green"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    
+        </FrameLayout>
+    
+    </androidx.wear.widget.SwipeDismissFrameLayout>
+    
+    <!-- Hidden EditText for keyboard input -->
+    <EditText
+        android:id="@+id/amountInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:inputType="numberDecimal"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:imeOptions="actionDone"
+        android:visibility="gone" />
+
+</androidx.wear.widget.BoxInsetLayout>
+

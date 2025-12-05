@@ -1,0 +1,63 @@
+// Copyright (c) 2025 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+
+android {
+    archivesBaseName = "marlin-wallet-wear"
+    
+    namespace "com.marlinwallet.app"
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId rootProject.ext.applicationId
+        minSdk 28  // Wear OS 3.0+
+        targetSdk rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.baseVersionCode + 1000
+        versionName rootProject.ext.versionName
+    }
+
+    // Apply shared signing configs and build types
+    apply from: '../shared-build-config.gradle'
+    
+    // Override release buildType to add module-specific settings
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    sourceSets {
+        main {
+            java.srcDirs += '../shared/java'
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.wear:wear:1.3.0"
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+    
+    // Splash screen library (required for Wear OS)
+    implementation "androidx.core:core-splashscreen:1.2.0"
+    
+    // Wear OS specific
+    compileOnly "com.google.android.wearable:wearable:2.9.0"
+    implementation "androidx.wear:wear-ongoing:1.0.0"
+    
+    // QR code generation
+    implementation "com.google.zxing:core:3.5.3"
+    
+    // Wearable Data Layer
+    implementation "com.google.android.gms:play-services-wearable:18.1.0"
+}
+

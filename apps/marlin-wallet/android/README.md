@@ -86,3 +86,36 @@ You might want to clean the existing build files first, which can be done using 
 ```bash
 npm run clean-android
 ```
+
+# Marlin Wallet for Wear OS
+
+Building and running the Wear OS companion application is very similar to Android.
+
+Make sure you installed all the Android dependencies as they are also required for Wear OS.
+Connect you watch or emulator and make sure it appears as connection using `adb devices`.
+Note that connecting a real watch device requires a [Wifi connection and a pairing process](https://developer.android.com/training/wearables/get-started/debugging#physical-watch).
+
+When it's ready, you can run the following command to install the app on the device:
+
+```bash
+npm run wearos
+```
+
+As opposed to the Android application, the Wear OS application does not run automatically, you have to launch it using the watch application launcher.
+
+**Note**: the Wear OS application is a companion application and requires a paired Android phone running the Marlin Wallet application to work.
+
+## Build a release version
+
+To build a release version of the Wear OS application, follow the same process as the Android application regarding the generation of the keystore.
+Then use the following command to build the AAB bundle (for Play Store submission):
+
+```bash
+npm run build-wearos-release-aab
+```
+
+or the APK package (for sideloading):
+
+```bash
+npm run build-wearos-release-apk
+```

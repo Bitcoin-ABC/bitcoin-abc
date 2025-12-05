@@ -125,8 +125,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-wearable:18.1.0"
     
     // Embed WearOS companion app
-    // TODO: Uncomment this when we add the WearOS app
-    // wearApp project(':wear')
+    wearApp project(':wear')
 }
 
 project.ext.react = [

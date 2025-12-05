@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Round app icon can take all of default space (48dp for Wear OS) -->
+    <dimen name="splash_screen_icon_size">48dp</dimen>
+</resources>
+

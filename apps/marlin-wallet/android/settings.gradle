@@ -6,6 +6,5 @@ plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'MarlinWallet'
 include ':app'
-// TODO: Uncomment this when we add the WearOS app
-// include ':wear'
+include ':wear'
 includeBuild('../node_modules/@react-native/gradle-plugin')

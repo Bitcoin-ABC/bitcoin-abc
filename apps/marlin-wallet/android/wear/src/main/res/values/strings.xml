@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Marlin Wallet</string>
+    <string name="nfc_service_description">Tap to receive payment details</string>
+    <string name="nfc_aid_group_description">Marlin Wallet</string>
+</resources>
+

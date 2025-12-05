@@ -6,9 +6,12 @@
         "android": "npm run build-web && npm run copy-web-android && react-native run-android",
         "build-android-release-aab": "npm run build-web && npm run copy-web-android && cd android && ./gradlew bundleRelease",
         "build-android-release-apk": "npm run build-web && npm run copy-web-android && cd android && ./gradlew assembleRelease",
+        "build-wearos-release-aab": "cd android && ./gradlew :wear:bundleRelease",
+        "build-wearos-release-apk": "cd android && ./gradlew :wear:assembleRelease",
         "build-web": "cd web && npm run build && cd ..",
         "clean-android": "cd android && ./gradlew clean",
-        "copy-web-android": "mkdir -p android/app/src/main/assets/web/ && cp -r web/dist/* android/app/src/main/assets/web/"
+        "copy-web-android": "mkdir -p android/app/src/main/assets/web/ && cp -r web/dist/* android/app/src/main/assets/web/",
+        "wearos": "cd android && ./gradlew :wear:installDebug"
     },
     "dependencies": {
         "react": "19.1.1",
