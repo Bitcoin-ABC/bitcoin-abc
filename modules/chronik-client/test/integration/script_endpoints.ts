@@ -297,7 +297,7 @@ describe('Get script().history and script().utxos()', () => {
                 chronikScriptNonHexPayload.unconfirmedTxs(),
             ).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${nonHexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+                `Failed getting /script/${type}/${nonHexPayload}/unconfirmed-txs: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
             await expect(chronikScriptNonHexPayload.utxos()).to.be.rejectedWith(
                 Error,
@@ -324,7 +324,7 @@ describe('Get script().history and script().utxos()', () => {
                     chronikScriptHexPayload.unconfirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.utxos(),
@@ -350,7 +350,7 @@ describe('Get script().history and script().utxos()', () => {
                     chronikScriptHexPayload.unconfirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.utxos(),
@@ -419,10 +419,7 @@ describe('Get script().history and script().utxos()', () => {
                 0,
                 broadcastTxids.length,
             );
-            const unconfirmedTxs = await chronikScript.unconfirmedTxs(
-                0,
-                broadcastTxids.length,
-            );
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs();
 
             // If all txs are in the mempool, unconfirmedTxs matches what we get for history
             // unconfirmed txs are sorted in chronological order, tiebreaker txid alphabetical
@@ -634,10 +631,7 @@ describe('Get script().history and script().utxos()', () => {
                 0,
                 broadcastTxids.length,
             );
-            const unconfirmedTxs = await chronikScript.unconfirmedTxs(
-                0,
-                broadcastTxids.length,
-            );
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs();
             const utxos = await chronikScript.utxos();
 
             // fetched history tx count is the same as txids broadcast to this address

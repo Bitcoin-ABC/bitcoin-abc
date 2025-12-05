@@ -394,15 +394,12 @@ export class ScriptEndpoint {
 
     /**
      * Fetches the unconfirmed tx history of this script, in chronological order.
-     * @param page Page index of the tx history.
-     * @param pageSize Number of txs per page.
+     *
+     * NB this endpoint is NOT paginated, even though it does return the TxHistoryPage shape
      */
-    public async unconfirmedTxs(
-        page = 0, // Get the first page if unspecified
-        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
-    ): Promise<TxHistoryPage> {
+    public async unconfirmedTxs(): Promise<TxHistoryPage> {
         const data = await this._proxyInterface.get(
-            `/script/${this._scriptType}/${this._scriptPayload}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+            `/script/${this._scriptType}/${this._scriptPayload}/unconfirmed-txs`,
         );
         const historyPage = proto.TxHistoryPage.decode(data);
         return {
@@ -481,15 +478,12 @@ export class TokenIdEndpoint {
 
     /**
      * Fetches the unconfirmed tx history of this tokenId, in chronological order.
-     * @param page Page index of the tx history.
-     * @param pageSize Number of txs per page.
+     *
+     * NB this endpoint is NOT paginated, even though it does return the TxHistoryPage shape
      */
-    public async unconfirmedTxs(
-        page = 0, // Get the first page if unspecified
-        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
-    ): Promise<TxHistoryPage> {
+    public async unconfirmedTxs(): Promise<TxHistoryPage> {
         const data = await this._proxyInterface.get(
-            `/token-id/${this._tokenId}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+            `/token-id/${this._tokenId}/unconfirmed-txs`,
         );
         const historyPage = proto.TxHistoryPage.decode(data);
         return {
@@ -566,15 +560,12 @@ export class LokadIdEndpoint {
 
     /**
      * Fetches the unconfirmed tx history of this tokenId, in chronological order.
-     * @param page Page index of the tx history.
-     * @param pageSize Number of txs per page.
+     *
+     * NB this endpoint is NOT paginated, even though it does return the TxHistoryPage shape
      */
-    public async unconfirmedTxs(
-        page = 0, // Get the first page if unspecified
-        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
-    ): Promise<TxHistoryPage> {
+    public async unconfirmedTxs(): Promise<TxHistoryPage> {
         const data = await this._proxyInterface.get(
-            `/lokad-id/${this._lokadId}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+            `/lokad-id/${this._lokadId}/unconfirmed-txs`,
         );
         const historyPage = proto.TxHistoryPage.decode(data);
         return {
@@ -683,16 +674,12 @@ export class PluginEndpoint {
     /**
      * Fetches the unconfirmed tx history of this groupHex for this plugin, in chronological order.
      * @param groupHex group as a lowercase hex string
-     * @param page Page index of the tx history.
-     * @param pageSize Number of txs per page.
+     *
+     * NB this endpoint is NOT paginated, even though it does return the TxHistoryPage shape
      */
-    public async unconfirmedTxs(
-        groupHex: string,
-        page = 0, // Get the first page if unspecified
-        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
-    ): Promise<TxHistoryPage> {
+    public async unconfirmedTxs(groupHex: string): Promise<TxHistoryPage> {
         const data = await this._proxyInterface.get(
-            `/plugin/${this._pluginName}/${groupHex}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+            `/plugin/${this._pluginName}/${groupHex}/unconfirmed-txs`,
         );
         const historyPage = proto.TxHistoryPage.decode(data);
         return {

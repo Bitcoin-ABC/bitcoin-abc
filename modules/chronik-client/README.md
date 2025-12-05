@@ -134,3 +134,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   3.6.0 - Add new websocket subscription method `subscribeToTxs` to listen to all txs on the network [D18993](https://reviews.bitcoinabc.org/D18993)
 -   3.6.1 - Patch for CI publication including correct `ecashaddrjs` dep [D18997](https://reviews.bitcoinabc.org/D18997)
 -   3.7.0 - Add support for `unconfirmedTxs` method to return mempool txs for a given chronik server [D19050](https://reviews.bitcoinabc.org/D19050)
+-   4.0.0 - **(Breaking change)** Remove pagination params from `unconfirmedTxs` methods that do not actually support pagination; no change in behavior as these params were previously not working, but any callsites using them are now expected to throw or fail type checks [D19059](https://reviews.bitcoinabc.org/D19059)

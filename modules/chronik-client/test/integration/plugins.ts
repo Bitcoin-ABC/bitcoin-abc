@@ -200,7 +200,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             chronik.plugin(nonExistentPlugin).unconfirmedTxs(BYTES_a),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/unconfirmed-txs?page=0&page_size=25: 404: Plugin "${nonExistentPlugin}" not loaded`,
+            `Failed getting /plugin/${nonExistentPlugin}/${BYTES_a}/unconfirmed-txs: 404: Plugin "${nonExistentPlugin}" not loaded`,
         );
 
         // We throw an error if the endpoint is called with an invalid plugin group hex
@@ -227,7 +227,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             chronik.plugin(PLUGIN_NAME).unconfirmedTxs(badPluginName),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/unconfirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character 'n' at position 0`,
+            `Failed getting /plugin/${PLUGIN_NAME}/${badPluginName}/unconfirmed-txs: 400: Invalid hex: Invalid character 'n' at position 0`,
         );
 
         // Connect to the websocket with a testable onMessage handler

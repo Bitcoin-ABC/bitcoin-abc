@@ -1045,8 +1045,6 @@ export class Agora {
             case 'UNCONFIRMED':
                 result = await this.plugin.unconfirmedTxs(
                     groupHex,
-                    params.page,
-                    params.pageSize,
                 );
                 break;
             case 'HISTORY':
