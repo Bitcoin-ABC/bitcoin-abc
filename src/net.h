@@ -867,6 +867,7 @@ public:
         bool m_i2p_accept_incoming = true;
         bool whitelist_forcerelay = DEFAULT_WHITELISTFORCERELAY;
         bool whitelist_relay = DEFAULT_WHITELISTRELAY;
+        bool m_capture_messages = false;
     };
 
     void Init(const Options &connOptions)
@@ -909,7 +910,11 @@ public:
         m_onion_binds = connOptions.onion_binds;
         whitelist_forcerelay = connOptions.whitelist_forcerelay;
         whitelist_relay = connOptions.whitelist_relay;
+        m_capture_messages = connOptions.m_capture_messages;
     }
+
+    // test only
+    void SetCaptureMessages(bool cap) { m_capture_messages = cap; }
 
     CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1,
              AddrMan &addrmanIn, bool network_active = true);
@@ -1414,6 +1419,11 @@ private:
      * and manual peers with default permissions.
      */
     bool whitelist_relay;
+
+    /**
+     * flag for whether messages are captured
+     */
+    bool m_capture_messages{false};
 
     std::atomic_bool inflight_throttle{false};
 

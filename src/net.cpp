@@ -3166,7 +3166,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     size_t nMessageSize = msg.data.size();
     LogDebug(BCLog::NETDEBUG, "sending %s (%d bytes) peer=%d\n", msg.m_type,
              nMessageSize, pnode->GetId());
-    if (gArgs.GetBoolArg("-capturemessages", false)) {
+    if (m_capture_messages) {
         CaptureMessage(pnode->addr, msg.m_type, msg.data,
                        /*is_incoming=*/false);
     }
