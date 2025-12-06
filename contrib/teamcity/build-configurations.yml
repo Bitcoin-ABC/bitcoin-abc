@@ -1,187 +1,198 @@
 ---
 # Templates can be referenced in builds to avoid duplication
 templates:
-  guix_builds:
-    script: |
-      "${TOPLEVEL}/contrib/teamcity/guix.sh"
-    timeout: 14400
-    artifacts:
-      guix-results: ''
+    guix_builds:
+        script: |
+            "${TOPLEVEL}/contrib/teamcity/guix.sh"
+        timeout: 14400
+        artifacts:
+            guix-results: ''
 
-  check+secp256k1:
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check
-        - check-secp256k1
-        - check-functional
+    check+secp256k1:
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+            - - check
+              - check-secp256k1
+              - check-functional
 
-  diff-node:
-    runOnDiffRegex:
-      - cmake/
-      - src/
-      - test/
-      - CMakeLists.txt
+    diff-node:
+        runOnDiffRegex:
+            - cmake/
+            - src/
+            - test/
+            - CMakeLists.txt
 
-  secp256k1:
-    runOnDiffRegex:
-      - src/secp256k1/
-    Werror: true
-    targets:
-      - - secp256k1
-        - install-secp256k1
-      - - check-secp256k1
+    secp256k1:
+        runOnDiffRegex:
+            - src/secp256k1/
+        Werror: true
+        targets:
+            - - secp256k1
+              - install-secp256k1
+            - - check-secp256k1
 
-  ibd:
-    targets:
-      - - bitcoind
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
-    timeout: 28800
-    artifacts:
-      ibd/debug.log: log/debug.log
+    ibd:
+        targets:
+            - - bitcoind
+        post_build: |
+            "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
+        timeout: 28800
+        artifacts:
+            ibd/debug.log: log/debug.log
 
-  ibd-no-assumevalid-checkpoint:
-    targets:
-      - - bitcoind
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
-    timeout: 28800
-    artifacts:
-      ibd/debug.log: log/debug.log
+    ibd-no-assumevalid-checkpoint:
+        targets:
+            - - bitcoind
+        post_build: |
+            "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
+        timeout: 28800
+        artifacts:
+            ibd/debug.log: log/debug.log
 
-  # This template expects the following environment variables to be set:
-  #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
-  #    relative to the repository top level (no trailing /).
-  #  - DEPENDS_MOCK_CHRONIK_CLIENT: "true" if these tests require
-  #    the mock-chronik-client library, otherwise unset
-  #  - DEPENDS_B58_TS: "true" if these tests require b58-ts to be built, otherwise unset
-  #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
-  #    to be built, otherwise unset
-  #  - DEPENDS_ECASH_LIB: "true" if these tests require ecash-lib to be
-  #    built, otherwise unset
-  #  - DEPENDS_ECASH_AGORA: "true" if these tests require ecash-agora to be built,
-  #    otherwise unset
-  #  - DEPENDS_CHRONIK_CLIENT: "true" if these tests require chronik-client
-  #    to be build, otherwise unset
-  js-mocha:
-    artifacts:
-      coverage.tar.gz: coverage.tar.gz
-    script: |
-      # Convert hyphen separated words to space separated capitalized words
-      project_to_suite() {
-        HYPHEN_SEPARATED=$1
-        WORD_SEPARATED=($(echo "${HYPHEN_SEPARATED//-/ }"))
-        echo "${WORD_SEPARATED[@]^}"
-      }
+    # This template expects the following environment variables to be set:
+    #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
+    #    relative to the repository top level (no trailing /).
+    #  - DEPENDS_MOCK_CHRONIK_CLIENT: "true" if these tests require
+    #    the mock-chronik-client library, otherwise unset
+    #  - DEPENDS_B58_TS: "true" if these tests require b58-ts to be built, otherwise unset
+    #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
+    #    to be built, otherwise unset
+    #  - DEPENDS_ECASH_LIB: "true" if these tests require ecash-lib to be
+    #    built, otherwise unset
+    #  - DEPENDS_ECASH_AGORA: "true" if these tests require ecash-agora to be built,
+    #    otherwise unset
+    #  - DEPENDS_CHRONIK_CLIENT: "true" if these tests require chronik-client
+    #    to be build, otherwise unset
+    js-mocha:
+        artifacts:
+            coverage.tar.gz: coverage.tar.gz
+        script: |
+            # Convert hyphen separated words to space separated capitalized words
+            project_to_suite() {
+              HYPHEN_SEPARATED=$1
+              WORD_SEPARATED=($(echo "${HYPHEN_SEPARATED//-/ }"))
+              echo "${WORD_SEPARATED[@]^}"
+            }
 
-      PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
-      TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+            PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
+            TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
 
-      pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
+            pushd "${TOPLEVEL}"
+            # Install all workspace dependencies first
+            pnpm install --frozen-lockfile
+            # Install dependencies for the specific project (including devDependencies)
+            pnpm install --frozen-lockfile --filter "${PROJECT_NAME}"...
+            popd
 
-      MOCHA_JUNIT_DIR="test_results"
-      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_${PROJECT_NAME}.xml"
-      rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
+            pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
-      npm ci
+            MOCHA_JUNIT_DIR="test_results"
+            MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_${PROJECT_NAME}.xml"
+            rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
 
-      # Test build if this is a typescript app that builds
-      if [ -z "${RUN_NPM_BUILD+x}" ] ; then
-        echo "CI not configured to test build."
-      else
-        echo "CI configured to test build. Building..."
-        npm run build
-      fi
+            # Test build if this is a typescript app that builds
+            if [ -z "${RUN_NPM_BUILD+x}" ] ; then
+              echo "CI not configured to test build."
+            else
+              echo "CI configured to test build. Building..."
+              pnpm run build
+            fi
 
-      # Make sure the report is available even if the tests fail.
-      # Note the report might not exist (e.g. if the build failed before the
-      # tests are run) so we discard the errors here.
-      move_junit_report() {
-        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
-      }
-      trap "move_junit_report" EXIT
+            # Make sure the report is available even if the tests fail.
+            # Note the report might not exist (e.g. if the build failed before the
+            # tests are run) so we discard the errors here.
+            move_junit_report() {
+              mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
+            }
+            trap "move_junit_report" EXIT
 
-      nyc \
-        --reporter=text \
-        --reporter=lcov \
-        --reporter=teamcity \
-        npm test -- \
-          --reporter mocha-junit-reporter \
-          --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
-          --reporter-options testsuitesTitle="${TEST_SUITE_NAME} Unit Tests" \
-          --reporter-options rootSuiteTitle="${TEST_SUITE_NAME}"
+            pnpm exec nyc \
+              --reporter=text \
+              --reporter=lcov \
+              --reporter=teamcity \
+              pnpm test -- \
+                --reporter mocha-junit-reporter \
+                --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
+                --reporter-options testsuitesTitle="${TEST_SUITE_NAME} Unit Tests" \
+                --reporter-options rootSuiteTitle="${TEST_SUITE_NAME}"
 
-      # Generate a summary report
-      lcov \
-        --rc lcov_branch_coverage=1 \
-        --summary coverage/lcov.info \
-        > coverage/lcov-report/coverage-summary.txt 2>&1
+            # Generate a summary report
+            lcov \
+              --rc lcov_branch_coverage=1 \
+              --summary coverage/lcov.info \
+              > coverage/lcov-report/coverage-summary.txt 2>&1
 
-      pushd coverage/lcov-report
-      tar -czf ../coverage.tar.gz -- *
-      popd
-      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
-      rm -rf coverage
+            pushd coverage/lcov-report
+            tar -czf ../coverage.tar.gz -- *
+            popd
+            mv coverage/coverage.tar.gz "${BUILD_DIR}/"
+            rm -rf coverage
 
-  # This template expect the following environment variables to be set:
-  #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
-  #    relative to the repository top level (no trailing /).
-  js-mocha-integration-tests:
-    artifacts:
-      coverage.tar.gz: coverage.tar.gz
-    post_build: |
-      # Convert hyphen separated words to space separated capitalized words
-      project_to_suite() {
-        HYPHEN_SEPARATED=$1
-        WORD_SEPARATED=($(echo "${HYPHEN_SEPARATED//-/ }"))
-        echo "${WORD_SEPARATED[@]^}"
-      }
+    # This template expect the following environment variables to be set:
+    #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
+    #    relative to the repository top level (no trailing /).
+    js-mocha-integration-tests:
+        artifacts:
+            coverage.tar.gz: coverage.tar.gz
+        post_build: |
+            # Convert hyphen separated words to space separated capitalized words
+            project_to_suite() {
+              HYPHEN_SEPARATED=$1
+              WORD_SEPARATED=($(echo "${HYPHEN_SEPARATED//-/ }"))
+              echo "${WORD_SEPARATED[@]^}"
+            }
 
-      PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
-      TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+            PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
+            TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
 
-      pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
+            pushd "${TOPLEVEL}"
+            # Install all workspace dependencies first
+            pnpm install --frozen-lockfile
+            # Install dependencies for the specific project (including devDependencies)
+            pnpm install --frozen-lockfile --filter "${PROJECT_NAME}"...
+            popd
 
-      MOCHA_JUNIT_DIR="test_results"
-      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_integration_tests_${PROJECT_NAME}.xml"
-      rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
+            pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
-      # Install deps and build
-      # Note that all js-mocha-integration-tests template builds are ts and must be built
-      npm ci
-      npm run build
+            MOCHA_JUNIT_DIR="test_results"
+            MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/junit_results_integration_tests_${PROJECT_NAME}.xml"
+            rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
 
-      # Make sure the report is available even if the tests fail.
-      # Note the report might not exist (e.g. if the build failed before the
-      # tests are run) so we discard the errors here.
-      move_junit_report() {
-        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
-      }
-      trap "move_junit_report" EXIT
+            # Build the project
+            # Note that all js-mocha-integration-tests template builds are ts and must be built
+            pnpm run build
 
-      nyc \
-        --reporter=text \
-        --reporter=lcov \
-        --reporter=teamcity \
-        npm run integration-tests -- \
-          --reporter mocha-junit-reporter \
-          --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
-          --reporter-options testsuitesTitle="${TEST_SUITE_NAME} Integration Tests" \
-          --reporter-options rootSuiteTitle="${TEST_SUITE_NAME}"
+            # Make sure the report is available even if the tests fail.
+            # Note the report might not exist (e.g. if the build failed before the
+            # tests are run) so we discard the errors here.
+            move_junit_report() {
+              mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/" &> /dev/null || true
+            }
+            trap "move_junit_report" EXIT
 
-      # Generate a summary report
-      lcov \
-        --rc lcov_branch_coverage=1 \
-        --summary coverage/lcov.info \
-        > coverage/lcov-report/coverage-summary.txt 2>&1
+            pnpm exec nyc \
+              --reporter=text \
+              --reporter=lcov \
+              --reporter=teamcity \
+              pnpm run integration-tests -- \
+                --reporter mocha-junit-reporter \
+                --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
+                --reporter-options testsuitesTitle="${TEST_SUITE_NAME} Integration Tests" \
+                --reporter-options rootSuiteTitle="${TEST_SUITE_NAME}"
 
-      pushd coverage/lcov-report
-      tar -czf ../coverage.tar.gz -- *
-      popd
-      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
-      rm -rf coverage
+            # Generate a summary report
+            lcov \
+              --rc lcov_branch_coverage=1 \
+              --summary coverage/lcov.info \
+              > coverage/lcov-report/coverage-summary.txt 2>&1
+
+            pushd coverage/lcov-report
+            tar -czf ../coverage.tar.gz -- *
+            popd
+            mv coverage/coverage.tar.gz "${BUILD_DIR}/"
+            rm -rf coverage
 
 # The build descriptions.
 # If a script is defined, then this will be the only step to run.
@@ -196,907 +207,926 @@ templates:
 #   ninja build11 build12
 #   ninja build21 build22
 builds:
-  build-asan:
-    Werror: true
-    clang: true
-    fail_fast: true
-    cmake_flags:
-      - '-DCMAKE_CXX_FLAGS=-DARENA_DEBUG'
-      - '-DCRYPTO_USE_ASM=OFF'
-      - '-DENABLE_SANITIZERS=address'
-    templates:
-      - check+secp256k1
-    timeout: 3600
-    env:
-      ASAN_OPTIONS: log_path=stdout
-      LSAN_OPTIONS: log_path=stdout
-
-  build-bench:
-    runOnDiffRegex:
-      - src/bench/
-    Werror: true
-    targets:
-      - - all
-        - install-bitcoin-bench
-      - - bench-bitcoin
-    timeout: 1200
-    artifacts:
-      src/bench/BitcoinABC_Bench.csv: bench/BitcoinABC_Bench.csv
-      src/bench/BitcoinABC_Bench.json: bench/BitcoinABC_Bench.json
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/nanobench_json_to_teamcity_messages.py" \
-        "Bitcoin ABC Benchmark" \
-        "${BUILD_DIR}/src/bench/BitcoinABC_Bench.json"
-
-  build-bitcoinsuite-chronik-client:
-    runOnDiffRegex:
-      - modules/bitcoinsuite-chronik-client/
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHRONIK_PLUGINS=ON'
-    targets:
-      - - all
-    post_build: |
-      # Navigate to the bitcoinsuite-chronik-client directory
-      pushd "${TOPLEVEL}/modules/bitcoinsuite-chronik-client"
-      cargo build
-      cargo test -p bitcoinsuite-chronik-client
-      popd
-    timeout: 1200
-
-  build-chronik:
-    runOnDiffRegex:
-      - chronik/
-      - Cargo.toml
-      - Cargo.lock
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-    targets:
-      - - check-crates
-      - - all
-        - install
-      - - check
-        - check-functional
-
-  build-chronik-plugins:
-    runOnDiffRegex:
-      - chronik/
-      - Cargo.toml
-      - Cargo.lock
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHRONIK_PLUGINS=ON'
-    targets:
-      - - check-crates
-      - - all
-        - install
-      - - check
-        - check-functional
-
-  build-clang:
-    Werror: true
-    clang: true
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check
-        - check-secp256k1
-    templates:
-      - diff-node
-    timeout: 1200
-
-  build-clang-tidy:
-    clang: true
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DENABLE_CLANG_TIDY=ON'
-    targets:
-      - - all
-      - - check
-      - - bitcoin-fuzzers
-    templates:
-      - diff-node
-    timeout: 1800
-
-  build-coverage:
-    gcc: true
-    cmake_flags:
-      - '-DENABLE_COVERAGE=ON'
-      - '-DENABLE_BRANCH_COVERAGE=ON'
-    targets:
-      - - coverage-check-extended
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/upload-coverage.sh" check-extended
-    timeout: 4800
-    artifacts:
-      coverage.tar.gz: coverage.tar.gz
-
-  build-debug:
-    Werror: true
-    cmake_flags:
-      - '-DCMAKE_BUILD_TYPE=Debug'
-    templates:
-      - check+secp256k1
-      - diff-node
-    timeout: 1200
-
-  build-diff:
-    Werror: true
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check-all
-        - check-upgrade-activated
-    templates:
-      - diff-node
-    timeout: 1200
-
-  build-docs:
-    targets:
-      - - doc-rpc
-        - doc-doxygen
-    post_build: |
-      xvfb-run -a -e /dev/stderr ninja install-manpages-html
-    timeout: 600
-    artifacts:
-      doc/*: doc
-
-  build-explorer:
-    runOnDiffRegex:
-      - web/explorer/
-      - Cargo.lock
-      - Cargo.toml
-    script: |
-      # Build the main explorer project, will run on all sub dir
-      pushd "${TOPLEVEL}/web/explorer"
-      cargo build --locked
-      cargo test -p explorer-server -p explorer-exe
-    timeout: 1200
-
-  build-fuzzer:
-    runOnDiffRegex:
-      - src/test/fuzz/
-      - test/fuzz/
-    clang: true
-    Werror: true
-    cmake_flags:
-      - '-DENABLE_SANITIZERS=fuzzer'
-    targets:
-      - - bitcoin-fuzzers
-
-  build-ibd:
-    templates:
-      - ibd
-
-  build-ibd-no-assumevalid-checkpoint:
-    templates:
-      - ibd-no-assumevalid-checkpoint
-
-  build-linux64:
-    cross_build:
-      static_depends: linux64
-      toolchain: Linux64
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHAINSTATE=ON'
-    templates:
-      - check+secp256k1
-    timeout: 3600
-
-  build-linux-aarch64:
-    cross_build:
-      static_depends: linux-aarch64
-      toolchain: LinuxAArch64
-      emulator: qemu-aarch64-static
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHAINSTATE=ON'
-      # The ZMQ functional test will fail with qemu (due to a qemu limitation),
-      # so disable it to avoid the failure.
-      # Extracted from stderr:
-      #   Unknown host QEMU_IFLA type: 50
-      #   Unknown host QEMU_IFLA type: 51
-      #   Unknown QEMU_IFLA_BRPORT type 33
-      - "-DBUILD_ZMQ=OFF"
-      # This is an horrible hack to workaround a qemu bug:
-      # https://bugs.launchpad.net/qemu/+bug/1748612
-      # Qemu emits a message for unsupported features called by the guest.
-      # Because the output filtering is not working at all, it causes the
-      # qemu stderr to end up in the node stderr and fail the functional
-      # tests.
-      # Disabling the unsupported feature (here bypassing the config
-      # detection) fixes the issue.
-      # FIXME: get rid of the hack, either by using a better qemu version
-      # or by filtering stderr at the framework level.
-      - "-DHAVE_DECL_GETIFADDRS=OFF"
-    templates:
-      - check+secp256k1
-    timeout: 3600
-    env:
-      QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
-
-  build-make-generator:
-    generator:
-      name: 'Unix Makefiles'
-      command: make
-      flags:
-        - '-k'
-    templates:
-      - check+secp256k1
-    timeout: 1200
-
-  build-master:
-    cmake_flags:
-      - '-DBUILD_CHAINSTATE=ON'
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHRONIK_PLUGINS=ON'
-    Werror: true
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-      - - check-extended
-        - check-upgrade-activated-extended
-      - - check-electrum
-    timeout: 4800
-
-  build-native-osx:
-    templates:
-      - check+secp256k1
-    timeout: 3600
-
-  build-osx:
-    cross_build:
-      static_depends: osx
-      toolchain: OSX
-    cmake_flags:
-      - '-DBUILD_CHAINSTATE=ON'
-    # Uncomment to build Chronik once the cxx crate is working for OSX
-    #  - '-DBUILD_CHRONIK=ON'
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-        - install-tests
-    post_build: |
-      export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin/native/lib/python3/dist-packages:${PYTHONPATH:-}"
-      ninja osx-zip
-    timeout: 3600
-    artifacts:
-      Bitcoin-ABC.zip: Bitcoin-ABC.zip
-
-  build-secp256k1:
-    runOnDiffRegex:
-      - src/secp256k1/
-    cmake_flags:
-      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
-      - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
-    templates:
-      - secp256k1
-    timeout: 600
-
-  build-secp256k1-java:
-    runOnDiffRegex:
-      - src/secp256k1/
-    cmake_flags:
-      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
-      - '-DSECP256K1_ENABLE_JNI=ON'
-      - '-DUSE_JEMALLOC=OFF'
-    templates:
-      - secp256k1
-    timeout: 600
-
-  build-secp256k1-bench:
-    runOnDiffRegex:
-      - src/secp256k1/
-    cmake_flags:
-      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
-      - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
-    targets:
-      - - install-secp256k1-bench
-      - - bench-secp256k1
-    timeout: 1200
-
-  build-ecash-secp256k1:
-    runOnDiffRegex:
-      - src/secp256k1/
-      - modules/ecash-secp256k1/
-    script: |
-      "${TOPLEVEL}/modules/ecash-secp256k1/contrib/test.sh"
-    timeout: 1200
-
-  build-tsan:
-    Werror: true
-    clang: true
-    fail_fast: true
-    cmake_flags:
-      - '-DENABLE_SANITIZERS=thread'
-    targets:
-      - - all
-        - install
-      - - check
-      - - check-functional
-    timeout: 2400
-    env:
-      TSAN_OPTIONS: log_path=stdout
-
-  build-ubsan:
-    Werror: true
-    clang: true
-    fail_fast: true
-    cmake_flags:
-      - '-DENABLE_SANITIZERS=undefined'
-    templates:
-      - check+secp256k1
-    timeout: 2400
-    env:
-      UBSAN_OPTIONS: log_path=stdout
-
-  build-win64:
-    cross_build:
-      static_depends: win64
-      toolchain: Win64
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHAINSTATE=ON'
-      - "-DBUILD_SEEDER=OFF"
-      - "-DCPACK_STRIP_FILES=ON"
-      - "-DUSE_JEMALLOC=OFF"
-    targets:
-      - - all
-        - install
-        - install-secp256k1
-        # install-tests is broken on debian bullseye because the leveldb tests
-        # do not export any symbol and trigger a mingw linker bug:
-        # https://sourceware.org/bugzilla/show_bug.cgi?id=26588
-        # We still install most test suites so we can use the artifacts and run
-        # them on the native platform.
-        #- install-tests
-        - install-test-suite-bitcoin
-        - install-test-suite-bitcoin-qt
-        - install-test-suite-avalanche
-        - install-test-suite-pow
-      - - package
-    post_build: |
-      wine "${ARTIFACT_DIR}/bin/test_bitcoin.exe" --run_test=\!radix_tests,rcu_tests,denialofservice_tests/outbound_slow_chain_eviction
-    timeout: 3600
-    artifacts:
-      bitcoin-abc-*-x86_64-w64-mingw32.exe: bitcoin-abc-x86_64-w64-mingw32.exe
-
-  build-without-bip70:
-    Werror: true
-    cmake_flags:
-      - '-DENABLE_BIP70=OFF'
-    targets:
-      - - all
-        - install
-      - - check
-        - check-functional
-    timeout: 1800
-
-  build-without-cli:
-    Werror: true
-    cmake_flags:
-      - '-DBUILD_CLI=OFF'
-    targets:
-      - - all
-        - install
-      - - check-functional
-    timeout: 1200
-
-  build-without-qt:
-    Werror: true
-    cmake_flags:
-      - '-DBUILD_QT=OFF'
-    targets:
-      - - all
-        - install
-      - - check
-    timeout: 1200
-
-  build-without-wallet:
-    Werror: true
-    cmake_flags:
-      - '-DBUILD_WALLET=OFF'
-      - '-DBUILD_CHAINSTATE=ON'
-    targets:
-      - - all
-        - install
-      - - check
-        - check-functional
-    templates:
-      - diff-node
-    timeout: 1200
-
-  build-without-zmq:
-    Werror: true
-    cmake_flags:
-      - '-DBUILD_ZMQ=OFF'
-    targets:
-      - - all
-        - install
-      - - check
-        - check-functional
-    timeout: 1800
-
-  check-buildbot:
-    runOnDiffRegex:
-      - contrib/buildbot/
-    targets:
-      - - check-buildbot
-    timeout: 600
-
-  check-seeds:
-    targets:
-      - - bitcoind
-        - bitcoin-cli
-    post_build: |
-      # Run on different ports to avoid a race where the rpc port used in the first run
-      # may not be closed in time for the second to start.
-      SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
-      RPC_PORT=18832 "${SEEDS_DIR}"/check-seeds.sh main 80
-      RPC_PORT=18833 "${SEEDS_DIR}"/check-seeds.sh test 70
-    timeout: 600
-
-  check-source-control-tools:
-    cmake_flags:
-      - '-DENABLE_SOURCE_CONTROL_TOOLS_TESTS=ON'
-    targets:
-      - - check-source-control-tools
-    timeout: 600
-
-  guix-linux:
-    templates:
-      - guix_builds
-    env:
-      HOSTS: "x86_64-linux-gnu aarch64-linux-gnu"
-
-  guix-osx:
-    templates:
-      - guix_builds
-    env:
-      HOSTS: "x86_64-apple-darwin"
-
-  guix-win:
-    templates:
-      - guix_builds
-    env:
-      HOSTS: "x86_64-w64-mingw32"
-
-  lint-circular-dependencies:
-    runOnDiffRegex:
-      - src/
-      - test/lint/
-    script: |
-      "${TOPLEVEL}/test/lint/lint-circular-dependencies.sh"
-
-  b58-ts:
-    script: |
-      pushd "${TOPLEVEL}/modules/b58-ts"
-      npm ci
-      npm run build
-
-  cashtab-connect:
-    script: |
-      pushd "${TOPLEVEL}/modules/cashtab-connect"
-      npm ci
-      npm run build
-
-  ecashaddrjs:
-    script: |
-      pushd "${TOPLEVEL}/modules/ecashaddrjs"
-      npm ci
-      npm run build
-
-  ecash-lib-wasm:
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
-      ./build-wasm.sh
-
-  ecash-wallet:
-    depends:
-      - chronik-client
-      - ecash-lib
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-wallet"
-      npm ci
-      npm run build
-
-  chronik-client:
-    depends:
-      - ecashaddrjs
-    script: |
-      pushd "${TOPLEVEL}/modules/chronik-client"
-      npm ci
-      npm run build
-
-  mock-chronik-client:
-    depends:
-      - ecashaddrjs
-      - chronik-client
-    script: |
-      pushd "${TOPLEVEL}/modules/mock-chronik-client"
-      npm ci
-      npm run build
-
-  ecash-lib:
-    depends:
-      - ecash-lib-wasm
-      - b58-ts
-      - ecashaddrjs
-      - chronik-client
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-lib"
-      npm ci
-      npm run build
-
-  ecash-agora:
-    depends:
-      - chronik-client
-      - ecash-lib
-      - ecash-wallet
-    script: |
-      pushd "${TOPLEVEL}/modules/ecash-agora"
-      npm ci
-      npm run build
-
-  avalanche-lib-wasm:
-    runOnDiffRegex:
-      - modules/avalanche-lib-wasm/
-    script: |
-      pushd "${TOPLEVEL}/modules/avalanche-lib-wasm"
-      ./build-wasm.sh
-      cargo build
-      cargo test
-
-  proof-manager-cli:
-    runOnDiffRegex:
-      - modules/avalanche-lib-wasm/
-      - apps/proof-manager-cli/
-    cmake_flags:
-      - '-DBUILD_PROOF_MANAGER_CLI=ON'
-    targets:
-      - - install-proof-manager-cli
-      - - check-proof-manager-cli
-
-  cashtab-tests:
-    runOnDiffRegex:
-      - cashtab/
-      - modules/mock-chronik-client/
-      - modules/ecashaddrjs/
-      - modules/ecash-agora/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - modules/b58-ts
-      - src/secp256k1/
-    artifacts:
-      coverage.tar.gz: coverage.tar.gz
-    env:
-      # Any string will work, CI just needs to be defined
-      CI: 'teamcity'
-      JEST_SUITE_NAME: "Cashtab Test suites"
-      JEST_JUNIT_SUITE_NAME: "CashTab Unit Tests"
-      JEST_JUNIT_OUTPUT_DIR: "test/junit"
-      JEST_JUNIT_OUTPUT_NAME: "junit_results_cashtab.xml"
-    depends:
-      - b58-ts
-      - ecashaddrjs
-      - chronik-client
-      - mock-chronik-client
-      - ecash-lib
-      - ecash-agora
-    script: |
-      pushd "${TOPLEVEL}/cashtab"
-      npm ci
-      npm run build
-
-      # Make sure the report is available even if the tests fail.
-      # Note the report might not exist (e.g. if the build failed before the
-      # tests are run) so we discard the errors here.
-      move_junit_report() {
-        mv ${JEST_JUNIT_OUTPUT_DIR}/${JEST_JUNIT_OUTPUT_NAME} "${BUILD_DIR}/" &> /dev/null || true
-      }
-      trap "move_junit_report" EXIT
-
-      npm run test --coverage -- \
-        --reporters=default \
-        --reporters=jest-junit \
-        --coverageReporters=text \
-        --coverageReporters=lcov \
-        --coverageReporters=teamcity
-
-      # Generate a summary report
-      lcov \
-        --rc lcov_branch_coverage=1 \
-        --summary coverage/lcov.info \
-        > coverage/lcov-report/coverage-summary.txt 2>&1
-
-      pushd coverage/lcov-report
-      tar -czf ../coverage.tar.gz -- *
-      popd
-      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
-
-  ecash-herald-tests:
-    runOnDiffRegex:
-      - apps/ecash-herald/
-      - modules/mock-chronik-client/
-      - modules/ecashaddrjs/
-      - modules/chronik-client/
-    env:
-      JS_PROJECT_ROOT: apps/ecash-herald
-    # Ordering matters
-    depends:
-      - ecashaddrjs
-      - chronik-client
-      - ecash-lib
-      - ecash-agora
-      - mock-chronik-client
-    templates:
-      - js-mocha
-
-  metachronik-tests:
-    runOnDiffRegex:
-      - apps/metachronik/
-      - modules/chronik-client/
-    env:
-      JS_PROJECT_ROOT: apps/metachronik
-      RUN_NPM_BUILD: "true"
-    depends:
-      - chronik-client
-    templates:
-      - js-mocha
-
-  cashtab-faucet-tests:
-    runOnDiffRegex:
-      - apps/cashtab-faucet/
-      - modules/ecash-wallet/
-      - modules/mock-chronik-client/
-      - modules/ecashaddrjs/
-      - modules/chronik-client/
-      - modules/ecash-lib/
-    env:
-      JS_PROJECT_ROOT: apps/cashtab-faucet
-      RUN_NPM_BUILD: "true"
-    depends:
-      - ecashaddrjs
-      - chronik-client
-      - mock-chronik-client
-      - ecash-lib
-      - ecash-wallet
-    templates:
-      - js-mocha
-
-  token-server-tests:
-    runOnDiffRegex:
-      - apps/token-server/
-    env:
-      JS_PROJECT_ROOT: apps/token-server
-      RUN_NPM_BUILD: "true"
-    templates:
-      - js-mocha
-
-  mock-chronik-client-tests:
-    runOnDiffRegex:
-      - modules/mock-chronik-client/
-      - modules/ecashaddrjs/
-    env:
-      JS_PROJECT_ROOT: modules/mock-chronik-client
-    depends:
-      - ecashaddrjs
-    templates:
-      - js-mocha
-
-  b58-ts-tests:
-    runOnDiffRegex:
-      - modules/b58-ts/
-    env:
-      JS_PROJECT_ROOT: modules/b58-ts
-      RUN_NPM_BUILD: "true"
-    templates:
-      - js-mocha
-
-  chronik-client-tests:
-    runOnDiffRegex:
-      - modules/chronik-client/
-      - modules/ecashaddrjs/
-    env:
-      JS_PROJECT_ROOT: modules/chronik-client
-    depends:
-      - ecashaddrjs
-    templates:
-      - js-mocha
-
-  ecash-lib-tests:
-    runOnDiffRegex:
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - modules/ecashaddrjs/
-      - src/secp256k1/
-    env:
-      JS_PROJECT_ROOT: modules/ecash-lib
-      RUN_NPM_BUILD: "true"
-    depends:
-      - b58-ts
-      - ecash-lib-wasm
-      - ecashaddrjs
-      - chronik-client
-    templates:
-      - js-mocha
-
-  ecash-agora-tests:
-    runOnDiffRegex:
-      - modules/ecash-agora/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - src/secp256k1/
-    env:
-      JS_PROJECT_ROOT: modules/ecash-agora
-    depends:
-      - ecashaddrjs
-      - chronik-client
-      - ecash-lib
-      - ecash-wallet
-    templates:
-      - js-mocha
-
-  ecash-agora-integration-tests:
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHRONIK_PLUGINS=ON'
-    targets:
-      - - all
-    runOnDiffRegex:
-      - chronik/
-      - modules/chronik-client/
-      - modules/ecash-agora/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - modules/ecashaddrjs/
-      - modules/ecash-wallet/
-      - src/secp256k1/
-      - Cargo.toml
-      - Cargo.lock
-    env:
-      JS_PROJECT_ROOT: modules/ecash-agora
-    depends:
-      - ecashaddrjs
-      - chronik-client
-      - ecash-lib
-      - ecash-wallet
-    templates:
-      - js-mocha-integration-tests
-
-  ecash-lib-integration-tests:
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-    targets:
-      - - all
-    runOnDiffRegex:
-      - chronik/
-      - modules/chronik-client/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - modules/ecashaddrjs/
-      - src/secp256k1/
-      - Cargo.toml
-      - Cargo.lock
-    env:
-      JS_PROJECT_ROOT: modules/ecash-lib
-    depends:
-      - b58-ts
-      - ecashaddrjs
-      - ecash-lib-wasm
-      - chronik-client
-    templates:
-      - js-mocha-integration-tests
-
-  ecash-wallet-tests:
-    runOnDiffRegex:
-      - modules/ecash-wallet/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - src/secp256k1/
-    env:
-      JS_PROJECT_ROOT: modules/ecash-wallet
-    depends:
-      - chronik-client
-      - ecash-lib
-    templates:
-      - js-mocha
-
-  ecash-wallet-integration-tests:
-    cmake_flags:
-      - '-DBUILD_BITCOIN_CHRONIK=ON'
-      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
-    targets:
-      - - all
-    runOnDiffRegex:
-      - modules/ecash-wallet/
-      - modules/ecash-lib/
-      - modules/ecash-lib-wasm/
-      - src/secp256k1/
-      - Cargo.toml
-      - Cargo.lock
-    env:
-      JS_PROJECT_ROOT: modules/ecash-wallet
-    depends:
-      - chronik-client
-      - ecash-lib
-    templates:
-      - js-mocha-integration-tests
-
-  chronik-client-integration-tests:
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-      - '-DBUILD_CHRONIK_PLUGINS=ON'
-    targets:
-      - - all
-    runOnDiffRegex:
-      - chronik/
-      - modules/chronik-client/
-      - modules/ecashaddrjs/
-      - Cargo.toml
-      - Cargo.lock
-    env:
-      JS_PROJECT_ROOT: modules/chronik-client
-    depends:
-      - ecashaddrjs
-    templates:
-      - js-mocha-integration-tests
-
-  ecashaddrjs-tests:
-    runOnDiffRegex:
-      - modules/ecashaddrjs/
-    env:
-      JS_PROJECT_ROOT: modules/ecashaddrjs
-    templates:
-      - js-mocha
-
-  electrum-tests:
-    runOnDiffRegex:
-      - electrum/
-    targets:
-      - - check-electrum
-
-  electrum-functional-tests:
-    cmake_flags:
-      - '-DBUILD_CHRONIK=ON'
-    targets:
-      - - check-electrum-functional
-    runOnDiffRegex:
-      - electrum/
-      - chronik/chronik-http/
-
-  preview-e.cash:
-    docker:
-      context: web/e.cash
-      port: 3000
-      build_args:
-        - "PREVIEW_BUILD=next.preview.ts"
-
-  preview-chronik.e.cash:
-    docker:
-      dockerfile: chronik.e.cash.Dockerfile
-      build_args:
-        - "NGINX_CONF=nginx-preview.conf"
-
-  preview-explorer:
-    docker:
-      dockerfile: explorer.Dockerfile
-      port: 3035
-
-  preview-cashtab:
-    docker:
-      dockerfile: cashtab.Dockerfile
-      build_args:
-        - "NGINX_CONF=nginx-preview.conf"
-
-  cashtab-connect-tests:
-    runOnDiffRegex:
-      - modules/cashtab-connect/
-    env:
-      JS_PROJECT_ROOT: modules/cashtab-connect
-    templates:
-      - js-mocha
+    build-asan:
+        Werror: true
+        clang: true
+        fail_fast: true
+        cmake_flags:
+            - '-DCMAKE_CXX_FLAGS=-DARENA_DEBUG'
+            - '-DCRYPTO_USE_ASM=OFF'
+            - '-DENABLE_SANITIZERS=address'
+        templates:
+            - check+secp256k1
+        timeout: 3600
+        env:
+            ASAN_OPTIONS: log_path=stdout
+            LSAN_OPTIONS: log_path=stdout
+
+    build-bench:
+        runOnDiffRegex:
+            - src/bench/
+        Werror: true
+        targets:
+            - - all
+              - install-bitcoin-bench
+            - - bench-bitcoin
+        timeout: 1200
+        artifacts:
+            src/bench/BitcoinABC_Bench.csv: bench/BitcoinABC_Bench.csv
+            src/bench/BitcoinABC_Bench.json: bench/BitcoinABC_Bench.json
+        post_build: |
+            "${TOPLEVEL}/contrib/teamcity/nanobench_json_to_teamcity_messages.py" \
+              "Bitcoin ABC Benchmark" \
+              "${BUILD_DIR}/src/bench/BitcoinABC_Bench.json"
+
+    build-bitcoinsuite-chronik-client:
+        runOnDiffRegex:
+            - modules/bitcoinsuite-chronik-client/
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        targets:
+            - - all
+        post_build: |
+            # Navigate to the bitcoinsuite-chronik-client directory
+            pushd "${TOPLEVEL}/modules/bitcoinsuite-chronik-client"
+            cargo build
+            cargo test -p bitcoinsuite-chronik-client
+            popd
+        timeout: 1200
+
+    build-chronik:
+        runOnDiffRegex:
+            - chronik/
+            - Cargo.toml
+            - Cargo.lock
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+        targets:
+            - - check-crates
+            - - all
+              - install
+            - - check
+              - check-functional
+
+    build-chronik-plugins:
+        runOnDiffRegex:
+            - chronik/
+            - Cargo.toml
+            - Cargo.lock
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        targets:
+            - - check-crates
+            - - all
+              - install
+            - - check
+              - check-functional
+
+    build-clang:
+        Werror: true
+        clang: true
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+            - - check
+              - check-secp256k1
+        templates:
+            - diff-node
+        timeout: 1200
+
+    build-clang-tidy:
+        clang: true
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DENABLE_CLANG_TIDY=ON'
+        targets:
+            - - all
+            - - check
+            - - bitcoin-fuzzers
+        templates:
+            - diff-node
+        timeout: 1800
+
+    build-coverage:
+        gcc: true
+        cmake_flags:
+            - '-DENABLE_COVERAGE=ON'
+            - '-DENABLE_BRANCH_COVERAGE=ON'
+        targets:
+            - - coverage-check-extended
+        post_build: |
+            "${TOPLEVEL}/contrib/teamcity/upload-coverage.sh" check-extended
+        timeout: 4800
+        artifacts:
+            coverage.tar.gz: coverage.tar.gz
+
+    build-debug:
+        Werror: true
+        cmake_flags:
+            - '-DCMAKE_BUILD_TYPE=Debug'
+        templates:
+            - check+secp256k1
+            - diff-node
+        timeout: 1200
+
+    build-diff:
+        Werror: true
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+            - - check-all
+              - check-upgrade-activated
+        templates:
+            - diff-node
+        timeout: 1200
+
+    build-docs:
+        targets:
+            - - doc-rpc
+              - doc-doxygen
+        post_build: |
+            xvfb-run -a -e /dev/stderr ninja install-manpages-html
+        timeout: 600
+        artifacts:
+            doc/*: doc
+
+    build-explorer:
+        runOnDiffRegex:
+            - web/explorer/
+            - Cargo.lock
+            - Cargo.toml
+        script: |
+            # Build the main explorer project, will run on all sub dir
+            pushd "${TOPLEVEL}/web/explorer"
+            cargo build --locked
+            cargo test -p explorer-server -p explorer-exe
+        timeout: 1200
+
+    build-fuzzer:
+        runOnDiffRegex:
+            - src/test/fuzz/
+            - test/fuzz/
+        clang: true
+        Werror: true
+        cmake_flags:
+            - '-DENABLE_SANITIZERS=fuzzer'
+        targets:
+            - - bitcoin-fuzzers
+
+    build-ibd:
+        templates:
+            - ibd
+
+    build-ibd-no-assumevalid-checkpoint:
+        templates:
+            - ibd-no-assumevalid-checkpoint
+
+    build-linux64:
+        cross_build:
+            static_depends: linux64
+            toolchain: Linux64
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHAINSTATE=ON'
+        templates:
+            - check+secp256k1
+        timeout: 3600
+
+    build-linux-aarch64:
+        cross_build:
+            static_depends: linux-aarch64
+            toolchain: LinuxAArch64
+            emulator: qemu-aarch64-static
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHAINSTATE=ON'
+            # The ZMQ functional test will fail with qemu (due to a qemu limitation),
+            # so disable it to avoid the failure.
+            # Extracted from stderr:
+            #   Unknown host QEMU_IFLA type: 50
+            #   Unknown host QEMU_IFLA type: 51
+            #   Unknown QEMU_IFLA_BRPORT type 33
+            - '-DBUILD_ZMQ=OFF'
+            # This is an horrible hack to workaround a qemu bug:
+            # https://bugs.launchpad.net/qemu/+bug/1748612
+            # Qemu emits a message for unsupported features called by the guest.
+            # Because the output filtering is not working at all, it causes the
+            # qemu stderr to end up in the node stderr and fail the functional
+            # tests.
+            # Disabling the unsupported feature (here bypassing the config
+            # detection) fixes the issue.
+            # FIXME: get rid of the hack, either by using a better qemu version
+            # or by filtering stderr at the framework level.
+            - '-DHAVE_DECL_GETIFADDRS=OFF'
+        templates:
+            - check+secp256k1
+        timeout: 3600
+        env:
+            QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
+
+    build-make-generator:
+        generator:
+            name: 'Unix Makefiles'
+            command: make
+            flags:
+                - '-k'
+        templates:
+            - check+secp256k1
+        timeout: 1200
+
+    build-master:
+        cmake_flags:
+            - '-DBUILD_CHAINSTATE=ON'
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        Werror: true
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+            - - check-extended
+              - check-upgrade-activated-extended
+            - - check-electrum
+        timeout: 4800
+
+    build-native-osx:
+        templates:
+            - check+secp256k1
+        timeout: 3600
+
+    build-osx:
+        cross_build:
+            static_depends: osx
+            toolchain: OSX
+        cmake_flags:
+            - '-DBUILD_CHAINSTATE=ON'
+        # Uncomment to build Chronik once the cxx crate is working for OSX
+        #  - '-DBUILD_CHRONIK=ON'
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+              - install-tests
+        post_build: |
+            export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+            ninja osx-zip
+        timeout: 3600
+        artifacts:
+            Bitcoin-ABC.zip: Bitcoin-ABC.zip
+
+    build-secp256k1:
+        runOnDiffRegex:
+            - src/secp256k1/
+        cmake_flags:
+            - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+            - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
+        templates:
+            - secp256k1
+        timeout: 600
+
+    build-secp256k1-java:
+        runOnDiffRegex:
+            - src/secp256k1/
+        cmake_flags:
+            - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+            - '-DSECP256K1_ENABLE_JNI=ON'
+            - '-DUSE_JEMALLOC=OFF'
+        templates:
+            - secp256k1
+        timeout: 600
+
+    build-secp256k1-bench:
+        runOnDiffRegex:
+            - src/secp256k1/
+        cmake_flags:
+            - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+            - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
+        targets:
+            - - install-secp256k1-bench
+            - - bench-secp256k1
+        timeout: 1200
+
+    build-ecash-secp256k1:
+        runOnDiffRegex:
+            - src/secp256k1/
+            - modules/ecash-secp256k1/
+        script: |
+            "${TOPLEVEL}/modules/ecash-secp256k1/contrib/test.sh"
+        timeout: 1200
+
+    build-tsan:
+        Werror: true
+        clang: true
+        fail_fast: true
+        cmake_flags:
+            - '-DENABLE_SANITIZERS=thread'
+        targets:
+            - - all
+              - install
+            - - check
+            - - check-functional
+        timeout: 2400
+        env:
+            TSAN_OPTIONS: log_path=stdout
+
+    build-ubsan:
+        Werror: true
+        clang: true
+        fail_fast: true
+        cmake_flags:
+            - '-DENABLE_SANITIZERS=undefined'
+        templates:
+            - check+secp256k1
+        timeout: 2400
+        env:
+            UBSAN_OPTIONS: log_path=stdout
+
+    build-win64:
+        cross_build:
+            static_depends: win64
+            toolchain: Win64
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHAINSTATE=ON'
+            - '-DBUILD_SEEDER=OFF'
+            - '-DCPACK_STRIP_FILES=ON'
+            - '-DUSE_JEMALLOC=OFF'
+        targets:
+            - - all
+              - install
+              - install-secp256k1
+              # install-tests is broken on debian bullseye because the leveldb tests
+              # do not export any symbol and trigger a mingw linker bug:
+              # https://sourceware.org/bugzilla/show_bug.cgi?id=26588
+              # We still install most test suites so we can use the artifacts and run
+              # them on the native platform.
+              #- install-tests
+              - install-test-suite-bitcoin
+              - install-test-suite-bitcoin-qt
+              - install-test-suite-avalanche
+              - install-test-suite-pow
+            - - package
+        post_build: |
+            wine "${ARTIFACT_DIR}/bin/test_bitcoin.exe" --run_test=\!radix_tests,rcu_tests,denialofservice_tests/outbound_slow_chain_eviction
+        timeout: 3600
+        artifacts:
+            bitcoin-abc-*-x86_64-w64-mingw32.exe: bitcoin-abc-x86_64-w64-mingw32.exe
+
+    build-without-bip70:
+        Werror: true
+        cmake_flags:
+            - '-DENABLE_BIP70=OFF'
+        targets:
+            - - all
+              - install
+            - - check
+              - check-functional
+        timeout: 1800
+
+    build-without-cli:
+        Werror: true
+        cmake_flags:
+            - '-DBUILD_CLI=OFF'
+        targets:
+            - - all
+              - install
+            - - check-functional
+        timeout: 1200
+
+    build-without-qt:
+        Werror: true
+        cmake_flags:
+            - '-DBUILD_QT=OFF'
+        targets:
+            - - all
+              - install
+            - - check
+        timeout: 1200
+
+    build-without-wallet:
+        Werror: true
+        cmake_flags:
+            - '-DBUILD_WALLET=OFF'
+            - '-DBUILD_CHAINSTATE=ON'
+        targets:
+            - - all
+              - install
+            - - check
+              - check-functional
+        templates:
+            - diff-node
+        timeout: 1200
+
+    build-without-zmq:
+        Werror: true
+        cmake_flags:
+            - '-DBUILD_ZMQ=OFF'
+        targets:
+            - - all
+              - install
+            - - check
+              - check-functional
+        timeout: 1800
+
+    check-buildbot:
+        runOnDiffRegex:
+            - contrib/buildbot/
+        targets:
+            - - check-buildbot
+        timeout: 600
+
+    check-seeds:
+        targets:
+            - - bitcoind
+              - bitcoin-cli
+        post_build: |
+            # Run on different ports to avoid a race where the rpc port used in the first run
+            # may not be closed in time for the second to start.
+            SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
+            RPC_PORT=18832 "${SEEDS_DIR}"/check-seeds.sh main 80
+            RPC_PORT=18833 "${SEEDS_DIR}"/check-seeds.sh test 70
+        timeout: 600
+
+    check-source-control-tools:
+        cmake_flags:
+            - '-DENABLE_SOURCE_CONTROL_TOOLS_TESTS=ON'
+        targets:
+            - - check-source-control-tools
+        timeout: 600
+
+    guix-linux:
+        templates:
+            - guix_builds
+        env:
+            HOSTS: 'x86_64-linux-gnu aarch64-linux-gnu'
+
+    guix-osx:
+        templates:
+            - guix_builds
+        env:
+            HOSTS: 'x86_64-apple-darwin'
+
+    guix-win:
+        templates:
+            - guix_builds
+        env:
+            HOSTS: 'x86_64-w64-mingw32'
+
+    lint-circular-dependencies:
+        runOnDiffRegex:
+            - src/
+            - test/lint/
+        script: |
+            "${TOPLEVEL}/test/lint/lint-circular-dependencies.sh"
+
+    b58-ts:
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter b58-ts...
+            pnpm --filter b58-ts run build
+
+    cashtab-connect:
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter cashtab-connect...
+            pnpm --filter cashtab-connect run build
+
+    ecashaddrjs:
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecashaddrjs...
+            pnpm --filter ecashaddrjs run build
+
+    ecash-lib-wasm:
+        script: |
+            pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
+            ./build-wasm.sh
+
+    ecash-wallet:
+        depends:
+            - chronik-client
+            - ecash-lib
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecash-wallet...
+            pnpm --filter ecash-wallet run build
+
+    chronik-client:
+        depends:
+            - ecashaddrjs
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter chronik-client...
+            pnpm --filter chronik-client run build
+
+    mock-chronik-client:
+        depends:
+            - ecashaddrjs
+            - chronik-client
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter mock-chronik-client...
+            pnpm --filter mock-chronik-client run build
+
+    ecash-lib:
+        depends:
+            - ecash-lib-wasm
+            - b58-ts
+            - ecashaddrjs
+            - chronik-client
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecash-lib...
+            pnpm --filter ecash-lib run build
+
+    ecash-agora:
+        depends:
+            - chronik-client
+            - ecash-lib
+            - ecash-wallet
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecash-agora...
+            pnpm --filter ecash-agora run build
+
+    avalanche-lib-wasm:
+        runOnDiffRegex:
+            - modules/avalanche-lib-wasm/
+        script: |
+            pushd "${TOPLEVEL}/modules/avalanche-lib-wasm"
+            ./build-wasm.sh
+            cargo build
+            cargo test
+
+    proof-manager-cli:
+        runOnDiffRegex:
+            - modules/avalanche-lib-wasm/
+            - apps/proof-manager-cli/
+        cmake_flags:
+            - '-DBUILD_PROOF_MANAGER_CLI=ON'
+        targets:
+            - - install-proof-manager-cli
+            - - check-proof-manager-cli
+
+    cashtab-tests:
+        runOnDiffRegex:
+            - cashtab/
+            - modules/mock-chronik-client/
+            - modules/ecashaddrjs/
+            - modules/ecash-agora/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/b58-ts
+            - src/secp256k1/
+        artifacts:
+            coverage.tar.gz: coverage.tar.gz
+        env:
+            # Any string will work, CI just needs to be defined
+            CI: 'teamcity'
+            JEST_SUITE_NAME: 'Cashtab Test suites'
+            JEST_JUNIT_SUITE_NAME: 'CashTab Unit Tests'
+            JEST_JUNIT_OUTPUT_DIR: 'test/junit'
+            JEST_JUNIT_OUTPUT_NAME: 'junit_results_cashtab.xml'
+        depends:
+            - b58-ts
+            - ecashaddrjs
+            - chronik-client
+            - mock-chronik-client
+            - ecash-lib
+            - ecash-agora
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter cashtab...
+            pnpm --filter cashtab run build
+
+            # Make sure the report is available even if the tests fail.
+            # Note the report might not exist (e.g. if the build failed before the
+            # tests are run) so we discard the errors here.
+            move_junit_report() {
+              mv ${JEST_JUNIT_OUTPUT_DIR}/${JEST_JUNIT_OUTPUT_NAME} "${BUILD_DIR}/" &> /dev/null || true
+            }
+            trap "move_junit_report" EXIT
+
+            pushd cashtab
+            pnpm run test --coverage \
+              --reporters=default \
+              --reporters=jest-junit \
+              --coverageReporters=text \
+              --coverageReporters=lcov \
+              --coverageReporters=teamcity
+
+            # Generate a summary report
+            lcov \
+              --rc lcov_branch_coverage=1 \
+              --summary coverage/lcov.info \
+              > coverage/lcov-report/coverage-summary.txt 2>&1
+
+            pushd coverage/lcov-report
+            tar -czf ../coverage.tar.gz -- *
+            popd
+            mv coverage/coverage.tar.gz "${BUILD_DIR}/"
+
+    ecash-herald-tests:
+        runOnDiffRegex:
+            - apps/ecash-herald/
+            - modules/mock-chronik-client/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+        env:
+            JS_PROJECT_ROOT: apps/ecash-herald
+        # Ordering matters
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - ecash-lib
+            - ecash-agora
+            - mock-chronik-client
+        templates:
+            - js-mocha
+
+    metachronik-tests:
+        runOnDiffRegex:
+            - apps/metachronik/
+            - modules/chronik-client/
+        env:
+            JS_PROJECT_ROOT: apps/metachronik
+            RUN_NPM_BUILD: 'true'
+        depends:
+            - chronik-client
+        templates:
+            - js-mocha
+
+    cashtab-faucet-tests:
+        runOnDiffRegex:
+            - apps/cashtab-faucet/
+            - modules/ecash-wallet/
+            - modules/mock-chronik-client/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+        env:
+            JS_PROJECT_ROOT: apps/cashtab-faucet
+            RUN_NPM_BUILD: 'true'
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - mock-chronik-client
+            - ecash-lib
+            - ecash-wallet
+        templates:
+            - js-mocha
+
+    token-server-tests:
+        runOnDiffRegex:
+            - apps/token-server/
+        env:
+            JS_PROJECT_ROOT: apps/token-server
+            RUN_NPM_BUILD: 'true'
+        templates:
+            - js-mocha
+
+    mock-chronik-client-tests:
+        runOnDiffRegex:
+            - modules/mock-chronik-client/
+            - modules/ecashaddrjs/
+        env:
+            JS_PROJECT_ROOT: modules/mock-chronik-client
+        depends:
+            - ecashaddrjs
+        templates:
+            - js-mocha
+
+    b58-ts-tests:
+        runOnDiffRegex:
+            - modules/b58-ts/
+        env:
+            JS_PROJECT_ROOT: modules/b58-ts
+            RUN_NPM_BUILD: 'true'
+        templates:
+            - js-mocha
+
+    chronik-client-tests:
+        runOnDiffRegex:
+            - modules/chronik-client/
+            - modules/ecashaddrjs/
+        env:
+            JS_PROJECT_ROOT: modules/chronik-client
+        depends:
+            - ecashaddrjs
+        templates:
+            - js-mocha
+
+    ecash-lib-tests:
+        runOnDiffRegex:
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/ecashaddrjs/
+            - src/secp256k1/
+        env:
+            JS_PROJECT_ROOT: modules/ecash-lib
+            RUN_NPM_BUILD: 'true'
+        depends:
+            - b58-ts
+            - ecash-lib-wasm
+            - ecashaddrjs
+            - chronik-client
+        templates:
+            - js-mocha
+
+    ecash-agora-tests:
+        runOnDiffRegex:
+            - modules/ecash-agora/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - src/secp256k1/
+        env:
+            JS_PROJECT_ROOT: modules/ecash-agora
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - ecash-lib
+            - ecash-wallet
+        templates:
+            - js-mocha
+
+    ecash-agora-integration-tests:
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        targets:
+            - - all
+        runOnDiffRegex:
+            - chronik/
+            - modules/chronik-client/
+            - modules/ecash-agora/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/ecashaddrjs/
+            - modules/ecash-wallet/
+            - src/secp256k1/
+            - Cargo.toml
+            - Cargo.lock
+        env:
+            JS_PROJECT_ROOT: modules/ecash-agora
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - ecash-lib
+            - ecash-wallet
+        templates:
+            - js-mocha-integration-tests
+
+    ecash-lib-integration-tests:
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+        targets:
+            - - all
+        runOnDiffRegex:
+            - chronik/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/ecashaddrjs/
+            - src/secp256k1/
+            - Cargo.toml
+            - Cargo.lock
+        env:
+            JS_PROJECT_ROOT: modules/ecash-lib
+        depends:
+            - b58-ts
+            - ecashaddrjs
+            - ecash-lib-wasm
+            - chronik-client
+        templates:
+            - js-mocha-integration-tests
+
+    ecash-wallet-tests:
+        runOnDiffRegex:
+            - modules/ecash-wallet/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - src/secp256k1/
+        env:
+            JS_PROJECT_ROOT: modules/ecash-wallet
+        depends:
+            - chronik-client
+            - ecash-lib
+        templates:
+            - js-mocha
+
+    ecash-wallet-integration-tests:
+        cmake_flags:
+            - '-DBUILD_BITCOIN_CHRONIK=ON'
+            - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+        targets:
+            - - all
+        runOnDiffRegex:
+            - modules/ecash-wallet/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - src/secp256k1/
+            - Cargo.toml
+            - Cargo.lock
+        env:
+            JS_PROJECT_ROOT: modules/ecash-wallet
+        depends:
+            - chronik-client
+            - ecash-lib
+        templates:
+            - js-mocha-integration-tests
+
+    chronik-client-integration-tests:
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        targets:
+            - - all
+        runOnDiffRegex:
+            - chronik/
+            - modules/chronik-client/
+            - modules/ecashaddrjs/
+            - Cargo.toml
+            - Cargo.lock
+        env:
+            JS_PROJECT_ROOT: modules/chronik-client
+        depends:
+            - ecashaddrjs
+        templates:
+            - js-mocha-integration-tests
+
+    ecashaddrjs-tests:
+        runOnDiffRegex:
+            - modules/ecashaddrjs/
+        env:
+            JS_PROJECT_ROOT: modules/ecashaddrjs
+        templates:
+            - js-mocha
+
+    electrum-tests:
+        runOnDiffRegex:
+            - electrum/
+        targets:
+            - - check-electrum
+
+    electrum-functional-tests:
+        cmake_flags:
+            - '-DBUILD_CHRONIK=ON'
+        targets:
+            - - check-electrum-functional
+        runOnDiffRegex:
+            - electrum/
+            - chronik/chronik-http/
+
+    preview-e.cash:
+        docker:
+            context: web/e.cash
+            port: 3000
+            build_args:
+                - 'PREVIEW_BUILD=next.preview.ts'
+
+    preview-chronik.e.cash:
+        docker:
+            dockerfile: chronik.e.cash.Dockerfile
+            build_args:
+                - 'NGINX_CONF=nginx-preview.conf'
+
+    preview-explorer:
+        docker:
+            dockerfile: explorer.Dockerfile
+            port: 3035
+
+    preview-cashtab:
+        docker:
+            dockerfile: cashtab.Dockerfile
+            build_args:
+                - 'NGINX_CONF=nginx-preview.conf'
+
+    cashtab-connect-tests:
+        runOnDiffRegex:
+            - modules/cashtab-connect/
+        env:
+            JS_PROJECT_ROOT: modules/cashtab-connect
+        templates:
+            - js-mocha

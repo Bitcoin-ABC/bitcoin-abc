@@ -19,7 +19,8 @@ final class PrettierLinter extends ArcanistExternalLinter {
 
   public function getInstallInstructions() {
     return pht(
-      'Install `prettier` using `npm ci` from the root of the repository'
+      'Install `prettier` using `pnpm install --frozen-lockfile` '
+      . 'from the root of the repository'
     );
   }
 

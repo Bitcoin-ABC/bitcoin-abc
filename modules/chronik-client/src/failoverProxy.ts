@@ -267,25 +267,26 @@ export class FailoverProxy {
                 this._workingIndex = index;
 
                 const ws = new WebSocket(thisProxyWsUrl);
-                ws.onmessage = e => wsEndpoint.handleMsg(e as MessageEvent);
+                ws.onmessage = (e: MessageEvent) =>
+                    wsEndpoint.handleMsg(e as MessageEvent);
                 ws.onerror = () => {
                     if (wsEndpoint.onError !== undefined) {
                         wsEndpoint.close();
                     }
                 };
-                ws.onclose = e => {
+                ws.onclose = (e: ws.CloseEvent) => {
                     // End if manually closed or no auto-reconnect
                     if (
                         wsEndpoint.manuallyClosed ||
                         !wsEndpoint.autoReconnect
                     ) {
                         if (wsEndpoint.onEnd !== undefined) {
-                            wsEndpoint.onEnd(e);
+                            wsEndpoint.onEnd(e as ws.Event);
                         }
                         return;
                     }
                     if (wsEndpoint.onReconnect !== undefined) {
-                        wsEndpoint.onReconnect(e);
+                        wsEndpoint.onReconnect(e as ws.Event);
                     }
 
                     this._workingIndex =
@@ -295,7 +296,7 @@ export class FailoverProxy {
                 };
                 wsEndpoint.ws = ws;
                 wsEndpoint.connected = new Promise(resolve => {
-                    ws.onopen = msg => {
+                    ws.onopen = (msg: ws.Event) => {
                         // Subscribe to all previously-subscribed scripts
                         wsEndpoint.subs.scripts.forEach(sub =>
                             wsEndpoint.subscribeToScript(

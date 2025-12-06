@@ -8,41 +8,21 @@ set -e  # Exit on any error
 
 echo "🚀 Installing Cashtab dependencies..."
 
-# Function to build a module
-build_module() {
-    local module_path=$1
-    local module_name=$2
-
-    echo "📦 Building $module_name..."
-    cd "$module_path"
-
-    if [ -f "package.json" ]; then
-        echo "  Installing dependencies..."
-        npm ci
-
-        if [ -f "package.json" ] && grep -q '"build"' package.json; then
-            echo "  Building module..."
-            npm run build
-        fi
-    fi
-
-    cd - > /dev/null
-    echo "✅ $module_name complete"
-}
-
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 echo "📍 Repository root: $REPO_ROOT"
 
-# Build all modules
-build_module "$REPO_ROOT/modules/b58-ts" "b58-ts"
-build_module "$REPO_ROOT/modules/ecashaddrjs" "ecashaddrjs"
+# Install all workspace dependencies
+echo "📦 Installing workspace dependencies..."
+pushd "$REPO_ROOT" > /dev/null
+pnpm install --frozen-lockfile
+popd > /dev/null
 
-# Build ecash-lib-wasm (special case - uses Docker)
+# Build ecash-lib-wasm (special case - uses Docker, not a pnpm package)
 echo "📦 Building ecash-lib-wasm..."
-cd "$REPO_ROOT/modules/ecash-lib-wasm"
+pushd "$REPO_ROOT/modules/ecash-lib-wasm" > /dev/null
 if [ -f "dockerbuild.sh" ]; then
     echo "  Running Docker build..."
     ./dockerbuild.sh
@@ -51,18 +31,22 @@ else
     echo "   This script is required to build the WASM module."
     exit 1
 fi
-cd - > /dev/null
+popd > /dev/null
 echo "✅ ecash-lib-wasm complete"
 
-build_module "$REPO_ROOT/modules/chronik-client" "chronik-client"
-build_module "$REPO_ROOT/modules/ecash-lib" "ecash-lib"
-build_module "$REPO_ROOT/modules/ecash-agora" "ecash-agora"
-build_module "$REPO_ROOT/modules/mock-chronik-client" "mock-chronik-client"
+# Install and build mock-chronik-client (needed for tests)
+echo "📦 Installing and building mock-chronik-client..."
+pushd "$REPO_ROOT" > /dev/null
+pnpm install --frozen-lockfile --filter mock-chronik-client...
+pnpm --filter mock-chronik-client run build
+popd > /dev/null
+echo "✅ mock-chronik-client complete"
 
-# Install Cashtab dependencies
-echo "📦 Installing Cashtab dependencies..."
-cd "$SCRIPT_DIR"
-npm ci
+# Build cashtab and all its dependencies using pnpm workspace
+echo "📦 Building Cashtab and all dependencies..."
+pushd "$REPO_ROOT" > /dev/null
+pnpm --filter cashtab... run build
+popd > /dev/null
 
-echo "✅ All dependencies installed successfully!"
-echo "🎉 You can now run 'npm start' from the cashtab directory"
+echo "✅ All dependencies installed and built successfully!"
+echo "🎉 You can now run 'pnpm start' from the cashtab directory"

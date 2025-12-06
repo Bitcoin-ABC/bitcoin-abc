@@ -27,7 +27,7 @@ if [ ! -f "android/keystore.properties" ]; then
 fi
 
 echo "[buildAndroidRelease] Building web assets..."
-npm run build
+pnpm run build
 
 echo "[buildAndroidRelease] Syncing Capacitor Android platform..."
 npx cap sync android

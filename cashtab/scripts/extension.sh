@@ -41,14 +41,14 @@ echo 'Building Extension...'
 export INLINE_RUNTIME_CHUNK=false
 export GENERATE_SOURCEMAP=false
 
-npm run build
+pnpm run build
 
 # Copy extension build files to extension/ folder
 cp -r build/* extension/dist
 
 # Build TypeScript files
 echo 'Building TypeScript files...'
-npm run extension:tsc
+pnpm run extension:tsc
 
 # Delete extension build from build/ folder (reserved for web app builds)
 rm -Rf build

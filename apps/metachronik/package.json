@@ -4,10 +4,9 @@
     "description": "Chronik-based database indexer for eCash network activity",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc && npm run copy-assets",
+        "build": "tsc && pnpm run copy-assets",
         "copy-assets": "cp src/database/schema.sql dist/database/",
         "start": "node --max-old-space-size=4096 dist/index.js",
-        "postinstall": "npm run build",
         "dev": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts",
         "dev:reindex": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts --reindex",
         "dev:reindex-prices": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts --reindex-prices",

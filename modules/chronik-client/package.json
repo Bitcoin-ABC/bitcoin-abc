@@ -15,11 +15,12 @@
         "test-long": "mocha -r ts-node/register test/test.ts --timeout 1000000000",
         "format": "prettier --write .",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check .",
-        "prepublish": "npm run build"
+        "prepublish": "pnpm run build"
     },
     "devDependencies": {
         "@types/chai": "^4.2.22",
         "@types/chai-as-promised": "^7.1.4",
+        "@types/long": "^4.0.2",
         "@types/mocha": "^9.0.0",
         "chai": "^4.3.4",
         "chai-as-promised": "^7.1.1",

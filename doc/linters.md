@@ -38,7 +38,7 @@ plugins can be installed all at once via the following command, called from the
 root of the repository:
 
 ```
-find . -name "package-lock.json" -type f -execdir npm ci \;
+pnpm install --frozen-lockfile
 ```
 
 Linter development

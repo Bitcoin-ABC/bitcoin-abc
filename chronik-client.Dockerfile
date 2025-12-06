@@ -6,15 +6,19 @@
 
 FROM node:22-bookworm-slim
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Build chronik-client
 WORKDIR /app/modules/chronik-client
 
 # Copy all project files as they are required for building
 COPY modules/chronik-client .
 # Install ecashaddrjs from npm, so that module users install it automatically
-RUN npm install ecashaddrjs@latest
-RUN npm ci
+RUN pnpm add ecashaddrjs@latest
+# Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
+RUN pnpm install
 
 # Publish the module
-# Note this will also npm run build, as this is the prepublish script
-CMD [ "npm", "publish" ]
+# Note this will also pnpm run build, as this is the prepublish script
+CMD [ "pnpm", "publish" ]

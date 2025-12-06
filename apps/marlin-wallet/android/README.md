@@ -37,7 +37,7 @@ Note that for real devices this requires enabling the [Developer Mode](https://d
 Once your device is connected you can install and run a debug build of the Marlin Wallet application by running this command **from the marlin-wallet folder**:
 
 ```bash
-npm run android
+pnpm run android
 ```
 
 **Note**: if this hangs, you might need to start the Metro dev server manually.
@@ -72,19 +72,19 @@ RELEASE_KEY_PASSWORD=your_key_password_here
 The from the marlin-wallet/ directory, build either the AAB bundle (for Play Store submission):
 
 ```bash
-npm run build-android-release-aab
+pnpm run build-android-release-aab
 ```
 
 or the APK package (for sideloading):
 
 ```bash
-npm run build-android-release-apk
+pnpm run build-android-release-apk
 ```
 
 You might want to clean the existing build files first, which can be done using this command:
 
 ```bash
-npm run clean-android
+pnpm run clean-android
 ```
 
 # Marlin Wallet for Wear OS
@@ -98,7 +98,7 @@ Note that connecting a real watch device requires a [Wifi connection and a pairi
 When it's ready, you can run the following command to install the app on the device:
 
 ```bash
-npm run wearos
+pnpm run wearos
 ```
 
 As opposed to the Android application, the Wear OS application does not run automatically, you have to launch it using the watch application launcher.
@@ -111,11 +111,11 @@ To build a release version of the Wear OS application, follow the same process a
 Then use the following command to build the AAB bundle (for Play Store submission):
 
 ```bash
-npm run build-wearos-release-aab
+pnpm run build-wearos-release-aab
 ```
 
 or the APK package (for sideloading):
 
 ```bash
-npm run build-wearos-release-apk
+pnpm run build-wearos-release-apk
 ```

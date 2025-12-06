@@ -23,7 +23,11 @@ import {
 } from 'components/Common/Inputs';
 import CashtabSwitch from 'components/Common/Switch';
 import { TokenParamLabel } from 'components/Common/Atoms';
-import Cropper, { Area, Point } from 'react-easy-crop';
+import CropperComponent, { Area, Point } from 'react-easy-crop';
+
+// Type assertion for Cropper to fix TypeScript issues with pnpm's module resolution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Cropper = CropperComponent as unknown as React.ComponentType<any>;
 import getCroppedImg, {
     ReaderResult,
 } from 'components/Etokens/icons/cropImage';

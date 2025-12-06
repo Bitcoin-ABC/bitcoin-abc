@@ -57,16 +57,20 @@ FROM node:22-bookworm-slim
 WORKDIR /app/modules
 COPY --from=wasmbuilder /app/modules .
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Build ecash-lib
 WORKDIR /app/modules/ecash-lib
 # Install b58-ts from npm, so that module users install it automatically
-RUN npm install b58-ts@latest
+RUN pnpm add b58-ts@latest
 # Install ecashaddrjs from npm, so that module users install it automatically
-RUN npm install ecashaddrjs@latest
+RUN pnpm add ecashaddrjs@latest
 # Install chronik-client from npm, so that module users install it automatically
-RUN npm install -D chronik-client@latest
-RUN npm ci
-RUN npm run build
+RUN pnpm add -D chronik-client@latest
+# Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
+RUN pnpm install
+RUN pnpm run build
 
 # Publish ecash-lib
-CMD [ "npm", "publish" ]
+CMD [ "pnpm", "publish" ]

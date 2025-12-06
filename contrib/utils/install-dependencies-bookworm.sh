@@ -166,8 +166,11 @@ chmod +x nodesetup.sh
 ./nodesetup.sh
 apt-get install -y nodejs
 
-# Install nyc for mocha unit test reporting
-npm i -g nyc
+# Enable corepack for pnpm
+corepack enable
+corepack prepare pnpm@10.24.0 --activate
+
+# nyc is installed as a dev dependency in the root package.json and accessed via pnpm exec
 
 # Install Rust stable 1.87.0 and nightly from the 2023-12-29
 curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init

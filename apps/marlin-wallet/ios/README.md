@@ -56,11 +56,11 @@ cd ..
 Then you can build and install the IOS application on the connected IPhone with:
 
 ```bash
-npm run ios
+pnpm run ios
 ```
 
 and the Watch OS companion application to the Apple Watch with:
 
 ```bash
-npm run watchos
+pnpm run watchos
 ```

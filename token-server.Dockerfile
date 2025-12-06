@@ -4,20 +4,31 @@
 
 FROM node:22-bookworm-slim
 
-# Note token-server has no local dependencies
-WORKDIR /app/apps/token-server
+# Install pnpm
+RUN npm install -g pnpm
 
-# Copy only the package files and install necessary dependencies.
-# This reduces cache busting when source files are changed.
-COPY apps/token-server/package.json .
-COPY apps/token-server/package-lock.json .
-RUN npm ci
+# Set working directory to monorepo root
+WORKDIR /app
 
-# Copy the rest of the project files
-COPY apps/token-server/ .
+# Copy workspace files
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
+COPY package.json .
 
-# Compile typescript. Outputs to dist/ dir
-RUN npm run build
+# Copy package.json files for dependency resolution
+COPY apps/token-server/package.json ./apps/token-server/
+
+# Fetch dependencies (pnpm best practice for Docker)
+RUN pnpm fetch --frozen-lockfile
+
+# Copy source files
+COPY apps/token-server/ ./apps/token-server/
+
+# Install dependencies for token-server
+RUN pnpm install --frozen-lockfile --offline --filter token-server...
+
+# Build token-server from monorepo root
+RUN pnpm --filter token-server run build
 
 # token-server runs with "node dist/index.js"
 CMD [ "node", "dist/index.js" ]

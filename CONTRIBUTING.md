@@ -185,9 +185,11 @@ Then:
 
 ```
 cd bitcoin-abc
-[sudo] nvm install 20
-[sudo] npm install -g npm@latest
-npm ci
+[sudo] nvm install 22
+# Enable corepack (built into Node.js 16.9+, no installation needed)
+corepack enable
+corepack prepare pnpm@10.24.0 --activate
+pnpm install --frozen-lockfile
 ```
 
 Some repositories have a `.nvmrc` file which specifies the version of node expected.

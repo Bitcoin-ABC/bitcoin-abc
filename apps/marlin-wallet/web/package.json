@@ -6,7 +6,7 @@
     "scripts": {
         "build": "webpack --mode production",
         "dev": "webpack serve --mode development",
-        "start": "npm run build && http-server dist -p 3000 -c-1"
+        "start": "pnpm run build && http-server dist -p 3000 -c-1"
     },
     "dependencies": {
         "@types/bip39": "^2.4.2",

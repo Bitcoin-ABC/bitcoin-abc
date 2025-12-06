@@ -7,16 +7,19 @@
 # as we pull ecash-lib from npmjs for publishing ecash-wallet
 FROM node:22-bookworm-slim
 
+# Install pnpm
+RUN npm install -g pnpm
+
 WORKDIR /app/modules/ecash-wallet
 COPY modules/ecash-wallet .
 # Install ecash-lib from npm, so that module users install it automatically
-RUN npm install ecash-lib@latest
+RUN pnpm add ecash-lib@latest
 # Install chronik-client from npm, so that module users install it automatically
-RUN npm install chronik-client@latest
-# Install the rest of dependencies
-RUN npm ci
+RUN pnpm add chronik-client@latest
+# Install the rest of dependencies (no --frozen-lockfile since pnpm add modified package.json)
+RUN pnpm install
 # Build ecash-wallet
-RUN npm run build
+RUN pnpm run build
 
 # Publish ecash-wallet
-CMD [ "npm", "publish" ]
+CMD [ "pnpm", "publish" ]

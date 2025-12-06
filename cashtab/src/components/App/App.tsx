@@ -136,6 +136,7 @@ const App = () => {
                     pauseOnHover
                     theme="dark"
                     transition={Bounce}
+                    aria-label="Notifications"
                 />
                 <WalletBody>
                     <WalletCtn showFooter={wallet !== false}>

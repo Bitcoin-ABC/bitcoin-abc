@@ -17,12 +17,13 @@ echo NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX >> .env
 Then, run the development server:
 
 ```bash
-npm ci
-npm run dev
+# From repository root
+pnpm install --frozen-lockfile
+pnpm --filter e.cash run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Build
 
-To create an optimized production build: `npm run build`
+To create an optimized production build: `pnpm --filter e.cash run build`

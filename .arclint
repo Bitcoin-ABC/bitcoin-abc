@@ -92,7 +92,7 @@
                 "(^src/(qt/locale|secp256k1|leveldb)/)",
                 "(^test/lint/dictionary/)",
                 "(^web/e.cash/public/animations/)",
-                "(package-lock.json)",
+                "(pnpm-lock.yaml)",
                 "(^electrum/electrumabc/wordlist/)",
                 "(^doc/standards/)"
             ],

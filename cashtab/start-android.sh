@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "[startAndroid] Building web assets..."
-npm run build
+pnpm run build
 
 echo "[startAndroid] Syncing Capacitor Android platform..."
 npx cap sync android

@@ -24,7 +24,9 @@ final class ESLinter extends ArcanistExternalLinter {
 
   public function getInstallInstructions() {
     return pht(
-      'Install `eslint` using `npm ci` from the root of the repository');
+      'Install `eslint` using `pnpm install --frozen-lockfile` '
+      . 'from the root of the repository'
+    );
   }
 
   public function getLinterName() {

@@ -54,68 +54,67 @@ RUN CC=clang ./build-wasm.sh
 # Stage 2
 FROM node:22-bookworm-slim AS builder
 
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory to monorepo root
+WORKDIR /app
+
+# Copy workspace files
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
+COPY package.json .
+
 # Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
-WORKDIR /app/modules
-COPY --from=wasmbuilder /app/modules .
+COPY --from=wasmbuilder /app/modules ./modules
 
-# Build all local Cashtab dependencies
+# Copy package.json files for dependency resolution
+COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
+COPY modules/chronik-client/package.json ./modules/chronik-client/
+COPY modules/mock-chronik-client/package.json ./modules/mock-chronik-client/
+COPY modules/b58-ts/package.json ./modules/b58-ts/
+COPY modules/ecash-lib/package.json ./modules/ecash-lib/
+COPY modules/ecash-wallet/package.json ./modules/ecash-wallet/
+COPY modules/ecash-agora/package.json ./modules/ecash-agora/
+COPY cashtab/package.json ./cashtab/
 
-# ecashaddrjs
-WORKDIR /app/modules/ecashaddrjs
-COPY modules/ecashaddrjs/ .
-RUN npm ci
-RUN npm run build
+# Fetch dependencies (pnpm best practice for Docker)
+RUN pnpm fetch --frozen-lockfile
 
-# chronik-client
-WORKDIR /app/modules/chronik-client
-COPY modules/chronik-client/ .
-RUN npm ci
-RUN npm run build
+# Copy source files
+COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
+COPY modules/chronik-client/ ./modules/chronik-client/
+COPY modules/mock-chronik-client/ ./modules/mock-chronik-client/
+COPY modules/b58-ts/ ./modules/b58-ts/
+COPY modules/ecash-lib/ ./modules/ecash-lib/
+COPY modules/ecash-wallet/ ./modules/ecash-wallet/
+COPY modules/ecash-agora/ ./modules/ecash-agora/
+COPY cashtab/ ./cashtab/
 
-# mock-chronik-client
-WORKDIR /app/modules/mock-chronik-client
-COPY modules/mock-chronik-client/ .
-RUN npm ci
-RUN npm run build
+# Install dependencies for local modules first
+RUN pnpm install --frozen-lockfile --offline --filter b58-ts...
+RUN pnpm install --frozen-lockfile --offline --filter ecashaddrjs...
+RUN pnpm install --frozen-lockfile --offline --filter chronik-client...
+RUN pnpm install --frozen-lockfile --offline --filter mock-chronik-client...
+RUN pnpm install --frozen-lockfile --offline --filter ecash-lib...
+RUN pnpm install --frozen-lockfile --offline --filter ecash-wallet...
+RUN pnpm install --frozen-lockfile --offline --filter ecash-agora...
 
-# b58-ts (required for ecash-lib)
-WORKDIR /app/modules/b58-ts
-COPY modules/b58-ts .
-RUN npm ci
+# Build local modules
+RUN pnpm --filter b58-ts run build
+RUN pnpm --filter ecashaddrjs run build
+RUN pnpm --filter chronik-client run build
+RUN pnpm --filter mock-chronik-client run build
+RUN pnpm --filter ecash-lib run build
+RUN pnpm --filter ecash-wallet run build
+RUN pnpm --filter ecash-agora run build
 
-# ecash-lib
-WORKDIR /app/modules/ecash-lib
-RUN npm ci
-RUN npm run build
+# Install dependencies for cashtab (now that local modules are built)
+# Include devDependencies since we need them for the build
+RUN pnpm install --frozen-lockfile --offline --filter cashtab... --include-workspace-root
 
-# ecash-wallet, a dev dep of ecash-agora
-WORKDIR /app/modules/ecash-wallet
-COPY modules/ecash-wallet/ .
-RUN npm ci
-RUN npm run build
-
-# ecash-agora
-WORKDIR /app/modules/ecash-agora
-COPY modules/ecash-agora/ .
-RUN npm ci
-RUN npm run build
-
-# Now that local dependencies are ready, build cashtab
-WORKDIR /app/cashtab
-# Copy only the package files and install necessary dependencies.
-# This reduces cache busting when source files are changed.
-COPY cashtab/package.json .
-COPY cashtab/package-lock.json .
-
-# Docker should not rebuild deps just because package.json version bump
-# So, always keep package.json and package-lock.json at 1.0.0 in the docker image
-# Note: it will be overwritten before npm run build by the latest package.json
-RUN npm version --allow-same-version 1.0.0
-RUN npm ci
-
-# Copy the rest of the project files and build
-COPY cashtab/ .
-RUN npm run build
+# Build cashtab from monorepo root
+RUN pnpm --filter cashtab run build
 
 # Stage 3
 FROM nginx

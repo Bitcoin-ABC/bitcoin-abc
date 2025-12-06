@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "[start-ios] Building web assets..."
-npm run build
+pnpm run build
 
 echo "[start-ios] Launching the IOS app..."
 npx cap run ios

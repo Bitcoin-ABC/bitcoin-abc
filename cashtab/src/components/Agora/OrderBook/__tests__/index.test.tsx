@@ -78,7 +78,7 @@ const OrderBookTestWrapper: React.FC<OrderBookTestWrapperProps> = ({
         ecc={ecc}
     >
         <ThemeProvider theme={theme}>
-            <ToastContainer />
+            <ToastContainer aria-label="Notifications" />
             <div>Test</div>
             <Orderbook
                 tokenId={tokenId}

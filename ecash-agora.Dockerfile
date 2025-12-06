@@ -8,6 +8,9 @@
 # as we pull ecash-lib from npmjs for publishing ecash-agora
 FROM node:22-bookworm-slim
 
+# Install pnpm
+RUN npm install -g pnpm
+
 WORKDIR /app/modules/ecash-agora
 COPY modules/ecash-agora .
 
@@ -26,9 +29,9 @@ RUN ECLIB_VERSION=$(npm view ecash-lib version) \
     && cat package.json | grep -A 5 '"dependencies"'
 
 # Clean existing lockfile that may contain local file: refs, then install and build
-RUN rm -f package-lock.json \
-    && npm install \
-    && npm run build
+RUN rm -f pnpm-lock.yaml \
+    && pnpm install \
+    && pnpm run build
 
 # Publish ecash-agora
-CMD [ "npm", "publish" ]
+CMD [ "pnpm", "publish" ]

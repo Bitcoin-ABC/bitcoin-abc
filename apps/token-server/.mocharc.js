@@ -7,4 +7,6 @@ module.exports = {
     require: ['mocha-suppress-logs', 'ts-node/register'],
     extensions: ['ts'],
     spec: ['src/**/*.test.ts'],
+    timeout: 30000, // 30 seconds per test (MongoDB memory server may need time to start)
+    exit: true, // Force exit after tests complete (prevents hanging on open handles)
 };

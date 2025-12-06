@@ -182,6 +182,7 @@ describe('<Collection />', () => {
                     pauseOnHover
                     theme="light"
                     transition={Bounce}
+                    aria-label="Notifications"
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
@@ -267,6 +268,7 @@ describe('<Collection />', () => {
                     pauseOnHover
                     theme="light"
                     transition={Bounce}
+                    aria-label="Notifications"
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
@@ -350,6 +352,7 @@ describe('<Collection />', () => {
                     pauseOnHover
                     theme="light"
                     transition={Bounce}
+                    aria-label="Notifications"
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}
@@ -460,6 +463,7 @@ describe('<Collection />', () => {
                     pauseOnHover
                     theme="light"
                     transition={Bounce}
+                    aria-label="Notifications"
                 />
                 <Collection
                     groupTokenId={heismanCollectionGroupTokenId}

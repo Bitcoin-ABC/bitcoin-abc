@@ -2,20 +2,22 @@ You can run Marlin Wallet as a web wallet.
 
 **This will not securely store your private key** so it is advisable to only do this for development purpose. You will also lack all the mobile/hardware related features so it can be considered as a degraded mode.
 
-First install the dependencies. From the `web/` folder, run:
+First install the dependencies. From the repository root, run:
 
 ```
-npm ci
+pnpm install --frozen-lockfile --filter marlin-wallet-web...
 ```
 
-Then run the dev version (will show an error for each exception):
+This installs marlin-wallet-web and all its dependencies (including workspace dependencies like chronik-client, ecash-lib, and ecash-wallet).
+
+Then, from the `apps/marlin-wallet/web/` directory, run the dev version (will show an error for each exception):
 
 ```
-npm run dev
+pnpm run dev
 ```
 
 or the production version:
 
 ```
-npm run start
+pnpm run start
 ```

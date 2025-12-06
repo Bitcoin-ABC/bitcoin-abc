@@ -6,19 +6,23 @@
 
 FROM node:22-bookworm-slim
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Build mock-chronik-client
 WORKDIR /app/modules/mock-chronik-client
 
 # Copy all project files as they are required for building
 COPY modules/mock-chronik-client .
 # Install ecashaddrjs from npm, so that module users install it automatically
-RUN npm install ecashaddrjs@latest
+RUN pnpm add ecashaddrjs@latest
 # Install chronik-client from npm, so that module users install it automatically
 # Note that in practice any user of chronik-client probably already has chronik-client installed
 # So it won't really be bloating their node_modules
-RUN npm install chronik-client@latest
-RUN npm ci
-RUN npm run build
+RUN pnpm add chronik-client@latest
+# Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
+RUN pnpm install
+RUN pnpm run build
 
 # Publish the module
-CMD [ "npm", "publish" ]
+CMD [ "pnpm", "publish" ]

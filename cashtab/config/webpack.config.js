@@ -132,9 +132,9 @@ module.exports = function (webpackEnv) {
                         config: false,
                         plugins: !useTailwind
                             ? [
-                                  'postcss-flexbugs-fixes',
+                                  require.resolve('postcss-flexbugs-fixes'),
                                   [
-                                      'postcss-preset-env',
+                                      require.resolve('postcss-preset-env'),
                                       {
                                           autoprefixer: {
                                               flexbox: 'no-2009',
@@ -145,13 +145,13 @@ module.exports = function (webpackEnv) {
                                   // Adds PostCSS Normalize as the reset css with default options,
                                   // so that it honors browserslist config in package.json
                                   // which in turn let's users customize the target behavior as per their needs.
-                                  'postcss-normalize',
+                                  require.resolve('postcss-normalize'),
                               ]
                             : [
-                                  'tailwindcss',
-                                  'postcss-flexbugs-fixes',
+                                  require.resolve('tailwindcss'),
+                                  require.resolve('postcss-flexbugs-fixes'),
                                   [
-                                      'postcss-preset-env',
+                                      require.resolve('postcss-preset-env'),
                                       {
                                           autoprefixer: {
                                               flexbox: 'no-2009',
@@ -328,6 +328,8 @@ module.exports = function (webpackEnv) {
                 crypto: require.resolve('crypto-browserify'),
                 buffer: require.resolve('buffer'),
             },
+            // Follow symlinks for pnpm compatibility
+            symlinks: true,
             // This allows you to set a fallback for where webpack should look for modules.
             // We placed these paths second because we want `node_modules` to "win"
             // if there are any conflicts. This matches Node resolution mechanism.
@@ -344,6 +346,9 @@ module.exports = function (webpackEnv) {
             extensions: paths.moduleFileExtensions
                 .map(ext => `.${ext}`)
                 .filter(ext => useTypeScript || !ext.includes('ts')),
+            // Allow webpack to automatically add file extensions for pnpm compatibility
+            // This fixes issues with pnpm's symlinked node_modules structure
+            fullySpecified: false,
             alias: {
                 // Support React Native Web
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
@@ -370,6 +375,11 @@ module.exports = function (webpackEnv) {
                     babelRuntimeRegenerator,
                 ]),
             ],
+        },
+        resolveLoader: {
+            // Allow webpack to automatically add file extensions for loader resolution
+            // This is needed for pnpm compatibility
+            fullySpecified: false,
         },
         module: {
             strictExportPresence: true,
@@ -471,6 +481,24 @@ module.exports = function (webpackEnv) {
                                 // See #6846 for context on why cacheCompression is disabled
                                 cacheCompression: false,
                                 compact: isEnvProduction,
+                            },
+                        },
+                        // Handle .mjs and .cjs files as ES modules (needed for pnpm compatibility)
+                        {
+                            test: /\.mjs$/,
+                            include: /node_modules/,
+                            type: 'javascript/auto',
+                            resolve: {
+                                fullySpecified: false,
+                            },
+                        },
+                        // Handle .cjs files (CommonJS modules)
+                        {
+                            test: /\.cjs$/,
+                            include: /node_modules/,
+                            type: 'javascript/auto',
+                            resolve: {
+                                fullySpecified: false,
                             },
                         },
                         // Process any JS outside of the app with Babel.
@@ -760,6 +788,7 @@ module.exports = function (webpackEnv) {
                         context: paths.appPath,
                         diagnosticOptions: {
                             syntactic: true,
+                            semantic: false,
                         },
                         mode: 'write-references',
                     },

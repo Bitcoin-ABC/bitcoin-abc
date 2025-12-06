@@ -10,7 +10,7 @@
     ],
     "scripts": {
         "build": "tsc",
-        "prepublish": "npm run build",
+        "prepublish": "pnpm run build",
         "test": "mocha -r ts-node/register test/test.ts --exit",
         "start": "cd demo && npm start",
         "format": "prettier --write .",
