@@ -1079,7 +1079,7 @@ public:
      * check.
      */
     bool ShouldRunInactivityChecks(const CNode &node,
-                                   std::chrono::seconds now) const;
+                                   std::chrono::microseconds now) const;
 
 private:
     struct ListenSocket {
@@ -1136,7 +1136,8 @@ private:
     void DisconnectNodes();
     void NotifyNumConnectionsChanged();
     /** Return true if the peer is inactive and should be disconnected. */
-    bool InactivityCheck(const CNode &node) const;
+    bool InactivityCheck(const CNode &node,
+                         std::chrono::microseconds now) const;
 
     /**
      * Generate a collection of sockets to check for IO readiness.

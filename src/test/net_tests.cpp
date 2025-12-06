@@ -123,7 +123,7 @@ struct CConnmanTest : public CConnman {
     }
 
     bool TestInactivityCheck(const CNode &node) const {
-        return InactivityCheck(node);
+        return InactivityCheck(node, GetTime<std::chrono::microseconds>());
     }
 
     void openNetworkConnection(const CAddress &addrConnect,

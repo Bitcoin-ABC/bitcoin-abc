@@ -1292,14 +1292,14 @@ void CConnman::NotifyNumConnectionsChanged() {
 }
 
 bool CConnman::ShouldRunInactivityChecks(const CNode &node,
-                                         std::chrono::seconds now) const {
+                                         std::chrono::microseconds now) const {
     return node.m_connected + m_peer_connect_timeout < now;
 }
 
-bool CConnman::InactivityCheck(const CNode &node) const {
+bool CConnman::InactivityCheck(const CNode &node,
+                               std::chrono::microseconds now) const {
     // Tests that see disconnects after using mocktime can start nodes with a
     // large timeout. For example, -peertimeout=999999999.
-    const auto now{GetTime<std::chrono::seconds>()};
     const auto last_send{node.m_last_send.load()};
     const auto last_recv{node.m_last_recv.load()};
     const auto last_msg_start{node.m_last_msg_start.load()};
@@ -1318,13 +1318,13 @@ bool CConnman::InactivityCheck(const CNode &node) const {
 
     if (now > last_send + TIMEOUT_INTERVAL) {
         LogDebug(BCLog::NET, "socket sending timeout: %is peer=%d\n",
-                 count_seconds(now - last_send), node.GetId());
+                 Ticks<std::chrono::seconds>(now - last_send), node.GetId());
         return true;
     }
 
     if (now > last_recv + TIMEOUT_INTERVAL) {
         LogDebug(BCLog::NET, "socket receive timeout: %is peer=%d\n",
-                 count_seconds(now - last_recv), node.GetId());
+                 Ticks<std::chrono::seconds>(now - last_recv), node.GetId());
         return true;
     }
 
@@ -1336,8 +1336,8 @@ bool CConnman::InactivityCheck(const CNode &node) const {
             LogDebug(BCLog::NET,
                      "socket receive timeout: stalled message, last data "
                      "received %i seconds ago, bytes=%d peer=%d\n",
-                     count_seconds(now - last_recv), inflight_bytes,
-                     node.GetId());
+                     Ticks<std::chrono::seconds>(now - last_recv),
+                     inflight_bytes, node.GetId());
             return true;
         }
 
@@ -1348,8 +1348,8 @@ bool CConnman::InactivityCheck(const CNode &node) const {
             LogDebug(BCLog::NET,
                      "socket receive timeout: stalled message started %i "
                      "seconds ago, bytes=%d peer=%d\n",
-                     count_seconds(now - last_msg_start), inflight_bytes,
-                     node.GetId());
+                     Ticks<std::chrono::seconds>(now - last_msg_start),
+                     inflight_bytes, node.GetId());
             return true;
         }
     }
@@ -1429,6 +1429,8 @@ void CConnman::SocketHandlerConnected(
     const std::vector<CNode *> &nodes,
     const Sock::EventsPerSock &events_per_sock) {
     uint64_t nTotalInflightBytes{0};
+    auto now = GetTime<std::chrono::microseconds>();
+
     for (CNode *pnode : nodes) {
         if (interruptNet) {
             return;
@@ -1523,7 +1525,7 @@ void CConnman::SocketHandlerConnected(
             }
         }
 
-        if (InactivityCheck(*pnode)) {
+        if (InactivityCheck(*pnode, now)) {
             pnode->fDisconnect = true;
         }
     }
