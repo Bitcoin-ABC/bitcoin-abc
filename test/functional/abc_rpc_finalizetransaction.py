@@ -1,7 +1,7 @@
 # Copyright (c) 2025 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the finalizetransaction and removetransaction RPCs."""
+"""Test the finalizetransaction, removetransaction and getfinaltransactions RPCs."""
 
 import time
 
@@ -50,6 +50,16 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
         # No tx in the block template
         assert_gbt_transaction_ids([])
 
+        def assert_getfinaltransactions(expected_txids):
+            sorted_txids = sorted(expected_txids)
+            assert_equal(node.getfinaltransactions(), sorted_txids)
+            assert_equal(
+                node.getfinaltransactions(verbose=True),
+                [node.getrawtransaction(txid, True) for txid in sorted_txids],
+            )
+
+        assert_getfinaltransactions([])
+
         # Finalizing a non existing transaction returns an error
         assert_raises_rpc_error(
             -8,
@@ -69,17 +79,20 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
         # Finalize a tx: it should be added to the block template
         assert_equal(node.finalizetransaction(txids[0]), [txids[0]])
         assert_gbt_transaction_ids([txids[0]])
+        assert_getfinaltransactions([txids[0]])
 
         # Finalize more
         assert_equal(node.finalizetransaction(txids[1]), [txids[1]])
         assert_equal(node.finalizetransaction(txids[2]), [txids[2]])
         assert_gbt_transaction_ids(txids[:3])
+        assert_getfinaltransactions(txids[:3])
 
         # Remove the first transaction, it should no longer be in the block
         # template
         assert_equal(node.removetransaction(txids[0]), [txids[0]])
         assert txids[0] not in node.getrawmempool()
         assert_gbt_transaction_ids(txids[1:3])
+        assert_getfinaltransactions(txids[1:3])
 
         chained_txs = wallet.send_self_transfer_chain(from_node=node, chain_length=5)
         assert all(tx["txid"] in node.getrawmempool() for tx in chained_txs)
@@ -94,6 +107,7 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
 
         # They are all included in the block template but no other
         assert_gbt_transaction_ids(txids[1:3] + expected_chained_txids)
+        assert_getfinaltransactions(txids[1:3] + expected_chained_txids)
 
         # Remove the second transaction from the chain, check the descendants
         # are removed as well and no longer in the block template
@@ -109,6 +123,7 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
         # block template
         assert chained_txs[0]["txid"] in node.getrawmempool()
         assert_gbt_transaction_ids(txids[1:3] + [chained_txs[0]["txid"]])
+        assert_getfinaltransactions(txids[1:3] + [chained_txs[0]["txid"]])
 
 
 if __name__ == "__main__":

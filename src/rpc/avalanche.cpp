@@ -20,6 +20,7 @@
 #include <node/context.h>
 #include <policy/block/stakingrewards.h>
 #include <rpc/blockchain.h>
+#include <rpc/rawtransaction_util.h>
 #include <rpc/server.h>
 #include <rpc/server_util.h>
 #include <rpc/util.h>
@@ -1994,6 +1995,63 @@ static RPCHelpMan removetransaction() {
     };
 }
 
+static RPCHelpMan getfinaltransactions() {
+    return RPCHelpMan{
+        "getfinaltransactions",
+        "Returns all finalized transactions that have not been included in a "
+        "finalized block yet.",
+        {
+            {"verbose", RPCArg::Type::BOOL, RPCArg::Default{false},
+             "True for a json object, false for an array of transaction ids"},
+        },
+        {
+            RPCResult{"for verbose = false",
+                      RPCResult::Type::ARR,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::STR_HEX, "", "The transaction id"},
+                      }},
+            RPCResult{"for verbose = true",
+                      RPCResult::Type::ARR,
+                      "",
+                      "",
+                      {
+                          DecodeTxDoc("The transaction id", /*wallet=*/false),
+                      }},
+        },
+        RPCExamples{HelpExampleCli("getfinaltransactions", "true") +
+                    HelpExampleRpc("getfinaltransactions", "true")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const bool fVerbose =
+                !request.params[0].isNull() && request.params[0].get_bool();
+
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+
+            UniValue finalTxs(UniValue::VARR);
+            {
+                LOCK(mempool.cs);
+                mempool.finalizedTxs.forEachLeaf(
+                    [fVerbose, &finalTxs](const CTxMemPoolEntryRef &entryRef) {
+                        if (!fVerbose) {
+                            finalTxs.push_back(
+                                entryRef->GetTx().GetId().GetHex());
+                        } else {
+                            UniValue tx(UniValue::VOBJ);
+                            TxToUniv(entryRef->GetTx(), BlockHash(), tx,
+                                     /*include_hex=*/true);
+                            finalTxs.push_back(std::move(tx));
+                        }
+                        return true;
+                    });
+            }
+
+            return finalTxs;
+        },
+    };
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -2024,6 +2082,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getflakyproofs,            },
         { "avalanche",         finalizetransaction,       },
         { "avalanche",         removetransaction,         },
+        { "avalanche",         getfinaltransactions,      },
         { "hidden",            getavailabilityscore,      },
         { "hidden",            getstakecontendervote,     },
     };

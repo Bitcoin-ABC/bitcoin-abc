@@ -17,3 +17,6 @@ This release includes the following features and fixes:
  - The `gettransaction` RPC command now returns `"ischange": true` for the
    change output (if any). The field is absent for non change outputs. Please
    refer to the `gettransaction` documentation for details.
+ - A new `getfinaltransactions` RPC command returns a list of the finalized
+   transactions that are not yet included in a finalized block. Please refer to
+   the RPC documentation for more details.
