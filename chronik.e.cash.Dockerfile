@@ -11,10 +11,17 @@ RUN npm install -g pnpm
 # Set working directory to monorepo root
 WORKDIR /app
 
+# Set CI environment variable to avoid pnpm TTY prompts
+ENV CI=true
+
 # Copy workspace files
 COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .
 COPY package.json .
+
+# Create .npmrc to hoist typedoc-plugin-markdown so typedoc can find it
+# This is needed because pnpm's strict mode doesn't hoist plugins by default
+RUN echo "public-hoist-pattern[]=*typedoc-plugin-markdown*" > .npmrc
 
 # Copy package.json files for dependency resolution
 COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
@@ -22,6 +29,7 @@ COPY modules/chronik-client/package.json ./modules/chronik-client/
 COPY web/chronik.e.cash/package.json ./web/chronik.e.cash/
 
 # Fetch dependencies (pnpm best practice for Docker)
+# This fetches all packages (including devDependencies) into the virtual store
 RUN pnpm fetch --frozen-lockfile
 
 # Copy source files
@@ -37,15 +45,17 @@ RUN pnpm install --frozen-lockfile --offline --filter chronik-client...
 RUN pnpm --filter ecashaddrjs run build
 RUN pnpm --filter chronik-client run build
 
-# Install dependencies for chronik.e.cash (now that local modules are built)
-RUN pnpm install --frozen-lockfile --offline --filter chronik.e.cash...
+# Install dependencies for chronik-docs (now that local modules are built)
+# Note: package name is "chronik-docs", not "chronik.e.cash"
+# Remove --offline to ensure all devDependencies are properly linked
+RUN pnpm install --frozen-lockfile --filter chronik-docs...
 
 # If you do not have an .abclatestversion file, create one by copying .abclatestversion.sample
 # Note, in CI, you must create .abclatestversion before running this Dockerfile
 RUN if [ ! -f web/chronik.e.cash/.abclatestversion ]; then mv web/chronik.e.cash/.abclatestversion.sample web/chronik.e.cash/.abclatestversion; fi
 
-# Build chronik.e.cash from monorepo root
-RUN pnpm --filter chronik.e.cash run build
+# Build chronik-docs from monorepo root
+RUN pnpm --filter chronik-docs run build
 
 # Stage 2
 FROM nginx
