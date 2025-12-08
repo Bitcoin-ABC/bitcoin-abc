@@ -111,5 +111,6 @@ RUN pnpm install --frozen-lockfile --offline --filter cashtab-faucet...
 # Build cashtab-faucet from monorepo root
 RUN pnpm --filter cashtab-faucet run build
 
-# cashtab-faucet runs with "node dist/index.js"
+# cashtab-faucet runs with "node dist/index.js" from the app directory
+WORKDIR /app/apps/cashtab-faucet
 CMD [ "node", "dist/index.js" ]

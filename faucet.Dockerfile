@@ -106,5 +106,6 @@ RUN pnpm install --frozen-lockfile --offline --filter faucet...
 # Build faucet from monorepo root
 RUN pnpm --filter faucet run build
 
-# faucet runs with "node dist/index.js"
+# faucet runs with "node dist/index.js" from the app directory
+WORKDIR /app/apps/faucet
 CMD [ "node", "dist/index.js" ]

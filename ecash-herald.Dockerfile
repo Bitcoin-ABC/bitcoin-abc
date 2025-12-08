@@ -121,5 +121,6 @@ RUN pnpm install --frozen-lockfile --offline --filter ecash-herald...
 # Build ecash-herald from monorepo root
 RUN pnpm --filter ecash-herald run build
 
-# ecash-herald runs with "node dist/index.js"
+# ecash-herald runs with "node dist/index.js" from the app directory
+WORKDIR /app/apps/ecash-herald
 CMD [ "node", "dist/index.js" ]

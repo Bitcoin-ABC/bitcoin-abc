@@ -30,5 +30,6 @@ RUN pnpm install --frozen-lockfile --offline --filter token-server...
 # Build token-server from monorepo root
 RUN pnpm --filter token-server run build
 
-# token-server runs with "node dist/index.js"
+# token-server runs with "node dist/index.js" from the app directory
+WORKDIR /app/apps/token-server
 CMD [ "node", "dist/index.js" ]
