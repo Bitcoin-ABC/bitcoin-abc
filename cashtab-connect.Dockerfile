@@ -7,11 +7,28 @@ FROM node:22-bookworm-slim
 # Install pnpm
 RUN npm install -g pnpm
 
-WORKDIR /app/modules/cashtab-connect
+# Set CI environment variable to avoid pnpm TTY prompts
+ENV CI=true
 
-# Copy all project files as they are required for building
-COPY modules/cashtab-connect .
-RUN pnpm install --frozen-lockfile
+# Set working directory to monorepo root
+WORKDIR /app
 
-# Publish the module
-CMD [ "pnpm", "publish" ]
+# Copy workspace files (required for pnpm workspace)
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
+COPY package.json .
+
+# Copy module package.json for dependency resolution
+COPY modules/cashtab-connect/package.json ./modules/cashtab-connect/
+
+# Copy module source files
+COPY modules/cashtab-connect/ ./modules/cashtab-connect/
+
+# Install dependencies using workspace filter
+RUN pnpm install --frozen-lockfile --filter cashtab-connect...
+
+# Build the module
+RUN pnpm --filter cashtab-connect run build
+
+# Publish the module (from monorepo root using filter)
+CMD [ "pnpm", "--filter", "cashtab-connect", "publish" ]
