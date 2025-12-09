@@ -50,10 +50,10 @@ export const magicHash = (
         messageBytes.length <= 0xfc
             ? 1
             : messageBytes.length <= 0xffff
-            ? 3
-            : messageBytes.length <= 0xffffffff
-            ? 5
-            : 9;
+              ? 3
+              : messageBytes.length <= 0xffffffff
+                ? 5
+                : 9;
 
     // Create a WriterBytes instance with enough capacity
     const writer = new WriterBytes(

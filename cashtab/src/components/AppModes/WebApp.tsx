@@ -24,11 +24,11 @@ const WebApp = () => {
     */
     const askPermissionForNotifications = () => {
         return new Promise(function (resolve, reject) {
-            const permissionResult = Notification.requestPermission(function (
-                result,
-            ) {
-                resolve(result);
-            });
+            const permissionResult = Notification.requestPermission(
+                function (result) {
+                    resolve(result);
+                },
+            );
 
             if (permissionResult) {
                 permissionResult.then(resolve, reject);

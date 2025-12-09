@@ -453,9 +453,8 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         ]);
 
         // We can get token info of an slp nft1 child genesis
-        const slpChildGenesisMempoolInfo = await chronik.token(
-            slpChildGenesisTxid,
-        );
+        const slpChildGenesisMempoolInfo =
+            await chronik.token(slpChildGenesisTxid);
         // We do not get mintVaultScripthash, data, or authPubkey keys in GenesisInfo for SLP NFT1
         expect(slpChildGenesisMempoolInfo).to.deep.equal({
             tokenId: slpChildGenesisTxid,
@@ -563,9 +562,8 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(typeof slpGenesisConfirmedInfo.block !== 'undefined').to.eql(
             true,
         );
-        const slpChildGenesisConfirmedInfo = await chronik.token(
-            slpChildGenesisTxid,
-        );
+        const slpChildGenesisConfirmedInfo =
+            await chronik.token(slpChildGenesisTxid);
         expect(
             typeof slpChildGenesisConfirmedInfo.block !== 'undefined',
         ).to.eql(true);

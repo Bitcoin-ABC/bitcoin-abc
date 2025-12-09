@@ -8,13 +8,13 @@ import Image from "next/image";
 
 export default function StartBuildingSection() {
   return (
-    <section className="rounded-t-4xl relative overflow-hidden bg-gradient-to-tl from-[#11192d] to-[#040409] px-4 py-20">
+    <section className="relative overflow-hidden rounded-t-4xl bg-gradient-to-tl from-[#11192d] to-[#040409] px-4 py-20">
       {/* Background glow effect */}
       <div className="absolute inset-0 bg-gradient-to-tr from-[#331d3d] to-transparent opacity-30" />
 
       <div className="mx-auto text-center">
         {/* Logo/Icon */}
-        <div className="h-25 w-25 relative m-auto mb-[-30px] lg:mb-[-40px] lg:h-40 lg:w-40">
+        <div className="relative m-auto mb-[-30px] h-25 w-25 lg:mb-[-40px] lg:h-40 lg:w-40">
           <Image
             src="/logo-fade.png"
             alt="eCash"
@@ -25,7 +25,7 @@ export default function StartBuildingSection() {
         </div>
 
         {/* Heading */}
-        <h2 className="relative z-20 text-3xl font-bold leading-tight text-white md:text-4xl">
+        <h2 className="relative z-20 text-3xl leading-tight font-bold text-white md:text-4xl">
           Start building with XEC
         </h2>
 

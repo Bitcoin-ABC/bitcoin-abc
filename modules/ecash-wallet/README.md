@@ -26,22 +26,22 @@ See tests for detailed methods.
 
 ### Phase One, Cashtab feature parity
 
--   XEC actions
-    [x] Send XEC to one recipient
-    [x] Send XEC to many recipients
+- XEC actions
+  [x] Send XEC to one recipient
+  [x] Send XEC to many recipients
 
--   GENESIS, MINT, SEND, and BURN for all token types
-    [x] SLP_TOKEN_TYPE_FUNGIBLE
-    [x] ALP_TOKEN_TYPE_STANDARD
-    [x] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
-    [x] SLP_TOKEN_TYPE_NFT1_GROUP
-    [x] SLP_TOKEN_TYPE_NFT1_CHILD (Mint NFTs)
-    [x] DataAction for ALP_TOKEN_TYPE_STANDARD txs
-    [X] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
-    [X] One-step mints for SLP NFTs
--   Agora actions (PARTIAL and ONESHOT)
-    [] SLP (requires "chained" txs)
-    [] ALP
+- GENESIS, MINT, SEND, and BURN for all token types
+  [x] SLP_TOKEN_TYPE_FUNGIBLE
+  [x] ALP_TOKEN_TYPE_STANDARD
+  [x] SLP_TOKEN_TYPE_MINT_VAULT SEND and BURN actions  
+  [x] SLP_TOKEN_TYPE_NFT1_GROUP
+  [x] SLP_TOKEN_TYPE_NFT1_CHILD (Mint NFTs)
+  [x] DataAction for ALP_TOKEN_TYPE_STANDARD txs
+  [X] BURN txs for arbitrary amounts using BURN method (intentional burn, not SEND)
+  [X] One-step mints for SLP NFTs
+- Agora actions (PARTIAL and ONESHOT)
+  [] SLP (requires "chained" txs)
+  [] ALP
 
 ### Phase Two, extended functionality
 
@@ -56,8 +56,8 @@ See tests for detailed methods.
 
 ## Change log
 
--   0.0.0 Init with constructor and `sync` method [D17773](https://reviews.bitcoinabc.org/D17773)
--   0.0.1 Add utxo getter methods `getFuelUtxos` and `getSpendableCoinbaseUtxos` [D17779](https://reviews.bitcoinabc.org/D17779)
+- 0.0.0 Init with constructor and `sync` method [D17773](https://reviews.bitcoinabc.org/D17773)
+- 0.0.1 Add utxo getter methods `getFuelUtxos` and `getSpendableCoinbaseUtxos` [D17779](https://reviews.bitcoinabc.org/D17779)
 
 ### 1.0.0
 
@@ -93,82 +93,82 @@ See tests for detailed methods.
 
 [D18627](https://reviews.bitcoinabc.org/D18627)
 
--   Support intentional SLP burns for arbitrary amounts with a chained tx.
--   Support automatic updating of determined wallet utxo set on tx build() (unless user opts out, e.g. for running tests) (NB does not apply to PostageTx)
--   **_BREAKING CHANGE_** the `.broadcast()` method no longer throws, returns a `success` key with more information
--   Patch issue where SLP burns are not invalidated for including specified outputs
+- Support intentional SLP burns for arbitrary amounts with a chained tx.
+- Support automatic updating of determined wallet utxo set on tx build() (unless user opts out, e.g. for running tests) (NB does not apply to PostageTx)
+- **_BREAKING CHANGE_** the `.broadcast()` method no longer throws, returns a `success` key with more information
+- Patch issue where SLP burns are not invalidated for including specified outputs
 
 # 2.0.1
 
 [D18673](https://reviews.bitcoinabc.org/D18673)
 
--   Type errors uncovered when using `ecash-wallet` as a dep in `ecash-agora`
+- Type errors uncovered when using `ecash-wallet` as a dep in `ecash-agora`
 
 # 2.1.0
 
 [D18834](https://reviews.bitcoinabc.org/D18834)
 
--   Support chained txs for minting SLP NFTs without requiring a "fan-out" tx
+- Support chained txs for minting SLP NFTs without requiring a "fan-out" tx
 
 # 2.1.1
 
 [D18839](https://reviews.bitcoinabc.org/D18839)
 
--   Patch type issue in returning `SelectUtxosResult`
+- Patch type issue in returning `SelectUtxosResult`
 
 # 2.1.2
 
 [D18840](https://reviews.bitcoinabc.org/D18840)
 
--   Export the `BuiltAction` class to support the user of `Wallet` in the `ecash-agora` `AgoraOffer` `take` method
+- Export the `BuiltAction` class to support the user of `Wallet` in the `ecash-agora` `AgoraOffer` `take` method
 
 # 2.1.3
 
 [D18841](https://reviews.bitcoinabc.org/D18841)
 
--   Return sats selection strategy used to select utxos with `SelectUtxosResult`
+- Return sats selection strategy used to select utxos with `SelectUtxosResult`
 
 # 2.2.0
 
 [D18837](https://reviews.bitcoinabc.org/D18837)
 
--   Update the `PostageTx` class to support client/server postage interactions
+- Update the `PostageTx` class to support client/server postage interactions
 
 # 2.3.0
 
 [D18867](https://reviews.bitcoinabc.org/D18867)
 
--   Support chained txs to handle XEC-only Actions that would exceed MAX_TX_SERSIZE if built in a single tx
+- Support chained txs to handle XEC-only Actions that would exceed MAX_TX_SERSIZE if built in a single tx
 
 # 2.3.1
 
 [D18920](https://reviews.bitcoinabc.org/D18920)
 
--   Prevent `addFuelAndSign` from adding unnecessary postage
+- Prevent `addFuelAndSign` from adding unnecessary postage
 
 # 2.3.2
 
 [D18924](https://reviews.bitcoinabc.org/D18924)
 
--   Automatically remove consumed postage utxos from the postage wallet in `addFuelAndSign` method
+- Automatically remove consumed postage utxos from the postage wallet in `addFuelAndSign` method
 
 # 2.3.3
 
 [D18932](https://reviews.bitcoinabc.org/D18932)
 
--   Tolerate token outputs without the `isMintBaton` key, but always classify such inputs as if they were `isMintBaton: false`
+- Tolerate token outputs without the `isMintBaton` key, but always classify such inputs as if they were `isMintBaton: false`
 
 # 2.3.4
 
 [D18975](https://reviews.bitcoinabc.org/D18975)
 
--   Publish to catch updated `chronik-client` dep
+- Publish to catch updated `chronik-client` dep
 
 # 2.3.5
 
 [D18994](https://reviews.bitcoinabc.org/D18994)
 
--   Publish to catch updated `chronik-client` dep
+- Publish to catch updated `chronik-client` dep
 
 # 2.3.6
 

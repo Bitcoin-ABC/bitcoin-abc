@@ -46,7 +46,8 @@ const Finalized = styled.svg<{ title: string }>`
     stroke: #fff;
     stroke-miterlimit: 10;
     box-shadow: inset 0px 0px 0px ${props => props.theme.secondaryText};
-    animation: ${fill} 0.4s ease-in-out 0.4s forwards,
+    animation:
+        ${fill} 0.4s ease-in-out 0.4s forwards,
         ${scale} 0.3s ease-in-out 0.9s both;
 `;
 

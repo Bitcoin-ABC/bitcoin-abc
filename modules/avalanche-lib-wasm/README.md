@@ -8,31 +8,31 @@ This library provides a Rust implementation of eCash Avalanche proofs that compi
 
 ## Features
 
--   **Proof Building**: Create avalanche proofs from UTXOs with the `ProofBuilder` class
--   **Stake Management**: Create and sign individual stakes for inclusion in proofs
--   **Delegation Management**: Create and manage proof delegations for key rotation
--   **Verification**: Verify proof signatures, stake commitments, and delegations
--   **Serialization**: Convert proofs and delegations to/from hex strings for network transmission
--   **WebAssembly**: Runs in browsers and Node.js with high performance
--   **Type Safety**: Full TypeScript bindings for web development
+- **Proof Building**: Create avalanche proofs from UTXOs with the `ProofBuilder` class
+- **Stake Management**: Create and sign individual stakes for inclusion in proofs
+- **Delegation Management**: Create and manage proof delegations for key rotation
+- **Verification**: Verify proof signatures, stake commitments, and delegations
+- **Serialization**: Convert proofs and delegations to/from hex strings for network transmission
+- **WebAssembly**: Runs in browsers and Node.js with high performance
+- **Type Safety**: Full TypeScript bindings for web development
 
 ## Architecture
 
 This library is based on the C++ implementation in Bitcoin ABC (`src/avalanche/proofbuilder.h`) and provides:
 
--   **Core Types**: `Hash256`, `OutPoint`, `Script`, `SchnorrSignature`
--   **Stake Types**: `Stake`, `SignedStake`, `StakeCommitment`
--   **Proof Types**: `Proof`, `ProofBuilder`
--   **Delegation Types**: `Delegation`, `DelegationBuilder`, `DelegationId`, `DelegationLevel`
--   **Cryptography**: Schnorr signatures using `ecash-secp256k1`
+- **Core Types**: `Hash256`, `OutPoint`, `Script`, `SchnorrSignature`
+- **Stake Types**: `Stake`, `SignedStake`, `StakeCommitment`
+- **Proof Types**: `Proof`, `ProofBuilder`
+- **Delegation Types**: `Delegation`, `DelegationBuilder`, `DelegationId`, `DelegationLevel`
+- **Cryptography**: Schnorr signatures using `ecash-secp256k1`
 
 ## Building
 
 ### Prerequisites
 
--   Rust 1.76.0 or later
--   `wasm-pack` or `wasm-bindgen-cli`
--   `wasm-opt` (from binaryen)
+- Rust 1.76.0 or later
+- `wasm-pack` or `wasm-bindgen-cli`
+- `wasm-opt` (from binaryen)
 
 ### Build Commands
 
@@ -270,10 +270,10 @@ class DelegationLevel {
 
 ## Constants
 
--   `MAX_PROOF_STAKES`: 1000 - Maximum stakes per proof
--   `DEFAULT_STAKE_UTXO_CONFIRMATIONS`: 2016 - Required confirmations
--   `PROOF_DUST_THRESHOLD`: 10000000000 - Minimum stake amount (100 XEC)
--   `MAX_DELEGATION_LEVELS`: 20 - Maximum levels in a delegation chain
+- `MAX_PROOF_STAKES`: 1000 - Maximum stakes per proof
+- `DEFAULT_STAKE_UTXO_CONFIRMATIONS`: 2016 - Required confirmations
+- `PROOF_DUST_THRESHOLD`: 10000000000 - Minimum stake amount (100 XEC)
+- `MAX_DELEGATION_LEVELS`: 20 - Maximum levels in a delegation chain
 
 ## Error Handling
 
@@ -290,32 +290,32 @@ try {
 
 Common errors:
 
--   `"Amount below dust threshold"` - Stake amount too small
--   `"Too many stakes"` - Exceeded maximum stake limit
--   `"Cannot build proof with no stakes"` - No stakes added
--   `"Failed to sign stake"` - Invalid private key or signing error
--   `"Too many delegation levels (max: 20)"` - Exceeded delegation chain limit
--   `"Delegation key mismatch"` - Secret key doesn't match expected public key
--   `"Invalid delegation format"` - Malformed delegation data
+- `"Amount below dust threshold"` - Stake amount too small
+- `"Too many stakes"` - Exceeded maximum stake limit
+- `"Cannot build proof with no stakes"` - No stakes added
+- `"Failed to sign stake"` - Invalid private key or signing error
+- `"Too many delegation levels (max: 20)"` - Exceeded delegation chain limit
+- `"Delegation key mismatch"` - Secret key doesn't match expected public key
+- `"Invalid delegation format"` - Malformed delegation data
 
 ## Integration
 
 This library is designed to integrate with:
 
--   **Bitcoin ABC nodes**: Generated proofs and delegations can be submitted via RPC
--   **eCash wallets**: For proof creation, delegation management, and key rotation
--   **Web applications**: Via WebAssembly bindings for client-side operations
--   **Node.js services**: For server-side proof and delegation processing
--   **Mining pools**: For delegating proof control without transferring ownership
+- **Bitcoin ABC nodes**: Generated proofs and delegations can be submitted via RPC
+- **eCash wallets**: For proof creation, delegation management, and key rotation
+- **Web applications**: Via WebAssembly bindings for client-side operations
+- **Node.js services**: For server-side proof and delegation processing
+- **Mining pools**: For delegating proof control without transferring ownership
 
 ## Security Considerations
 
--   **Private Key Handling**: Keys are only used for signing, never stored
--   **Randomness**: Uses secure random number generation for signatures
--   **Validation**: All inputs are validated before processing
--   **Memory Safety**: Rust's memory safety prevents buffer overflows
--   **Delegation Security**: Delegation chains are cryptographically verified at each level
--   **Key Rotation**: Delegations enable secure key rotation without proof reconstruction
+- **Private Key Handling**: Keys are only used for signing, never stored
+- **Randomness**: Uses secure random number generation for signatures
+- **Validation**: All inputs are validated before processing
+- **Memory Safety**: Rust's memory safety prevents buffer overflows
+- **Delegation Security**: Delegation chains are cryptographically verified at each level
+- **Key Rotation**: Delegations enable secure key rotation without proof reconstruction
 
 ## Testing
 

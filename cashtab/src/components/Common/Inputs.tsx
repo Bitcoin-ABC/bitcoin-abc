@@ -382,8 +382,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
                             {customCount !== false
                                 ? customCount
                                 : value === null
-                                ? 0
-                                : value.length}
+                                  ? 0
+                                  : value.length}
                         </Count>
                         /{max}
                     </CountHolder>

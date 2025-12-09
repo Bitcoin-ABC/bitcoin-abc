@@ -1430,9 +1430,8 @@ describe('<Token /> available actions rendered', () => {
         // We can send an ALP token
         await userEvent.click(sendButton);
 
-        const sendTokenSuccessNotification = await screen.findByText(
-            'eToken sent',
-        );
+        const sendTokenSuccessNotification =
+            await screen.findByText('eToken sent');
         expect(sendTokenSuccessNotification).toHaveAttribute(
             'href',
             `${explorer.blockExplorerUrl}/tx/${txid}`,
@@ -1509,9 +1508,8 @@ describe('<Token /> available actions rendered', () => {
         // Click the Confirm button
         await userEvent.click(screen.getByRole('button', { name: /OK/ }));
 
-        const burnTokenSuccessNotification = await screen.findByText(
-            '🔥 Burn successful',
-        );
+        const burnTokenSuccessNotification =
+            await screen.findByText('🔥 Burn successful');
         await waitFor(() =>
             expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',
@@ -1597,9 +1595,8 @@ describe('<Token /> available actions rendered', () => {
         // Click the Confirm button
         await userEvent.click(screen.getByRole('button', { name: /OK/ }));
 
-        const burnTokenSuccessNotification = await screen.findByText(
-            '🔥 Burn successful',
-        );
+        const burnTokenSuccessNotification =
+            await screen.findByText('🔥 Burn successful');
         await waitFor(() =>
             expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',
@@ -2723,9 +2720,8 @@ describe('<Token /> available actions rendered', () => {
         // We can send an SLP MINT VAULT token
         await userEvent.click(sendButton);
 
-        const sendTokenSuccessNotification = await screen.findByText(
-            'eToken sent',
-        );
+        const sendTokenSuccessNotification =
+            await screen.findByText('eToken sent');
         expect(sendTokenSuccessNotification).toHaveAttribute(
             'href',
             `${explorer.blockExplorerUrl}/tx/${txid}`,
@@ -2753,9 +2749,8 @@ describe('<Token /> available actions rendered', () => {
         // Click the Confirm button
         await userEvent.click(screen.getByRole('button', { name: /OK/ }));
 
-        const burnTokenSuccessNotification = await screen.findByText(
-            '🔥 Burn successful',
-        );
+        const burnTokenSuccessNotification =
+            await screen.findByText('🔥 Burn successful');
         await waitFor(() =>
             expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',

@@ -10,7 +10,7 @@ import { motion } from "motion/react";
 
 export default function VisionSection() {
   return (
-    <div className="lg:py-26 py-10">
+    <div className="py-10 lg:py-26">
       <ContentContainer>
         <div>
           <div className="flex flex-col items-start gap-12 lg:flex-row">
@@ -24,7 +24,7 @@ export default function VisionSection() {
             >
               <PlusHeader text="Our vision" />
 
-              <h2 className="text-2xl font-bold leading-tight text-white lg:text-4xl">
+              <h2 className="text-2xl leading-tight font-bold text-white lg:text-4xl">
                 The road to 1 billion daily transactions
               </h2>
 
@@ -55,7 +55,7 @@ export default function VisionSection() {
                 style={{ paddingBottom: "56.25%" }}
               >
                 <iframe
-                  className="absolute left-0 top-0 h-full w-full"
+                  className="absolute top-0 left-0 h-full w-full"
                   src="https://www.youtube.com/embed/9mMMloxbwRg?si=-tjWTc3KsMRXe14q"
                   title="Why Crypto - Final Episode: Money"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

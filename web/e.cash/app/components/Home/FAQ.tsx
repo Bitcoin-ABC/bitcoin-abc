@@ -37,7 +37,7 @@ const renderTextWithLinks = (text: string) => {
         onClick={(e) => e.stopPropagation()}
       >
         {match[1]}
-      </a>
+      </a>,
     );
 
     lastIndex = markdownLinkRegex.lastIndex;
@@ -78,7 +78,7 @@ export default function FAQ() {
             <PlusHeader text="Got questions?" />
           </div>
 
-          <h2 className="mb-6 text-4xl font-bold leading-tight text-white lg:text-5xl">
+          <h2 className="mb-6 text-4xl leading-tight font-bold text-white lg:text-5xl">
             Frequently asked questions
           </h2>
 
@@ -103,11 +103,11 @@ export default function FAQ() {
                 }}
                 viewport={{ once: true, amount: 0.5 }}
                 key={index}
-                className="border-white/15 group cursor-pointer border-b py-5 transition-all hover:border-white/100"
+                className="group cursor-pointer border-b border-white/15 py-5 transition-all hover:border-white/100"
                 onClick={() => toggleItem(index)}
               >
                 <div className="flex w-full items-center justify-between focus:outline-none">
-                  <h4 className="select-none pr-4 text-lg font-bold text-white lg:text-xl">
+                  <h4 className="pr-4 text-lg font-bold text-white select-none lg:text-xl">
                     {question}
                   </h4>
                   <span
@@ -117,17 +117,17 @@ export default function FAQ() {
                       "after:absolute after:h-[8px] after:w-[1px] after:origin-center after:bg-current after:transition-all after:duration-200 after:content-['']",
                       isOpen
                         ? "after:scale-y-0"
-                        : "opacity-30 after:scale-y-100 group-hover:opacity-100"
+                        : "opacity-30 group-hover:opacity-100 after:scale-y-100",
                     )}
                   />
                 </div>
 
                 <div
                   className={cn(
-                    "duration-800 mt-4 select-none overflow-hidden text-left font-light text-gray-300 transition-all ease-in-out",
+                    "mt-4 overflow-hidden text-left font-light text-gray-300 transition-all duration-800 ease-in-out select-none",
                     isOpen
                       ? "max-h-[600px] opacity-100"
-                      : "mt-0 max-h-0 opacity-0"
+                      : "mt-0 max-h-0 opacity-0",
                   )}
                 >
                   {renderTextWithLinks(answer)}

@@ -257,8 +257,8 @@ function App() {
                             {isCheckingExtension
                                 ? 'Checking...'
                                 : isExtensionAvailable
-                                ? 'Extension Available'
-                                : 'Extension Not Available'}
+                                  ? 'Extension Available'
+                                  : 'Extension Not Available'}
                         </span>
                     </div>
                 </section>

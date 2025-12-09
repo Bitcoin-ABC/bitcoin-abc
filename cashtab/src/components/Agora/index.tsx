@@ -560,8 +560,7 @@ const Agora: React.FC = () => {
                                                         ? () =>
                                                               setSwitches({
                                                                   ...sortSwitchesOff,
-                                                                  byOfferCount:
-                                                                      true,
+                                                                  byOfferCount: true,
                                                               })
                                                         : undefined
                                                 }

@@ -38,12 +38,12 @@ export default function BlogRecommendation({ post }: BlogRecommendationProps) {
         <div className="flex flex-1 flex-col p-8 lg:w-1/2">
           <div className="text-secondaryText mb-2 flex items-center text-sm">
             {formatTimestamp(
-              post.attributes.publish_date || post.attributes.publishedAt
+              post.attributes.publish_date || post.attributes.publishedAt,
             )}
             <span className="mx-2">•</span>
             <span>{calculateReadTime(post.attributes.content)} min read</span>
           </div>
-          <h3 className="mb-4 text-2xl font-bold leading-tight text-white transition-all group-hover:underline lg:text-3xl">
+          <h3 className="mb-4 text-2xl leading-tight font-bold text-white transition-all group-hover:underline lg:text-3xl">
             {post.attributes.title}
           </h3>
           <div className="mt-auto">

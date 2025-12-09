@@ -191,7 +191,7 @@ export default function BrandContent() {
 
         {/* Brand Colors Section */}
 
-        <h2 className="mb-10 mt-40 text-center text-3xl font-bold text-white lg:text-4xl">
+        <h2 className="mt-40 mb-10 text-center text-3xl font-bold text-white lg:text-4xl">
           eCash Colors
         </h2>
 
@@ -207,7 +207,7 @@ export default function BrandContent() {
                 .map((color, index) => (
                   <div key={index} className="text-center">
                     <div
-                      className="h-30 max-w-30 m-auto mb-4 w-full rounded-lg border border-gray-600"
+                      className="m-auto mb-4 h-30 w-full max-w-30 rounded-lg border border-gray-600"
                       style={{ backgroundColor: color.hex }}
                     ></div>
                     <p className="mb-1 font-mono text-xs text-gray-400">
@@ -238,7 +238,7 @@ export default function BrandContent() {
                 .map((color, index) => (
                   <div key={index} className="text-center">
                     <div
-                      className="h-30 max-w-30 m-auto mb-4 w-full rounded-lg border border-gray-600"
+                      className="m-auto mb-4 h-30 w-full max-w-30 rounded-lg border border-gray-600"
                       style={{ backgroundColor: color.hex }}
                     ></div>
                     <p className="mb-1 font-mono text-xs text-gray-400">
@@ -258,7 +258,7 @@ export default function BrandContent() {
 
         {/* Brand Fonts Section */}
 
-        <h3 className="mb-10 mt-40 text-center text-3xl font-bold text-white lg:text-4xl">
+        <h3 className="mt-40 mb-10 text-center text-3xl font-bold text-white lg:text-4xl">
           eCash Fonts
         </h3>
 

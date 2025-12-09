@@ -22,7 +22,7 @@ export default function CardCarousel() {
         href={href}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
-        className="bg-white/3 hover:from-white/2 flex w-full min-w-[250px] flex-col items-center self-stretch overflow-hidden rounded-lg border-t-2 border-t-white/10 p-8 transition-all hover:bg-gradient-to-tr hover:to-[#21173B]"
+        className="flex w-full min-w-[250px] flex-col items-center self-stretch overflow-hidden rounded-lg border-t-2 border-t-white/10 bg-white/3 p-8 transition-all hover:bg-gradient-to-tr hover:from-white/2 hover:to-[#21173B]"
       >
         <div className="relative mb-10 aspect-[4/3] w-full">
           <Image

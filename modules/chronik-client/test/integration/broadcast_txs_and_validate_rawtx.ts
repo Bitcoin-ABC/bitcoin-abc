@@ -336,9 +336,8 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
 
         // If we use validateRawTx on a tx that has been mined, we still get timeFirstSeen of 0
         // and outputs.spentBy of undefined, even if the outputs have been spent
-        const alpGenesisAfterMined = await chronik.validateRawTx(
-            alpGenesisRawTx,
-        );
+        const alpGenesisAfterMined =
+            await chronik.validateRawTx(alpGenesisRawTx);
 
         expect(alpGenesisPreview).to.deep.equal({
             ...alpGenesisAfterMined,

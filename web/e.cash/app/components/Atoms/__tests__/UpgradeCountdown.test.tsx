@@ -65,7 +65,7 @@ describe("UpgradeCountdown", () => {
     render(<UpgradeCountdown />);
 
     expect(
-      screen.getByText("Avalanche Pre-Consensus coming to mainnet!")
+      screen.getByText("Avalanche Pre-Consensus coming to mainnet!"),
     ).toBeInTheDocument();
     expect(getMockFetch()).not.toHaveBeenCalled();
   });
@@ -90,9 +90,9 @@ describe("UpgradeCountdown", () => {
         screen.getByText((content) =>
           content
             .replace(/\s+/g, " ")
-            .includes("5 blocks until Avalanche Pre-consensus is live!")
-        )
-      ).toBeInTheDocument()
+            .includes("5 blocks until Avalanche Pre-consensus is live!"),
+        ),
+      ).toBeInTheDocument(),
     );
 
     expect(getMockFetch()).toHaveBeenCalledWith(API_URL);
@@ -114,7 +114,7 @@ describe("UpgradeCountdown", () => {
     await waitFor(() => expect(getMockFetch()).toHaveBeenCalledTimes(1));
 
     await waitFor(() =>
-      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument()
+      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument(),
     );
   });
 
@@ -126,7 +126,7 @@ describe("UpgradeCountdown", () => {
     await act(async () => Promise.resolve());
 
     await waitFor(() =>
-      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument()
+      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument(),
     );
 
     expect(getMockFetch()).not.toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe("UpgradeCountdown", () => {
     await waitFor(() => expect(getMockFetch()).toHaveBeenCalledTimes(1));
 
     await waitFor(() =>
-      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument()
+      expect(screen.getByText(POST_DATE_TEXT)).toBeInTheDocument(),
     );
   });
 });

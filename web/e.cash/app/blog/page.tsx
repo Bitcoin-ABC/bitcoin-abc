@@ -27,7 +27,7 @@ export default async function BlogPage() {
   }
 
   return (
-    <ContentContainer className="py-18 max-w-[1000px] lg:py-24">
+    <ContentContainer className="max-w-[1000px] py-18 lg:py-24">
       <BlogSearch posts={posts} />
     </ContentContainer>
   );

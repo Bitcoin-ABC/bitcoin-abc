@@ -664,9 +664,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // cashtabState is initialized with defaults when this component loads
 
         // contactList
-        let contactList: null | CashtabContact[] = await storage.get<
-            CashtabContact[]
-        >('contactList');
+        let contactList: null | CashtabContact[] =
+            await storage.get<CashtabContact[]>('contactList');
         if (contactList !== null) {
             // If we find a contactList in storage
             if (!isValidContactList(contactList)) {
@@ -755,9 +754,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         const activeWalletAddress: null | string = await storage.get<string>(
             'activeWalletAddress',
         );
-        const wallets: null | StoredCashtabWallet[] = await storage.get<
-            StoredCashtabWallet[]
-        >('wallets');
+        const wallets: null | StoredCashtabWallet[] =
+            await storage.get<StoredCashtabWallet[]>('wallets');
 
         if (activeWalletAddress !== null && wallets !== null) {
             // Normal startup

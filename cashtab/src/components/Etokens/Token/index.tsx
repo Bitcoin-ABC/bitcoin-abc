@@ -999,15 +999,15 @@ const Token: React.FC = () => {
             const tokenSendTargetOutputs = isNftChild
                 ? getNftChildSendTargetOutputs(tokenId as string, cleanAddress)
                 : isAlp
-                ? getAlpSendTargetOutputs(
-                      tokenInputInfo as TokenInputInfo,
-                      cleanAddress,
-                  )
-                : getSlpSendTargetOutputs(
-                      tokenInputInfo as TokenInputInfo,
-                      cleanAddress,
-                      tokenType!.number,
-                  );
+                  ? getAlpSendTargetOutputs(
+                        tokenInputInfo as TokenInputInfo,
+                        cleanAddress,
+                    )
+                  : getSlpSendTargetOutputs(
+                        tokenInputInfo as TokenInputInfo,
+                        cleanAddress,
+                        tokenType!.number,
+                    );
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
@@ -1107,8 +1107,8 @@ const Token: React.FC = () => {
                 ? xecxRedeemError
                     ? `Cannot redeem less than 5.46 XECX`
                     : firmaRedeemError
-                    ? `Cannot redeem less than ${FIRMA_MINIMUM_REDEMPTION} FIRMA`
-                    : false
+                      ? `Cannot redeem less than ${FIRMA_MINIMUM_REDEMPTION} FIRMA`
+                      : false
                 : isValidAmountOrErrorMsg,
         );
 
@@ -2221,7 +2221,8 @@ const Token: React.FC = () => {
                             </InfoModalParagraph>
                             <InfoModalParagraph>
                                 For example, if you created an NFT Collection
-                                with a supply of 100, you can mint 100 NFTs.{' '}
+                                with a supply of 100, you can mint 100
+                                NFTs.{' '}
                             </InfoModalParagraph>
                             <InfoModalParagraph>
                                 However, each NFT must be minted from an input
@@ -3369,24 +3370,23 @@ const Token: React.FC = () => {
                                                                   } `
                                                                 : '$ '
                                                         }${(
-                                                                          parseFloat(
-                                                                              formData.nftListPrice,
-                                                                          ) *
-                                                                          fiatPrice
-                                                                      ).toLocaleString(
-                                                                          userLocale,
-                                                                          {
-                                                                              minimumFractionDigits:
-                                                                                  appConfig.cashDecimals,
-                                                                              maximumFractionDigits:
-                                                                                  appConfig.cashDecimals,
-                                                                          },
-                                                                      )} ${
-                                                                          settings &&
-                                                                          settings.fiatCurrency
-                                                                              ? settings.fiatCurrency.toUpperCase()
-                                                                              : 'USD'
-                                                                      }`
+                                                            parseFloat(
+                                                                formData.nftListPrice,
+                                                            ) * fiatPrice
+                                                        ).toLocaleString(
+                                                            userLocale,
+                                                            {
+                                                                minimumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                                maximumFractionDigits:
+                                                                    appConfig.cashDecimals,
+                                                            },
+                                                        )} ${
+                                                            settings &&
+                                                            settings.fiatCurrency
+                                                                ? settings.fiatCurrency.toUpperCase()
+                                                                : 'USD'
+                                                        }`
                                                                     : `${
                                                                           settings
                                                                               ? `${

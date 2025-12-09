@@ -52,9 +52,9 @@ new CashtabConnect(options?: CashtabConnectOptions)
 
 **Options:**
 
--   `timeout` (number): Timeout in milliseconds for address requests (default: 30000)
--   `extensionNotAvailableMessage` (string): Custom error message when extension is not available
--   `addressDeniedMessage` (string): Custom error message when user denies address request
+- `timeout` (number): Timeout in milliseconds for address requests (default: 30000)
+- `extensionNotAvailableMessage` (string): Custom error message when extension is not available
+- `addressDeniedMessage` (string): Custom error message when user denies address request
 
 #### Methods
 
@@ -64,7 +64,7 @@ Wait for the Cashtab extension to become available. This is the recommended way 
 
 **Parameters:**
 
--   `timeout` (number): Maximum time to wait in milliseconds (default: 3000). In practice this usually takes less than 1s.
+- `timeout` (number): Maximum time to wait in milliseconds (default: 3000). In practice this usually takes less than 1s.
 
 **Returns:** Promise that resolves when extension is available or rejects on timeout.
 
@@ -104,9 +104,9 @@ Request the user's eCash address from their Cashtab wallet.
 
 **Throws:**
 
--   `ExtensionNotAvailableError`: When the Cashtab extension is not available
--   `AddressRequestDeniedError`: When the user denies the address request (includes reason)
--   `AddressRequestTimeoutError`: When the request times out
+- `ExtensionNotAvailableError`: When the Cashtab extension is not available
+- `AddressRequestDeniedError`: When the user denies the address request (includes reason)
+- `AddressRequestTimeoutError`: When the request times out
 
 **Example:**
 
@@ -129,12 +129,12 @@ Send XEC to an address using Cashtab (dev-friendly).
 
 **Parameters:**
 
--   `address` (string): Recipient's eCash address
--   `amount` (string | number): Amount to send in XEC
+- `address` (string): Recipient's eCash address
+- `amount` (string | number): Amount to send in XEC
 
 **Throws:**
 
--   `CashtabExtensionUnavailableError`: When the Cashtab extension is not available
+- `CashtabExtensionUnavailableError`: When the Cashtab extension is not available
 
 **Example:**
 
@@ -209,14 +209,14 @@ async function requestUserAddress() {
 
 This library works in all modern browsers that support:
 
--   ES2020 features
--   TypeScript
--   Browser extensions (Chrome, Firefox, Edge)
+- ES2020 features
+- TypeScript
+- Browser extensions (Chrome, Firefox, Edge)
 
 ## Prerequisites
 
--   The Cashtab browser extension must be installed and active
--   The extension injects a global flag `window.bitcoinAbc = 'cashtab'` when available
+- The Cashtab browser extension must be installed and active
+- The extension injects a global flag `window.bitcoinAbc = 'cashtab'` when available
 
 ## Security Considerations
 
@@ -379,12 +379,12 @@ Then open `http://localhost:3000` in your browser. The demo requires the Cashtab
 
 The React demo demonstrates:
 
--   Extension status detection
--   Address requests with network selection
--   Transaction creation with form validation
--   Error handling for various scenarios
--   Real-time event logging
--   Both class-based and convenience function usage patterns
+- Extension status detection
+- Address requests with network selection
+- Transaction creation with form validation
+- Error handling for various scenarios
+- Real-time event logging
+- Both class-based and convenience function usage patterns
 
 See the [demo README](demo/README.md) for more details.
 
@@ -402,7 +402,7 @@ npm run lint
 
 ## Changelog
 
--   1.1.0 - Add transaction approval/rejection support for transactions. Extension transactions send responses back to the originating webpage. [D18348](https://reviews.bitcoinabc.org/D18348)
+- 1.1.0 - Add transaction approval/rejection support for transactions. Extension transactions send responses back to the originating webpage. [D18348](https://reviews.bitcoinabc.org/D18348)
 
 ## License
 

@@ -220,12 +220,12 @@ async function openSendXec(txInfo: Record<string, string>): Promise<void> {
 function isCashtabWindow(window: ChromeWindow): boolean {
     return Boolean(
         window &&
-            window.tabs &&
-            window.tabs.length === 1 &&
-            window.height === NOTIFICATION_HEIGHT &&
-            window.width === NOTIFICATION_WIDTH &&
-            (window.tabs[0].url?.includes(EXTENSION_DEV_ID) ||
-                window.tabs[0].url?.includes(EXTENSION_PROD_ID)),
+        window.tabs &&
+        window.tabs.length === 1 &&
+        window.height === NOTIFICATION_HEIGHT &&
+        window.width === NOTIFICATION_WIDTH &&
+        (window.tabs[0].url?.includes(EXTENSION_DEV_ID) ||
+            window.tabs[0].url?.includes(EXTENSION_PROD_ID)),
     );
 }
 

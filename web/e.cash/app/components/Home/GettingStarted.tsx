@@ -73,7 +73,7 @@ const gettingStartedLinks: GettingStartedColumn[] = [
 
 export default function GettingStarted() {
   return (
-    <ContentContainer className="text-background lg:rounded-4xl max-w-[1400px] bg-neutral-100 p-2 py-6 lg:p-20">
+    <ContentContainer className="text-background max-w-[1400px] bg-neutral-100 p-2 py-6 lg:rounded-4xl lg:p-20">
       <div className="flex h-full w-full flex-col items-center gap-2">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -83,7 +83,7 @@ export default function GettingStarted() {
           className="flex w-full flex-col items-center rounded-2xl bg-white px-10 pt-10"
         >
           <PlusHeader text="Getting started" inverse />
-          <h3 className="mt-4 max-w-[450px] text-center text-4xl font-bold leading-none lg:text-6xl">
+          <h3 className="mt-4 max-w-[450px] text-center text-4xl leading-none font-bold lg:text-6xl">
             Built different
           </h3>
           <div className="mt-4 max-w-xl text-center text-base font-light text-[#4C4C4C] lg:text-lg">

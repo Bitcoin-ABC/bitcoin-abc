@@ -8,8 +8,8 @@ The Cashtab extension injects a script into web pages and listens for specific m
 
 ## Prerequisites
 
--   The Cashtab extension must be installed and active in the user's browser
--   The extension injects a global flag `window.bitcoinAbc = 'cashtab'` when available
+- The Cashtab extension must be installed and active in the user's browser
+- The extension injects a global flag `window.bitcoinAbc = 'cashtab'` when available
 
 ## Message Format
 
@@ -93,9 +93,9 @@ Open Cashtab with pre-filled transaction details for the user to review and send
 
 **Parameters:**
 
--   `address` (string): The recipient's eCash address
--   `amount` (string): The amount to send in XEC
--   Additional parameters can be included in `txInfo` and will be passed as URL query parameters
+- `address` (string): The recipient's eCash address
+- `amount` (string): The amount to send in XEC
+- Additional parameters can be included in `txInfo` and will be passed as URL query parameters
 
 **Example Usage:**
 
@@ -156,12 +156,12 @@ window.addEventListener('message', function (event) {
 
 The Cashtab extension is available for:
 
--   Chrome/Chromium-based browsers
+- Chrome/Chromium-based browsers
 
 ## Extension IDs
 
--   Development: `aleabaopoakgpbijdnicepefdiglggfl`
--   [Production](https://chromewebstore.google.com/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag): `obldfcmebhllhjlhjbnghaipekcppeag`
+- Development: `aleabaopoakgpbijdnicepefdiglggfl`
+- [Production](https://chromewebstore.google.com/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag): `obldfcmebhllhjlhjbnghaipekcppeag`
 
 ## Complete Integration Example
 

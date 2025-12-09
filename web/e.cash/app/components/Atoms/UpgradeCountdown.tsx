@@ -21,7 +21,7 @@ export default function UpgradeCountdown() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
   const [isExpired, setIsExpired] = useState(false);
   const [blocksUntilUpgrade, setBlocksUntilUpgrade] = useState<number | null>(
-    null
+    null,
   );
   const [isLive, setIsLive] = useState<boolean>(false);
   const apiUrl = "https://avalanche.cash/api/info/XEC";
@@ -78,7 +78,7 @@ export default function UpgradeCountdown() {
 
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
@@ -128,7 +128,7 @@ export default function UpgradeCountdown() {
       href={isExpired ? "/blog/preconsensus-launch" : "/blog/preconsensus-pr"}
       target="_blank"
       rel="noopener noreferrer"
-      className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[40px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs font-medium leading-none transition-all duration-300 sm:h-[30px] lg:text-sm"
+      className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[40px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs leading-none font-medium transition-all duration-300 sm:h-[30px] lg:text-sm"
     >
       {isLive ? (
         postDateText

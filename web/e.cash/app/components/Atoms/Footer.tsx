@@ -37,7 +37,7 @@ export default function Footer() {
             <div className="flex max-w-[300px] flex-col gap-6">
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2">
-                <div className="lg:w-29 relative h-7 w-24 lg:h-8">
+                <div className="relative h-7 w-24 lg:h-8 lg:w-29">
                   <Image
                     src="/ecash-logo.png"
                     alt="eCash"

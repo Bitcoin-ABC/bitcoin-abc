@@ -196,7 +196,7 @@ export default function UpgradeContent({
                   1. Shut down the node:
                 </h4>
                 <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                  <code className="break-all text-sm text-gray-300">
+                  <code className="text-sm break-all text-gray-300">
                     ./bitcoin-abc-{oldVersion}/bin/bitcoin-cli stop
                   </code>
                 </div>
@@ -207,7 +207,7 @@ export default function UpgradeContent({
                   2. Download the new version archive:
                 </h4>
                 <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                  <code className="break-all text-sm text-gray-300">
+                  <code className="text-sm break-all text-gray-300">
                     wget https://download.bitcoinabc.org/{latestVersion}
                     /linux/bitcoin-abc-{latestVersion}-x86_64-linux-gnu.tar.gz
                   </code>
@@ -219,7 +219,7 @@ export default function UpgradeContent({
                   3. Extract the archive:
                 </h4>
                 <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                  <code className="break-all text-sm text-gray-300">
+                  <code className="text-sm break-all text-gray-300">
                     tar xzf bitcoin-abc-{latestVersion}-x86_64-linux-gnu.tar.gz
                   </code>
                 </div>
@@ -230,7 +230,7 @@ export default function UpgradeContent({
                   4. Restart the node with the new version:
                 </h4>
                 <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                  <code className="break-all text-sm text-gray-300">
+                  <code className="text-sm break-all text-gray-300">
                     ./bitcoin-abc-{latestVersion}/bin/bitcoind -daemon
                   </code>
                 </div>
@@ -242,17 +242,17 @@ export default function UpgradeContent({
                 </h4>
                 <div className="space-y-2">
                   <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                    <code className="break-all text-sm text-gray-300">
+                    <code className="text-sm break-all text-gray-300">
                       rm -rf bitcoin-abc-{oldVersion}
                     </code>
                   </div>
                   <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                    <code className="break-all text-sm text-gray-300">
+                    <code className="text-sm break-all text-gray-300">
                       rm -f bitcoin-abc-{oldVersion}-x86_64-linux-gnu.tar.gz
                     </code>
                   </div>
                   <div className="rounded-lg bg-gradient-to-bl from-[#120D1C] to-black/60 p-4">
-                    <code className="break-all text-sm text-gray-300">
+                    <code className="text-sm break-all text-gray-300">
                       rm -f bitcoin-abc-{latestVersion}-x86_64-linux-gnu.tar.gz
                     </code>
                   </div>

@@ -787,9 +787,8 @@ export class AgoraOffer {
                 const txsToBroadcast = [toHex(txSer)];
 
                 try {
-                    const { txid } = await params.wallet.chronik.broadcastTx(
-                        txSer,
-                    );
+                    const { txid } =
+                        await params.wallet.chronik.broadcastTx(txSer);
                     broadcasted.push(txid);
                 } catch (err) {
                     console.error(`Error broadcasting tx 1 of 1:`, err);
@@ -1043,9 +1042,7 @@ export class Agora {
                 );
                 break;
             case 'UNCONFIRMED':
-                result = await this.plugin.unconfirmedTxs(
-                    groupHex,
-                );
+                result = await this.plugin.unconfirmedTxs(groupHex);
                 break;
             case 'HISTORY':
                 result = await this.plugin.history(

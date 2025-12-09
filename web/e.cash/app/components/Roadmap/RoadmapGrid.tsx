@@ -208,7 +208,7 @@ const RoadmapItem = ({ item }: RoadmapItemProps) => {
     <div
       className={`flex w-full gap-4 rounded-lg bg-gradient-to-r ${statusColor}`}
     >
-      <div className="min-h-16 relative w-16 shrink-0 rounded-bl-lg rounded-tl-lg bg-white/10">
+      <div className="relative min-h-16 w-16 shrink-0 rounded-tl-lg rounded-bl-lg bg-white/10">
         <Image
           src={statusIcon}
           alt={item.status}
@@ -218,7 +218,7 @@ const RoadmapItem = ({ item }: RoadmapItemProps) => {
         />
       </div>
       <div className="flex flex-col items-start justify-center py-2 pr-2">
-        <div className="text-lg font-bold leading-tight lg:text-xl">
+        <div className="text-lg leading-tight font-bold lg:text-xl">
           {item.title}
         </div>
         <p className="m-0 text-sm">{item.description}</p>
@@ -268,7 +268,7 @@ export default function RoadmapGrid() {
                 className="m-auto mb-10 flex max-w-[300px] flex-col items-center text-center lg:m-0 lg:mb-0"
               >
                 {/* Icon Container */}
-                <div className="bg-white/4 mb-2 flex items-center justify-center rounded-full border-t border-t-white/10 p-6 shadow-lg lg:mb-6 lg:p-8">
+                <div className="mb-2 flex items-center justify-center rounded-full border-t border-t-white/10 bg-white/4 p-6 shadow-lg lg:mb-6 lg:p-8">
                   <div className="relative h-6 w-6 lg:h-10 lg:w-10">
                     <Image
                       src={improvement.icon}

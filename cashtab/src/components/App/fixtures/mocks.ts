@@ -1109,8 +1109,10 @@ export interface PathInfo_Pre_2_55_0 {
     wif: string;
 }
 
-export interface CashtabWallet_Pre_2_55_0
-    extends Omit<CashtabWallet_Pre_3_41_0, 'paths'> {
+export interface CashtabWallet_Pre_2_55_0 extends Omit<
+    CashtabWallet_Pre_3_41_0,
+    'paths'
+> {
     paths: Map<number, PathInfo_Pre_2_55_0>;
 }
 
@@ -1157,8 +1159,10 @@ export const walletWithXecAndTokens_pre_2_55_0: CashtabWallet_Pre_2_55_0 = {
     },
 };
 
-export interface LegacyCashtabWallet_Pre_3_41_0
-    extends Omit<CashtabWallet_Pre_3_41_0, 'paths'> {
+export interface LegacyCashtabWallet_Pre_3_41_0 extends Omit<
+    CashtabWallet_Pre_3_41_0,
+    'paths'
+> {
     paths: Map<number, CashtabPathInfo>;
 }
 

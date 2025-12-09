@@ -3310,8 +3310,8 @@ export const summarizeTxHistory = (
         operatingCapacity < 10
             ? config.emojis.capacityLow
             : operatingCapacity < 50
-            ? config.emojis.capacityMed
-            : config.emojis.capacityHigh;
+              ? config.emojis.capacityMed
+              : config.emojis.capacityHigh;
 
     // Add ViaBTC as a single entity to minerMap
     minerMap.set(`ViaBTC`, viaBtcBlocks);
@@ -3591,8 +3591,8 @@ export const summarizeTxHistory = (
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                        ? ` (${genesisInfo.tokenTicker})`
-                        : ''
+                          ? ` (${genesisInfo.tokenTicker})`
+                          : ''
                 }: ${
                     typeof buy !== 'undefined'
                         ? `${config.emojis.agoraBuy}${
@@ -3692,8 +3692,8 @@ export const summarizeTxHistory = (
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                        ? ` (${genesisInfo.tokenTicker})`
-                        : ''
+                          ? ` (${genesisInfo.tokenTicker})`
+                          : ''
                 }: ${
                     typeof buy !== 'undefined'
                         ? `${config.emojis.agoraBuy}${
@@ -3786,8 +3786,8 @@ export const summarizeTxHistory = (
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                        ? ` (${genesisInfo.tokenTicker})`
-                        : ''
+                          ? ` (${genesisInfo.tokenTicker})`
+                          : ''
                 }: ${
                     typeof genesis !== 'undefined'
                         ? config.emojis.tokenGenesis
@@ -3884,8 +3884,8 @@ export const summarizeTxHistory = (
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                        ? ` (${genesisInfo.tokenTicker})`
-                        : ''
+                          ? ` (${genesisInfo.tokenTicker})`
+                          : ''
                 }: ${
                     typeof genesis !== 'undefined'
                         ? `${config.emojis.tokenGenesis}${

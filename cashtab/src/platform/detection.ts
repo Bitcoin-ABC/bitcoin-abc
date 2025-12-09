@@ -36,8 +36,8 @@ export const detectPlatform = (): PlatformInfo => {
     const platform: PlatformInfo['platform'] = isExtension
         ? 'extension'
         : isCapacitorAndroid
-        ? 'capacitor-android'
-        : 'web';
+          ? 'capacitor-android'
+          : 'web';
 
     return {
         isWeb,

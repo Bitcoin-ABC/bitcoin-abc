@@ -75,7 +75,7 @@ export default function AvalancheEnhanced() {
   };
 
   return (
-    <ContentContainer className="pb-18 lg:pb-30 z-30 max-w-[1200px] rounded-lg bg-zinc-950 pt-10 lg:rounded-[44px]">
+    <ContentContainer className="z-30 max-w-[1200px] rounded-lg bg-zinc-950 pt-10 pb-18 lg:rounded-[44px] lg:pb-30">
       <div className="flex flex-col text-center" id="avalanche">
         <motion.div
           initial={{ opacity: 0, y: -30 }}
@@ -106,7 +106,7 @@ export default function AvalancheEnhanced() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           viewport={{ once: true, amount: 0.5 }}
-          className="m-auto max-w-[300px] text-xl font-bold leading-7 lg:max-w-[550px] lg:text-2xl"
+          className="m-auto max-w-[300px] text-xl leading-7 font-bold lg:max-w-[550px] lg:text-2xl"
         >
           Avalanche/Nakamoto hybrid achieves real-time consensus. A historic
           first for PoW blockchains. Here’s what it unlocks:
@@ -121,11 +121,11 @@ export default function AvalancheEnhanced() {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 viewport={{ once: true, amount: 0.4 }}
                 key={index}
-                className="border-white/15 group cursor-pointer border-b py-5 transition-all hover:border-white/100"
+                className="group cursor-pointer border-b border-white/15 py-5 transition-all hover:border-white/100"
                 onClick={() => toggleItem(index)}
               >
                 <div className="flex w-full items-center justify-between focus:outline-none">
-                  <h4 className="select-none text-lg font-bold lg:text-xl">
+                  <h4 className="text-lg font-bold select-none lg:text-xl">
                     {feature}
                   </h4>
                   <span
@@ -135,17 +135,17 @@ export default function AvalancheEnhanced() {
                       "after:absolute after:h-[8px] after:w-[1px] after:origin-center after:bg-current after:transition-all after:duration-200 after:content-['']",
                       isOpen
                         ? "after:scale-y-0"
-                        : "opacity-30 after:scale-y-100 group-hover:opacity-100"
+                        : "opacity-30 group-hover:opacity-100 after:scale-y-100",
                     )}
                   />
                 </div>
 
                 <p
                   className={cn(
-                    "text-secondaryText duration-800 mt-4 select-none overflow-hidden text-left font-light transition-all ease-in-out",
+                    "text-secondaryText mt-4 overflow-hidden text-left font-light transition-all duration-800 ease-in-out select-none",
                     isOpen
                       ? "max-h-[600px] opacity-100"
-                      : "mt-0 max-h-0 opacity-0"
+                      : "mt-0 max-h-0 opacity-0",
                   )}
                 >
                   {details}

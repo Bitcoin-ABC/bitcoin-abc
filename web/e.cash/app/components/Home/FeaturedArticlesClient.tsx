@@ -55,7 +55,7 @@ export default function FeaturedArticlesClient({
             <a
               href={`/blog/${post.attributes.slug}`}
               key={post.id}
-              className="hover:bg-white/7 group flex min-w-[90%] max-w-[350px] flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5 transition-all lg:w-auto lg:min-w-0 lg:max-w-none"
+              className="group flex max-w-[350px] min-w-[90%] flex-col justify-between overflow-hidden rounded-2xl border-t border-t-white/20 bg-white/5 transition-all hover:bg-white/7 lg:w-auto lg:max-w-none lg:min-w-0"
             >
               <div className="p-2">
                 <div className="relative h-[200px] w-full overflow-hidden rounded-xl lg:h-[230px]">
@@ -73,14 +73,14 @@ export default function FeaturedArticlesClient({
               <div className="flex flex-1 flex-col p-8">
                 <div className="text-secondaryText mb-2 flex items-center text-sm">
                   {formatTimestamp(
-                    post.attributes.publish_date || post.attributes.publishedAt
+                    post.attributes.publish_date || post.attributes.publishedAt,
                   )}
                   <span className="mx-2">•</span>
                   <span>
                     {calculateReadTime(post.attributes.content)} min read
                   </span>
                 </div>
-                <h3 className="group-hover:text-accentLight text-xl font-bold leading-tight text-white transition-all lg:text-2xl">
+                <h3 className="group-hover:text-accentLight text-xl leading-tight font-bold text-white transition-all lg:text-2xl">
                   {post.attributes.title}
                 </h3>
               </div>

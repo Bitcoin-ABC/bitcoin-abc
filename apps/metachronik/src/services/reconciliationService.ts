@@ -88,9 +88,8 @@ export class ReconciliationService {
             for (const height of batch) {
                 try {
                     // Check if block still doesn't exist (in case it was added by another process)
-                    const existingBlock = await this.dbService.getBlockByHeight(
-                        height,
-                    );
+                    const existingBlock =
+                        await this.dbService.getBlockByHeight(height);
                     if (existingBlock) {
                         logger.debug(
                             `Block ${height} already exists, skipping`,
@@ -99,9 +98,8 @@ export class ReconciliationService {
                     }
 
                     // Get block data from Chronik
-                    const blockInfo = await this.chronikService.getBlock(
-                        height,
-                    );
+                    const blockInfo =
+                        await this.chronikService.getBlock(height);
                     if (!blockInfo) {
                         logger.error(
                             `Failed to get block ${height} from Chronik`,

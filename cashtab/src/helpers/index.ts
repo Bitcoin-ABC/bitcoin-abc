@@ -276,13 +276,17 @@ interface TxOutputJson extends Omit<TxOutput, 'sats' | 'token'> {
     token?: TokenJson;
 }
 
-interface TokenEntryJson
-    extends Omit<TokenEntry, 'actualBurnAtoms' | 'intentionalBurnAtoms'> {
+interface TokenEntryJson extends Omit<
+    TokenEntry,
+    'actualBurnAtoms' | 'intentionalBurnAtoms'
+> {
     actualBurnAtoms: string;
     intentionalBurnAtoms: string;
 }
-export interface TxJson
-    extends Omit<Tx, 'inputs' | 'outputs' | 'tokenEntries'> {
+export interface TxJson extends Omit<
+    Tx,
+    'inputs' | 'outputs' | 'tokenEntries'
+> {
     inputs: TxInputJson[];
     outputs: TxOutputJson[];
     tokenEntries: TokenEntryJson[];

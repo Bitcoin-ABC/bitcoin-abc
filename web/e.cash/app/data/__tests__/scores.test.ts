@@ -78,7 +78,7 @@ describe("getScores", () => {
   it("should add a score for each object in an array based on the scoring criteria", () => {
     const exchangesResult = getScores(
       mockExchangesApiResponse.data,
-      exchangeScoringCriteria
+      exchangeScoringCriteria,
     );
 
     // Exchange_A: 20+20+20+15+10+10+5 = 100
@@ -108,7 +108,7 @@ describe("getScores", () => {
 
     const result = getScores(
       instantExchangeData,
-      instantExchangeScoringCriteria
+      instantExchangeScoringCriteria,
     );
     // 30+25+25+10+10 = 100
     expect(result[0].attributes.score).toEqual(100);
@@ -224,10 +224,10 @@ describe("sortExchanges", () => {
     for (let i = 0; i < testCases.length; i++) {
       const result = sortExchanges(
         shuffleArray([...scoredMockExchanges]),
-        testCases[i].threshold
+        testCases[i].threshold,
       );
       expect(result).toEqual(
-        scoredMockExchanges.slice(0, testCases[i].resultSlice)
+        scoredMockExchanges.slice(0, testCases[i].resultSlice),
       );
     }
   });

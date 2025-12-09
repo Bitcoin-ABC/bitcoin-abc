@@ -21,14 +21,14 @@ keytool -genkey -v -keystore cashtab-release-key.jks -keyalg RSA -keysize 2048 -
 
 You'll be prompted for:
 
--   **Keystore password**: Choose a strong password (save it!)
--   **Key password**: Can be same as keystore password
--   **Your name**: Your name or organization
--   **Organizational Unit**: e.g., "Development"
--   **Organization**: e.g., "Bitcoin ABC"
--   **City**: Your city
--   **State**: Your state/province
--   **Country code**: e.g., "US"
+- **Keystore password**: Choose a strong password (save it!)
+- **Key password**: Can be same as keystore password
+- **Your name**: Your name or organization
+- **Organizational Unit**: e.g., "Development"
+- **Organization**: e.g., "Bitcoin ABC"
+- **City**: Your city
+- **State**: Your state/province
+- **Country code**: e.g., "US"
 
 ### Option B: Using Android Studio
 
@@ -51,18 +51,18 @@ RELEASE_KEY_PASSWORD=your_key_password_here
 
 **Important**:
 
--   Use a relative path from the `android/` directory to your keystore file
--   If your keystore is in the cashtab directory, use `../cashtab-release-key.jks`
--   If your keystore is in the android directory, use `cashtab-release-key.jks`
--   **DO NOT commit this file to git!** It contains sensitive passwords.
--   The `.gitignore` already excludes `keystore.properties`
+- Use a relative path from the `android/` directory to your keystore file
+- If your keystore is in the cashtab directory, use `../cashtab-release-key.jks`
+- If your keystore is in the android directory, use `cashtab-release-key.jks`
+- **DO NOT commit this file to git!** It contains sensitive passwords.
+- The `.gitignore` already excludes `keystore.properties`
 
 ## Step 3: Update Version Information
 
 Before building, make sure the version in `package.json` matches what you want to publish. The build script will use:
 
--   `versionName` from `package.json` (e.g., "3.46.0")
--   `versionCode` is calculated as: `major * 10000 + minor * 100 + patch`
+- `versionName` from `package.json` (e.g., "3.46.0")
+- `versionCode` is calculated as: `major * 10000 + minor * 100 + patch`
 
 If you need to update the version:
 
@@ -88,8 +88,8 @@ This will:
 
 ### Output Files
 
--   **APK**: `android/app/build/outputs/apk/release/app-release.apk`
--   **AAB**: `android/app/build/outputs/bundle/release/app-release.aab` (if you chose to build it)
+- **APK**: `android/app/build/outputs/apk/release/app-release.apk`
+- **AAB**: `android/app/build/outputs/bundle/release/app-release.aab` (if you chose to build it)
 
 ## Step 5: Upload to Play Store
 
@@ -105,42 +105,42 @@ This will:
 
 ### Which format to use?
 
--   **AAB (Android App Bundle)**: **Recommended** - Play Store generates optimized APKs for different devices
--   **APK**: Works but results in larger downloads for users
+- **AAB (Android App Bundle)**: **Recommended** - Play Store generates optimized APKs for different devices
+- **APK**: Works but results in larger downloads for users
 
 ## Troubleshooting
 
 ### "keystore.properties not found"
 
--   Make sure you created `android/keystore.properties` with the correct properties
+- Make sure you created `android/keystore.properties` with the correct properties
 
 ### "Keystore file not found"
 
--   Check the path in `keystore.properties` is correct (relative to `android/` directory)
+- Check the path in `keystore.properties` is correct (relative to `android/` directory)
 
 ### "Gradle build failed"
 
--   Make sure you have the Android SDK installed
--   Check that `ANDROID_HOME` or `ANDROID_SDK_ROOT` environment variable is set
--   Try running `cd android && ./gradlew clean` first
+- Make sure you have the Android SDK installed
+- Check that `ANDROID_HOME` or `ANDROID_SDK_ROOT` environment variable is set
+- Try running `cd android && ./gradlew clean` first
 
 ### Version code conflicts
 
--   Each release must have a higher `versionCode` than the previous one
--   Update `versionCode` in `android/app/build.gradle` before building
+- Each release must have a higher `versionCode` than the previous one
+- Update `versionCode` in `android/app/build.gradle` before building
 
 ## Security Notes
 
--   **Never commit** `keystore.properties` or your `.jks` keystore file to git
--   Store backups of your keystore in a secure location
--   If you lose your keystore, you cannot update your app on Play Store (you'd need to create a new app listing)
--   Consider using Play App Signing (Google manages your signing key)
+- **Never commit** `keystore.properties` or your `.jks` keystore file to git
+- Store backups of your keystore in a secure location
+- If you lose your keystore, you cannot update your app on Play Store (you'd need to create a new app listing)
+- Consider using Play App Signing (Google manages your signing key)
 
 ## Next Steps
 
 After your first release:
 
--   For future releases, increment the version in `package.json` and `build.gradle`
--   Update `versionCode` (must be higher than previous release)
--   Run `./build-android-release.sh` again
--   Upload the new AAB/APK to Play Store
+- For future releases, increment the version in `package.json` and `build.gradle`
+- Update `versionCode` (must be higher than previous release)
+- Run `./build-android-release.sh` again
+- Upload the new AAB/APK to Play Store

@@ -38,7 +38,7 @@ const ProjectTile: React.FC<ProjectTileProps> = ({ project }) => (
         />
       </div>
     </div>
-    <div className="group-hover:text-accentLight mt-2 text-xs font-light uppercase tracking-wide transition-all duration-300">
+    <div className="group-hover:text-accentLight mt-2 text-xs font-light tracking-wide uppercase transition-all duration-300">
       {project.name}
     </div>
   </a>
@@ -76,7 +76,7 @@ export default function RecentlyBuilt() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           viewport={{ once: true, amount: 0.9 }}
-          className="custom-box mb-30 from-white/1 to-white/1 relative flex flex-col-reverse items-center border border-white/10 bg-gradient-to-br via-[#15172A] lg:flex-row lg:gap-6 lg:rounded-lg"
+          className="custom-box relative mb-30 flex flex-col-reverse items-center border border-white/10 bg-gradient-to-br from-white/1 via-[#15172A] to-white/1 lg:flex-row lg:gap-6 lg:rounded-lg"
         >
           {/* Left side - Content */}
           <motion.div
@@ -113,22 +113,22 @@ export default function RecentlyBuilt() {
             viewport={{ once: true, amount: 0.8 }}
             className="relative h-[320px] w-full self-stretch overflow-hidden lg:h-[420px] lg:w-1/2"
           >
-            <div className="absolute right-0 top-0 hidden h-full w-full bg-gradient-to-l from-purple-500/5 to-transparent lg:block" />
+            <div className="absolute top-0 right-0 hidden h-full w-full bg-gradient-to-l from-purple-500/5 to-transparent lg:block" />
             {/* First column - scrolling up */}
-            <div className="scroll-vertical-up absolute top-8 flex gap-4 lg:right-[275px] lg:top-0 lg:h-full lg:flex-col">
+            <div className="scroll-vertical-up absolute top-8 flex gap-4 lg:top-0 lg:right-[275px] lg:h-full lg:flex-col">
               {[...projects.slice(0, 4), ...projects.slice(0, 4)].map(
                 (project, index) => (
                   <ProjectTile key={`up-${index}`} project={project} />
-                )
+                ),
               )}
             </div>
 
             {/* Second column - scrolling down */}
-            <div className="scroll-vertical-down absolute top-[180px] flex gap-4 lg:right-[80px] lg:top-0 lg:h-full lg:flex-col">
+            <div className="scroll-vertical-down absolute top-[180px] flex gap-4 lg:top-0 lg:right-[80px] lg:h-full lg:flex-col">
               {[...projects.slice(4, 8), ...projects.slice(4, 8)].map(
                 (project, index) => (
                   <ProjectTile key={`down-${index}`} project={project} />
-                )
+                ),
               )}
             </div>
           </motion.div>

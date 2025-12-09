@@ -1216,7 +1216,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 <AgoraPreviewRow>
                                     <AgoraPreviewLabel>
                                         Price{' '}
-                                        {settings.fiatCurrency.toUpperCase()}:{' '}
+                                        {settings.fiatCurrency.toUpperCase()}
+                                        :{' '}
                                     </AgoraPreviewLabel>
                                     <AgoraPreviewCol>
                                         {getFormattedFiatPrice(

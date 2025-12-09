@@ -56,8 +56,8 @@ export const Receive: React.FC = () => {
         receiveFirma
             ? `?token_id=${FIRMA.tokenId}&token_decimalized_qty=${bip21Qty}`
             : bip21Qty
-            ? `?amount=${bip21Qty}`
-            : ``
+              ? `?amount=${bip21Qty}`
+              : ``
     }`;
 
     const handleBip21QtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {

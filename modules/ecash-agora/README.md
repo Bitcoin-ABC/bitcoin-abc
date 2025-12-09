@@ -139,123 +139,123 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 ## Changelog
 
--   0.1.0 - MVP [D16087](https://reviews.bitcoinabc.org/D16087) [D16111](https://reviews.bitcoinabc.org/D16111)
--   0.1.1 - Upgrading dependencies [D16374](https://reviews.bitcoinabc.org/D16374)
+- 0.1.0 - MVP [D16087](https://reviews.bitcoinabc.org/D16087) [D16111](https://reviews.bitcoinabc.org/D16111)
+- 0.1.1 - Upgrading dependencies [D16374](https://reviews.bitcoinabc.org/D16374)
 
 ### 0.2.0
 
--   Add agora.py plugin [D16544](https://reviews.bitcoinabc.org/D16544)
--   Plugin support [D16745](https://reviews.bitcoinabc.org/D16745)|[D16753](https://reviews.bitcoinabc.org/D16753)|[D16754](https://reviews.bitcoinabc.org/D16754)|[D16755](https://reviews.bitcoinabc.org/D16755)
--   Improve test framework [D16741](https://reviews.bitcoinabc.org/D16741)
--   Websocket subscriptions [D16845](https://reviews.bitcoinabc.org/D16845)
--   Build script for partial SLP offers [D16743](https://reviews.bitcoinabc.org/D16743)
--   Approximation logic for partial offers [D16735](https://reviews.bitcoinabc.org/D16735)
--   Add `historicOffers` function to `Agora` [D16819](https://reviews.bitcoinabc.org/D16819)
--   Patch burned tokens issue in agora partial scripts [D16821](https://reviews.bitcoinabc.org/D16821)
--   Export partial modules [D16820](https://reviews.bitcoinabc.org/D16820)
--   Syntax linting [D16919](https://reviews.bitcoinabc.org/D16919)|[D16928](https://reviews.bitcoinabc.org/D16928)
--   README patch for local integration testing [D16952](https://reviews.bitcoinabc.org/D16952)
--   Patch minAcceptedTokens() to return true minimum (prepared value) [D16920](https://reviews.bitcoinabc.org/D16920)
--   Add validation to acceptTx method of AgoraPartial to prevent creation of unspendable offers [D16944](https://reviews.bitcoinabc.org/D16944)
--   Export `scriptOps` helper function [D16972](https://reviews.bitcoinabc.org/D16972)
--   Improve approximation for USD-esque tokens [D16995](https://reviews.bitcoinabc.org/D16995)
--   Update tsconfig to support use in nodejs [D17019](https://reviews.bitcoinabc.org/D17019)
--   Monorepo linting [D17072](https://reviews.bitcoinabc.org/D17072)
--   CI publishing [D17243](https://reviews.bitcoinabc.org/D17243)
+- Add agora.py plugin [D16544](https://reviews.bitcoinabc.org/D16544)
+- Plugin support [D16745](https://reviews.bitcoinabc.org/D16745)|[D16753](https://reviews.bitcoinabc.org/D16753)|[D16754](https://reviews.bitcoinabc.org/D16754)|[D16755](https://reviews.bitcoinabc.org/D16755)
+- Improve test framework [D16741](https://reviews.bitcoinabc.org/D16741)
+- Websocket subscriptions [D16845](https://reviews.bitcoinabc.org/D16845)
+- Build script for partial SLP offers [D16743](https://reviews.bitcoinabc.org/D16743)
+- Approximation logic for partial offers [D16735](https://reviews.bitcoinabc.org/D16735)
+- Add `historicOffers` function to `Agora` [D16819](https://reviews.bitcoinabc.org/D16819)
+- Patch burned tokens issue in agora partial scripts [D16821](https://reviews.bitcoinabc.org/D16821)
+- Export partial modules [D16820](https://reviews.bitcoinabc.org/D16820)
+- Syntax linting [D16919](https://reviews.bitcoinabc.org/D16919)|[D16928](https://reviews.bitcoinabc.org/D16928)
+- README patch for local integration testing [D16952](https://reviews.bitcoinabc.org/D16952)
+- Patch minAcceptedTokens() to return true minimum (prepared value) [D16920](https://reviews.bitcoinabc.org/D16920)
+- Add validation to acceptTx method of AgoraPartial to prevent creation of unspendable offers [D16944](https://reviews.bitcoinabc.org/D16944)
+- Export `scriptOps` helper function [D16972](https://reviews.bitcoinabc.org/D16972)
+- Improve approximation for USD-esque tokens [D16995](https://reviews.bitcoinabc.org/D16995)
+- Update tsconfig to support use in nodejs [D17019](https://reviews.bitcoinabc.org/D17019)
+- Monorepo linting [D17072](https://reviews.bitcoinabc.org/D17072)
+- CI publishing [D17243](https://reviews.bitcoinabc.org/D17243)
 
 ### 0.3.0
 
--   Add `TakenInfo` in `historicOffers` method to support parsing historic Agora offers [D17422](https://reviews.bitcoinabc.org/D17422)
+- Add `TakenInfo` in `historicOffers` method to support parsing historic Agora offers [D17422](https://reviews.bitcoinabc.org/D17422)
 
 ### 0.3.1
 
--   Do not allow creation of unacceptable agora partials [D17517](https://reviews.bitcoinabc.org/D17517)
+- Do not allow creation of unacceptable agora partials [D17517](https://reviews.bitcoinabc.org/D17517)
 
 ### 0.3.2
 
--   Improve offer checks in `historicOffers` [D17630](https://reviews.bitcoinabc.org/D17630)
+- Improve offer checks in `historicOffers` [D17630](https://reviews.bitcoinabc.org/D17630)
 
 ### 0.4.0
 
--   Add `getAgoraPartialAcceptFuelInputs` and `getAgoraCancelFuelInputs` [D17637](https://reviews.bitcoinabc.org/D17637)
+- Add `getAgoraPartialAcceptFuelInputs` and `getAgoraCancelFuelInputs` [D17637](https://reviews.bitcoinabc.org/D17637)
 
 ### 1.0.0
 
--   Remove unneeded `ecc` param from various functions [D17640](https://reviews.bitcoinabc.org/D17640)
+- Remove unneeded `ecc` param from various functions [D17640](https://reviews.bitcoinabc.org/D17640)
 
 ### 1.0.1
 
--   Do not validate for unspendable offer creation when we calculate fee in `acceptFeeSats()` [D17648](https://reviews.bitcoinabc.org/D17648)
+- Do not validate for unspendable offer creation when we calculate fee in `acceptFeeSats()` [D17648](https://reviews.bitcoinabc.org/D17648)
 
 ### 2.0.0
 
--   Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
--   Introduce 'atoms' as term for base unit of tokens. Implement in lib. The term "token" is ambiguous as it is not clear that we are talking about base tokens.
+- Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
+- Introduce 'atoms' as term for base unit of tokens. Implement in lib. The term "token" is ambiguous as it is not clear that we are talking about base tokens.
 
 ### 2.0.1
 
--   Ensure special case of agora partial offers where `minAcceptedAtoms` should equal `offeredAtoms` will work out this way [D17776](https://reviews.bitcoinabc.org/D17776)
+- Ensure special case of agora partial offers where `minAcceptedAtoms` should equal `offeredAtoms` will work out this way [D17776](https://reviews.bitcoinabc.org/D17776)
 
 ### 2.1.0
 
--   Add support for "UNKNOWN" token protocol type in chronik-client [D18155](https://reviews.bitcoinabc.org/D18155)
+- Add support for "UNKNOWN" token protocol type in chronik-client [D18155](https://reviews.bitcoinabc.org/D18155)
 
 ### 2.2.0
 
--   Add `src/actions.ts` to support preparing payment Actions for `ecash-wallet`, and add `actions.test.ts` to show implementation [D18673](https://reviews.bitcoinabc.org/D18673)
+- Add `src/actions.ts` to support preparing payment Actions for `ecash-wallet`, and add `actions.test.ts` to show implementation [D18673](https://reviews.bitcoinabc.org/D18673)
 
 ### 2.3.0
 
--   Expose precision param to allow app creation of 64-bit int offers [D18829](https://reviews.bitcoinabc.org/D18829)
+- Expose precision param to allow app creation of 64-bit int offers [D18829](https://reviews.bitcoinabc.org/D18829)
 
 ### 2.4.0
 
--   Add new `take` method to `AgoraOffer` that will automatically build and broadcast an agora acceptTx given a `Wallet` from `ecash-wallet` [D18833](https://reviews.bitcoinabc.org/D18833)
+- Add new `take` method to `AgoraOffer` that will automatically build and broadcast an agora acceptTx given a `Wallet` from `ecash-wallet` [D18833](https://reviews.bitcoinabc.org/D18833)
 
 ### 2.5.0
 
--   Add new `cancel` method to `AgoraOffer` that will automatically build and broadcast an agora cancelTx given a `Wallet` from `ecash-wallet` [D18842](https://reviews.bitcoinabc.org/D18842)
+- Add new `cancel` method to `AgoraOffer` that will automatically build and broadcast an agora cancelTx given a `Wallet` from `ecash-wallet` [D18842](https://reviews.bitcoinabc.org/D18842)
 
 ### 2.5.1
 
--   Improve flaky behavior by better organizing sats for the test taker wallet [D18846](https://reviews.bitcoinabc.org/D18846)
+- Improve flaky behavior by better organizing sats for the test taker wallet [D18846](https://reviews.bitcoinabc.org/D18846)
 
 ### 2.5.2
 
--   Enforce `take()` method accepting agora offer at calling wallet param [D18846](https://reviews.bitcoinabc.org/D18846)
+- Enforce `take()` method accepting agora offer at calling wallet param [D18846](https://reviews.bitcoinabc.org/D18846)
 
 ### 2.6.0
 
--   Add new `relist` method to `AgoraOffer` that will automatically build and broadcast an agora tx that cancels an existing offer and relists the same token at new terms (updated price, quantity, and/or other params) [D18847](https://reviews.bitcoinabc.org/D18847)
+- Add new `relist` method to `AgoraOffer` that will automatically build and broadcast an agora tx that cancels an existing offer and relists the same token at new terms (updated price, quantity, and/or other params) [D18847](https://reviews.bitcoinabc.org/D18847)
 
 ### 2.6.1
 
--   `ecash-wallet` is now a dependency and not a dev dependency, and must be specified as such for apps that use `ecash-agora` to avoid missing dep errors. [D18852](https://reviews.bitcoinabc.org/D18852)
+- `ecash-wallet` is now a dependency and not a dev dependency, and must be specified as such for apps that use `ecash-agora` to avoid missing dep errors. [D18852](https://reviews.bitcoinabc.org/D18852)
 
 ### 2.6.2
 
--   Patch deployment to make sure we actually get our dependencies installed [D18854](https://reviews.bitcoinabc.org/D18854)
+- Patch deployment to make sure we actually get our dependencies installed [D18854](https://reviews.bitcoinabc.org/D18854)
 
 ### 2.6.3
 
--   Another deployment patch; make sure we pin our versions to latest instead of using "latest" [D18857](https://reviews.bitcoinabc.org/D18857)
+- Another deployment patch; make sure we pin our versions to latest instead of using "latest" [D18857](https://reviews.bitcoinabc.org/D18857)
 
 ### 2.6.4
 
--   Publish to reflect updated `ecash-wallet` and `ecash-lib` deps [D18921](https://reviews.bitcoinabc.org/D18921)
+- Publish to reflect updated `ecash-wallet` and `ecash-lib` deps [D18921](https://reviews.bitcoinabc.org/D18921)
 
 ### 2.6.5
 
--   Publish to catch updated `ecash-wallet` dep [D18925](https://reviews.bitcoinabc.org/D18925)
+- Publish to catch updated `ecash-wallet` dep [D18925](https://reviews.bitcoinabc.org/D18925)
 
 ### 2.6.6
 
--   Publish to catch updated `chronik-client` dep [D18976](https://reviews.bitcoinabc.org/D18976)
+- Publish to catch updated `chronik-client` dep [D18976](https://reviews.bitcoinabc.org/D18976)
 
 ### 2.6.7
 
--   Publish to catch updated `chronik-client` and `ecash-wallet` deps [D18995](https://reviews.bitcoinabc.org/D18995)
+- Publish to catch updated `chronik-client` and `ecash-wallet` deps [D18995](https://reviews.bitcoinabc.org/D18995)
 
 ### 2.6.8
 
--   Publish to catch updated `chronik-client` and `ecash-wallet` deps [D19052](https://reviews.bitcoinabc.org/D19052)
+- Publish to catch updated `chronik-client` and `ecash-wallet` deps [D19052](https://reviews.bitcoinabc.org/D19052)

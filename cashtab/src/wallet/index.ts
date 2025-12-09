@@ -70,11 +70,10 @@ export interface CashtabWalletState {
     slpUtxos: TokenUtxo[];
     tokens: Map<string, string>;
 }
-export interface StoredCashtabState_Pre_3_42_0
-    extends Omit<
-        CashtabWalletState_Pre_3_42_0,
-        'tokens' | 'slpUtxos' | 'nonSlpUtxos'
-    > {
+export interface StoredCashtabState_Pre_3_42_0 extends Omit<
+    CashtabWalletState_Pre_3_42_0,
+    'tokens' | 'slpUtxos' | 'nonSlpUtxos'
+> {
     tokens: [string, string][];
     slpUtxos: object[];
     nonSlpUtxos: object[];
@@ -99,8 +98,10 @@ export interface TokenUtxoJson extends Omit<NonTokenUtxoJson, 'token'> {
 export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
     amount: string;
 }
-export interface LegacyTokenUtxoJson
-    extends Omit<TokenUtxoJson, 'sats' | 'token'> {
+export interface LegacyTokenUtxoJson extends Omit<
+    TokenUtxoJson,
+    'sats' | 'token'
+> {
     value: number;
     token: LegacyTokenJson;
 }

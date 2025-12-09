@@ -58,7 +58,7 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
                 duration: 0.3,
                 ease: "easeInOut",
               }}
-              className="hover:to-white/15 group cursor-pointer rounded-lg border border-white/10 bg-gradient-to-br from-white/5 to-white/10 p-6 transition-all duration-200 hover:border-white/20 hover:from-white/10"
+              className="group cursor-pointer rounded-lg border border-white/10 bg-gradient-to-br from-white/5 to-white/10 p-6 transition-all duration-200 hover:border-white/20 hover:from-white/10 hover:to-white/15"
             >
               <h3 className="mb-1 text-xl font-bold transition-colors duration-200 group-hover:text-purple-500">
                 {product.name}

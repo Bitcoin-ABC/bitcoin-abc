@@ -649,10 +649,10 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     const satoshisSent = selfSendTx
         ? outputSatoshis
         : isCoinbase
-        ? change
-        : incoming
-        ? receivedSatoshis
-        : outputSatoshis - change;
+          ? change
+          : incoming
+            ? receivedSatoshis
+            : outputSatoshis - change;
 
     // Parse for an SLP 1 agora ad setup tx
     // These are SLP1 SEND txs where

@@ -65,32 +65,32 @@ function convertBitcoincashToEcash(bitcoincashAddress) {
 
 #### Change Log
 
--   1.1.0 - Support decoding prefixless addresses\
--   1.1.1 - Updated README to point to Bitcoin ABC monorepo\
--   1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo\
--   1.1.3 - Support string input and output for `hash`\
--   1.2.0 - Support lowercase input and output of address types, support encoding outputScript to address, support getting type and hash from an outputScript with new exported function `getTypeAndHashFromOutputScript`\
--   1.3.0 - Add `toLegacy` function to convert cashaddress format to legacy address\
--   1.4.0 - Add `isValidCashAddress` function to validate cash addresses by prefix\
--   1.4.1-6 - Fix repo README link for npmjs page\
--   1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address
--   1.5.1 - Patch `getTypeAndHashFromOutputScript` to return type in lowercase (how chronik accepts it)
--   1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work
--   1.5.3 - Upgraded dependencies
--   1.5.4 - Added unit tests
--   1.5.5 - Skipped due to error in [D15400](https://reviews.bitcoinabc.org/D15400)
--   1.5.6 - Add types declaration for easy import by typescript apps
--   1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
--   1.5.8 - Upgrading dependencies [D16376](https://reviews.bitcoinabc.org/D16376)
--   1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)
--   1.6.1 - Replace `Buffer` with `Uint8Array` and stop using `webpack` to build [D17170](https://reviews.bitcoinabc.org/D17170)
--   1.6.2 - Lint to monorepo standards [D17183](https://reviews.bitcoinabc.org/D17183)
+- 1.1.0 - Support decoding prefixless addresses\
+- 1.1.1 - Updated README to point to Bitcoin ABC monorepo\
+- 1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo\
+- 1.1.3 - Support string input and output for `hash`\
+- 1.2.0 - Support lowercase input and output of address types, support encoding outputScript to address, support getting type and hash from an outputScript with new exported function `getTypeAndHashFromOutputScript`\
+- 1.3.0 - Add `toLegacy` function to convert cashaddress format to legacy address\
+- 1.4.0 - Add `isValidCashAddress` function to validate cash addresses by prefix\
+- 1.4.1-6 - Fix repo README link for npmjs page\
+- 1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address
+- 1.5.1 - Patch `getTypeAndHashFromOutputScript` to return type in lowercase (how chronik accepts it)
+- 1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work
+- 1.5.3 - Upgraded dependencies
+- 1.5.4 - Added unit tests
+- 1.5.5 - Skipped due to error in [D15400](https://reviews.bitcoinabc.org/D15400)
+- 1.5.6 - Add types declaration for easy import by typescript apps
+- 1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
+- 1.5.8 - Upgrading dependencies [D16376](https://reviews.bitcoinabc.org/D16376)
+- 1.6.0 - Implement typescript [D16744](https://reviews.bitcoinabc.org/D16744)
+- 1.6.1 - Replace `Buffer` with `Uint8Array` and stop using `webpack` to build [D17170](https://reviews.bitcoinabc.org/D17170)
+- 1.6.2 - Lint to monorepo standards [D17183](https://reviews.bitcoinabc.org/D17183)
 
-2.0.0 [D17269](https://reviews.bitcoinabc.org/D17269)
+    2.0.0 [D17269](https://reviews.bitcoinabc.org/D17269)
 
--   Remove all dependencies
--   Remove `toLegacy`. This is now available in `ecash-lib`
--   Remove `chronikReady` param and always return `hash` as a hex string
--   Remove support for uppercase address type inputs 'P2PKH' and 'P2SH'
--   New function `getOutputScriptFromTypeAndHash`
--   Remove validation against accepted prefix types
+- Remove all dependencies
+- Remove `toLegacy`. This is now available in `ecash-lib`
+- Remove `chronikReady` param and always return `hash` as a hex string
+- Remove support for uppercase address type inputs 'P2PKH' and 'P2SH'
+- New function `getOutputScriptFromTypeAndHash`
+- Remove validation against accepted prefix types

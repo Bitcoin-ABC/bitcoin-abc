@@ -452,9 +452,8 @@ describe('<Token />', () => {
         // Click the Send token button
         await user.click(screen.getByRole('button', { name: /Send BEAR/ }));
 
-        const sendTokenSuccessNotification = await screen.findByText(
-            'eToken sent',
-        );
+        const sendTokenSuccessNotification =
+            await screen.findByText('eToken sent');
         await waitFor(() =>
             expect(sendTokenSuccessNotification).toHaveAttribute(
                 'href',
@@ -528,9 +527,8 @@ describe('<Token />', () => {
         // Click the Confirm button
         await user.click(screen.getByRole('button', { name: /OK/ }));
 
-        const burnTokenSuccessNotification = await screen.findByText(
-            '🔥 Burn successful',
-        );
+        const burnTokenSuccessNotification =
+            await screen.findByText('🔥 Burn successful');
         await waitFor(() =>
             expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',

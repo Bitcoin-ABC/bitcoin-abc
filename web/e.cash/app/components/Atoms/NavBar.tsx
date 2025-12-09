@@ -73,7 +73,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
   const handleDropdown = (
     setOpen: (v: boolean) => void,
     timeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
-    show: boolean
+    show: boolean,
   ) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (show) setOpen(true);
@@ -94,7 +94,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
         className={cn(
           "fixed top-0 z-50 flex w-full flex-col items-center justify-center transition-all duration-300",
           (isScrolled || mobileMenuOpen) &&
-            "bg-background/30 shadow-sm backdrop-blur-sm"
+            "bg-background/30 shadow-sm backdrop-blur-sm",
         )}
       >
         {/* Banner
@@ -104,7 +104,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
         <div className="flex w-full max-w-[1400px] items-center justify-between px-4 py-4">
           {/* Left: Logo and main links */}
           <div className="flex items-center gap-12">
-            <Link className="lg:w-29 relative h-7 w-24 lg:h-8" href="/">
+            <Link className="relative h-7 w-24 lg:h-8 lg:w-29" href="/">
               <Image
                 src="/ecash-logo.png"
                 alt="eCash"
@@ -139,7 +139,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                 <button
                   className={cn(
                     "hover:text-accentLight flex items-center gap-2 font-medium transition-all",
-                    aboutOpen && "text-accentLight"
+                    aboutOpen && "text-accentLight",
                   )}
                 >
                   About
@@ -150,7 +150,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                     height={10}
                     className={cn(
                       "rotate-180 transition-all",
-                      aboutOpen && "custom-filter"
+                      aboutOpen && "custom-filter",
                     )}
                   />
                 </button>
@@ -183,7 +183,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                 <button
                   className={cn(
                     "hover:text-accentLight flex items-center gap-2 font-medium transition-all",
-                    toolsOpen && "text-accentLight"
+                    toolsOpen && "text-accentLight",
                   )}
                 >
                   Tools
@@ -194,7 +194,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                     height={10}
                     className={cn(
                       "rotate-180 transition-all",
-                      toolsOpen && "custom-filter"
+                      toolsOpen && "custom-filter",
                     )}
                   />
                 </button>
@@ -234,13 +234,13 @@ export default function Navbar({ showBanner }: NavbarProps) {
               <button
                 className={cn(
                   "hover:text-accentLight flex items-center gap-1 font-medium transition-all",
-                  moreOpen && "text-accentLight"
+                  moreOpen && "text-accentLight",
                 )}
               >
                 Get eCash <span className="text-xs">⋯</span>
               </button>
               {moreOpen && (
-                <div className={cn(dropDownBox, "left-auto right-0")}>
+                <div className={cn(dropDownBox, "right-0 left-auto")}>
                   {/* Show 'more' links here */}
                   {navbarLinks
                     .filter((l) => l.category === "get-ecash")
@@ -279,7 +279,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                     {link.title}
                   </Button>
                   {link.title === "Create wallet" && isHomepage && (
-                    <div className="absolute bottom-[-30px] left-[-50px] flex select-none items-start text-sm font-light leading-tight tracking-wide">
+                    <div className="absolute bottom-[-30px] left-[-50px] flex items-start text-sm leading-tight font-light tracking-wide select-none">
                       FREE XEC
                       <Image
                         src="/free-arrow.png"
@@ -299,7 +299,8 @@ export default function Navbar({ showBanner }: NavbarProps) {
             <div className="relative lg:hidden">
               {navbarLinks
                 .filter(
-                  (l) => l.category === "actions" && l.title === "Create wallet"
+                  (l) =>
+                    l.category === "actions" && l.title === "Create wallet",
                 )
                 .map((link) => (
                   <div key={link.title} className="relative">
@@ -311,7 +312,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
                       {link.title}
                     </Button>
                     {isHomepage && (
-                      <div className="absolute bottom-[-25px] right-0 flex select-none items-baseline text-[11px] font-light leading-tight tracking-wide">
+                      <div className="absolute right-0 bottom-[-25px] flex items-baseline text-[11px] leading-tight font-light tracking-wide select-none">
                         <Image
                           src="/free-arrow.png"
                           alt="arrow"
@@ -335,13 +336,13 @@ export default function Navbar({ showBanner }: NavbarProps) {
               <div
                 className={cn(
                   "h-0.5 w-7 origin-center bg-white transition-all duration-300",
-                  mobileMenuOpen && "translate-y-[5px] rotate-[40deg]"
+                  mobileMenuOpen && "translate-y-[5px] rotate-[40deg]",
                 )}
               />
               <div
                 className={cn(
                   "h-0.5 w-7 origin-center bg-white transition-all duration-300",
-                  mobileMenuOpen && "translate-y-[-5px] rotate-[-40deg]"
+                  mobileMenuOpen && "translate-y-[-5px] rotate-[-40deg]",
                 )}
               />
             </button>
@@ -355,7 +356,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
           "mobile-menu fixed inset-0 z-40 transition-opacity duration-300 lg:hidden",
           mobileMenuOpen
             ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
+            : "pointer-events-none opacity-0",
         )}
       >
         {/* Menu content */}
@@ -367,7 +368,7 @@ export default function Navbar({ showBanner }: NavbarProps) {
               <div className="mt-15 mb-3 text-xl font-bold">
                 {navbarLinks
                   .filter(
-                    (l) => l.category === "main" || l.category === "about"
+                    (l) => l.category === "main" || l.category === "about",
                   )
                   .map((link) => (
                     <Link

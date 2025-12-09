@@ -48,7 +48,7 @@ export default function AboutSection() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveQuoteIndex((prevIndex) =>
-        prevIndex === quotes.length - 1 ? 0 : prevIndex + 1
+        prevIndex === quotes.length - 1 ? 0 : prevIndex + 1,
       );
     }, 6000);
 
@@ -60,7 +60,7 @@ export default function AboutSection() {
   };
   return (
     <div className="py-10 lg:py-16">
-      <ContentContainer className="lg:mb-30 mb-24 max-w-[600px]">
+      <ContentContainer className="mb-24 max-w-[600px] lg:mb-30">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -69,7 +69,7 @@ export default function AboutSection() {
         >
           <PlusHeader text="XEC" />
 
-          <h2 className="mb-4 mt-4 text-4xl font-bold text-white lg:text-5xl">
+          <h2 className="mt-4 mb-4 text-4xl font-bold text-white lg:text-5xl">
             Cash... optimized
           </h2>
 
@@ -111,7 +111,7 @@ export default function AboutSection() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           viewport={{ once: true, amount: 0.5 }}
-          className="rounded-4xl flex flex-col items-center justify-center overflow-hidden bg-gradient-to-l from-[#0D0F37] via-[#50059A] to-[#0D0F37] p-8 shadow-[inset_0px_2px_5px_0px_#50059A,inset_0px_1px_33px_0px_rgba(111,123,232,0.40)] lg:p-20"
+          className="flex flex-col items-center justify-center overflow-hidden rounded-4xl bg-gradient-to-l from-[#0D0F37] via-[#50059A] to-[#0D0F37] p-8 shadow-[inset_0px_2px_5px_0px_#50059A,inset_0px_1px_33px_0px_rgba(111,123,232,0.40)] lg:p-20"
         >
           <div className="flex h-[300px] max-w-[900px] flex-col items-start justify-center gap-8 md:h-[180px] lg:h-[250px]">
             <motion.blockquote
@@ -121,7 +121,7 @@ export default function AboutSection() {
               transition={{ duration: 0.5, ease: "easeInOut" }}
               className={cn(
                 "font-bold text-white lg:text-4xl",
-                activeQuoteIndex === 0 ? "text-base lg:text-3xl" : "text-xl"
+                activeQuoteIndex === 0 ? "text-base lg:text-3xl" : "text-xl",
               )}
             >
               “{quotes[activeQuoteIndex].quote}”

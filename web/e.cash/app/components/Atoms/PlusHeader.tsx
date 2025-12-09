@@ -15,13 +15,13 @@ export default function PlusHeader({ text, inverse = false }: PlusHeaderProps) {
     <h3
       className={cn(
         "flex items-center font-medium",
-        inverse ? "text-background" : "text-white"
+        inverse ? "text-background" : "text-white",
       )}
     >
       <div
         className={cn(
           "relative mr-2 flex items-center justify-center rounded-full p-1",
-          inverse ? "bg-background" : "bg-white"
+          inverse ? "bg-background" : "bg-white",
         )}
       >
         <div className="relative flex h-3 w-3 items-center justify-center rounded-full">
@@ -31,7 +31,7 @@ export default function PlusHeader({ text, inverse = false }: PlusHeaderProps) {
             fill
             className={cn(
               "object-contain",
-              inverse && "brightness-0 invert filter"
+              inverse && "brightness-0 invert filter",
             )}
             sizes="12px"
           />

@@ -4,12 +4,12 @@
 
 ### Features
 
--   Send & Receive eCash (XEC) and tokens
--   Mint and trade tokens and NFTs
--   Import existing wallets
--   Create and manage multiple wallets
--   Create new eTokens with token icons
--   Send and receive airdrops
+- Send & Receive eCash (XEC) and tokens
+- Mint and trade tokens and NFTs
+- Import existing wallets
+- Create and manage multiple wallets
+- Create new eTokens with token icons
+- Send and receive airdrops
 
 ## Quick Start
 

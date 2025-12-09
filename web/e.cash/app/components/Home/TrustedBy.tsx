@@ -25,7 +25,7 @@ export default function TrustedBy() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-        className="relative m-auto w-full max-w-[300px] text-center text-sm font-light leading-none tracking-wider lg:max-w-none"
+        className="relative m-auto w-full max-w-[300px] text-center text-sm leading-none font-light tracking-wider lg:max-w-none"
       >
         TRUSTED BY BUSINESSES THAT VALUE{" "}
         <span className="font-medium">SPEED</span>,{" "}
@@ -36,9 +36,9 @@ export default function TrustedBy() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
-        className="logo-mask-gradient m-auto mb-20 mt-8 flex w-full select-none items-center overflow-hidden lg:max-w-[70%]"
+        className="logo-mask-gradient m-auto mt-8 mb-20 flex w-full items-center overflow-hidden select-none lg:max-w-[70%]"
       >
-        <div className="srcoll-animation lg:gap-22 flex items-center gap-10">
+        <div className="srcoll-animation flex items-center gap-10 lg:gap-22">
           {[...Logos, ...Logos].map((item, index) => (
             <div
               key={index}

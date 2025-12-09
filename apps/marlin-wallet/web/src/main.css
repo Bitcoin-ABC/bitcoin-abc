@@ -13,8 +13,8 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     /* Default: transparent for mobile WebView */
     background: transparent;
     color: white;
@@ -202,8 +202,8 @@ body.standalone-web {
     align-items: center;
     z-index: 10000;
     color: white;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .loading-content {

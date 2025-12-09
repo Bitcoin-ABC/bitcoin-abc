@@ -140,7 +140,7 @@ export default function Quotes() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
         viewport={{ once: true, amount: 0.5 }}
-        className="scrollx-container scrollx-fade py-15 lg:py-30 m-auto flex w-full snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-[20vw] lg:gap-8 lg:px-[calc(50vw-325px)] xl:px-[325px]"
+        className="scrollx-container scrollx-fade m-auto flex w-full snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-[20vw] py-15 lg:gap-8 lg:px-[calc(50vw-325px)] lg:py-30 xl:px-[325px]"
         ref={containerRef}
       >
         {quotes.map((quote, index) => (
@@ -148,7 +148,7 @@ export default function Quotes() {
             key={index}
             className={cn(
               "w-[60vw] max-w-[650px] flex-none snap-center transition-opacity lg:min-w-[85%]",
-              activeIndex === index ? "opacity-100" : "opacity-40"
+              activeIndex === index ? "opacity-100" : "opacity-40",
             )}
           >
             <div className="mb-5 text-xl font-bold text-white lg:mb-7 lg:text-2xl">
@@ -162,7 +162,7 @@ export default function Quotes() {
                 height={35}
               />
               <div className="text-left">
-                <div className="m-0 text-sm font-semibold leading-none">
+                <div className="m-0 text-sm leading-none font-semibold">
                   {quote.name}
                 </div>
                 <div className="text-secondaryText text-sm font-light">
@@ -191,7 +191,7 @@ export default function Quotes() {
               }}
               className={cn(
                 "h-2 w-2 cursor-pointer rounded-[10px] bg-white transition-all lg:h-[10px] lg:w-[10px]",
-                isActive ? "opacity-100" : "opacity-30"
+                isActive ? "opacity-100" : "opacity-30",
               )}
             />
           );

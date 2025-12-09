@@ -212,7 +212,7 @@ export const servicesScoringCriteria: ScoringCriteria[] = [
 
 export function getScores<T extends ScoreableItem>(
   data: T[],
-  scoringCriteria: ScoringCriteria[]
+  scoringCriteria: ScoringCriteria[],
 ): T[] {
   for (let i = 0; i < data.length; ++i) {
     const item = data[i].attributes;
@@ -254,13 +254,13 @@ export function getScores<T extends ScoreableItem>(
 
 export function sortExchanges<T extends ScoreableItem>(
   data: T[],
-  threshold: number = 60
+  threshold: number = 60,
 ): T[] {
   data.sort((a, b) => a.attributes.name.localeCompare(b.attributes.name));
   data.sort(
     (a, b) =>
       (a.attributes.deposit_confirmations || 0) -
-      (b.attributes.deposit_confirmations || 0)
+      (b.attributes.deposit_confirmations || 0),
   );
   data.sort((a, b) => (b.attributes.score || 0) - (a.attributes.score || 0));
 
@@ -270,7 +270,7 @@ export function sortExchanges<T extends ScoreableItem>(
       (item.attributes.score || 0) >= threshold &&
       item.attributes.score !== undefined &&
       item.attributes.score !== null &&
-      item.attributes.score >= 0
+      item.attributes.score >= 0,
   );
 }
 
@@ -279,13 +279,13 @@ export async function getScoreCardData() {
   try {
     responses = await Promise.all([
       fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/exchanges?pagination[pageSize]=100&populate=*`
+        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/exchanges?pagination[pageSize]=100&populate=*`,
       ).then((res) => res.json()),
       fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/instant-exchanges?pagination[pageSize]=100&populate=*`
+        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/instant-exchanges?pagination[pageSize]=100&populate=*`,
       ).then((res) => res.json()),
       fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/apps-services?pagination[pageSize]=100&populate=*`
+        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/apps-services?pagination[pageSize]=100&populate=*`,
       ).then((res) => res.json()),
     ]);
 
@@ -295,16 +295,16 @@ export async function getScoreCardData() {
 
     return {
       exchanges: sortExchanges(
-        getScores(exchanges as Exchange[], exchangeScoringCriteria)
+        getScores(exchanges as Exchange[], exchangeScoringCriteria),
       ) as Exchange[],
       instantExchanges: sortExchanges(
         getScores(
           instantExchanges as InstantExchange[],
-          instantExchangeScoringCriteria
-        )
+          instantExchangeScoringCriteria,
+        ),
       ) as InstantExchange[],
       services: sortExchanges(
-        getScores(services as Service[], servicesScoringCriteria)
+        getScores(services as Service[], servicesScoringCriteria),
       ) as Service[],
     };
   } catch (error) {

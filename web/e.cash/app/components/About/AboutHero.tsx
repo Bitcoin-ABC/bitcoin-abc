@@ -34,7 +34,7 @@ export default function AboutHero() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 m-auto flex w-full max-w-[300px] flex-col items-center text-center lg:m-0 lg:w-[50%] lg:max-w-[550px] lg:items-start lg:text-left"
         >
-          <div className="pink-gradient-text mb-4 text-sm font-light uppercase tracking-wide">
+          <div className="pink-gradient-text mb-4 text-sm font-light tracking-wide uppercase">
             ABOUT XEC
           </div>
 

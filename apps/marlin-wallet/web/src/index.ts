@@ -648,20 +648,20 @@ function updateFeeDisplay() {
             <div class="fee-item">
                 <span class="fee-label">Amount:</span>
                 <span class="fee-value">${amount.toFixed(2)} ${
-        config.ticker
-    }</span>
+                    config.ticker
+                }</span>
             </div>
             <div class="fee-item">
                 <span class="fee-label">Network Fee:</span>
                 <span class="fee-value">${feeEstimate?.feeXEC.toFixed(2)} ${
-        config.ticker
-    }</span>
+                    config.ticker
+                }</span>
             </div>
             <div class="fee-item total">
                 <span class="fee-label">Total:</span>
                 <span class="fee-value">${feeEstimate?.totalXEC.toFixed(2)} ${
-        config.ticker
-    }</span>
+                    config.ticker
+                }</span>
             </div>
         </div>
     `;

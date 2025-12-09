@@ -71,12 +71,12 @@ export default function Button(props: ButtonProps) {
           "hover:border-b-white/20 hover:bg-left",
         ]
       : variant === "white"
-      ? ["bg-white text-background hover:text-accentMedium"]
-      : variant === "ghost"
-      ? ["bg-white/5 text-white hover:text-background hover:bg-white"]
-      : [
-          "bg-transparent border-1 border-white text-white hover:bg-white hover:text-background",
-        ];
+        ? ["bg-white text-background hover:text-accentMedium"]
+        : variant === "ghost"
+          ? ["bg-white/5 text-white hover:text-background hover:bg-white"]
+          : [
+              "bg-transparent border-1 border-white text-white hover:bg-white hover:text-background",
+            ];
 
   const classes = cn(...baseClasses, ...variantClasses, className);
 

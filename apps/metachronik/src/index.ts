@@ -501,9 +501,8 @@ async function indexBlocksInRange(startHeight: number) {
                 }
 
                 try {
-                    const blockData = await chronikService.transformBlockData(
-                        blockInfo,
-                    );
+                    const blockData =
+                        await chronikService.transformBlockData(blockInfo);
                     return blockData;
                 } catch (error) {
                     logger.error(

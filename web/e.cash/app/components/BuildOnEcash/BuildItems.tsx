@@ -153,7 +153,7 @@ export default function BuildItems() {
   const router = useRouter();
 
   const selectedCategoryData = buildCategories.find(
-    (category) => category.id === selectedCategory
+    (category) => category.id === selectedCategory,
   );
 
   // Handle URL hash changes
@@ -194,7 +194,7 @@ export default function BuildItems() {
   };
 
   return (
-    <div className="pb-30 relative w-full">
+    <div className="relative w-full pb-30">
       <ContentContainer className="p-0 lg:px-4">
         <div
           id="quickstart-section"
@@ -240,7 +240,7 @@ export default function BuildItems() {
                     "block w-full cursor-pointer rounded-lg border-t border-t-transparent px-4 py-2 text-left text-lg font-medium capitalize transition-all duration-200",
                     selectedCategory === category.id
                       ? "border-t border-t-white/60 bg-gradient-to-t from-[#280F5C] to-[#551AA1] text-white"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "text-gray-300 hover:bg-gray-800 hover:text-white",
                   )}
                 >
                   {category.id}
@@ -255,7 +255,7 @@ export default function BuildItems() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeInOut", delay: 0.3 }}
             viewport={{ once: true, amount: 0.5 }}
-            className="from-white/1 to-white/1 lg:p-18 flex flex-1 flex-col items-center rounded-lg via-[#15172A] transition-all duration-200 lg:flex-row lg:gap-6 lg:border lg:border-white/10 lg:bg-gradient-to-br"
+            className="flex flex-1 flex-col items-center rounded-lg from-white/1 via-[#15172A] to-white/1 transition-all duration-200 lg:flex-row lg:gap-6 lg:border lg:border-white/10 lg:bg-gradient-to-br lg:p-18"
           >
             {selectedCategoryData && (
               <motion.div

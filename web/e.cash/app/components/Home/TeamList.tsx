@@ -31,7 +31,7 @@ const TeamList: React.FC = () => {
 
   return (
     <section>
-      <ContentContainer className="border-t-accentMedium/10 pt-15 mt-20 max-w-[1400px] border-t">
+      <ContentContainer className="border-t-accentMedium/10 mt-20 max-w-[1400px] border-t pt-15">
         <div className="flex w-full flex-col p-8 lg:p-14">
           <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
@@ -51,7 +51,7 @@ const TeamList: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div
-                  className="cursor-pointer select-none rounded p-4 transition-all hover:bg-white/5"
+                  className="cursor-pointer rounded p-4 transition-all select-none hover:bg-white/5"
                   onClick={() => scrollByCard("left")}
                 >
                   <div className="relative h-5 w-5 rotate-180 cursor-pointer">
@@ -95,10 +95,10 @@ const TeamList: React.FC = () => {
           {team.map((member, idx) => (
             <div
               key={idx}
-              className="team-card custom-box w-68 bg-white/2 hover:bg-white/4 group relative flex min-h-[350px] flex-shrink-0 cursor-pointer flex-col justify-between rounded-2xl p-6 transition-all"
+              className="team-card custom-box group relative flex min-h-[350px] w-68 flex-shrink-0 cursor-pointer flex-col justify-between rounded-2xl bg-white/2 p-6 transition-all hover:bg-white/4"
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
             >
-              <div className="text-secondaryText text-xs font-light uppercase tracking-wide">
+              <div className="text-secondaryText text-xs font-light tracking-wide uppercase">
                 {member.title}
               </div>
 
@@ -109,7 +109,7 @@ const TeamList: React.FC = () => {
                   fill
                   className={cn(
                     "object-contain transition-all duration-300",
-                    openIndex === idx ? "opacity-0" : "opacity-100"
+                    openIndex === idx ? "opacity-0" : "opacity-100",
                   )}
                   sizes="272px"
                 />
@@ -118,7 +118,7 @@ const TeamList: React.FC = () => {
                     "w-full transition-all duration-300",
                     openIndex === idx
                       ? "top-0 block opacity-100"
-                      : "top-10 hidden opacity-0"
+                      : "top-10 hidden opacity-0",
                   )}
                 >
                   <h3 className="text-xl font-bold">{member.name}</h3>

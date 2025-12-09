@@ -15,4 +15,4 @@ export const SUPPORTED_CASHTAB_STORAGE_KEYS = [
     'wallets',
 ] as const;
 
-export type CashtabStorageKey = typeof SUPPORTED_CASHTAB_STORAGE_KEYS[number];
+export type CashtabStorageKey = (typeof SUPPORTED_CASHTAB_STORAGE_KEYS)[number];

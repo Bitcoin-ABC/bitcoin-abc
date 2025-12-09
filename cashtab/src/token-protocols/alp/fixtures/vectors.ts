@@ -60,8 +60,10 @@ interface GetAlpGenesisTargetOutputsReturn {
     includeMintBaton: boolean;
     targetOutputs: TokenTargetOutput[];
 }
-interface GetAlpGenesisTargetOutputsError
-    extends Omit<GetAlpGenesisTargetOutputsReturn, 'targetOutputs'> {
+interface GetAlpGenesisTargetOutputsError extends Omit<
+    GetAlpGenesisTargetOutputsReturn,
+    'targetOutputs'
+> {
     errorMsg: string;
 }
 interface GetAlpSendTargetOutputsReturn {

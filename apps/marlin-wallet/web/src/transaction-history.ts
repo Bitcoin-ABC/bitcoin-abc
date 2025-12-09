@@ -192,8 +192,8 @@ export class TransactionHistoryManager {
                     </div>
                     <div class="transaction-amount ${String(amountClass)}">
                         ${String(amountPrefix)}${String(amountValue)} ${
-                    config.ticker
-                }
+                            config.ticker
+                        }
                     </div>
                 </div>
             `;

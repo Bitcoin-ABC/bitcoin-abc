@@ -16,7 +16,7 @@ export const ScrollElement = () => {
       <div className="text-background mx-2 bg-gradient-to-br from-[#BBEBFD] to-[#F9B2EF] px-[6px] py-0 text-sm tracking-wide lg:mx-4 lg:px-2 lg:text-lg">
         API
       </div>
-      <div className="pink-gradient-text mr-1 text-xs uppercase tracking-wide lg:mr-0 lg:text-base">
+      <div className="pink-gradient-text mr-1 text-xs tracking-wide uppercase lg:mr-0 lg:text-base">
         Empowering Developers
       </div>
       {Array.from({ length: 5 }).map((_, i) => (
@@ -38,7 +38,7 @@ export default function Developers() {
   const DevLink = ({ text, href }: DevLinkProps) => {
     return (
       <Link
-        className="border-borderLight hover:text-accentLight lg:nth-[2]:border-t-0 flex flex-1 shrink-0 items-center justify-between border-b px-8 text-sm transition-all hover:bg-white/10 lg:border lg:border-l-0 lg:text-base"
+        className="border-borderLight hover:text-accentLight flex flex-1 shrink-0 items-center justify-between border-b px-8 text-sm transition-all hover:bg-white/10 lg:border lg:border-l-0 lg:text-base lg:nth-[2]:border-t-0"
         href={href}
         target="_blank"
         rel="noopener noreferrer"
@@ -61,15 +61,15 @@ export default function Developers() {
     return Array.from({ length: 80 }).map((_, i) => (
       <div
         key={i}
-        className="bg-white/15 mb-[10px] mr-[2px] h-[1px] w-[15px] rotate-[45deg]"
+        className="mr-[2px] mb-[10px] h-[1px] w-[15px] rotate-[45deg] bg-white/15"
       />
     ));
   };
 
   return (
-    <div className="py-30 lg:pb-30 relative m-auto mt-[-160px] w-full max-w-[2000px] pb-20 pt-60">
+    <div className="relative m-auto mt-[-160px] w-full max-w-[2000px] py-30 pt-60 pb-20 lg:pb-30">
       <div className="from-background absolute top-0 h-[100px] w-full bg-gradient-to-b to-transparent" />
-      <div className="m-auto mb-10 flex w-full select-none items-center overflow-hidden lg:mb-20">
+      <div className="m-auto mb-10 flex w-full items-center overflow-hidden select-none lg:mb-20">
         <div className="srcoll-animation flex items-center gap-10">
           {Array.from({ length: 8 }).map((_, i) => (
             <ScrollElement key={i} />
@@ -77,14 +77,14 @@ export default function Developers() {
         </div>
       </div>
       <div
-        className="scroll-mt-30 relative m-auto w-full lg:px-[35px]"
+        className="relative m-auto w-full scroll-mt-30 lg:px-[35px]"
         id="developers"
       >
         <ContentContainer className="relative max-w-[1400px]">
-          <div className="absolute left-[-15px] top-[-5%] hidden h-[110%] w-[30px] flex-col items-center border-l border-white/10 lg:flex">
+          <div className="absolute top-[-5%] left-[-15px] hidden h-[110%] w-[30px] flex-col items-center border-l border-white/10 lg:flex">
             <Lines />
           </div>
-          <div className="absolute right-[-15px] top-[-5%] hidden h-[110%] w-[30px] flex-col items-center border-r border-white/10 lg:flex">
+          <div className="absolute top-[-5%] right-[-15px] hidden h-[110%] w-[30px] flex-col items-center border-r border-white/10 lg:flex">
             <Lines />
           </div>
           <div className="flex w-full flex-col items-center overflow-hidden lg:flex-row">
@@ -159,7 +159,7 @@ export default function Developers() {
                   sizes="(max-width: 1024px) 50px, 60px"
                 />
               </div>
-              <span className="max-w-[200px] text-sm uppercase tracking-wide lg:text-center">
+              <span className="max-w-[200px] text-sm tracking-wide uppercase lg:text-center">
                 ecash developer telegram group
               </span>
             </Link>

@@ -140,7 +140,7 @@ export default function CodeSnippetTabs() {
               "shrink-0 cursor-pointer rounded-lg px-3 py-1 text-xs font-medium transition-all lg:text-sm",
               active === tab
                 ? "bg-white/20 opacity-100"
-                : "bg-transparent text-gray-400 opacity-60 hover:opacity-90"
+                : "bg-transparent text-gray-400 opacity-60 hover:opacity-90",
             )}
           >
             {tab}
@@ -148,7 +148,7 @@ export default function CodeSnippetTabs() {
         ))}
       </div>
 
-      <div className="font-fira-code whitespace-pre-wrap text-xs tracking-wide">
+      <div className="font-fira-code text-xs tracking-wide whitespace-pre-wrap">
         <SyntaxHighlighter
           language={language}
           style={oneDark}

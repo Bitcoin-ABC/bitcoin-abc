@@ -259,9 +259,8 @@ export class FailoverProxy {
         for (let i = 0; i < this._endpointArray.length; i += 1) {
             const index = this.deriveEndpointIndex(i);
             const thisProxyWsUrl = this._endpointArray[index].wsUrl;
-            const websocketUrlConnects = await this._websocketUrlConnects(
-                thisProxyWsUrl,
-            );
+            const websocketUrlConnects =
+                await this._websocketUrlConnects(thisProxyWsUrl);
             if (websocketUrlConnects) {
                 // Set this index to state
                 this._workingIndex = index;

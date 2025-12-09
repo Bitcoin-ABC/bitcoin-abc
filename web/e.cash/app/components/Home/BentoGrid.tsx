@@ -39,8 +39,8 @@ export default function BentoGrid() {
         transition={{ duration: 0.8, ease: "easeInOut" }}
         viewport={{ once: true, amount: 0.5 }}
         className={cn(
-          "from-white/1 to-white/1 relative w-full overflow-hidden rounded-2xl via-[#21173B] p-5 lg:p-8",
-          className
+          "relative w-full overflow-hidden rounded-2xl from-white/1 via-[#21173B] to-white/1 p-5 lg:p-8",
+          className,
         )}
       >
         <div className="relative z-30 flex w-full flex-col lg:max-w-[250px]">
@@ -79,7 +79,7 @@ export default function BentoGrid() {
         <div
           className={cn(
             cardHeight,
-            "flex w-full flex-col items-stretch gap-2 lg:flex-row"
+            "flex w-full flex-col items-stretch gap-2 lg:flex-row",
           )}
         >
           <Card
@@ -100,14 +100,14 @@ export default function BentoGrid() {
             imageStyles="absolute left-0 lg:left-1/2 lg:-translate-x-1/2 bottom-5 lg:h-[80%] lg:w-[80%] w-full h-[230px]"
             imagePosition="object-bottom"
           >
-            <GridPattern className="left-30 scale-70 top-[40%]" />
+            <GridPattern className="top-[40%] left-30 scale-70" />
           </Card>
         </div>
 
         <div
           className={cn(
             cardHeight,
-            "flex w-full flex-col items-stretch gap-2 lg:flex-row"
+            "flex w-full flex-col items-stretch gap-2 lg:flex-row",
           )}
         >
           <Card
@@ -119,8 +119,8 @@ export default function BentoGrid() {
             imageStyles="absolute right-0 lg:right-8 lg:top-0 lg:h-full lg:w-[50%] w-full h-[180px] bottom-5"
             imagePosition="object-bottom lg:object-center"
           >
-            <GridPattern className="scale-60 right-[-40px] top-0" />
-            <GridPattern className="scale-60 right-[-40px] top-1/2" />
+            <GridPattern className="top-0 right-[-40px] scale-60" />
+            <GridPattern className="top-1/2 right-[-40px] scale-60" />
           </Card>
           <Card
             title="Fork-free Evolution"
@@ -136,7 +136,7 @@ export default function BentoGrid() {
         <div
           className={cn(
             cardHeight,
-            "flex w-full flex-col items-stretch gap-2 lg:flex-row"
+            "flex w-full flex-col items-stretch gap-2 lg:flex-row",
           )}
         >
           <Card

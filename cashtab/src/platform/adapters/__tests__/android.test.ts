@@ -79,9 +79,8 @@ describe('AndroidStorageAdapter', () => {
             });
 
             await adapter.setItem('test-key', testData);
-            const retrievedData = await adapter.getItem<typeof testData>(
-                'test-key',
-            );
+            const retrievedData =
+                await adapter.getItem<typeof testData>('test-key');
 
             expect(retrievedData).toEqual(testData);
         });
@@ -117,9 +116,8 @@ describe('AndroidStorageAdapter', () => {
             });
 
             // Retrieve wallet
-            const retrievedWallets = await adapter.getItem<
-                StoredCashtabWallet[]
-            >('wallets');
+            const retrievedWallets =
+                await adapter.getItem<StoredCashtabWallet[]>('wallets');
 
             // Verify the wallet was retrieved correctly
             expect(retrievedWallets).toBeDefined();
@@ -138,9 +136,8 @@ describe('AndroidStorageAdapter', () => {
             mockSecureStorage.internalGetItem.mockResolvedValue({ data: null });
 
             // Retrieve wallet
-            const retrievedWallets = await adapter.getItem<
-                StoredCashtabWallet[]
-            >('wallets');
+            const retrievedWallets =
+                await adapter.getItem<StoredCashtabWallet[]>('wallets');
 
             // Should return null when no data exists
             expect(retrievedWallets).toBeNull();

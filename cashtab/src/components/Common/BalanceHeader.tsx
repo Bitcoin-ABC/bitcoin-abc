@@ -34,8 +34,8 @@ export const BalanceRow = styled.div<{
         props.hideBalance
             ? 'transparent'
             : props.isXecx
-            ? props.theme.accent
-            : '#fff'};
+              ? props.theme.accent
+              : '#fff'};
 
     text-shadow: ${props =>
         props.hideBalance

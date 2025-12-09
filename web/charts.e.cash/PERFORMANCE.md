@@ -4,20 +4,20 @@
 
 ### 1. Date Range Filtering
 
--   **Default**: Shows only the last year of data for faster loading
--   **Options**: 1 month, 3 months, 6 months, 1 year, all time, or custom dates
--   **Benefit**: Reduces data transfer and processing time significantly
+- **Default**: Shows only the last year of data for faster loading
+- **Options**: 1 month, 3 months, 6 months, 1 year, all time, or custom dates
+- **Benefit**: Reduces data transfer and processing time significantly
 
 ### 2. Batch API Endpoint
 
--   **New**: `/api/charts/batch` endpoint fetches multiple datasets in a single request
--   **Benefit**: Reduces API calls from 12+ to 2-3 calls, improving load times
+- **New**: `/api/charts/batch` endpoint fetches multiple datasets in a single request
+- **Benefit**: Reduces API calls from 12+ to 2-3 calls, improving load times
 
 ### 3. Database Indexes
 
--   **Added**: Index on `DATE(to_timestamp(timestamp))` for efficient date-based queries
--   **Added**: Index on `price_usd` for faster price data retrieval
--   **Benefit**: Faster database queries, especially for date ranges
+- **Added**: Index on `DATE(to_timestamp(timestamp))` for efficient date-based queries
+- **Added**: Index on `price_usd` for faster price data retrieval
+- **Benefit**: Faster database queries, especially for date ranges
 
 ## Performance Tips
 
@@ -39,11 +39,11 @@
 
 ### Load Times (Approximate)
 
--   **1 Year**: 2-5 seconds
--   **6 Months**: 1-3 seconds
--   **3 Months**: 1-2 seconds
--   **1 Month**: < 1 second
--   **All Time**: 10-30 seconds (depending on data size)
+- **1 Year**: 2-5 seconds
+- **6 Months**: 1-3 seconds
+- **3 Months**: 1-2 seconds
+- **1 Month**: < 1 second
+- **All Time**: 10-30 seconds (depending on data size)
 
 ### Factors Affecting Performance
 

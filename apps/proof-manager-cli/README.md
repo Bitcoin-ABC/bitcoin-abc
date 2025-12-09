@@ -4,23 +4,23 @@ A secure command-line tool for managing Avalanche proofs, stakes, and delegation
 
 ## Features
 
--   **Decode/Convert**: Convert between hex and JSON formats with automatic type detection
--   **Secure Signing**: Sign unsigned configurations without storing private keys
--   **Validate**: Verify the integrity of proofs, stakes, and delegations
--   **Auto-Detection**: Automatically detect object types from input format
--   **Batch Stakes Signing**: Sign multiple stakes with the same private key in one command
--   **ID Extraction**: Extract proof IDs, stake IDs, and delegation IDs from hex data
--   **Delegation Creation**: Create unsigned delegations from proofs or existing delegations
--   **Keypair Generation**: Generate secure random keypairs with both hex and WIF formats
--   **JSON ↔ Hex Conversion**: Full bidirectional conversion with stakes outputting one hex per line
--   **Stdout-First**: Output to stdout by default for easy redirection
+- **Decode/Convert**: Convert between hex and JSON formats with automatic type detection
+- **Secure Signing**: Sign unsigned configurations without storing private keys
+- **Validate**: Verify the integrity of proofs, stakes, and delegations
+- **Auto-Detection**: Automatically detect object types from input format
+- **Batch Stakes Signing**: Sign multiple stakes with the same private key in one command
+- **ID Extraction**: Extract proof IDs, stake IDs, and delegation IDs from hex data
+- **Delegation Creation**: Create unsigned delegations from proofs or existing delegations
+- **Keypair Generation**: Generate secure random keypairs with both hex and WIF formats
+- **JSON ↔ Hex Conversion**: Full bidirectional conversion with stakes outputting one hex per line
+- **Stdout-First**: Output to stdout by default for easy redirection
 
 ## Building
 
 ### Prerequisites
 
--   **Rust**: Latest stable version (1.70+)
--   **Cargo**: Comes with Rust installation
+- **Rust**: Latest stable version (1.70+)
+- **Cargo**: Comes with Rust installation
 
 ### Build from Source
 
@@ -76,30 +76,30 @@ cp target/release/proof-manager /usr/local/bin/
 
 Private keys are never stored in JSON files. Instead, the CLI uses a secure signing workflow where:
 
--   Unsigned configurations contain only public data
--   Private keys are provided securely via stdin or command-line argument (hex or WIF format)
--   The wrapped JSON format (`{"proof": {...}}`, `{"stakes": [...]}`) makes type detection unambiguous and prevents type confusion
--   Stakes are signed individually first, then unsigned proofs contain already-signed stakes
--   All cryptographic operations use the `avalanche-lib-wasm` library's public API (ProofBuilder, DelegationBuilder) for consistency with other applications
+- Unsigned configurations contain only public data
+- Private keys are provided securely via stdin or command-line argument (hex or WIF format)
+- The wrapped JSON format (`{"proof": {...}}`, `{"stakes": [...]}`) makes type detection unambiguous and prevents type confusion
+- Stakes are signed individually first, then unsigned proofs contain already-signed stakes
+- All cryptographic operations use the `avalanche-lib-wasm` library's public API (ProofBuilder, DelegationBuilder) for consistency with other applications
 
 ### Automatic History Cleanup
 
 The CLI automatically attempts to remove commands containing private keys from your shell history when using the `--private-key` option. This feature:
 
--   Works with bash, zsh, and other common shells
--   Attempts multiple cleanup strategies (shell commands, direct file manipulation)
--   Operates silently in the background without user feedback
--   Can be disabled with `--no-history-cleanup` flag (not recommended)
--   May not work in all environments or with complex command pipelines
+- Works with bash, zsh, and other common shells
+- Attempts multiple cleanup strategies (shell commands, direct file manipulation)
+- Operates silently in the background without user feedback
+- Can be disabled with `--no-history-cleanup` flag (not recommended)
+- May not work in all environments or with complex command pipelines
 
 **Security Best Practices for Automation:**
 
--   **Preferred**: Use environment variables or process substitution to avoid keys in command line
--   Disable shell history temporarily with `set +o history` when using direct key input
--   Use `history -d $((HISTCMD-1))` to remove the last command from bash history
--   Store keys in files with restrictive permissions (600) and secure locations
--   Use secrets management systems (HashiCorp Vault, AWS Secrets Manager, etc.) in production
--   Consider using hardware security modules (HSMs) for high-value operations
+- **Preferred**: Use environment variables or process substitution to avoid keys in command line
+- Disable shell history temporarily with `set +o history` when using direct key input
+- Use `history -d $((HISTCMD-1))` to remove the last command from bash history
+- Store keys in files with restrictive permissions (600) and secure locations
+- Use secrets management systems (HashiCorp Vault, AWS Secrets Manager, etc.) in production
+- Consider using hardware security modules (HSMs) for high-value operations
 
 ## ID Extraction
 
@@ -107,16 +107,16 @@ The `get-id` command extracts unique identifiers from Avalanche objects:
 
 ### Stake ID
 
--   **stake_id**: Unique identifier for the stake based on UTXO and stake data
+- **stake_id**: Unique identifier for the stake based on UTXO and stake data
 
 ### Proof IDs
 
--   **proof_id**: Complete proof identifier (includes master public key)
--   **limitedid**: Limited proof identifier (excludes master public key)
+- **proof_id**: Complete proof identifier (includes master public key)
+- **limitedid**: Limited proof identifier (excludes master public key)
 
 ### Delegation ID
 
--   **delegation_id**: Unique identifier for the delegation chain
+- **delegation_id**: Unique identifier for the delegation chain
 
 Example output:
 
@@ -277,9 +277,9 @@ proof-manager sign --input unsigned_config.json --commitment proof_config.json -
 
 **Output Formats**: The `--format` option supports:
 
--   `json` (default): Pretty-printed JSON format
--   `hex`: Raw hex format (for stakes: one hex string per line, one per stake)
--   `both`: Shows both JSON and hex formats together
+- `json` (default): Pretty-printed JSON format
+- `hex`: Raw hex format (for stakes: one hex string per line, one per stake)
+- `both`: Shows both JSON and hex formats together
 
 ### Validate
 
@@ -352,9 +352,9 @@ proof-manager generate-keypair --output keypair.json
 
 The output includes:
 
--   `private_key_hex`: Private key in hexadecimal format
--   `private_key_wif`: Private key in WIF (Wallet Import Format)
--   `public_key`: Public key in hexadecimal format
+- `private_key_hex`: Private key in hexadecimal format
+- `private_key_wif`: Private key in WIF (Wallet Import Format)
+- `public_key`: Public key in hexadecimal format
 
 ## Commitment Parameter for Stakes Signing
 
@@ -546,9 +546,9 @@ proof-manager sign --type stakes --input unsigned_stakes.json --commitment proof
 
 The `decode` command supports multiple output formats:
 
--   **`json`** (default): Pretty-printed JSON format
--   **`hex`**: Raw hex format (for stakes: one hex string per line, one per stake)
--   **`both`**: Shows both JSON and hex formats together
+- **`json`** (default): Pretty-printed JSON format
+- **`hex`**: Raw hex format (for stakes: one hex string per line, one per stake)
+- **`both`**: Shows both JSON and hex formats together
 
 ### Stakes Hex Conversion
 

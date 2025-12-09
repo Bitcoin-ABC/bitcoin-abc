@@ -133,14 +133,14 @@ const filterOptions = [
   { id: "hardware", label: "Hardware", value: "Hardware Wallet" },
 ];
 
-function WalletCard({ wallet }: { wallet: typeof wallets[0] }) {
+function WalletCard({ wallet }: { wallet: (typeof wallets)[0] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeInOut", delay: 0.2 }}
       viewport={{ once: true, margin: "-50px" }}
-      className="custom-box hover:bg-white/8 group relative overflow-hidden rounded-2xl bg-white/5 p-4 transition-all duration-300 hover:shadow-2xl lg:p-6"
+      className="custom-box group relative overflow-hidden rounded-2xl bg-white/5 p-4 transition-all duration-300 hover:bg-white/8 hover:shadow-2xl lg:p-6"
     >
       <a
         href={wallet.link}
@@ -149,7 +149,7 @@ function WalletCard({ wallet }: { wallet: typeof wallets[0] }) {
         className="block h-full"
       >
         <div className="mb-6 flex items-start space-x-3 lg:space-x-4">
-          <div className="bg-white/8 relative h-12 w-12 overflow-hidden rounded-xl lg:h-16 lg:w-16">
+          <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-white/8 lg:h-16 lg:w-16">
             <Image
               src={wallet.image}
               alt={wallet.name}
@@ -166,7 +166,7 @@ function WalletCard({ wallet }: { wallet: typeof wallets[0] }) {
               {wallet.availableOn.map((platform, index) => (
                 <span
                   key={index}
-                  className="rounded-full bg-white/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white/60"
+                  className="rounded-full bg-white/10 px-3 py-0.5 text-[10px] font-bold tracking-widest text-white/60 uppercase"
                 >
                   {platform}
                 </span>
@@ -184,7 +184,7 @@ function WalletCard({ wallet }: { wallet: typeof wallets[0] }) {
               {wallet.features.map((feature, index) => (
                 <span
                   key={index}
-                  className="bg-accentLight/20 text-accentLight rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                  className="bg-accentLight/20 text-accentLight rounded-full px-3 py-0.5 text-[10px] font-bold tracking-widest uppercase"
                 >
                   {feature}
                 </span>
@@ -238,7 +238,7 @@ export default function WalletsContent() {
               key={filter.id}
               onClick={() =>
                 setSelectedFilter(
-                  filter.value === selectedFilter ? "all" : filter.value
+                  filter.value === selectedFilter ? "all" : filter.value,
                 )
               }
               className={`rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200 ${
@@ -278,7 +278,7 @@ export default function WalletsContent() {
           viewport={{ once: true }}
           className="mt-16 text-center"
         >
-          <div className="lg:p-18 flex-col items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-l from-[#0D0F37] via-[#50059A] to-[#0D0F37] p-8 shadow-[inset_0px_2px_5px_0px_#50059A,inset_0px_1px_33px_0px_rgba(111,123,232,0.40)]">
+          <div className="flex-col items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-l from-[#0D0F37] via-[#50059A] to-[#0D0F37] p-8 shadow-[inset_0px_2px_5px_0px_#50059A,inset_0px_1px_33px_0px_rgba(111,123,232,0.40)] lg:p-18">
             <h3 className="mb-4 text-2xl font-bold">Need Help Choosing?</h3>
             <p className="mb-6">
               Check out our comprehensive wallet guide to find the best wallet

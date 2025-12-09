@@ -116,7 +116,7 @@ export default async function BlogPostPage({
   const recommendedPost = getNextRecommendedPost(posts, slug);
 
   return (
-    <ContentContainer className="pb-30 max-w-[650px] pt-20">
+    <ContentContainer className="max-w-[650px] pt-20 pb-30">
       <Link
         href="/blog"
         className="text-accentMedium mb-8 inline-block hover:underline"
@@ -135,7 +135,7 @@ export default async function BlogPostPage({
       </div>
       <div className="text-secondaryText mb-4 flex items-center text-sm">
         {formatTimestamp(
-          post.attributes.publish_date || post.attributes.publishedAt
+          post.attributes.publish_date || post.attributes.publishedAt,
         )}
         <span className="mx-2">•</span>
         <span>{calculateReadTime(post.attributes.content)} min read</span>

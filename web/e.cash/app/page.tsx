@@ -27,7 +27,7 @@ export default function Home() {
       <PoweringPayments />
       <BentoGrid />
       <AvalancheEnhanced />
-      <div className="pb-30 bg-[linear-gradient(-135deg,_#1F1428,_#090916,_#0F1528,_#090916)]">
+      <div className="bg-[linear-gradient(-135deg,_#1F1428,_#090916,_#0F1528,_#090916)] pb-30">
         <Developers />
         <CardCarousel />
         <Quotes />

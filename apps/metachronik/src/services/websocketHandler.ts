@@ -139,9 +139,8 @@ export class WebSocketHandler {
             }
 
             // Check if block already exists in database
-            const existingBlock = await this.dbService.getBlockByHeight(
-                blockHeight,
-            );
+            const existingBlock =
+                await this.dbService.getBlockByHeight(blockHeight);
             if (existingBlock) {
                 logger.debug(`Block ${blockHeight} already exists in database`);
                 return;
@@ -155,9 +154,8 @@ export class WebSocketHandler {
             }
 
             // Transform block data
-            const blockData = await this.chronikService.transformBlockData(
-                blockInfo,
-            );
+            const blockData =
+                await this.chronikService.transformBlockData(blockInfo);
 
             // Save block to database
             await this.dbService.saveBlocks([blockData]);

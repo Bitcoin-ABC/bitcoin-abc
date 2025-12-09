@@ -67,10 +67,10 @@ export default function PoweringPayments() {
 
         <div className="flex flex-col items-start">
           <span className="text-secondaryText text-sm">0{index}</span>
-          <h4 className="text-lg font-bold leading-snug">{name}</h4>
+          <h4 className="text-lg leading-snug font-bold">{name}</h4>
         </div>
 
-        <div className="absolute bottom-0 right-0 h-full w-[60%]">
+        <div className="absolute right-0 bottom-0 h-full w-[60%]">
           <Image
             src={`/${name.toLowerCase()}.png`}
             alt={name}
@@ -217,7 +217,7 @@ export default function PoweringPayments() {
             <span
               className={cn(
                 "text-sm transition-opacity duration-200",
-                activeIndex === index ? "opacity-100" : "opacity-40"
+                activeIndex === index ? "opacity-100" : "opacity-40",
               )}
             >
               0{index + 1}
@@ -257,7 +257,7 @@ export default function PoweringPayments() {
             key={index}
             className={cn(
               "w-[85%] shrink-0 snap-start transition-all duration-300 ease-out",
-              activeIndex === index ? "opacity-100" : "opacity-40"
+              activeIndex === index ? "opacity-100" : "opacity-40",
             )}
           >
             <h4 className="text-lg font-bold">{feature.name}</h4>

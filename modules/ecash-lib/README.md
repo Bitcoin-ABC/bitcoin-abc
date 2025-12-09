@@ -2,13 +2,13 @@
 
 Library for [eCash](https://e.cash) transaction building.
 
--   Compatible: Works on the browser using webpack, on NodeJS, jest etc.
--   Fast: Accelerated using the highly optimized secp256k1 library compiled to WebAssembly
--   Simple to use: Describe the tx to build in one TxBuilder object, and build the tx with just one `sign` call
--   SLP/ALP enabled: Functions to build the SLP/ALP eMPP scripts
--   Flexible: The "Signatory" mechanism can accommodate anything from simple wallet transfers to complex Script covenants, e.g. eCash Agora
--   Schnorr: eCash lib supports Schnorr and ECDSA signatures
--   Precise leftover ("change") computation: The tx size estimator will be exact for Schnorr signatures and very close for ECDSA signatures, even for complex scripts
+- Compatible: Works on the browser using webpack, on NodeJS, jest etc.
+- Fast: Accelerated using the highly optimized secp256k1 library compiled to WebAssembly
+- Simple to use: Describe the tx to build in one TxBuilder object, and build the tx with just one `sign` call
+- SLP/ALP enabled: Functions to build the SLP/ALP eMPP scripts
+- Flexible: The "Signatory" mechanism can accommodate anything from simple wallet transfers to complex Script covenants, e.g. eCash Agora
+- Schnorr: eCash lib supports Schnorr and ECDSA signatures
+- Precise leftover ("change") computation: The tx size estimator will be exact for Schnorr signatures and very close for ECDSA signatures, even for complex scripts
 
 ## Usage
 
@@ -74,34 +74,34 @@ console.log(toHex(rawTx));
 
 ## Changelog
 
--   0.1.1 - Validation that feePerKb is an integer
--   0.1.2 - Upgrade dependencies [D16373](https://reviews.bitcoinabc.org/D16373)
--   0.1.3 - Export `slpAmount` function [D16379](https://reviews.bitcoinabc.org/D16379)
--   0.2.0 - Add `Script.fromAddress` method to convert cashaddr addresses to `Script`
--   0.2.1 - Fix fee estimation for signatories that depend on tx outputs [D16673](https://reviews.bitcoinabc.org/D16673)
--   1.0.0 - **(Breaking change)** Modify `GenesisInfo` so that `auth` and `data` types match [D17194](https://reviews.bitcoinabc.org/D17194)
--   1.0.1 - Include `ecashaddrjs` and `chronik-client` installations from `npmjs` instead of local, to prevent need for peer dependencies [D17215](https://reviews.bitcoinabc.org/D17215)
--   1.1.0 - Add support for the original pre-UAHF Bitcoin signatures, so we can sign transactions for other blockchains like BTC/DOGE/... [D17255](https://reviews.bitcoinabc.org/D17255)
--   1.2.0 - Add `Address` class for cashaddr and legacy addresses. [D17269](https://reviews.bitcoinabc.org/D17269)
--   1.2.1 - Patch type check causing txBuilder txs using change to fail in NodeJS environments [D17461](https://reviews.bitcoinabc.org/D17461)
--   1.3.0 - Add `toHex()` method to `Script` to allow simple conversion to hex string [D17527](https://reviews.bitcoinabc.org/D17527)
--   1.4.0 - Add `HdNode`, `entropyToMnemonic`, `mnemonicToEntropy` and `mnemonicToSeed` to complete wallet functionality [D17619](https://reviews.bitcoinabc.org/D17619)
--   1.4.1 - Patch import in `mnemonic.ts` [D17621](https://reviews.bitcoinabc.org/D17621)
--   1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
--   1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)
--   2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)
--   2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
--   3.0.0 - Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
--   3.1.0 - Add methods for signing and verifying messages [D17778](https://reviews.bitcoinabc.org/D17778)
--   3.2.0 - Add method for parsing pushes from an EMPP OP_RETURN [D18057](https://reviews.bitcoinabc.org/D18057)
--   4.0.0 - Add constants and types to support `ecash-wallet` [D17822](https://reviews.bitcoinabc.org/D17822)
--   4.1.0 - Add Tx deserialization methods [D18393](https://reviews.bitcoinabc.org/D18393)
--   4.2.0 - Add Tx.txid() method to compute the TxId of a transaction [D18394](https://reviews.bitcoinabc.org/D18394)
--   4.3.0 - Export a Tx.toHex() method [D18396](https://reviews.bitcoinabc.org/D18396)
--   4.3.1 - Modify union type of payment outputs to include ecash-wallet template OP_RETURN [D18403](https://reviews.bitcoinabc.org/D18403)
--   4.3.2 - Export additional token types [D18548](https://reviews.bitcoinabc.org/D18548)
--   4.3.3 - Modify payment.GenesisAction to support minting NFTs (SLP_TOKEN_TYPE_NFT1_CHILD genesis txs) [D18557](https://reviews.bitcoinabc.org/D18557)
--   4.4.0 - Add `parse` methods to support parsing of OP_RETURN outputScript strings as returned by chronik-client [D18659](https://reviews.bitcoinabc.org/D18659)
--   4.5.0 - Add `fromTx` method to support creating a `TxBuilder` from a `Tx`, useful for creating a `TxBuilder` from a serialized partially-signed `Tx` in order to add postage and broadcast [D18838](https://reviews.bitcoinabc.org/D18838)
--   4.5.1 - Add updated `testRunner` to support CI builds of monorepo apps that rely on this from the published version, e.g. `ecash-agora` [D18844](https://reviews.bitcoinabc.org/D18844)
--   4.5.2 - Export constants used in `ecash-wallet` to calculate chained XEC-only txs for txs that would otherwise exceed `MAX_TX_SERSIZE`. There is no change in behavior. [D18918](https://reviews.bitcoinabc.org/D18918)
+- 0.1.1 - Validation that feePerKb is an integer
+- 0.1.2 - Upgrade dependencies [D16373](https://reviews.bitcoinabc.org/D16373)
+- 0.1.3 - Export `slpAmount` function [D16379](https://reviews.bitcoinabc.org/D16379)
+- 0.2.0 - Add `Script.fromAddress` method to convert cashaddr addresses to `Script`
+- 0.2.1 - Fix fee estimation for signatories that depend on tx outputs [D16673](https://reviews.bitcoinabc.org/D16673)
+- 1.0.0 - **(Breaking change)** Modify `GenesisInfo` so that `auth` and `data` types match [D17194](https://reviews.bitcoinabc.org/D17194)
+- 1.0.1 - Include `ecashaddrjs` and `chronik-client` installations from `npmjs` instead of local, to prevent need for peer dependencies [D17215](https://reviews.bitcoinabc.org/D17215)
+- 1.1.0 - Add support for the original pre-UAHF Bitcoin signatures, so we can sign transactions for other blockchains like BTC/DOGE/... [D17255](https://reviews.bitcoinabc.org/D17255)
+- 1.2.0 - Add `Address` class for cashaddr and legacy addresses. [D17269](https://reviews.bitcoinabc.org/D17269)
+- 1.2.1 - Patch type check causing txBuilder txs using change to fail in NodeJS environments [D17461](https://reviews.bitcoinabc.org/D17461)
+- 1.3.0 - Add `toHex()` method to `Script` to allow simple conversion to hex string [D17527](https://reviews.bitcoinabc.org/D17527)
+- 1.4.0 - Add `HdNode`, `entropyToMnemonic`, `mnemonicToEntropy` and `mnemonicToSeed` to complete wallet functionality [D17619](https://reviews.bitcoinabc.org/D17619)
+- 1.4.1 - Patch import in `mnemonic.ts` [D17621](https://reviews.bitcoinabc.org/D17621)
+- 1.5.0 - Support custom WASM URL and module [D17622](https://reviews.bitcoinabc.org/D17622)
+- 1.5.1 - `Address.withPrefix()` returns same prefix if unchanged (instead of throwing an error) [D17623](https://reviews.bitcoinabc.org/D17623)
+- 2.0.0 - Remove `initWasm`, auto-load the WebAssembly instead. Remove unneeded `ecc` parameters, esp. in `TxBuilder.sign` and `HdNode.fromSeed` [D17639](https://reviews.bitcoinabc.org/D17639) [D17640](https://reviews.bitcoinabc.org/D17640)
+- 2.1.0 - Add `signRecoverable` and `recoverSig` to `Ecc` [D17667](https://reviews.bitcoinabc.org/D17667)
+- 3.0.0 - Improve types and shapes in line with chronik proto updates [D17650](https://reviews.bitcoinabc.org/D17650)
+- 3.1.0 - Add methods for signing and verifying messages [D17778](https://reviews.bitcoinabc.org/D17778)
+- 3.2.0 - Add method for parsing pushes from an EMPP OP_RETURN [D18057](https://reviews.bitcoinabc.org/D18057)
+- 4.0.0 - Add constants and types to support `ecash-wallet` [D17822](https://reviews.bitcoinabc.org/D17822)
+- 4.1.0 - Add Tx deserialization methods [D18393](https://reviews.bitcoinabc.org/D18393)
+- 4.2.0 - Add Tx.txid() method to compute the TxId of a transaction [D18394](https://reviews.bitcoinabc.org/D18394)
+- 4.3.0 - Export a Tx.toHex() method [D18396](https://reviews.bitcoinabc.org/D18396)
+- 4.3.1 - Modify union type of payment outputs to include ecash-wallet template OP_RETURN [D18403](https://reviews.bitcoinabc.org/D18403)
+- 4.3.2 - Export additional token types [D18548](https://reviews.bitcoinabc.org/D18548)
+- 4.3.3 - Modify payment.GenesisAction to support minting NFTs (SLP_TOKEN_TYPE_NFT1_CHILD genesis txs) [D18557](https://reviews.bitcoinabc.org/D18557)
+- 4.4.0 - Add `parse` methods to support parsing of OP_RETURN outputScript strings as returned by chronik-client [D18659](https://reviews.bitcoinabc.org/D18659)
+- 4.5.0 - Add `fromTx` method to support creating a `TxBuilder` from a `Tx`, useful for creating a `TxBuilder` from a serialized partially-signed `Tx` in order to add postage and broadcast [D18838](https://reviews.bitcoinabc.org/D18838)
+- 4.5.1 - Add updated `testRunner` to support CI builds of monorepo apps that rely on this from the published version, e.g. `ecash-agora` [D18844](https://reviews.bitcoinabc.org/D18844)
+- 4.5.2 - Export constants used in `ecash-wallet` to calculate chained XEC-only txs for txs that would otherwise exceed `MAX_TX_SERSIZE`. There is no change in behavior. [D18918](https://reviews.bitcoinabc.org/D18918)

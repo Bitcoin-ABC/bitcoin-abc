@@ -46,7 +46,6 @@ from .ecc import ECPrivkey, ECPubkey, verify_message_with_address
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
-from .plugins import run_hook
 from .printerror import print_error
 from .simple_config import SimpleConfig
 from .transaction import (

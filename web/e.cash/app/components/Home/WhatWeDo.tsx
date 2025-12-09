@@ -32,15 +32,15 @@ export default function WhatWeDo() {
             />
             <div
               className={cn(
-                "from-accentLight to-accentDark absolute left-1/2 top-0 ml-10 flex -translate-x-1/2 items-center rounded bg-gradient-to-b px-1 py-0.5 text-[10px] tracking-wider [text-shadow:_0px_-1px_0px_rgb(0_0_0_/_0.36)] lg:left-auto lg:translate-x-0 lg:px-2 lg:text-sm",
-                imageText === "HOW" ? "lg:right-0" : "lg:right-4"
+                "from-accentLight to-accentDark absolute top-0 left-1/2 ml-10 flex -translate-x-1/2 items-center rounded bg-gradient-to-b px-1 py-0.5 text-[10px] tracking-wider [text-shadow:_0px_-1px_0px_rgb(0_0_0_/_0.36)] lg:left-auto lg:translate-x-0 lg:px-2 lg:text-sm",
+                imageText === "HOW" ? "lg:right-0" : "lg:right-4",
               )}
             >
               {imageText}
             </div>
           </div>
         </div>
-        <div className="border-t-white/14 w-2/3 p-6 lg:w-full lg:border-t">
+        <div className="w-2/3 border-t-white/14 p-6 lg:w-full lg:border-t">
           <div className="mb-4 text-lg font-bold tracking-tight text-white lg:mb-6 lg:text-xl">
             {text}
           </div>
@@ -53,7 +53,7 @@ export default function WhatWeDo() {
   };
   return (
     <ContentContainer>
-      <div className="absolute left-20 top-40 z-0 hidden h-[800px] w-[533px] lg:block">
+      <div className="absolute top-40 left-20 z-0 hidden h-[800px] w-[533px] lg:block">
         <Image
           src="/long-blur.jpg"
           alt="eCash"
@@ -67,7 +67,7 @@ export default function WhatWeDo() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
         viewport={{ once: true, amount: 0.3 }}
-        className="relative z-10 flex w-full flex-col gap-10 pb-14 pt-0 lg:flex-row lg:items-start lg:justify-between lg:pb-14 lg:pt-14"
+        className="relative z-10 flex w-full flex-col gap-10 pt-0 pb-14 lg:flex-row lg:items-start lg:justify-between lg:pt-14 lg:pb-14"
       >
         <div className="flex w-full max-w-[270px] flex-col items-start gap-6 lg:w-1/2 lg:max-w-[380px]">
           <PlusHeader text="What we do" />

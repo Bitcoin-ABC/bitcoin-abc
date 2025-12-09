@@ -4,18 +4,17 @@ This demo showcases all the features of the Cashtab Connect library with a React
 
 ## Features Demonstrated
 
--   **Extension Status**: Shows whether the Cashtab browser extension is available
--   **Address Request**: Request the user's eCash address from their Cashtab wallet
--   **Transaction Creation**: Create transactions that open in the user's Cashtab wallet
--   **Error Handling**: Demonstrates proper error handling for various scenarios
--   **Event Logging**: Shows all interactions and events in real-time
--   **React Integration**: Shows how to use Cashtab Connect in a React application
--   **Convenience Functions**: Demonstrates both class-based and convenience function usage
+- **Extension Status**: Shows whether the Cashtab browser extension is available
+- **Address Request**: Request the user's eCash address from their Cashtab wallet
+- **Transaction Creation**: Create transactions that open in the user's Cashtab wallet
+- **Error Handling**: Demonstrates proper error handling for various scenarios
+- **Event Logging**: Shows all interactions and events in real-time
+- **React Integration**: Shows how to use Cashtab Connect in a React application
+- **Convenience Functions**: Demonstrates both class-based and convenience function usage
 
 ## Getting Started
 
 1. **Install the Cashtab Browser Extension**
-
     - Download and install the Cashtab browser extension
     - Make sure it's enabled and active
 
@@ -66,20 +65,20 @@ The demo automatically checks for the Cashtab extension every 5 seconds and upda
 
 The demo shows different error messages for:
 
--   Extension not available
--   User denied address request
--   Request timeout
--   Invalid transaction parameters
+- Extension not available
+- User denied address request
+- Request timeout
+- Invalid transaction parameters
 
 ## React Integration Examples
 
 The demo shows how to:
 
--   **Use React hooks** with Cashtab Connect
--   **Handle async operations** with proper loading states
--   **Manage component state** for extension status and results
--   **Implement error boundaries** for extension errors
--   **Use both class-based and convenience function approaches**
+- **Use React hooks** with Cashtab Connect
+- **Handle async operations** with proper loading states
+- **Manage component state** for extension status and results
+- **Implement error boundaries** for extension errors
+- **Use both class-based and convenience function approaches**
 
 ### Key React Patterns Demonstrated
 
@@ -114,21 +113,21 @@ const handleRequestAddress = async () => {
 
 The demo uses:
 
--   **React 18** with TypeScript
--   **Functional components** with hooks
--   **Modern CSS** with gradients and animations
--   **Responsive design** for mobile and desktop
+- **React 18** with TypeScript
+- **Functional components** with hooks
+- **Modern CSS** with gradients and animations
+- **Responsive design** for mobile and desktop
 
 ## Troubleshooting
 
--   **Extension not detected**: Make sure the Cashtab extension is installed and enabled
--   **Address request fails**: Check that the extension is active and you're on a supported page
--   **Transaction doesn't open**: Verify the recipient address is valid and the amount is positive
--   **React build issues**: Make sure all dependencies are installed with `npm install`
+- **Extension not detected**: Make sure the Cashtab extension is installed and enabled
+- **Address request fails**: Check that the extension is active and you're on a supported page
+- **Transaction doesn't open**: Verify the recipient address is valid and the amount is positive
+- **React build issues**: Make sure all dependencies are installed with `npm install`
 
 ## Notes
 
--   This demo is for development and testing purposes only
--   It's not included in the published npm package
--   The demo runs on localhost:3000 and requires the Cashtab extension to be installed
--   The demo shows both class-based and convenience function usage patterns
+- This demo is for development and testing purposes only
+- It's not included in the published npm package
+- The demo runs on localhost:3000 and requires the Cashtab extension to be installed
+- The demo shows both class-based and convenience function usage patterns

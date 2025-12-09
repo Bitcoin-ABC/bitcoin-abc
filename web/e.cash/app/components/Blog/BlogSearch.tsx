@@ -58,9 +58,9 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
               placeholder="Search blog posts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="placeholder:text-secondaryText focus:border-accentMedium focus:ring-accentMedium/20 w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white focus:outline-none focus:ring-2"
+              className="placeholder:text-secondaryText focus:border-accentMedium focus:ring-accentMedium/20 w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white focus:ring-2 focus:outline-none"
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2">
               <svg
                 className="text-secondaryText h-5 w-5"
                 fill="none"
@@ -77,7 +77,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
             </div>
           </div>
           {searchQuery && (
-            <p className="text-secondaryText absolute bottom-[-28px] right-0 text-sm">
+            <p className="text-secondaryText absolute right-0 bottom-[-28px] text-sm">
               {filteredPosts.length} result
               {filteredPosts.length !== 1 ? "s" : ""} found
             </p>
@@ -118,13 +118,13 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                 priority
                 unoptimized
               />
-              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute right-0 bottom-0 left-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
             </div>
             <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-8">
               <div className="text-secondaryText mb-2 flex items-center text-sm">
                 {formatTimestamp(
                   latest.attributes.publish_date ||
-                    latest.attributes.publishedAt
+                    latest.attributes.publishedAt,
                 )}
                 <span className="mx-2">•</span>
                 <span>
@@ -163,14 +163,14 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                   <div className="text-secondaryText mb-2 flex items-center text-sm">
                     {formatTimestamp(
                       post.attributes.publish_date ||
-                        post.attributes.publishedAt
+                        post.attributes.publishedAt,
                     )}
                     <span className="mx-2">•</span>
                     <span>
                       {calculateReadTime(post.attributes.content)} min read
                     </span>
                   </div>
-                  <h3 className="group-hover:text-accentLight text-lg font-bold leading-tight text-white transition-all group-hover:underline lg:text-xl">
+                  <h3 className="group-hover:text-accentLight text-lg leading-tight font-bold text-white transition-all group-hover:underline lg:text-xl">
                     {post.attributes.title}
                   </h3>
                 </div>
@@ -196,7 +196,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                     <span className="text-secondaryText text-xs lg:pl-4">
                       {formatTimestamp(
                         post.attributes.publish_date ||
-                          post.attributes.publishedAt
+                          post.attributes.publishedAt,
                       )}
                       <span className="mx-1">•</span>
                       {calculateReadTime(post.attributes.content)} min read

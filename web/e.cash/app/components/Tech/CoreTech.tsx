@@ -123,7 +123,7 @@ export default function CoreTech() {
               className="pb-10"
             >
               {/* Graphic Container */}
-              <div className="bg-white/4 mb-6 flex h-[200px] items-center justify-center rounded-xl border-t border-t-white/10 p-4 shadow-lg lg:h-[300px]">
+              <div className="mb-6 flex h-[200px] items-center justify-center rounded-xl border-t border-t-white/10 bg-white/4 p-4 shadow-lg lg:h-[300px]">
                 <div className="relative h-full w-[60%]">
                   <Image
                     src={feature.image}
@@ -142,7 +142,7 @@ export default function CoreTech() {
                 </h3>
 
                 {/* Description */}
-                <p className="text-secondaryText mb-6 text-sm font-light leading-normal lg:text-base">
+                <p className="text-secondaryText mb-6 text-sm leading-normal font-light lg:text-base">
                   {feature.description}
                 </p>
 

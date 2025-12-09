@@ -20,7 +20,7 @@ async function getLatestVersion(): Promise<string> {
         },
         // Add cache revalidation
         next: { revalidate: 3600 },
-      }
+      },
     );
 
     if (!response.ok) {

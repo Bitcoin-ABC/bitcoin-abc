@@ -72,7 +72,7 @@ export default function CustomSelect({
       case "ArrowUp":
         event.preventDefault();
         setHighlightedIndex(
-          (prev) => (prev - 1 + options.length) % options.length
+          (prev) => (prev - 1 + options.length) % options.length,
         );
         break;
       case "Enter":
@@ -106,8 +106,8 @@ export default function CustomSelect({
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         className={cn(
-          "w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-[#15172A] px-4 py-4 text-left font-medium focus:outline-none focus:ring-1 focus:ring-[#551AA1]",
-          isOpen && "ring-1 ring-[#551AA1]"
+          "w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-[#15172A] px-4 py-4 text-left font-medium focus:ring-1 focus:ring-[#551AA1] focus:outline-none",
+          isOpen && "ring-1 ring-[#551AA1]",
         )}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
@@ -135,7 +135,7 @@ export default function CustomSelect({
               className={cn(
                 "w-full px-4 py-3 text-left text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none",
                 highlightedIndex === index && "bg-white/10",
-                option.value === value && "bg-[#551AA1] text-white"
+                option.value === value && "bg-[#551AA1] text-white",
               )}
               role="option"
               aria-selected={option.value === value}

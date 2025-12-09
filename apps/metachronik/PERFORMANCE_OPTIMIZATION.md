@@ -6,9 +6,9 @@ Some notes from lessons learned during initial indexing.
 
 **Hardware Specs:**
 
--   **RAM:** 8GB
--   **vCPU:** 8 cores
--   **Storage:** SSD
+- **RAM:** 8GB
+- **vCPU:** 8 cores
+- **Storage:** SSD
 
 ### Recommended Settings
 
@@ -22,29 +22,29 @@ INDEXING_MAX_CONCURRENT_BATCHES=12
 
 **Memory Usage:**
 
--   **RSS:** 2.0-2.3GB (25-29% of available RAM)
--   **Heap:** 783MB-1.1GB (10-14% of available RAM)
--   **Stable:** No memory crashes or out-of-memory errors
+- **RSS:** 2.0-2.3GB (25-29% of available RAM)
+- **Heap:** 783MB-1.1GB (10-14% of available RAM)
+- **Stable:** No memory crashes or out-of-memory errors
 
 **Speed Optimization:**
 
--   **Transaction-count based batching** prevents memory spikes on large blocks
--   **30K transactions per batch** reduces API overhead
--   **12 concurrent batches** maximizes throughput without hitting rate limits
--   **500 block limit** enforced to respect Chronik API constraints
+- **Transaction-count based batching** prevents memory spikes on large blocks
+- **30K transactions per batch** reduces API overhead
+- **12 concurrent batches** maximizes throughput without hitting rate limits
+- **500 block limit** enforced to respect Chronik API constraints
 
 ### Configuration Limits
 
 **Tested Limits (DO NOT EXCEED):**
 
--   ❌ `INDEXING_MAX_CONCURRENT_BATCHES=13` - Causes API rate limiting/connection issues
--   ❌ `TARGET_TX_COUNT_PER_BATCH=35000` - Causes out-of-memory errors
--   ❌ `INDEXING_MAX_CONCURRENT_BATCHES=14` - Causes crashes
+- ❌ `INDEXING_MAX_CONCURRENT_BATCHES=13` - Causes API rate limiting/connection issues
+- ❌ `TARGET_TX_COUNT_PER_BATCH=35000` - Causes out-of-memory errors
+- ❌ `INDEXING_MAX_CONCURRENT_BATCHES=14` - Causes crashes
 
 **Safe Range:**
 
--   ✅ `INDEXING_MAX_CONCURRENT_BATCHES=10-12`
--   ✅ `TARGET_TX_COUNT_PER_BATCH=25000-30000`
+- ✅ `INDEXING_MAX_CONCURRENT_BATCHES=10-12`
+- ✅ `TARGET_TX_COUNT_PER_BATCH=25000-30000`
 
 Note even with these settings, did see some occasional crashes. Best to have a higher-spec server or a lot of time on your hands.
 
@@ -52,16 +52,16 @@ Note even with these settings, did see some occasional crashes. Best to have a h
 
 **Transaction-Count Based Batching:**
 
--   Batches blocks by total transaction count rather than block count
--   Prevents memory spikes when processing blocks with many transactions
--   Automatically enforces 500-block limit per batch (Chronik API constraint)
--   Processes batches in parallel for maximum throughput
+- Batches blocks by total transaction count rather than block count
+- Prevents memory spikes when processing blocks with many transactions
+- Automatically enforces 500-block limit per batch (Chronik API constraint)
+- Processes batches in parallel for maximum throughput
 
 **Memory Management:**
 
--   Aggressive garbage collection after each batch
--   Immediate database saves to free memory
--   Memory monitoring and logging
+- Aggressive garbage collection after each batch
+- Immediate database saves to free memory
+- Memory monitoring and logging
 
 ### Environment Variables
 
@@ -82,16 +82,16 @@ CRON_SCHEDULE=0 */6 * * *
 
 **Key Metrics to Watch:**
 
--   **RSS Memory:** Should stay under 3GB for safety
--   **Heap Memory:** Should stay under 2GB for safety
--   **API Errors:** Watch for rate limiting or connection issues
--   **Processing Speed:** Monitor blocks processed per minute
+- **RSS Memory:** Should stay under 3GB for safety
+- **Heap Memory:** Should stay under 2GB for safety
+- **API Errors:** Watch for rate limiting or connection issues
+- **Processing Speed:** Monitor blocks processed per minute
 
 **Warning Signs:**
 
--   RSS memory approaching 3.5GB
--   Frequent API errors or timeouts
--   Process crashes or restarts
+- RSS memory approaching 3.5GB
+- Frequent API errors or timeouts
+- Process crashes or restarts
 
 ### Troubleshooting
 
@@ -131,8 +131,8 @@ CRON_SCHEDULE=0 */6 * * *
 
 **Recommended Railway Plan:**
 
--   **$5 Hobby Plan** (8GB RAM, 8 vCPU) - Optimal for this configuration
--   **$10 Pro Plan** - Could support higher settings if needed
+- **$5 Hobby Plan** (8GB RAM, 8 vCPU) - Optimal for this configuration
+- **$10 Pro Plan** - Could support higher settings if needed
 
 ---
 
@@ -140,19 +140,19 @@ CRON_SCHEDULE=0 */6 * * *
 
 ### Initial Implementation
 
--   **Problem:** Fixed block-size batching caused memory crashes on large blocks
--   **Solution:** Implemented transaction-count based batching
--   **Result:** Stable memory usage, no more crashes
+- **Problem:** Fixed block-size batching caused memory crashes on large blocks
+- **Solution:** Implemented transaction-count based batching
+- **Result:** Stable memory usage, no more crashes
 
 ### Performance Tuning
 
--   **Starting Point:** 3 concurrent batches, 10K transactions
--   **Final Optimal:** 12 concurrent batches, 30K transactions
--   **Performance Gain:** ~4x faster indexing with stable memory usage
+- **Starting Point:** 3 concurrent batches, 10K transactions
+- **Final Optimal:** 12 concurrent batches, 30K transactions
+- **Performance Gain:** ~4x faster indexing with stable memory usage
 
 ### Key Learnings
 
--   **Memory is not the only bottleneck:** API rate limiting and connection limits matter
--   **Transaction count matters more than block count:** Large blocks with few transactions are fast
--   **Conservative settings are better:** Stable performance beats maximum speed
--   **Monitoring is crucial:** Memory logs help identify optimal settings
+- **Memory is not the only bottleneck:** API rate limiting and connection limits matter
+- **Transaction count matters more than block count:** Large blocks with few transactions are fast
+- **Conservative settings are better:** Stable performance beats maximum speed
+- **Monitoring is crucial:** Memory logs help identify optimal settings

@@ -34,7 +34,7 @@ export default function GetEcashHero() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 m-auto flex w-full max-w-[550px] flex-col items-center text-center lg:m-0 lg:w-[50%] lg:items-start lg:text-left"
         >
-          <div className="pink-gradient-text mb-4 text-sm font-light uppercase tracking-wide">
+          <div className="pink-gradient-text mb-4 text-sm font-light tracking-wide uppercase">
             GET ECASH
           </div>
 

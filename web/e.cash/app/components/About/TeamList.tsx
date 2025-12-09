@@ -17,7 +17,7 @@ const TeamList: React.FC = () => {
 
   return (
     <section>
-      <ContentContainer className="mb-30 mt-10">
+      <ContentContainer className="mt-10 mb-30">
         <div className="mb-10 flex w-full flex-col justify-between lg:mb-20 lg:flex-row">
           <div className="flex flex-col items-start gap-6 lg:w-1/2 lg:max-w-[420px]">
             <PlusHeader text="Our team" />
@@ -34,10 +34,10 @@ const TeamList: React.FC = () => {
           {team.map((member, idx) => (
             <div
               key={idx}
-              className="team-card custom-box bg-white/2 hover:bg-white/4 group relative flex min-h-[350px] w-full cursor-pointer flex-col justify-between rounded-2xl p-6 transition-all"
+              className="team-card custom-box group relative flex min-h-[350px] w-full cursor-pointer flex-col justify-between rounded-2xl bg-white/2 p-6 transition-all hover:bg-white/4"
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
             >
-              <div className="text-secondaryText text-xs font-light uppercase tracking-wide">
+              <div className="text-secondaryText text-xs font-light tracking-wide uppercase">
                 {member.title}
               </div>
 
@@ -48,7 +48,7 @@ const TeamList: React.FC = () => {
                   fill
                   className={cn(
                     "object-contain transition-all duration-300",
-                    openIndex === idx ? "opacity-0" : "opacity-100"
+                    openIndex === idx ? "opacity-0" : "opacity-100",
                   )}
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                 />
@@ -57,7 +57,7 @@ const TeamList: React.FC = () => {
                     "w-full transition-all duration-300",
                     openIndex === idx
                       ? "top-0 block opacity-100"
-                      : "top-10 hidden opacity-0"
+                      : "top-10 hidden opacity-0",
                   )}
                 >
                   <h3 className="text-xl font-bold">{member.name}</h3>

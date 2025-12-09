@@ -4,9 +4,9 @@ You can build and run the Marlin Wallet IOS application by following these instr
 
 First you need to buy a few mandatory devices:
 
--   An Apple computer
--   An IPhone
--   An Apple Watch is you want to run the Watch OS companion application
+- An Apple computer
+- An IPhone
+- An Apple Watch is you want to run the Watch OS companion application
 
 Then you need to install XCode and the command line tools. XCode can be found on the App Store, and you can install the command line tools with:
 

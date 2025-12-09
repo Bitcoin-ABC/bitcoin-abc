@@ -9,7 +9,7 @@ export default function GridPattern({ className }: { className?: string }) {
     <div
       className={cn(
         "pointer-events-none absolute inline-flex w-96 flex-wrap content-center items-center justify-start gap-5 opacity-10",
-        className
+        className,
       )}
     >
       {Array.from({ length: 192 }).map((_, i) => (

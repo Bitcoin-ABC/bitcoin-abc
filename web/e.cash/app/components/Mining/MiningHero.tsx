@@ -17,7 +17,7 @@ export default function MiningHero() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-        className="absolute left-1/2 top-0 aspect-[700/677] w-[90%] max-w-[400px] -translate-x-1/2 lg:w-[580px] lg:max-w-none lg:translate-x-[30px]"
+        className="absolute top-0 left-1/2 aspect-[700/677] w-[90%] max-w-[400px] -translate-x-1/2 lg:w-[580px] lg:max-w-none lg:translate-x-[30px]"
       >
         <Image
           src="/tech.png"
@@ -33,7 +33,7 @@ export default function MiningHero() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 m-auto flex w-full max-w-[550px] flex-col items-center text-center lg:m-0 lg:w-[50%] lg:items-start lg:text-left"
         >
-          <div className="pink-gradient-text mb-4 text-sm font-light uppercase tracking-wide">
+          <div className="pink-gradient-text mb-4 text-sm font-light tracking-wide uppercase">
             MINING
           </div>
 

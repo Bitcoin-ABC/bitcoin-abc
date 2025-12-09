@@ -890,16 +890,16 @@ const SendXec: React.FC = () => {
                 type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
                     ? getNftChildSendTargetOutputs(tokenId as string, address)
                     : type === 'ALP_TOKEN_TYPE_STANDARD'
-                    ? getAlpSendTargetOutputs(
-                          tokenInputInfo as TokenInputInfo,
-                          address,
-                          firma,
-                      )
-                    : getSlpSendTargetOutputs(
-                          tokenInputInfo as TokenInputInfo,
-                          address,
-                          tokenType!.number,
-                      );
+                      ? getAlpSendTargetOutputs(
+                            tokenInputInfo as TokenInputInfo,
+                            address,
+                            firma,
+                        )
+                      : getSlpSendTargetOutputs(
+                            tokenInputInfo as TokenInputInfo,
+                            address,
+                            tokenType!.number,
+                        );
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,

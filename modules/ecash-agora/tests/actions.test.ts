@@ -167,9 +167,8 @@ describe('We can use ecash-wallet to create desired on-spec Agora txs', () => {
         await alpWallet.action(alpListPaymentAction).build().broadcast();
 
         // Verify we can find the listing with Agora
-        const activeListingsByTokenId = await agora.activeOffersByTokenId(
-            alpGenesisTokenId,
-        );
+        const activeListingsByTokenId =
+            await agora.activeOffersByTokenId(alpGenesisTokenId);
         expect(activeListingsByTokenId.length).to.equal(1);
         expect(activeListingsByTokenId[0].token.tokenId).to.equal(
             alpGenesisTokenId,

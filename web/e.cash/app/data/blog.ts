@@ -42,7 +42,7 @@ export interface BlogPost {
 
 export async function getPageCount(): Promise<number> {
   const response = await fetch(
-    process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts"
+    process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts",
   ).then((res) => res.json());
   return response.meta.pagination.pageCount;
 }
@@ -53,7 +53,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
     const response = await fetch(
       process.env.NEXT_PUBLIC_STRAPI_URL +
-        `/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`
+        `/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`,
     ).then((res) => res.json());
     posts = [...posts, ...response.data];
   }
@@ -124,10 +124,10 @@ export function calculateReadTime(content: string): number {
  */
 export function getNextRecommendedPost(
   posts: BlogPost[],
-  currentSlug: string
+  currentSlug: string,
 ): BlogPost | null {
   const currentIndex = posts.findIndex(
-    (post) => post.attributes.slug === currentSlug
+    (post) => post.attributes.slug === currentSlug,
   );
 
   // If current post not found or it's the last post, return null

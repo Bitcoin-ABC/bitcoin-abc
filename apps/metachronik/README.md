@@ -6,36 +6,36 @@ A Node.js TypeScript application that indexes eCash blockchain data from Chronik
 
 ### Production-Ready Features
 
--   **Real-time Block Processing**: WebSocket subscription to Chronik for instant block processing
--   **Event-driven Reconciliation**: Automatic gap detection and reconciliation when blockchain gaps are detected
--   **Missing Block Detection**: Identifies and processes any gaps in the blockchain data in real-time
--   **Price Integration**: Automatic current price fetching for new days only
--   **Comprehensive Token Tracking**: ALP and SLP token transaction counting by type
--   **Advanced Analytics**: Agora volume, cachet claims, faucet claims, and more
+- **Real-time Block Processing**: WebSocket subscription to Chronik for instant block processing
+- **Event-driven Reconciliation**: Automatic gap detection and reconciliation when blockchain gaps are detected
+- **Missing Block Detection**: Identifies and processes any gaps in the blockchain data in real-time
+- **Price Integration**: Automatic current price fetching for new days only
+- **Comprehensive Token Tracking**: ALP and SLP token transaction counting by type
+- **Advanced Analytics**: Agora volume, cachet claims, faucet claims, and more
 
 ### Database Indexing
 
--   Daily transaction count aggregation
--   Daily block count aggregation
--   Daily average block size calculation
--   Complete day filtering (excludes incomplete days)
--   Real-time data from Chronik indexer
--   Comprehensive blockchain metrics storage
+- Daily transaction count aggregation
+- Daily block count aggregation
+- Daily average block size calculation
+- Complete day filtering (excludes incomplete days)
+- Real-time data from Chronik indexer
+- Comprehensive blockchain metrics storage
 
 ## Architecture
 
--   **Backend**: Node.js with TypeScript
--   **Database**: PostgreSQL (NeonDB supported) for data storage
--   **Indexer**: Chronik for blockchain data access
--   **Scheduling**: Cron jobs for automated data collection
--   **Purpose**: Database indexing service (no API endpoints)
+- **Backend**: Node.js with TypeScript
+- **Database**: PostgreSQL (NeonDB supported) for data storage
+- **Indexer**: Chronik for blockchain data access
+- **Scheduling**: Cron jobs for automated data collection
+- **Purpose**: Database indexing service (no API endpoints)
 
 ## Prerequisites
 
--   Node.js 18+
--   PostgreSQL 12+ (or NeonDB)
--   Access to a Chronik indexer server
--   TypeScript knowledge
+- Node.js 18+
+- PostgreSQL 12+ (or NeonDB)
+- Access to a Chronik indexer server
+- TypeScript knowledge
 
 ## Installation
 
@@ -88,9 +88,9 @@ npm run dev
 
 The application will:
 
--   Create all necessary database tables automatically
--   Set up indexes for optimal performance
--   Use the DATABASE_URL from your .env file
+- Create all necessary database tables automatically
+- Set up indexes for optimal performance
+- Use the DATABASE_URL from your .env file
 
 ## Development
 
@@ -133,11 +133,11 @@ This application is a database indexing service that runs continuously in the ba
 
 The indexer runs as a background service that:
 
--   Continuously monitors the blockchain for new blocks
--   Processes blocks in real-time via WebSocket
--   Runs scheduled data collection every 6 hours
--   Automatically detects and reconciles gaps when they occur
--   Maintains data integrity through event-driven reconciliation
+- Continuously monitors the blockchain for new blocks
+- Processes blocks in real-time via WebSocket
+- Runs scheduled data collection every 6 hours
+- Automatically detects and reconciles gaps when they occur
+- Maintains data integrity through event-driven reconciliation
 
 ## Data Collection
 
@@ -151,26 +151,26 @@ The application automatically collects data from the Chronik indexer using multi
 
 Event-driven reconciliation:
 
--   **Normal Operation**: Blocks arrive via WebSocket and should always be exactly 1 height higher than the previous block
--   **Gap Detection**: If a block arrives that's not exactly 1 height higher, the system detects a gap
--   **Automatic Reconciliation**: When a gap is detected, the system automatically reconciles missing blocks from the highest height in the database to the current chain tip
+- **Normal Operation**: Blocks arrive via WebSocket and should always be exactly 1 height higher than the previous block
+- **Gap Detection**: If a block arrives that's not exactly 1 height higher, the system detects a gap
+- **Automatic Reconciliation**: When a gap is detected, the system automatically reconciles missing blocks from the highest height in the database to the current chain tip
 
 ### Data Collected
 
--   **Block Data**: Height, hash, timestamp, transaction count, block size
--   **Token Transactions**: ALP and SLP token counts by type (standard, fungible, mint vault, NFT1 group/child)
--   **Genesis Transactions**: Token genesis transaction counts by type
--   **Rewards**: Miner, staking, and IFP rewards in satoshis
--   **Special Transactions**: Cachet claims, Cashtab faucet claims, Binance withdrawals
--   **Agora Volume**: Trading volume from XECX and FIRMA exchanges
--   **Price Data**: Current USD prices for XEC from CoinGecko (new days only, past days require manual updates)
+- **Block Data**: Height, hash, timestamp, transaction count, block size
+- **Token Transactions**: ALP and SLP token counts by type (standard, fungible, mint vault, NFT1 group/child)
+- **Genesis Transactions**: Token genesis transaction counts by type
+- **Rewards**: Miner, staking, and IFP rewards in satoshis
+- **Special Transactions**: Cachet claims, Cashtab faucet claims, Binance withdrawals
+- **Agora Volume**: Trading volume from XECX and FIRMA exchanges
+- **Price Data**: Current USD prices for XEC from CoinGecko (new days only, past days require manual updates)
 
 ## Database Schema
 
 The application uses a comprehensive schema with two main tables:
 
--   `blocks` - Detailed block information including all transaction types, rewards, and special metrics
--   `days` - Daily aggregated data for efficient chart generation and price storage
+- `blocks` - Detailed block information including all transaction types, rewards, and special metrics
+- `days` - Daily aggregated data for efficient chart generation and price storage
 
 ## Configuration
 
@@ -189,19 +189,19 @@ The application uses a comprehensive schema with two main tables:
 
 ### Chronik Connection Strategy
 
--   `closestFirst`: Selects the Chronik server with the lowest latency
--   `asOrdered`: Uses Chronik servers in the order provided
+- `closestFirst`: Selects the Chronik server with the lowest latency
+- `asOrdered`: Uses Chronik servers in the order provided
 
 ## Frontend
 
 The frontend is a Next.js application located in `web/charts.e.cash/` that provides:
 
--   Dark theme matching eCash v2 design
--   Responsive charts using Recharts
--   Real-time data updates
--   Direct database connection (no API dependency)
--   Indexing range display
--   Complete day filtering for accurate data visualization
+- Dark theme matching eCash v2 design
+- Responsive charts using Recharts
+- Real-time data updates
+- Direct database connection (no API dependency)
+- Indexing range display
+- Complete day filtering for accurate data visualization
 
 ## Wishlist
 

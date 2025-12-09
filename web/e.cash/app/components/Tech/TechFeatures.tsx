@@ -54,7 +54,7 @@ export default function TechFeatures() {
               className="m-auto flex max-w-[300px] flex-col items-center text-center lg:m-0"
             >
               {/* Icon Container */}
-              <div className="bg-white/4 mb-6 flex items-center justify-center rounded-full border-t border-t-white/10 p-6 shadow-lg lg:p-8">
+              <div className="mb-6 flex items-center justify-center rounded-full border-t border-t-white/10 bg-white/4 p-6 shadow-lg lg:p-8">
                 <div className="relative h-8 w-8 lg:h-10 lg:w-10">
                   <Image
                     src={feature.icon}

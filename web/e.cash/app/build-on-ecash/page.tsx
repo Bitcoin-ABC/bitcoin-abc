@@ -22,7 +22,7 @@ export default async function Build() {
       <BuildHero />
       <BuildItems />
       <BentoGrid />
-      <div className="m-auto mb-10 mt-[-60px] flex w-full select-none items-center overflow-hidden lg:mb-20">
+      <div className="m-auto mt-[-60px] mb-10 flex w-full items-center overflow-hidden select-none lg:mb-20">
         <div className="srcoll-animation flex items-center gap-10">
           {Array.from({ length: 8 }).map((_, i) => (
             <ScrollElement key={i} />
