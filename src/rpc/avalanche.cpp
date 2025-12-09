@@ -2016,9 +2016,13 @@ static RPCHelpMan getfinaltransactions() {
                       RPCResult::Type::ARR,
                       "",
                       "",
-                      {
-                          DecodeTxDoc("The transaction id", /*wallet=*/false),
-                      }},
+                      {{
+                          RPCResult::Type::OBJ,
+                          "",
+                          "",
+                          DecodeTxDoc(/*txid_field_doc=*/"The transaction id",
+                                      /*wallet=*/false),
+                      }}},
         },
         RPCExamples{HelpExampleCli("getfinaltransactions", "true") +
                     HelpExampleRpc("getfinaltransactions", "true")},
