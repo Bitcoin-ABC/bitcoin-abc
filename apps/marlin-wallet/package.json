@@ -39,7 +39,7 @@
         "@types/react-test-renderer": "^19.0.0",
         "prettier": "^3.7.4",
         "react-test-renderer": "19.1.1",
-        "typescript": "5.0.4"
+        "typescript": "^5.9.3"
     },
     "engines": {
         "node": ">=18"

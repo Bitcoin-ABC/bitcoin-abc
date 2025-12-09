@@ -40,7 +40,7 @@
         "mocha-suppress-logs": "^0.5.1",
         "mock-chronik-client": "^3.0.0",
         "tsx": "^4.19.3",
-        "typescript": "^5.8.2",
+        "typescript": "^5.9.3",
         "typescript-eslint": "^8.26.0"
     },
     "dependencies": {

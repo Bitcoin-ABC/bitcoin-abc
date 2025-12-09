@@ -40,7 +40,7 @@
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "tsx": "^4.7.2",
-        "typescript": "^5.4.3"
+        "typescript": "^5.9.3"
     },
     "dependencies": {
         "chronik-client": "file:../chronik-client",

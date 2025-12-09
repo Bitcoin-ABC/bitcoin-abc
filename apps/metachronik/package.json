@@ -40,7 +40,7 @@
         "nyc": "^17.1.0",
         "ts-node": "^10.9.1",
         "tsx": "^4.20.3",
-        "typescript": "^5.2.2"
+        "typescript": "^5.9.3"
     },
     "keywords": [
         "ecash",

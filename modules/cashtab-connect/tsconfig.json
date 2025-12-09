@@ -12,7 +12,7 @@
         "declarationMap": true,
         "sourceMap": true,
         "typeRoots": ["./src", "./node_modules/@types"],
-        "types": ["@types/mocha", "@types/node"]
+        "types": ["mocha", "node"]
     },
     "include": ["src/**/*", "src/global.d.ts", "test/**/*"],
     "exclude": ["node_modules", "dist"]
