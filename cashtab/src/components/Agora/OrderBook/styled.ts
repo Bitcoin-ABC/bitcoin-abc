@@ -17,6 +17,8 @@ export const OfferWrapper = styled.div<{ borderRadius: boolean }>`
     border-radius: ${props => (props.borderRadius ? '20px' : '0 0 20px 20px')};
     border: 1px solid ${props => props.theme.border};
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -61,23 +63,24 @@ export const OfferTitleCtn = styled.div`
     word-break: break-all;
     align-items: center;
     margin-top: 20px;
-    a {
-        margin: 0;
-        font-size: var(--text-2xl);
-        line-height: var(--text-2xl--line-height);
-        height: 1.2em;
-        overflow: hidden;
-        color: ${props => props.theme.primaryText};
-        font-weight: 600;
-        text-decoration: none;
-        text-align: center;
-        :hover {
-            color: ${props => props.theme.accent};
-        }
-    }
-
+    width: 100%;
     span {
         color: ${props => props.theme.secondaryText};
+    }
+`;
+
+export const OfferTitleLink = styled.a<{ fontSize?: string }>`
+    margin: 0;
+    font-size: ${props => props.fontSize || 'var(--text-2xl)'};
+    line-height: var(--text-2xl--line-height);
+    height: 28px;
+    overflow: hidden;
+    color: ${props => props.theme.primaryText};
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    :hover {
+        color: ${props => props.theme.accent};
     }
 `;
 

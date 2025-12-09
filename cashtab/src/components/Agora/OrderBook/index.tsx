@@ -58,6 +58,7 @@ import {
     OfferWrapper,
     OfferHeader,
     OfferTitleCtn,
+    OfferTitleLink,
     OfferDetailsCtn,
     BuyOrderCtn,
     MintIconSpotWrapper,
@@ -496,6 +497,22 @@ const OrderBook: React.FC<OrderBookProps> = ({
         useState<boolean>(false);
     const [showConfirmCancelModal, setShowConfirmCancelModal] =
         useState<boolean>(false);
+
+    // Dynamic font sizing for token title based on character count
+    const getTitleFontSize = (name: string): string => {
+        const length = name.length;
+        if (length <= 16) {
+            return 'var(--text-2xl)';
+        } else if (length <= 20) {
+            return 'var(--text-xl)';
+        } else if (length <= 24) {
+            return 'var(--text-lg)';
+        } else if (length <= 28) {
+            return 'var(--text-base)';
+        } else {
+            return 'var(--text-sm)';
+        }
+    };
 
     const [activeOffers, setActiveOffers] = useState<null | PartialOffer[]>(
         null,
@@ -1341,9 +1358,14 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                         <InlineLoader />
                                     ) : (
                                         <>
-                                            <a href={`#/token/${tokenId}`}>
+                                            <OfferTitleLink
+                                                href={`#/token/${tokenId}`}
+                                                fontSize={getTitleFontSize(
+                                                    tokenName,
+                                                )}
+                                            >
                                                 {tokenName}
-                                            </a>
+                                            </OfferTitleLink>
                                             <span>
                                                 {tokenTicker !== ''
                                                     ? tokenTicker

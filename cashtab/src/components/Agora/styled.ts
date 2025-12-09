@@ -33,13 +33,19 @@ export const OfferTable = styled.div<{ renderedOfferCount?: number }>`
     gap: 16px;
     width: 100%;
     margin-top: 20px;
-    @media (max-width: 1600px) {
-        grid-template-columns: repeat(4, 1fr);
+
+    /* Ensure all grid items have equal width */
+    > * {
+        min-width: 0;
+        max-width: 100%;
     }
+
+    grid-template-columns: repeat(4, 1fr);
+
     @media (max-width: 1400px) {
         grid-template-columns: repeat(3, 1fr);
     }
-    @media (max-width: 1000px) {
+    @media (max-width: 1090px) {
         grid-template-columns: repeat(2, 1fr);
     }
     @media (max-width: 768px) {
