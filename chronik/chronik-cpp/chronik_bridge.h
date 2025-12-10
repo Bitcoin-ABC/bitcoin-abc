@@ -5,6 +5,10 @@
 #ifndef BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H
 #define BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H
 
+#include <node/context.h>
+#include <threadsafety.h>
+#include <txmempool.h>
+
 #include <memory>
 #include <rust/cxx.h>
 #include <vector>
@@ -20,9 +24,6 @@ namespace Consensus {
 struct Params;
 } // namespace Consensus
 
-namespace node {
-struct NodeContext;
-} // namespace node
 class uint256;
 
 namespace chronik_bridge {
@@ -85,7 +86,8 @@ public:
     rust::Vec<uint8_t> load_raw_tx(uint32_t file_num, uint32_t data_pos) const;
 
     bool is_avalanche_finalized_preconsensus(
-        const std::array<uint8_t, 32> &txid) const;
+        const std::array<uint8_t, 32> &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_node.mempool->cs);
 
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 
@@ -108,7 +110,8 @@ public:
 
     bool get_feerate_info(std::array<uint8_t, 32> mempool_txid,
                           int64_t &modified_fee_rate_sats_per_kb,
-                          uint32_t &virtual_size_bytes) const;
+                          uint32_t &virtual_size_bytes) const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_node.mempool->cs);
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

@@ -21,6 +21,7 @@
 #include <shutdown.h>
 #include <span.h>
 #include <streams.h>
+#include <sync.h>
 #include <undo.h>
 #include <util/error.h>
 #include <validation.h>
@@ -103,25 +104,40 @@ chronik_bridge::BlockTx BridgeBlockTx(bool isCoinbase, const CTransaction &tx,
             .undo_pos = uint32_t(isCoinbase ? 0 : undo_pos)};
 }
 
-size_t GetFirstBlockTxOffset(const CBlock &block, const CBlockIndex &bindex) {
-    return bindex.nDataPos + ::GetSerializeSize(CBlockHeader()) +
+inline size_t GetFirstBlockTxOffset(const CBlock &block,
+                                    const size_t block_data_pos) {
+    return block_data_pos + ::GetSerializeSize(CBlockHeader()) +
            GetSizeOfCompactSize(block.vtx.size());
 }
 
-size_t GetFirstUndoOffset(const CBlock &block, const CBlockIndex &bindex) {
+inline size_t GetFirstUndoOffset(const CBlock &block,
+                                 const size_t block_undo_pos) {
     // We have to -1 here, because coinbase txs don't have undo data.
-    return bindex.nUndoPos + GetSizeOfCompactSize(block.vtx.size() - 1);
+    return block_undo_pos + GetSizeOfCompactSize(block.vtx.size() - 1);
 }
 
 chronik_bridge::Block BridgeBlock(const CBlock &block,
                                   const CBlockUndo &block_undo,
-                                  const CBlockIndex &bindex) {
-    size_t data_pos = GetFirstBlockTxOffset(block, bindex);
+                                  const CBlockIndex &bindex)
+    EXCLUSIVE_LOCKS_REQUIRED(!::cs_main) {
+    AssertLockNotHeld(::cs_main);
+
+    uint32_t block_file_num{0};
+    uint32_t block_data_pos{0};
+    uint32_t block_undo_pos{0};
+    {
+        LOCK(::cs_main);
+        block_file_num = uint32_t(bindex.nFile);
+        block_data_pos = bindex.nDataPos;
+        block_undo_pos = bindex.nUndoPos;
+    }
+
+    size_t data_pos = GetFirstBlockTxOffset(block, block_data_pos);
     size_t undo_pos = 0;
 
     // Set undo offset; for the genesis block leave it at 0
     if (bindex.nHeight > 0) {
-        undo_pos = GetFirstUndoOffset(block, bindex);
+        undo_pos = GetFirstUndoOffset(block, block_undo_pos);
     }
 
     rust::Vec<chronik_bridge::BlockTx> bridged_txs;
@@ -149,9 +165,9 @@ chronik_bridge::Block BridgeBlock(const CBlock &block,
             .n_bits = block.nBits,
             .timestamp = block.GetBlockTime(),
             .height = bindex.nHeight,
-            .file_num = uint32_t(bindex.nFile),
-            .data_pos = bindex.nDataPos,
-            .undo_pos = bindex.nUndoPos,
+            .file_num = block_file_num,
+            .data_pos = block_data_pos,
+            .undo_pos = block_undo_pos,
             .size = ::GetSerializeSize(block),
             .txs = bridged_txs};
 }
@@ -306,8 +322,16 @@ rust::Vec<uint8_t> ChronikBridge::load_raw_tx(uint32_t file_num,
 
 bool ChronikBridge::is_avalanche_finalized_preconsensus(
     const std::array<uint8_t, 32> &mempool_txid) const {
+    if (!m_node.mempool) {
+        return false;
+    }
+
+    AssertLockNotHeld(m_node.mempool->cs);
+
     TxId txid{chronik::util::ArrayToHash(mempool_txid)};
-    return m_node.mempool->isAvalancheFinalizedPreConsensus(txid);
+    return WITH_LOCK(
+        m_node.mempool->cs,
+        return m_node.mempool->isAvalancheFinalizedPreConsensus(txid));
 }
 
 Tx bridge_tx(const CTransaction &tx, const std::vector<::Coin> &spent_coins) {
@@ -435,6 +459,9 @@ bool ChronikBridge::get_feerate_info(std::array<uint8_t, 32> mempool_txid,
         return false;
     }
 
+    AssertLockNotHeld(m_node.mempool->cs);
+    LOCK(m_node.mempool->cs);
+
     auto iter = m_node.mempool->GetIter(txid);
     if (!iter) {
         return false;
@@ -453,7 +480,8 @@ std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
 
 chronik_bridge::Block bridge_block(const CBlock &block,
                                    const CBlockUndo &block_undo,
-                                   const CBlockIndex &bindex) {
+                                   const CBlockIndex &bindex)
+    EXCLUSIVE_LOCKS_REQUIRED(!::cs_main) {
     return BridgeBlock(block, block_undo, bindex);
 }
 
