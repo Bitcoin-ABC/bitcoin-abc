@@ -14,9 +14,10 @@
   "dependencies": {
     "@splinetool/react-spline": "^4.0.0",
     "clsx": "^2.1.1",
-    "motion": "^12.23.7",
+    "framer-motion": "^12.23.26",
+    "motion": "^12.23.26",
     "next": "^15.5.7",
-    "react": "^19.0.1",
+    "react": "^19.2.1",
     "react-syntax-highlighter": "^16.1.0",
     "sharp": "^0.34.3",
     "tailwind-merge": "^3.3.0"

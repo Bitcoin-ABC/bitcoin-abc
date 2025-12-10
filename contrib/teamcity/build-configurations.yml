@@ -1101,7 +1101,7 @@ builds:
 
     preview-e.cash:
         docker:
-            context: web/e.cash
+            dockerfile: web/e.cash/Dockerfile
             port: 3000
             build_args:
                 - 'PREVIEW_BUILD=next.preview.ts'
