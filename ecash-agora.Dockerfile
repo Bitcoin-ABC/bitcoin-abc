@@ -13,6 +13,11 @@ RUN npm install -g pnpm
 
 WORKDIR /app/modules/ecash-agora
 COPY modules/ecash-agora .
+# Copy dependency package.json files so pnpm can resolve file: dependencies
+# These will be replaced with npm packages later
+COPY modules/chronik-client/package.json /app/modules/chronik-client/
+COPY modules/ecash-lib/package.json /app/modules/ecash-lib/
+COPY modules/ecash-wallet/package.json /app/modules/ecash-wallet/
 
 # Replace local file: dependencies with npm registry versions to avoid workspace/file resolution in Docker
 RUN ECLIB_VERSION=$(npm view ecash-lib version) \

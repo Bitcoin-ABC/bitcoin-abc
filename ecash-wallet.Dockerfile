@@ -12,6 +12,10 @@ RUN npm install -g pnpm
 
 WORKDIR /app/modules/ecash-wallet
 COPY modules/ecash-wallet .
+# Copy dependency package.json files so pnpm can resolve file: dependencies
+# These will be replaced with npm packages later
+COPY modules/ecash-lib/package.json /app/modules/ecash-lib/
+COPY modules/chronik-client/package.json /app/modules/chronik-client/
 # Install ecash-lib from npm, so that module users install it automatically
 RUN pnpm add ecash-lib@latest
 # Install chronik-client from npm, so that module users install it automatically

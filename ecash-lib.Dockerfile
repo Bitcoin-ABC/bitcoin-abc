@@ -62,6 +62,11 @@ RUN npm install -g pnpm
 
 # Build ecash-lib
 WORKDIR /app/modules/ecash-lib
+# Copy dependency package.json files so pnpm can resolve file: dependencies
+# These will be replaced with npm packages later
+COPY modules/b58-ts/package.json /app/modules/b58-ts/
+COPY modules/ecashaddrjs/package.json /app/modules/ecashaddrjs/
+COPY modules/chronik-client/package.json /app/modules/chronik-client/
 # Install b58-ts from npm, so that module users install it automatically
 RUN pnpm add b58-ts@latest
 # Install ecashaddrjs from npm, so that module users install it automatically
