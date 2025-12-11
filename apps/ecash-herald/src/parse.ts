@@ -1585,6 +1585,7 @@ export const getBlockTgMessage = (
     const tokenBurnTxTgMsgLines = [];
     const opReturnTxTgMsgLines = [];
     let xecSendTxTgMsgLines = [];
+    let payButtonTxCount = 0;
 
     // We do not get that much newsworthy value from a long list of individual token send txs
     // So, we organize token send txs by tokenId
@@ -1639,8 +1640,10 @@ export const getBlockTgMessage = (
                     break;
                 }
                 case opReturn.knownApps.payButton.app: {
-                    appEmoji = emojis.payButton;
-                    break;
+                    // Count PayButton transactions instead of displaying individually
+                    payButtonTxCount += 1;
+                    // Skip adding to opReturnTxTgMsgLines, continue to next tx
+                    continue;
                 }
                 case opReturn.knownApps.paywall.app: {
                     appEmoji = emojis.paywall;
@@ -2132,6 +2135,16 @@ export const getBlockTgMessage = (
         );
 
         tgMsg = tgMsg.concat(tokenBurnTxTgMsgLines);
+    }
+
+    if (payButtonTxCount > 0) {
+        tgMsg.push('');
+
+        tgMsg.push(
+            `${emojis.payButton} <b>${payButtonTxCount.toLocaleString('en-US')} Paybutton tx${
+                payButtonTxCount > 1 ? 's' : ''
+            }</b>`,
+        );
     }
 
     // OP_RETURN txs
