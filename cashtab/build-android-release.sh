@@ -12,6 +12,19 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 pushd "$SCRIPT_DIR"
 
+# Load environment variables from .env.android if it exists
+if [ -f ".env.android" ]; then
+    echo "[buildAndroidRelease] Loading environment variables from .env.android..."
+    # Temporarily disable -u to allow unbound variables (like $npm_package_version)
+    set +u
+    set -a
+    source .env.android
+    set +a
+    set -u
+else
+    echo "WARNING: .env.android not found. Using default .env file."
+fi
+
 # Check if keystore properties are set
 if [ ! -f "android/keystore.properties" ]; then
     echo "ERROR: android/keystore.properties not found!"

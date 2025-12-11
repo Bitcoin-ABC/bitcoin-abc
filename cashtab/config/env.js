@@ -19,7 +19,10 @@ if (!NODE_ENV) {
 }
 
 // https://github.com/bkeepers/dotenv#what-other-env-files-can-i-use
+// Check for .env.android first (used for Android builds)
+const envAndroidPath = path.resolve(paths.appPath, '.env.android');
 const dotenvFiles = [
+    envAndroidPath,
     `${paths.dotenv}.${NODE_ENV}.local`,
     // Don't include `.env.local` for `test` environment
     // since normally you expect tests to produce the same
