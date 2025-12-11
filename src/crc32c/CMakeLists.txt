@@ -243,8 +243,10 @@ add_library(crc32c
 )
 
 # Disable clang-tidy for crc32c target to avoid issues with 3rd party code.
-include(ClangTidy)
-target_disable_clang_tidy(crc32c)
+if(ENABLE_CLANG_TIDY)
+  include(ClangTidy)
+  target_disable_clang_tidy(crc32c)
+endif()
 
 if(HAVE_ARM64_CRC32C)
   set(_crc32c_arm64 "src/crc32c_arm64.cc")

@@ -267,8 +267,10 @@ add_target_cxx_compiler_flags(leveldb
 )
 
 # Disable clang-tidy for leveldb target to avoid issues with 3rd party code.
-include(ClangTidy)
-target_disable_clang_tidy(leveldb)
+if(ENABLE_CLANG_TIDY)
+	include(ClangTidy)
+	target_disable_clang_tidy(leveldb)
+endif()
 
 if(HAVE_CRC32C)
   target_link_libraries(leveldb crc32c)
