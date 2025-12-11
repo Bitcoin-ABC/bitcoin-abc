@@ -23,26 +23,37 @@ const OnBoarding = () => {
 
     const [importedMnemonic, setImportedMnemonic] = useState('');
     const [showImportWalletModal, setShowImportWalletModal] = useState(false);
+    const [isImportingWallet, setIsImportingWallet] = useState(false);
     // Initialize as true so that validation error only renders after user input
     const [isValidMnemonic, setIsValidMnemonic] = useState(true);
 
     async function importWallet() {
+        if (isImportingWallet) {
+            return;
+        }
+        setIsImportingWallet(true);
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'Imported');
-        const importedWallet = createCashtabWallet(importedMnemonic);
-        // Note that if a user imports a wallet from OnBoarding, we must also set the active wallet
-        const activeWallet = await createActiveCashtabWallet(
-            chronik,
-            importedWallet,
-            cashtabState.cashtabCache,
-        );
-        await updateCashtabState({
-            wallets: [importedWallet],
-            activeWallet: activeWallet,
-        });
-        // Close the modal
-        setShowImportWalletModal(false);
+        try {
+            const importedWallet = createCashtabWallet(importedMnemonic);
+            // Note that if a user imports a wallet from OnBoarding, we must also set the active wallet
+            const activeWallet = await createActiveCashtabWallet(
+                chronik,
+                importedWallet,
+                cashtabState.cashtabCache,
+            );
+            await updateCashtabState({
+                wallets: [importedWallet],
+                activeWallet: activeWallet,
+            });
+            // Close the modal
+            setShowImportWalletModal(false);
+        } catch (err) {
+            console.error('Error importing wallet from onboarding', err);
+        } finally {
+            setIsImportingWallet(false);
+        }
     }
 
     async function createNewWallet() {
@@ -78,9 +89,17 @@ const OnBoarding = () => {
                     height={265}
                     title={`Import wallet`}
                     handleOk={importWallet}
-                    handleCancel={() => setShowImportWalletModal(false)}
+                    handleCancel={() => {
+                        setShowImportWalletModal(false);
+                        setIsImportingWallet(false);
+                    }}
                     showCancelButton
-                    disabled={!isValidMnemonic || importedMnemonic === ''}
+                    disabled={
+                        !isValidMnemonic ||
+                        importedMnemonic === '' ||
+                        isImportingWallet
+                    }
+                    isConfirmLoading={isImportingWallet}
                 >
                     <ModalTextArea
                         placeholder="mnemonic (seed phrase)"

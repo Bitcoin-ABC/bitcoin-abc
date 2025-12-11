@@ -158,6 +158,9 @@ describe('<OnBoarding />', () => {
         // Click import
         await userEvent.click(importBtn);
 
+        // A spinner shows and the button is disabled while the wallet imports
+        expect(importBtn).toBeDisabled();
+
         // The wallet is in localforage
         const walletsAfterImport = await localforage.getItem('wallets');
         expect(walletsAfterImport[walletsAfterImport.length - 1].name).toBe(

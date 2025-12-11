@@ -5,6 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { CashtabScroll } from './Atoms';
+import { InlineLoader } from './Spinner';
 
 const ModalContainer = styled.div<{
     width: number;
@@ -84,7 +85,10 @@ const ModalBaseButton = styled.button`
     font-size: var(--text-sm);
     line-height: var(--text-sm--line-height);
     padding: 8px 0 !important;
-    display: inline-block !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     border-radius: 9px;
     transition: all 0.5s ease;
     width: 100px;
@@ -158,6 +162,7 @@ interface ModalProps {
     disabled?: boolean;
     noScroll?: boolean;
     paddingPx?: number;
+    isConfirmLoading?: boolean;
 }
 export const Modal: React.FC<ModalProps> = ({
     title,
@@ -172,6 +177,7 @@ export const Modal: React.FC<ModalProps> = ({
     disabled = false,
     noScroll = false,
     paddingPx,
+    isConfirmLoading = false,
 }) => {
     return (
         <>
@@ -192,8 +198,12 @@ export const Modal: React.FC<ModalProps> = ({
                 </ModalBody>
                 {showButtons && (
                     <ButtonHolder>
-                        <ModalConfirm disabled={disabled} onClick={handleOk}>
-                            OK
+                        <ModalConfirm
+                            aria-label="OK"
+                            disabled={disabled || isConfirmLoading}
+                            onClick={handleOk}
+                        >
+                            {isConfirmLoading ? <InlineLoader /> : 'OK'}
                         </ModalConfirm>
                         {showCancelButton && (
                             <ModalCancel onClick={handleCancel}>
