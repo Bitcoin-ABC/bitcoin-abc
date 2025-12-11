@@ -4,9 +4,11 @@
 
 #include <txorphanage.h>
 
+#include <arith_uint256.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
+#include <pubkey.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
@@ -107,9 +109,17 @@ EqualTxns(const std::set<CTransactionRef> &set_txns,
 }
 
 BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
+    // This test had non-deterministic coverage due to
+    // randomly selected seeds.
+    // This seed is chosen so that all branches of the function
+    // ecdsa_signature_parse_der_lax are executed during this test.
+    // Specifically branches that run only when an ECDSA
+    // signature's R and S values have leading zeros.
+    g_insecure_rand_ctx = FastRandomContext(ArithToUint256(arith_uint256(33)));
+
     TxOrphanageTest orphanage;
     CKey key;
-    key.MakeNewKey(true);
+    MakeNewKeyWithFastRandomContext(key);
     FillableSigningProvider keystore;
     BOOST_CHECK(keystore.AddKey(key));
 
