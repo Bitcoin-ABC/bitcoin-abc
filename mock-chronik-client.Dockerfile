@@ -23,6 +23,11 @@ COPY package.json .
 # Copy module package.json for dependency resolution
 COPY modules/mock-chronik-client/package.json ./modules/mock-chronik-client/
 
+# Copy dependency package.json files so pnpm can resolve file: dependencies
+# These will be replaced with npm packages later
+COPY modules/chronik-client/package.json ./modules/chronik-client/
+COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
+
 # Copy module source files
 COPY modules/mock-chronik-client/ ./modules/mock-chronik-client/
 
