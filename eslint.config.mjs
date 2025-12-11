@@ -8,8 +8,8 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
 import mocha from 'eslint-plugin-mocha';
-import coreWebVitals from 'eslint-config-next/core-web-vitals.js';
-import nextTypescript from 'eslint-config-next/typescript.js';
+import coreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
 import parser from '@typescript-eslint/parser';
 
 export const abcHeaderRule = {
