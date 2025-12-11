@@ -12,16 +12,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 pushd "$SCRIPT_DIR"
 
-# Load environment variables from .env.android if it exists
-if [ -f ".env.android" ]; then
-    echo "[buildAndroidRelease] Loading environment variables from .env.android..."
-    # Temporarily disable -u to allow unbound variables (like $npm_package_version)
-    set +u
-    set -a
-    source .env.android
-    set +a
-    set -u
-else
+# Check if .env.android exists (Node.js build process will load it)
+if [ ! -f ".env.android" ]; then
     echo "WARNING: .env.android not found. Using default .env file."
 fi
 
