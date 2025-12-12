@@ -15,6 +15,7 @@
 # - Disabled clang-tidy for leveldb target to avoid issues with 3rd party code
 # - Keep the -Werror flag private and only apply to thread safety (looks like an
 #   upstream bug)
+# - Add leveldb tests to the check-leveldb and check-all targets
 
 cmake_minimum_required(VERSION 3.18)
 # Keep the version below in sync with the one in db.h
@@ -38,7 +39,7 @@ else (WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_POSIX)
 endif (WIN32)
 
-option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" OFF)
+option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 option(LEVELDB_BUILD_BENCHMARKS "Build LevelDB's benchmarks" OFF)
 option(LEVELDB_INSTALL "Install LevelDB's header and library" OFF)
 
@@ -283,12 +284,19 @@ target_link_libraries(leveldb Threads::Threads)
 if(LEVELDB_BUILD_TESTS)
   enable_testing()
 
+  add_custom_target(check-leveldb
+	COMMENT "Running the leveldb tests"
+	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+  	COMMAND 
+		"${CMAKE_CTEST_COMMAND}"
+		--output-on-failure
+  )
+  add_dependencies(check-all check-leveldb)
+
   function(leveldb_test test_file)
     get_filename_component(test_target_name "${test_file}" NAME_WE)
 
-    add_executable("${test_target_name}" "")
-    target_sources("${test_target_name}"
-      PRIVATE
+    add_executable("${test_target_name}" EXCLUDE_FROM_ALL
         "${PROJECT_BINARY_DIR}/${LEVELDB_PORT_CONFIG_DIR}/port_config.h"
         "util/testharness.cc"
         "util/testharness.h"
@@ -310,6 +318,18 @@ if(LEVELDB_BUILD_TESTS)
     endif(NOT HAVE_CXX17_HAS_INCLUDE)
 
     add_test(NAME "${test_target_name}" COMMAND "${test_target_name}")
+
+	# Remove some warnings from the tests
+	add_target_compiler_flags("${test_target_name}"
+		PRIVATE
+			-Wno-sign-compare
+			-Wno-maybe-uninitialized
+	)
+	add_target_cxx_compiler_flags("${test_target_name}"
+		PRIVATE
+			-Wno-suggest-override
+	)
+	add_dependencies(check-leveldb "${test_target_name}")
   endfunction(leveldb_test)
 
   leveldb_test("db/c_test.c")
