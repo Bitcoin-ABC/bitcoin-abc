@@ -175,7 +175,7 @@ class DataStream {
 protected:
     using vector_type = SerializeData;
     vector_type vch;
-    vector_type::size_type nReadPos{0};
+    vector_type::size_type m_read_pos{0};
 
 public:
     typedef vector_type::allocator_type allocator_type;
@@ -200,26 +200,26 @@ public:
     //
     // Vector subset
     //
-    const_iterator begin() const { return vch.begin() + nReadPos; }
-    iterator begin() { return vch.begin() + nReadPos; }
+    const_iterator begin() const { return vch.begin() + m_read_pos; }
+    iterator begin() { return vch.begin() + m_read_pos; }
     const_iterator end() const { return vch.end(); }
     iterator end() { return vch.end(); }
-    size_type size() const { return vch.size() - nReadPos; }
-    bool empty() const { return vch.size() == nReadPos; }
+    size_type size() const { return vch.size() - m_read_pos; }
+    bool empty() const { return vch.size() == m_read_pos; }
     void resize(size_type n, value_type c = value_type{}) {
-        vch.resize(n + nReadPos, c);
+        vch.resize(n + m_read_pos, c);
     }
-    void reserve(size_type n) { vch.reserve(n + nReadPos); }
+    void reserve(size_type n) { vch.reserve(n + m_read_pos); }
     const_reference operator[](size_type pos) const {
-        return vch[pos + nReadPos];
+        return vch[pos + m_read_pos];
     }
-    reference operator[](size_type pos) { return vch[pos + nReadPos]; }
+    reference operator[](size_type pos) { return vch[pos + m_read_pos]; }
     void clear() {
         vch.clear();
-        nReadPos = 0;
+        m_read_pos = 0;
     }
-    value_type *data() { return vch.data() + nReadPos; }
-    const value_type *data() const { return vch.data() + nReadPos; }
+    value_type *data() { return vch.data() + m_read_pos; }
+    const value_type *data() const { return vch.data() + m_read_pos; }
 
     void insert(iterator it, std::vector<value_type>::const_iterator first,
                 std::vector<value_type>::const_iterator last) {
@@ -228,11 +228,11 @@ public:
         }
 
         assert(last - first > 0);
-        if (it == vch.begin() + nReadPos &&
-            (unsigned int)(last - first) <= nReadPos) {
+        if (it == vch.begin() + m_read_pos &&
+            (unsigned int)(last - first) <= m_read_pos) {
             // special case for inserting at the front when there's room
-            nReadPos -= (last - first);
-            memcpy(&vch[nReadPos], &first[0], last - first);
+            m_read_pos -= (last - first);
+            memcpy(&vch[m_read_pos], &first[0], last - first);
         } else {
             vch.insert(it, first, last);
         }
@@ -246,39 +246,39 @@ public:
         }
 
         assert(last - first > 0);
-        if (it == vch.begin() + nReadPos &&
-            (unsigned int)(last - first) <= nReadPos) {
+        if (it == vch.begin() + m_read_pos &&
+            (unsigned int)(last - first) <= m_read_pos) {
             // special case for inserting at the front when there's room
-            nReadPos -= (last - first);
-            memcpy(&vch[nReadPos], &first[0], last - first);
+            m_read_pos -= (last - first);
+            memcpy(&vch[m_read_pos], &first[0], last - first);
         } else {
             vch.insert(it, first, last);
         }
     }
 
     iterator erase(iterator it) {
-        if (it == vch.begin() + nReadPos) {
+        if (it == vch.begin() + m_read_pos) {
             // special case for erasing from the front
-            if (++nReadPos >= vch.size()) {
+            if (++m_read_pos >= vch.size()) {
                 // whenever we reach the end, we take the opportunity to clear
                 // the buffer
-                nReadPos = 0;
+                m_read_pos = 0;
                 return vch.erase(vch.begin(), vch.end());
             }
-            return vch.begin() + nReadPos;
+            return vch.begin() + m_read_pos;
         } else {
             return vch.erase(it);
         }
     }
 
     iterator erase(iterator first, iterator last) {
-        if (first == vch.begin() + nReadPos) {
+        if (first == vch.begin() + m_read_pos) {
             // special case for erasing from the front
             if (last == vch.end()) {
-                nReadPos = 0;
+                m_read_pos = 0;
                 return vch.erase(vch.begin(), vch.end());
             } else {
-                nReadPos = (last - vch.begin());
+                m_read_pos = (last - vch.begin());
                 return last;
             }
         } else
@@ -286,21 +286,21 @@ public:
     }
 
     inline void Compact() {
-        vch.erase(vch.begin(), vch.begin() + nReadPos);
-        nReadPos = 0;
+        vch.erase(vch.begin(), vch.begin() + m_read_pos);
+        m_read_pos = 0;
     }
 
     bool Rewind(std::optional<size_type> n = std::nullopt) {
         // Total rewind if no size is passed
         if (!n) {
-            nReadPos = 0;
+            m_read_pos = 0;
             return true;
         }
         // Rewind by n characters if the buffer hasn't been compacted yet
-        if (*n > nReadPos) {
+        if (*n > m_read_pos) {
             return false;
         }
-        nReadPos -= *n;
+        m_read_pos -= *n;
         return true;
     }
 
@@ -316,31 +316,31 @@ public:
         }
 
         // Read from the beginning of the buffer
-        auto next_read_pos{CheckedAdd(nReadPos, dst.size())};
+        auto next_read_pos{CheckedAdd(m_read_pos, dst.size())};
         if (!next_read_pos.has_value() || next_read_pos.value() > vch.size()) {
             throw std::ios_base::failure("DataStream::read(): end of data");
         }
-        memcpy(dst.data(), &vch[nReadPos], dst.size());
+        memcpy(dst.data(), &vch[m_read_pos], dst.size());
         if (next_read_pos.value() == vch.size()) {
-            nReadPos = 0;
+            m_read_pos = 0;
             vch.clear();
             return;
         }
-        nReadPos = next_read_pos.value();
+        m_read_pos = next_read_pos.value();
     }
 
     void ignore(size_t num_ignore) {
         // Ignore from the beginning of the buffer
-        auto next_read_pos{CheckedAdd(nReadPos, num_ignore)};
+        auto next_read_pos{CheckedAdd(m_read_pos, num_ignore)};
         if (!next_read_pos.has_value() || next_read_pos.value() > vch.size()) {
             throw std::ios_base::failure("DataStream::ignore(): end of data");
         }
         if (next_read_pos.value() == vch.size()) {
-            nReadPos = 0;
+            m_read_pos = 0;
             vch.clear();
             return;
         }
-        nReadPos = next_read_pos.value();
+        m_read_pos = next_read_pos.value();
     }
 
     void write(Span<const value_type> src) {
@@ -624,7 +624,7 @@ private:
     //! how many bytes have been read from source
     uint64_t nSrcPos;
     //! how many bytes have been read from this
-    uint64_t nReadPos;
+    uint64_t m_read_pos;
     //! up to which position we're allowed to read
     uint64_t nReadLimit;
     //! how many bytes we guarantee to rewind
@@ -636,7 +636,7 @@ private:
     bool Fill() {
         unsigned int pos = nSrcPos % vchBuf.size();
         unsigned int readNow = vchBuf.size() - pos;
-        unsigned int nAvail = vchBuf.size() - (nSrcPos - nReadPos) - nRewind;
+        unsigned int nAvail = vchBuf.size() - (nSrcPos - m_read_pos) - nRewind;
         if (nAvail < readNow) {
             readNow = nAvail;
         }
@@ -659,30 +659,31 @@ private:
     //! (which may be less than the requested length) that may be accessed
     //! beginning at that pointer.
     std::pair<std::byte *, size_t> AdvanceStream(size_t length) {
-        assert(nReadPos <= nSrcPos);
-        if (nReadPos + length > nReadLimit) {
+        assert(m_read_pos <= nSrcPos);
+        if (m_read_pos + length > nReadLimit) {
             throw std::ios_base::failure(
                 "Attempt to position past buffer limit");
         }
         // If there are no bytes available, read from the file.
-        if (nReadPos == nSrcPos && length > 0) {
+        if (m_read_pos == nSrcPos && length > 0) {
             Fill();
         }
 
-        size_t buffer_offset{static_cast<size_t>(nReadPos % vchBuf.size())};
+        size_t buffer_offset{static_cast<size_t>(m_read_pos % vchBuf.size())};
         size_t buffer_available{
             static_cast<size_t>(vchBuf.size() - buffer_offset)};
-        size_t bytes_until_source_pos{static_cast<size_t>(nSrcPos - nReadPos)};
+        size_t bytes_until_source_pos{
+            static_cast<size_t>(nSrcPos - m_read_pos)};
         size_t advance{
             std::min({length, buffer_available, bytes_until_source_pos})};
-        nReadPos += advance;
+        m_read_pos += advance;
         return std::make_pair(&vchBuf[buffer_offset], advance);
     }
 
 public:
     CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn,
                   int nTypeIn, int nVersionIn)
-        : nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), nReadPos(0),
+        : nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), m_read_pos(0),
           nReadLimit(std::numeric_limits<uint64_t>::max()), nRewind(nRewindIn),
           vchBuf(nBufSize, std::byte{0}) {
         if (nRewindIn >= nBufSize) {
@@ -709,7 +710,7 @@ public:
     }
 
     //! check whether we're at the end of the source file
-    bool eof() const { return nReadPos == nSrcPos && feof(src); }
+    bool eof() const { return m_read_pos == nSrcPos && feof(src); }
 
     //! read a number of bytes
     void read(Span<std::byte> dst) {
@@ -723,36 +724,36 @@ public:
     //! Move the read position ahead in the stream to the given position.
     //! Use SetPos() to back up in the stream, not SkipTo().
     void SkipTo(const uint64_t file_pos) {
-        assert(file_pos >= nReadPos);
-        while (nReadPos < file_pos) {
-            AdvanceStream(file_pos - nReadPos);
+        assert(file_pos >= m_read_pos);
+        while (m_read_pos < file_pos) {
+            AdvanceStream(file_pos - m_read_pos);
         }
     }
 
     //! return the current reading position
-    uint64_t GetPos() const { return nReadPos; }
+    uint64_t GetPos() const { return m_read_pos; }
 
     //! rewind to a given reading position
     bool SetPos(uint64_t nPos) {
         size_t bufsize = vchBuf.size();
         if (nPos + bufsize < nSrcPos) {
             // rewinding too far, rewind as far as possible
-            nReadPos = nSrcPos - bufsize;
+            m_read_pos = nSrcPos - bufsize;
             return false;
         }
         if (nPos > nSrcPos) {
             // can't go this far forward, go as far as possible
-            nReadPos = nSrcPos;
+            m_read_pos = nSrcPos;
             return false;
         }
-        nReadPos = nPos;
+        m_read_pos = nPos;
         return true;
     }
 
     //! Prevent reading beyond a certain position. No argument removes the
     //! limit.
     bool SetLimit(uint64_t nPos = std::numeric_limits<uint64_t>::max()) {
-        if (nPos < nReadPos) {
+        if (nPos < m_read_pos) {
             return false;
         }
         nReadLimit = nPos;
@@ -767,20 +768,20 @@ public:
     //! search for a given byte in the stream, and remain positioned on it
     void FindByte(std::byte byte) {
         // For best performance, avoid mod operation within the loop.
-        size_t buf_offset{size_t(nReadPos % uint64_t(vchBuf.size()))};
+        size_t buf_offset{size_t(m_read_pos % uint64_t(vchBuf.size()))};
         while (true) {
-            if (nReadPos == nSrcPos) {
+            if (m_read_pos == nSrcPos) {
                 // No more bytes available; read from the file into the buffer,
                 // setting nSrcPos to one beyond the end of the new data.
                 // Throws exception if end-of-file reached.
                 Fill();
             }
             const size_t len{std::min<size_t>(vchBuf.size() - buf_offset,
-                                              nSrcPos - nReadPos)};
+                                              nSrcPos - m_read_pos)};
             const auto it_start{vchBuf.begin() + buf_offset};
             const auto it_find{std::find(it_start, it_start + len, byte)};
             const size_t inc{size_t(std::distance(it_start, it_find))};
-            nReadPos += inc;
+            m_read_pos += inc;
             if (inc < len) {
                 break;
             }
