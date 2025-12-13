@@ -14,10 +14,13 @@ use bitcoinsuite_chronik_client::{
     test_runner::{handle_test_info, spin_child_process},
     ChronikClient, WsEndpoint,
 };
-use bitcoinsuite_core::{address::CashAddress, block::BlockHash, tx::TxId};
+use bitcoinsuite_core::{
+    address::CashAddress, block::BlockHash, hash::Hashed, tx::TxId,
+};
 use chronik_proto::proto::{
-    ws_msg::MsgType, BlockMsgType::*, CoinbaseData, MsgBlock, MsgTx, TxMsgType,
-    TxOutput, WsMsg, WsSubScript,
+    ws_msg::MsgType, BlockMsgType::*, CoinbaseData, MsgBlock, MsgTx,
+    TxFinalizationReason, TxFinalizationReasonType, TxMsgType, TxOutput, WsMsg,
+    WsSubScript,
 };
 use serde_json::Value;
 use tokio::sync::Mutex;
@@ -384,6 +387,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -398,6 +402,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -412,6 +417,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -426,6 +432,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -466,6 +473,7 @@ impl IpcReader for WebsocketIPC {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxConfirmed.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                ..Default::default()
                             })),
                         }));
                     }
@@ -520,10 +528,18 @@ impl IpcReader for WebsocketIPC {
                     ];
                     let mut expected_tx_confirmed_msgs = Vec::new();
                     for txid in txids {
+                        use TxFinalizationReasonType::*;
                         expected_tx_confirmed_msgs.push(Some(WsMsg {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxFinalized.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                finalization_reason: Some(
+                                    TxFinalizationReason {
+                                        finalization_type:
+                                            TxFinalizationReasonPostConsensus
+                                                as _,
+                                    },
+                                ),
                             })),
                         }));
                     }
@@ -592,6 +608,7 @@ impl IpcReader for WebsocketIPC {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxAddedToMempool.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                ..Default::default()
                             })),
                         }));
                     }
@@ -650,6 +667,7 @@ impl IpcReader for WebsocketIPC {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxConfirmed.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                ..Default::default()
                             })),
                         }));
                     }
@@ -718,6 +736,7 @@ impl IpcReader for WebsocketIPC {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxAddedToMempool.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                ..Default::default()
                             })),
                         }));
                     }
@@ -776,6 +795,7 @@ impl IpcReader for WebsocketIPC {
                             msg_type: Some(MsgType::Tx(MsgTx {
                                 msg_type: TxMsgType::TxConfirmed.into(),
                                 txid: txid.parse::<TxId>()?.to_bytes().to_vec(),
+                                ..Default::default()
                             })),
                         }));
                     }
@@ -813,6 +833,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -849,6 +870,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -898,6 +920,7 @@ impl IpcReader for WebsocketIPC {
                                     .parse::<TxId>()?
                                     .to_bytes()
                                     .to_vec(),
+                                ..Default::default()
                             }))
                         })
                     );
@@ -993,6 +1016,10 @@ impl IpcReader for WebsocketIPC {
                         timeout_result.is_err(),
                         "Expected timeout but received a message"
                     );
+                }
+
+                15..=19 => {
+                    // TODO: Implement rest of the test
                 }
 
                 _ => {

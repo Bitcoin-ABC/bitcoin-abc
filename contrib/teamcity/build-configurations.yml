@@ -242,6 +242,10 @@ builds:
     build-bitcoinsuite-chronik-client:
         runOnDiffRegex:
             - modules/bitcoinsuite-chronik-client/
+            - chronik/
+            - test/functional/setup_scripts
+            - Cargo.toml
+            - Cargo.lock
         cmake_flags:
             - '-DBUILD_CHRONIK=ON'
             - '-DBUILD_CHRONIK_PLUGINS=ON'
@@ -357,6 +361,7 @@ builds:
     build-explorer:
         runOnDiffRegex:
             - web/explorer/
+            - modules/bitcoinsuite-chronik-client/
             - Cargo.lock
             - Cargo.toml
         script: |
