@@ -48,6 +48,8 @@ export const token = {
     whitelist: [
         // FIRMA
         '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+        // BVE
+        '96704added2310ba79cddecc7e192c56a8aa29542b7187539fc0327acddc8ac6',
         // Star crystals
         'ac31bb0bccf33de1683efce4da64f1cb6d8e8d6e098bc01c51d5864deb0e783f',
         // XECX
