@@ -419,6 +419,10 @@ message BroadcastTxRequest {
     bytes raw_tx = 1;
     // Whether to skip token checks and broadcast even if tokens are unintentionally burned
     bool skip_token_checks = 2;
+    // Waits for finalization of the transaction before returning the request,
+    // for up to the given seconds.
+    // Set to 0 to not wait at all and return right after broadcast.
+    uint64 finalization_timeout_secs = 3;
 }
 
 // Response of broadcasting the tx
@@ -433,6 +437,10 @@ message BroadcastTxsRequest {
     repeated bytes raw_txs = 1;
     // Whether to skip token checks and broadcast even if tokens are unintentionally burned
     bool skip_token_checks = 2;
+    // Waits for finalization of the transaction before returning the request,
+    // for up to the given seconds.
+    // Set to 0 to not wait at all and return right after broadcast.
+    uint64 finalization_timeout_secs = 3;
 }
 
 // Response of broadcasting txs

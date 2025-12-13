@@ -17,6 +17,7 @@ use axum::{
 };
 use bitcoinsuite_core::tx::TxId;
 use chronik_bridge::ffi;
+use chronik_indexer::query::verify_timeout_finalization;
 use chronik_indexer::{
     indexer::{ChronikIndexer, Node},
     pause::PauseNotify,
@@ -398,18 +399,28 @@ async fn handle_broadcast_tx(
     Extension(node): Extension<NodeRef>,
     Protobuf(request): Protobuf<proto::BroadcastTxRequest>,
 ) -> Result<Protobuf<proto::BroadcastTxResponse>, ReportError> {
+    let timeout_finalization =
+        verify_timeout_finalization(request.finalization_timeout_secs)?;
     let indexer = indexer.read().await;
-    let txids_result = indexer
+    let broadcast_result = indexer
         .broadcast(node.as_ref())
-        .broadcast_txs(&[request.raw_tx.into()], request.skip_token_checks);
+        .broadcast_txs(
+            &[request.raw_tx.into()],
+            request.skip_token_checks,
+            !timeout_finalization.is_zero(),
+        )
+        .await;
     // Drop indexer before syncing otherwise we get a deadlock
     drop(indexer);
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
     ffi::sync_with_validation_interface_queue();
-    let txids = txids_result?;
+    let mut broadcast_result = broadcast_result?;
+    broadcast_result
+        .wait_for_finalization(timeout_finalization)
+        .await?;
     Ok(Protobuf(proto::BroadcastTxResponse {
-        txid: txids[0].to_vec(),
+        txid: broadcast_result.txids[0].to_vec(),
     }))
 }
 
@@ -418,23 +429,36 @@ async fn handle_broadcast_txs(
     Extension(node): Extension<NodeRef>,
     Protobuf(request): Protobuf<proto::BroadcastTxsRequest>,
 ) -> Result<Protobuf<proto::BroadcastTxsResponse>, ReportError> {
+    let timeout_finalization =
+        verify_timeout_finalization(request.finalization_timeout_secs)?;
     let indexer = indexer.read().await;
-    let txids_result = indexer.broadcast(node.as_ref()).broadcast_txs(
-        &request
-            .raw_txs
-            .into_iter()
-            .map(Into::into)
-            .collect::<Vec<_>>(),
-        request.skip_token_checks,
-    );
+    let broadcast_result = indexer
+        .broadcast(node.as_ref())
+        .broadcast_txs(
+            &request
+                .raw_txs
+                .into_iter()
+                .map(Into::into)
+                .collect::<Vec<_>>(),
+            request.skip_token_checks,
+            !timeout_finalization.is_zero(),
+        )
+        .await;
     // Drop indexer before syncing otherwise we get a deadlock
     drop(indexer);
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
     ffi::sync_with_validation_interface_queue();
-    let txids = txids_result?;
+    let mut broadcast_result = broadcast_result?;
+    broadcast_result
+        .wait_for_finalization(timeout_finalization)
+        .await?;
     Ok(Protobuf(proto::BroadcastTxsResponse {
-        txids: txids.into_iter().map(|txid| txid.to_vec()).collect(),
+        txids: broadcast_result
+            .txids
+            .into_iter()
+            .map(|txid| txid.to_vec())
+            .collect(),
     }))
 }
 

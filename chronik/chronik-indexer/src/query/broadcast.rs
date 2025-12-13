@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use std::{mem::take, time::Duration};
+
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
     error::DataError,
@@ -14,6 +16,10 @@ use chronik_db::{db::Db, mem::Mempool};
 use chronik_plugin::data::PluginNameMap;
 use chronik_proto::proto;
 use thiserror::Error;
+use tokio::{
+    sync::{broadcast, RwLock},
+    time::timeout,
+};
 
 use crate::{
     avalanche::Avalanche,
@@ -22,7 +28,12 @@ use crate::{
         make_tx_proto, read_plugin_outputs, MakeTxProtoParams, OutputsSpent,
         QueryBroadcastError::*, TxTokenData,
     },
+    subs::Subs,
+    subs_group::{TxMsg, TxMsgType},
 };
+
+// Can wait at most for 2 minutes for finalization
+const MAX_TIMEOUT_FINALIZATION_SECS: u64 = 120;
 
 /// Struct for broadcasting txs on the network
 #[derive(Debug)]
@@ -39,6 +50,17 @@ pub struct QueryBroadcast<'a> {
     pub is_token_index_enabled: bool,
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
+    /// Subscriptions (to receive updates about broadcasts)
+    pub subs: &'a RwLock<Subs>,
+}
+
+/// Struct returned after broadcast. Allows accessing the txs' TxIds, and
+/// waiting for finalization.
+#[derive(Debug)]
+pub struct BroadcastResult {
+    /// TxIds of the broadcast transactions.
+    pub txids: Vec<TxId>,
+    tx_msg_receivers: Vec<broadcast::Receiver<TxMsg>>,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -55,16 +77,28 @@ pub enum QueryBroadcastError {
     /// Node rejected the tx
     #[error("400: Broadcast failed: {0}")]
     BroadcastFailed(String),
+
+    /// Transaction didn't finalize within the given finalization timeout
+    #[error("504: Transaction(s) failed to finalize within {}s", .0.as_secs())]
+    FinalizationTimedOut(Duration),
+
+    /// Requested finalization timeout is too long
+    #[error(
+        "400: Finalization timeout of {0}s exceeds maximum of \
+         {MAX_TIMEOUT_FINALIZATION_SECS}s"
+    )]
+    FinalizationTimeoutTooLong(u64),
 }
 
 impl QueryBroadcast<'_> {
     /// Broadcast all the txs; if one fails token validation we don't broadcast
     /// any of them.
-    pub fn broadcast_txs(
+    pub async fn broadcast_txs(
         &self,
         raw_txs: &[Bytes],
         skip_token_checks: bool,
-    ) -> Result<Vec<TxId>> {
+        should_subscribe: bool,
+    ) -> Result<BroadcastResult> {
         let mut coins_to_uncache = vec![];
         if !skip_token_checks && self.is_token_index_enabled {
             coins_to_uncache = self.do_token_checks(raw_txs)?;
@@ -82,7 +116,18 @@ impl QueryBroadcast<'_> {
                 )?,
             ));
         }
-        Ok(txids)
+        let mut tx_msg_receivers = Vec::new();
+        if should_subscribe {
+            let mut subs = self.subs.write().await;
+            tx_msg_receivers = txids
+                .iter()
+                .map(|txid| subs.subs_txid_mut().subscribe_to_member(txid))
+                .collect::<Vec<_>>();
+        }
+        Ok(BroadcastResult {
+            txids,
+            tx_msg_receivers,
+        })
     }
 
     fn do_token_checks(&self, raw_txs: &[Bytes]) -> Result<Vec<ffi::OutPoint>> {
@@ -181,4 +226,48 @@ impl QueryBroadcast<'_> {
             is_final_preconsensus,
         }))
     }
+}
+
+impl BroadcastResult {
+    /// Wait for the txids to finalize via Avalanche.
+    /// Returns immediately if result is not configured to wait for
+    /// finalization, or if the timeout is zero.
+    pub async fn wait_for_finalization(
+        &mut self,
+        timeout_finalization: Duration,
+    ) -> Result<()> {
+        if self.tx_msg_receivers.is_empty() || timeout_finalization.is_zero() {
+            return Ok(());
+        }
+        let future_all_finalized = futures::future::join_all(
+            take(&mut self.tx_msg_receivers).into_iter().map(
+                |mut tx_msg_receiver| async move {
+                    loop {
+                        let tx_msg = tx_msg_receiver.recv().await?;
+                        if let TxMsgType::Finalized(_) = tx_msg.msg_type {
+                            return Ok(());
+                        }
+                    }
+                },
+            ),
+        );
+        let results = timeout(timeout_finalization, future_all_finalized)
+            .await
+            .map_err(|_| FinalizationTimedOut(timeout_finalization))?;
+        results.into_iter().collect::<Result<Vec<_>>>()?;
+        Ok(())
+    }
+}
+
+/// Verify the finalization timeout is within the bounds we allow, and return a
+/// [`Duration`] struct.
+pub fn verify_timeout_finalization(
+    timeout_finalization_secs: u64,
+) -> Result<Duration> {
+    if timeout_finalization_secs > MAX_TIMEOUT_FINALIZATION_SECS {
+        return Err(
+            FinalizationTimeoutTooLong(timeout_finalization_secs).into()
+        );
+    }
+    Ok(Duration::from_secs(timeout_finalization_secs))
 }

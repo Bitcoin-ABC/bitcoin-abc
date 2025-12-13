@@ -30,6 +30,9 @@ bytes = "1.4"
 # Bridge to C++
 cxx = "1.0"
 
+# Async toolkit
+futures = "0.3"
+
 # Protobuf en-/decoding
 prost = "0.11"
 

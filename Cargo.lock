@@ -864,6 +864,7 @@ dependencies = [
  "chronik-proto",
  "chronik-util",
  "cxx",
+ "futures",
  "hex",
  "hex-literal",
  "pretty_assertions",

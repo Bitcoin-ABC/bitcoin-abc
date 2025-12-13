@@ -112,11 +112,8 @@ impl ChronikClient {
         raw_tx: Vec<u8>,
         skip_token_checks: bool,
     ) -> Result<proto::BroadcastTxResponse> {
-        let request = proto::BroadcastTxRequest {
-            raw_tx,
-            skip_token_checks,
-        };
-        self._post("/broadcast-tx", &request).await
+        self.broadcast_and_finalize_tx(raw_tx, skip_token_checks, 0)
+            .await
     }
 
     pub async fn broadcast_txs(
@@ -124,9 +121,34 @@ impl ChronikClient {
         raw_txs: Vec<Vec<u8>>,
         skip_token_checks: bool,
     ) -> Result<proto::BroadcastTxsResponse> {
+        self.broadcast_and_finalize_txs(raw_txs, skip_token_checks, 0)
+            .await
+    }
+
+    pub async fn broadcast_and_finalize_tx(
+        &self,
+        raw_tx: Vec<u8>,
+        skip_token_checks: bool,
+        finalization_timeout_secs: u64,
+    ) -> Result<proto::BroadcastTxResponse> {
+        let request = proto::BroadcastTxRequest {
+            raw_tx,
+            skip_token_checks,
+            finalization_timeout_secs,
+        };
+        self._post("/broadcast-tx", &request).await
+    }
+
+    pub async fn broadcast_and_finalize_txs(
+        &self,
+        raw_txs: Vec<Vec<u8>>,
+        skip_token_checks: bool,
+        finalization_timeout_secs: u64,
+    ) -> Result<proto::BroadcastTxsResponse> {
         let request = proto::BroadcastTxsRequest {
             raw_txs,
             skip_token_checks,
+            finalization_timeout_secs,
         };
         self._post("/broadcast-txs", &request).await
     }

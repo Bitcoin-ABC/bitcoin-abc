@@ -1055,6 +1055,7 @@ impl ChronikIndexer {
             node,
             is_token_index_enabled: self.is_token_index_enabled,
             plugin_name_map: &self.plugin_name_map,
+            subs: &self.subs,
         }
     }
 

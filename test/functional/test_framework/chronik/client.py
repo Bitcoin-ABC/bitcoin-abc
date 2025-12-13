@@ -419,25 +419,35 @@ class ChronikClient:
         )
 
     def broadcast_tx(
-        self, raw_tx: bytes, skip_token_checks: bool = False
+        self,
+        raw_tx: bytes,
+        skip_token_checks: bool = False,
+        finalization_timeout_secs: int = 0,
     ) -> ChronikResponse:
         return self._request(
             "POST",
             "/broadcast-tx",
             pb.BroadcastTxRequest(
-                raw_tx=raw_tx, skip_token_checks=skip_token_checks
+                raw_tx=raw_tx,
+                skip_token_checks=skip_token_checks,
+                finalization_timeout_secs=finalization_timeout_secs,
             ).SerializeToString(),
             pb.BroadcastTxResponse,
         )
 
     def broadcast_txs(
-        self, raw_txs: List[bytes], skip_token_checks: bool = False
+        self,
+        raw_txs: List[bytes],
+        skip_token_checks: bool = False,
+        finalization_timeout_secs: int = 0,
     ) -> ChronikResponse:
         return self._request(
             "POST",
             "/broadcast-txs",
             pb.BroadcastTxsRequest(
-                raw_txs=raw_txs, skip_token_checks=skip_token_checks
+                raw_txs=raw_txs,
+                skip_token_checks=skip_token_checks,
+                finalization_timeout_secs=finalization_timeout_secs,
             ).SerializeToString(),
             pb.BroadcastTxsResponse,
         )
