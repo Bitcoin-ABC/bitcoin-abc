@@ -182,6 +182,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '4c536f66747761726520444d434320', // "LSoftware DMCC " ASCII
             },
         ],
+        [
+            '76a914a1a16b0c06361696165c638b12e2f5cf714bc18f88ac',
+            {
+                miner: 'hash-hut.net',
+                coinbaseHexFragment: '686173682d6875742e6e6574', // "hash-hut.net " ASCII
+            },
+        ],
     ],
 };
 

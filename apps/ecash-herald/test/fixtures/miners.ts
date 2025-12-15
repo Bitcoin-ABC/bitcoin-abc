@@ -430,6 +430,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'LSoftware DMCC',
     },
+    // hash-hut.net - parsed from payout script
+    {
+        height: '927610',
+        coinbaseHex:
+            '037a270e04abfc3f6908b6f388e9290000004e2f686173682d6875742e6e65742f31386263666877476a376e7234373262fabe6d6dceeb5dbb501d3c59f0b00178078803b2631257356ef2bffe33d888bd14befb77200000008e00000000000000',
+        payoutOutputScript:
+            '76a914a1a16b0c06361696165c638b12e2f5cf714bc18f88ac',
+        parsed: 'hash-hut.net',
+    },
+    // hash-hut.net - parsed from coinbase hex fragment
+    {
+        height: '927611',
+        coinbaseHex:
+            '037a270e04abfc3f6908b6f388e9290000004e2f686173682d6875742e6e65742f31386263666877476a376e7234373262fabe6d6dceeb5dbb501d3c59f0b00178078803b2631257356ef2bffe33d888bd14befb77200000008e00000000000000',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'hash-hut.net',
+    },
 ];
 
 export default minerTestFixtures;
