@@ -20,3 +20,7 @@ This release includes the following features and fixes:
  - A new `getfinaltransactions` RPC command returns a list of the finalized
    transactions that are not yet included in a finalized block. Please refer to
    the RPC documentation for more details.
+ - A new Chronik `finalization_timeout_secs` parameter is available for the
+   `BroadcastTxRequest` and `BroadcastTxsRequest` messages. When non-zero this
+   parameter instructs Chronik to wait until the transaction is finalized or
+   until the timeout expires before returning.
