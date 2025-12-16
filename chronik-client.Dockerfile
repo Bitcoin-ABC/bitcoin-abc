@@ -20,9 +20,6 @@ COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .
 COPY package.json .
 
-# Copy module package.json for dependency resolution
-COPY modules/chronik-client/package.json ./modules/chronik-client/
-
 # Copy module source files
 COPY modules/chronik-client/ ./modules/chronik-client/
 
@@ -31,6 +28,8 @@ RUN pnpm add ecashaddrjs@latest --filter chronik-client
 # Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
 RUN pnpm install --filter chronik-client...
 
+# Build the module
+RUN pnpm --filter chronik-client run build
+
 # Publish the module (from monorepo root using filter)
-# Note this will also pnpm run build, as this is the prepublish script
 CMD [ "pnpm", "--filter", "chronik-client", "publish" ]

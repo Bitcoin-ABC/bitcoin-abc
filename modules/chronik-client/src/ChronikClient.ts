@@ -151,44 +151,124 @@ export class ChronikClient {
 
     /**
      * Broadcasts the `rawTx` on the network.
+     *
      * If `skipTokenChecks` is false, it will be checked that the tx doesn't burn
      * any tokens before broadcasting.
+     *
+     * NB this method DOES NOT wait for finalization
      */
     public async broadcastTx(
         rawTx: Uint8Array | string,
         skipTokenChecks = false,
-    ): Promise<{ txid: string }> {
-        const request = proto.BroadcastTxRequest.encode({
-            rawTx: typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
-            skipTokenChecks,
-        }).finish();
-        const data = await this._proxyInterface.post('/broadcast-tx', request);
-        const broadcastResponse = proto.BroadcastTxResponse.decode(data);
-        return {
-            txid: toHexRev(broadcastResponse.txid),
-        };
+    ): Promise<BroadcastTxResponse> {
+        return await this._broadcastTxRequest(rawTx, 0, skipTokenChecks);
     }
 
     /**
      * Broadcasts the `rawTxs` on the network, only if all of them are valid.
+     *
      * If `skipTokenChecks` is false, it will be checked that the txs don't burn
      * any tokens before broadcasting.
+     *
+     * NB this method DOES NOT wait for finalization
      */
     public async broadcastTxs(
         rawTxs: (Uint8Array | string)[],
         skipTokenChecks = false,
-    ): Promise<{ txids: string[] }> {
+    ): Promise<BroadcastTxsResponse> {
+        return await this._broadcastTxsRequest(rawTxs, 0, skipTokenChecks);
+    }
+
+    /**
+     * Broadcasts the `rawTx` on the network.
+     *
+     * Wait for the tx to finalize by default. Allow user customization of finalizationTimeoutSecs.
+     *
+     * If `skipTokenChecks` is false, it will be checked that the tx doesn't burn
+     * any tokens before broadcasting.
+     */
+    public async broadcastAndFinalizeTx(
+        rawTx: Uint8Array | string,
+        // Default to 120s (chronik default)
+        finalizationTimeoutSecs = 120,
+        skipTokenChecks = false,
+    ): Promise<{ txid: string }> {
+        if (finalizationTimeoutSecs <= 0) {
+            throw new Error(
+                'Use broadcastTx if you do not want to wait for finalization.',
+            );
+        }
+        return await this._broadcastTxRequest(
+            rawTx,
+            finalizationTimeoutSecs,
+            skipTokenChecks,
+        );
+    }
+
+    /**
+     * Broadcasts the `rawTxs` on the network, only if all of them are valid.
+     *
+     * Wait for the txs to finalize by default. Allow user customization of finalizationTimeoutSecs.
+     *
+     * If `skipTokenChecks` is false, it will be checked that the txs don't burn
+     * any tokens before broadcasting.
+     */
+    public async broadcastAndFinalizeTxs(
+        rawTxs: (Uint8Array | string)[],
+        // Default to 120s (chronik default)
+        finalizationTimeoutSecs = 120,
+        skipTokenChecks = false,
+    ): Promise<BroadcastTxsResponse> {
+        if (finalizationTimeoutSecs <= 0) {
+            throw new Error(
+                'Use broadcastTxs if you do not want to wait for finalization.',
+            );
+        }
+        return await this._broadcastTxsRequest(
+            rawTxs,
+            finalizationTimeoutSecs,
+            skipTokenChecks,
+        );
+    }
+
+    /**
+     * Private method to standardize method API calls for broadcasting txs for
+     * both broadcastTx and broadcastAndFinalizeTx.
+     */
+    private async _broadcastTxRequest(
+        rawTx: Uint8Array | string,
+        finalizationTimeoutSecs: number,
+        skipTokenChecks: boolean,
+    ): Promise<BroadcastTxResponse> {
+        const request = proto.BroadcastTxRequest.encode({
+            rawTx: typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
+            skipTokenChecks,
+            finalizationTimeoutSecs: BigInt(finalizationTimeoutSecs),
+        }).finish();
+        const data = await this._proxyInterface.post('/broadcast-tx', request);
+        const broadcastResponse = proto.BroadcastTxResponse.decode(data);
+        return convertToBroadcastTxResponse(broadcastResponse);
+    }
+
+    /**
+     * Private method to standardize method API calls for broadcasting txs for
+     * both broadcastTxs and broadcastAndFinalizeTxs.
+     */
+    private async _broadcastTxsRequest(
+        rawTxs: (Uint8Array | string)[],
+        finalizationTimeoutSecs: number,
+        skipTokenChecks: boolean,
+    ): Promise<BroadcastTxsResponse> {
         const request = proto.BroadcastTxsRequest.encode({
             rawTxs: rawTxs.map(rawTx =>
                 typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
             ),
+            finalizationTimeoutSecs: BigInt(finalizationTimeoutSecs),
             skipTokenChecks,
         }).finish();
         const data = await this._proxyInterface.post('/broadcast-txs', request);
         const broadcastResponse = proto.BroadcastTxsResponse.decode(data);
-        return {
-            txids: broadcastResponse.txids.map(toHexRev),
-        };
+        return convertToBroadcastTxsResponse(broadcastResponse);
     }
 
     /**
@@ -1709,6 +1789,22 @@ function convertToCoinbaseData(coinbaseData: proto.CoinbaseData): CoinbaseData {
     return returnedCoinbaseData;
 }
 
+function convertToBroadcastTxResponse(
+    broadcastResponse: proto.BroadcastTxResponse,
+): BroadcastTxResponse {
+    return {
+        txid: toHexRev(broadcastResponse.txid),
+    };
+}
+
+function convertToBroadcastTxsResponse(
+    broadcastResponse: proto.BroadcastTxsResponse,
+): BroadcastTxsResponse {
+    return {
+        txids: broadcastResponse.txids.map(toHexRev),
+    };
+}
+
 /** Info about connected chronik server */
 export interface ChronikInfo {
     version: string;
@@ -2325,4 +2421,12 @@ interface WsSubscriptions {
     blocks: boolean;
     /** Subscription to all txs */
     txs: boolean;
+}
+
+interface BroadcastTxResponse {
+    txid: string;
+}
+
+interface BroadcastTxsResponse {
+    txids: string[];
 }

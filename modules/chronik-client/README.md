@@ -135,3 +135,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 - 3.6.1 - Patch for CI publication including correct `ecashaddrjs` dep [D18997](https://reviews.bitcoinabc.org/D18997)
 - 3.7.0 - Add support for `unconfirmedTxs` method to return mempool txs for a given chronik server [D19050](https://reviews.bitcoinabc.org/D19050)
 - 4.0.0 - **(Breaking change)** Remove pagination params from `unconfirmedTxs` methods that do not actually support pagination; no change in behavior as these params were previously not working, but any callsites using them are now expected to throw or fail type checks [D19059](https://reviews.bitcoinabc.org/D19059)
+- 4.1.0 - Add new methods `broadcastAndFinalizeTx` and `broadcastAndFinalizeTxs`. [D19136](https://reviews.bitcoinabc.org/D19136)
