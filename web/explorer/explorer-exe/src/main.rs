@@ -1,8 +1,8 @@
 use std::{fs, sync::Arc};
 
+use abc_rust_error::Result;
 use axum::Extension;
 use bitcoinsuite_chronik_client::ChronikClient;
-use bitcoinsuite_error::Result;
 use explorer_server::{chain::Chain, config, server::Server};
 
 #[tokio::main]
@@ -12,7 +12,8 @@ async fn main() -> Result<()> {
     let config_string = fs::read_to_string(config_path)?;
     let config = config::load_config(&config_string)?;
 
-    let chronik = ChronikClient::new(config.chronik_api_url)?;
+    // TODO accept a list of Chronik URLs in the config for failover
+    let chronik = ChronikClient::new(vec![config.chronik_api_url])?;
     let base_dir = config
         .base_dir
         .unwrap_or_else(|| "../explorer-server".into());

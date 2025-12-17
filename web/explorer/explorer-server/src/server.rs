@@ -4,6 +4,7 @@ use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
 };
 
+use abc_rust_error::Result;
 use askama::Template;
 use axum::{response::Redirect, routing::get, Router};
 use bitcoinsuite_chronik_client::proto::{
@@ -11,8 +12,10 @@ use bitcoinsuite_chronik_client::proto::{
     TokenType, Tx,
 };
 use bitcoinsuite_chronik_client::{proto::OutPoint, ChronikClient};
-use bitcoinsuite_core::{CashAddress, Hashed, Sha256d};
-use bitcoinsuite_error::Result;
+use bitcoinsuite_core::{
+    address::CashAddress,
+    hash::{Hashed, Sha256d},
+};
 use chrono::{TimeZone, Utc};
 use eyre::{bail, eyre};
 use futures::future;
@@ -23,7 +26,7 @@ use crate::{
     },
     blockchain::{
         calculate_block_difficulty, cash_addr_to_script_type_payload,
-        from_be_hex, to_be_hex, to_legacy_address,
+        to_be_hex, to_legacy_address,
     },
     chain::Chain,
     server_http::{
@@ -172,7 +175,7 @@ impl Server {
         page: usize,
         page_size: usize,
     ) -> Result<JsonTxsResponse> {
-        let block_hash = Sha256d::from_hex_be(block_hex)?;
+        let block_hash = Sha256d::from_be_hex(block_hex)?;
         let block = self.chronik.block_by_hash(&block_hash).await?;
         let block_txs = self
             .chronik
@@ -188,7 +191,7 @@ impl Server {
                     return None;
                 }
                 Some(
-                    Sha256d::from_hex_be(&token_entry.token_id)
+                    Sha256d::from_be_hex(&token_entry.token_id)
                         .expect("Impossible"),
                 )
             })
@@ -206,7 +209,7 @@ impl Server {
         address: &str,
         query: HashMap<String, String>,
     ) -> Result<JsonTxsResponse> {
-        let address = CashAddress::parse_cow(address.into())?;
+        let address = address.parse()?;
         let (script_type, script_payload) =
             cash_addr_to_script_type_payload(&address);
         let script_endpoint = self.chronik.script(script_type, &script_payload);
@@ -233,7 +236,7 @@ impl Server {
                     return None;
                 }
                 Some(
-                    Sha256d::from_hex_be(&token_entry.token_id)
+                    Sha256d::from_be_hex(&token_entry.token_id)
                         .expect("Impossible"),
                 )
             })
@@ -251,7 +254,7 @@ impl Server {
 
 impl Server {
     pub async fn block(&self, block_hex: &str) -> Result<String> {
-        let block_hash = Sha256d::from_hex_be(block_hex)?;
+        let block_hash = Sha256d::from_be_hex(block_hex)?;
 
         let block = self.chronik.block_by_hash(&block_hash).await?;
         let block_txs = self
@@ -283,7 +286,7 @@ impl Server {
     }
 
     pub async fn tx(&self, tx_hex: &str) -> Result<String> {
-        let tx_hash = Sha256d::from_hex_be(tx_hex)?;
+        let tx_hash = Sha256d::from_be_hex(tx_hex)?;
         let tx = self.chronik.tx(&tx_hash).await?;
 
         let blockchain_info = self.chronik.blockchain_info().await?;
@@ -300,7 +303,7 @@ impl Server {
         let timestamp = Utc.timestamp_nanos(timestamp * 1_000_000_000);
 
         let raw_tx = self.chronik.raw_tx(&tx_hash).await?;
-        let raw_tx = raw_tx.hex();
+        let raw_tx = hex::encode(raw_tx);
 
         let tx_stats = calc_tx_stats(&tx, None);
 
@@ -357,7 +360,7 @@ impl Server {
         tx: &Tx,
         token_entry: &'a TokenEntry,
     ) -> Result<TokenEntryTemplate<'a>> {
-        let token_id = Sha256d::from_hex_be(&token_entry.token_id)?;
+        let token_id = Sha256d::from_be_hex(&token_entry.token_id)?;
         let tx_type = TokenTxType::from_i32(token_entry.tx_type)
             .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
         let token_data = match tx_type {
@@ -446,7 +449,7 @@ impl Server {
 
         Ok(TokenEntryTemplate {
             token_section_title,
-            token_hex: token_id.to_string(),
+            token_hex: token_id.hex_be(),
             entry: token_entry,
             genesis_info: token_data
                 .as_ref()
@@ -462,7 +465,7 @@ impl Server {
 
 impl Server {
     pub async fn address<'a>(&'a self, address: &str) -> Result<String> {
-        let address = CashAddress::parse_cow(address.into())?;
+        let address = address.parse::<CashAddress>()?;
         let sats_address = address.with_prefix(self.satoshi_addr_prefix);
         let token_address = address.with_prefix(self.tokens_addr_prefix);
 
@@ -506,7 +509,7 @@ impl Server {
 
             match &utxo.token {
                 Some(token) => {
-                    let token_id_hash = Sha256d::from_hex_be(&token.token_id)
+                    let token_id_hash = Sha256d::from_be_hex(&token.token_id)
                         .expect("Impossible");
 
                     json_utxo.token_amount = token.atoms;
@@ -577,7 +580,7 @@ impl Server {
     ) -> Result<HashMap<String, TokenInfo>> {
         let mut token_calls = Vec::new();
 
-        let unknown_token = Sha256d::from_hex(
+        let unknown_token = Sha256d::from_be_hex(
             "0000000000000000000000000000000000000000000000000000000000000000",
         )?;
 
@@ -625,7 +628,7 @@ impl Server {
     }
 
     pub async fn search(&self, query: &str) -> Result<Redirect> {
-        if let Ok(address) = CashAddress::parse_cow(query.into()) {
+        if let Ok(address) = query.parse::<CashAddress>() {
             return Ok(self.redirect(format!("/address/{}", address.as_str())));
         }
 
@@ -647,8 +650,7 @@ impl Server {
             }
         }
 
-        let bytes = from_be_hex(query)?;
-        let unknown_hash = Sha256d::from_slice(&bytes)?;
+        let unknown_hash = Sha256d::from_be_hex(query)?;
 
         if self.chronik.tx(&unknown_hash).await.is_ok() {
             return Ok(self.redirect(format!("/tx/{}", query)));

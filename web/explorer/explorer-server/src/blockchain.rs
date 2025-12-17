@@ -1,8 +1,9 @@
 use bitcoinsuite_chronik_client::ScriptType;
 use bitcoinsuite_core::{
-    AddressType, CashAddress, Hashed, Op, Script, ShaRmd160,
+    address::{AddressType, CashAddress},
+    hash::{Hashed, ShaRmd160},
+    script::{Op, Script},
 };
-use bitcoinsuite_error::Result;
 
 use crate::chain::Chain;
 
@@ -12,16 +13,10 @@ pub fn to_be_hex(slice: &[u8]) -> String {
     hex::encode(&vec)
 }
 
-pub fn from_be_hex(string: &str) -> Result<Vec<u8>> {
-    let mut decoded = hex::decode(string)?;
-    decoded.reverse();
-    Ok(decoded)
-}
-
 #[derive(Clone, Debug)]
-pub enum Destination<'a> {
+pub enum Destination {
     Nulldata(Vec<Op>),
-    Address(CashAddress<'a>),
+    Address(CashAddress),
     P2PK(Vec<u8>),
     Unknown(Vec<u8>),
 }
@@ -29,7 +24,7 @@ pub enum Destination<'a> {
 pub fn destination_from_script<'a>(
     prefix: &'a str,
     script: &[u8],
-) -> Destination<'a> {
+) -> Destination {
     const OP_RETURN: u8 = 106;
     const OP_DUP: u8 = 118;
     const OP_EQUAL: u8 = 135;
@@ -42,21 +37,21 @@ pub fn destination_from_script<'a>(
             Destination::Address(CashAddress::from_hash(
                 prefix,
                 AddressType::P2PKH,
-                ShaRmd160::from_slice(hash).expect("Invalid hash"),
+                ShaRmd160::from_le_slice(hash).expect("Invalid hash"),
             ))
         }
         [OP_HASH160, 20, hash @ .., OP_EQUAL] => {
             Destination::Address(CashAddress::from_hash(
                 prefix,
                 AddressType::P2SH,
-                ShaRmd160::from_slice(hash).expect("Invalid hash"),
+                ShaRmd160::from_le_slice(hash).expect("Invalid hash"),
             ))
         }
         [33, pk @ .., OP_CHECKSIG] => Destination::P2PK(pk.to_vec()),
         [65, pk @ .., OP_CHECKSIG] => Destination::P2PK(pk.to_vec()),
         [OP_RETURN, data @ ..] => {
-            let ops = Script::from_slice(data);
-            let ops = ops.ops().into_iter().map(|op| op.unwrap()).collect();
+            let ops = Script::new(data.to_vec().into());
+            let ops = ops.iter_ops().map(|op| op.unwrap()).collect();
             Destination::Nulldata(ops)
         }
         _ => Destination::Unknown(script.to_vec()),
@@ -68,7 +63,7 @@ pub fn to_legacy_address(cash_address: &CashAddress, chain: &Chain) -> String {
         hashes::{hash160, Hash},
         PubkeyHash, ScriptHash,
     };
-    let hash = hash160::Hash::from_slice(cash_address.hash().as_slice())
+    let hash = hash160::Hash::from_slice(&cash_address.hash().to_le_bytes())
         .expect("Impossible");
     let script = match cash_address.addr_type() {
         AddressType::P2PKH => {
@@ -103,7 +98,7 @@ pub fn cash_addr_to_script_type_payload(
         AddressType::P2PKH => ScriptType::P2pkh,
         AddressType::P2SH => ScriptType::P2sh,
     };
-    let script_payload: &[u8; 20] = addr.hash().byte_array().as_array();
+    let script_payload: &[u8; 20] = &addr.hash().clone().into();
 
     (script_type, *script_payload)
 }

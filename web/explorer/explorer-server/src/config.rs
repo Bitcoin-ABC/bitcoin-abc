@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, path::PathBuf};
 
-use bitcoinsuite_error::Result;
+use abc_rust_error::Result;
 use serde::Deserialize;
 
 #[derive(Deserialize)]

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bitcoinsuite_chronik_client::proto::{
     GenesisInfo, OutPoint, Token, TokenInfo,
 };
-use bitcoinsuite_core::Script;
+use bitcoinsuite_core::script::Script;
 use chrono::DateTime;
 use chrono_humanize::HumanTime;
 use humansize::{file_size_opts as options, FileSize};
@@ -47,12 +47,12 @@ pub fn check_is_coinbase(outpoint: &OutPoint) -> askama::Result<bool> {
 pub fn cashaddr_from_script<'a>(
     script: &'a [u8],
     prefix: &'a str,
-) -> askama::Result<blockchain::Destination<'a>> {
+) -> askama::Result<blockchain::Destination> {
     Ok(blockchain::destination_from_script(prefix, script))
 }
 
 pub fn get_script(signature_script: &[u8]) -> askama::Result<String> {
-    let script = Script::from_slice(signature_script);
+    let script = Script::new(signature_script.to_vec().into());
     Ok(script.to_string())
 }
 
