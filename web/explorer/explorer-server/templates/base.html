@@ -78,6 +78,7 @@
                         <img class="logo" src="/assets/logo.png" />
                     </a>
                     {% if network_selector %}<div id="network-select-container"></div>{% endif %}
+                    <div id="mempool-select-container"></div>
                 </div>
                 <div class="search-ctn">
                     <div id="nav-message-container"></div>
@@ -147,6 +148,22 @@
         `;
         }
 
+        function renderMempoolSelector() {
+            const mempoolSelectContainer = document.getElementById('mempool-select-container');
+
+            let switchToText = '';
+            let switchToLink = '';
+
+            const baseUrl = window.location.protocol + '//' + window.location.host;
+
+            if (window.location.pathname === '/mempool') {
+                mempoolSelectContainer.innerHTML = `<a href="${baseUrl}">Block Explorer</a>`;
+                return;
+            }
+
+            mempoolSelectContainer.innerHTML = `<a href="${baseUrl}/mempool">Mempool Explorer</a>`;
+        }
+
         function renderNavMessage() {
             const navMessageContainer = document.getElementById('nav-message-container');
             const currentHostName = window.location.hostname;
@@ -164,6 +181,7 @@
 
         window.onload = function() {
             renderNetworkSelector();
+            renderMempoolSelector();
             renderNavMessage();
         };
     </script>

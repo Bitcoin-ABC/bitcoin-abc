@@ -1,0 +1,78 @@
+<!-- Copyright (c) 2025 The Bitcoin developers -->
+<!-- Distributed under the MIT software license, see the accompanying -->
+<!-- file COPYING or http://www.opensource.org/licenses/mit-license.php. -->
+{% extends "base.html" %}
+{% import "components/loader_fullpage.html" as loader %}
+{% block body_classes %}overflow-y-scroll{% endblock %}
+{% block footer_classes %}hidden{% endblock %}
+{% block content %}
+    <div class="page_ctn">
+        <div class="ui container">
+            <h1 class="ui header">
+                Mempool transactions
+            </h2>
+            <div id="advanced" class="ui styled fluid accordion">
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    <span class="non-selectable">Advanced mempool data</span>
+                </div>
+                <div class="content">
+                    <table class="ui very basic collapsing celled table">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Transactions</strong>
+                                </td>
+                                <td>{{ num_txs }}</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Total size</strong>
+                                </td>
+                                <td>
+                                    {{ total_size|render_human_size }}
+                                    ({{ total_size|to_i128|render_integer_smallify|safe }} B)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% call loader::render() %}
+            <table id="mempool-txs-table"
+                   class="block-listing__datatable dataTable compact responsive nowrap no-footer"
+                   style="width: 100%">
+                <thead>
+                    <tr>
+                        <th data-priority="1">ID</th>
+                        <th data-priority="1">Timestamp</th>
+                        <th data-priority="1">Age</th>
+                        <th data-priority="4">Size</th>
+                        <th data-priority="2">Fee</th>
+                        <th data-priority="3">Inputs</th>
+                        <th data-priority="3">Outputs</th>
+                        <th data-priority="1">Output Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="blur">
+                </tbody>
+            </table>
+            <div class="ui container">
+                <div id="pagination"
+                     class="bottom-pagination"
+                     data-total-entries="{{ num_txs }}"></div>
+                <div class="block-listing__fixed-nav-icon">
+                    <button class="circular ui icon button" onclick="scrollToBottom()">
+                        <i class="angle up icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="/code/mempoolTxs.js"></script>
+    <script type="text/javascript" src="/code/timestamps.js"></script>
+    <script type="text/javascript">
+        $('.ui.accordion').accordion();
+    </script>
+{% endblock %}

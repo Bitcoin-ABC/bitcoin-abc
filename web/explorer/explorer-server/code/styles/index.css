@@ -102,6 +102,10 @@ a:hover {
     transition: all ease-in-out 200ms;
 }
 
+#mempool-select-container {
+    margin-left: 20px;
+}
+
 .header-logo {
     margin: 0;
     padding: 0;

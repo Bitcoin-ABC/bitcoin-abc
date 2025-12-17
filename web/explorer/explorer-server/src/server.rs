@@ -22,7 +22,8 @@ use futures::future;
 
 use crate::{
     api::{
-        block_txs_to_json, calc_tx_stats, tokens_to_json, tx_history_to_json,
+        block_txs_to_json, calc_tx_stats, mempool_txs_to_json, tokens_to_json,
+        tx_history_to_json,
     },
     blockchain::{
         calculate_block_difficulty, cash_addr_to_script_type_payload,
@@ -31,14 +32,15 @@ use crate::{
     chain::Chain,
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
-        data_block_txs, data_blocks, search, serve_files, testnet_faucet, tx,
+        data_block_txs, data_blocks, data_mempool, mempool, search,
+        serve_files, testnet_faucet, tx,
     },
     server_primitives::{
         JsonBalance, JsonBlock, JsonBlocksResponse, JsonTxsResponse, JsonUtxo,
     },
     templating::{
-        AddressTemplate, BlockTemplate, BlocksTemplate, TestnetFaucetTemplate,
-        TokenEntryTemplate, TransactionTemplate,
+        AddressTemplate, BlockTemplate, BlocksTemplate, MempoolTemplate,
+        TestnetFaucetTemplate, TokenEntryTemplate, TransactionTemplate,
     },
 };
 
@@ -90,6 +92,7 @@ impl Server {
                 get(data_block_txs),
             )
             .route("/api/address/:hash/transactions", get(data_address_txs))
+            .route("/api/mempool", get(data_mempool))
             .nest("/code", serve_files(&self.base_dir.join("code")))
             .nest("/assets", serve_files(&self.base_dir.join("assets")))
             .nest(
@@ -97,6 +100,7 @@ impl Server {
                 serve_files(&self.base_dir.join("assets").join("favicon.png")),
             )
             .route("/testnet-faucet", get(testnet_faucet))
+            .route("/mempool", get(mempool))
     }
 }
 
@@ -664,5 +668,48 @@ impl Server {
 
     pub fn redirect(&self, url: String) -> Redirect {
         Redirect::permanent(&url)
+    }
+
+    pub async fn mempool(&self) -> Result<String> {
+        let mempool_txs = self.chronik.unconfirmed_txs().await?;
+
+        let mut total_size = 0u64;
+        for tx in mempool_txs.txs.iter() {
+            total_size += tx.size as u64;
+        }
+
+        let mempool_template = MempoolTemplate {
+            num_txs: mempool_txs.txs.len() as u32,
+            total_size,
+            network_selector: self.network_selector,
+        };
+
+        Ok(mempool_template.render().unwrap())
+    }
+
+    pub async fn data_mempool(&self) -> Result<JsonTxsResponse> {
+        let mempool_txs = self.chronik.unconfirmed_txs().await?;
+
+        let token_ids = mempool_txs
+            .txs
+            .iter()
+            .filter_map(|tx| {
+                let token_entry = tx.token_entries.get(0)?;
+                if Self::is_unknown_slp(&token_entry.token_type).ok()? {
+                    return None;
+                }
+                Some(
+                    Sha256d::from_be_hex(&token_entry.token_id)
+                        .expect("Impossible"),
+                )
+            })
+            .collect::<HashSet<_>>();
+
+        let tokens_by_hex = self.batch_get_chronik_tokens(token_ids).await?;
+        let json_tokens = tokens_to_json(&tokens_by_hex)?;
+
+        let json_txs = mempool_txs_to_json(mempool_txs, &json_tokens)?;
+
+        Ok(JsonTxsResponse { data: json_txs })
     }
 }

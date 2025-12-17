@@ -179,6 +179,47 @@ pub fn block_txs_to_json(
     Ok(json_txs)
 }
 
+pub fn mempool_txs_to_json(
+    mempool_txs: TxHistoryPage,
+    json_tokens: &HashMap<String, JsonToken>,
+) -> Result<Vec<JsonTx>> {
+    let mut json_txs = Vec::new();
+
+    for tx in mempool_txs.txs.iter() {
+        let stats = calc_tx_stats(tx, None);
+
+        let (token_id, token) = match &tx.token_entries.get(0) {
+            Some(token_entry) => {
+                let token_id = token_entry.token_id.clone();
+                let json_token = json_tokens.get(&token_id);
+
+                match json_token {
+                    Some(json_token) => {
+                        (Some(token_id.clone()), Some(json_token.clone()))
+                    }
+                    None => (Some(token_id.clone()), None),
+                }
+            }
+            None => (None, None),
+        };
+
+        json_txs.push(JsonTx {
+            tx_hash: to_be_hex(&tx.txid),
+            block_height: None,
+            timestamp: tx.time_first_seen,
+            is_coinbase: tx.is_coinbase,
+            size: tx.size as i32,
+            num_inputs: tx.inputs.len() as u32,
+            num_outputs: tx.outputs.len() as u32,
+            stats,
+            token_id,
+            token,
+        });
+    }
+
+    Ok(json_txs)
+}
+
 pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
     let sats_input = tx.inputs.iter().map(|input| input.sats).sum();
     let sats_output = tx.outputs.iter().map(|output| output.sats).sum();

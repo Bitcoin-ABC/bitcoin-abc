@@ -79,6 +79,14 @@ pub struct AddressTemplate<'a> {
 }
 
 #[derive(Template)]
+#[template(path = "pages/mempool.html")]
+pub struct MempoolTemplate {
+    pub num_txs: u32,
+    pub total_size: u64,
+    pub network_selector: bool,
+}
+
+#[derive(Template)]
 #[template(path = "pages/testnet-faucet.html")]
 pub struct TestnetFaucetTemplate {
     pub network_selector: bool,
