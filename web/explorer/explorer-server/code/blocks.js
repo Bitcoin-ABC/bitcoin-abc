@@ -22,7 +22,7 @@ const renderFinal = isFinal => {
 const renderHash = (hash, _type, _row, meta) => {
     const api = new $.fn.dataTable.Api(meta.settings);
     const isHidden = !api.column(4).responsiveHidden();
-    let minifiedHash = minifyHash(hash);
+    let minifiedHash = minifyHash(hash, 1, 25);
 
     if (isHidden) {
         minifiedHash = '0...' + minifiedHash.slice(minifiedHash.length - 6);

@@ -139,12 +139,8 @@ function toggleTransactionScriptData() {
     });
 }
 
-function minifyHash(hash) {
-    return `${hash.slice(0, 1)}...${hash.slice(39, 64)}`;
-}
-
-function minifyBlockID(hash) {
-    return `${hash.slice(0, 6)}...${hash.slice(54, 64)}`;
+function minifyHash(hash, lead, tail) {
+    return `${hash.slice(0, lead)}...${hash.slice(64 - tail, 64)}`;
 }
 
 const generateRange = (start, end) =>

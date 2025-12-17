@@ -5,7 +5,7 @@ function renderTxHashCoins(row) {
         '<a href="/tx/' +
         row.txHash +
         '">' +
-        minifyBlockID(row.txHash) +
+        minifyHash(row.txHash, 6, 10) +
         ':' +
         row.outIdx +
         (row.isCoinbase

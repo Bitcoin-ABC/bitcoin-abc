@@ -1,5 +1,5 @@
 const renderHash = data => {
-    let minifiedHash = minifyBlockID(data.txHash);
+    let minifiedHash = minifyHash(data.txHash, 6, 10);
     if (data.blockHeight === 0) {
         return (
             '<a style="color:#CD0BC3" href="/tx/' +
