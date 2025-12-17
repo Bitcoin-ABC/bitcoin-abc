@@ -248,8 +248,6 @@ const renderBlockHeight = (_value, _type, row) => {
     );
 };
 
-const renderSize = size => formatByteSize(size);
-
 const renderAmountXEC = (_value, _type, row) => {
     if (row.stats.deltaSats < 0) {
         return (

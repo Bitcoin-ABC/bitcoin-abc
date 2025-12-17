@@ -31,15 +31,7 @@ const renderHash = (hash, _type, _row, meta) => {
     return `<a href="/block/${hash}">${minifiedHash}</a>`;
 };
 const renderNumtTxs = numTxs => renderInt(numTxs);
-const renderSize = size => {
-    if (size < 1024) {
-        return size + ' B';
-    } else if (size < 1024 * 1024) {
-        return (size / 1000).toFixed(2) + ' kB';
-    } else {
-        return (size / 1000000).toFixed(2) + ' MB';
-    }
-};
+
 const renderDifficulty = difficulty => {
     const estHashrate = (difficulty * 0xffffffff) / 600;
 
