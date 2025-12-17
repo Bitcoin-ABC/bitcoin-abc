@@ -238,6 +238,10 @@ impl ChronikClient {
         .await
     }
 
+    pub async fn unconfirmed_txs(&self) -> Result<proto::TxHistoryPage> {
+        self._get(&format!("/unconfirmed-txs")).await
+    }
+
     pub async fn validate_tx(&self, raw_tx: Vec<u8>) -> Result<proto::Tx> {
         self._post("/validate-tx", &proto::RawTx { raw_tx }).await
     }
