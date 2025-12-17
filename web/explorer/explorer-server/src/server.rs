@@ -268,12 +268,10 @@ impl Server {
         let timestamp =
             Utc.timestamp_nanos(block_info.timestamp * 1_000_000_000);
         let coinbase_data = block_txs.txs[0].inputs[0].input_script.clone();
-        let confirmations = best_height - block_info.height + 1;
 
         let block_template = BlockTemplate {
             block_hex,
             block_info,
-            confirmations,
             timestamp,
             difficulty,
             coinbase_data,

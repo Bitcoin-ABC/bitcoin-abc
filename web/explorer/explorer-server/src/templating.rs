@@ -22,7 +22,6 @@ pub struct BlocksTemplate {
 pub struct BlockTemplate<'a> {
     pub block_hex: &'a str,
     pub block_info: BlockInfo,
-    pub confirmations: i32,
     pub timestamp: DateTime<chrono::Utc>,
     pub difficulty: f64,
     pub coinbase_data: Vec<u8>,
