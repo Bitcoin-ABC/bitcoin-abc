@@ -17,7 +17,7 @@ You can already get started by using one of our pre-synced instances:
 
 ## Getting started
 
-Make sure you downloaded Bitcoin ABC Chronik in the [previous step](download). In there, you will find an executable `bitcoind`.
+Make sure you downloaded Bitcoin ABC Chronik in the [previous step](/chronik-setup/download). In there, you will find an executable `bitcoind`.
 
 To enable Chronik, simply pass `-chronik` as CLI argument:
 

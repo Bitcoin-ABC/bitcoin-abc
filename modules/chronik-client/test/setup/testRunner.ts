@@ -26,7 +26,7 @@ function initializeTestRunner(testName: string, statusEvent: EventEmitter) {
         },
     );
     // Redirect stdout so we can see the messages from the test runner
-    testRunner?.stdout?.pipe(process.stdout);
+    testRunner?.stdout?.pipe(process.stdout as any);
 
     testRunner.on('error', function (error) {
         console.log(`Test runner error for ${scriptName}, aborting: ` + error);
