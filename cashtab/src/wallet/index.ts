@@ -225,11 +225,11 @@ export const toXec = (satoshis: bigint | number): number => {
  * Convert an amount in nanosatoshis to XEC
  * @param nanosats
  */
-export const nanoSatoshisToXec = (nanosats: number): number => {
-    if (!Number.isInteger(nanosats)) {
-        throw new Error('Input param nanosats must be an integer');
+export const nanoSatoshisToXec = (nanosats: bigint): number => {
+    if (typeof nanosats !== 'bigint') {
+        throw new Error('Input param nanosats must be a bigint');
     }
-    return new BigNumber(nanosats).div(NANOSATS_PER_XEC).toNumber();
+    return new BigNumber(nanosats.toString()).div(NANOSATS_PER_XEC).toNumber();
 };
 
 /**
@@ -239,10 +239,14 @@ export const nanoSatoshisToXec = (nanosats: number): number => {
  * Given over-precise XEC values, this function will round to the nearest nanosat
  * @param xecAmount
  */
-export const xecToNanoSatoshis = (xecAmount: number | BigNumber): number => {
-    const nanosats = Math.round(
-        new BigNumber(xecAmount).times(NANOSATS_PER_XEC).toNumber(),
+export const xecToNanoSatoshis = (xecAmount: number | BigNumber): bigint => {
+    const nanosats = BigInt(
+        new BigNumber(xecAmount)
+            .times(NANOSATS_PER_XEC)
+            .integerValue(BigNumber.ROUND_HALF_UP)
+            .toFixed(0),
     );
+
     return nanosats;
 };
 

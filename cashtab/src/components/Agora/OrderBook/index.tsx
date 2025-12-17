@@ -1312,17 +1312,17 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                       settings.fiatCurrency,
                                       userLocale,
                                       nanoSatoshisToXec(
-                                          Number(
-                                              selectedOffer.spotPriceNanoSatsPerTokenSat,
-                                          ) * parseFloat(`1e${decimals}`),
+                                          (selectedOffer.spotPriceNanoSatsPerTokenSat ||
+                                              0n) *
+                                              BigInt(10 ** (decimals ?? 0)),
                                       ),
                                       fiatPrice,
                                   )
                                 : getAgoraSpotPriceXec(
                                       nanoSatoshisToXec(
-                                          Number(
-                                              selectedOffer.spotPriceNanoSatsPerTokenSat,
-                                          ) * parseFloat(`1e${decimals}`),
+                                          (selectedOffer.spotPriceNanoSatsPerTokenSat ||
+                                              0n) *
+                                              BigInt(10 ** (decimals ?? 0)),
                                       ),
                                       userLocale,
                                   )
@@ -1495,22 +1495,24 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                                           settings.fiatCurrency,
                                                           userLocale,
                                                           nanoSatoshisToXec(
-                                                              Number(
-                                                                  activeOffer.spotPriceNanoSatsPerTokenSat,
-                                                              ) *
-                                                                  parseFloat(
-                                                                      `1e${decimals}`,
+                                                              (activeOffer.spotPriceNanoSatsPerTokenSat ||
+                                                                  0n) *
+                                                                  BigInt(
+                                                                      10 **
+                                                                          (decimals ??
+                                                                              0),
                                                                   ),
                                                           ),
                                                           fiatPrice,
                                                       )
                                                     : getAgoraSpotPriceXec(
                                                           nanoSatoshisToXec(
-                                                              Number(
-                                                                  activeOffer.spotPriceNanoSatsPerTokenSat,
-                                                              ) *
-                                                                  parseFloat(
-                                                                      `1e${decimals}`,
+                                                              (activeOffer.spotPriceNanoSatsPerTokenSat ||
+                                                                  0n) *
+                                                                  BigInt(
+                                                                      10 **
+                                                                          (decimals ??
+                                                                              0),
                                                                   ),
                                                           ),
                                                           userLocale,

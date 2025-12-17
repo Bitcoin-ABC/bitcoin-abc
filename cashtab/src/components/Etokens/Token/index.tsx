@@ -1695,7 +1695,7 @@ const Token: React.FC = () => {
         // but you must create the offer with priceNanoSatsPerToken for 1 token satoshi
         // i.e. 0.000000001 token
         const priceNanoSatsPerTokenSatoshi =
-            BigInt(priceNanoSatsPerDecimalizedToken) /
+            priceNanoSatsPerDecimalizedToken /
             BigInt(Math.pow(10, decimals as SlpDecimals));
 
         // Convert formData list qty (a decimalized token qty) to BigInt token sats
@@ -1798,7 +1798,7 @@ const Token: React.FC = () => {
         // but you must create the offer with priceNanoSatsPerToken for 1 atom
         // i.e. 0.000000001 token
         let priceNanoSatsPerAtom =
-            BigInt(priceNanoSatsPerDecimalizedToken) /
+            priceNanoSatsPerDecimalizedToken /
             BigInt(Math.pow(10, decimals as SlpDecimals));
 
         // Convert formData list qty (a decimalized token qty) to BigInt token sats

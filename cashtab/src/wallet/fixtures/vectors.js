@@ -78,35 +78,35 @@ export default {
         expectedReturns: [
             {
                 description: 'Smallest possible price',
-                nanosatoshis: 1,
+                nanosatoshis: 1n,
                 xec: 0.00000000001,
             },
             {
                 description: 'Another small price price',
-                nanosatoshis: 3,
+                nanosatoshis: 3n,
                 xec: 0.00000000003,
             },
             {
                 description: 'Total XEC supply',
-                nanosatoshis: 2100000000000000 * 1e9,
+                nanosatoshis: 2100000000000000n * 1000000000n,
                 xec: 21000000000000,
             },
             {
                 description: 'Total XEC supply less 1 satoshi',
-                nanosatoshis: 2099999999999999 * 1e9,
+                nanosatoshis: 2099999999999999n * 1000000000n,
                 xec: 20999999999999.99,
             },
             {
                 description: '0 is 0',
-                nanosatoshis: 0,
+                nanosatoshis: 0n,
                 xec: 0,
             },
         ],
         expectedErrors: [
             {
-                description: 'non-integer input',
+                description: 'non-bigint input (number)',
                 nanosatoshis: 100.123,
-                errorMsg: 'Input param nanosats must be an integer',
+                errorMsg: 'Input param nanosats must be a bigint',
             },
         ],
     },
@@ -115,23 +115,23 @@ export default {
             {
                 description: 'Overprecise nanosatoshis rounds to nearest int',
                 xec: 0.000000000015,
-                returned: 2,
+                returned: 2n,
             },
             {
                 description:
                     'Overprecise nanosatoshis larger than one rounds to nearest int',
                 xec: 0.000123456789999,
-                returned: 12345679,
+                returned: 12345679n,
             },
             {
                 description: 'We can round up to 1 nanosat',
                 xec: 0.000000000009,
-                returned: 1,
+                returned: 1n,
             },
             {
                 description: 'We can round down to 0 nanosats',
                 xec: 0.0000000000049,
-                returned: 0,
+                returned: 0n,
             },
         ],
     },

@@ -227,11 +227,12 @@ describe('Cashtab wallet methods', () => {
                 expect(xecResult.toString()).toBe(nanosatoshis.toString());
             });
         });
-        // nanoSatoshisToXec does not accept non-integer input
+        // nanoSatoshisToXec does not accept non-bigint input
         expectedErrors.forEach(expectedError => {
-            const { description, satoshis, errorMsg } = expectedError;
+            const { description, nanosatoshis, errorMsg } = expectedError;
             it(`nanoSatoshisToXec throws error for: ${description}`, () => {
-                expect(() => nanoSatoshisToXec(satoshis)).toThrow(errorMsg);
+                // @ts-expect-error - Testing runtime error for non-bigint input
+                expect(() => nanoSatoshisToXec(nanosatoshis)).toThrow(errorMsg);
             });
         });
         // xecToNanoSatoshis will round non-integer input

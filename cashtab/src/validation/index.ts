@@ -1244,7 +1244,9 @@ export const getAgoraPartialListPriceError = (
     // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
     const priceNanoSatsPerDecimalizedToken = xecToNanoSatoshis(priceXec);
 
-    if (priceNanoSatsPerDecimalizedToken < Math.pow(10, tokenDecimals)) {
+    if (
+        priceNanoSatsPerDecimalizedToken < BigInt(Math.pow(10, tokenDecimals))
+    ) {
         return 'Price cannot be lower than 1 nanosatoshi per 1 token satoshi';
     }
 
