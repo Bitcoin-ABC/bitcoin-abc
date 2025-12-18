@@ -296,7 +296,7 @@ void MaybeCompactWalletDB(WalletContext &context);
 using KeyFilterFn = std::function<bool(const std::string &)>;
 
 //! Unserialize a given Key-Value pair and load it into the wallet
-bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
+bool ReadKeyValue(CWallet *pwallet, DataStream &ssKey, DataStream &ssValue,
                   std::string &strType, std::string &strErr,
                   const KeyFilterFn &filter_fn = nullptr);
 

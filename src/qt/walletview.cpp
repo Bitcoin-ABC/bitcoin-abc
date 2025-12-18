@@ -326,7 +326,7 @@ void WalletView::gotoLoadPSBT() {
                 }
             } else {
                 // Serialize the PSBT
-                CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+                DataStream ssTx{};
                 ssTx << psbtx;
                 GUIUtil::setClipboard(EncodeBase64(ssTx.str()).c_str());
                 Q_EMIT message(tr("PSBT copied"), "Copied to clipboard",

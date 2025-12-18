@@ -300,8 +300,8 @@ public:
     CWalletScanState() = default;
 };
 
-static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
-                         CDataStream &ssValue, CWalletScanState &wss,
+static bool ReadKeyValue(CWallet *pwallet, DataStream &ssKey,
+                         DataStream &ssValue, CWalletScanState &wss,
                          std::string &strType, std::string &strErr,
                          const KeyFilterFn &filter_fn = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
@@ -757,7 +757,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
     return true;
 }
 
-bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
+bool ReadKeyValue(CWallet *pwallet, DataStream &ssKey, DataStream &ssValue,
                   std::string &strType, std::string &strErr,
                   const KeyFilterFn &filter_fn) {
     CWalletScanState dummy_wss;
@@ -794,8 +794,8 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
 
         while (true) {
             // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+            DataStream ssKey{};
+            DataStream ssValue{};
             bool complete;
             bool ret = m_batch->ReadAtCursor(ssKey, ssValue, complete);
             if (complete) {
@@ -971,8 +971,8 @@ DBErrors WalletBatch::FindWalletTx(std::vector<TxId> &txIds,
 
         while (true) {
             // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+            DataStream ssKey{};
+            DataStream ssValue{};
             bool complete;
             bool ret = m_batch->ReadAtCursor(ssKey, ssValue, complete);
             if (complete) {

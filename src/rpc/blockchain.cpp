@@ -827,7 +827,7 @@ static RPCHelpMan getblock() {
                 GetBlockChecked(chainman.m_blockman, *pblockindex);
 
             if (verbosity <= 0) {
-                CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
+                DataStream ssBlock{};
                 ssBlock << block;
                 std::string strHex = HexStr(ssBlock);
                 return strHex;
