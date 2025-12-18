@@ -93,7 +93,9 @@ struct SignatureData {
 // all objects concatenated with each other.
 template <typename Stream, typename... X>
 void SerializeToVector(Stream &s, const X &...args) {
-    WriteCompactSize(s, GetSerializeSizeMany(s.GetVersion(), args...));
+    SizeComputer sizecomp;
+    SerializeMany(sizecomp, args...);
+    WriteCompactSize(s, sizecomp.size());
     SerializeMany(s, args...);
 }
 

@@ -1270,13 +1270,6 @@ template <typename T> size_t GetSerializeSize(const T &t, int nVersion = 0) {
     return (SizeComputer{} << t).size();
 }
 
-template <typename... T>
-size_t GetSerializeSizeMany(int nVersion, const T &...t) {
-    SizeComputer sc{};
-    SerializeMany(sc, t...);
-    return sc.size();
-}
-
 /**
  * Wrapper that overrides the GetParams() function of a stream (and hides
  * GetVersion/GetType).
