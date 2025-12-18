@@ -43,3 +43,14 @@ Go to http://localhost:3035 and you should see the homepage
 3. It is recommended to run `cargo clean` in both `bitcoinsuite` and `explorer` afterwards (will delete `explorer/target/release/explorer-exe` executable), as compilation artifacts can take up a lot of space.
 
 Now you can run the project with `./explorer/explorer-exe/explorer-exe`
+
+## 4. Caching
+
+If any .js or .css fils is updated, you need to run the hash update script.
+These files are gathered from the /code/ endpoint and need to have their url updated so that the files are not cached.
+
+To do so, simply run:
+
+```bash
+./explorer-server/scripts/update-hashes.sh
+```
