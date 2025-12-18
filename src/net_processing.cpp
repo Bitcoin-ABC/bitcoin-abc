@@ -3472,7 +3472,6 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
             // won't have a useful mempool to match against a compact block, and
             // we don't feel like constructing the object for them, so instead
             // we respond with the full, non-compact block.
-            int nSendFlags = 0;
             if (can_direct_fetch &&
                 pindex->nHeight >= tip->nHeight - MAX_CMPCTBLOCK_DEPTH) {
                 if (a_recent_compact_block &&
@@ -3483,15 +3482,13 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
                                               *a_recent_compact_block));
                 } else {
                     CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
-                    m_connman.PushMessage(&pfrom,
-                                          msgMaker.Make(nSendFlags,
-                                                        NetMsgType::CMPCTBLOCK,
-                                                        cmpctblock));
+                    m_connman.PushMessage(
+                        &pfrom,
+                        msgMaker.Make(NetMsgType::CMPCTBLOCK, cmpctblock));
                 }
             } else {
                 m_connman.PushMessage(
-                    &pfrom,
-                    msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
+                    &pfrom, msgMaker.Make(NetMsgType::BLOCK, *pblock));
             }
         }
     }
@@ -3663,9 +3660,8 @@ void PeerManagerImpl::ProcessGetData(
             const TxId txid(inv.hash);
             CTransactionRef tx = FindTxForGetData(peer, txid, mempool_req, now);
             if (tx) {
-                int nSendFlags = 0;
-                m_connman.PushMessage(
-                    &pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
+                m_connman.PushMessage(&pfrom,
+                                      msgMaker.Make(NetMsgType::TX, *tx));
                 m_mempool.RemoveUnbroadcastTx(txid);
                 // As we're going to send tx, make sure its unconfirmed parents
                 // are made requestable.
@@ -3752,9 +3748,7 @@ void PeerManagerImpl::SendBlockTransactions(
     }
     LOCK(cs_main);
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
-    int nSendFlags = 0;
-    m_connman.PushMessage(
-        &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
+    m_connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::BLOCKTXN, resp));
 }
 
 bool PeerManagerImpl::CheckHeadersPoW(const std::vector<CBlockHeader> &headers,
