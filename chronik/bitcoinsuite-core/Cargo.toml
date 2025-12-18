@@ -20,6 +20,9 @@ hex = "0.4"
 # hex!() macro for byte array hex literals
 hex-literal = "0.3"
 
+# Pattern matching
+regex = "1.12.2"
+
 # Implementation of RIPEMD-160 etc. cryptographic hash functions
 ripemd = "0.1"
 

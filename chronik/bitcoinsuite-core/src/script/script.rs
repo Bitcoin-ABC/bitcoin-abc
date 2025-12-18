@@ -308,11 +308,34 @@ impl BitcoinSer for Script {
     }
 }
 
+impl std::fmt::Display for Script {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Capacity adjusted to avoid reallocations in common scenarios: P2PKH
+        // and any scriptSig.
+        let mut asm = String::with_capacity(self.bytecode().len() * 2 + 50);
+        for op in self.iter_ops() {
+            match op {
+                Ok(op) => asm.push_str(&op.to_string()),
+                Err(_) => {
+                    asm.push_str("[corrupt PUSHDATA] ");
+                    break;
+                }
+            }
+            asm.push(' ');
+        }
+        asm.pop();
+        f.write_str(&asm)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use bytes::Bytes;
+    use hex_literal::hex;
 
     use crate::{
+        error,
+        hash::{Hashed, ShaRmd160},
         script::{
             PubKey, PubKeyVariant, Script, ScriptVariant, UncompressedPubKey,
         },
@@ -428,5 +451,92 @@ mod tests {
             .into(),
         );
         assert_eq!(script.variant(), ScriptVariant::Other(script));
+    }
+
+    #[test]
+    fn test_script_display() -> Result<(), error::DataError> {
+        // P2PKH
+        assert_eq!(
+            Script::p2pkh(&ShaRmd160::from_be_slice(&[0xffu8; 20])?)
+                .to_string(),
+            "OP_DUP OP_HASH160 0xffffffffffffffffffffffffffffffffffffffff \
+             OP_EQUALVERIFY OP_CHECKSIG"
+        );
+        // Incorrect opcode
+        assert_eq!(
+            Script::new(hex!("ee").to_vec().into()).to_string(),
+            "[unrecognized opcode]"
+        );
+        // Incomplete pushdata
+        assert_eq!(
+            Script::new(hex!("0200").to_vec().into()).to_string(),
+            "[corrupt PUSHDATA]"
+        );
+        // Empty pushdata
+        assert_eq!(
+            Script::new(hex!("6a4c00").to_vec().into()).to_string(),
+            "OP_RETURN \"\""
+        );
+        // ASCII string
+        assert_eq!(
+            Script::new(
+                hex!(
+                    "6a334368616e63656c6c6f72206f6e20746865204272696e6b206
+                 f66205365636f6e64204261696c6f757420666f722042616e6b73"
+                )
+                .to_vec()
+                .into()
+            )
+            .to_string(),
+            "OP_RETURN \"Chancellor on the Brink of Second Bailout for Banks\""
+        );
+        // UTF8 string
+        assert_eq!(
+            Script::new(
+                hex!("6a16d791d6b0d6bcd7a8d6b5d790d7a9d6b4d781d799d7aa")
+                    .to_vec()
+                    .into()
+            )
+            .to_string(),
+            "OP_RETURN \"בְּרֵאשִׁית\""
+        );
+        // SLP token
+        assert_eq!(
+            Script::new(hex!(
+                "6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3a
+                ff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000038
+                bd708000000000000091408000000000000092b080000000000000
+                67c08000000000000067c080000000000000cf7080000000000000
+                19f08000000000000033e08000000000000019f080000000000000
+                e6108000000000000002a"
+            ).to_vec().into())
+            .to_string(),
+            "OP_RETURN \"SLP\\0\" 0x01 \"SEND\" \
+            0x7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5 \
+            0x0000000000038bd7 0x0000000000000914 0x000000000000092b \
+            0x000000000000067c 0x000000000000067c 0x0000000000000cf7 \
+            0x000000000000019f 0x000000000000033e 0x000000000000019f \
+            0x0000000000000e61 0x000000000000002a"
+        );
+        // Symbols
+        assert_eq!(
+            Script::new(
+                hex!(
+                    "6a2a313233343536373839302d3d21402324255e262a28295f2b6
+                07e5b5d5c7b7d7c3b273a222c2e2f3c3e3f"
+                )
+                .to_vec()
+                .into()
+            )
+            .to_string(),
+            "OP_RETURN \"1234567890-=!@#$%^&*()_+`~[]\\{}|;':\",./<>?\"",
+        );
+        // Emoji
+        assert_eq!(
+            Script::new(hex!("6a094769766520f09faab7").to_vec().into())
+                .to_string(),
+            "OP_RETURN \"Give 🪷\"",
+        );
+        Ok(())
     }
 }
