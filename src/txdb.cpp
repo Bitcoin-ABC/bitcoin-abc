@@ -14,7 +14,6 @@
 #include <util/signalinterrupt.h>
 #include <util/translation.h>
 #include <util/vector.h>
-#include <version.h>
 
 #include <cstdint>
 #include <memory>

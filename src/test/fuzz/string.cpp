@@ -25,7 +25,6 @@
 #include <util/string.h>
 #include <util/translation.h>
 #include <util/url.h>
-#include <version.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>

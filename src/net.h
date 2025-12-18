@@ -35,6 +35,7 @@
 #include <util/check.h>
 #include <util/sock.h>
 #include <util/time.h>
+#include <version.h>
 
 #include <atomic>
 #include <condition_variable>

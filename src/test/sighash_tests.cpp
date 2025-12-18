@@ -11,7 +11,6 @@
 #include <serialize.h>
 #include <streams.h>
 #include <util/strencodings.h>
-#include <version.h>
 
 #include <test/data/sighash.json.h>
 #include <test/jsonutil.h>

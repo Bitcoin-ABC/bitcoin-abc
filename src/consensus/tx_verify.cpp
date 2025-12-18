@@ -16,7 +16,6 @@
 #include <script/script_flags.h>
 #include <util/check.h>
 #include <util/moneystr.h> // For FormatMoney
-#include <version.h>       // For PROTOCOL_VERSION
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {

@@ -12,7 +12,6 @@
 #include <consensus/consensus.h>
 #include <disconnectresult.h>
 #include <serialize.h>
-#include <version.h>
 
 class CBlock;
 class CBlockIndex;

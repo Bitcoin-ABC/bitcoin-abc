@@ -37,7 +37,6 @@
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
-#include <version.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>

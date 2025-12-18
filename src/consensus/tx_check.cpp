@@ -7,7 +7,6 @@
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <primitives/transaction.h>
-#include <version.h>
 
 #include <unordered_set>
 

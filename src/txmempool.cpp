@@ -22,7 +22,6 @@
 #include <util/moneystr.h>
 #include <util/time.h>
 #include <validationinterface.h>
-#include <version.h>
 
 #include <algorithm>
 #include <cmath>

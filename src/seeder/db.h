@@ -12,7 +12,6 @@
 #include <seeder/util.h>
 #include <sync.h>
 #include <util/time.h>
-#include <version.h>
 
 #include <cmath>
 #include <cstdint>

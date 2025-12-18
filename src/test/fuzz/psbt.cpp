@@ -9,7 +9,6 @@
 #include <pubkey.h>
 #include <script/script.h>
 #include <streams.h>
-#include <version.h>
 
 #include <cstdint>
 #include <memory>

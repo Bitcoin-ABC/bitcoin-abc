@@ -23,7 +23,6 @@
 #include <txmempool.h>
 #include <util/any.h>
 #include <validation.h>
-#include <version.h>
 
 #include <univalue.h>
 

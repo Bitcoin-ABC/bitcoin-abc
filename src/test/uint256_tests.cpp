@@ -5,7 +5,6 @@
 
 #include <arith_uint256.h>
 #include <streams.h>
-#include <version.h>
 
 #include <test/util/setup_common.h>
 

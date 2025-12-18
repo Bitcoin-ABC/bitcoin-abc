@@ -11,7 +11,6 @@
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
-#include <version.h>
 
 #include <test/util/setup_common.h>
 
