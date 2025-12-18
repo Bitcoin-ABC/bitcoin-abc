@@ -145,7 +145,7 @@ describe('<Rewards />', () => {
         });
 
         // The Claim button is NOT disabled
-        expect(claimButton).toHaveProperty('disabled', false);
+        await waitFor(() => expect(claimButton).toBeEnabled());
 
         // Click button to claim token rewards
         await userEvent.click(claimButton);
@@ -279,7 +279,7 @@ describe('<Rewards />', () => {
         });
 
         // The Claim button is NOT disabled
-        expect(claimButton).toHaveProperty('disabled', false);
+        await waitFor(() => expect(claimButton).toBeEnabled());
 
         // Click button to claim token rewards
         await userEvent.click(claimButton);

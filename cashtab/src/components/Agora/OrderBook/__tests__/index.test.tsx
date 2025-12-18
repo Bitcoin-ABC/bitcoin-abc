@@ -932,7 +932,7 @@ describe('<OrderBook />', () => {
         // Quantities are not displayed until they load, so we await
         expect(await screen.findByText(SPOT_MIN_QTY)).toBeInTheDocument();
 
-        expect(screen.getByText(SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
+        expect(await screen.findByText(SPOT_PRICE_MIN_BUY)).toBeInTheDocument();
 
         const buyXecxButton = screen.getByRole('button', {
             name: 'Buy XECX',

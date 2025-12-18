@@ -18,8 +18,8 @@
         "watchos": "./scripts/run-watchos.sh"
     },
     "dependencies": {
-        "react": "19.1.1",
-        "react-native": "^0.82.0",
+        "react": "19.2.3",
+        "react-native": "^0.83.1",
         "react-native-haptic-feedback": "^2.3.3",
         "react-native-keychain": "^10.0.0",
         "react-native-linear-gradient": "^2.8.3",
@@ -31,14 +31,14 @@
         "@babel/preset-env": "^7.20.0",
         "@babel/runtime": "^7.20.0",
         "@react-native-community/cli": "^20.0.2",
-        "@react-native/babel-preset": "^0.82.0",
-        "@react-native/eslint-config": "^0.82.0",
-        "@react-native/metro-config": "^0.82.0",
-        "@react-native/typescript-config": "^0.82.0",
+        "@react-native/babel-preset": "^0.83.1",
+        "@react-native/eslint-config": "^0.83.1",
+        "@react-native/metro-config": "^0.83.1",
+        "@react-native/typescript-config": "^0.83.1",
         "@types/react": "^19.1.1",
         "@types/react-test-renderer": "^19.0.0",
         "prettier": "^3.7.4",
-        "react-test-renderer": "19.1.1",
+        "react-test-renderer": "19.2.3",
         "typescript": "^5.9.3"
     },
     "engines": {

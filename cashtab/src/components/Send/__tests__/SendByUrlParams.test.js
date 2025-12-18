@@ -1005,9 +1005,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
+        await waitFor(() =>
+            expect(screen.getByTitle('Toggle Multisend')).toBeDisabled(),
         );
 
         // The 'Send To' input field has this address as a value
@@ -1106,9 +1105,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
+        await waitFor(() =>
+            expect(screen.getByTitle('Toggle Multisend')).toBeDisabled(),
         );
 
         // The 'Send To' input field has this address as a value

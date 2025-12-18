@@ -1039,7 +1039,7 @@ describe('<Token /> available actions rendered', () => {
 
         // On load, default action for NFT is to list it
         const sellActionSwitch = screen.getByTitle('Toggle Sell NFT');
-        expect(sellActionSwitch).toBeChecked();
+        await waitFor(() => expect(sellActionSwitch).toBeChecked());
 
         // Sending is disabled
         const sendActionSwitch = screen.getByTitle('Toggle Send');
@@ -1782,7 +1782,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
 
         // The list button is disabled on load
-        const listButton = screen.getByRole('button', {
+        const listButton = await screen.findByRole('button', {
             name: /List Test CRD/,
         });
         expect(listButton).toBeDisabled();
@@ -1898,7 +1898,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(listButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('List tCRD?')).toBeInTheDocument();
+        expect(await screen.findByText('List tCRD?')).toBeInTheDocument();
         expect(
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
@@ -2039,7 +2039,9 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(redeemButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Redeem 10,000.00 XECX?'),
+        ).toBeInTheDocument();
         expect(screen.getByText('You receive:')).toBeInTheDocument();
         expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
 
@@ -2118,7 +2120,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
 
         // The redeem button is disabled on load
-        const redeemButton = screen.getByRole('button', {
+        const redeemButton = await screen.findByRole('button', {
             name: /Redeem XECX for XEC/,
         });
 
@@ -2144,7 +2146,9 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(redeemButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Redeem 10,000.00 XECX?'),
+        ).toBeInTheDocument();
         expect(screen.getByText('You receive:')).toBeInTheDocument();
         expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
 
@@ -2208,7 +2212,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Toggle Redeem XECX')).toBeEnabled();
 
         // The redeem button is disabled on load
-        const redeemButton = screen.getByRole('button', {
+        const redeemButton = await screen.findByRole('button', {
             name: /Redeem XECX for XEC/,
         });
 
@@ -2234,7 +2238,9 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(redeemButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('Redeem 10,000.00 XECX?')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Redeem 10,000.00 XECX?'),
+        ).toBeInTheDocument();
         expect(screen.getByText('You receive:')).toBeInTheDocument();
         expect(screen.getByText('10,000.00 XEC')).toBeInTheDocument();
 
@@ -2819,7 +2825,7 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByTitle('Toggle Sell Token')).toBeEnabled();
 
         // The list button is disabled on load
-        const listButton = screen.getByRole('button', {
+        const listButton = await screen.findByRole('button', {
             name: /List Mint Vault Test Token Beta/,
         });
         expect(listButton).toBeDisabled();
@@ -2851,7 +2857,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(listButton);
 
         // We see expected confirmation modal to list the Token
-        expect(screen.getByText('List MVTT β?')).toBeInTheDocument();
+        expect(await screen.findByText('List MVTT β?')).toBeInTheDocument();
         expect(
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
