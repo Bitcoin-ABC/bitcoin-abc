@@ -61,6 +61,7 @@ pub struct JsonTx {
     pub stats: JsonTxStats,
     pub token_id: Option<String>,
     pub token: Option<JsonToken>,
+    pub is_final: bool,
 }
 
 #[derive(Serialize, Clone)]

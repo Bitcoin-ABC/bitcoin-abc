@@ -410,28 +410,6 @@ table.dataTable.no-footer {
     opacity: 0.5;
 }
 
-#blocks-table th:nth-child(3),
-#blocks-table th:nth-child(4),
-#blocks-table th:nth-child(5),
-#blocks-table th:nth-child(6) {
-    text-align: right !important;
-    padding-right: 14px !important;
-}
-
-#txs-table th:nth-child(2),
-#txs-table th:nth-child(3),
-#txs-table th:nth-child(4),
-#txs-table th:nth-child(5),
-#txs-table th:nth-child(6) {
-    text-align: right !important;
-    padding-right: 14px !important;
-}
-
-#address-txs-table th:nth-child(9) {
-    text-align: right !important;
-    padding-right: 14px !important;
-}
-
 .text-right {
     text-align: right;
 }

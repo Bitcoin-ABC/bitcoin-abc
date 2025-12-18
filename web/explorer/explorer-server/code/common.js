@@ -123,6 +123,13 @@ function renderTxHash(txHash) {
     return txHash.substr(0, 10) + '&hellip;' + txHash.substr(60, 4);
 }
 
+const renderFinal = isFinal => {
+    if (isFinal) {
+        return '<img class="final-icon" src="/assets/checkmark.svg" alt="Finalized by Avalanche" />';
+    }
+    return 'No';
+};
+
 var regHex32 = /^[0-9a-fA-F]{64}$/;
 function searchBarChange() {
     if (event.key == 'Enter') {

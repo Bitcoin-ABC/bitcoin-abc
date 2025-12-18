@@ -106,6 +106,7 @@ pub fn tx_history_to_json(
             stats,
             token_id,
             token,
+            is_final: tx.is_final,
         });
     }
 
@@ -177,6 +178,7 @@ pub fn block_txs_to_json(
             stats,
             token_id,
             token,
+            is_final: tx.is_final,
         });
     }
 
@@ -218,6 +220,7 @@ pub fn mempool_txs_to_json(
             stats,
             token_id,
             token,
+            is_final: tx.is_final,
         });
     }
 

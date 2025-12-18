@@ -59,6 +59,12 @@ const datatable = () => {
                 orderable: false,
             },
             {
+                name: 'final',
+                data: 'isFinal',
+                orderable: false,
+                render: renderFinal,
+            },
+            {
                 data: 'size',
                 title: 'Size',
                 render: renderSize,

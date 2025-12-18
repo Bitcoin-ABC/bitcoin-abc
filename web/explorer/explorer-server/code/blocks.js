@@ -17,12 +17,6 @@ const renderInt = number => {
 const renderAge = timestamp => moment(timestamp * 1000).fromNow();
 const renderTemplate = height =>
     '<a href="/block-height/' + height + '">' + renderInt(height) + '</a>';
-const renderFinal = isFinal => {
-    if (isFinal) {
-        return '<img class="final-icon" src="/assets/checkmark.svg" alt="Finalized by Avalanche" />';
-    }
-    return 'No';
-};
 const renderHash = (hash, _type, _row, meta) => {
     const api = new $.fn.dataTable.Api(meta.settings);
     const isHidden = !api.column(4).responsiveHidden();

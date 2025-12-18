@@ -347,6 +347,12 @@ const datatable = () => {
                 orderData: [0, 1],
             },
             {
+                name: 'final',
+                data: 'isFinal',
+                orderable: false,
+                render: renderFinal,
+            },
+            {
                 name: 'datetime',
                 data: 'timestamp',
                 title: 'Date (UTC' + tzOffset + ')',
