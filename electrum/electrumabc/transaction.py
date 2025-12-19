@@ -54,10 +54,6 @@ from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 from .crypto import Hash, hash_160
 from .ecc import ECPrivkey, ECPubkey, sig_string_from_der_sig
-
-#
-# Workalike python implementation of Bitcoin's CDataStream class.
-#
 from .keystore import xpubkey_to_address, xpubkey_to_pubkey
 from .printerror import print_error
 from .serialize import (
@@ -660,6 +656,9 @@ class TxInput:
         return s
 
 
+#
+# Workalike python implementation of Bitcoin's DataStream class.
+#
 class BCDataStream(object):
     def __init__(self):
         self.input = None

@@ -74,14 +74,13 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
 
     // Call FillPSBT
     PartiallySignedTransaction psbtx;
-    CDataStream ssData(
+    DataStream ssData{
         ParseHex("70736274ff0100a0020000000258e87a21b56daf0c23be8e7070456c336f7"
                  "cbaa5c8757924f545887bb2abdd750000000000ffffffff6b04ec37326fba"
                  "c8e468a73bf952c8877f84f96c3f9deadeab246455e34fe0cd0100000000f"
                  "fffffff0270aaf008000000001976a914d85c2b71d0060b09c9886aeb815e"
                  "50991dda124d88ac00e1f505000000001976a91400aea9a2e5f0f876a588d"
-                 "f5546e8742d1d87008f88ac000000000000000000"),
-        SER_NETWORK, PROTOCOL_VERSION);
+                 "f5546e8742d1d87008f88ac000000000000000000")};
     ssData >> psbtx;
 
     // FIXME: input 2 hd path is missing.
