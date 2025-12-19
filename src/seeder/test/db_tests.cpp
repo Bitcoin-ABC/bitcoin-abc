@@ -17,7 +17,7 @@ static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,
                                           int clientVersion = REQUIRE_VERSION,
                                           bool checkpointVerified = true) {
     SeederAddrInfo info{};
-    CDataStream info_stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream info_stream{};
 
     uint8_t version{5};
 

@@ -12,7 +12,7 @@
 namespace MessageWriter {
 
 template <typename... Args>
-static void WriteMessage(CDataStream &stream, std::string command,
+static void WriteMessage(DataStream &stream, std::string command,
                          Args &&...args) {
     CSerializedNetMsg payload =
         NetMsg::Make(command, std::forward<Args>(args)...);

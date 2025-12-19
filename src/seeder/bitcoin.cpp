@@ -39,7 +39,7 @@ void CSeederNode::Send() {
 }
 
 PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
-                                               CDataStream &recv) {
+                                               DataStream &recv) {
     // tfm::format(std::cout, "%s: RECV %s\n", ToString(you),
     // strCommand);
     if (strCommand == NetMsgType::VERSION) {
@@ -63,13 +63,11 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         recv >> strSubVer;
         recv >> nStartingHeight;
 
-        vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
         MessageWriter::WriteMessage(vSend, NetMsgType::VERACK);
         return PeerMessagingState::AwaitingMessages;
     }
 
     if (strCommand == NetMsgType::VERACK) {
-        vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
         // tfm::format(std::cout, "\n%s: version %i\n", ToString(you),
         // nVersion);
         auto doneAfterDelta{1s};
@@ -192,7 +190,7 @@ bool CSeederNode::ProcessMessages() {
     const CMessageHeader::MessageMagic netMagic = Params().NetMagic();
 
     do {
-        CDataStream::iterator pstart = std::search(
+        DataStream::iterator pstart = std::search(
             vRecv.begin(), vRecv.end(), BEGIN(netMagic), END(netMagic));
         uint32_t nHeaderSize = GetSerializeSize(CMessageHeader(netMagic));
         if (vRecv.end() - pstart < nHeaderSize) {
@@ -224,16 +222,13 @@ bool CSeederNode::ProcessMessages() {
             vRecv.insert(vRecv.begin(), vHeaderSave.begin(), vHeaderSave.end());
             break;
         }
-        if (vRecv.GetVersion() >= 209) {
-            uint256 hash = Hash(Span{vRecv}.first(nMessageSize));
-            if (memcmp(hash.begin(), hdr.pchChecksum,
-                       CMessageHeader::CHECKSUM_SIZE) != 0) {
-                continue;
-            }
+        uint256 hash = Hash(Span{vRecv}.first(nMessageSize));
+        if (memcmp(hash.begin(), hdr.pchChecksum,
+                   CMessageHeader::CHECKSUM_SIZE) != 0) {
+            continue;
         }
         std::vector<std::byte> vec{vRecv.begin(), vRecv.begin() + nMessageSize};
-        CDataStream vMsg(MakeUCharSpan(vec), vRecv.GetType(),
-                         vRecv.GetVersion());
+        DataStream vMsg{MakeUCharSpan(vec)};
         vRecv.ignore(nMessageSize);
         if (ProcessMessage(strCommand, vMsg) == PeerMessagingState::Finished) {
             return true;
@@ -246,13 +241,7 @@ bool CSeederNode::ProcessMessages() {
 }
 
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), vAddr(vAddrIn), you(ip),
-      checkpointVerified(!HasCheckpoint()) {
-    if (GetTime() > 1329696000) {
-        vSend.SetVersion(209);
-        vRecv.SetVersion(209);
-    }
-}
+    : vAddr(vAddrIn), you(ip), checkpointVerified(!HasCheckpoint()) {}
 
 bool CSeederNode::Run() {
     // FIXME: This logic is duplicated with CConnman::ConnectNode for no

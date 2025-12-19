@@ -18,9 +18,9 @@
 BOOST_AUTO_TEST_SUITE(message_writer_tests)
 
 template <typename... Args>
-static void CheckMessage(CDataStream &expectedMessage, std::string command,
+static void CheckMessage(DataStream &expectedMessage, std::string command,
                          Args &&...args) {
-    CDataStream message(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream message{};
     MessageWriter::WriteMessage(message, command, std::forward<Args>(args)...);
     BOOST_CHECK_EQUAL(message.size(), expectedMessage.size());
     for (size_t i = 0; i < message.size(); i++) {
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     std::string user_agent = "/Bitcoin ABC:0.0.0(seeder)/";
     int start_height = 1;
 
-    CDataStream versionPayload(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream versionPayload{};
     // The following .reserve() call is a workaround for a spurious
     // [-Werror=stringop-overflow=] warning in gcc <= 12.2.
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366#c20
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     uint256 hash = Hash(versionPayload);
     memcpy(versionhdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
-    CDataStream expectedVersion(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream expectedVersion{};
     expectedVersion << versionhdr;
     expectedVersion.write(versionPayload);
 
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
 BOOST_AUTO_TEST_CASE(header_empty_payload_message_writer_test) {
     SelectParams(ChainType::MAIN);
     CMessageHeader verackHeader(Params().NetMagic(), NetMsgType::VERACK, 0);
-    CDataStream expectedVerack(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream expectedVerack{};
     // This is an empty payload, but is still necessary for the checksum
     std::vector<uint8_t> payload;
     uint256 hash = Hash(payload);
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(header_empty_payload_message_writer_test) {
 
 BOOST_AUTO_TEST_CASE(write_getheaders_message_test) {
     SelectParams(ChainType::MAIN);
-    CDataStream payload(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream payload{};
     BlockHash bhash(uint256S(
         "0000000099f5509b5f36b1926bcf82b21d936ebeadee811030dfbbb7fae915d7"));
     std::vector<BlockHash> vlocator(1, bhash);
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(write_getheaders_message_test) {
                              payload.size());
     memcpy(msgHeader.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
-    CDataStream expectedMsg(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream expectedMsg{};
     expectedMsg << msgHeader;
     expectedMsg.write(payload);
 

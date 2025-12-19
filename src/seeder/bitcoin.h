@@ -39,8 +39,8 @@ class CSeederNode {
 
 private:
     std::unique_ptr<Sock> sock;
-    CDataStream vSend;
-    CDataStream vRecv;
+    DataStream vSend{};
+    DataStream vRecv{};
     int nVersion{0};
     std::string strSubVer;
     int nStartingHeight{0};
@@ -67,8 +67,7 @@ private:
     bool ProcessMessages();
 
 protected:
-    PeerMessagingState ProcessMessage(std::string strCommand,
-                                      CDataStream &recv);
+    PeerMessagingState ProcessMessage(std::string strCommand, DataStream &recv);
 
 public:
     CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn);
