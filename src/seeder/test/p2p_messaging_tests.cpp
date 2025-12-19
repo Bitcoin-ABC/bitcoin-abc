@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <common/system.h>
 #include <net_processing.h>
+#include <node/protocol_version.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
 #include <seeder/db.h>
@@ -12,7 +13,6 @@
 #include <serialize.h>
 #include <streams.h>
 #include <util/chaintype.h>
-#include <version.h>
 
 #include <boost/test/unit_test.hpp>
 

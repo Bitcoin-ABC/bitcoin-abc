@@ -15,6 +15,7 @@
 #include <net_types.h> // For banmap_t
 #include <netbase.h>
 #include <node/context.h>
+#include <node/protocol_version.h>
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
 #include <rpc/protocol.h>
@@ -28,7 +29,6 @@
 #include <util/time.h>
 #include <util/translation.h>
 #include <validation.h>
-#include <version.h>
 #include <warnings.h>
 
 #include <optional>

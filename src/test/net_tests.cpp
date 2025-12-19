@@ -16,6 +16,7 @@
 #include <netaddress.h>
 #include <netbase.h>
 #include <netmessagemaker.h>
+#include <node/protocol_version.h>
 #include <serialize.h>
 #include <span.h>
 #include <streams.h>
@@ -25,7 +26,6 @@
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/translation.h> // for bilingual_str
-#include <version.h>
 
 #include <test/util/setup_common.h>
 

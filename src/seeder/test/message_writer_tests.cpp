@@ -3,12 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <hash.h>
+#include <node/protocol_version.h>
 #include <primitives/block.h>
 #include <protocol.h>
 #include <seeder/messagewriter.h>
 #include <streams.h>
 #include <util/chaintype.h>
-#include <version.h>
 
 #include <boost/test/unit_test.hpp>
 

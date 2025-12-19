@@ -8,12 +8,12 @@
 #include <consensus/consensus.h>
 #include <net.h>
 #include <net_processing.h>
+#include <node/protocol_version.h>
 #include <protocol.h>
 #include <scheduler.h>
 #include <script/script.h>
 #include <streams.h>
 #include <validationinterface.h>
-#include <version.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>

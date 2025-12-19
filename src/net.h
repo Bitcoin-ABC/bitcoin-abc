@@ -23,6 +23,7 @@
 #include <netbase.h>
 #include <node/connection_types.h>
 #include <node/eviction.h>
+#include <node/protocol_version.h>
 #include <nodeid.h>
 #include <protocol.h>
 #include <pubkey.h>
@@ -35,7 +36,6 @@
 #include <util/check.h>
 #include <util/sock.h>
 #include <util/time.h>
-#include <version.h>
 
 #include <atomic>
 #include <condition_variable>
