@@ -46,11 +46,8 @@ Now you can run the project with `./explorer/explorer-exe/explorer-exe`
 
 ## 4. Caching
 
-If any .js or .css fils is updated, you need to run the hash update script.
-These files are gathered from the /code/ endpoint and need to have their url updated so that the files are not cached.
-
-To do so, simply run:
-
-```bash
-./explorer-server/scripts/update-hashes.sh
-```
+If any .js or .css fils is created that would be fetched from a `/code/` URL,
+you need to update the `FileHashes` structure from `file_hashes.rs` and update
+the templates that include your file accordingly. Doing so will ensure that the
+file hash is appended to the URL and updated as the file changes to prevent
+caching issues.

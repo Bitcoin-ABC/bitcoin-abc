@@ -34,6 +34,7 @@ use crate::{
         to_be_hex, to_legacy_address,
     },
     chain::Chain,
+    file_hashes::FileHashes,
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
         data_block_txs, data_blocks, data_mempool, mempool, search,
@@ -65,6 +66,7 @@ impl Server {
         chain: Chain,
         network_selector: bool,
     ) -> Result<Self> {
+        crate::file_hashes::init_base_dir(base_dir.clone())?;
         Ok(Server {
             chronik,
             base_dir,
@@ -115,6 +117,7 @@ impl Server {
         let blocks_template = BlocksTemplate {
             last_block_height: blockchain_info.tip_height as u32,
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(blocks_template.render().unwrap())
@@ -125,6 +128,7 @@ impl Server {
     pub async fn testnet_faucet(&self) -> Result<String> {
         let testnet_faucet_template = TestnetFaucetTemplate {
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(testnet_faucet_template.render().unwrap())
@@ -288,6 +292,7 @@ impl Server {
             coinbase_data,
             best_height,
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(block_template.render().unwrap())
@@ -358,6 +363,7 @@ impl Server {
             timestamp,
             token_icon_url: self.token_icon_url,
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(transaction_template.render().unwrap())
@@ -577,6 +583,7 @@ impl Server {
             encoded_balances,
             token_icon_url: &self.token_icon_url,
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(address_template.render().unwrap())
@@ -686,6 +693,7 @@ impl Server {
             num_txs: mempool_txs.txs.len() as u32,
             total_size,
             network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
         };
 
         Ok(mempool_template.render().unwrap())

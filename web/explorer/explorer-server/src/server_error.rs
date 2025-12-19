@@ -8,6 +8,7 @@ use axum::{
     response::{Html, IntoResponse, Response},
 };
 
+use crate::file_hashes::FileHashes;
 use crate::templating::ErrorTemplate;
 
 pub struct ServerError {
@@ -17,9 +18,13 @@ pub struct ServerError {
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let network_selector = false;
+        // If hash calculation fails, use empty strings as fallback
+        // (this should not happen in practice, but we handle it gracefully)
+        let hashes = *FileHashes::get().unwrap_or(&FileHashes::default());
         let error_template = ErrorTemplate {
             message: self.message,
             network_selector,
+            hashes,
         };
         let error_page = error_template.render().unwrap();
 
