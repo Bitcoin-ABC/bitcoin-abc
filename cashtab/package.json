@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "3.47.7",
+    "version": "3.47.8",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -42,7 +42,7 @@
         "ecashaddrjs": "file:../modules/ecashaddrjs",
         "localforage": "^1.9.0",
         "lodash.debounce": "^4.0.8",
-        "qrcode.react": "^3.1.0",
+        "qrcode.react": "^4.2.0",
         "randombytes": "^2.1.0",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",

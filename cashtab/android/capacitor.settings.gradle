@@ -9,7 +9,7 @@ include ':capacitor-community-sqlite'
 project(':capacitor-community-sqlite').projectDir = new File('../../node_modules/.pnpm/@capacitor-community+sqlite@7.0.2_@capacitor+core@7.4.4/node_modules/@capacitor-community/sqlite/android')
 
 include ':capacitor-app'
-project(':capacitor-app').projectDir = new File('../../node_modules/.pnpm/@capacitor+app@7.1.0_@capacitor+core@7.4.4/node_modules/@capacitor/app/android')
+project(':capacitor-app').projectDir = new File('../../node_modules/.pnpm/@capacitor+app@7.1.1_@capacitor+core@7.4.4/node_modules/@capacitor/app/android')
 
 include ':capacitor-barcode-scanner'
-project(':capacitor-barcode-scanner').projectDir = new File('../../node_modules/.pnpm/@capacitor+barcode-scanner@2.2.0_@capacitor+core@7.4.4/node_modules/@capacitor/barcode-scanner/android')
+project(':capacitor-barcode-scanner').projectDir = new File('../../node_modules/.pnpm/@capacitor+barcode-scanner@2.2.4_@capacitor+core@7.4.4/node_modules/@capacitor/barcode-scanner/android')

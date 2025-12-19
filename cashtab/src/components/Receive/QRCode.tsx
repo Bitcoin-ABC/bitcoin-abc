@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import QRCodeSVG from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
 import firmaLogo from 'assets/firma-icon.png';
@@ -187,7 +187,7 @@ export const QRCode: React.FC<QrCodeProps> = ({
                         title="Raw QR Code"
                         value={address || ''}
                         size={size}
-                        includeMargin
+                        marginSize={4}
                         imageSettings={{
                             src: isToken ? firmaLogo : appConfig.logo,
                             x: undefined,

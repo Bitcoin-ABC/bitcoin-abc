@@ -101,8 +101,13 @@ describe('<Receive />', () => {
         // QR Code is rendered
         const EXPECTED_DESKTOP_WIDTH = '420';
         expect(qrCodeItself).toBeInTheDocument();
-        expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
-        expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
+        // In qrcode.react v4, the title prop creates a <title> element inside the SVG
+        // So we need to find the parent SVG element
+        const svgElement = qrCodeItself.closest('svg');
+        expect(svgElement).toBeInTheDocument();
+        // qrcode.react v4 sets width/height attributes on the SVG element
+        expect(svgElement).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
+        expect(svgElement).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
 
         // We can enter an amount to generate a bip21 QR code and query string
         await userEvent.type(
@@ -202,8 +207,11 @@ describe('<Receive />', () => {
         const EXPECTED_DESKTOP_WIDTH = '245';
         const qrCodeItself = screen.queryByTitle('Raw QR Code');
         expect(qrCodeItself).toBeInTheDocument();
-        expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
-        expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
+        // In qrcode.react v4, the title prop creates a <title> element inside the SVG
+        const svgElement = qrCodeItself.closest('svg');
+        expect(svgElement).toBeInTheDocument();
+        expect(svgElement).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
+        expect(svgElement).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
     });
     it('Renders the Receive screen with QR code of size that is fully viewable in extension dimensions', async () => {
         // Reset the width and height to extension
@@ -249,7 +257,10 @@ describe('<Receive />', () => {
         const EXPECTED_DESKTOP_WIDTH = '250';
         const qrCodeItself = screen.queryByTitle('Raw QR Code');
         expect(qrCodeItself).toBeInTheDocument();
-        expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
-        expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
+        // In qrcode.react v4, the title prop creates a <title> element inside the SVG
+        const svgElement = qrCodeItself.closest('svg');
+        expect(svgElement).toBeInTheDocument();
+        expect(svgElement).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
+        expect(svgElement).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
     });
 });
