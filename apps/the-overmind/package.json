@@ -6,7 +6,8 @@
     "scripts": {
         "build": "tsc -p ./tsconfig.build.json",
         "start": "node dist/index.js",
-        "dev": "tsx index.ts"
+        "dev": "tsx index.ts",
+        "test": "mocha --require mocha-suppress-logs --import=tsx ./src/*.test.ts ./src/**/*.test.ts"
     },
     "keywords": [
         "telegram",
@@ -22,12 +23,24 @@
         "dotenv": "^17.2.3",
         "ecash-lib": "file:../../modules/ecash-lib",
         "ecash-wallet": "file:../../modules/ecash-wallet",
+        "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "grammy": "^1.38.4",
         "pg": "^8.16.3"
     },
     "devDependencies": {
+        "@types/chai": "^5.2.3",
+        "@types/mocha": "^10.0.10",
         "@types/node": "^24.9.1",
         "@types/pg": "^8.15.5",
+        "@types/sinon": "^17.0.4",
+        "@types/sinon-chai": "^4.0.0",
+        "chai": "^6.2.1",
+        "mocha": "^11.7.5",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-suppress-logs": "^0.6.0",
+        "nyc": "^17.1.0",
+        "sinon": "^21.0.0",
+        "sinon-chai": "^4.0.1",
         "tsx": "^4.20.6",
         "typescript": "^5.9.3"
     }

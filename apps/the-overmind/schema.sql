@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   -- eCash address of a registered user
   address TEXT NOT NULL,
   -- HD derivation index of a registered user, so we do not need to store the private key
-  hd_index INTEGER NOT NULL
+  hd_index INTEGER NOT NULL,
+  -- Telegram username (@ handle), nullable since not all users have one
+  username TEXT
 );
 
 -- Index on address for reverse lookups

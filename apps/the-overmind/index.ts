@@ -9,6 +9,7 @@ import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { HdNode, mnemonicToSeed } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { initDb, initSchema } from './src/db';
+import { register, claim } from './src/bot';
 
 /**
  * Main startup function
@@ -74,6 +75,15 @@ const startup = async () => {
         .spendableSatsOnlyUtxos()
         .reduce((total, utxo) => total + utxo.sats, 0n);
     console.info(`Wallet balance: ${balance} sats`);
+
+    // Set up bot command handlers
+    bot.command('register', async ctx => {
+        await register(ctx, master, pool);
+    });
+    bot.command('claim', async ctx => {
+        await claim(ctx, pool, wallet, chronik);
+    });
+    console.info('Bot command handlers registered');
 
     // Start bot polling
     await bot.start();
