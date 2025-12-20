@@ -1,0 +1,34 @@
+{
+    "name": "the-overmind",
+    "version": "1.0.0",
+    "description": "Telegram bot mod using grammy, ecash-wallet, and Neon PostgreSQL",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc -p ./tsconfig.build.json",
+        "start": "node dist/index.js",
+        "dev": "tsx index.ts"
+    },
+    "keywords": [
+        "telegram",
+        "bot",
+        "ecash",
+        "XEC",
+        "grammy"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "dependencies": {
+        "chronik-client": "file:../../modules/chronik-client",
+        "dotenv": "^17.2.3",
+        "ecash-lib": "file:../../modules/ecash-lib",
+        "ecash-wallet": "file:../../modules/ecash-wallet",
+        "grammy": "^1.38.4",
+        "pg": "^8.16.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24.9.1",
+        "@types/pg": "^8.15.5",
+        "tsx": "^4.20.6",
+        "typescript": "^5.9.3"
+    }
+}
