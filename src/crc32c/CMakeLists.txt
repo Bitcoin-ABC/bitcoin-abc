@@ -259,10 +259,12 @@ if(HAVE_ARM64_CRC32C)
   endif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
   # Disable -Werror=address for ARM64 as it causes false positives with the
-  # getauxval weak symbol null check
+  # getauxval weak symbol null check.
+  # Also disable Wcast-align because of a cast from uint8_t* to uint64_t*.
   add_target_compiler_flags(crc32c
     PRIVATE
       -Wno-error=address
+      -Wno-cast-align
   )
 endif(HAVE_ARM64_CRC32C)
 
