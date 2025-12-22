@@ -152,7 +152,7 @@ export async function calculateTransactionAmountSats(
 export function calculateMaxSpendableAmount(wallet: Wallet): number {
     // Select all spendable utxos and calculate the size of a transaction that
     // sends them all to a single p2pkh output + change output
-    const spendableUtxos = wallet.spendableUtxos();
+    const spendableUtxos = wallet.spendableSatsOnlyUtxos();
     const balanceSats = Wallet.sumUtxosSats(spendableUtxos);
     const inputs = spendableUtxos.map(
         utxo => wallet.p2pkhUtxoToBuilderInput(utxo)!,
