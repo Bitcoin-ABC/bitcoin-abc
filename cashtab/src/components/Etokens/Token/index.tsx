@@ -688,7 +688,9 @@ const Token: React.FC = () => {
 
     const getFirmaBidPrice = async () => {
         try {
-            const firmaBidPriceResp = await fetch(`https://firma.cash/api/bid`);
+            const firmaBidPriceResp = await fetch(
+                `https://firmaprotocol.com/api/bid`,
+            );
             const firmaBidPriceJson = await firmaBidPriceResp.json();
             const bidPrice = firmaBidPriceJson.bid;
             console.info(`FIRMA buys at: ${bidPrice} XEC`);
@@ -1779,7 +1781,9 @@ const Token: React.FC = () => {
 
         let firmaBidPrice;
         try {
-            const firmaBidPriceResp = await fetch(`https://firma.cash/api/bid`);
+            const firmaBidPriceResp = await fetch(
+                `https://firmaprotocol.com/api/bid`,
+            );
             const firmaBidPriceJson = await firmaBidPriceResp.json();
             firmaBidPrice = firmaBidPriceJson.bid;
             console.info(`FIRMA buys at: ${firmaBidPrice} XEC`);

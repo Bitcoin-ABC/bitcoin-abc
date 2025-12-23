@@ -2257,7 +2257,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firma.cash/api/bid`)
+            .calledWith(`https://firmaprotocol.com/api/bid`)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });
@@ -2416,7 +2416,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firma.cash/api/bid`)
+            .calledWith(`https://firmaprotocol.com/api/bid`)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });
@@ -2540,7 +2540,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firma.cash/api/bid`)
+            .calledWith(`https://firmaprotocol.com/api/bid`)
             .mockResolvedValue(new Error('error getting firma bid price'));
 
         // Make sure FIRMA is cached
@@ -2888,7 +2888,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firma.cash/api/bid`)
+            .calledWith(`https://firmaprotocol.com/api/bid`)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });
