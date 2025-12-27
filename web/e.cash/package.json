@@ -16,7 +16,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
     "motion": "^12.23.26",
-    "next": "16.0.8",
+    "next": "16.0.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-syntax-highlighter": "^16.1.0",
