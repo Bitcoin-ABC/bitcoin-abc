@@ -52,6 +52,7 @@ import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
 import Header from 'components/Header';
 import { Bounce, ToastContainer } from 'react-toastify';
+import PullToRefresh from 'components/Common/PullToRefresh';
 import {
     ExtensionFrame,
     GlobalStyle,
@@ -147,7 +148,12 @@ const App = () => {
                                 {wallet === false ? (
                                     <OnBoarding />
                                 ) : (
-                                    <>
+                                    <PullToRefresh
+                                        onRefresh={async () => {
+                                            window.location.reload();
+                                        }}
+                                        disabled={loading || !wallet}
+                                    >
                                         <Header
                                             path={location.pathname}
                                         ></Header>
@@ -265,7 +271,7 @@ const App = () => {
                                                 />
                                             </Routes>
                                         </ScreenWrapper>
-                                    </>
+                                    </PullToRefresh>
                                 )}
                             </>
                         )}
