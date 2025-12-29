@@ -4,13 +4,13 @@
 
 /**
  * Token ID for rewards token *
- * EVA - EvaCash
+ * HP - Hit Points
  */
 export const REWARDS_TOKEN_ID =
-    'fc2e2b3a44632006f2ee946e4638f0b2b4f4c9f5d5d5c47319fa5738a406f171';
+    '2d97651979009d535a6832f326c09a3178939ea31ad0f738f11928414a2fb8ef';
 export const REWARDS_TOKEN_DECIMALS = 2;
 
 /**
- * Registration reward amount in atoms (10,000 EVA tokens with 2 decimals)
+ * Registration reward amount in atoms (100 HP, no decimals)
  */
-export const REGISTRATION_REWARD_ATOMS = 10_000_00n;
+export const REGISTRATION_REWARD_ATOMS = 100n;
