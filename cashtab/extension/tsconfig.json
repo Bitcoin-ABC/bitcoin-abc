@@ -9,7 +9,7 @@
         "outDir": "dist",
         "rootDir": "src",
         "lib": ["DOM", "DOM.Iterable", "ES2020"],
-        "types": ["chrome", "node"],
+        "types": ["chrome"],
         "moduleResolution": "node"
     },
     "include": ["src/**/*"],
