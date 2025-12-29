@@ -14,12 +14,12 @@
     "dependencies": {
         "@headlessui/react": "^1.7.17",
         "@heroicons/react": "^2.2.0",
-        "@next/third-parties": "16.0.8",
+        "@next/third-parties": "16.0.10",
         "@types/pg": "^8.15.4",
         "autoprefixer": "^10.4.16",
         "clsx": "^2.0.0",
         "date-fns": "^2.30.0",
-        "next": "16.0.8",
+        "next": "16.0.10",
         "pg": "^8.16.3",
         "postcss": "^8.4.31",
         "react": "^19.2.3",
@@ -34,7 +34,7 @@
         "@typescript-eslint/eslint-plugin": "^8.46.2",
         "@typescript-eslint/parser": "^8.46.2",
         "eslint": "^9.38.0",
-        "eslint-config-next": "16.0.8",
+        "eslint-config-next": "16.0.10",
         "typescript": "^5.9.3",
         "vercel": "^44.2.12"
     },
