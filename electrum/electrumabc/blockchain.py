@@ -584,6 +584,10 @@ class Blockchain(PrintError):
 
     def get_bits(self, header: Header, chunk: Optional[HeaderChunk] = None) -> int:
         """Return bits for the given height."""
+        # No difficulty adjustment on REGTEST
+        if networks.net.REGTEST:
+            return MAX_BITS_REGTEST
+
         # Difficulty adjustment interval?
         height = header["block_height"]
         # Genesis
@@ -603,11 +607,7 @@ class Blockchain(PrintError):
         daa_mtp = self.get_median_time_past(prevheight, chunk)
 
         # ASERTi3-2d DAA activated on Nov. 15th 2020 HF
-        # on regtest it is disabled
-        if (
-            daa_mtp >= networks.net.asert_daa.MTP_ACTIVATION_TIME
-            and not networks.net.REGTEST
-        ):
+        if daa_mtp >= networks.net.asert_daa.MTP_ACTIVATION_TIME:
             header_ts = header["timestamp"]
             prev_ts = prior["timestamp"]
             if networks.net.TESTNET:
@@ -678,8 +678,6 @@ class Blockchain(PrintError):
                 return MAX_BITS
             # special case for a newly started testnet (such as testnet4)
             if height < N_BLOCKS:
-                if networks.net.REGTEST:
-                    return MAX_BITS_REGTEST
                 return MAX_BITS
             return self.read_header(height // N_BLOCKS * N_BLOCKS, chunk)["bits"]
 
