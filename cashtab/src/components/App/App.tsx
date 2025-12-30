@@ -77,8 +77,14 @@ const App = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState, loading, cashtabLoaded, initialUtxoSyncComplete } =
-        ContextValue;
+    const {
+        cashtabState,
+        loading,
+        cashtabLoaded,
+        initialUtxoSyncComplete,
+        update,
+        refreshTransactionHistory,
+    } = ContextValue;
     const { wallets, activeWallet } = cashtabState;
     const wallet = typeof activeWallet !== 'undefined' ? activeWallet : false;
     const [navMenuClicked, setNavMenuClicked] = useState(false);
@@ -150,7 +156,10 @@ const App = () => {
                                 ) : (
                                     <PullToRefresh
                                         onRefresh={async () => {
-                                            window.location.reload();
+                                            // Sync wallet data instead of reloading the page
+                                            // This refreshes UTXOs, token balances, and transaction history
+                                            await update();
+                                            await refreshTransactionHistory();
                                         }}
                                         disabled={loading || !wallet}
                                     >

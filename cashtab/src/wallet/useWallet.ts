@@ -97,6 +97,10 @@ export interface UseWalletReturnType {
     transactionHistory: TransactionHistory | null;
     refreshTransactionHistory: () => Promise<void>;
     /**
+     * Sync wallet data by fetching latest UTXOs and token balances
+     */
+    update: () => Promise<void>;
+    /**
      * In some cases, we only want to set CashtabState as setting the state
      * will trigger storage writing, and we want to minimize this
      */
@@ -1285,6 +1289,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         cashtabState,
         transactionHistory,
         refreshTransactionHistory,
+        update,
         setCashtabState,
     } as UseWalletReturnType;
 };
