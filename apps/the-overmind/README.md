@@ -1,12 +1,18 @@
 # The Overmind
 
-A telegram bot for rewarding and punishing users with onchain token transactions in the main eCash telegram channel
+A telegram bot for rewarding and punishing users with onchain token transactions in the main eCash telegram channel. Users can register an address and claim an initial token balance. They can then earn tokens through incentivized behavior in the main eCash telegram channel, such as receiving emoji reactions for insightful msgs. They can also lose tokens by receiving negative emoji reactions.
+
+Users can withdraw their token balance, but not XEC.
+
+An HD wallet is used to simplify key management.
+
+The ultimate goal here is to incentivize better chat behavior through on-chain token rewards.
 
 Roadmap
 
-[] Add support for "register" function, i.e. assigning an address to a user
-[] Add support for airdropping a token to users that register
-[] Include XEC with register airdrop
+[x] Add support for "register" function, i.e. assigning an address to a user
+[x] Add support for airdropping a token to users that register
+[x] Include XEC with register airdrop
 [] 24-hr cron job to ensure all registered users have at least 1000 XEC
 [] Add a database table to store msgs that receive reactions (msg content utf8 + a unique ID)
 [] Add support for likes, a way for any registered user to send tokens to any registered user by emoji reacting to their msg or replying with an emoji

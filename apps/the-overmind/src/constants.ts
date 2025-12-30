@@ -14,3 +14,14 @@ export const REWARDS_TOKEN_DECIMALS = 2;
  * Registration reward amount in atoms (100 HP, no decimals)
  */
 export const REGISTRATION_REWARD_ATOMS = 100n;
+
+/**
+ * Registration reward sats
+ * Amount of sats we send to a new user on registering
+ * NB users are not able to claim or withdraw sats, only tokens
+ * We keep sats at all addresses to support onchain user actions
+ *
+ * Going forward, we could probably work out a better system to handle this
+ * with mature HD wallet methods
+ */
+export const REGISTRATION_REWARD_SATS = 1000_00n; // 1,000.00 XEC

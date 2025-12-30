@@ -15,8 +15,11 @@ import {
 } from 'ecash-lib';
 import { encodeCashAddress } from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
-import { ChronikClient } from 'chronik-client';
-import { REWARDS_TOKEN_ID, REGISTRATION_REWARD_ATOMS } from './constants';
+import {
+    REWARDS_TOKEN_ID,
+    REGISTRATION_REWARD_ATOMS,
+    REGISTRATION_REWARD_SATS,
+} from './constants';
 
 /**
  * Register a user with The Overmind
@@ -91,13 +94,11 @@ export const register = async (
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
  * @param wallet - The Overmind wallet for sending reward tokens
- * @param chronik - Chronik client for checking token history
  */
 export const claim = async (
     ctx: Context,
     pool: Pool,
     wallet: Wallet,
-    chronik: ChronikClient,
 ): Promise<void> => {
     const userId = ctx.from?.id;
     if (!userId) {
@@ -122,7 +123,7 @@ export const claim = async (
 
     // Check if address has already received REWARDS_TOKEN_ID tokens
     try {
-        const utxosRes = await chronik.address(address).utxos();
+        const utxosRes = await wallet.chronik.address(address).utxos();
         const utxos = utxosRes.utxos || [];
 
         // Check if any UTXO contains REWARDS_TOKEN_ID
@@ -165,6 +166,11 @@ export const claim = async (
                     script: Script.fromAddress(address),
                     tokenId: REWARDS_TOKEN_ID,
                     atoms: REGISTRATION_REWARD_ATOMS,
+                },
+                /** Starter XEC to support on-chain actions at outIdx 2 */
+                {
+                    sats: REGISTRATION_REWARD_SATS,
+                    script: Script.fromAddress(address),
                 },
             ],
             tokenActions: [

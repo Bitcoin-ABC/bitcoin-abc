@@ -366,19 +366,14 @@ describe('bot', () => {
             // Mock: user address has no reward tokens yet
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, []);
 
-            // Mock: set broadcast tx response - use a stub to catch any broadcast
-            const mockTxid =
-                '1111111111111111111111111111111111111111111111111111111111111111';
-            // Stub the broadcastTx method to return our mock txid for any input
-            const broadcastStub = sandbox.stub(mockChronik, 'broadcastTx');
-            broadcastStub.resolves({ txid: mockTxid });
+            // Set up broadcast response with the actual raw transaction hex and txid
+            const rawTxHex =
+                '02000000020100000000000000000000000000000000000000000000000000000000000000000000006441dfc0ff59f2b276ad2af18725da1cabaaa949db7bd9da9ae097e6694813f8f1e8c2a9fb15cf7964e0cfaecbc9d642b0fe5ea504fcd8169556fd2cbcfd6dfe6f804121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff020000000000000000000000000000000000000000000000000000000000000000000000644126f57a80304f54380aa106679f07be3bee1c6863894c8dbb1d0defeb4ca7ffc46b2b598fd048e12fbf5a1f34cbbf5229b79a912cc0da7a523dc4d38447b897a84121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff050000000000000000406a503d534c5032000453454e44efb82f4a412819f138f7d01aa39e9378319ac026f332685a539d00791965972d036400000000000000000000001c969800000022020000000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988aca0860100000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988ac22020000000000001976a91479b000887626b294a914501a4cd226b58b23598388acd7200000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000';
+            const expectedTxid =
+                '83319e7f0c53810009316315badbbf78f956abd98e6f84ce65d1bfeaa1b7b327';
+            mockChronik.setBroadcastTx(rawTxHex, expectedTxid);
 
-            await claim(
-                mockCtx,
-                mockPool,
-                wallet,
-                mockChronik as unknown as ChronikClient,
-            );
+            await claim(mockCtx, mockPool, wallet);
 
             // Verify database query
             expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
@@ -386,28 +381,20 @@ describe('bot', () => {
                 (mockPool.query as sinon.SinonStub).firstCall.args[1],
             ).to.deep.equal([12345]);
 
-            // Verify broadcast was called
-            expect(broadcastStub.callCount).to.equal(1);
-
-            // Verify reply was called with success message
+            // Verify reply was called with success message and expected txid
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
             expect(replyCall.args[0]).to.include('✅ Claim successful!');
             expect(replyCall.args[0]).to.include(FIRST_USER_ADDRESS);
             expect(replyCall.args[0]).to.include('10,000 reward tokens');
-            expect(replyCall.args[0]).to.include(mockTxid);
+            expect(replyCall.args[0]).to.include(expectedTxid);
         });
 
         it('should reject claim if user is not registered', async () => {
             // Mock: user is not registered
             (mockPool.query as sinon.SinonStub).resolves({ rows: [] });
 
-            await claim(
-                mockCtx,
-                mockPool,
-                wallet,
-                mockChronik as unknown as ChronikClient,
-            );
+            await claim(mockCtx, mockPool, wallet);
 
             // Verify database query
             expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
@@ -444,12 +431,7 @@ describe('bot', () => {
                 },
             ]);
 
-            await claim(
-                mockCtx,
-                mockPool,
-                wallet,
-                mockChronik as unknown as ChronikClient,
-            );
+            await claim(mockCtx, mockPool, wallet);
 
             // Verify database query
             expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
@@ -475,12 +457,7 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            await claim(
-                ctxWithoutId,
-                mockPool,
-                wallet,
-                mockChronik as unknown as ChronikClient,
-            );
+            await claim(ctxWithoutId, mockPool, wallet);
 
             // Verify error message
             expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
@@ -504,12 +481,7 @@ describe('bot', () => {
             const chronikError = new Error('Chronik connection failed');
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, chronikError);
 
-            await claim(
-                mockCtx,
-                mockPool,
-                wallet,
-                mockChronik as unknown as ChronikClient,
-            );
+            await claim(mockCtx, mockPool, wallet);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);

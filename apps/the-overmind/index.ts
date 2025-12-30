@@ -81,7 +81,7 @@ const startup = async () => {
         await register(ctx, master, pool);
     });
     bot.command('claim', async ctx => {
-        await claim(ctx, pool, wallet, chronik);
+        await claim(ctx, pool, wallet);
     });
     console.info('Bot command handlers registered');
 
