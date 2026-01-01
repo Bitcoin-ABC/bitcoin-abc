@@ -40,7 +40,7 @@ const SwitchInner = styled.span<{
         ${props =>
             props.bgImageOn
                 ? `background: ${props.bgColorOn} url(${props.bgImageOn}) 20%/contain no-repeat`
-                : `background-color: ${props.theme.accent}`};
+                : `background-color: ${props.bgColorOn}`};
         text-transform: uppercase;
         padding-left: 10px;
         color: #fff;

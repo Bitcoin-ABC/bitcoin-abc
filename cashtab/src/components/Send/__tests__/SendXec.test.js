@@ -27,6 +27,8 @@ import {
     slp1FixedBear,
     alpMocks,
     slp1NftChildMocks,
+    slp1NftParentMocks,
+    slpMintVaultMocks,
     tokenTestWallet,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
@@ -1668,6 +1670,803 @@ describe('<SendXec />', () => {
             // The token amount input is now gone
             expect(tokenInputField).not.toBeInTheDocument(),
         );
+    });
+    it('ALP Fungible: We can send an ALP token using the token mode UI', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
+        // Token send tx - same hex and txid as BIP21 test
+        const hex =
+            '020000000288bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441fff980a72dab5fed2ef4b94c54c5b91dd2e4d22fab32bd8daa8ba8118fc45b121cceb8c43a869966219d1e6b1ebf6c34436287a349fbd132a11b8928cdf642784121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441c8203434106d39d750461d8a6939412f432220cba2e957f19a699e5ed57a4357bb257dfcde9aa5618d6b87721f939b69312c429eba28c056f06efad33b4875314121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac18310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'cf78a0c9f88027ab90dec0fe2180ef4d4d45ab431e179ce262ea19502202da52';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation and supply calc
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+
+        const { tokenTicker } = alpMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        // The token ticker text should be clickable within the dropdown item
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        // Click on the parent div that has the onClick handler
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        // The search input should be replaced with the selected token display
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify the selected token ticker is displayed in the selected token display
+        // The search input should no longer be visible (replaced by SelectedTokenDisplay)
+        expect(
+            screen.queryByPlaceholderText(
+                'Start typing a token ticker or name',
+            ),
+        ).not.toBeInTheDocument();
+        // The token ticker should be visible in the selected token display
+        expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // The Cashtab Msg and op_return_raw switches should not be visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // Form should be cleared after successful send
+        await waitFor(() => {
+            expect(
+                screen.queryByPlaceholderText('Address'),
+            ).not.toBeInTheDocument();
+        });
+    });
+    it('SLP1 Fungible: We can send an SLP token using the token mode UI', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
+        // Token send tx - same hex and txid as BIP21 test
+        const hex =
+            '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006441bac61dbfa47bc7b92952caaa867c2c5fd11bde4cfa36c21b818dbb80c15b19a0c94845e916bc57bc5f35f32ca379bd48a6ee1dc4ded52794bcee231655b105f14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a59dcc96f885dcbf56d473ba74b3202adb00dbc1142e379efa3784b559d7be97aa3d777eb4001613f205191d177c9896f652132d397a65cdfa93c69657d59f1b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '6de2d27d40bced679a8b8e55c85230ed8da0977c30ad31247fefc0b1eba0976e';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation and supply calc
+        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
+        mockedChronik.setTx(slp1FixedBear.tokenId, slp1FixedBear.tx);
+
+        const { tokenTicker } = slp1FixedBear.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        // The token ticker text should be clickable within the dropdown item
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        // Click on the parent div that has the onClick handler
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        // The search input should be replaced with the selected token display
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify the selected token ticker is displayed in the selected token display
+        // The search input should no longer be visible (replaced by SelectedTokenDisplay)
+        expect(
+            screen.queryByPlaceholderText(
+                'Start typing a token ticker or name',
+            ),
+        ).not.toBeInTheDocument();
+        // The token ticker should be visible in the selected token display
+        expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // The Cashtab Msg and op_return_raw switches should not be visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // Form should be cleared after successful send
+        await waitFor(() => {
+            expect(
+                screen.queryByPlaceholderText('Address'),
+            ).not.toBeInTheDocument();
+        });
+    });
+    it('SLP1 NFT Parent: We can send an SLP NFT parent token using the token mode UI', async () => {
+        // Mock the app with context at the Send screen
+        // Note: NFT parent tokens are sent like fungible tokens
+        // We need to add the NFT parent token to the wallet's slpUtxos
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...tokenTestWallet,
+                state: {
+                    ...tokenTestWallet.state,
+                    slpUtxos: [
+                        ...tokenTestWallet.state.slpUtxos,
+                        {
+                            outpoint: {
+                                txid: '0c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc',
+                                outIdx: 1,
+                            },
+                            blockHeight: 840011,
+                            isCoinbase: false,
+                            sats: 546n,
+                            isFinal: true,
+                            token: {
+                                tokenId:
+                                    '0c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc',
+                                tokenType: {
+                                    protocol: 'SLP',
+                                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                                    number: 129,
+                                },
+                                atoms: 100n,
+                                isMintBaton: false,
+                            },
+                        },
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
+        // Token send tx - NFT parent tokens are sent like fungible tokens
+        // This hex/txid will be generated when the actual transaction is created
+        // For now, using a placeholder structure similar to SLP fungible sends
+        const hex =
+            '0200000002cc04a35686950a66845ebf8e37677fffcc5ee0e2b63e3f05822838273149660c01000000644199420c214284112beabf60bab12ef63e63c64896ff841c15152616985f43740a7006ae134f1b0565df76024b3384d2f1cabcd7aa8ce69a02354d3e29a05bfc7a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644107e454598730dc7d5727dfd55855ddabfdaf08a3a267ce5e6cb5c64e3ed496ef129230a9c250bac987d5120b7bdccee47dfc78a799a0d13d1b47265f75a3c9314121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001810453454e44200c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc08000000000000000108000000000000006322020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac0c310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            '4824d1a92b59cd95e8d53496efec33510dda573f761bc5882b39146132c51789';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation and supply calc
+        mockedChronik.setToken(
+            slp1NftParentMocks.tokenId,
+            slp1NftParentMocks.token,
+        );
+        mockedChronik.setTx(slp1NftParentMocks.tokenId, slp1NftParentMocks.tx);
+
+        const { tokenTicker } = slp1NftParentMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        // The token ticker text should be clickable within the dropdown item
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        // Click on the parent div that has the onClick handler
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        // The search input should be replaced with the selected token display
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify the selected token ticker is displayed in the selected token display
+        // The search input should no longer be visible (replaced by SelectedTokenDisplay)
+        expect(
+            screen.queryByPlaceholderText(
+                'Start typing a token ticker or name',
+            ),
+        ).not.toBeInTheDocument();
+        // The token ticker should be visible in the selected token display
+        expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount (NFT parent tokens can be sent in quantities like fungible tokens)
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // The Cashtab Msg and op_return_raw switches should not be visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // Form should be cleared after successful send
+        await waitFor(() => {
+            expect(
+                screen.queryByPlaceholderText('Address'),
+            ).not.toBeInTheDocument();
+        });
+    });
+    it('SLP1 NFT Child: We can send an SLP NFT using the token mode UI', async () => {
+        // Mock the app with context at the Send screen
+        // We need to add the NFT child token to the wallet's slpUtxos
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...tokenTestWallet,
+                state: {
+                    ...tokenTestWallet.state,
+                    slpUtxos: [
+                        ...tokenTestWallet.state.slpUtxos,
+                        {
+                            outpoint: {
+                                txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                                outIdx: 1,
+                            },
+                            blockHeight: 841509,
+                            isCoinbase: false,
+                            sats: 546n,
+                            isFinal: true,
+                            token: {
+                                tokenId:
+                                    '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                                tokenType: {
+                                    protocol: 'SLP',
+                                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                                    number: 65,
+                                },
+                                atoms: 1n,
+                                isMintBaton: false,
+                            },
+                        },
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
+        // NFT send tx - same hex and txid as BIP21 test
+        const hex =
+            '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d0100000064415b08020f453b87695e24d8ea104fab2c98c1e944502582599e945b407a8900dc75bcd599cbbb2cd3216402e9d6b0b1329aec686033cd838c9555777eaad8c0704121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644164f0fe5c018e1b2ef2ed49e0ff1d87e5fe116e32ca30db8422ae09cc825976abc705ae59faee5d3372638bc297cd70f77582f5d0c513bfabfd9146dfb916d3ad4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            '57f665440f7ab0686fece1d744484140d3013e301b45842f5e9371597871ea8c';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation
+        mockedChronik.setToken(
+            slp1NftChildMocks.tokenId,
+            slp1NftChildMocks.token,
+        );
+        mockedChronik.setTx(slp1NftChildMocks.tokenId, slp1NftChildMocks.tx);
+
+        const { tokenTicker } = slp1NftChildMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        // The token ticker text should be clickable within the dropdown item
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        // Click on the parent div that has the onClick handler
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        // The search input should be replaced with the selected token display
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify the selected token ticker is displayed in the selected token display
+        // The search input should no longer be visible (replaced by SelectedTokenDisplay)
+        expect(
+            screen.queryByPlaceholderText(
+                'Start typing a token ticker or name',
+            ),
+        ).not.toBeInTheDocument();
+        // The token ticker should be visible in the selected token display
+        expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount (NFTs are always sent as 1, but the input still requires a value)
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // The Cashtab Msg and op_return_raw switches should not be visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid (NFTs show "NFT sent" instead of "eToken sent")
+        const txSuccessNotification = await screen.findByText('NFT sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // Form should be cleared after successful send
+        await waitFor(() => {
+            expect(
+                screen.queryByPlaceholderText('Address'),
+            ).not.toBeInTheDocument();
+        });
+    });
+    it('SLP2 Mint Vault: We can send a mint vault token using the token mode UI', async () => {
+        // Mock the app with context at the Send screen
+        // We need to add the mint vault token to the wallet's slpUtxos
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...tokenTestWallet,
+                state: {
+                    ...tokenTestWallet.state,
+                    slpUtxos: [
+                        ...tokenTestWallet.state.slpUtxos,
+                        {
+                            outpoint: {
+                                txid: '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                                outIdx: 1,
+                            },
+                            blockHeight: 897132,
+                            isCoinbase: false,
+                            sats: 546n,
+                            isFinal: true,
+                            token: {
+                                tokenId:
+                                    '8ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba3251',
+                                tokenType: {
+                                    protocol: 'SLP',
+                                    type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                                    number: 2,
+                                },
+                                atoms: 10_000_000n,
+                                isMintBaton: false,
+                            },
+                        },
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY, // Use legacy fee rate for this test
+        });
+
+        // Mint vault send tx - same hex and txid as TokenActions test
+        const hex =
+            '0200000002e227ad0b23242a4678fc79104cdf1c80914862a3c808066aebc65ef35b52b56f01000000644149cb2fe7f9043b8071807ed49eefb923df27bc6884577491294dc5b58200d55e8cfe98e32b8de404761aa90a801c3dfd49ae5f37104fb89f9cfbe50d6508f9174121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644120d97a60e4d2f7fff034ff23b798d88cec03ad9101397acfa985c0ce11732d2d5aff6c984b47c6db159e8b54f509e20725e8b29b4a8cb6a7012c8d5fa1b4a8e64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001020453454e44208ecb9c25978f429472f3e9f9c048222f6ac9977e7d1313781f0e9ac1bdba325108000000000000000108000000000001869f22020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac0c310f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'e2c0ccca81ee9879a6d084457dfb5a8342f07683fe18b26af71f869ea56b85c8';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation
+        mockedChronik.setToken(
+            slpMintVaultMocks.tokenId,
+            slpMintVaultMocks.token,
+        );
+        mockedChronik.setTx(slpMintVaultMocks.tokenId, slpMintVaultMocks.tx);
+
+        const { tokenTicker } = slpMintVaultMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        // The token ticker text should be clickable within the dropdown item
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        // Click on the parent div that has the onClick handler
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        // The search input should be replaced with the selected token display
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify the selected token ticker is displayed in the selected token display
+        // The search input should no longer be visible (replaced by SelectedTokenDisplay)
+        expect(
+            screen.queryByPlaceholderText(
+                'Start typing a token ticker or name',
+            ),
+        ).not.toBeInTheDocument();
+        // The token ticker should be visible in the selected token display
+        expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // The Cashtab Msg and op_return_raw switches should not be visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // Form should be cleared after successful send
+        await waitFor(() => {
+            expect(
+                screen.queryByPlaceholderText('Address'),
+            ).not.toBeInTheDocument();
+        });
     });
     it('SLP1 NFT Child: Entering a valid bip21 query string for a token send tx will correcty populate the UI, and the tx can be sent', async () => {
         // Mock the app with context at the Send screen
