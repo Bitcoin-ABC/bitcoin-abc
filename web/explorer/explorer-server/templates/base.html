@@ -84,10 +84,10 @@
                         <img class="logo" src="/assets/logo.png" />
                     </a>
                     {% if network_selector %}<div id="network-select-container"></div>{% endif %}
-                    <div id="mempool-select-container"></div>
+                    <div class="mempool-select-container desktop-mempool-selector"></div>
                 </div>
                 <div class="search-ctn">
-                    <div id="nav-message-container"></div>
+                    <div class="nav-message-container desktop-nav-message"></div>
                     <div id="search-box" class="ui transparent icon input">
                         <input id="search-bar"
                                type="text"
@@ -96,7 +96,19 @@
                                onkeyup="searchBarChange()" />
                         <i id="#search-button" class="search link icon" onclick="searchButton()"></i>
                     </div>
+                    <button class="mobile-menu-toggle"
+                            id="mobile-menu-toggle"
+                            onclick="toggleMobileMenu()"
+                            aria-label="Toggle menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
                 </div>
+            </div>
+            <div class="mobile-menu" id="mobile-menu">
+                <div class="mempool-select-container"></div>
+                <div class="nav-message-container"></div>
             </div>
             {% block content %}{% endblock %}
         </div>
@@ -155,33 +167,47 @@
         }
 
         function renderMempoolSelector() {
-            const mempoolSelectContainer = document.getElementById('mempool-select-container');
+            const mempoolSelectContainers = document.querySelectorAll('.mempool-select-container');
 
             let switchToText = '';
             let switchToLink = '';
 
             const baseUrl = window.location.protocol + '//' + window.location.host;
 
+            let html = '';
             if (window.location.pathname === '/mempool') {
-                mempoolSelectContainer.innerHTML = `<a href="${baseUrl}">Block Explorer</a>`;
-                return;
+                html = `<a href="${baseUrl}">Block Explorer</a>`;
+            } else {
+                html = `<a href="${baseUrl}/mempool">Mempool Explorer</a>`;
             }
 
-            mempoolSelectContainer.innerHTML = `<a href="${baseUrl}/mempool">Mempool Explorer</a>`;
+            mempoolSelectContainers.forEach(container => {
+                container.innerHTML = html;
+            });
         }
 
         function renderNavMessage() {
-            const navMessageContainer = document.getElementById('nav-message-container');
+            const navMessageContainers = document.querySelectorAll('.nav-message-container');
             const currentHostName = window.location.hostname;
 
+            let html = '';
             if (currentHostName === 'texplorer.e.cash') {
-                navMessageContainer.innerHTML = `
-            <a href="/testnet-faucet">Get testnet tokens</a>
-        `;
+                html = `<a href="/testnet-faucet">Get testnet tokens</a>`;
             } else {
-                navMessageContainer.innerHTML = `
-            <a href="https://e.cash" target="_blank">Learn more about e.Cash</a>
-        `;
+                html = `<a href="https://e.cash" target="_blank">Learn more about e.Cash</a>`;
+            }
+
+            navMessageContainers.forEach(container => {
+                container.innerHTML = html;
+            });
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const toggleButton = document.getElementById('mobile-menu-toggle');
+            if (mobileMenu && toggleButton) {
+                mobileMenu.classList.toggle('active');
+                toggleButton.classList.toggle('active');
             }
         }
 
