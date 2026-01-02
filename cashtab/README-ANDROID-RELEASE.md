@@ -76,7 +76,7 @@ If you need to update the version:
 Run the build script:
 
 ```bash
-./build-android-release.sh
+./scripts/android/build-prod.sh
 ```
 
 This will:
@@ -142,5 +142,5 @@ After your first release:
 
 - For future releases, increment the version in `package.json` and `build.gradle`
 - Update `versionCode` (must be higher than previous release)
-- Run `./build-android-release.sh` again
+- Run `./scripts/android/build-prod.sh` again
 - Upload the new AAB/APK to Play Store
