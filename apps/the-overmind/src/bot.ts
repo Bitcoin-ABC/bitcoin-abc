@@ -20,6 +20,7 @@ import {
     REGISTRATION_REWARD_ATOMS,
     REGISTRATION_REWARD_SATS,
 } from './constants';
+import { createUserActionTable } from './db';
 
 /**
  * Register a user with The Overmind
@@ -76,6 +77,9 @@ export const register = async (
         'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4) ON CONFLICT (user_tg_id) DO NOTHING',
         [userId, address, nextIndex, username],
     );
+
+    // Create user action table for this user
+    await createUserActionTable(pool, userId);
 
     await ctx.reply(
         `✅ Registration successful!\n\n` +
@@ -199,6 +203,20 @@ export const claim = async (
             '❌ Error sending reward tokens. Please try again later.',
         );
         return;
+    }
+
+    // Insert action into user's action table
+    const tableName = `user_actions_${userId}`;
+    try {
+        // Ensure table exists (in case user was registered before this feature)
+        await createUserActionTable(pool, userId);
+        await pool.query(
+            `INSERT INTO ${tableName} (action, txid, post_id) VALUES ($1, $2, $3)`,
+            ['claim', txid || null, null],
+        );
+    } catch (err) {
+        console.error(`Error inserting claim action for user ${userId}:`, err);
+        // Continue execution even if logging fails
     }
 
     const txMessage = txid

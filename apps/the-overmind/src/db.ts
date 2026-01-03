@@ -48,3 +48,40 @@ export const initSchema = async (pool: Pool): Promise<void> => {
         throw err;
     }
 };
+
+/**
+ * Create a user action table for a specific user
+ * Table name: user_actions_<user_tg_id>
+ * @param pool - Database connection pool
+ * @param userTgId - Telegram user ID
+ */
+export const createUserActionTable = async (
+    pool: Pool,
+    userTgId: number,
+): Promise<void> => {
+    // Validate userTgId is a valid number
+    if (!Number.isInteger(userTgId) || userTgId <= 0) {
+        throw new Error(`Invalid user_tg_id: ${userTgId}`);
+    }
+
+    const tableName = `user_actions_${userTgId}`;
+    // Use quote_ident to safely quote the table name
+    // Note: PostgreSQL doesn't allow parameters for table names, so we validate userTgId is numeric
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+            id SERIAL PRIMARY KEY,
+            action TEXT NOT NULL,
+            txid TEXT,
+            post_id INTEGER,
+            occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    `;
+
+    try {
+        await pool.query(createTableQuery);
+        console.info(`User action table created: ${tableName}`);
+    } catch (err) {
+        console.error(`Error creating user action table ${tableName}:`, err);
+        throw err;
+    }
+};

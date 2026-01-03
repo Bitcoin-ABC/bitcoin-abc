@@ -94,10 +94,15 @@ describe('bot', () => {
                 .onThirdCall()
                 .resolves({ rows: [], rowCount: 1 });
 
+            // Mock: create user action table
+            (mockPool.query as sinon.SinonStub)
+                .onCall(3)
+                .resolves({ rows: [], rowCount: 0 });
+
             await register(mockCtx, masterNode, mockPool);
 
-            // Verify database queries
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(3);
+            // Verify database queries (3 original + 1 for table creation)
+            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(4);
             expect(
                 (mockPool.query as sinon.SinonStub).firstCall.args[1],
             ).to.deep.equal([12345]);
@@ -202,6 +207,11 @@ describe('bot', () => {
                 .onThirdCall()
                 .resolves({ rows: [], rowCount: 1 });
 
+            // Mock: create user action table
+            (mockPool.query as sinon.SinonStub)
+                .onCall(3)
+                .resolves({ rows: [], rowCount: 0 });
+
             await register(mockCtx, masterNode, mockPool);
 
             // Verify the insert used hd_index 10 (max_index + 1)
@@ -241,6 +251,11 @@ describe('bot', () => {
             (mockPool.query as sinon.SinonStub)
                 .onThirdCall()
                 .resolves({ rows: [], rowCount: 1 });
+
+            // Mock: create user action table
+            (mockPool.query as sinon.SinonStub)
+                .onCall(3)
+                .resolves({ rows: [], rowCount: 0 });
 
             await register(mockCtx, masterNode, mockPool);
 
@@ -373,10 +388,20 @@ describe('bot', () => {
                 '83319e7f0c53810009316315badbbf78f956abd98e6f84ce65d1bfeaa1b7b327';
             mockChronik.setBroadcastTx(rawTxHex, expectedTxid);
 
+            // Mock: create user action table (if needed)
+            (mockPool.query as sinon.SinonStub)
+                .onSecondCall()
+                .resolves({ rows: [], rowCount: 0 });
+
+            // Mock: insert action into user action table
+            (mockPool.query as sinon.SinonStub)
+                .onThirdCall()
+                .resolves({ rows: [], rowCount: 1 });
+
             await claim(mockCtx, mockPool, wallet);
 
-            // Verify database query
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
+            // Verify database queries (1 to check user + 1 to create table + 1 to insert action)
+            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(3);
             expect(
                 (mockPool.query as sinon.SinonStub).firstCall.args[1],
             ).to.deep.equal([12345]);
