@@ -5,8 +5,12 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'grammy';
 import { Pool } from 'pg';
+import { newDb } from 'pg-mem';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import {
     HdNode,
     mnemonicToSeed,
@@ -25,15 +29,33 @@ import { REWARDS_TOKEN_ID, REGISTRATION_REWARD_ATOMS } from './constants';
 // Set up chai
 const expect = chai.expect;
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
+
+/**
+ * Create an in-memory PostgreSQL database for testing
+ * @returns A Pool connected to the in-memory database
+ */
+const createTestDb = async (): Promise<Pool> => {
+    const db = newDb();
+    const { Pool: PgMemPool } = db.adapters.createPg();
+    const pool = new PgMemPool();
+
+    // Initialize schema
+    const schemaPath = join(process.cwd(), 'schema.sql');
+    const schemaSql = readFileSync(schemaPath, 'utf-8');
+    await pool.query(schemaSql);
+
+    return pool as Pool;
+};
 
 describe('bot', () => {
     describe('register', () => {
         let mockCtx: Context;
-        let mockPool: Pool;
+        let pool: Pool;
         let masterNode: HdNode;
         let sandbox: sinon.SinonSandbox;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             sandbox = sinon.createSandbox();
 
             // Create a real master node from a test mnemonic
@@ -58,14 +80,15 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            // Mock database pool
-            mockPool = {
-                query: sandbox.stub(),
-            } as unknown as Pool;
+            // Create in-memory database
+            pool = await createTestDb();
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
         });
 
         it('should register a new user successfully', async () => {
@@ -79,44 +102,24 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
-            // Mock: user doesn't exist
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [] });
+            await register(mockCtx, masterNode, pool);
 
-            // Mock: get max index (no users yet, so max_index is 0, first user gets hd_index 1)
-            (mockPool.query as sinon.SinonStub)
-                .onSecondCall()
-                .resolves({ rows: [{ max_index: 0 }] });
+            // Verify user was inserted into database
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(1);
+            expect(userResult.rows[0].user_tg_id).to.equal(12345);
+            expect(userResult.rows[0].address).to.equal(expectedAddress);
+            expect(userResult.rows[0].hd_index).to.equal(1);
+            expect(userResult.rows[0].username).to.equal('testuser');
 
-            // Mock: insert user
-            (mockPool.query as sinon.SinonStub)
-                .onThirdCall()
-                .resolves({ rows: [], rowCount: 1 });
-
-            // Mock: create user action table
-            (mockPool.query as sinon.SinonStub)
-                .onCall(3)
-                .resolves({ rows: [], rowCount: 0 });
-
-            await register(mockCtx, masterNode, mockPool);
-
-            // Verify database queries (3 original + 1 for table creation)
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(4);
-            expect(
-                (mockPool.query as sinon.SinonStub).firstCall.args[1],
-            ).to.deep.equal([12345]);
-            expect(
-                (mockPool.query as sinon.SinonStub).secondCall.args[0],
-            ).to.include('MAX(hd_index)');
-            expect(
-                (mockPool.query as sinon.SinonStub).thirdCall.args[0],
-            ).to.include('INSERT INTO users');
-
-            // Verify the correct address was stored
-            const insertArgs = (mockPool.query as sinon.SinonStub).thirdCall
-                .args[1] as [number, string, number, string | null];
-            expect(insertArgs[1]).to.equal(expectedAddress);
+            // Verify user action table was created by querying it
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            expect(parseInt(tableCheck.rows[0].count)).to.be.greaterThan(0);
 
             // Verify reply was called with success message and correct address
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -133,18 +136,22 @@ describe('bot', () => {
                 'ecash:qpzry9x8gf2tvdw0s3jn54khce6mua7lcw20ayyn';
             const existingHdIndex = 5;
 
-            // Mock: user exists
-            (mockPool.query as sinon.SinonStub).resolves({
-                rows: [{ address: existingAddress, hd_index: existingHdIndex }],
-            });
+            // Insert existing user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, existingAddress, existingHdIndex, 'testuser'],
+            );
 
-            await register(mockCtx, masterNode, mockPool);
+            await register(mockCtx, masterNode, pool);
 
-            // Verify only one query (check for existing user)
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
-            expect(
-                (mockPool.query as sinon.SinonStub).firstCall.args[1],
-            ).to.deep.equal([12345]);
+            // Verify user still exists with same data
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(1);
+            expect(userResult.rows[0].address).to.equal(existingAddress);
+            expect(userResult.rows[0].hd_index).to.equal(existingHdIndex);
 
             // Verify reply with existing address
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -167,7 +174,7 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            await register(ctxWithoutId, masterNode, mockPool);
+            await register(ctxWithoutId, masterNode, pool);
 
             // Verify error message
             expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
@@ -177,8 +184,12 @@ describe('bot', () => {
                 (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
             ).to.equal('❌ Could not identify your user ID.');
 
-            // Verify no database queries
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(0);
+            // Verify no user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(0);
         });
 
         it('should use correct HD index when users already exist', async () => {
@@ -192,34 +203,34 @@ describe('bot', () => {
                 toHex(userPkh),
             );
 
-            // Mock: user doesn't exist
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [] });
+            // Insert 9 existing users to set max index to 9
+            for (let i = 1; i <= 9; i++) {
+                const existingNode = masterNode.derivePath(
+                    `m/44'/1899'/${i}'/0/0`,
+                );
+                const existingPk = existingNode.pubkey();
+                const existingPkh = shaRmd160(existingPk);
+                const existingAddress = encodeCashAddress(
+                    'ecash',
+                    'p2pkh',
+                    toHex(existingPkh),
+                );
+                await pool.query(
+                    'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                    [10000 + i, existingAddress, i, `user${i}`],
+                );
+            }
 
-            // Mock: get max index (some users exist, max index is 9)
-            (mockPool.query as sinon.SinonStub)
-                .onSecondCall()
-                .resolves({ rows: [{ max_index: 9 }] });
+            await register(mockCtx, masterNode, pool);
 
-            // Mock: insert user
-            (mockPool.query as sinon.SinonStub)
-                .onThirdCall()
-                .resolves({ rows: [], rowCount: 1 });
-
-            // Mock: create user action table
-            (mockPool.query as sinon.SinonStub)
-                .onCall(3)
-                .resolves({ rows: [], rowCount: 0 });
-
-            await register(mockCtx, masterNode, mockPool);
-
-            // Verify the insert used hd_index 10 (max_index + 1)
-            const insertCall = (mockPool.query as sinon.SinonStub).thirdCall;
-            const insertArgs = insertCall.args[1] as [number, string, number];
-            expect(insertArgs[0]).to.equal(12345);
-            expect(insertArgs[1]).to.equal(expectedAddress);
-            expect(insertArgs[2]).to.equal(10);
+            // Verify the new user was inserted with hd_index 10
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(1);
+            expect(userResult.rows[0].address).to.equal(expectedAddress);
+            expect(userResult.rows[0].hd_index).to.equal(10);
 
             // Verify reply mentions index 10
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
@@ -237,32 +248,14 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
-            // Mock: user doesn't exist
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [] });
-
-            // Mock: get max index (no users yet)
-            (mockPool.query as sinon.SinonStub)
-                .onSecondCall()
-                .resolves({ rows: [{ max_index: 0 }] });
-
-            // Mock: insert user
-            (mockPool.query as sinon.SinonStub)
-                .onThirdCall()
-                .resolves({ rows: [], rowCount: 1 });
-
-            // Mock: create user action table
-            (mockPool.query as sinon.SinonStub)
-                .onCall(3)
-                .resolves({ rows: [], rowCount: 0 });
-
-            await register(mockCtx, masterNode, mockPool);
+            await register(mockCtx, masterNode, pool);
 
             // Verify the address was derived and stored correctly
-            const insertCall = (mockPool.query as sinon.SinonStub).thirdCall;
-            const storedAddress = insertCall.args[1][1] as string;
-            expect(storedAddress).to.equal(expectedAddress);
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows[0].address).to.equal(expectedAddress);
 
             // Verify reply includes the address
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
@@ -270,23 +263,22 @@ describe('bot', () => {
         });
 
         it('should handle database errors gracefully', async () => {
-            const dbError = new Error('Database connection failed');
+            // Create a new pool that will throw an error on query
+            const errorPool = {
+                query: sandbox
+                    .stub()
+                    .rejects(new Error('Database connection failed')),
+            } as unknown as Pool;
 
-            // Mock: database query fails
-            (mockPool.query as sinon.SinonStub).rejects(dbError);
-
-            try {
-                await register(mockCtx, masterNode, mockPool);
-                expect.fail('Should have thrown an error');
-            } catch (error) {
-                expect(error).to.equal(dbError);
-            }
+            await expect(
+                register(mockCtx, masterNode, errorPool),
+            ).to.be.rejectedWith('Database connection failed');
         });
     });
 
     describe('claim', () => {
         let mockCtx: Context;
-        let mockPool: Pool;
+        let pool: Pool;
         let mockChronik: MockChronikClient;
         let wallet: Wallet;
         let sandbox: sinon.SinonSandbox;
@@ -298,7 +290,7 @@ describe('bot', () => {
         const FIRST_USER_ADDRESS =
             'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
 
-        beforeEach(() => {
+        beforeEach(async () => {
             sandbox = sinon.createSandbox();
 
             // Create mock chronik client
@@ -326,10 +318,8 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            // Mock database pool
-            mockPool = {
-                query: sandbox.stub(),
-            } as unknown as Pool;
+            // Create in-memory database
+            pool = await createTestDb();
 
             // Set up wallet UTXOs with reward tokens to send
             mockChronik.setUtxosByAddress(wallet.address, [
@@ -368,15 +358,19 @@ describe('bot', () => {
             }
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
         });
 
         it('should successfully claim reward tokens for a registered user', async () => {
-            // Mock: user is registered
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [{ address: FIRST_USER_ADDRESS }] });
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
+            );
 
             // Mock: user address has no reward tokens yet
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, []);
@@ -388,23 +382,17 @@ describe('bot', () => {
                 '83319e7f0c53810009316315badbbf78f956abd98e6f84ce65d1bfeaa1b7b327';
             mockChronik.setBroadcastTx(rawTxHex, expectedTxid);
 
-            // Mock: create user action table (if needed)
-            (mockPool.query as sinon.SinonStub)
-                .onSecondCall()
-                .resolves({ rows: [], rowCount: 0 });
+            await claim(mockCtx, pool, wallet);
 
-            // Mock: insert action into user action table
-            (mockPool.query as sinon.SinonStub)
-                .onThirdCall()
-                .resolves({ rows: [], rowCount: 1 });
-
-            await claim(mockCtx, mockPool, wallet);
-
-            // Verify database queries (1 to check user + 1 to create table + 1 to insert action)
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(3);
-            expect(
-                (mockPool.query as sinon.SinonStub).firstCall.args[1],
-            ).to.deep.equal([12345]);
+            // Verify action was logged in user action table
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1',
+                ['claim'],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].action).to.equal('claim');
+            expect(actionResult.rows[0].txid).to.equal(expectedTxid);
+            expect(actionResult.rows[0].post_id).to.equal(null);
 
             // Verify reply was called with success message and expected txid
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -416,25 +404,26 @@ describe('bot', () => {
         });
 
         it('should reject claim if user is not registered', async () => {
-            // Mock: user is not registered
-            (mockPool.query as sinon.SinonStub).resolves({ rows: [] });
-
-            await claim(mockCtx, mockPool, wallet);
-
-            // Verify database query
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
+            await claim(mockCtx, pool, wallet);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
             expect(replyCall.args[0]).to.include('❌ You must register first!');
+
+            // Verify no action was logged (table should not exist)
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            expect(parseInt(tableCheck.rows[0].count)).to.equal(0);
         });
 
         it('should reject claim if user has already received reward tokens', async () => {
-            // Mock: user is registered
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [{ address: FIRST_USER_ADDRESS }] });
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
+            );
 
             // Mock: user address already has reward tokens
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, [
@@ -456,10 +445,7 @@ describe('bot', () => {
                 },
             ]);
 
-            await claim(mockCtx, mockPool, wallet);
-
-            // Verify database query
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(1);
+            await claim(mockCtx, pool, wallet);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -468,6 +454,19 @@ describe('bot', () => {
                 '❌ You have already claimed your reward tokens!',
             );
             expect(replyCall.args[0]).to.include(FIRST_USER_ADDRESS);
+
+            // Verify no action was logged (claim was rejected)
+            // Check if table exists, and if so, verify no actions were logged
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345',
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
+            // If table doesn't exist, that's also fine - no actions were logged
         });
 
         it('should handle missing user ID', async () => {
@@ -482,7 +481,7 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            await claim(ctxWithoutId, mockPool, wallet);
+            await claim(ctxWithoutId, pool, wallet);
 
             // Verify error message
             expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
@@ -492,21 +491,25 @@ describe('bot', () => {
                 (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
             ).to.equal('❌ Could not identify your user ID.');
 
-            // Verify no database queries
-            expect((mockPool.query as sinon.SinonStub).callCount).to.equal(0);
+            // Verify no action was logged (table should not exist)
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            expect(parseInt(tableCheck.rows[0].count)).to.equal(0);
         });
 
         it('should handle chronik errors when checking token history', async () => {
-            // Mock: user is registered
-            (mockPool.query as sinon.SinonStub)
-                .onFirstCall()
-                .resolves({ rows: [{ address: FIRST_USER_ADDRESS }] });
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
+            );
 
             // Mock: chronik address query fails by setting an Error
             const chronikError = new Error('Chronik connection failed');
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, chronikError);
 
-            await claim(mockCtx, mockPool, wallet);
+            await claim(mockCtx, pool, wallet);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -514,6 +517,19 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include(
                 '❌ Error checking your token history',
             );
+
+            // Verify no action was logged (claim failed)
+            // Check if table exists, and if so, verify no actions were logged
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345',
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
+            // If table doesn't exist, that's also fine - no actions were logged
         });
     });
 });
