@@ -62,19 +62,19 @@ ecashparam   = [ amountparam / labelparam / messageparam / otherparam / reqparam
 opreturnparam       = "op_return_raw=" *hex
 ```
 
--   A URI string may include the `op_return_raw` param no more than once. A URI string include multiple `op_return_raw` params is invalid.
--   The param must contain a valid hex string for a valid `OP_RETURN` output, not including the `OP_RETURN` `6a`. Hence, the hex string cannot exceed 222 bytes, and must follow the existing `OP_RETURN` spec.
--   The param cannot be an empty string
--   The `OP_RETURN` output will be the 0-index output
--   In a multi-address URI, the `op_return_raw` param must appear in first position
+- A URI string may include the `op_return_raw` param no more than once. A URI string include multiple `op_return_raw` params is invalid.
+- The param must contain a valid hex string for a valid `OP_RETURN` output, not including the `OP_RETURN` `6a`. Hence, the hex string cannot exceed 222 bytes, and must follow the existing `OP_RETURN` spec.
+- The param cannot be an empty string
+- The `OP_RETURN` output will be the 0-index output
+- In a multi-address URI, the `op_return_raw` param must appear in first position
 
 6. eCash supports multiple outputs
 
--   Each additional output must include both a valid `addr` and valid `amount` for the URI to be valid.
--   `addr` values must be valid cashaddresses that pass checksum validation for the `ecash` prefix. The prefix itself is not required.
--   There is no spec limitation on the number of additional outputs a BIP21 URI may request. However, there are practical limitations. The node will not broadcast a transaction greater than 100KB, and QR codes cannot store more than 4,296 alphanumeric characters.
--   Addresses may be repeated. You may send more than one output to the same address.
--   If `op_return_raw` is specified, the output index of each specified output will be determined by its order in the URI. If no `op_return_raw` is specified, the output index of each specified output may not necessarily correspond to its order in the URI.
+- Each additional output must include both a valid `addr` and valid `amount` for the URI to be valid.
+- `addr` values must be valid cashaddresses that pass checksum validation for the `ecash` prefix. The prefix itself is not required.
+- There is no spec limitation on the number of additional outputs a BIP21 URI may request. However, there are practical limitations. The node will not broadcast a transaction greater than 100KB, and QR codes cannot store more than 4,296 alphanumeric characters.
+- Addresses may be repeated. You may send more than one output to the same address.
+- If `op_return_raw` is specified, the output index of each specified output will be determined by its order in the URI. If no `op_return_raw` is specified, the output index of each specified output may not necessarily correspond to its order in the URI.
 
 Because BIP21 was originally designed for single-address transactions and a valid BIP21 URI begins with an address, the `addr` param is introduced for additional outputs.
 
@@ -82,14 +82,13 @@ Additional outputs will be sent at the `nth` output index, where `n` is the orde
 
 7. eCash supports simple token sends
 
--   bip21 token send txs are limited to one recipient and one specified token qty recipient output
--   Token output value is dust (546 satoshis)
--   Any token type is supported. Support for some token types may be constrained by the implementing wallet (i.e. there are different tx construction rules for ALP vs SLP tokens, but both have tokenIds)
--   `token_id` param, a valid token id.
--   `token_decimalized_qty` param, decimalized qty to be sent
--   A bip21 string with `token_id` can only be parsed as a token send tx
--   A bip21 string with `token_id` is invalid if `token_decimalized_qty` is not specified
--   If the `token_id` param is present in a bip21 query string, all params apart from `token_decimalized_qty` will be ignored.
+- bip21 token send txs are limited to one recipient and one specified token qty recipient output
+- Token output value is dust (546 satoshis)
+- Any token type is supported. Support for some token types may be constrained by the implementing wallet (i.e. there are different tx construction rules for ALP vs SLP tokens, but both have tokenIds)
+- `token_id` param, a valid token id.
+- `token_decimalized_qty` param, decimalized qty to be sent
+- A bip21 string with `token_id` can only be parsed as a token send tx
+- If the `token_id` param is present in a bip21 query string, all params apart from `token_decimalized_qty` will be ignored.
 
 It is up to the implementing wallet to properly handle and convert `token_decimalized_qty`. A bip21 string is invalid if `token_decimalized_qty` specifies a decimal amount not supported by the specified `token_id`. This must be handled by the implementing wallet, as there is no way to check token decimals without referencing the token's genesis tx or cached info.
 

@@ -589,7 +589,21 @@ const SendXec: React.FC = () => {
         );
     };
 
-    // Typeguard for a valid bip21 token send tx
+    // Check if this is a BIP21 token send (has token_id, may or may not have token_decimalized_qty)
+    const isBip21TokenSendWithTokenId = (
+        parsedAddressInput: CashtabParsedAddressInfo,
+    ): boolean => {
+        return (
+            typeof parsedAddressInput !== 'undefined' &&
+            typeof parsedAddressInput.address.value === 'string' &&
+            parsedAddressInput.address.error === false &&
+            typeof parsedAddressInput.token_id !== 'undefined' &&
+            typeof parsedAddressInput.token_id.value === 'string' &&
+            parsedAddressInput.token_id.error === false
+        );
+    };
+
+    // Typeguard for a valid bip21 token send tx with token_decimalized_qty
     const isBip21TokenSend = (
         parsedAddressInput: CashtabParsedAddressInfo,
     ): parsedAddressInput is {
@@ -605,12 +619,7 @@ const SendXec: React.FC = () => {
         firma?: { value: string; error: false | string };
     } => {
         return (
-            typeof parsedAddressInput !== 'undefined' &&
-            typeof parsedAddressInput.address.value === 'string' &&
-            parsedAddressInput.address.error === false &&
-            typeof parsedAddressInput.token_id !== 'undefined' &&
-            typeof parsedAddressInput.token_id.value === 'string' &&
-            parsedAddressInput.token_id.error === false &&
+            isBip21TokenSendWithTokenId(parsedAddressInput) &&
             typeof parsedAddressInput.token_decimalized_qty !== 'undefined' &&
             typeof parsedAddressInput.token_decimalized_qty.value ===
                 'string' &&
@@ -1194,15 +1203,68 @@ const SendXec: React.FC = () => {
         if (txInfoFromUrl.parseAllAsBip21) {
             // Strip tabId from BIP21 URI before entering into address field
             let bip21Uri = txInfoFromUrl.bip21;
-            if (bip21Uri && bip21Uri.includes('&tabId=')) {
+            if (!bip21Uri) {
+                return;
+            }
+            if (bip21Uri.includes('&tabId=')) {
                 bip21Uri = bip21Uri.replace(/&tabId=\d+/, '');
             }
-            handleAddressChange({
-                target: {
-                    name: 'address',
-                    value: bip21Uri,
-                },
-            } as React.ChangeEvent<HTMLInputElement>);
+
+            // Parse the BIP21 URI to check if it contains token_id
+            const parsedAddressInput = parseAddressInput(
+                bip21Uri,
+                balanceSats,
+                userLocale,
+            );
+
+            // Check if this is a BIP21 token send (with or without token_decimalized_qty)
+            if (isBip21TokenSendWithTokenId(parsedAddressInput)) {
+                // This is a BIP21 token send
+                // Switch to token mode
+                setIsTokenMode(true);
+
+                // Select the tokenId
+                const tokenId = parsedAddressInput.token_id?.value;
+                if (tokenId) {
+                    setSelectedTokenId(tokenId);
+
+                    // Add token to cache if not already cached
+                    if (
+                        typeof cashtabCache.tokens.get(tokenId) === 'undefined'
+                    ) {
+                        addTokenToCashtabCache(tokenId);
+                    }
+                }
+
+                // Parse and set firma if it's in the query string
+                if (
+                    typeof parsedAddressInput.firma !== 'undefined' &&
+                    typeof parsedAddressInput.firma.value === 'string' &&
+                    parsedAddressInput.firma.error === false
+                ) {
+                    // If firma is valid, set it
+                    setParsedFirma(parseFirma(parsedAddressInput.firma.value));
+                }
+
+                // Put the BIP21 string into the token address input and validate
+                handleTokenModeAddressChange(
+                    {
+                        target: {
+                            name: 'address',
+                            value: bip21Uri || '',
+                        },
+                    } as React.ChangeEvent<HTMLInputElement>,
+                    parsedAddressInput,
+                );
+            } else {
+                // Regular BIP21 XEC send
+                handleAddressChange({
+                    target: {
+                        name: 'address',
+                        value: bip21Uri,
+                    },
+                } as React.ChangeEvent<HTMLInputElement>);
+            }
         } else {
             // Enter address into input field and trigger handleAddressChange for validation
             handleAddressChange({
@@ -1231,7 +1293,7 @@ const SendXec: React.FC = () => {
             }
         }
         // We re-run this when balanceSats changes because validation of send amounts depends on balanceSats
-    }, [txInfoFromUrl, balanceSats]);
+    }, [txInfoFromUrl, balanceSats, userLocale]);
 
     interface XecSendError {
         error?: string;
@@ -1490,6 +1552,120 @@ const SendXec: React.FC = () => {
         }
     }
 
+    const handleTokenModeAddressChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+        parsedAddressInput: CashtabParsedAddressInfo,
+    ) => {
+        if (tokenIdQueryError) {
+            // Clear tokenIdQueryError if we have one
+            setTokenIdQueryError(false);
+        }
+        const { value, name } = e.target;
+
+        // Set in state as various param outputs determine app rendering
+        setParsedAddressInput(parsedAddressInput);
+
+        let tokenRenderedError = parsedAddressInput.address.error;
+
+        // Check if this is a BIP21 string (has queryString)
+        const hasQueryString = 'queryString' in parsedAddressInput;
+
+        // Check if this is a BIP21 token send (has token_id parameter)
+        const isBip21TokenSendInTokenMode =
+            isBip21TokenSendWithTokenId(parsedAddressInput);
+
+        // If BIP21 string but no token_id, show error
+        if (hasQueryString && !isBip21TokenSendInTokenMode) {
+            tokenRenderedError =
+                'bip21 token txs must include a token_id param';
+        } else if (
+            hasQueryString &&
+            typeof parsedAddressInput.queryString !== 'undefined'
+        ) {
+            // Handle query string errors
+            if (typeof parsedAddressInput.queryString.error === 'string') {
+                tokenRenderedError = parsedAddressInput.queryString.error;
+            }
+        }
+
+        // Handle token-specific validation errors
+        if (
+            tokenRenderedError === false &&
+            typeof parsedAddressInput.token_decimalized_qty !== 'undefined' &&
+            parsedAddressInput.token_decimalized_qty.error !== false
+        ) {
+            tokenRenderedError = parsedAddressInput.token_decimalized_qty.error;
+        }
+        if (
+            tokenRenderedError === false &&
+            typeof parsedAddressInput.firma !== 'undefined' &&
+            parsedAddressInput.firma.error !== false
+        ) {
+            tokenRenderedError = parsedAddressInput.firma.error;
+        }
+
+        // Parse and set firma if it's in the query string
+        if (
+            typeof parsedAddressInput.firma !== 'undefined' &&
+            typeof parsedAddressInput.firma.value === 'string' &&
+            parsedAddressInput.firma.error === false
+        ) {
+            // If firma is valid, set it
+            setParsedFirma(parseFirma(parsedAddressInput.firma.value));
+        }
+        if (
+            tokenRenderedError === false &&
+            typeof parsedAddressInput.token_id !== 'undefined'
+        ) {
+            if (parsedAddressInput.token_id.error !== false) {
+                tokenRenderedError = parsedAddressInput.token_id.error;
+            } else if (
+                isBip21TokenSendInTokenMode &&
+                parsedAddressInput.token_id.value
+            ) {
+                // This is a BIP21 token send in token mode
+                const tokenId = parsedAddressInput.token_id.value;
+
+                // Select the tokenId if it's not already selected
+                if (selectedTokenId !== tokenId) {
+                    setSelectedTokenId(tokenId);
+                }
+
+                // Add token to cache if not already cached
+                if (typeof cashtabCache.tokens.get(tokenId) === 'undefined') {
+                    addTokenToCashtabCache(tokenId);
+                }
+            }
+        }
+
+        // Handle regular address validation (non-BIP21)
+        if (
+            tokenRenderedError === false &&
+            !hasQueryString &&
+            parsedAddressInput.address.error &&
+            typeof parsedAddressInput.address.value === 'string' &&
+            isValidCashAddress(parsedAddressInput.address.value, 'etoken')
+        ) {
+            tokenRenderedError = false;
+        } else if (
+            tokenRenderedError === false &&
+            !hasQueryString &&
+            typeof parsedAddressInput.address.value === 'string' &&
+            isValidCashAddress(
+                parsedAddressInput.address.value,
+                appConfig.prefix,
+            )
+        ) {
+            tokenRenderedError = false;
+        }
+
+        setSendAddressError(tokenRenderedError);
+        setTokenFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
     const handleAddressChange = async (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
@@ -1577,32 +1753,8 @@ const SendXec: React.FC = () => {
 
         // Set address field to user input
         if (isTokenMode) {
-            // For token mode, update tokenFormData and handle token-specific validation
-            let tokenRenderedError = renderedSendToError;
-            if ('queryString' in parsedAddressInput) {
-                tokenRenderedError =
-                    'eToken sends do not support bip21 query strings';
-            } else if (
-                parsedAddressInput.address.error &&
-                typeof parsedAddressInput.address.value === 'string' &&
-                isValidCashAddress(parsedAddressInput.address.value, 'etoken')
-            ) {
-                tokenRenderedError = false;
-            } else if (
-                typeof parsedAddressInput.address.value === 'string' &&
-                isValidCashAddress(
-                    parsedAddressInput.address.value,
-                    appConfig.prefix,
-                )
-            ) {
-                tokenRenderedError = false;
-            }
-            setSendAddressError(tokenRenderedError);
-            setTokenFormData(p => ({
-                ...p,
-                [name]: value,
-            }));
-            // Don't process BIP21 params in token mode
+            // In token mode, use the dedicated handler
+            handleTokenModeAddressChange(e, parsedAddressInput);
             return;
         }
 
@@ -2180,20 +2332,177 @@ const SendXec: React.FC = () => {
                                 placeholder="Address"
                                 name="address"
                                 value={tokenFormData.address}
-                                handleInput={handleAddressChange}
+                                disabled={
+                                    txInfoFromUrl !== false &&
+                                    isBip21TokenSendWithTokenId(
+                                        parsedAddressInput,
+                                    ) &&
+                                    selectedTokenId !== null &&
+                                    parsedAddressInput.token_id?.value ===
+                                        selectedTokenId
+                                }
+                                handleInput={e => {
+                                    const parsed = parseAddressInput(
+                                        e.target.value,
+                                        balanceSats,
+                                        userLocale,
+                                    );
+                                    handleTokenModeAddressChange(e, parsed);
+                                }}
                                 error={sendAddressError}
                             />
                         )}
-                        {selectedTokenId && (
-                            <SendTokenInput
-                                name="amount"
-                                placeholder="Amount"
-                                value={tokenFormData.amount}
-                                error={sendTokenAmountError}
-                                handleInput={handleTokenAmountChange}
-                                handleOnMax={onTokenMax}
-                            />
-                        )}
+                        {/* Show regular token amount input if:
+                            - Not a BIP21 token send with token_decimalized_qty, OR
+                            - It's a BIP21 token send with token_id but without token_decimalized_qty */}
+                        {selectedTokenId &&
+                            !(
+                                isBip21TokenSend(parsedAddressInput) &&
+                                selectedTokenId ===
+                                    parsedAddressInput.token_id.value
+                            ) && (
+                                <SendTokenInput
+                                    name="amount"
+                                    placeholder="Amount"
+                                    value={tokenFormData.amount}
+                                    error={sendTokenAmountError}
+                                    handleInput={handleTokenAmountChange}
+                                    handleOnMax={onTokenMax}
+                                />
+                            )}
+                        {/* Show BIP21 token send info in token mode (only if token_decimalized_qty is present) */}
+                        {isBip21TokenSend(parsedAddressInput) &&
+                            selectedTokenId !== null &&
+                            selectedTokenId ===
+                                parsedAddressInput.token_id.value &&
+                            tokenIdQueryError === false && (
+                                <>
+                                    {typeof cashtabCache.tokens.get(
+                                        parsedAddressInput.token_id.value,
+                                    ) !== 'undefined' ? (
+                                        <>
+                                            <SendTokenBip21
+                                                decimalizedTokenQty={
+                                                    parsedAddressInput
+                                                        .token_decimalized_qty
+                                                        .value
+                                                }
+                                                tokenError={tokenError}
+                                            />
+                                            {/* Show parsed token send info */}
+                                            {isValidFirmaRedeemTx(
+                                                parsedAddressInput,
+                                            ) ? (
+                                                <ParsedTokenSend
+                                                    style={{
+                                                        marginBottom: '12px',
+                                                    }}
+                                                >
+                                                    <FirmaRedeemLogoWrapper>
+                                                        <FirmaIcon />
+                                                        <TetherIcon />
+                                                    </FirmaRedeemLogoWrapper>
+                                                    <FirmaRedeemTextAndCopy>
+                                                        On tx finalized,{' '}
+                                                        {(
+                                                            Number(
+                                                                parsedAddressInput
+                                                                    .token_decimalized_qty
+                                                                    .value,
+                                                            ) -
+                                                            getFirmaRedeemFee(
+                                                                Number(
+                                                                    parsedAddressInput
+                                                                        .token_decimalized_qty
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        ).toLocaleString(
+                                                            userLocale,
+                                                            {
+                                                                maximumFractionDigits: 4,
+                                                                minimumFractionDigits: 4,
+                                                            },
+                                                        )}{' '}
+                                                        USDT will be sent to{' '}
+                                                        {parsedFirma.data.slice(
+                                                            0,
+                                                            3,
+                                                        )}
+                                                        ...
+                                                        {parsedFirma.data.slice(
+                                                            -3,
+                                                        )}{' '}
+                                                        <CopyIconButton
+                                                            name="Copy SOL addr"
+                                                            data={
+                                                                parsedFirma.data
+                                                            }
+                                                            showToast
+                                                        />
+                                                    </FirmaRedeemTextAndCopy>
+                                                </ParsedTokenSend>
+                                            ) : (
+                                                <ParsedTokenSend
+                                                    style={{
+                                                        marginBottom: '12px',
+                                                    }}
+                                                >
+                                                    <TokenIcon
+                                                        size={64}
+                                                        tokenId={
+                                                            parsedAddressInput
+                                                                .token_id.value
+                                                        }
+                                                    />
+                                                    Sending{' '}
+                                                    {decimalizedTokenQty}{' '}
+                                                    {nameAndTicker} to{' '}
+                                                    {addressPreview}
+                                                </ParsedTokenSend>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <InlineLoader />
+                                    )}
+                                </>
+                            )}
+                        {/* Show parsed firma info in token mode when firma is present but not a redeem tx */}
+                        {isBip21TokenSend(parsedAddressInput) &&
+                            !isValidFirmaRedeemTx(parsedAddressInput) &&
+                            selectedTokenId !== null &&
+                            selectedTokenId ===
+                                parsedAddressInput.token_id.value &&
+                            typeof parsedAddressInput.firma?.value ===
+                                'string' &&
+                            parsedAddressInput.firma.error === false &&
+                            parsedFirma.protocol !== '' &&
+                            parsedFirma.data !== '' && (
+                                <div style={{ margin: '12px 0' }}>
+                                    <ParsedBip21InfoRow>
+                                        <ParsedBip21InfoLabel>
+                                            Parsed firma
+                                        </ParsedBip21InfoLabel>
+                                        <ParsedBip21Info>
+                                            <b>{parsedFirma.protocol}</b>
+                                            <br />
+                                            {parsedFirma.data}
+                                        </ParsedBip21Info>
+                                    </ParsedBip21InfoRow>
+                                </div>
+                            )}
+                        {(isBip21TokenSend(parsedAddressInput) ||
+                            isBip21TokenSendWithTokenId(parsedAddressInput)) &&
+                            selectedTokenId !== null &&
+                            parsedAddressInput.token_id?.value ===
+                                selectedTokenId &&
+                            tokenIdQueryError && (
+                                <Alert>
+                                    Error querying token info for{' '}
+                                    {parsedAddressInput.token_id?.value ||
+                                        'unknown token'}
+                                </Alert>
+                            )}
                     </TokenFormContainer>
                 ) : (
                     <InputModesHolder open={isOneToManyXECSend}>
@@ -2618,7 +2927,16 @@ const SendXec: React.FC = () => {
                             <PrimaryButton
                                 disabled={
                                     isTokenMode
-                                        ? disableTokenSendButton
+                                        ? isBip21TokenSend(
+                                              parsedAddressInput,
+                                          ) &&
+                                          selectedTokenId !== null &&
+                                          selectedTokenId ===
+                                              parsedAddressInput.token_id.value
+                                            ? tokenError !== false ||
+                                              tokenIdQueryError ||
+                                              isSending
+                                            : disableTokenSendButton
                                         : (!isBip21TokenSend(
                                               parsedAddressInput,
                                           ) &&
@@ -2632,7 +2950,14 @@ const SendXec: React.FC = () => {
                                 }
                                 onClick={
                                     isTokenMode
-                                        ? checkForConfirmationBeforeSendToken
+                                        ? isBip21TokenSend(
+                                              parsedAddressInput,
+                                          ) &&
+                                          selectedTokenId !== null &&
+                                          selectedTokenId ===
+                                              parsedAddressInput.token_id.value
+                                            ? checkForConfirmationBeforeBip21TokenSend
+                                            : checkForConfirmationBeforeSendToken
                                         : isBip21TokenSend(parsedAddressInput)
                                           ? checkForConfirmationBeforeBip21TokenSend
                                           : checkForConfirmationBeforeSendXec

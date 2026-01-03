@@ -907,13 +907,17 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for token mode to be activated (toggle should be on "Tokens")
+        await waitFor(() => {
+            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+            expect(tokenModeSwitch).toHaveProperty('checked', true);
+        });
 
-        // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Get the token address input (in token mode)
+        const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -922,12 +926,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Note it is NOT disabled for txs where the user inputs the bip21 string
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
-
-        // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
 
         // Amount input is not displayed
         expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
@@ -962,10 +960,13 @@ describe('<SendXec /> rendered with params in URL', () => {
         // by the wallet
         expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
-        // The Cashtab Msg switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
-        // The op_return_raw switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle op_return_raw')).toBeDisabled();
+        // The Cashtab Msg and op_return_raw switches are not visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
     });
     it('bip21 - ALP token send with firma param', async () => {
         const destinationAddress =
@@ -1002,12 +1003,17 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for token mode to be activated (toggle should be on "Tokens")
+        await waitFor(() => {
+            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+            expect(tokenModeSwitch).toHaveProperty('checked', true);
+        });
 
-        // The "Send to Many" switch is disabled
-        await waitFor(() =>
-            expect(screen.getByTitle('Toggle Multisend')).toBeDisabled(),
-        );
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Get the token address input (in token mode)
+        const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -1016,12 +1022,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Note it is NOT disabled for txs where the user inputs the bip21 string
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
-
-        // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
 
         // Amount input is not displayed
         expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
@@ -1056,10 +1056,13 @@ describe('<SendXec /> rendered with params in URL', () => {
         // by the wallet
         expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
-        // The Cashtab Msg switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
-        // The op_return_raw switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle op_return_raw')).toBeDisabled();
+        // The Cashtab Msg and op_return_raw switches are not visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
 
         // We see the parsed firma field for a valid solana address action
         expect(screen.getByText('Parsed firma')).toBeInTheDocument();
@@ -1102,12 +1105,17 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for token mode to be activated (toggle should be on "Tokens")
+        await waitFor(() => {
+            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+            expect(tokenModeSwitch).toHaveProperty('checked', true);
+        });
 
-        // The "Send to Many" switch is disabled
-        await waitFor(() =>
-            expect(screen.getByTitle('Toggle Multisend')).toBeDisabled(),
-        );
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Get the token address input (in token mode)
+        const addressInputEl = screen.getByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -1116,12 +1124,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Note it is NOT disabled for txs where the user inputs the bip21 string
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
-
-        // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
 
         // Amount input is not displayed
         expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
@@ -1143,20 +1145,22 @@ describe('<SendXec /> rendered with params in URL', () => {
         // We see the valid firma redeem tx info, accounting for the fee
         expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
         expect(screen.getByAltText('USDT Tether logo')).toBeInTheDocument();
-        expect(
-            screen.getByText(
-                'On tx finalized, 3.0000 USDT will be sent to 6JK...EQ4',
-            ),
-        ).toBeInTheDocument();
+        // The text is split across multiple elements, so we check for parts of it
+        expect(screen.getByText(/On tx finalized/)).toBeInTheDocument();
+        expect(screen.getByText(/3\.0000/)).toBeInTheDocument();
+        expect(screen.getByText(/USDT will be sent to/)).toBeInTheDocument();
 
         // The send button is enabled as we have valid bip21 token send for a token qty supported
         // by the wallet
         expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
 
-        // The Cashtab Msg switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle Cashtab Msg')).toBeDisabled();
-        // The op_return_raw switch is disabled because bip21 token tx is set
-        expect(screen.getByTitle('Toggle op_return_raw')).toBeDisabled();
+        // The Cashtab Msg and op_return_raw switches are not visible in token mode
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTitle('Toggle op_return_raw'),
+        ).not.toBeInTheDocument();
 
         // We DO NOT see the standard parsed firma field for a valid firma redeem action
         expect(screen.queryByText('Parsed firma')).not.toBeInTheDocument();

@@ -868,7 +868,11 @@ export default {
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111',
-                        error: `Invalid bip21 token tx: token_decimalized_qty must be specified if token_id is specified`,
+                        error: false,
+                    },
+                    token_id: {
+                        value: '1111111111111111111111111111111111111111111111111111111111111111',
+                        error: false,
                     },
                 },
             },
@@ -904,7 +908,7 @@ export default {
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
-                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`,
+                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), and firma (optional)`,
                     },
                 },
             },

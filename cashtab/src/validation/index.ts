@@ -762,71 +762,65 @@ export function parseAddressInput(
         if (addrParams.has('token_id')) {
             // Parse bip21 for token send tx
             const tokenParams = [...addrParams.keys()].length;
-            if (addrParams.has('token_decimalized_qty')) {
-                // A bip21 string with token_id must have token_decimalized_qty to be valid
-                if (tokenParams === 2 || tokenParams === 3) {
-                    // A bip21 string with token_id must also include
-                    // token_decimalized_qty and may (optionally) include
-                    // firma
+            const hasTokenDecimalizedQty = addrParams.has(
+                'token_decimalized_qty',
+            );
+            const hasFirma = addrParams.has('firma');
 
-                    if (tokenParams === 3) {
-                        // If we have 3 token params, then we MUST have firma
-                        const passedFirma = addrParams.get('firma');
-                        if (passedFirma === null) {
-                            // This is an invalid bip21 token tx
-                            // Set a query string error
-                            parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`;
-                            // Stop parsing
-                            return parsedAddressInput;
-                        } else {
-                            const firmaError = getFirmaPushError(passedFirma);
+            // Validate that only allowed params are present
+            const allowedParams = ['token_id'];
+            if (hasTokenDecimalizedQty) {
+                allowedParams.push('token_decimalized_qty');
+            }
+            if (hasFirma) {
+                allowedParams.push('firma');
+            }
 
-                            parsedAddressInput.firma = {
-                                value: passedFirma,
-                                error: firmaError,
-                            };
-                        }
-                    }
-
-                    // So this is a (possibly) valid bip21 token send string
-                    const passedTokenId = addrParams.get('token_id');
-                    parsedAddressInput.token_id = {
-                        value: passedTokenId,
-                        error: isValidTokenId(passedTokenId)
-                            ? false
-                            : 'token_id is not a valid tokenId',
-                    };
-                    const passedTokenDecimalizedQty = addrParams.get(
-                        'token_decimalized_qty',
-                    );
-                    const isValidTokenDecimalizedQty =
-                        typeof passedTokenDecimalizedQty === 'string'
-                            ? STRINGIFIED_DECIMALIZED_REGEX.test(
-                                  passedTokenDecimalizedQty,
-                              )
-                            : false;
-                    // Note, because we do not know token decimals, validation of token_decimalized_qty
-                    // must wait for the the token send screen. We only check if it's a stringified
-                    // number
-                    parsedAddressInput.token_decimalized_qty = {
-                        value: passedTokenDecimalizedQty,
-                        error: isValidTokenDecimalizedQty
-                            ? false
-                            : 'Invalid token_decimalized_qty',
-                    };
-                } else {
-                    // This is an invalid bip21 token tx
-                    // Set a query string error
-                    parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty, and (optionally) firma`;
-                    // Stop parsing
-                    return parsedAddressInput;
-                }
-            } else {
-                // This is an invalid bip21 token tx
-                // Set a query string error
-                parsedAddressInput.queryString.error = `Invalid bip21 token tx: token_decimalized_qty must be specified if token_id is specified`;
-                // Stop parsing
+            if (tokenParams > allowedParams.length) {
+                // Invalid params present
+                parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), and firma (optional)`;
                 return parsedAddressInput;
+            }
+
+            // Parse token_id
+            const passedTokenId = addrParams.get('token_id');
+            parsedAddressInput.token_id = {
+                value: passedTokenId,
+                error: isValidTokenId(passedTokenId)
+                    ? false
+                    : 'token_id is not a valid tokenId',
+            };
+
+            // Parse token_decimalized_qty if present
+            if (hasTokenDecimalizedQty) {
+                const passedTokenDecimalizedQty = addrParams.get(
+                    'token_decimalized_qty',
+                );
+                const isValidTokenDecimalizedQty =
+                    typeof passedTokenDecimalizedQty === 'string'
+                        ? STRINGIFIED_DECIMALIZED_REGEX.test(
+                              passedTokenDecimalizedQty,
+                          )
+                        : false;
+                // Note, because we do not know token decimals, validation of token_decimalized_qty
+                // must wait for the the token send screen. We only check if it's a stringified
+                // number
+                parsedAddressInput.token_decimalized_qty = {
+                    value: passedTokenDecimalizedQty,
+                    error: isValidTokenDecimalizedQty
+                        ? false
+                        : 'Invalid token_decimalized_qty',
+                };
+            }
+
+            // Parse firma if present
+            if (hasFirma) {
+                const passedFirma = addrParams.get('firma');
+                const firmaError = getFirmaPushError(passedFirma);
+                parsedAddressInput.firma = {
+                    value: passedFirma,
+                    error: firmaError,
+                };
             }
         } else if (addrParams.has('token_decimalized_qty')) {
             // This is an invalid bip21 token tx
