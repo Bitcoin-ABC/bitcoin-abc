@@ -45,11 +45,9 @@ public:
     CCoinsViewTest(FastRandomContext &rng) : m_rng{rng} {}
 
     std::optional<Coin> GetCoin(const COutPoint &outpoint) const override {
-        if (auto it{map_.find(outpoint)}; it != map_.end()) {
-            if (!it->second.IsSpent() || m_rng.randbool()) {
-                // TODO spent coins shouldn't be returned
-                return it->second;
-            }
+        if (auto it{map_.find(outpoint)};
+            it != map_.end() && !it->second.IsSpent()) {
+            return it->second;
         }
         return std::nullopt;
     }
