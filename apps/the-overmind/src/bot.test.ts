@@ -6,7 +6,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { Context } from 'grammy';
+import { Context, Bot } from 'grammy';
 import { Pool } from 'pg';
 import { newDb } from 'pg-mem';
 import { readFileSync } from 'fs';
@@ -23,7 +23,7 @@ import { encodeCashAddress } from 'ecashaddrjs';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import { register, claim } from './bot';
+import { register, claim, sendErrorToAdmin } from './bot';
 import { REWARDS_TOKEN_ID, REGISTRATION_REWARD_ATOMS } from './constants';
 
 // Set up chai
@@ -49,6 +49,116 @@ const createTestDb = async (): Promise<Pool> => {
 };
 
 describe('bot', () => {
+    describe('sendErrorToAdmin', () => {
+        let mockBot: Bot;
+        let sandbox: sinon.SinonSandbox;
+        const ADMIN_CHAT_ID = '-1001234567890';
+
+        beforeEach(() => {
+            sandbox = sinon.createSandbox();
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it('should send error message to admin group chat', async () => {
+            const error = new Error('Test error message');
+            const action = 'test-action';
+            const userId = 12345;
+
+            await sendErrorToAdmin(
+                mockBot,
+                ADMIN_CHAT_ID,
+                action,
+                userId,
+                error,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (mockBot.api.sendMessage as sinon.SinonStub)
+                .firstCall.args;
+            expect(callArgs[0]).to.equal(ADMIN_CHAT_ID);
+            expect(callArgs[1]).to.include('🚨 **Bot Action Error**');
+            expect(callArgs[1]).to.include(`**Action:** ${action}`);
+            expect(callArgs[1]).to.include(`**User:** User ID: ${userId}`);
+            expect(callArgs[1]).to.include('**Error:** `Test error message`');
+            expect(callArgs[1]).to.include('```');
+            expect(callArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+        });
+
+        it('should handle unknown user when userId is undefined', async () => {
+            const error = new Error('Test error');
+            const action = 'test-action';
+
+            await sendErrorToAdmin(
+                mockBot,
+                ADMIN_CHAT_ID,
+                action,
+                undefined,
+                error,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (mockBot.api.sendMessage as sinon.SinonStub)
+                .firstCall.args;
+            expect(callArgs[1]).to.include('**User:** Unknown user');
+        });
+
+        it('should handle non-Error objects', async () => {
+            const error = 'String error message';
+            const action = 'test-action';
+            const userId = 12345;
+
+            await sendErrorToAdmin(
+                mockBot,
+                ADMIN_CHAT_ID,
+                action,
+                userId,
+                error,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (mockBot.api.sendMessage as sinon.SinonStub)
+                .firstCall.args;
+            expect(callArgs[1]).to.include('**Error:** `String error message`');
+            // Should not include stack trace for non-Error objects
+            expect(callArgs[1]).to.not.include('```');
+        });
+
+        it('should handle errors when sending message fails', async () => {
+            const sendError = new Error('Telegram API error');
+            (mockBot.api.sendMessage as sinon.SinonStub).rejects(sendError);
+
+            const consoleErrorStub = sandbox.stub(console, 'error');
+
+            const error = new Error('Test error');
+            await sendErrorToAdmin(
+                mockBot,
+                ADMIN_CHAT_ID,
+                'test-action',
+                12345,
+                error,
+            );
+
+            // Should log the error but not throw
+            expect(consoleErrorStub).to.have.been.calledWith(
+                'Failed to send error notification to admin group:',
+                sendError,
+            );
+        });
+    });
+
     describe('register', () => {
         let mockCtx: Context;
         let pool: Pool;
@@ -281,7 +391,9 @@ describe('bot', () => {
         let pool: Pool;
         let mockChronik: MockChronikClient;
         let wallet: Wallet;
+        let mockBot: Bot;
         let sandbox: sinon.SinonSandbox;
+        const ADMIN_CHAT_ID = '-1001234567890';
         // Bot wallet SK: all 1s (0101...01)
         const BOT_SK_ALL_ONES_HEX =
             '0101010101010101010101010101010101010101010101010101010101010101';
@@ -292,6 +404,18 @@ describe('bot', () => {
 
         beforeEach(async () => {
             sandbox = sinon.createSandbox();
+
+            // Create mock bot
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
 
             // Create mock chronik client
             mockChronik = new MockChronikClient();
@@ -382,7 +506,7 @@ describe('bot', () => {
                 '83319e7f0c53810009316315badbbf78f956abd98e6f84ce65d1bfeaa1b7b327';
             mockChronik.setBroadcastTx(rawTxHex, expectedTxid);
 
-            await claim(mockCtx, pool, wallet);
+            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
 
             // Verify action was logged in user action table
             const actionResult = await pool.query(
@@ -404,7 +528,7 @@ describe('bot', () => {
         });
 
         it('should reject claim if user is not registered', async () => {
-            await claim(mockCtx, pool, wallet);
+            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -445,7 +569,7 @@ describe('bot', () => {
                 },
             ]);
 
-            await claim(mockCtx, pool, wallet);
+            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -481,7 +605,7 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            await claim(ctxWithoutId, pool, wallet);
+            await claim(ctxWithoutId, pool, wallet, mockBot, ADMIN_CHAT_ID);
 
             // Verify error message
             expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
@@ -509,7 +633,7 @@ describe('bot', () => {
             const chronikError = new Error('Chronik connection failed');
             mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, chronikError);
 
-            await claim(mockCtx, pool, wallet);
+            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
 
             // Verify error reply
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -517,6 +641,16 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include(
                 '❌ Error checking your token history',
             );
+
+            // Verify error was sent to admin group
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const adminCall = (mockBot.api.sendMessage as sinon.SinonStub)
+                .firstCall.args;
+            expect(adminCall[0]).to.equal(ADMIN_CHAT_ID);
+            expect(adminCall[1]).to.include('🚨 **Bot Action Error**');
+            expect(adminCall[1]).to.include('claim (checking token history)');
+            expect(adminCall[1]).to.include('User ID: 12345');
+            expect(adminCall[1]).to.include('Chronik connection failed');
 
             // Verify no action was logged (claim failed)
             // Check if table exists, and if so, verify no actions were logged
@@ -530,6 +664,53 @@ describe('bot', () => {
                 expect(actionResult.rows).to.have.length(0);
             }
             // If table doesn't exist, that's also fine - no actions were logged
+        });
+
+        it('should send error to admin when wallet action throws an error', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, []);
+
+            // Mock: make broadcast fail by throwing an error
+            const broadcastError = new Error('Wallet broadcast failed');
+            const rawTxHex =
+                '02000000020100000000000000000000000000000000000000000000000000000000000000000000006441dfc0ff59f2b276ad2af18725da1cabaaa949db7bd9da9ae097e6694813f8f1e8c2a9fb15cf7964e0cfaecbc9d642b0fe5ea504fcd8169556fd2cbcfd6dfe6f804121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff020000000000000000000000000000000000000000000000000000000000000000000000644126f57a80304f54380aa106679f07be3bee1c6863894c8dbb1d0defeb4ca7ffc46b2b598fd048e12fbf5a1f34cbbf5229b79a912cc0da7a523dc4d38447b897a84121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff050000000000000000406a503d534c5032000453454e44efb82f4a412819f138f7d01aa39e9378319ac026f332685a539d00791965972d036400000000000000000000001c969800000022020000000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988aca0860100000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988ac22020000000000001976a91479b000887626b294a914501a4cd226b58b23598388acd7200000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000';
+            mockChronik.setBroadcastTx(rawTxHex, broadcastError);
+
+            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
+
+            // Verify error reply to user
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include(
+                '❌ Error sending reward tokens',
+            );
+
+            // Verify error was sent to admin group
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const adminCall = (mockBot.api.sendMessage as sinon.SinonStub)
+                .firstCall.args;
+            expect(adminCall[0]).to.equal(ADMIN_CHAT_ID);
+            expect(adminCall[1]).to.include('🚨 **Bot Action Error**');
+            expect(adminCall[1]).to.include('claim (sending reward tokens)');
+            expect(adminCall[1]).to.include('User ID: 12345');
+            expect(adminCall[1]).to.include('Wallet broadcast failed');
+
+            // Verify no action was logged (claim failed)
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345',
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
         });
     });
 });

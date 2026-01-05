@@ -33,6 +33,11 @@ const startup = async () => {
         throw new Error('DATABASE_URL environment variable is required');
     }
 
+    const adminGroupChatId = process.env.ADMIN_GROUP_CHAT_ID;
+    if (!adminGroupChatId) {
+        throw new Error('ADMIN_GROUP_CHAT_ID environment variable is required');
+    }
+
     // Initialize database
     const pool = await initDb(databaseUrl);
     console.info('Database initialized');
@@ -81,7 +86,7 @@ const startup = async () => {
         await register(ctx, master, pool);
     });
     bot.command('claim', async ctx => {
-        await claim(ctx, pool, wallet);
+        await claim(ctx, pool, wallet, bot, adminGroupChatId);
     });
     console.info('Bot command handlers registered');
 

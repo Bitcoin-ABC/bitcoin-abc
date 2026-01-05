@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Context } from 'grammy';
+import { Context, Bot } from 'grammy';
 import { Pool } from 'pg';
 import {
     HdNode,
@@ -21,6 +21,42 @@ import {
     REGISTRATION_REWARD_SATS,
 } from './constants';
 import { createUserActionTable } from './db';
+
+/**
+ * Send an error notification to the admin group chat
+ * @param bot - Bot instance for sending messages
+ * @param adminChatId - Admin group chat ID
+ * @param action - Name of the bot action that failed
+ * @param userId - Telegram user ID who triggered the action
+ * @param error - Error object or message
+ */
+export const sendErrorToAdmin = async (
+    bot: Bot,
+    adminChatId: string,
+    action: string,
+    userId: number | undefined,
+    error: unknown,
+): Promise<void> => {
+    try {
+        const errorMessage =
+            error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+
+        const username = userId ? `User ID: ${userId}` : 'Unknown user';
+        const message =
+            `🚨 **Bot Action Error**\n\n` +
+            `**Action:** ${action}\n` +
+            `**User:** ${username}\n` +
+            `**Error:** \`${errorMessage}\`\n` +
+            (errorStack ? `\n\`\`\`\n${errorStack}\n\`\`\`` : '');
+
+        await bot.api.sendMessage(adminChatId, message, {
+            parse_mode: 'Markdown',
+        });
+    } catch (err) {
+        console.error('Failed to send error notification to admin group:', err);
+    }
+};
 
 /**
  * Register a user with The Overmind
@@ -98,11 +134,15 @@ export const register = async (
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
  * @param wallet - The Overmind wallet for sending reward tokens
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
  */
 export const claim = async (
     ctx: Context,
     pool: Pool,
     wallet: Wallet,
+    bot: Bot,
+    adminChatId: string,
 ): Promise<void> => {
     const userId = ctx.from?.id;
     if (!userId) {
@@ -147,6 +187,13 @@ export const claim = async (
         }
     } catch (err) {
         console.error('Error checking token history:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'claim (checking token history)',
+            userId,
+            err,
+        );
         await ctx.reply(
             '❌ Error checking your token history. Please try again later.',
         );
@@ -195,10 +242,29 @@ export const claim = async (
             // The broadcast method returns an array of txids
             txid = resp.broadcasted[0];
         } else {
-            console.error('Failed to send reward tokens:', resp);
+            const errorMsg = `Failed to send reward tokens. Response: ${JSON.stringify(resp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'claim (sending reward tokens)',
+                userId,
+                new Error(errorMsg),
+            );
+            await ctx.reply(
+                '❌ Error sending reward tokens. Please try again later.',
+            );
+            return;
         }
     } catch (err) {
         console.error('Error sending reward tokens:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'claim (sending reward tokens)',
+            userId,
+            err,
+        );
         await ctx.reply(
             '❌ Error sending reward tokens. Please try again later.',
         );

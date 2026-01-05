@@ -13,6 +13,7 @@ Roadmap
 [x] Add support for "register" function, i.e. assigning an address to a user
 [x] Add support for airdropping a token to users that register
 [x] Include XEC with register airdrop
+[x] App should have env vars for an admin channel (for admin alerts)
 [] 24-hr cron job to ensure all registered users have at least 1000 XEC
 [] Add a database table to store msgs that receive reactions (msg content utf8 + a unique ID)
 [] Add support for likes, a way for any registered user to send tokens to any registered user by emoji reacting to their msg or replying with an emoji
