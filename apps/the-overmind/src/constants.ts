@@ -12,6 +12,7 @@ export const REWARDS_TOKEN_DECIMALS = 2;
 
 /**
  * Registration reward amount in atoms (100 HP, no decimals)
+ * NB, as decimals are 0, atoms === token qty
  */
 export const REGISTRATION_REWARD_ATOMS = 100n;
 

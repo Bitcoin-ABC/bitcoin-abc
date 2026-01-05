@@ -523,7 +523,7 @@ describe('bot', () => {
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
             expect(replyCall.args[0]).to.include('✅ Claim successful!');
             expect(replyCall.args[0]).to.include(FIRST_USER_ADDRESS);
-            expect(replyCall.args[0]).to.include('10,000 reward tokens');
+            expect(replyCall.args[0]).to.include('100 reward tokens');
             expect(replyCall.args[0]).to.include(expectedTxid);
         });
 

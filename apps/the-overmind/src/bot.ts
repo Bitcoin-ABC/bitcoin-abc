@@ -286,7 +286,7 @@ export const claim = async (
     }
 
     const txMessage = txid
-        ? `\n\n🎁 10,000 reward tokens sent! Transaction: \`${txid}\``
+        ? `\n\n🎁 ${REGISTRATION_REWARD_ATOMS.toLocaleString()} reward tokens sent! Transaction: \`${txid}\``
         : '\n\n⚠️ Reward tokens are being processed.';
 
     await ctx.reply(
