@@ -927,17 +927,12 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
 
-        // Amount input is not displayed
-        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
-
-        // Instead, we see the bip21 token amount input
-        const tokenInputField = screen.getByPlaceholderText(
-            'Bip21-entered token amount',
-        );
-        expect(tokenInputField).toBeInTheDocument();
-        expect(tokenInputField).toHaveValue(token_decimalized_qty);
-        // This input field is disabled, because it is controled by the bip21 string in the Address input
-        expect(tokenInputField).toBeDisabled();
+        // The token amount input is visible and populated from the BIP21 string
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        expect(amountInputEl).toBeInTheDocument();
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+        // This input field should be disabled for URL-based transactions, because it is controlled by the bip21 string in the URL
+        expect(amountInputEl).toBeDisabled();
 
         // We do not see a token ID query error
         expect(
@@ -1023,17 +1018,12 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
 
-        // Amount input is not displayed
-        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
-
-        // Instead, we see the bip21 token amount input
-        const tokenInputField = screen.getByPlaceholderText(
-            'Bip21-entered token amount',
-        );
-        expect(tokenInputField).toBeInTheDocument();
-        expect(tokenInputField).toHaveValue(token_decimalized_qty);
-        // This input field is disabled, because it is controled by the bip21 string in the Address input
-        expect(tokenInputField).toBeDisabled();
+        // The token amount input is visible and populated from the BIP21 string
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        expect(amountInputEl).toBeInTheDocument();
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+        // This input field should be disabled for URL-based transactions, because it is controlled by the bip21 string in the URL
+        expect(amountInputEl).toBeDisabled();
 
         // We do not see a token ID query error
         expect(
@@ -1125,17 +1115,12 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This is covered in SendXec.test.js
         expect(addressInputEl).toBeDisabled();
 
-        // Amount input is not displayed
-        expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();
-
-        // Instead, we see the bip21 token amount input
-        const tokenInputField = screen.getByPlaceholderText(
-            'Bip21-entered token amount',
-        );
-        expect(tokenInputField).toBeInTheDocument();
-        expect(tokenInputField).toHaveValue(token_decimalized_qty);
-        // This input field is disabled, because it is controled by the bip21 string in the Address input
-        expect(tokenInputField).toBeDisabled();
+        // The token amount input is visible and populated from the BIP21 string
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        expect(amountInputEl).toBeInTheDocument();
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+        // This input field should be disabled for URL-based transactions, because it is controlled by the bip21 string in the URL
+        expect(amountInputEl).toBeDisabled();
 
         // We do not see a token ID query error
         expect(

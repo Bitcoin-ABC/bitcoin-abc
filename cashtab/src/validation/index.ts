@@ -1417,12 +1417,10 @@ export const getReceiveAmountError = (
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
     }
+    // Allow empty amounts for tokens (not XEC) - user can input amount on send screen
+    // Per bip21, token_decimalized_qty is optional in the query string
     if (amount === '' && !isXec) {
-        // Per bip21, we only need an amount for a bip21 token query string
-        // If we have just the address, cashtab will allow user input of an amount
-        // We may update this later to allow arbitrary user-entered token amounts,
-        // but the send screen needs to be upgraded for arbitrary token sends
-        return 'Amount required';
+        return false;
     }
     if (amount === '0') {
         return `Amount must be > 0`;

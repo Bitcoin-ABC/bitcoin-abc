@@ -619,51 +619,6 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     );
 };
 
-/**
- * We only render this input from bip21 input into other fields
- * So, it is always disabled
- * But it needs to validate for slp decimals, since this info may not
- * be available until we render this component
- */
-interface SendTokenBip21InputProps {
-    name: string;
-    placeholder: string;
-    value: string;
-    error?: false | string;
-    autocomplete?: string;
-    spellCheck?: boolean;
-    autoCorrect?: string;
-    autoCapitalize?: string;
-}
-export const SendTokenBip21Input: React.FC<SendTokenBip21InputProps> = ({
-    name,
-    placeholder,
-    value,
-    error = false,
-    autocomplete = 'off',
-    spellCheck = false,
-    autoCorrect = 'off',
-    autoCapitalize = 'off',
-}) => {
-    return (
-        <CashtabInputWrapper>
-            <InputRow invalid={typeof error === 'string'}>
-                <CashtabInput
-                    name={name}
-                    placeholder={placeholder}
-                    value={value}
-                    disabled
-                    autoComplete={autocomplete}
-                    spellCheck={spellCheck}
-                    autoCorrect={autoCorrect}
-                    autoCapitalize={autoCapitalize}
-                />
-            </InputRow>
-            <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
-        </CashtabInputWrapper>
-    );
-};
-
 interface ListPriceInputProps {
     name: string;
     placeholder: string;

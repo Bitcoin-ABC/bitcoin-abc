@@ -54,7 +54,9 @@ export const Receive: React.FC = () => {
 
     const queryString = `${wallet.address}${
         receiveFirma
-            ? `?token_id=${FIRMA.tokenId}&token_decimalized_qty=${bip21Qty}`
+            ? `?token_id=${FIRMA.tokenId}${
+                  bip21Qty ? `&token_decimalized_qty=${bip21Qty}` : ``
+              }`
             : bip21Qty
               ? `?amount=${bip21Qty}`
               : ``

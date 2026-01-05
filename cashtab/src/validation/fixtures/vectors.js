@@ -2944,11 +2944,11 @@ export default {
                 returned: 'Amount must be > 0',
             },
             {
-                description: 'Token: blank input is rejected',
+                description: 'Token: blank input is accepted',
                 amount: '',
                 decimals: 0,
                 isXec: false,
-                returned: 'Amount required',
+                returned: false,
             },
             {
                 description: 'XEC: Rejects non-string input',
