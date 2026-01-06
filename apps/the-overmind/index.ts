@@ -110,7 +110,16 @@ const startup = async () => {
     // Set up reaction handler for monitored group chat
     // Note: Bot must be an administrator in the monitored group chat to receive reaction updates
     bot.on('message_reaction', async ctx => {
-        await handleMessageReaction(ctx, pool, monitoredGroupChatId);
+        await handleMessageReaction(
+            ctx,
+            pool,
+            monitoredGroupChatId,
+            master,
+            chronik,
+            bot,
+            adminGroupChatId,
+            wallet.address,
+        );
     });
     console.info('Reaction handler registered for monitored group chat');
 

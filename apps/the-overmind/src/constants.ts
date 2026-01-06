@@ -26,3 +26,10 @@ export const REGISTRATION_REWARD_ATOMS = 100n;
  * with mature HD wallet methods
  */
 export const REGISTRATION_REWARD_SATS = 1000_00n; // 1,000.00 XEC
+
+/**
+ * LOKAD_ID for EMPP (eCash Message Push Protocol) data pushes
+ * Used in all bot transactions for on-chain analytics
+ * See README.md for EMPP spec
+ */
+export const LOKAD_ID = 'XOVM';

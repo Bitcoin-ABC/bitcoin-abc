@@ -16,8 +16,14 @@ Roadmap
 [x] App should have env vars for an admin channel (for admin alerts)
 [x] Add a database table to store msgs that receive reactions (msg content utf8 + a unique ID)
 [x] Add database-only support for likes and dislikes
-[] Add token tx support for likes and dislikes. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury.
+[x] Add token tx support for likes and dislikes. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury.
+[x] EMPP spec for registration, likes, dislikes to support onchain analytics
+[] Only allow registration for users in the monitored chat
+[] Herald summary should parse overmind actions
+[] Add support for a /start info command
+[] Add utility methods for user interaction (check balance, withdraw, show address)
 [] 24-hr cron job to ensure all registered users have at least 1000 XEC
+[] cron job to top-up or reward active users who are liking and disliking a lot; if they have low HP and not from being disliked, top-up; or this could be a bot interaction
 [] CI deployments
 [] Launch
 [] Add admin features to airdrop from the bot treasury or super react
@@ -37,15 +43,16 @@ All bot txs will be ALP token txs. So, the data push must be EMPP, at the 0-inde
 
 <lokadId><versionByte><actionCode><msgId>
 
-`lokadId` `toHex(strToBytes("XEVA"))`
+`lokadId` `toHex(strToBytes("XOVM"))`
 `versionByte` `OO`
 `actionCode`, the associated action with the tx, starting with `REGISTER`, `LIKE`, `DISLIKE`
-`msgId`, `u32`, an ID associated with the msg. This is a column in our maintained database and NOT the telegram msgId. We store all reacted msgs in a database so that we can always look them up, even if they are deleted or edited by the user. Telegram API does not offer a reliable way to lookup msgs by ID.
+`msgId`, `u32`, the telegram msg ID associated with the msg. We store all reacted msgs in a database so that we can always look them up, even if they are deleted or edited by the user. Telegram API does not offer a reliable way to lookup msgs by ID.
 
 Available `actionCode`s:
 
-00 - REGISTER
-01 - LIKE
-02 - DISLIKE
+00 - CLAIM (tx sent by the bot to a new user)
+01 - LIKE (tx sent by a liker of a msg to the author of a liked msg)
+02 - DISLIKE (tx sent by the disliker of a msg, a cost for disliking)
+03 - DISLIKED (tx sent by the author of a disliked msg, the penalty for a bad msg)
 
 This will provide a good onchain analytics baseline of Telegram activity, as well as a hall of fame of most liked and despised msgs.

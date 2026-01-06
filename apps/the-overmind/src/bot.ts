@@ -12,13 +12,17 @@ import {
     DEFAULT_DUST_SATS,
     shaRmd160,
     toHex,
+    strToBytes,
+    WriterBytes,
 } from 'ecash-lib';
 import { encodeCashAddress } from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
+import { ChronikClient } from 'chronik-client';
 import {
     REWARDS_TOKEN_ID,
     REGISTRATION_REWARD_ATOMS,
     REGISTRATION_REWARD_SATS,
+    LOKAD_ID,
 } from './constants';
 import { createUserActionTable } from './db';
 
@@ -206,6 +210,16 @@ export const claim = async (
         // Sync wallet to ensure we have latest token balance
         await wallet.sync();
 
+        // Construct EMPP data push for CLAIM: <lokadId><versionByte><actionCode><msgId>
+        // For CLAIM, msgId is 0 since it's not associated with a specific message
+        const lokadIdBytes = strToBytes(LOKAD_ID);
+        const claimWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
+        claimWriter.putBytes(lokadIdBytes);
+        claimWriter.putU8(0x00); // versionByte
+        claimWriter.putU8(0x00); // CLAIM action
+        claimWriter.putU32(0); // msgId = 0 for CLAIM (not associated with a message)
+        const claimEmppData = claimWriter.data;
+
         // Create action to send ALP tokens
         const tokenSendAction: payment.Action = {
             outputs: [
@@ -230,6 +244,11 @@ export const claim = async (
                     type: 'SEND',
                     tokenId: REWARDS_TOKEN_ID,
                     tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: claimEmppData,
                 },
             ],
         };
@@ -346,16 +365,446 @@ export const handleMessage = async (
 };
 
 /**
+ * Handle sending 1HP token from a liker to a message author
+ * Assumes both users are registered (caller should verify this)
+ * @param pool - Database connection pool
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param chronik - Chronik client for blockchain operations
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ * @param likerUserId - Telegram user ID of the person who liked the message
+ * @param messageAuthorUserId - Telegram user ID of the message author
+ * @param msgId - Telegram message ID for EMPP data push
+ */
+export const handleLike = async (
+    pool: Pool,
+    masterNode: HdNode,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+    likerUserId: number,
+    messageAuthorUserId: number,
+    msgId: number,
+): Promise<void> => {
+    // Get liker's HD index and message author's address
+    const likerResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [likerUserId],
+    );
+    const authorResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [messageAuthorUserId],
+    );
+
+    if (likerResult.rows.length === 0 || authorResult.rows.length === 0) {
+        console.log(
+            `User ${likerUserId} or ${messageAuthorUserId} is not registered`,
+        );
+        return;
+    }
+
+    const likerHdIndex = likerResult.rows[0].hd_index;
+    const authorAddress = authorResult.rows[0].address;
+
+    // Don't send tokens if user is liking their own message
+    if (likerUserId === messageAuthorUserId) {
+        return;
+    }
+
+    // Initialize liker's wallet from their HD index
+    const likerNode = masterNode.derivePath(`m/44'/1899'/${likerHdIndex}'/0/0`);
+    const likerSk = likerNode.seckey();
+    if (!likerSk) {
+        // Not expected to happen, handle for typescript
+        console.error(`Failed to derive secret key for user ${likerUserId}`);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleLike (deriving wallet)',
+            likerUserId,
+            new Error('Failed to derive secret key from HD index'),
+        );
+        return;
+    }
+    const likerWallet = Wallet.fromSk(likerSk, chronik);
+
+    // Send 1HP (1 token atom) from liker's wallet to author
+    try {
+        // Sync liker's wallet to ensure we have latest token balance
+        await likerWallet.sync();
+
+        // Construct EMPP data push: <lokadId><versionByte><actionCode><msgId>
+        // lokadId: 4 bytes (XOVM)
+        // versionByte: 1 byte (0x00)
+        // actionCode: 1 byte (0x01 for LIKE)
+        // msgId: 4 bytes (u32, little-endian)
+        const lokadIdBytes = strToBytes(LOKAD_ID);
+        const writer = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
+        writer.putBytes(lokadIdBytes);
+        writer.putU8(0x00); // versionByte
+        writer.putU8(0x01); // LIKE action
+        writer.putU32(msgId);
+        const likeEmppData = writer.data;
+
+        // Create action to send 1HP token
+        const tokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 1HP token at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(authorAddress),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: 1n, // 1HP
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: likeEmppData,
+                },
+            ],
+        };
+
+        // Build and broadcast the transaction
+        const resp = await likerWallet
+            .action(tokenSendAction)
+            .build()
+            .broadcast();
+
+        if (!resp.success || resp.broadcasted.length === 0) {
+            const errorMsg = `Failed to send 1HP to message author. Response: ${JSON.stringify(resp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'handleLike (sending 1HP)',
+                likerUserId,
+                new Error(errorMsg),
+            );
+        } else {
+            const txid = resp.broadcasted[0];
+            console.log(
+                `Sent 1HP from user ${likerUserId} to message author ${messageAuthorUserId}. TX: ${txid}`,
+            );
+            // Send notification to admin channel
+            // Mb this will get too noisy, but it's a useful record, and also helps unit tests
+            try {
+                await bot.api.sendMessage(
+                    adminChatId,
+                    `${likerUserId} [liked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
+                    { parse_mode: 'Markdown' },
+                );
+            } catch (err) {
+                console.error(
+                    'Error sending like notification to admin channel:',
+                    err,
+                );
+            }
+        }
+    } catch (err) {
+        console.error('Error sending 1HP to message author:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleMsgLike (sending 1HP)',
+            likerUserId,
+            err,
+        );
+    }
+};
+
+/**
+ * Handle sending HP tokens when a message is disliked
+ * The disliker sends 1 HP to the bot wallet
+ * The message author sends 2 HP to the bot wallet
+ * Assumes both users are registered (caller should verify this)
+ * @param pool - Database connection pool
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param chronik - Chronik client for blockchain operations
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ * @param botWalletAddress - The bot wallet address to receive HP tokens
+ * @param dislikerUserId - Telegram user ID of the person who disliked the message
+ * @param messageAuthorUserId - Telegram user ID of the message author
+ * @param msgId - Telegram message ID for EMPP data push
+ */
+export const handleDislike = async (
+    pool: Pool,
+    masterNode: HdNode,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+    botWalletAddress: string,
+    dislikerUserId: number,
+    messageAuthorUserId: number,
+    msgId: number,
+): Promise<void> => {
+    // Get users' HD indices
+    const dislikerResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [dislikerUserId],
+    );
+    const authorResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [messageAuthorUserId],
+    );
+
+    if (dislikerResult.rows.length === 0 || authorResult.rows.length === 0) {
+        console.log(
+            `User ${dislikerUserId} or ${messageAuthorUserId} is not registered`,
+        );
+        return;
+    }
+
+    const dislikerHdIndex = dislikerResult.rows[0].hd_index;
+    const authorHdIndex = authorResult.rows[0].hd_index;
+
+    // Don't process if user is disliking their own message
+    if (dislikerUserId === messageAuthorUserId) {
+        return;
+    }
+
+    // Initialize disliker's wallet
+    const dislikerNode = masterNode.derivePath(
+        `m/44'/1899'/${dislikerHdIndex}'/0/0`,
+    );
+    const dislikerSk = dislikerNode.seckey();
+    if (!dislikerSk) {
+        // Not expected to happen, handle for typescript
+        console.error(`Failed to derive secret key for user ${dislikerUserId}`);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleDislike (deriving disliker wallet)',
+            dislikerUserId,
+            new Error('Failed to derive secret key from HD index'),
+        );
+        return;
+    }
+    const dislikerWallet = Wallet.fromSk(dislikerSk, chronik);
+
+    // Initialize message author's wallet
+    const authorNode = masterNode.derivePath(
+        `m/44'/1899'/${authorHdIndex}'/0/0`,
+    );
+    const authorSk = authorNode.seckey();
+    if (!authorSk) {
+        // Not expected to happen, handle for typescript
+        console.error(
+            `Failed to derive secret key for user ${messageAuthorUserId}`,
+        );
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleDislike (deriving author wallet)',
+            messageAuthorUserId,
+            new Error('Failed to derive secret key from HD index'),
+        );
+        return;
+    }
+    const authorWallet = Wallet.fromSk(authorSk, chronik);
+
+    // Disliker sends 1 HP to bot wallet
+    try {
+        await dislikerWallet.sync();
+
+        // Construct EMPP data push for DISLIKE: <lokadId><versionByte><actionCode><msgId>
+        const lokadIdBytes = strToBytes(LOKAD_ID);
+        const dislikeWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
+        dislikeWriter.putBytes(lokadIdBytes);
+        dislikeWriter.putU8(0x00); // versionByte
+        dislikeWriter.putU8(0x02); // DISLIKE action
+        dislikeWriter.putU32(msgId);
+        const dislikeEmppData = dislikeWriter.data;
+
+        const dislikerTokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 1HP token at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(botWalletAddress),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: 1n, // 1HP
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: dislikeEmppData,
+                },
+            ],
+        };
+
+        const dislikerResp = await dislikerWallet
+            .action(dislikerTokenSendAction)
+            .build()
+            .broadcast();
+
+        if (!dislikerResp.success || dislikerResp.broadcasted.length === 0) {
+            const errorMsg = `Failed to send 1HP from disliker to bot. Response: ${JSON.stringify(dislikerResp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'handleDislike (disliker sending 1HP)',
+                dislikerUserId,
+                new Error(errorMsg),
+            );
+        } else {
+            const txid = dislikerResp.broadcasted[0];
+            console.log(
+                `Disliker ${dislikerUserId} sent 1HP to bot wallet. TX: ${txid}`,
+            );
+            // Send notification to admin channel
+            try {
+                await bot.api.sendMessage(
+                    adminChatId,
+                    `${dislikerUserId} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
+                    { parse_mode: 'Markdown' },
+                );
+            } catch (err) {
+                console.error(
+                    'Error sending dislike notification to admin channel:',
+                    err,
+                );
+            }
+        }
+    } catch (err) {
+        console.error('Error sending 1HP from disliker to bot:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleDislike (disliker sending 1HP)',
+            dislikerUserId,
+            err,
+        );
+    }
+
+    // Message author sends 2 HP to bot wallet
+    try {
+        await authorWallet.sync();
+
+        // Construct EMPP data push for DISLIKED: <lokadId><versionByte><actionCode><msgId>
+        const lokadIdBytes = strToBytes(LOKAD_ID);
+        const dislikedWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
+        dislikedWriter.putBytes(lokadIdBytes);
+        dislikedWriter.putU8(0x00); // versionByte
+        dislikedWriter.putU8(0x03); // DISLIKED action
+        dislikedWriter.putU32(msgId);
+        const dislikedEmppData = dislikedWriter.data;
+
+        const authorTokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 2HP token at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(botWalletAddress),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: 2n, // 2HP
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: dislikedEmppData,
+                },
+            ],
+        };
+
+        const authorResp = await authorWallet
+            .action(authorTokenSendAction)
+            .build()
+            .broadcast();
+
+        if (!authorResp.success || authorResp.broadcasted.length === 0) {
+            const errorMsg = `Failed to send 2HP from message author to bot. Response: ${JSON.stringify(authorResp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'handleDislike (author sending 2HP)',
+                messageAuthorUserId,
+                new Error(errorMsg),
+            );
+        } else {
+            const txid = authorResp.broadcasted[0];
+            console.log(
+                `Message author ${messageAuthorUserId} sent 2HP to bot wallet. TX: ${txid}`,
+            );
+            // Send notification to admin channel
+            try {
+                await bot.api.sendMessage(
+                    adminChatId,
+                    `${messageAuthorUserId} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${dislikerUserId}`,
+                    { parse_mode: 'Markdown' },
+                );
+            } catch (err) {
+                console.error(
+                    'Error sending penalty notification to admin channel:',
+                    err,
+                );
+            }
+        }
+    } catch (err) {
+        console.error('Error sending 2HP from message author to bot:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleDislike (author sending 2HP)',
+            messageAuthorUserId,
+            err,
+        );
+    }
+};
+
+/**
  * Handle emoji reactions to messages in the monitored group chat
  * Updates likes/dislikes counts and logs reaction details
  * @param ctx - Grammy context from the reaction
  * @param pool - Database connection pool
  * @param monitoredGroupChatId - The monitored group chat ID
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param chronik - Chronik client for blockchain operations
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ * @param botWalletAddress - The bot wallet address to receive HP tokens on dislikes
  */
 export const handleMessageReaction = async (
     ctx: Context,
     pool: Pool,
     monitoredGroupChatId: string,
+    masterNode: HdNode,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+    botWalletAddress: string,
 ): Promise<void> => {
     try {
         const reaction = ctx.messageReaction;
@@ -511,8 +960,51 @@ export const handleMessageReaction = async (
             // Count likes and dislikes
             if (emoji === '👎') {
                 dislikesCount++;
+                // Handle dislike: disliker sends 1HP to bot, author sends 2HP to bot
+                // Only call if both users are registered (we already checked isRegistered and messageSenderId)
+                if (isRegistered && messageSenderId !== null) {
+                    // Check if message author is also registered
+                    const authorResult = await pool.query(
+                        'SELECT user_tg_id FROM users WHERE user_tg_id = $1',
+                        [messageSenderId],
+                    );
+                    if (authorResult.rows.length > 0) {
+                        await handleDislike(
+                            pool,
+                            masterNode,
+                            chronik,
+                            bot,
+                            adminChatId,
+                            botWalletAddress,
+                            senderId,
+                            messageSenderId,
+                            msgId,
+                        );
+                    }
+                }
             } else {
                 likesCount++;
+                // Send 1HP to message author when user likes the message
+                // Only call if both users are registered (we already checked isRegistered and messageSenderId)
+                if (isRegistered && messageSenderId !== null) {
+                    // Check if message author is also registered
+                    const authorResult = await pool.query(
+                        'SELECT user_tg_id FROM users WHERE user_tg_id = $1',
+                        [messageSenderId],
+                    );
+                    if (authorResult.rows.length > 0) {
+                        await handleLike(
+                            pool,
+                            masterNode,
+                            chronik,
+                            bot,
+                            adminChatId,
+                            senderId,
+                            messageSenderId,
+                            msgId,
+                        );
+                    }
+                }
             }
 
             // Insert action into user's action table
