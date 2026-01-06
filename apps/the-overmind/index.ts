@@ -9,7 +9,12 @@ import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { HdNode, mnemonicToSeed } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { initDb, initSchema } from './src/db';
-import { register, claim } from './src/bot';
+import {
+    register,
+    claim,
+    handleMessage,
+    handleMessageReaction,
+} from './src/bot';
 
 /**
  * Main startup function
@@ -38,13 +43,19 @@ const startup = async () => {
         throw new Error('ADMIN_GROUP_CHAT_ID environment variable is required');
     }
 
+    const monitoredGroupChatId = process.env.MONITORED_GROUP_CHAT_ID;
+    if (!monitoredGroupChatId) {
+        throw new Error(
+            'MONITORED_GROUP_CHAT_ID environment variable is required',
+        );
+    }
+
     // Initialize database
     const pool = await initDb(databaseUrl);
     console.info('Database initialized');
 
     // Initialize database schema
     await initSchema(pool);
-    console.info('Database schema initialized');
 
     // Initialize Telegram bot
     const bot = new Bot(telegramBotToken);
@@ -90,8 +101,28 @@ const startup = async () => {
     });
     console.info('Bot command handlers registered');
 
-    // Start bot polling
-    await bot.start();
+    // Set up message handler for monitored group chat
+    bot.on('message', async ctx => {
+        await handleMessage(ctx, pool, monitoredGroupChatId);
+    });
+    console.info('Message handler registered for monitored group chat');
+
+    // Set up reaction handler for monitored group chat
+    // Note: Bot must be an administrator in the monitored group chat to receive reaction updates
+    bot.on('message_reaction', async ctx => {
+        await handleMessageReaction(ctx, pool, monitoredGroupChatId);
+    });
+    console.info('Reaction handler registered for monitored group chat');
+
+    // Start bot polling with allowed updates including message_reaction
+    // Note: Bot must be an administrator in the monitored group chat to receive reaction updates
+    await bot.start({
+        allowed_updates: [
+            'message',
+            'message_reaction',
+            'message_reaction_count',
+        ],
+    });
     console.info('Bot started and polling for updates');
 
     console.info('🎉 The Overmind startup completed successfully!');

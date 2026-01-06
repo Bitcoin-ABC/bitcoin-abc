@@ -14,10 +14,12 @@ Roadmap
 [x] Add support for airdropping a token to users that register
 [x] Include XEC with register airdrop
 [x] App should have env vars for an admin channel (for admin alerts)
+[x] Add a database table to store msgs that receive reactions (msg content utf8 + a unique ID)
+[x] Add database-only support for likes and dislikes
+[] Add token tx support for likes and dislikes. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury.
 [] 24-hr cron job to ensure all registered users have at least 1000 XEC
-[] Add a database table to store msgs that receive reactions (msg content utf8 + a unique ID)
-[] Add support for likes, a way for any registered user to send tokens to any registered user by emoji reacting to their msg or replying with an emoji
-[] Add support for dislike, a way for any registered user to TAKE tokens from any registered user. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury
+[] CI deployments
+[] Launch
 [] Add admin features to airdrop from the bot treasury or super react
 [] Add arbitrary tipping
 [] Mute users below certain token balances

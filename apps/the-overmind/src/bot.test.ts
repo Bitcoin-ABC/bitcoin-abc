@@ -23,7 +23,13 @@ import { encodeCashAddress } from 'ecashaddrjs';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import { register, claim, sendErrorToAdmin } from './bot';
+import {
+    register,
+    claim,
+    sendErrorToAdmin,
+    handleMessage,
+    handleMessageReaction,
+} from './bot';
 import { REWARDS_TOKEN_ID, REGISTRATION_REWARD_ATOMS } from './constants';
 
 // Set up chai
@@ -516,7 +522,7 @@ describe('bot', () => {
             expect(actionResult.rows).to.have.length(1);
             expect(actionResult.rows[0].action).to.equal('claim');
             expect(actionResult.rows[0].txid).to.equal(expectedTxid);
-            expect(actionResult.rows[0].post_id).to.equal(null);
+            expect(actionResult.rows[0].msg_id).to.equal(null);
 
             // Verify reply was called with success message and expected txid
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
@@ -711,6 +717,884 @@ describe('bot', () => {
                 );
                 expect(actionResult.rows).to.have.length(0);
             }
+        });
+    });
+
+    describe('handleMessageReaction', () => {
+        let mockCtx: Partial<Context>;
+        let pool: Pool;
+        let sandbox: sinon.SinonSandbox;
+        const MONITORED_CHAT_ID = '-1001234567890';
+        const REACTING_USER_ID = 12345;
+        const MESSAGE_SENDER_ID = 67890;
+        const MSG_ID = 100;
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock Grammy Context
+            mockCtx = {
+                from: {
+                    id: REACTING_USER_ID,
+                    is_bot: false,
+                    first_name: 'Reacting',
+                    username: 'reactinguser',
+                },
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                messageReaction: {
+                    chat: {
+                        id: parseInt(MONITORED_CHAT_ID),
+                        type: 'group',
+                        title: 'Test Group',
+                    },
+                    message_id: MSG_ID,
+                    user: {
+                        id: REACTING_USER_ID,
+                        is_bot: false,
+                        first_name: 'Reacting',
+                        username: 'reactinguser',
+                    },
+                    date: Math.floor(Date.now() / 1000),
+                    old_reaction: [],
+                    new_reaction: [{ type: 'emoji', emoji: '👍' }],
+                },
+            };
+
+            // Create in-memory database
+            pool = await createTestDb();
+
+            // Create a registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REACTING_USER_ID, 'ecash:test123', 1, 'reactinguser'],
+            );
+
+            // Create a message from another user
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username) VALUES ($1, $2, $3, $4)',
+                [MSG_ID, 'Test message', MESSAGE_SENDER_ID, 'messagesender'],
+            );
+
+            // Pre-create user action table for the reacting user (to show they have registered)
+            // We test that the handler updates the table, not that it creates it.
+            const tableName = `user_actions_${REACTING_USER_ID}`;
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS ${tableName} (
+                    id SERIAL,
+                    action TEXT,
+                    txid TEXT,
+                    msg_id INTEGER,
+                    emoji TEXT,
+                    occurred_at TIMESTAMPTZ
+                )
+            `);
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should update likes count when registered user reacts with like emoji', async () => {
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes were incremented
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(1);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+
+            // Check user action was logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].emoji).to.equal('👍');
+        });
+
+        it('should update dislikes count when registered user reacts with thumbs down', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.new_reaction = [
+                    { type: 'emoji', emoji: '👎' },
+                ];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check dislikes were incremented
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+            expect(messageResult.rows[0].dislikes).to.equal(1);
+
+            // Check user action was logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].emoji).to.equal('👎');
+        });
+
+        it('should skip database updates when user reacts to their own message', async () => {
+            // Update message to be from the reacting user
+            await pool.query(
+                'UPDATE messages SET user_tg_id = $1 WHERE msg_id = $2',
+                [REACTING_USER_ID, MSG_ID],
+            );
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes/dislikes were NOT incremented
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+
+            // Check user action was NOT logged (table may not exist if no actions were created)
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2',
+                    ['reaction', MSG_ID],
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
+        });
+
+        it('should skip database updates when unregistered user reacts', async () => {
+            // Remove the user from database
+            await pool.query('DELETE FROM users WHERE user_tg_id = $1', [
+                REACTING_USER_ID,
+            ]);
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes/dislikes were NOT incremented
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+
+            // Check user action table doesn't exist or has no entries
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345',
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
+        });
+
+        it('should process multiple reactions in one update', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.new_reaction = [
+                    { type: 'emoji', emoji: '👍' },
+                    { type: 'emoji', emoji: '❤' },
+                    { type: 'emoji', emoji: '🎉' },
+                ];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes were incremented 3 times
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(3);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+
+            // Check all 3 reactions were logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2 ORDER BY id',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(3);
+            expect(actionResult.rows[0].emoji).to.equal('👍');
+            expect(actionResult.rows[1].emoji).to.equal('❤');
+            expect(actionResult.rows[2].emoji).to.equal('🎉');
+        });
+
+        it('should skip reaction removals', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.old_reaction = [
+                    { type: 'emoji', emoji: '👍' },
+                ];
+                mockCtx.messageReaction.new_reaction = [];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check nothing was updated
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+        });
+
+        it('should skip reactions from wrong chat', async () => {
+            if (mockCtx.chat) {
+                mockCtx.chat.id = -9999999999;
+            }
+            if (mockCtx.messageReaction?.chat) {
+                mockCtx.messageReaction.chat.id = -9999999999;
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check nothing was updated
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+            expect(messageResult.rows[0].dislikes).to.equal(0);
+        });
+
+        it('should handle custom emoji reactions', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.new_reaction = [
+                    { type: 'custom_emoji', custom_emoji_id: '123456789' },
+                ];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes were incremented (custom emoji is a like)
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(1);
+
+            // Check user action was logged with custom emoji ID
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].emoji).to.equal('123456789');
+        });
+
+        it('should handle message not found in database', async () => {
+            // Delete the message
+            await pool.query('DELETE FROM messages WHERE msg_id = $1', [
+                MSG_ID,
+            ]);
+
+            // Should not throw, just skip processing
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check user action table has no entries
+            const tableCheck = await pool.query(
+                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
+            );
+            if (parseInt(tableCheck.rows[0].count) > 0) {
+                const actionResult = await pool.query(
+                    'SELECT * FROM user_actions_12345',
+                );
+                expect(actionResult.rows).to.have.length(0);
+            }
+        });
+
+        it('should handle both likes and dislikes in the same update', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.new_reaction = [
+                    { type: 'emoji', emoji: '👍' },
+                    { type: 'emoji', emoji: '👎' },
+                    { type: 'emoji', emoji: '🎉' },
+                ];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Check likes and dislikes were incremented correctly
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(2); // 👍 and 🎉
+            expect(messageResult.rows[0].dislikes).to.equal(1); // 👎
+
+            // Check all 3 reactions were logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2 ORDER BY id',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(3);
+            expect(actionResult.rows[0].emoji).to.equal('👍');
+            expect(actionResult.rows[1].emoji).to.equal('👎');
+            expect(actionResult.rows[2].emoji).to.equal('🎉');
+        });
+
+        it('should skip already processed reactions', async () => {
+            if (mockCtx.messageReaction) {
+                mockCtx.messageReaction.old_reaction = [
+                    { type: 'emoji', emoji: '👍' },
+                ];
+                mockCtx.messageReaction.new_reaction = [
+                    { type: 'emoji', emoji: '👍' },
+                    { type: 'emoji', emoji: '❤' },
+                ];
+            }
+
+            await handleMessageReaction(
+                mockCtx as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Only the new reaction (❤️) should be processed
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(1);
+
+            // Only one action should be logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1 AND msg_id = $2',
+                ['reaction', MSG_ID],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].emoji).to.equal('❤');
+        });
+
+        it('should handle missing messageReaction in context', async () => {
+            const mockCtxWithoutReaction: Partial<Context> = {
+                ...mockCtx,
+                messageReaction: undefined,
+            };
+
+            await handleMessageReaction(
+                mockCtxWithoutReaction as Context,
+                pool,
+                MONITORED_CHAT_ID,
+            );
+
+            // Nothing should be updated
+            const messageResult = await pool.query(
+                'SELECT likes, dislikes FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(messageResult.rows[0].likes).to.equal(0);
+        });
+    });
+
+    describe('handleMessage', () => {
+        let pool: Pool;
+        const MONITORED_CHAT_ID = '-1001234567890';
+        const OTHER_CHAT_ID = '-1009876543210';
+        const USER_ID = 12345;
+        const USERNAME = 'testuser';
+        const MSG_ID = 100;
+
+        beforeEach(async () => {
+            pool = await createTestDb();
+        });
+
+        afterEach(async () => {
+            await pool.end();
+        });
+
+        it('should store text message from monitored chat', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    text: 'Hello world',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: USERNAME,
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('Hello world');
+            expect(result.rows[0].user_tg_id).to.equal(USER_ID);
+            expect(result.rows[0].username).to.equal(USERNAME);
+        });
+
+        it('should store message with caption from monitored chat', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    photo: [{ file_id: 'photo1', width: 100, height: 100 }],
+                    caption: 'Photo caption',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: USERNAME,
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('Photo caption');
+        });
+
+        it('should store photo without caption as [Photo]', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    photo: [{ file_id: 'photo1', width: 100, height: 100 }],
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('[Photo]');
+        });
+
+        it('should store video with caption', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    video: { file_id: 'video1', width: 100, height: 100 },
+                    caption: 'Video caption',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('Video caption');
+        });
+
+        it('should store video without caption as [Video]', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    video: { file_id: 'video1', width: 100, height: 100 },
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('[Video]');
+        });
+
+        it('should store document with caption', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    document: { file_id: 'doc1', file_name: 'test.pdf' },
+                    caption: 'Document caption',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('Document caption');
+        });
+
+        it('should store document without caption as [Document: filename]', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    document: { file_id: 'doc1', file_name: 'test.pdf' },
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal(
+                '[Document: test.pdf]',
+            );
+        });
+
+        it('should store sticker with emoji', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    sticker: { file_id: 'sticker1', emoji: '😀' },
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('[Sticker: 😀]');
+        });
+
+        it('should store sticker without emoji as [Sticker: sticker]', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    sticker: { file_id: 'sticker1' },
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('[Sticker: sticker]');
+        });
+
+        it('should store unknown message type as [Non-text message]', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    voice: { file_id: 'voice1', duration: 5 },
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].message_text).to.equal('[Non-text message]');
+        });
+
+        it('should ignore messages from other chats', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(OTHER_CHAT_ID),
+                    type: 'group',
+                    title: 'Other Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    text: 'Hello',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(0);
+        });
+
+        it('should handle messages without user ID', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    text: 'Hello',
+                    date: Date.now(),
+                },
+                from: undefined,
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].user_tg_id).to.equal(null);
+            expect(result.rows[0].username).to.equal(null);
+        });
+
+        it('should handle messages without username', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    text: 'Hello',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+            expect(result.rows[0].user_tg_id).to.equal(USER_ID);
+            expect(result.rows[0].username).to.equal(null);
+        });
+
+        it('should not duplicate messages (ON CONFLICT DO NOTHING)', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: MSG_ID,
+                    text: 'Hello',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: USERNAME,
+                },
+            } as unknown as Context;
+
+            // Insert message twice
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query(
+                'SELECT * FROM messages WHERE msg_id = $1',
+                [MSG_ID],
+            );
+            expect(result.rows).to.have.length(1);
+        });
+
+        it('should handle messages without message_id', async () => {
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    text: 'Hello',
+                    date: Date.now(),
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                },
+            } as unknown as Context;
+
+            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+
+            const result = await pool.query('SELECT * FROM messages');
+            expect(result.rows).to.have.length(0);
         });
     });
 });

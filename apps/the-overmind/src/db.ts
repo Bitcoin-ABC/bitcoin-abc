@@ -72,7 +72,8 @@ export const createUserActionTable = async (
             id SERIAL PRIMARY KEY,
             action TEXT NOT NULL,
             txid TEXT,
-            post_id INTEGER,
+            msg_id INTEGER,
+            emoji TEXT, 
             occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
     `;
