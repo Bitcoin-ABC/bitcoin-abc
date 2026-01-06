@@ -2665,12 +2665,13 @@ export const freshWalletWithOneIncomingCashtabMsgTxs: CashtabTx[] = [
 ];
 
 export const freshWalletWithOneIncomingCashtabMsg: ActiveCashtabWallet = {
-    mnemonic: 'some words that would give it all away',
+    mnemonic:
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
     name: '[Burned] useWallet Mock',
-    address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
-    hash: 'd32616c8f849d159b0225f36966ccb85d425e683',
-    sk: 'deadbeef',
-    pk: 'deadbeef',
+    address: 'ecash:qrwzys2q6xq98vwz0kjn6ulu5m6yljr5fyc909kalg',
+    hash: 'dc224140d18053b1c27da53d73fca6f44fc87449',
+    sk: '97f2d7fa9745baa45fc1b53be3ecead6c000265cc5115aa4ae4d1f452057eb0c',
+    pk: '03ee1364cd7af3a9ffbbbd886388776a6f92a7b8dd986f6a8578885e4b856f7bfb',
 
     state: {
         balanceSats: 1000000,
