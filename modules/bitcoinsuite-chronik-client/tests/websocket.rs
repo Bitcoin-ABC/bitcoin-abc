@@ -14,9 +14,7 @@ use bitcoinsuite_chronik_client::{
     test_runner::{handle_test_info, spin_child_process},
     ChronikClient, WsEndpoint,
 };
-use bitcoinsuite_core::{
-    address::CashAddress, block::BlockHash, hash::Hashed, tx::TxId,
-};
+use bitcoinsuite_core::{address::CashAddress, block::BlockHash, tx::TxId};
 use chronik_proto::proto::{
     ws_msg::MsgType, BlockMsgType::*, CoinbaseData, MsgBlock, MsgTx,
     TxFinalizationReason, TxFinalizationReasonType, TxMsgType, TxOutput, WsMsg,
