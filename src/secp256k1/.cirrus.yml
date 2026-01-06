@@ -52,9 +52,6 @@ task:
     - env: {AUTOTOOLS_TARGET: distcheck, CMAKE_TARGET: install, WITH_VALGRIND: no, CTIMETEST: no, BENCH: no}
     - env: {AUTOTOOLS_EXTRA_FLAGS: CPPFLAGS=-DDETERMINISTIC, CMAKE_EXTRA_FLAGS: -DCMAKE_C_FLAGS=-DDETERMINISTIC}
     - env: {AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-O0, CMAKE_EXTRA_FLAGS: -DCMAKE_BUILD_TYPE=Debug, CTIMETEST: no}
-    - env: {AUTOTOOLS_TARGET: check-java, CMAKE_TARGET: check-secp256k1-java, ECDH: yes, EXPERIMENTAL: yes, WITH_VALGRIND: no, CTIMETEST: no, BENCH: no}
-      # The Cirrus macOS VM has no java installed
-      only_if: $CIRRUS_OS == 'linux'
     - env: {SCHNORR: no}
     - env: { ECMULTGENPRECISION: 2 }
     - env: { ECMULTGENPRECISION: 8 }
