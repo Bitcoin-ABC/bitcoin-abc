@@ -1144,3 +1144,11 @@ builds:
             - ecash-wallet
         templates:
             - js-mocha
+
+    ecash-price-tests:
+        runOnDiffRegex:
+            - modules/ecash-price/
+        env:
+            JS_PROJECT_ROOT: modules/ecash-price
+        templates:
+            - js-mocha
