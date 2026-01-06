@@ -23,7 +23,8 @@ export function isWalletContextLoaded(
         'apiError' in context &&
         'updateCashtabState' in context &&
         'processChronikWsMsg' in context &&
-        'cashtabState' in context
+        'cashtabState' in context &&
+        'wallet' in context
     );
 }
 

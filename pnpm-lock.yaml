@@ -655,6 +655,9 @@ importers:
       ecash-lib:
         specifier: file:../modules/ecash-lib
         version: link:../modules/ecash-lib
+      ecash-wallet:
+        specifier: file:../modules/ecash-wallet
+        version: link:../modules/ecash-wallet
       ecashaddrjs:
         specifier: file:../modules/ecashaddrjs
         version: link:../modules/ecashaddrjs

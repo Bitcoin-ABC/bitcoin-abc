@@ -41,6 +41,7 @@ import {
     getMultisendTargetOutputs,
     getMaxSendAmountSatoshis,
 } from 'transactions';
+import { ChronikClient } from 'chronik-client';
 import {
     getCashtabMsgTargetOutput,
     getAirdropTargetOutput,
@@ -70,7 +71,7 @@ import {
 } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
-import { Script } from 'ecash-lib';
+import { Script, payment } from 'ecash-lib';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -390,6 +391,7 @@ const SendXec: React.FC = () => {
         updateCashtabState,
         chronik,
         ecc,
+        wallet: ecashWallet,
     } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
     if (!activeWallet) {
@@ -1453,21 +1455,54 @@ const SendXec: React.FC = () => {
 
         // Send and notify
         try {
-            const txObj = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                targetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                [], // requiredInputs
-                false, // isBurn
-                isPaybutton,
-            );
+            if (!ecashWallet) {
+                // Typescript does not know the component only renders if ecashWallet is not null
+                // We do not expect this to ever happen, prevents ts lint issues
+                throw new Error('Wallet not initialized');
+            }
+
+            // Convert targetOutputs to payment.Action format
+            const action: payment.Action = {
+                outputs: targetOutputs,
+                feePerKb: BigInt(settings.satsPerKb),
+            };
+
+            // Build and broadcast using ecash-wallet
+            // Split steps so we can get rawtx if we need to rebroadcast for paybutton
+            const builtAction = ecashWallet.action(action).build();
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Handle PayButton broadcast if needed
+            if (isPaybutton === true && builtAction.txs.length > 0) {
+                try {
+                    const paybuttonChronik = new ChronikClient([
+                        'https://xec.paybutton.io',
+                    ]);
+                    // We don't care about the result, it's a best effort to lower
+                    // the tx relay time
+                    // Broadcast the first tx to PayButton node
+                    const txHex = builtAction.txs[0].toHex();
+                    await paybuttonChronik.broadcastTx(txHex, false);
+                } catch (err) {
+                    console.log(
+                        'Error broadcasting to paybutton node (ignored): ',
+                        err,
+                    );
+                }
+            }
+
+            // Get the first txid (or the only one for single-tx actions)
+            const txid = broadcastResult.broadcasted[0];
 
             confirmRawTx(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -1481,10 +1516,10 @@ const SendXec: React.FC = () => {
 
             // Handle extension transaction response
             if (isExtensionTransaction) {
-                await handleTransactionApproval(txObj.response.txid);
+                await handleTransactionApproval(txid);
             } else if (txInfoFromUrl) {
                 // Show success modal for URL-based transactions
-                setSuccessTxid(txObj.response.txid);
+                setSuccessTxid(txid);
                 setShowSuccessModal(true);
             }
         } catch (err) {

@@ -790,6 +790,7 @@ builds:
             - modules/ecash-agora/
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
+            - modules/ecash-wallet/
             - modules/b58-ts
             - src/secp256k1/
         artifacts:

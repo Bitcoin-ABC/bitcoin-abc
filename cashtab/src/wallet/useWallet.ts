@@ -50,6 +50,8 @@ import {
 } from 'chronik-client';
 import { Agora } from 'ecash-agora';
 import { Ecc } from 'ecash-lib';
+import { Wallet } from 'ecash-wallet';
+import { fromHex } from 'ecash-lib';
 import CashtabCache from 'config/CashtabCache';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -105,6 +107,10 @@ export interface UseWalletReturnType {
      * will trigger storage writing, and we want to minimize this
      */
     setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
+    /**
+     * Wallet instance from ecash-wallet, initialized from active wallet sk
+     */
+    wallet: Wallet | null;
 }
 
 const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
@@ -174,6 +180,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const wsRef = useRef<WsEndpoint | null>(null);
     // Track app state to prevent reconnection attempts when backgrounded
     const isAppActiveRef = useRef<boolean>(true);
+    // Store Wallet instance from ecash-wallet
+    const walletRef = useRef<Wallet | null>(null);
 
     // Update refs whenever state changes
     useEffect(() => {
@@ -484,6 +492,37 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     /**
+     * Initialize Wallet from ecash-wallet when activeWallet changes
+     */
+    const initializeWallet = async () => {
+        if (currentCashtabStateRef.current.activeWallet === undefined) {
+            walletRef.current = null;
+            return;
+        }
+
+        const activeWallet = currentCashtabStateRef.current.activeWallet;
+        const sk = fromHex(activeWallet.sk);
+        walletRef.current = Wallet.fromSk(sk, chronik);
+        // Sync on init (so we sync on app startup and on wallet switch)
+        // NB we do not sync before sending txs, as ecash-wallet auto updates utxo sets on sending txs,
+        // and we call "update" to sync when txs are received
+
+        try {
+            await walletRef.current.sync();
+        } catch (error) {
+            console.error(
+                `Error in update(cashtabState) from cashtabState`,
+                cashtabState,
+            );
+            console.error(error);
+            // Set this in state so that transactions are disabled until the issue is resolved
+            setApiError(true);
+            // Set loading false, as we may not have set it to false by updating the wallet
+            setLoading(false);
+        }
+    };
+
+    /**
      * For users opening the app in the extension or a webapp window,
      * the only thing that must be up-to-date is the utxo set; we do not
      * care about the token balances or tx history
@@ -502,11 +541,20 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // Get the active wallet
         const activeWallet = currentCashtabStateRef.current.activeWallet;
 
+        // Initialize Wallet from ecash-wallet (this syncs the wallet)
+        await initializeWallet();
+
+        if (walletRef.current === null) {
+            // Should never happen if activeWallet is defined
+            return;
+        }
+
         try {
-            const chronikUtxos = (
-                await chronik.address(activeWallet.address).utxos()
-            ).utxos;
-            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+            // Get UTXOs from the synced wallet
+            const walletUtxos = walletRef.current.utxos;
+
+            // TODO deprecate in-Cashtab utxo org and use ecash-wallet's org
+            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(walletUtxos);
 
             const newState = {
                 ...activeWallet.state,
@@ -520,6 +568,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // Update only the active wallet, wallets[0], in state
             await updateCashtabState({ activeWallet: activeWallet });
+
+            // Update chaintipBlockheight from wallet
+            setChaintipBlockheight(walletRef.current.tipHeight);
         } catch (error) {
             // We only log errors, leaving API Error handling to update()
             console.error(`Error in utxoSync() `, cashtabState);
@@ -546,11 +597,24 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             return;
         }
 
+        // Initialize Wallet if not already initialized (this syncs the wallet)
+        if (walletRef.current === null) {
+            // In practice we do not expect to get to update with an un-initialized wallet
+            await initializeWallet();
+        }
+
+        if (walletRef.current === null) {
+            // Should never happen if activeWallet is defined
+            return;
+        }
+
         try {
-            const chronikUtxos = (
-                await chronik.address(activeWallet.address).utxos()
-            ).utxos;
-            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+            // Sync wallet to get latest UTXOs
+            await walletRef.current.sync();
+
+            // Get UTXOs from the synced wallet
+            const walletUtxos = walletRef.current.utxos;
+            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(walletUtxos);
 
             // Get map of all tokenIds held by this wallet and their balances
             // Note: this function will also update cashtabCache.tokens if any tokens in slpUtxos are not in cache
@@ -580,6 +644,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // We do not update the wallets in state, only the activeWallet
             await updateCashtabState({ activeWallet: activeWallet });
+
+            // Update chaintipBlockheight from wallet
+            setChaintipBlockheight(walletRef.current.tipHeight);
 
             // If everything executed correctly, remove apiError
             setApiError(false);
@@ -860,25 +927,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         setCashtabState(cashtabState);
         setCashtabLoaded(true);
 
-        // Get chaintip height
-        // We do not have to lock UI while this is unavailable
-        // Impact of not having this:
-        // 1) txs may not be marked as avalanche finalized until we get it
-        // 2) we ignore all coinbase utxos in tx building
-        try {
-            const info = await chronik.blockchainInfo();
-            const { tipHeight } = info;
-            // See if it is finalized
-            const blockDetails = await chronik.block(tipHeight);
-
-            if (blockDetails.blockInfo.isFinal) {
-                // We only set a chaintip if it is avalanche finalized
-                setChaintipBlockheight(tipHeight);
-            }
-        } catch (err) {
-            console.error(`Error fetching chaintipBlockheight`, err);
-        }
-
         // Initialize the websocket connection
 
         // Initialize onMessage with loaded wallet. fiatPrice may be null.
@@ -1097,6 +1145,15 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         cashtabBootup();
     }, []);
 
+    // Initialize Wallet when activeWallet changes
+    useEffect(() => {
+        if (cashtabLoaded && cashtabState.activeWallet) {
+            initializeWallet();
+        } else {
+            walletRef.current = null;
+        }
+    }, [cashtabLoaded, cashtabState.activeWallet?.address]);
+
     // Call the update loop every time the user changes the active wallet
     // and immediately after cashtab is loaded
     useEffect(() => {
@@ -1291,6 +1348,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         refreshTransactionHistory,
         update,
         setCashtabState,
+        wallet: walletRef.current,
     } as UseWalletReturnType;
 };
 
