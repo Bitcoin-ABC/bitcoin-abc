@@ -809,6 +809,7 @@ builds:
             - mock-chronik-client
             - ecash-lib
             - ecash-agora
+            - ecash-wallet
         script: |
             corepack enable
             corepack prepare pnpm@10.24.0 --activate

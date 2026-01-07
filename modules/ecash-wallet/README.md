@@ -191,3 +191,10 @@ See tests for detailed methods.
 - Add methods for getting receive and change addresses for HD wallets
 
 [D19245](https://reviews.bitcoinabc.org/D19245)
+
+# 3.0.0 **BREAKING CHANGE**
+
+- Add `sync()` support for the HD wallet
+- Introduce new `WalletUtxo` type with included `address` key, which will help match utxos with keypairs for HD transaction signing (breaking change)
+
+[D19249](https://reviews.bitcoinabc.org/D19249)

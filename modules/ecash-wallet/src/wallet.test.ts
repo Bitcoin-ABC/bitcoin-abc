@@ -49,7 +49,7 @@ import {
     SatsSelectionStrategy,
     paymentOutputsToTxOutputs,
     getNftChildGenesisInput,
-    getUtxoFromOutput,
+    getWalletUtxoFromOutput,
     ChainedTxType,
     getMaxP2pkhOutputs,
     removeSpentUtxos,
@@ -305,12 +305,18 @@ describe('wallet.ts', () => {
 
         // We can get spendableSatsOnlyUtxos, which include spendable coinbase utxos
         expect(testWallet.spendableSatsOnlyUtxos()).to.deep.equal([
-            DUMMY_UTXO,
-            DUMMY_SPENDABLE_COINBASE_UTXO,
+            { ...DUMMY_UTXO, address: DUMMY_ADDRESS },
+            { ...DUMMY_SPENDABLE_COINBASE_UTXO, address: DUMMY_ADDRESS },
         ]);
 
-        // Now we have utxos
-        expect(testWallet.utxos).to.deep.equal(ALL_SUPPORTED_UTXOS);
+        // Now we have utxos (all should have address field)
+        expect(testWallet.utxos.length).to.equal(ALL_SUPPORTED_UTXOS.length);
+        testWallet.utxos.forEach((utxo, i) => {
+            expect(utxo).to.deep.equal({
+                ...ALL_SUPPORTED_UTXOS[i],
+                address: DUMMY_ADDRESS,
+            });
+        });
 
         // We can get the size of a tx without broadcasting it
         expect(
@@ -6058,10 +6064,12 @@ describe('Support functions', () => {
     });
 });
 
-describe('getUtxoFromOutput', () => {
+describe('getWalletUtxoFromOutput', () => {
     const mockTxid =
         '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     const mockOutIdx = 0;
+    const mockOutputScript = MOCK_DESTINATION_SCRIPT.toHex();
+    const mockAddress = MOCK_DESTINATION_ADDRESS;
 
     context('Non-token UTXO', () => {
         it('Can get a non-token UTXO from a PaymentOutput', () => {
@@ -6070,7 +6078,12 @@ describe('getUtxoFromOutput', () => {
                 script: MOCK_DESTINATION_SCRIPT,
             };
 
-            const result = getUtxoFromOutput(output, mockTxid, mockOutIdx);
+            const result = getWalletUtxoFromOutput(
+                output,
+                mockTxid,
+                mockOutIdx,
+                mockOutputScript,
+            );
 
             expect(result).to.deep.equal({
                 outpoint: { txid: mockTxid, outIdx: mockOutIdx },
@@ -6078,6 +6091,7 @@ describe('getUtxoFromOutput', () => {
                 sats: 1000n,
                 isFinal: false,
                 isCoinbase: false,
+                address: mockAddress,
             });
         });
     });
@@ -6096,10 +6110,11 @@ describe('getUtxoFromOutput', () => {
                 isMintBaton: true,
             };
 
-            const result = getUtxoFromOutput(
+            const result = getWalletUtxoFromOutput(
                 output,
                 mockTxid,
                 mockOutIdx,
+                mockOutputScript,
                 tokenType,
             );
 
@@ -6115,6 +6130,7 @@ describe('getUtxoFromOutput', () => {
                     atoms: 0n,
                     isMintBaton: true,
                 },
+                address: mockAddress,
             });
         });
 
@@ -6127,10 +6143,11 @@ describe('getUtxoFromOutput', () => {
                 isMintBaton: true,
             };
 
-            const result = getUtxoFromOutput(
+            const result = getWalletUtxoFromOutput(
                 output,
                 mockTxid,
                 mockOutIdx,
+                mockOutputScript,
                 tokenType,
             );
 
@@ -6146,6 +6163,7 @@ describe('getUtxoFromOutput', () => {
                     atoms: 0n,
                     isMintBaton: true,
                 },
+                address: mockAddress,
             });
         });
 
@@ -6158,10 +6176,11 @@ describe('getUtxoFromOutput', () => {
                 isMintBaton: false,
             };
 
-            const result = getUtxoFromOutput(
+            const result = getWalletUtxoFromOutput(
                 output,
                 mockTxid,
                 mockOutIdx,
+                mockOutputScript,
                 tokenType,
             );
 
@@ -6177,6 +6196,7 @@ describe('getUtxoFromOutput', () => {
                     atoms: 1000n,
                     isMintBaton: false,
                 },
+                address: mockAddress,
             });
         });
 
@@ -6189,10 +6209,11 @@ describe('getUtxoFromOutput', () => {
                 isMintBaton: false,
             };
 
-            const result = getUtxoFromOutput(
+            const result = getWalletUtxoFromOutput(
                 output,
                 mockTxid,
                 mockOutIdx,
+                mockOutputScript,
                 tokenType,
             );
 
@@ -6208,6 +6229,7 @@ describe('getUtxoFromOutput', () => {
                     atoms: 1000n,
                     isMintBaton: false,
                 },
+                address: mockAddress,
             });
         });
     });
@@ -6219,7 +6241,12 @@ describe('getUtxoFromOutput', () => {
             };
 
             expect(() =>
-                getUtxoFromOutput(output, mockTxid, mockOutIdx),
+                getWalletUtxoFromOutput(
+                    output,
+                    mockTxid,
+                    mockOutIdx,
+                    mockOutputScript,
+                ),
             ).to.throw('Output must have sats');
         });
 
@@ -6234,7 +6261,12 @@ describe('getUtxoFromOutput', () => {
             };
 
             expect(() =>
-                getUtxoFromOutput(output, mockTxid, mockOutIdx),
+                getWalletUtxoFromOutput(
+                    output,
+                    mockTxid,
+                    mockOutIdx,
+                    mockOutputScript,
+                ),
             ).to.throw('Token type is required for token utxos');
         });
     });
@@ -6351,7 +6383,11 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1, utxo2, utxo3];
+        testWallet.utxos = [
+            { ...utxo1, address: DUMMY_ADDRESS },
+            { ...utxo2, address: DUMMY_ADDRESS },
+            { ...utxo3, address: DUMMY_ADDRESS },
+        ];
         expect(testWallet.utxos.length).to.equal(3);
 
         // Create a transaction that spends utxo2
@@ -6371,9 +6407,18 @@ describe('removeSpentUtxos', () => {
 
         // utxo2 should be removed, utxo1 and utxo3 should remain
         expect(testWallet.utxos.length).to.equal(2);
-        expect(testWallet.utxos).to.deep.include(utxo1);
-        expect(testWallet.utxos).to.deep.include(utxo3);
-        expect(testWallet.utxos).to.not.deep.include(utxo2);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo3,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.not.deep.include({
+            ...utxo2,
+            address: DUMMY_ADDRESS,
+        });
     });
 
     it('Removes multiple UTXOs when transaction has multiple matching inputs', () => {
@@ -6407,7 +6452,12 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1, utxo2, utxo3, utxo4];
+        testWallet.utxos = [
+            { ...utxo1, address: DUMMY_ADDRESS },
+            { ...utxo2, address: DUMMY_ADDRESS },
+            { ...utxo3, address: DUMMY_ADDRESS },
+            { ...utxo4, address: DUMMY_ADDRESS },
+        ];
         expect(testWallet.utxos.length).to.equal(4);
 
         // Create a transaction that spends utxo1 and utxo3
@@ -6433,10 +6483,22 @@ describe('removeSpentUtxos', () => {
 
         // utxo1 and utxo3 should be removed, utxo2 and utxo4 should remain
         expect(testWallet.utxos.length).to.equal(2);
-        expect(testWallet.utxos).to.deep.include(utxo2);
-        expect(testWallet.utxos).to.deep.include(utxo4);
-        expect(testWallet.utxos).to.not.deep.include(utxo1);
-        expect(testWallet.utxos).to.not.deep.include(utxo3);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo2,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo4,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.not.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.not.deep.include({
+            ...utxo3,
+            address: DUMMY_ADDRESS,
+        });
     });
 
     it('Does not remove UTXOs when transaction has no matching inputs', () => {
@@ -6456,7 +6518,10 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1, utxo2];
+        testWallet.utxos = [
+            { ...utxo1, address: DUMMY_ADDRESS },
+            { ...utxo2, address: DUMMY_ADDRESS },
+        ];
         expect(testWallet.utxos.length).to.equal(2);
 
         // Create a transaction that spends a UTXO not in the wallet
@@ -6476,8 +6541,14 @@ describe('removeSpentUtxos', () => {
 
         // All UTXOs should remain
         expect(testWallet.utxos.length).to.equal(2);
-        expect(testWallet.utxos).to.deep.include(utxo1);
-        expect(testWallet.utxos).to.deep.include(utxo2);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo2,
+            address: DUMMY_ADDRESS,
+        });
     });
 
     it('Handles transaction with no inputs', () => {
@@ -6490,7 +6561,7 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1];
+        testWallet.utxos = [{ ...utxo1, address: DUMMY_ADDRESS }];
         expect(testWallet.utxos.length).to.equal(1);
 
         // Create a transaction with no inputs
@@ -6503,7 +6574,10 @@ describe('removeSpentUtxos', () => {
 
         // All UTXOs should remain
         expect(testWallet.utxos.length).to.equal(1);
-        expect(testWallet.utxos).to.deep.include(utxo1);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
     });
 
     it('Handles wallet with no UTXOs', () => {
@@ -6553,7 +6627,11 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1, utxo2, utxo3];
+        testWallet.utxos = [
+            { ...utxo1, address: DUMMY_ADDRESS },
+            { ...utxo2, address: DUMMY_ADDRESS },
+            { ...utxo3, address: DUMMY_ADDRESS },
+        ];
         expect(testWallet.utxos.length).to.equal(3);
 
         // Create a transaction that spends only utxo2 (same txid, different outIdx)
@@ -6573,9 +6651,18 @@ describe('removeSpentUtxos', () => {
 
         // Only utxo2 should be removed
         expect(testWallet.utxos.length).to.equal(2);
-        expect(testWallet.utxos).to.deep.include(utxo1);
-        expect(testWallet.utxos).to.deep.include(utxo3);
-        expect(testWallet.utxos).to.not.deep.include(utxo2);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo3,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.not.deep.include({
+            ...utxo2,
+            address: DUMMY_ADDRESS,
+        });
     });
 
     it('Handles partial matches correctly - removes only matching UTXOs', () => {
@@ -6602,7 +6689,11 @@ describe('removeSpentUtxos', () => {
             isFinal: true,
         };
 
-        testWallet.utxos = [utxo1, utxo2, utxo3];
+        testWallet.utxos = [
+            { ...utxo1, address: DUMMY_ADDRESS },
+            { ...utxo2, address: DUMMY_ADDRESS },
+            { ...utxo3, address: DUMMY_ADDRESS },
+        ];
         expect(testWallet.utxos.length).to.equal(3);
 
         // Create a transaction with one matching input and one non-matching input
@@ -6628,9 +6719,18 @@ describe('removeSpentUtxos', () => {
 
         // Only utxo2 should be removed
         expect(testWallet.utxos.length).to.equal(2);
-        expect(testWallet.utxos).to.deep.include(utxo1);
-        expect(testWallet.utxos).to.deep.include(utxo3);
-        expect(testWallet.utxos).to.not.deep.include(utxo2);
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo1,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.deep.include({
+            ...utxo3,
+            address: DUMMY_ADDRESS,
+        });
+        expect(testWallet.utxos).to.not.deep.include({
+            ...utxo2,
+            address: DUMMY_ADDRESS,
+        });
     });
 });
 
@@ -7032,5 +7132,255 @@ describe('HD Wallet', () => {
         ); // Non-HD wallet
 
         expect(wallet.getAllAddresses()).to.deep.equal([]);
+    });
+
+    it('HD wallet sync queries UTXOs for all addresses at or below current indices', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 2, changeIndex: 1 },
+        );
+
+        // Get addresses for indices 0, 1, 2 (receive) and 0, 1 (change)
+        const receive0 = wallet.getReceiveAddress(0);
+        const receive1 = wallet.getReceiveAddress(1);
+        const receive2 = wallet.getReceiveAddress(2);
+        const change0 = wallet.getChangeAddress(0);
+        const change1 = wallet.getChangeAddress(1);
+
+        // Set up mock UTXOs for each address
+        const utxo0: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+            sats: 1000n,
+        };
+        const utxo1: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+            sats: 2000n,
+        };
+        const utxo2: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 2 },
+            sats: 3000n,
+        };
+        const utxo3: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 3 },
+            sats: 4000n,
+        };
+        const utxo4: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 4 },
+            sats: 5000n,
+        };
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(receive0, [utxo0]);
+        mockChronik.setUtxosByAddress(receive1, [utxo1]);
+        mockChronik.setUtxosByAddress(receive2, [utxo2]);
+        mockChronik.setUtxosByAddress(change0, [utxo3]);
+        mockChronik.setUtxosByAddress(change1, [utxo4]);
+
+        await wallet.sync();
+
+        // All UTXOs should be merged
+        expect(wallet.utxos.length).to.equal(5);
+        expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+    });
+
+    it('HD wallet sync derives missing addresses when keypairs count is less than expected', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 3, changeIndex: 2 },
+        );
+
+        // Initially only first receive address is cached
+        expect(wallet.keypairs.size).to.equal(1);
+        expect(wallet.getAllAddresses().length).to.equal(1);
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Set empty UTXOs for all addresses (they still need to be checked)
+        const receive0 = wallet.getReceiveAddress(0);
+        const receive1 = wallet.getReceiveAddress(1);
+        const receive2 = wallet.getReceiveAddress(2);
+        const receive3 = wallet.getReceiveAddress(3);
+        const change0 = wallet.getChangeAddress(0);
+        const change1 = wallet.getChangeAddress(1);
+        const change2 = wallet.getChangeAddress(2);
+
+        mockChronik.setUtxosByAddress(receive0, []);
+        mockChronik.setUtxosByAddress(receive1, []);
+        mockChronik.setUtxosByAddress(receive2, []);
+        mockChronik.setUtxosByAddress(receive3, []);
+        mockChronik.setUtxosByAddress(change0, []);
+        mockChronik.setUtxosByAddress(change1, []);
+        mockChronik.setUtxosByAddress(change2, []);
+
+        await wallet.sync();
+
+        // All addresses should now be cached (4 receive + 3 change = 7 total)
+        expect(wallet.keypairs.size).to.equal(7);
+        expect(wallet.getAllAddresses().length).to.equal(7);
+        expect(wallet.keypairs.has(receive0)).to.equal(true);
+        expect(wallet.keypairs.has(receive1)).to.equal(true);
+        expect(wallet.keypairs.has(receive2)).to.equal(true);
+        expect(wallet.keypairs.has(receive3)).to.equal(true);
+        expect(wallet.keypairs.has(change0)).to.equal(true);
+        expect(wallet.keypairs.has(change1)).to.equal(true);
+        expect(wallet.keypairs.has(change2)).to.equal(true);
+    });
+
+    it('HD wallet sync uses cached addresses when keypairs count matches expected', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 1, changeIndex: 1 },
+        );
+
+        // Pre-cache all addresses
+        const receive0 = wallet.getReceiveAddress(0);
+        const receive1 = wallet.getReceiveAddress(1);
+        const change0 = wallet.getChangeAddress(0);
+        const change1 = wallet.getChangeAddress(1);
+
+        // Verify all addresses are cached
+        expect(wallet.keypairs.size).to.equal(4);
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Set UTXOs
+        const utxo0: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+            sats: 1000n,
+        };
+        const utxo1: ScriptUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+            sats: 2000n,
+        };
+
+        mockChronik.setUtxosByAddress(receive0, [utxo0]);
+        mockChronik.setUtxosByAddress(receive1, [utxo1]);
+        mockChronik.setUtxosByAddress(change0, []);
+        mockChronik.setUtxosByAddress(change1, []);
+
+        await wallet.sync();
+
+        // Should have synced all addresses
+        expect(wallet.utxos.length).to.equal(2);
+        expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+    });
+
+    it('HD wallet sync merges UTXOs from multiple addresses', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 1, changeIndex: 1 },
+        );
+
+        const receive0 = wallet.getReceiveAddress(0);
+        const receive1 = wallet.getReceiveAddress(1);
+        const change0 = wallet.getChangeAddress(0);
+        const change1 = wallet.getChangeAddress(1);
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Set multiple UTXOs per address
+        const utxos0: ScriptUtxo[] = [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                sats: 1000n,
+            },
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+                sats: 2000n,
+            },
+        ];
+        const utxos1: ScriptUtxo[] = [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 2 },
+                sats: 3000n,
+            },
+        ];
+        const utxos2: ScriptUtxo[] = [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 3 },
+                sats: 4000n,
+            },
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 4 },
+                sats: 5000n,
+            },
+        ];
+        const utxos3: ScriptUtxo[] = [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 5 },
+                sats: 6000n,
+            },
+        ];
+
+        mockChronik.setUtxosByAddress(receive0, utxos0);
+        mockChronik.setUtxosByAddress(receive1, utxos1);
+        mockChronik.setUtxosByAddress(change0, utxos2);
+        mockChronik.setUtxosByAddress(change1, utxos3);
+
+        await wallet.sync();
+
+        // All UTXOs should be merged (2 + 1 + 2 + 1 = 6 total)
+        expect(wallet.utxos.length).to.equal(6);
+
+        // Verify total sats
+        const totalSats = wallet.utxos.reduce(
+            (sum, utxo) => sum + utxo.sats,
+            0n,
+        );
+        expect(totalSats).to.equal(21000n); // 1000 + 2000 + 3000 + 4000 + 5000 + 6000
+    });
+
+    it('Non-HD wallet sync still works as before', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        ); // Non-HD wallet
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(wallet.address, [DUMMY_UTXO]);
+
+        await wallet.sync();
+
+        expect(wallet.utxos).to.deep.equal([
+            { ...DUMMY_UTXO, address: wallet.address },
+        ]);
+        expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
     });
 });

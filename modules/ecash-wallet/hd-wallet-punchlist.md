@@ -16,7 +16,7 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ## Status
 
-**Completed**: Foundation and Address Generation (sections 1-5)
+**Completed**: Foundation, Address Generation, and Enhanced Sync (sections 1-6)
 
 - ✅ HD wallet type detection
 - ✅ HD wallet constructor via `fromMnemonic` with options
@@ -24,18 +24,20 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 - ✅ Index tracking (receiveIndex, changeIndex)
 - ✅ Keypair management and derivation
 - ✅ Address generation methods (getReceiveAddress, getChangeAddress, getNextReceiveAddress, getNextChangeAddress, getAllAddresses)
+- ✅ Enhanced sync method for HD wallets
+    - Syncs all addresses at or below current indices (0 to receiveIndex, 0 to changeIndex)
+    - Derives missing addresses if keypairs count is less than expected
+    - Merges UTXOs from all addresses
+- ✅ WalletUtxo implementation
+    - Created `WalletUtxo` interface extending `ScriptUtxo` with `address` field
+    - Optimized address derivation (once per address, not per UTXO)
+    - Enables efficient UTXO-to-keypair lookup for signing
 - ✅ Comprehensive test coverage
 
-**Next Steps**: Enhanced Sync (section 6)
-
-- Modify `sync()` method to handle HD wallets with multiple addresses
-- Gap limit checking during sync
-- Address discovery from blockchain state
-
-**Future**: Transaction building and signing (sections 7-8)
+**Next Steps**: Transaction building and signing (sections 7-8)
 
 - Change address generation in transactions
-- UTXO to private key matching for signing
+- UTXO to private key matching for signing (now enabled by WalletUtxo.address field)
 
 ## Core Requirements
 
@@ -129,24 +131,31 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ### 6. Enhanced Sync Method
 
-- [ ] Modify `sync()` method to handle HD wallets
+- [x] Modify `sync()` method to handle HD wallets
     - If `isHD === false`, use existing single-address sync logic
     - If `isHD === true`:
+        - Check if `keypairs.size >= (receiveIndex + 1) + (changeIndex + 1)`
+        - If not, derive missing addresses by calling `getReceiveAddress(i)` and `getChangeAddress(i)` for all indices
         - Get all addresses from `keypairs` map
-        - Query chronik for UTXOs for all addresses
+        - Query chronik for UTXOs for all addresses in parallel
         - Merge UTXOs from all addresses into `this.utxos`
         - Update `tipHeight`
 
-- [ ] Add gap limit checking during sync
-    - After syncing, check if any addresses below current index have received funds
-    - If funds found at lower indices, ensure those addresses are in `keypairs` map
-    - Consider implementing gap limit (e.g., 20 unused addresses) before stopping address generation
+- [x] WalletUtxo implementation
+    - Created `WalletUtxo` interface extending `ScriptUtxo` with `address: string` field
+    - Added `_convertToWalletUtxos()` method to batch-convert UTXOs (derives address once per address)
+    - Updated `utxos` property type from `ScriptUtxo[]` to `WalletUtxo[]`
+    - Updated all UTXO-returning methods to return `WalletUtxo[]`
+    - Enables efficient address-based keypair lookup for signing
 
 - [ ] Add method `syncAndDiscoverAddresses(): Promise<void>`
-    - Syncs all known addresses
+    - Manual method for wallet restoration/discovery scenarios
+    - Syncs all known addresses first
+    - Checks addresses sequentially from index 0 with gap limit (e.g., 20 consecutive unused addresses)
     - Checks for funds at addresses with indices < current index
     - Automatically discovers and adds addresses that have received funds
     - Updates indices accordingly
+    - Note: Normal `sync()` assumes indices are accurate and does not perform gap limit checking
 
 ### 7. Change Address Generation in Transactions
 
@@ -165,20 +174,25 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ### 8. UTXO to Private Key Matching
 
-- [ ] Add method `getPrivateKeyForUtxo(utxo: ScriptUtxo): Uint8Array | undefined`
-    - Extract address from `utxo.script`
+- [x] WalletUtxo implementation (prerequisite)
+    - `WalletUtxo` extends `ScriptUtxo` with `address: string` field
+    - All UTXOs now have `address` field for direct keypair lookup
+    - No need to derive address from script during signing
+
+- [ ] Add method `getPrivateKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined`
+    - Use `utxo.address` (already available in WalletUtxo)
     - Look up keypair in `keypairs` map using address
     - Return `sk` from keypair, or undefined if not found
 
 - [ ] Modify signing logic to use address-based key lookup
     - Current code uses `P2PKHSignatory(this.sk, this.pk, sighash)` for single-address wallet
     - For HD wallets, need to:
-        - Extract address from each UTXO being spent
+        - Use `utxo.address` from each `WalletUtxo` being spent
         - Look up corresponding private key from `keypairs` map
         - Create signatory with the correct keypair for each input
 
 - [ ] Update `_prepareInputs` or similar method
-    - For each UTXO input, determine which address it belongs to
+    - For each UTXO input, use `utxo.address` to determine which address it belongs to
     - Look up private key for that address
     - Create appropriate signatory for each input
 

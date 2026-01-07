@@ -1226,8 +1226,21 @@ export const walletWithXecAndTokensStored: StoredCashtabWallet = {
 };
 
 // Keep state separate; it is not in storage but we need it to build mocks
-export const walletWithXecAndTokensState: CashtabWalletState =
-    walletWithXecAndTokens_pre_3_41_0.state;
+// Note: UTXOs now include address field from ecash-wallet WalletUtxo type
+const walletAddress = 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g';
+export const walletWithXecAndTokensState: CashtabWalletState = {
+    ...walletWithXecAndTokens_pre_3_41_0.state,
+    slpUtxos: walletWithXecAndTokens_pre_3_41_0.state.slpUtxos.map(utxo => ({
+        ...utxo,
+        address: walletAddress,
+    })),
+    nonSlpUtxos: walletWithXecAndTokens_pre_3_41_0.state.nonSlpUtxos.map(
+        utxo => ({
+            ...utxo,
+            address: walletAddress,
+        }),
+    ),
+};
 
 export const walletWithXecAndTokensActive: ActiveCashtabWallet = {
     ...walletWithXecAndTokensStored,

@@ -89,6 +89,14 @@ export interface KeypairData {
 }
 
 /**
+ * Wallet UTXO with cached address for quick lookup
+ * Extends ScriptUtxo with an address field derived from outputScript
+ */
+export interface WalletUtxo extends ScriptUtxo {
+    address: string;
+}
+
+/**
  * Wallet
  *
  * Implements a one-address eCash (XEC) wallet
@@ -119,7 +127,7 @@ export class Wallet {
      */
     tipHeight: number;
     /** The utxo set of this wallet */
-    utxos: ScriptUtxo[];
+    utxos: WalletUtxo[];
     /** Whether this is an HD wallet */
     isHD: boolean;
     /** Account number for HD wallets (defaults to 0) */
@@ -328,16 +336,105 @@ export class Wallet {
      * NB the reason we update tipHeight with sync() is
      * to determine which (if any) coinbase utxos
      * are spendable when we build txs
+     *
+     * For HD wallets, syncs all addresses at or below current indices
+     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex)
      */
     public async sync(): Promise<void> {
-        // Update the utxo set
-        const utxos = (await this.chronik.address(this.address).utxos()).utxos;
+        if (!this.isHD) {
+            // Single-address wallet: use existing sync logic
+            const result = await this.chronik.address(this.address).utxos();
+            const tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
 
-        // Get tipHeight of last sync()
+            // Convert ScriptUtxos to WalletUtxos (derive address once for all UTXOs)
+            this.utxos = this._convertToWalletUtxos(
+                result.utxos,
+                result.outputScript,
+            );
+            this.tipHeight = tipHeight;
+            return;
+        }
+
+        // HD wallet: sync all addresses at or below current indices
+        await this._syncHDWallet();
+    }
+
+    /**
+     * Convert an array of ScriptUtxos to WalletUtxos by deriving the address from outputScript once
+     *
+     * @param utxos - Array of ScriptUtxos to convert
+     * @param outputScript - The output script as a hex string (from ScriptUtxos.outputScript)
+     * @returns Array of WalletUtxos with address field added
+     */
+    public _convertToWalletUtxos(
+        utxos: ScriptUtxo[],
+        outputScript: string,
+    ): WalletUtxo[] {
+        // Derive address from outputScript hex string once
+        const address = Address.fromScriptHex(outputScript).toString();
+
+        // Add address to all UTXOs
+        return utxos.map(utxo => ({
+            ...utxo,
+            address,
+        }));
+    }
+
+    /**
+     * Sync HD wallet: query UTXOs for all addresses at or below current indices
+     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex)
+     */
+    private async _syncHDWallet(): Promise<void> {
+        // Get tipHeight (same for all addresses)
         const tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
 
-        // Only set chronik-dependent fields if we got no errors
-        this.utxos = utxos;
+        // Expected number of addresses based on indices
+        const expectedAddressCount =
+            this.receiveIndex + 1 + this.changeIndex + 1;
+
+        // Ensure all addresses are cached (derive if needed)
+        // If keypairs.size matches expected count, we can use cached addresses
+        // Otherwise, derive missing addresses by calling getReceiveAddress/getChangeAddress
+        // NB we assume the receive and change indices are correct; we will implement
+        // a method of "discovering" these indices if they are unknown later
+        if (this.keypairs.size < expectedAddressCount) {
+            // Derive all receive addresses from 0 to receiveIndex
+            for (let i = 0; i <= this.receiveIndex; i++) {
+                this.getReceiveAddress(i); // This will cache if not already cached
+            }
+
+            // Derive all change addresses from 0 to changeIndex
+            for (let i = 0; i <= this.changeIndex; i++) {
+                this.getChangeAddress(i); // This will cache if not already cached
+            }
+        }
+
+        // Get all addresses to sync (now guaranteed to be cached)
+        const allAddresses = this.getAllAddresses();
+
+        // Query UTXOs for all addresses in parallel
+        // TODO chronik and chronik-client should be optimized to support a single query for utxos
+        // at multiple addresses
+        const utxoPromises = allAddresses.map(address =>
+            this.chronik.address(address).utxos(),
+        );
+        const utxoResults = await Promise.all(utxoPromises);
+
+        // Merge all UTXOs and convert to WalletUtxo (derive address once per address)
+        const allUtxos: WalletUtxo[] = [];
+        for (const result of utxoResults) {
+            // result.outputScript is the hex string for all UTXOs in this result
+            // Derive address once and apply to all UTXOs from this address
+            allUtxos.push(
+                ...this._convertToWalletUtxos(
+                    result.utxos,
+                    result.outputScript,
+                ),
+            );
+        }
+
+        // Update wallet state
+        this.utxos = allUtxos;
         this.tipHeight = tipHeight;
     }
 
@@ -347,7 +444,7 @@ export class Wallet {
      * - Any spendable coinbase UTXO without tokens
      * - Any non-coinbase UTXO without tokens
      */
-    public spendableSatsOnlyUtxos(): ScriptUtxo[] {
+    public spendableSatsOnlyUtxos(): WalletUtxo[] {
         return this.utxos
             .filter(
                 utxo =>
@@ -364,7 +461,7 @@ export class Wallet {
     /**
      * Return all spendable utxos
      */
-    public spendableUtxos(): ScriptUtxo[] {
+    public spendableUtxos(): WalletUtxo[] {
         return this.utxos
             .filter(utxo => utxo.isCoinbase === false)
             .concat(this._spendableCoinbaseUtxos());
@@ -374,7 +471,7 @@ export class Wallet {
      * Return all spendable coinbase utxos
      * i.e. coinbase utxos with COINBASE_MATURITY confirmations
      */
-    private _spendableCoinbaseUtxos(): ScriptUtxo[] {
+    private _spendableCoinbaseUtxos(): WalletUtxo[] {
         return this.utxos.filter(
             utxo =>
                 utxo.isCoinbase === true &&
@@ -1360,9 +1457,15 @@ class WalletAction {
                     }
                 }
 
-                this._wallet.utxos.push(
-                    getUtxoFromOutput(finalizedOutputs[i], txid, i, tokenType),
+                const outputScript = finalizedOutput.script.toHex();
+                const walletUtxo = getWalletUtxoFromOutput(
+                    finalizedOutput,
+                    txid,
+                    i,
+                    outputScript,
+                    tokenType,
                 );
+                this._wallet.utxos.push(walletUtxo);
             }
         }
 
@@ -1380,13 +1483,14 @@ class WalletAction {
             // Note that ecash-lib supports change outputs at any Script, so we must still confirm this is going to our wallet's script
             if (changeOutput.script.toHex() === this._wallet.script.toHex()) {
                 // This will be a utxo
-                this._wallet.utxos.push(
-                    getUtxoFromOutput(
-                        tx.outputs[changeOutIdx],
-                        txid,
-                        changeOutIdx,
-                    ),
+                const outputScript = changeOutput.script.toHex();
+                const walletUtxo = getWalletUtxoFromOutput(
+                    tx.outputs[changeOutIdx],
+                    txid,
+                    changeOutIdx,
+                    outputScript,
                 );
+                this._wallet.utxos.push(walletUtxo);
             }
         }
     }
@@ -4303,15 +4407,23 @@ export const finalizeOutputs = (
 };
 
 /**
- * Convert a PaymentOutput to a ScriptUtxo
+ * Convert a PaymentOutput to a WalletUtxo
  * NB this function assumes the output is from a valid tx that met valid token spec conditions
+ *
+ * @param output - The PaymentOutput to convert
+ * @param txid - Transaction ID
+ * @param outIdx - Output index
+ * @param outputScript - The output script as a hex string (used to derive address)
+ * @param tokenType - Optional token type for token UTXOs
+ * @returns WalletUtxo with address field derived from outputScript
  */
-export const getUtxoFromOutput = (
+export const getWalletUtxoFromOutput = (
     output: payment.PaymentOutput,
     txid: string,
     outIdx: number,
+    outputScript: string,
     tokenType?: TokenType,
-): ScriptUtxo => {
+): WalletUtxo => {
     // Create the outpoint
     const outpoint = { txid, outIdx };
 
@@ -4321,6 +4433,9 @@ export const getUtxoFromOutput = (
         // NB we do not expect this function to be called on OP_RETURN outputs
         throw new Error('Output must have sats');
     }
+
+    // Derive address from outputScript
+    const address = Address.fromScriptHex(outputScript).toString();
 
     if ('tokenId' in output) {
         if (typeof tokenType === 'undefined') {
@@ -4356,6 +4471,7 @@ export const getUtxoFromOutput = (
             isFinal: false,
             // A utxo created from a PaymentOutput will never be a coinbase utxo
             isCoinbase: false,
+            address,
         };
     } else {
         // Just a regular non-token utxo
@@ -4368,6 +4484,7 @@ export const getUtxoFromOutput = (
             isFinal: false,
             // A utxo created from a PaymentOutput will never be a coinbase utxo
             isCoinbase: false,
+            address,
         };
     }
 };
