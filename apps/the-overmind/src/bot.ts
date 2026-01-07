@@ -65,18 +65,49 @@ export const sendErrorToAdmin = async (
 /**
  * Register a user with The Overmind
  * Derives a wallet address for the user and stores it in the database
+ * Registration is only allowed for users who are members of the monitored group chat
  * @param ctx - Grammy context from the command
  * @param masterNode - Master HD node derived from the mod's mnemonic
  * @param pool - Database connection pool
+ * @param bot - Bot instance for checking chat membership
+ * @param monitoredGroupChatId - The monitored group chat ID (required, user must be a member)
  */
 export const register = async (
     ctx: Context,
     masterNode: HdNode,
     pool: Pool,
+    bot: Bot,
+    monitoredGroupChatId: string,
 ): Promise<void> => {
     const userId = ctx.from?.id;
     if (!userId) {
         await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is a member of the monitored group chat
+    try {
+        const chatMember = await bot.api.getChatMember(
+            monitoredGroupChatId,
+            userId,
+        );
+        // User must be a member, administrator, or creator (not left or kicked)
+        const validStatuses = ['member', 'administrator', 'creator'];
+        if (!validStatuses.includes(chatMember.status)) {
+            await ctx.reply(
+                '❌ You must be a member of the monitored chat to register. Please join the main eCash telegram channel first.',
+            );
+            return;
+        }
+    } catch (err) {
+        // If getChatMember fails, the user is likely not a member or bot lacks permissions
+        console.error(
+            `Error checking chat membership for user ${userId}:`,
+            err,
+        );
+        await ctx.reply(
+            '❌ Could not verify your membership in the monitored chat. Please ensure you are a member of the main eCash telegram channel.',
+        );
         return;
     }
 

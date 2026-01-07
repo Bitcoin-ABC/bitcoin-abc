@@ -94,7 +94,7 @@ const startup = async () => {
 
     // Set up bot command handlers
     bot.command('register', async ctx => {
-        await register(ctx, master, pool);
+        await register(ctx, master, pool, bot, monitoredGroupChatId);
     });
     bot.command('claim', async ctx => {
         await claim(ctx, pool, wallet, bot, adminGroupChatId);

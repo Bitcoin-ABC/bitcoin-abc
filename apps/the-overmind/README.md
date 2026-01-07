@@ -18,7 +18,7 @@ Roadmap
 [x] Add database-only support for likes and dislikes
 [x] Add token tx support for likes and dislikes. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury.
 [x] EMPP spec for registration, likes, dislikes to support onchain analytics
-[] Only allow registration for users in the monitored chat
+[x] Only allow registration for users in the monitored chat
 [] Herald summary should parse overmind actions
 [] Add support for a /start info command
 [] Add utility methods for user interaction (check balance, withdraw, show address)

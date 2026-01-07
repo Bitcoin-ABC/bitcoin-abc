@@ -169,9 +169,11 @@ describe('bot', () => {
 
     describe('register', () => {
         let mockCtx: Context;
+        let mockBot: Bot;
         let pool: Pool;
         let masterNode: HdNode;
         let sandbox: sinon.SinonSandbox;
+        const MONITORED_CHAT_ID = '12345';
 
         beforeEach(async () => {
             sandbox = sinon.createSandbox();
@@ -182,6 +184,15 @@ describe('bot', () => {
             const seed = mnemonicToSeed(testMnemonic);
             masterNode = HdNode.fromSeed(seed);
 
+            // Mock Bot with getChatMember API
+            mockBot = {
+                api: {
+                    getChatMember: sandbox
+                        .stub()
+                        .resolves({ status: 'member', user: { id: 12345 } }),
+                },
+            } as unknown as Bot;
+
             // Mock Grammy Context
             mockCtx = {
                 from: {
@@ -189,6 +200,10 @@ describe('bot', () => {
                     is_bot: false,
                     first_name: 'Test',
                     username: 'testuser',
+                },
+                chat: {
+                    id: 12345,
+                    type: 'private',
                 },
                 reply: sandbox.stub().resolves({
                     message_id: 1,
@@ -220,7 +235,13 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
-            await register(mockCtx, masterNode, pool);
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                mockBot,
+                MONITORED_CHAT_ID,
+            );
 
             // Verify user was inserted into database
             const userResult = await pool.query(
@@ -260,7 +281,13 @@ describe('bot', () => {
                 [12345, existingAddress, existingHdIndex, 'testuser'],
             );
 
-            await register(mockCtx, masterNode, pool);
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                mockBot,
+                MONITORED_CHAT_ID,
+            );
 
             // Verify user still exists with same data
             const userResult = await pool.query(
@@ -284,6 +311,10 @@ describe('bot', () => {
             // Mock context without user ID
             const ctxWithoutId = {
                 from: undefined,
+                chat: {
+                    id: 12345,
+                    type: 'private',
+                },
                 reply: sandbox.stub().resolves({
                     message_id: 1,
                     date: Date.now(),
@@ -292,7 +323,13 @@ describe('bot', () => {
                 }),
             } as unknown as Context;
 
-            await register(ctxWithoutId, masterNode, pool);
+            await register(
+                ctxWithoutId,
+                masterNode,
+                pool,
+                mockBot,
+                MONITORED_CHAT_ID,
+            );
 
             // Verify error message
             expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
@@ -339,7 +376,13 @@ describe('bot', () => {
                 );
             }
 
-            await register(mockCtx, masterNode, pool);
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                mockBot,
+                MONITORED_CHAT_ID,
+            );
 
             // Verify the new user was inserted with hd_index 10
             const userResult = await pool.query(
@@ -366,7 +409,13 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
-            await register(mockCtx, masterNode, pool);
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                mockBot,
+                MONITORED_CHAT_ID,
+            );
 
             // Verify the address was derived and stored correctly
             const userResult = await pool.query(
@@ -380,6 +429,152 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include(expectedAddress);
         });
 
+        it('should reject registration when user is not a member of monitored chat (left)', async () => {
+            // Mock bot to return 'left' status (user left the chat)
+            const botWithNonMember = {
+                api: {
+                    getChatMember: sandbox
+                        .stub()
+                        .resolves({ status: 'left', user: { id: 12345 } }),
+                },
+            } as unknown as Bot;
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithNonMember,
+                MONITORED_CHAT_ID,
+            );
+
+            // Verify error message contains expected text
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const errorMessage = (mockCtx.reply as sinon.SinonStub).firstCall
+                .args[0];
+            expect(errorMessage).to.include(
+                '❌ You must be a member of the monitored chat to register',
+            );
+            expect(errorMessage).to.include(
+                'Please join the main eCash telegram channel first',
+            );
+
+            // Verify no user was inserted into database
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(0);
+        });
+
+        it('should reject registration when user is kicked from monitored chat', async () => {
+            // Mock bot to return 'kicked' status (user was banned/kicked)
+            const botWithKickedUser = {
+                api: {
+                    getChatMember: sandbox
+                        .stub()
+                        .resolves({ status: 'kicked', user: { id: 12345 } }),
+                },
+            } as unknown as Bot;
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithKickedUser,
+                MONITORED_CHAT_ID,
+            );
+
+            // Verify error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const errorMessage = (mockCtx.reply as sinon.SinonStub).firstCall
+                .args[0];
+            expect(errorMessage).to.include(
+                '❌ You must be a member of the monitored chat to register',
+            );
+
+            // Verify no user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(0);
+        });
+
+        it('should reject registration when getChatMember fails', async () => {
+            // Mock bot to throw an error (user not found or bot lacks permissions)
+            const botWithError = {
+                api: {
+                    getChatMember: sandbox
+                        .stub()
+                        .rejects(new Error('User not found')),
+                },
+            } as unknown as Bot;
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithError,
+                MONITORED_CHAT_ID,
+            );
+
+            // Verify error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('Could not verify your membership');
+
+            // Verify no user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(0);
+        });
+
+        it('should allow registration when user is a member of monitored chat', async () => {
+            // Mock bot to return 'member' status (user is a member)
+            const botWithMember = {
+                api: {
+                    getChatMember: sandbox
+                        .stub()
+                        .resolves({ status: 'member', user: { id: 12345 } }),
+                },
+            } as unknown as Bot;
+
+            // Derive expected address for first user
+            const firstUserNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const firstUserPk = firstUserNode.pubkey();
+            const firstUserPkh = shaRmd160(firstUserPk);
+            const expectedAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(firstUserPkh),
+            );
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithMember,
+                MONITORED_CHAT_ID,
+            );
+
+            // Verify user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(1);
+            expect(userResult.rows[0].address).to.equal(expectedAddress);
+
+            // Verify success message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('✅ Registration successful!');
+        });
+
         it('should handle database errors gracefully', async () => {
             // Create a new pool that will throw an error on query
             const errorPool = {
@@ -389,7 +584,13 @@ describe('bot', () => {
             } as unknown as Pool;
 
             await expect(
-                register(mockCtx, masterNode, errorPool),
+                register(
+                    mockCtx,
+                    masterNode,
+                    errorPool,
+                    mockBot,
+                    MONITORED_CHAT_ID,
+                ),
             ).to.be.rejectedWith('Database connection failed');
         });
     });
