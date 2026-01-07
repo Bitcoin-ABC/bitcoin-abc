@@ -346,6 +346,85 @@ export const claim = async (
 };
 
 /**
+ * Get and display health (HP balance) for a registered user
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ * @param chronik - Chronik client for querying blockchain
+ */
+export const health = async (
+    ctx: Context,
+    pool: Pool,
+    chronik: ChronikClient,
+): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is registered
+    const userResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+        await ctx.reply(
+            '❌ You must register first! Use /register to create your wallet address.',
+        );
+        return;
+    }
+
+    const { address } = userResult.rows[0];
+
+    // Get token balance from blockchain
+    try {
+        const utxosRes = await chronik.address(address).utxos();
+        const utxos = utxosRes.utxos || [];
+
+        // Sum up token atoms for REWARDS_TOKEN_ID
+        // Since this token has no decimals, atoms = balance
+        let tokenBalanceAtoms = 0n;
+        for (const utxo of utxos) {
+            if (
+                typeof utxo.token !== 'undefined' &&
+                utxo.token.tokenId === REWARDS_TOKEN_ID
+            ) {
+                tokenBalanceAtoms += utxo.token.atoms;
+            }
+        }
+
+        // Convert to number for calculations
+        const balance = Number(tokenBalanceAtoms);
+        const formattedBalance = balance.toLocaleString('en-US');
+
+        // Create graphic indicator (out of 100)
+        const maxIndicator = 100;
+        const filledBars = Math.min(Math.floor((balance / maxIndicator) * 10), 10);
+        const emptyBars = 10 - filledBars;
+        const indicator = '🟩'.repeat(filledBars) + '🟥'.repeat(emptyBars);
+
+        // Build message
+        let message = `You have **${formattedBalance} HP**\n\n`;
+        // Show actual balance if above max, otherwise show capped value
+        const displayValue = balance > maxIndicator ? balance : Math.min(balance, maxIndicator);
+        message += `${indicator} ${displayValue}/${maxIndicator}\n`;
+
+        // Special message if above 100
+        if (balance > 100) {
+            message += `\n🔥 **MAXED!** You're above the maximum health threshold!`;
+        }
+
+        await ctx.reply(message, { parse_mode: 'Markdown' });
+    } catch (err) {
+        console.error('Error fetching token balance:', err);
+        await ctx.reply(
+            '❌ Error fetching your health. Please try again later.',
+        );
+    }
+};
+
+/**
  * Handle messages in the monitored group chat
  * Stores messages in the database for reaction tracking
  * @param ctx - Grammy context from the message

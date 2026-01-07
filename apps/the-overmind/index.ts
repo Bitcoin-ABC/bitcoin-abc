@@ -12,6 +12,7 @@ import { initDb, initSchema } from './src/db';
 import {
     register,
     claim,
+    health,
     handleMessage,
     handleMessageReaction,
 } from './src/bot';
@@ -87,10 +88,10 @@ const startup = async () => {
 
     // Sync wallet to get current state
     await wallet.sync();
-    const balance = wallet
+    const walletBalance = wallet
         .spendableSatsOnlyUtxos()
         .reduce((total, utxo) => total + utxo.sats, 0n);
-    console.info(`Wallet balance: ${balance} sats`);
+    console.info(`Wallet balance: ${walletBalance} sats`);
 
     // Set up bot command handlers
     bot.command('register', async ctx => {
@@ -98,6 +99,9 @@ const startup = async () => {
     });
     bot.command('claim', async ctx => {
         await claim(ctx, pool, wallet, bot, adminGroupChatId);
+    });
+    bot.command('health', async ctx => {
+        await health(ctx, pool, chronik);
     });
     console.info('Bot command handlers registered');
 

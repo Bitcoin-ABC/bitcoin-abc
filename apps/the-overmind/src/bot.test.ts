@@ -26,6 +26,7 @@ import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import {
     register,
     claim,
+    health,
     sendErrorToAdmin,
     handleMessage,
     handleMessageReaction,
@@ -920,6 +921,316 @@ describe('bot', () => {
                 );
                 expect(actionResult.rows).to.have.length(0);
             }
+        });
+    });
+
+    describe('health', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Mock Grammy Context
+            mockCtx = {
+                from: {
+                    id: 12345,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should display balance for registered user with tokens', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock UTXOs with token balance
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 150n, // 150 HP
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n, // 50 HP
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            await health(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Verify reply was called with correct health
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('You have **200 HP**'); // 150 + 50 = 200
+            expect(replyCall.args[0]).to.include('200/100'); // Above max, shows actual balance
+            expect(replyCall.args[0]).to.include('🔥 **MAXED!**');
+            expect(replyCall.args[1]).to.deep.equal({ parse_mode: 'Markdown' });
+        });
+
+        it('should display zero balance for registered user with no tokens', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock UTXOs with no tokens (only XEC)
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                },
+            ]);
+
+            await health(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Verify reply was called with zero health
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('You have **0 HP**');
+            expect(replyCall.args[0]).to.include('0/100');
+        });
+
+        it('should reject balance check for unregistered user', async () => {
+            await health(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Verify error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ You must register first!');
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('Use /register to create your wallet address');
+        });
+
+        it('should handle missing user ID', async () => {
+            // Mock context without user ID
+            const ctxWithoutId = {
+                from: undefined,
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            await health(
+                ctxWithoutId,
+                pool,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Verify error message
+            expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
+                1,
+            );
+            expect(
+                (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.equal('❌ Could not identify your user ID.');
+        });
+
+        it('should handle chronik query errors gracefully', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock chronik to throw an error
+            const errorChronik = {
+                address: () => ({
+                    utxos: () =>
+                        Promise.reject(new Error('Chronik connection failed')),
+                }),
+            } as unknown as ChronikClient;
+
+            const consoleErrorStub = sandbox.stub(console, 'error');
+
+            await health(mockCtx, pool, errorChronik);
+
+            // Verify error message to user
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error fetching your health');
+
+            // Verify error was logged
+            expect(consoleErrorStub).to.have.been.calledWith(
+                'Error fetching token balance:',
+                sinon.match.instanceOf(Error),
+            );
+        });
+
+        it('should sum balance correctly across multiple UTXOs', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock multiple UTXOs with tokens
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 100n,
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 25n,
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 75n,
+                        isMintBaton: false,
+                    },
+                },
+                // UTXO with different token (should be ignored)
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: 'different_token_id',
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 999n,
+                        isMintBaton: false,
+                    },
+                },
+                // UTXO with no token (should be ignored)
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000005',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                },
+            ]);
+
+            await health(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Verify health is sum of only REWARDS_TOKEN_ID tokens (100 + 25 + 75 = 200)
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('You have **200 HP**');
+            expect(replyCall.args[0]).to.include('200/100');
+            expect(replyCall.args[0]).to.include('🔥 **MAXED!**');
         });
     });
 
