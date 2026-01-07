@@ -10,14 +10,12 @@ import PrimaryButton, {
     SecondaryButton,
     CopyIconButton,
 } from 'components/Common/Buttons';
-import { toSatoshis, toXec, SlpDecimals } from 'wallet';
-import { getSendTokenInputs, TokenInputInfo } from 'token-protocols';
 import {
-    getNft,
-    getNftChildSendTargetOutputs,
-    getSlpSendTargetOutputs,
-} from 'token-protocols/slpv1';
-import { getAlpSendTargetOutputs } from 'token-protocols/alp';
+    toSatoshis,
+    toXec,
+    SlpDecimals,
+    undecimalizeTokenAmount,
+} from 'wallet';
 import { sumOneToManyXec, confirmRawTx, getFirmaRedeemFee } from './helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
@@ -37,7 +35,6 @@ import {
     TokenIdPreview,
 } from 'components/Common/Atoms';
 import {
-    sendXec,
     getMultisendTargetOutputs,
     getMaxSendAmountSatoshis,
 } from 'transactions';
@@ -71,7 +68,7 @@ import {
 } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
-import { Script, payment } from 'ecash-lib';
+import { Script, payment, fromHex, TokenType } from 'ecash-lib';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -82,7 +79,6 @@ import { InlineLoader } from 'components/Common/Spinner';
 import {
     AlpTokenType_Type,
     SlpTokenType_Type,
-    TokenType,
     GenesisInfo,
 } from 'chronik-client';
 import {
@@ -390,7 +386,6 @@ const SendXec: React.FC = () => {
         cashtabState,
         updateCashtabState,
         chronik,
-        ecc,
         wallet: ecashWallet,
     } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
@@ -897,49 +892,72 @@ const SendXec: React.FC = () => {
 
         try {
             setIsSending(true);
-            // Get input utxos for slpv1 or ALP send tx
-            // NFT send utxos are handled differently
-            const tokenInputInfo =
-                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
-                    ? undefined
-                    : getSendTokenInputs(
-                          wallet.state.slpUtxos,
-                          tokenId as string,
-                          decimalizedTokenQty,
-                          decimals as SlpDecimals,
-                      );
 
-            // Get targetOutputs for an slpv1 send tx
-            const tokenSendTargetOutputs =
-                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
-                    ? getNftChildSendTargetOutputs(tokenId as string, address)
-                    : type === 'ALP_TOKEN_TYPE_STANDARD'
-                      ? getAlpSendTargetOutputs(
-                            tokenInputInfo as TokenInputInfo,
-                            address,
-                            firma,
-                        )
-                      : getSlpSendTargetOutputs(
-                            tokenInputInfo as TokenInputInfo,
-                            address,
-                            tokenType!.number,
-                        );
-            // Build and broadcast the tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                tokenSendTargetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
-                    ? getNft(tokenId as string, wallet.state.slpUtxos)
-                    : (tokenInputInfo as TokenInputInfo).tokenInputs,
+            if (!ecashWallet) {
+                // Typescript does not know the component only renders if ecashWallet is not null
+                // We do not expect this to ever happen, prevents ts lint issues
+                throw new Error('Wallet not initialized');
+            }
+
+            // Build payment.Action for ecash-wallet
+
+            const sendAtoms = BigInt(
+                undecimalizeTokenAmount(
+                    decimalizedTokenQty,
+                    decimals as SlpDecimals,
+                ),
             );
+
+            // All token sends are the same in the ecash-wallet API
+            // ecash-wallet deals with differing token specs
+            const action: payment.Action = {
+                outputs: [
+                    { sats: 0n }, // OP_RETURN at outIdx 0
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: Script.fromAddress(address),
+                        tokenId: tokenId,
+                        atoms: sendAtoms,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId,
+                        tokenType: tokenType as unknown as TokenType,
+                    },
+                ],
+                feePerKb: BigInt(settings.satsPerKb),
+            };
+
+            // Add DataAction for firma if present (ALP only)
+            if (
+                firma !== '' &&
+                type === 'ALP_TOKEN_TYPE_STANDARD' &&
+                action.tokenActions
+            ) {
+                action.tokenActions.push({
+                    type: 'DATA',
+                    data: fromHex(firma as string),
+                });
+            }
+
+            // Build and broadcast using ecash-wallet
+            const builtAction = ecashWallet.action(action).build();
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Get the first txid (or the only one for single-tx actions)
+            const txid = broadcastResult.broadcasted[0];
 
             confirmRawTx(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -951,10 +969,10 @@ const SendXec: React.FC = () => {
 
             // Handle extension transaction response
             if (isExtensionTransaction) {
-                await handleTransactionApproval(response.txid);
+                await handleTransactionApproval(txid);
             } else if (txInfoFromUrl) {
                 // Show success modal for URL-based transactions
-                setSuccessTxid(response.txid);
+                setSuccessTxid(txid);
                 setShowSuccessModal(true);
             }
 
