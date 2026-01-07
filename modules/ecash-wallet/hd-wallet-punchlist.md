@@ -8,32 +8,55 @@ Currently, `ecash-wallet` implements a single-address wallet. This punchlist cov
 
 ## Derivation Path Strategy
 
-Based on the Bitcoin-ABC and Electrum-ABC implementations, we will use:
+Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
-- **Base path**: `m/44'/1899'/0'` (BIP44: purpose 44', coin type 1899' for XEC token-aware, account 0')
-- **Receive addresses**: `m/44'/1899'/0'/0/<n>` where `n` is the address index (non-hardened)
-- **Change addresses**: `m/44'/1899'/0'/1/<n>` where `n` is the address index (non-hardened)
+- **Base path**: `m/44'/1899'/<accountNumber>'` (BIP44: purpose 44', coin type 1899' for XEC token-aware, account number defaults to 0 but is configurable)
+- **Receive addresses**: `m/44'/1899'/<accountNumber>'/0/<n>` where `n` is the address index (non-hardened)
+- **Change addresses**: `m/44'/1899'/<accountNumber>'/1/<n>` where `n` is the address index (non-hardened)
+
+## Status
+
+**Completed**: Foundation (sections 1-4)
+
+- ✅ HD wallet type detection
+- ✅ HD wallet constructor via `fromMnemonic` with options
+- ✅ Account number support (configurable, defaults to 0)
+- ✅ Index tracking (receiveIndex, changeIndex)
+- ✅ Keypair management and derivation
+- ✅ Comprehensive test coverage
+
+**Next Steps**: Address generation and sync (sections 5-6)
+
+- Address generation methods
+- Enhanced sync for multiple addresses
+- Gap limit checking
+
+**Future**: Transaction building and signing (sections 7-8)
+
+- Change address generation in transactions
+- UTXO to private key matching for signing
 
 ## Core Requirements
 
 ### 1. Wallet Type Detection
 
-- [ ] Add `isHD: boolean` property to `Wallet` class
+- [x] Add `isHD: boolean` property to `Wallet` class
     - Default to `false` for existing single-address wallets
     - Set to `true` for HD wallets created via new constructors
 
+- [x] Add `accountNumber: number` property to `Wallet` class
+    - Tracks the BIP44 account number used for derivation
+    - Defaults to `0` if not specified
+    - Used to construct base path: `m/44'/1899'/<accountNumber>'`
+
 ### 2. HD Wallet Constructor
 
-- [ ] Add static constructor `Wallet.fromHDSeed(seed: Uint8Array, chronik: ChronikClient)`
-    - Derive master HD node from seed
-    - Derive base path `m/44'/1899'/0'`
-    - Initialize HD wallet state
-    - Set `isHD = true`
-    - We should have a way of initializing with known receive and change indices, which app devs would store; and we should have a way of estimating these based on blockchain activity if we do not have them available
-
-- [ ] Add static constructor `Wallet.fromHDMnemonic(mnemonic: string, chronik: ChronikClient)`
-    - Convert mnemonic to seed using `mnemonicToSeed`
-    - Call `fromHDSeed` internally
+- [x] Updated `Wallet.fromMnemonic()` to support HD wallets via options parameter
+    - Added optional `options` parameter: `{ hd?: boolean, accountNumber?: number, receiveIndex?: number, changeIndex?: number }`
+    - When `hd: true`, derives base path `m/44'/1899'/<accountNumber>'` (accountNumber defaults to 0)
+    - Initializes HD wallet state and sets `isHD = true`
+    - Supports initializing with known receive and change indices (app devs can store these)
+    - Maintains backward compatibility: defaults to non-HD wallet if `hd` option not provided
 
 - [ ] Consider adding `Wallet.fromHDXpub(xpub: string, chronik: ChronikClient)` for watch-only HD wallets
     - Store xpub instead of private keys
@@ -42,31 +65,32 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we will use:
 
 ### 3. Index Tracking
 
-- [ ] Add `receiveIndex: number` property
+- [x] Add `receiveIndex: number` property
     - Tracks the highest derived receive address index
     - Initialize to 0
-    - Increment when generating new receive addresses
+    - Can be set via `fromMnemonic` options parameter
 
-- [ ] Add `changeIndex: number` property
+- [x] Add `changeIndex: number` property
     - Tracks the highest derived change address index
     - Initialize to 0
-    - Increment when generating new change addresses
+    - Can be set via `fromMnemonic` options parameter
 
-- [ ] Consider persistence mechanism for indices
-    - Need way of accepting stored indices in constructor (ecash-wallet itself cannot have persistence, though it could be stored in an app)
-    - Need method to derive from blockchain state during sync
+- [x] Persistence mechanism for indices
+    - App devs can pass stored indices via `fromMnemonic` options (ecash-wallet itself cannot have persistence, though it could be stored in an app)
+    - Still need method to derive from blockchain state during sync (see section 6)
 
 ### 4. Keypair Management
 
-- [ ] Add `keypairs: Map<string, { sk: Uint8Array, pk: Uint8Array, pkh: Uint8Array, script: Script, address: string }>` property
+- [x] Add `keypairs: Map<string, KeypairData>` property
     - Key: address string
-    - Value: full keypair data for that address
+    - Value: full keypair data for that address (exported as `KeypairData` interface)
     - Used to map addresses to their private keys for signing
 
-- [ ] Add private method `_deriveKeypair(forChange: boolean, index: number): KeypairData`
-    - Derives keypair at path `m/44'/1899'/0'/<forChange ? 1 : 0>/<index>`
+- [x] Add private method `_deriveKeypair(forChange: boolean, index: number): KeypairData`
+    - Derives keypair at path `m/44'/1899'/<accountNumber>'/<forChange ? 1 : 0>/<index>`
     - Returns: `{ sk, pk, pkh, script, address }`
     - Caches result in `keypairs` map
+    - First receive address (index 0) is automatically cached on HD wallet creation
 
 - [ ] Add method `getKeypairForAddress(address: string): KeypairData | undefined`
     - Looks up keypair from `keypairs` map

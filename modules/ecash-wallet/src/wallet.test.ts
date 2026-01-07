@@ -28,6 +28,8 @@ import {
     MAX_TX_SERSIZE,
     OP_RETURN_MAX_BYTES,
     Tx,
+    HdNode,
+    mnemonicToSeed,
 } from 'ecash-lib';
 import {
     OutPoint,
@@ -6629,5 +6631,190 @@ describe('removeSpentUtxos', () => {
         expect(testWallet.utxos).to.deep.include(utxo1);
         expect(testWallet.utxos).to.deep.include(utxo3);
         expect(testWallet.utxos).to.not.deep.include(utxo2);
+    });
+});
+
+describe('HD Wallet', () => {
+    const testMnemonic =
+        'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+
+    it('The fromMnemonic static constructor creates a non-HD wallet by default', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        expect(wallet.isHD).to.equal(false);
+        expect(wallet.baseHdNode).to.equal(undefined);
+        expect(wallet.accountNumber).to.equal(0);
+        expect(wallet.receiveIndex).to.equal(0);
+        expect(wallet.changeIndex).to.equal(0);
+        expect(wallet.keypairs.size).to.equal(0);
+    });
+
+    it('Creates HD wallet when hd option is true', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        expect(wallet.isHD).to.equal(true);
+        expect(wallet.baseHdNode).to.not.equal(undefined);
+        expect(wallet.accountNumber).to.equal(0); // Default account number
+        expect(wallet.receiveIndex).to.equal(0);
+        expect(wallet.changeIndex).to.equal(0);
+        expect(wallet.keypairs.size).to.equal(1); // First receive address is cached
+    });
+
+    it('Creates HD wallet with custom account number', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 5 },
+        );
+
+        expect(wallet.isHD).to.equal(true);
+        expect(wallet.baseHdNode).to.not.equal(undefined);
+        expect(wallet.accountNumber).to.equal(5);
+    });
+
+    it('Creates HD wallet with custom receive and change indices', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 10, changeIndex: 3 },
+        );
+
+        expect(wallet.isHD).to.equal(true);
+        expect(wallet.receiveIndex).to.equal(10);
+        expect(wallet.changeIndex).to.equal(3);
+    });
+
+    it('HD wallet caches first receive address on creation', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        expect(wallet.keypairs.size).to.equal(1);
+        expect(wallet.address).to.not.equal(undefined);
+        expect(wallet.keypairs.has(wallet.address)).to.equal(true);
+
+        const keypair = wallet.keypairs.get(wallet.address);
+        expect(keypair).to.not.equal(undefined);
+        expect(keypair!.address).to.equal(wallet.address);
+        expect(keypair!.sk).to.deep.equal(wallet.sk);
+        expect(keypair!.pk).to.deep.equal(wallet.pk);
+        expect(keypair!.pkh).to.deep.equal(wallet.pkh);
+        expect(keypair!.script).to.deep.equal(wallet.script);
+    });
+
+    it('HD wallets with same mnemonic and account number generate same base address', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet1 = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 0 },
+        );
+        const wallet2 = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 0 },
+        );
+
+        expect(wallet1.address).to.equal(wallet2.address);
+        expect(wallet1.sk).to.deep.equal(wallet2.sk);
+    });
+
+    it('HD wallets with different account numbers generate different addresses', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet1 = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 0 },
+        );
+        const wallet2 = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 1 },
+        );
+
+        expect(wallet1.address).to.not.equal(wallet2.address);
+        expect(wallet1.sk).to.not.deep.equal(wallet2.sk);
+    });
+
+    it('HD wallet clone preserves HD wallet state', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 2, receiveIndex: 5, changeIndex: 3 },
+        );
+
+        const cloned = wallet.clone();
+
+        expect(cloned.isHD).to.equal(true);
+        expect(cloned.accountNumber).to.equal(2);
+        expect(cloned.receiveIndex).to.equal(5);
+        expect(cloned.changeIndex).to.equal(3);
+        expect(cloned.keypairs.size).to.equal(wallet.keypairs.size);
+        expect(cloned.baseHdNode).to.not.equal(undefined);
+    });
+
+    it('Non-HD wallet clone preserves non-HD state', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        const cloned = wallet.clone();
+
+        expect(cloned.isHD).to.equal(false);
+        expect(cloned.baseHdNode).to.equal(undefined);
+        expect(cloned.accountNumber).to.equal(0);
+    });
+
+    it('HD wallet derives correct base path for account 0', () => {
+        const mockChronik = new MockChronikClient();
+        const seed = mnemonicToSeed(testMnemonic);
+        const master = HdNode.fromSeed(seed);
+        const expectedBaseNode = master.derivePath(`m/44'/1899'/0'`);
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 0 },
+        );
+
+        expect(wallet.baseHdNode).to.not.equal(undefined);
+        expect(toHex(wallet.baseHdNode!.seckey()!)).to.equal(
+            toHex(expectedBaseNode.seckey()!),
+        );
+    });
+
+    it('HD wallet derives correct base path for account 3', () => {
+        const mockChronik = new MockChronikClient();
+        const seed = mnemonicToSeed(testMnemonic);
+        const master = HdNode.fromSeed(seed);
+        const expectedBaseNode = master.derivePath(`m/44'/1899'/3'`);
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, accountNumber: 3 },
+        );
+
+        expect(wallet.baseHdNode).to.not.equal(undefined);
+        expect(toHex(wallet.baseHdNode!.seckey()!)).to.equal(
+            toHex(expectedBaseNode.seckey()!),
+        );
     });
 });

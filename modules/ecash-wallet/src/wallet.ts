@@ -78,10 +78,23 @@ const CHAINED_TX_ALPHA_RESERVED_OUTPUTS = 2;
 const NTH_TX_IN_CHAIN_INPUTS = 1;
 
 /**
+ * Keypair data for an HD wallet address
+ */
+export interface KeypairData {
+    sk: Uint8Array;
+    pk: Uint8Array;
+    pkh: Uint8Array;
+    script: Script;
+    address: string;
+}
+
+/**
  * Wallet
  *
  * Implements a one-address eCash (XEC) wallet
  * Useful for running a simple hot wallet
+ *
+ * Also supports HD wallets when created with fromMnemonic(..., { hd: true })
  */
 export class Wallet {
     /** Initialized chronik instance */
@@ -107,8 +120,25 @@ export class Wallet {
     tipHeight: number;
     /** The utxo set of this wallet */
     utxos: ScriptUtxo[];
+    /** Whether this is an HD wallet */
+    isHD: boolean;
+    /** Account number for HD wallets (defaults to 0) */
+    accountNumber: number;
+    /** Base HD node at m/44'/1899'/<accountNumber>' (only set for HD wallets) */
+    baseHdNode: HdNode | undefined;
+    /** Current receive address index */
+    receiveIndex: number;
+    /** Current change address index */
+    changeIndex: number;
+    /** Map of address -> keypair data for HD wallets */
+    keypairs: Map<string, KeypairData>;
 
-    private constructor(sk: Uint8Array, chronik: ChronikClient) {
+    private constructor(
+        sk: Uint8Array,
+        chronik: ChronikClient,
+        baseHdNode?: HdNode,
+        accountNumber: number = 0,
+    ) {
         this.sk = sk;
         this.chronik = chronik;
 
@@ -123,6 +153,60 @@ export class Wallet {
         // Constructors cannot be async, so we must sync() to get utxos and tipHeight
         this.tipHeight = 0;
         this.utxos = [];
+
+        // Initialize HD wallet properties
+        this.isHD = baseHdNode !== undefined;
+        this.accountNumber = accountNumber;
+        this.baseHdNode = baseHdNode;
+        this.receiveIndex = 0;
+        this.changeIndex = 0;
+        this.keypairs = new Map();
+
+        // For HD wallets, derive and cache the first receive address (index 0)
+        if (this.isHD && this.baseHdNode) {
+            const firstKeypair = this._deriveKeypair(false, 0);
+            this.keypairs.set(firstKeypair.address, firstKeypair);
+            // Update wallet's main address to be the first receive address
+            this.address = firstKeypair.address;
+            this.script = firstKeypair.script;
+            this.sk = firstKeypair.sk;
+            this.pk = firstKeypair.pk;
+            this.pkh = firstKeypair.pkh;
+        }
+    }
+
+    /**
+     * Derive a keypair at a specific path for HD wallets
+     * Path: m/44'/1899'/<accountNumber>'/<forChange ? 1 : 0>/<index>
+     *
+     * @param forChange - If true, derive change address (chain 1), otherwise receive address (chain 0)
+     * @param index - The address index
+     * @returns Keypair data for the derived address
+     * @throws Error if wallet is not HD or baseHdNode is not set
+     */
+    private _deriveKeypair(forChange: boolean, index: number): KeypairData {
+        if (!this.isHD || !this.baseHdNode) {
+            throw new Error('_deriveKeypair can only be called on HD wallets');
+        }
+
+        // Derive path: m/44'/1899'/0'/<forChange ? 1 : 0>/<index>
+        const chainIndex = forChange ? 1 : 0;
+        const chainNode = this.baseHdNode.derive(chainIndex);
+        const addressNode = chainNode.derive(index);
+
+        const sk = addressNode.seckey()!;
+        const pk = this.ecc.derivePubkey(sk);
+        const pkh = shaRmd160(pk);
+        const script = Script.p2pkh(pkh);
+        const address = Address.p2pkh(pkh).toString();
+
+        return {
+            sk,
+            pk,
+            pkh,
+            script,
+            address,
+        };
     }
 
     /**
@@ -239,11 +323,48 @@ export class Wallet {
      *
      * NB ecash-lib mnemonicToSeed does not validate for bip39 mnemonics
      * Any string will be walletized
+     *
+     * @param mnemonic - The mnemonic phrase
+     * @param chronik - Initialized ChronikClient instance
+     * @param options - Optional configuration
+     * @param options.hd - If true, creates an HD wallet with multiple addresses. Defaults to false for backward compatibility.
+     * @param options.accountNumber - Account number for HD wallets (BIP44 account index). Defaults to 0.
+     * @param options.receiveIndex - Initial receive address index (only used for HD wallets). Defaults to 0.
+     * @param options.changeIndex - Initial change address index (only used for HD wallets). Defaults to 0.
      */
-    static fromMnemonic(mnemonic: string, chronik: ChronikClient) {
+    static fromMnemonic(
+        mnemonic: string,
+        chronik: ChronikClient,
+        options?: {
+            hd?: boolean;
+            accountNumber?: number;
+            receiveIndex?: number;
+            changeIndex?: number;
+        },
+    ) {
         const seed = mnemonicToSeed(mnemonic);
         const master = HdNode.fromSeed(seed);
 
+        if (options?.hd === true) {
+            // HD wallet: derive base path and store the base node
+            const accountNumber = options.accountNumber ?? 0;
+            const basePath = `m/44'/1899'/${accountNumber}'`;
+            const baseHdNode = master.derivePath(basePath);
+            const wallet = new Wallet(
+                baseHdNode.seckey()!,
+                chronik,
+                baseHdNode,
+                accountNumber,
+            );
+
+            // Set initial indices (default to 0 if not provided)
+            wallet.receiveIndex = options.receiveIndex ?? 0;
+            wallet.changeIndex = options.changeIndex ?? 0;
+
+            return wallet;
+        }
+
+        // Single-address wallet: derive full path to first address
         // ecash-wallet Wallets are token aware, so we use the token-aware derivation path
         const xecMaster = master.derivePath(XEC_TOKEN_AWARE_DERIVATION_PATH);
         const sk = xecMaster.seckey()!;
@@ -257,12 +378,25 @@ export class Wallet {
      * without mutating the original
      */
     clone(): Wallet {
-        // Create a new wallet instance with the same secret key and chronik client
-        const clonedWallet = new Wallet(this.sk, this.chronik);
+        // Create a new wallet instance with the same secret key, chronik client, baseHdNode, and accountNumber
+        const clonedWallet = new Wallet(
+            this.sk,
+            this.chronik,
+            this.baseHdNode,
+            this.accountNumber,
+        );
 
         // Copy the mutable state
         clonedWallet.tipHeight = this.tipHeight;
         clonedWallet.utxos = [...this.utxos]; // Shallow copy of the array
+
+        // Copy HD wallet state if applicable
+        if (this.isHD) {
+            clonedWallet.receiveIndex = this.receiveIndex;
+            clonedWallet.changeIndex = this.changeIndex;
+            // Deep copy the keypairs map
+            clonedWallet.keypairs = new Map(this.keypairs);
+        }
 
         return clonedWallet;
     }

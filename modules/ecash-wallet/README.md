@@ -179,3 +179,9 @@ See tests for detailed methods.
 - Publish to catch updated `chronik-client` dep
 
 [D19139](https://reviews.bitcoinabc.org/D19139)
+
+# 2.3.8
+
+- Add stub methods for HD support (not a functional wallet, but could be used to derive different accounts)
+
+[D19233](https://reviews.bitcoinabc.org/D19233)
