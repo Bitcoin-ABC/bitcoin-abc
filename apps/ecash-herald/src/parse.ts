@@ -1720,6 +1720,9 @@ export const getBlockTgMessage = (
                 }
                 default: {
                     appEmoji = emojis.unknown;
+                    // For unknown apps, msg might contain unescaped user content
+                    // Escape it to prevent HTML parsing errors
+                    msg = prepareStringForTelegramHTML(msg);
                     break;
                 }
             }
