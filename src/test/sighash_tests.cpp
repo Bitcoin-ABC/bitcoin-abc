@@ -90,27 +90,26 @@ struct SigHashTest : BasicTestingSetup {
             OP_3,     OP_CHECKSIG, OP_IF,
             OP_VERIF, OP_RETURN,   OP_CODESEPARATOR};
         script = CScript();
-        int ops = (InsecureRandRange(10));
+        int ops = (m_rng.randrange(10));
         for (int i = 0; i < ops; i++) {
-            script << oplist[InsecureRandRange(std::size(oplist))];
+            script << oplist[m_rng.randrange(std::size(oplist))];
         }
     }
 
     void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
-        tx.nVersion = InsecureRand32();
+        tx.nVersion = m_rng.rand32();
         tx.vin.clear();
         tx.vout.clear();
-        tx.nLockTime = (InsecureRandBool()) ? InsecureRand32() : 0;
-        int ins = (InsecureRandBits(2)) + 1;
-        int outs = fSingle ? ins : (InsecureRandBits(2)) + 1;
+        tx.nLockTime = (m_rng.randbool()) ? m_rng.rand32() : 0;
+        int ins = (m_rng.randbits(2)) + 1;
+        int outs = fSingle ? ins : (m_rng.randbits(2)) + 1;
         for (int in = 0; in < ins; in++) {
             tx.vin.push_back(CTxIn());
             CTxIn &txin = tx.vin.back();
-            txin.prevout =
-                COutPoint(TxId(InsecureRand256()), InsecureRandBits(2));
+            txin.prevout = COutPoint(TxId(m_rng.rand256()), m_rng.randbits(2));
             RandomScript(txin.scriptSig);
-            txin.nSequence = InsecureRandBool()
-                                 ? InsecureRand32()
+            txin.nSequence = m_rng.randbool()
+                                 ? m_rng.rand32()
                                  : std::numeric_limits<uint32_t>::max();
         }
         for (int out = 0; out < outs; out++) {
@@ -134,14 +133,14 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
 
     int nRandomTests = 1000;
     for (int i = 0; i < nRandomTests; i++) {
-        uint32_t nHashType = InsecureRand32();
+        uint32_t nHashType = m_rng.rand32();
         SigHashType sigHashType(nHashType);
 
         CMutableTransaction txTo;
         RandomTransaction(txTo, (nHashType & 0x1f) == SIGHASH_SINGLE);
         CScript scriptCode;
         RandomScript(scriptCode);
-        int nIn = InsecureRandRange(txTo.vin.size());
+        int nIn = m_rng.randrange(txTo.vin.size());
 
         uint256 shref =
             SignatureHashOld(scriptCode, CTransaction(txTo), nIn, nHashType);
@@ -284,8 +283,7 @@ BOOST_AUTO_TEST_CASE(sighash_caching) {
     diff_scriptcode << OP_1;
     CMutableTransaction tx;
     RandomTransaction(tx, /*fSingle=*/false);
-    const auto in_index{
-        static_cast<uint32_t>(InsecureRandRange(tx.vin.size()))};
+    const auto in_index{static_cast<uint32_t>(m_rng.randrange(tx.vin.size()))};
     const auto amount{RandMoney(m_rng)};
 
     // Exercise the sighash function under all flag combinations that matter.
@@ -314,8 +312,8 @@ BOOST_AUTO_TEST_CASE(sighash_caching) {
             // TODO: backport core#29625 and use  m_rng.rand<int8_t>()
             hash_types.push_back(
                 i % 2 == 0
-                    ? InsecureRandRange(std::numeric_limits<int8_t>::max())
-                    : InsecureRandRange(std::numeric_limits<int32_t>::max()));
+                    ? m_rng.randrange(std::numeric_limits<int8_t>::max())
+                    : m_rng.randrange(std::numeric_limits<int32_t>::max()));
         }
         // Reuse the same cache across script types. This must not cause any
         // issue as the cached value for one hash type must never be confused

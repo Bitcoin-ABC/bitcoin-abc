@@ -1067,7 +1067,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
 }
 
 std::vector<uint8_t> BloomTest::RandomData() {
-    uint256 r = InsecureRand256();
+    uint256 r = m_rng.rand256();
     return std::vector<uint8_t>(r.begin(), r.end());
 }
 

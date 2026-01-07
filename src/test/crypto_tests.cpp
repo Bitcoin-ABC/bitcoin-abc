@@ -46,7 +46,7 @@ struct CryptoTest : BasicTestingSetup {
             Hasher hasher(h);
             size_t pos = 0;
             while (pos < in.size()) {
-                size_t len = InsecureRandRange((in.size() - pos + 1) / 2 + 1);
+                size_t len = m_rng.randrange((in.size() - pos + 1) / 2 + 1);
                 hasher.Write((const uint8_t *)in.data() + pos, len);
                 pos += len;
                 if (pos > 0 && pos + 2 * out.size() > in.size() &&
@@ -260,8 +260,8 @@ struct CryptoTest : BasicTestingSetup {
         // class's caching.
         for (int i = 0; i < 10; ++i) {
             size_t lens[3];
-            lens[0] = InsecureRandRange(hexout.size() / 2U + 1U);
-            lens[1] = InsecureRandRange(hexout.size() / 2U + 1U - lens[0]);
+            lens[0] = m_rng.randrange(hexout.size() / 2U + 1U);
+            lens[1] = m_rng.randrange(hexout.size() / 2U + 1U - lens[0]);
             lens[2] = hexout.size() / 2U - lens[0] - lens[1];
 
             rng.Seek(nonce, seek);
@@ -335,7 +335,7 @@ struct CryptoTest : BasicTestingSetup {
                 auto data = Span{m};
                 Poly1305 poly1305{key};
                 for (int chunk = 0; chunk < splits; ++chunk) {
-                    size_t now = InsecureRandRange(data.size() + 1);
+                    size_t now = m_rng.randrange(data.size() + 1);
                     poly1305.Update(data.first(now));
                     data = data.subspan(now);
                 }
@@ -360,7 +360,7 @@ struct CryptoTest : BasicTestingSetup {
             // During i=0, use single-plain Encrypt/Decrypt; others use a split
             // at prefix.
             size_t prefix =
-                i ? InsecureRandRange(plain.size() + 1) : plain.size();
+                i ? m_rng.randrange(plain.size() + 1) : plain.size();
             // Encrypt.
             std::vector<std::byte> cipher(plain.size() +
                                           AEADChaCha20Poly1305::EXPANSION);
@@ -412,7 +412,7 @@ struct CryptoTest : BasicTestingSetup {
             // During it==0 we use the single-plain Encrypt/Decrypt; others use
             // a split at prefix.
             size_t prefix =
-                it ? InsecureRandRange(plain.size() + 1) : plain.size();
+                it ? m_rng.randrange(plain.size() + 1) : plain.size();
 
             // Do msg_idx dummy encryptions to seek to the correct packet.
             FSChaCha20Poly1305 enc_aead{key, 224};
@@ -1362,7 +1362,7 @@ BOOST_AUTO_TEST_CASE(sha256d64) {
         uint8_t in[64 * 32];
         uint8_t out1[32 * 32], out2[32 * 32];
         for (int j = 0; j < 64 * i; ++j) {
-            in[j] = InsecureRandBits(8);
+            in[j] = m_rng.randbits(8);
         }
         for (int j = 0; j < i; ++j) {
             CHash256().Write({in + 64 * j, 64}).Finalize({out1 + 32 * j, 32});
@@ -1386,8 +1386,8 @@ void CryptoTest::TestSHA3_256(const std::string &input,
 
     // Reset and split randomly in 3
     sha.Reset();
-    int s1 = InsecureRandRange(in_bytes.size() + 1);
-    int s2 = InsecureRandRange(in_bytes.size() + 1 - s1);
+    int s1 = m_rng.randrange(in_bytes.size() + 1);
+    int s2 = m_rng.randrange(in_bytes.size() + 1 - s1);
     int s3 = in_bytes.size() - s1 - s2;
     sha.Write(Span{in_bytes}.first(s1)).Write(Span{in_bytes}.subspan(s1, s2));
     sha.Write(Span{in_bytes}.last(s3)).Finalize(out);
@@ -2082,7 +2082,7 @@ BOOST_AUTO_TEST_CASE(muhash_tests) {
         uint256 res;
         int table[4];
         for (int i = 0; i < 4; ++i) {
-            table[i] = g_insecure_rand_ctx.randbits<3>();
+            table[i] = m_rng.randbits<3>();
         }
         for (int order = 0; order < 4; ++order) {
             MuHash3072 acc;
@@ -2102,13 +2102,13 @@ BOOST_AUTO_TEST_CASE(muhash_tests) {
             }
         }
 
-        MuHash3072 x = FromInt(g_insecure_rand_ctx.randbits<4>()); // x=X
-        MuHash3072 y = FromInt(g_insecure_rand_ctx.randbits<4>()); // x=X, y=Y
-        MuHash3072 z; // x=X, y=Y, z=1
-        z *= x;       // x=X, y=Y, z=X
-        z *= y;       // x=X, y=Y, z=X*Y
-        y *= x;       // x=X, y=Y*X, z=X*Y
-        z /= y;       // x=X, y=Y*X, z=1
+        MuHash3072 x = FromInt(m_rng.randbits<4>()); // x=X
+        MuHash3072 y = FromInt(m_rng.randbits<4>()); // x=X, y=Y
+        MuHash3072 z;                                // x=X, y=Y, z=1
+        z *= x;                                      // x=X, y=Y, z=X
+        z *= y;                                      // x=X, y=Y, z=X*Y
+        y *= x;                                      // x=X, y=Y*X, z=X*Y
+        z /= y;                                      // x=X, y=Y*X, z=1
         z.Finalize(out);
 
         uint256 out2;

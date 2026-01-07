@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     CCoinsView coinsDummy;
     CCoinsViewCache view(&coinsDummy);
 
-    block.hashPrevBlock = BlockHash(InsecureRand256());
+    block.hashPrevBlock = BlockHash(m_rng.rand256());
     view.SetBestBlock(block.hashPrevBlock);
 
     // Create a block with coinbase and resolution transaction.
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     block.vtx[0] = MakeTransactionRef(tx);
 
     tx.vout[0].scriptPubKey = CScript() << OP_TRUE;
-    tx.vin[0].prevout = COutPoint(TxId(InsecureRand256()), 0);
+    tx.vin[0].prevout = COutPoint(TxId(m_rng.rand256()), 0);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL;
     tx.vin[0].scriptSig.resize(0);
     tx.nVersion = 2;

@@ -156,7 +156,7 @@ void CheckQueueTest::Correct_Queue_range(std::vector<size_t> range) {
         CCheckQueueControl<FakeCheckCheckCompletion> control(small_queue.get());
         while (total) {
             vChecks.clear();
-            vChecks.resize(std::min<size_t>(total, InsecureRandRange(10)));
+            vChecks.resize(std::min<size_t>(total, m_rng.randrange(10)));
             total -= vChecks.size();
             control.Add(std::move(vChecks));
         }
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Correct_Random) {
     std::vector<size_t> range;
     range.reserve(100000 / 1000);
     for (size_t i = 2; i < 100000;
-         i += std::max((size_t)1, (size_t)InsecureRandRange(std::min(
+         i += std::max((size_t)1, (size_t)m_rng.randrange(std::min(
                                       (size_t)1000, ((size_t)100000) - i)))) {
         range.push_back(i);
     }
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Catches_Failure) {
         CCheckQueueControl<FixedCheck> control(fixed_queue.get());
         size_t remaining = i;
         while (remaining) {
-            size_t r = InsecureRandRange(10);
+            size_t r = m_rng.randrange(10);
 
             std::vector<FixedCheck> vChecks;
             vChecks.reserve(r);
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_UniqueCheck) {
     {
         CCheckQueueControl<UniqueCheck> control(queue.get());
         while (total) {
-            size_t r = InsecureRandRange(10);
+            size_t r = m_rng.randrange(10);
             std::vector<UniqueCheck> vChecks;
             for (size_t k = 0; k < r && total; k++) {
                 vChecks.emplace_back(--total);
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Memory) {
         {
             CCheckQueueControl<MemoryCheck> control(queue.get());
             while (total) {
-                size_t r = InsecureRandRange(10);
+                size_t r = m_rng.randrange(10);
                 std::vector<MemoryCheck> vChecks;
                 for (size_t k = 0; k < r && total; k++) {
                     total--;

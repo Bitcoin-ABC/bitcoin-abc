@@ -767,10 +767,10 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion_hash_mismatch,
     CCoinsViewCache &ibd_coins =
         WITH_LOCK(::cs_main, return validation_chainstate.CoinsTip());
     CScript script;
-    script.assign(InsecureRandBits(6), 0);
-    Coin badcoin{CTxOut{int64_t(InsecureRand32()) * SATOSHI, script},
+    script.assign(m_rng.randbits(6), 0);
+    Coin badcoin{CTxOut{int64_t(m_rng.rand32()) * SATOSHI, script},
                  /*nHeightIn=*/1, /*IsCoinbase=*/false};
-    TxId txid{InsecureRand256()};
+    TxId txid{m_rng.rand256()};
     ibd_coins.AddCoin(COutPoint(txid, 0), std::move(badcoin), false);
 
     fs::path snapshot_chainstate_dir =

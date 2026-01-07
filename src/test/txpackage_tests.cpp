@@ -31,10 +31,10 @@ struct TxPackageTest : TestChain100Setup {
         CMutableTransaction mtx = CMutableTransaction();
         mtx.vin.resize(num_inputs);
         mtx.vout.resize(num_outputs);
-        auto random_script = CScript() << ToByteVector(InsecureRand256())
-                                       << ToByteVector(InsecureRand256());
+        auto random_script = CScript() << ToByteVector(m_rng.rand256())
+                                       << ToByteVector(m_rng.rand256());
         for (size_t i{0}; i < num_inputs; ++i) {
-            mtx.vin[i].prevout = COutPoint(TxId{InsecureRand256()}, 0);
+            mtx.vin[i].prevout = COutPoint(TxId{m_rng.rand256()}, 0);
             mtx.vin[i].scriptSig = random_script;
         }
         for (size_t o{0}; o < num_outputs; ++o) {

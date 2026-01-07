@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(ReceiveWithExtraTransactions) {
 
 BOOST_AUTO_TEST_CASE(TransactionsRequestSerializationTest) {
     BlockTransactionsRequest req1;
-    req1.blockhash = BlockHash(InsecureRand256());
+    req1.blockhash = BlockHash(m_rng.rand256());
     req1.indices.resize(4);
     req1.indices[0] = 0;
     req1.indices[1] = 1;
@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestSerializationTest) {
 BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationMaxTest) {
     // Check that the highest legal index is decoded correctly
     BlockTransactionsRequest req0;
-    req0.blockhash = BlockHash(InsecureRand256());
+    req0.blockhash = BlockHash(m_rng.rand256());
     req0.indices.resize(1);
 
     using indiceType = decltype(req0.indices)::value_type;
@@ -487,7 +487,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationOverflowTest) {
     // from raw deltas. This can only occur if MAX_SIZE is greater than the
     // maximum value for that the indice type can handle.
     BlockTransactionsRequest req0;
-    req0.blockhash = BlockHash(InsecureRand256());
+    req0.blockhash = BlockHash(m_rng.rand256());
     req0.indices.resize(3);
 
     using indiceType = decltype(req0.indices)::value_type;

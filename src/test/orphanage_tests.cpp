@@ -34,7 +34,7 @@ public:
     CTransactionRef RandomOrphan() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
         std::map<TxId, PoolTx>::iterator it;
-        it = m_pool_txs.lower_bound(TxId{InsecureRand256()});
+        it = m_pool_txs.lower_bound(TxId{m_rng.rand256()});
         if (it == m_pool_txs.end()) {
             it = m_pool_txs.begin();
         }
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     // ecdsa_signature_parse_der_lax are executed during this test.
     // Specifically branches that run only when an ECDSA
     // signature's R and S values have leading zeros.
-    g_insecure_rand_ctx.Reseed(uint256{33});
+    m_rng.Reseed(uint256{33});
 
     TxOrphanageTest orphanage{m_rng};
     CKey key;
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     for (int i = 0; i < 50; i++) {
         CMutableTransaction tx;
         tx.vin.resize(1);
-        tx.vin[0].prevout = COutPoint(TxId(InsecureRand256()), 0);
+        tx.vin[0].prevout = COutPoint(TxId(m_rng.rand256()), 0);
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;

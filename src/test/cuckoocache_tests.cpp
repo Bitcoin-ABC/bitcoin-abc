@@ -114,7 +114,7 @@ using TestMapKey = TestMapElement::KeyType;
 /**
  * Test that no values not inserted into the cache are read out of it.
  *
- * There are no repeats in the first 400000 InsecureRand256() calls
+ * There are no repeats in the first 400000 m_rng.rand256() calls
  */
 BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes) {
     SeedRandomForTest(SeedRand::ZEROS);
@@ -122,19 +122,19 @@ BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes) {
     size_t megabytes = 4;
     cc.setup_bytes(megabytes << 20);
     for (int x = 0; x < 100000; ++x) {
-        cc.insert(InsecureRand256());
+        cc.insert(m_rng.rand256());
     }
     for (int x = 0; x < 100000; ++x) {
-        BOOST_CHECK(!cc.contains(InsecureRand256(), false));
+        BOOST_CHECK(!cc.contains(m_rng.rand256(), false));
     }
 
     CuckooCacheMap cm{};
     cm.setup_bytes(megabytes << 20);
     for (int x = 0; x < 100000; ++x) {
-        cm.insert(TestMapElement(InsecureRand256()));
+        cm.insert(TestMapElement(m_rng.rand256()));
     }
     for (int x = 0; x < 100000; ++x) {
-        BOOST_CHECK(!cm.contains(TestMapKey(InsecureRand256()), false));
+        BOOST_CHECK(!cm.contains(TestMapKey(m_rng.rand256()), false));
     }
 };
 
@@ -153,7 +153,7 @@ struct HitRateTest : BasicTestingSetup {
             static_cast<uint32_t>(load * (bytes / sizeof(uint256)));
         hashes.reserve(n_insert);
         for (uint32_t i = 0; i < n_insert; ++i) {
-            hashes.emplace_back(InsecureRand256());
+            hashes.emplace_back(m_rng.rand256());
         }
         /**
          * We make a copy of the hashes because future optimizations of the
@@ -232,7 +232,7 @@ struct EraseTest : BasicTestingSetup {
             static_cast<uint32_t>(load * (bytes / sizeof(uint256)));
         hashes.resize(n_insert);
         for (uint32_t i = 0; i < n_insert; ++i) {
-            hashes[i] = InsecureRand256();
+            hashes[i] = m_rng.rand256();
         }
         /**
          * We make a copy of the hashes because future optimizations of the
@@ -302,7 +302,7 @@ struct EraseParallelTest : BasicTestingSetup {
             static_cast<uint32_t>(load * (bytes / sizeof(uint256)));
         hashes.resize(n_insert);
         for (uint32_t i = 0; i < n_insert; ++i) {
-            hashes[i] = InsecureRand256();
+            hashes[i] = m_rng.rand256();
         }
         /**
          * We make a copy of the hashes because future optimizations of the
@@ -514,7 +514,7 @@ BOOST_AUTO_TEST_CASE(cuckoocache_map) {
     cm.setup_bytes(4 * 1024);
 
     for (int x = 0; x < 100000; ++x) {
-        const TestMapElement e1(InsecureRand256());
+        const TestMapElement e1(m_rng.rand256());
         const TestMapElement e2(e1.getKey(), e1.getValue() ^ 0xbabe);
 
         BOOST_CHECK(e1.getKey() == e2.getKey());

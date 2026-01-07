@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(passphrase) {
     std::string hash(GetRandHash().ToString());
     std::vector<uint8_t> vchSalt(8);
     GetRandBytes(vchSalt);
-    uint32_t rounds = InsecureRand32();
+    uint32_t rounds = m_rng.rand32();
     if (rounds > 30000) {
         rounds = 30000;
     }

@@ -148,7 +148,7 @@ struct ScriptTest : BasicTestingSetup {
         // failing test does not change the result, except for some special
         // flags.
         for (int i = 0; i < 16; ++i) {
-            uint32_t extra_flags = InsecureRandBits(32);
+            uint32_t extra_flags = m_rng.randbits(32);
             // Some flags are not purely-restrictive and thus we can't assume
             // anything about what happens when they are flipped. Keep them
             // as-is.

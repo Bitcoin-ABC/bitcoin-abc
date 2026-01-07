@@ -112,7 +112,7 @@ struct OutboundTest : TestingSetup {
                                std::vector<CNode *> &vNodes,
                                PeerManager &peerLogic,
                                ConnmanTestMsg *connman) {
-        CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
+        CAddress addr(ip(m_rng.randbits(32)), NODE_NONE);
         vNodes.emplace_back(new CNode(id++, /*sock=*/nullptr, addr,
                                       /* nKeyedNetGroupIn */ 0,
                                       /* nLocalHostNonceIn */ 0,

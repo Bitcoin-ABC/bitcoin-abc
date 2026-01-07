@@ -72,9 +72,9 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 /**
  * Random context to get unique temp data dirs. Separate from
- * g_insecure_rand_ctx, which can be seeded from a const env var
+ * m_rng, which can be seeded from a const env var
  */
-static FastRandomContext g_insecure_rand_ctx_temp_path;
+static FastRandomContext g_rng_temp_path;
 
 std::vector<const char *> fixture_extra_args{};
 
@@ -82,7 +82,7 @@ BasicTestingSetup::BasicTestingSetup(
     const ChainType chainType, const std::vector<const char *> &extra_args)
     : m_path_root{fsbridge::GetTempDirectoryPath() /
                   "test_common_" PACKAGE_NAME /
-                  g_insecure_rand_ctx_temp_path.rand256().ToString()},
+                  g_rng_temp_path.rand256().ToString()},
       m_args{} {
     // clang-format off
     std::vector<const char *> arguments = Cat(
@@ -501,7 +501,7 @@ void TestChain100Setup::MockMempoolMinFee(const CFeeRate &target_feerate) {
     // Manually create an invalid transaction. Manually set the fee in the
     // CTxMemPoolEntry to achieve the exact target feerate.
     CMutableTransaction mtx = CMutableTransaction();
-    mtx.vin.push_back(CTxIn{COutPoint{TxId{g_insecure_rand_ctx.rand256()}, 0}});
+    mtx.vin.push_back(CTxIn{COutPoint{TxId{m_rng.rand256()}, 0}});
     mtx.vout.push_back(CTxOut(
         1 * COIN, GetScriptForDestination(ScriptHash(CScript() << OP_TRUE))));
     const auto tx{MakeTransactionRef(mtx)};

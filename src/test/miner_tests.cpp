@@ -384,7 +384,7 @@ void MinerTestingSetup::TestBasicMining(
     while (m_node.chainman->ActiveHeight() < 209999) {
         CBlockIndex *prev = m_node.chainman->ActiveTip();
         CBlockIndex *next = new CBlockIndex();
-        next->phashBlock = new BlockHash(InsecureRand256());
+        next->phashBlock = new BlockHash(m_rng.rand256());
         m_node.chainman->ActiveChainstate().CoinsTip().SetBestBlock(
             next->GetBlockHash());
         next->pprev = prev;
@@ -398,7 +398,7 @@ void MinerTestingSetup::TestBasicMining(
     while (m_node.chainman->ActiveHeight() < 210000) {
         CBlockIndex *prev = m_node.chainman->ActiveTip();
         CBlockIndex *next = new CBlockIndex();
-        next->phashBlock = new BlockHash(InsecureRand256());
+        next->phashBlock = new BlockHash(m_rng.rand256());
         m_node.chainman->ActiveChainstate().CoinsTip().SetBestBlock(
             next->GetBlockHash());
         next->pprev = prev;
