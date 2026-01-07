@@ -126,9 +126,9 @@ export class Wallet {
     accountNumber: number;
     /** Base HD node at m/44'/1899'/<accountNumber>' (only set for HD wallets) */
     baseHdNode: HdNode | undefined;
-    /** Current receive address index */
+    /** Current receive address index, i.e. the next address we will receive at */
     receiveIndex: number;
-    /** Current change address index */
+    /** Current change address index, i.e. the next address we will send change to */
     changeIndex: number;
     /** Map of address -> keypair data for HD wallets */
     keypairs: Map<string, KeypairData>;
@@ -207,6 +207,117 @@ export class Wallet {
             script,
             address,
         };
+    }
+
+    /**
+     * Get keypair data for a specific address
+     *
+     * @param address - The address to look up
+     * @returns Keypair data if address is in wallet, undefined otherwise
+     */
+    public getKeypairForAddress(address: string): KeypairData | undefined {
+        return this.keypairs.get(address);
+    }
+
+    /**
+     * Get receive address at a specific index
+     * Does not increment receiveIndex
+     *
+     * @param index - The receive address index
+     * @returns The address string
+     * @throws Error if wallet is not HD
+     */
+    public getReceiveAddress(index: number): string {
+        if (!this.isHD) {
+            throw new Error(
+                'getReceiveAddress can only be called on HD wallets',
+            );
+        }
+
+        // Derive to get the address (we need this to check the cache)
+        const keypair = this._deriveKeypair(false, index);
+
+        // Return cached keypair if available, otherwise cache and return new one
+        const cached = this.keypairs.get(keypair.address);
+        if (cached) {
+            return cached.address;
+        }
+
+        this.keypairs.set(keypair.address, keypair);
+        return keypair.address;
+    }
+
+    /**
+     * Get change address at a specific index
+     * Does not increment changeIndex
+     *
+     * @param index - The change address index
+     * @returns The address string
+     * @throws Error if wallet is not HD
+     */
+    public getChangeAddress(index: number): string {
+        if (!this.isHD) {
+            throw new Error(
+                'getChangeAddress can only be called on HD wallets',
+            );
+        }
+
+        // Derive to get the address (we need this to check the cache)
+        const keypair = this._deriveKeypair(true, index);
+
+        // Return cached keypair if available, otherwise cache and return new one
+        const cached = this.keypairs.get(keypair.address);
+        if (cached) {
+            return cached.address;
+        }
+
+        this.keypairs.set(keypair.address, keypair);
+        return keypair.address;
+    }
+
+    /**
+     * Get the next receive address and increment receiveIndex
+     *
+     * @returns The next receive address
+     * @throws Error if wallet is not HD
+     */
+    public getNextReceiveAddress(): string {
+        if (!this.isHD) {
+            throw new Error(
+                'getNextReceiveAddress can only be called on HD wallets',
+            );
+        }
+
+        const address = this.getReceiveAddress(this.receiveIndex);
+        this.receiveIndex++;
+        return address;
+    }
+
+    /**
+     * Get the next change address and increment changeIndex
+     *
+     * @returns The next change address
+     * @throws Error if wallet is not HD
+     */
+    public getNextChangeAddress(): string {
+        if (!this.isHD) {
+            throw new Error(
+                'getNextChangeAddress can only be called on HD wallets',
+            );
+        }
+
+        const address = this.getChangeAddress(this.changeIndex);
+        this.changeIndex++;
+        return address;
+    }
+
+    /**
+     * Get all addresses currently cached in the keypairs map
+     *
+     * @returns Array of all cached addresses
+     */
+    public getAllAddresses(): string[] {
+        return Array.from(this.keypairs.keys());
     }
 
     /**

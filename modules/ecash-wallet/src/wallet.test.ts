@@ -6817,4 +6817,220 @@ describe('HD Wallet', () => {
             toHex(expectedBaseNode.seckey()!),
         );
     });
+
+    it('getKeypairForAddress returns keypair for cached address', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const keypair = wallet.getKeypairForAddress(wallet.address);
+        expect(keypair).to.not.equal(undefined);
+        expect(keypair!.address).to.equal(wallet.address);
+        expect(keypair!.sk).to.deep.equal(wallet.sk);
+    });
+
+    it('getKeypairForAddress returns undefined for unknown address', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const keypair = wallet.getKeypairForAddress('ecash:unknown');
+        expect(keypair).to.equal(undefined);
+    });
+
+    it('getReceiveAddress returns address at specific index', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const address0 = wallet.getReceiveAddress(0);
+        const address1 = wallet.getReceiveAddress(1);
+        const address2 = wallet.getReceiveAddress(2);
+
+        console.log('address0', address0);
+        console.log('address1', address1);
+        console.log('address2', address2);
+
+        expect(address0).to.equal(wallet.address); // First address is already cached
+
+        // The addresses are distinct
+        expect(address0).to.equal(
+            'ecash:qq86jv6h0y97q8l63ndynvk3fn9aq8fqru3exew8gl',
+        );
+        expect(address1).to.equal(
+            'ecash:qpvd5zt8727jjgx97t7hhlhqj9pdcgfrsvrf880jcw',
+        );
+        expect(address2).to.equal(
+            'ecash:qp8knv98nlrafajqgc53r4h9cw3yzazx7g30k779v6',
+        );
+    });
+
+    it('getReceiveAddress does not increment receiveIndex', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialIndex = wallet.receiveIndex;
+        wallet.getReceiveAddress(5);
+        expect(wallet.receiveIndex).to.equal(initialIndex);
+    });
+
+    it('getReceiveAddress caches keypairs', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialSize = wallet.keypairs.size;
+        const address = wallet.getReceiveAddress(10);
+        expect(wallet.keypairs.size).to.equal(initialSize + 1);
+        expect(wallet.getKeypairForAddress(address)).to.not.equal(undefined);
+    });
+
+    it('getChangeAddress returns address at specific index', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const change0 = wallet.getChangeAddress(0);
+        const change1 = wallet.getChangeAddress(1);
+        const receive0 = wallet.getReceiveAddress(0);
+
+        expect(change0).to.not.equal(receive0);
+        expect(change1).to.not.equal(change0);
+    });
+
+    it('getChangeAddress does not increment changeIndex', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialIndex = wallet.changeIndex;
+        wallet.getChangeAddress(7);
+        expect(wallet.changeIndex).to.equal(initialIndex);
+    });
+
+    it('getNextReceiveAddress increments receiveIndex', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialIndex = wallet.receiveIndex;
+        const address0 = wallet.getNextReceiveAddress();
+        expect(wallet.receiveIndex).to.equal(initialIndex + 1);
+
+        const address1 = wallet.getNextReceiveAddress();
+        expect(wallet.receiveIndex).to.equal(initialIndex + 2);
+        expect(address1).to.not.equal(address0);
+    });
+
+    it('getNextReceiveAddress caches keypairs', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialSize = wallet.keypairs.size; // 1 (first receive address at index 0)
+        const address0 = wallet.getNextReceiveAddress(); // Gets index 0 (already cached), increments to 1
+        expect(address0).to.equal(wallet.address);
+        expect(wallet.keypairs.size).to.equal(initialSize); // Still 1, no new cache
+
+        const address1 = wallet.getNextReceiveAddress(); // Gets index 1 (new), increments to 2
+        expect(wallet.keypairs.size).to.equal(initialSize + 1); // Now 2, new address cached
+        expect(wallet.getKeypairForAddress(address1)).to.not.equal(undefined);
+    });
+
+    it('getNextChangeAddress increments changeIndex', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialIndex = wallet.changeIndex;
+        const address0 = wallet.getNextChangeAddress();
+        expect(wallet.changeIndex).to.equal(initialIndex + 1);
+
+        const address1 = wallet.getNextChangeAddress();
+        expect(wallet.changeIndex).to.equal(initialIndex + 2);
+        expect(address1).to.not.equal(address0);
+    });
+
+    it('getAllAddresses returns all cached addresses', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const initialAddresses = wallet.getAllAddresses();
+        expect(initialAddresses.length).to.equal(1); // First receive address
+
+        wallet.getReceiveAddress(1);
+        wallet.getReceiveAddress(2);
+        wallet.getChangeAddress(0);
+        wallet.getChangeAddress(1);
+
+        const allAddresses = wallet.getAllAddresses();
+        expect(allAddresses.length).to.equal(5);
+        expect(allAddresses).to.include(wallet.address);
+    });
+
+    it('HD wallet methods throw error on non-HD wallet', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        ); // Non-HD wallet
+
+        expect(() => wallet.getReceiveAddress(0)).to.throw(
+            'getReceiveAddress can only be called on HD wallets',
+        );
+        expect(() => wallet.getChangeAddress(0)).to.throw(
+            'getChangeAddress can only be called on HD wallets',
+        );
+        expect(() => wallet.getNextReceiveAddress()).to.throw(
+            'getNextReceiveAddress can only be called on HD wallets',
+        );
+        expect(() => wallet.getNextChangeAddress()).to.throw(
+            'getNextChangeAddress can only be called on HD wallets',
+        );
+    });
+
+    it('getAllAddresses returns empty array for non-HD wallet', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        ); // Non-HD wallet
+
+        expect(wallet.getAllAddresses()).to.deep.equal([]);
+    });
 });

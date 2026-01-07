@@ -16,20 +16,21 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ## Status
 
-**Completed**: Foundation (sections 1-4)
+**Completed**: Foundation and Address Generation (sections 1-5)
 
 - ✅ HD wallet type detection
 - ✅ HD wallet constructor via `fromMnemonic` with options
 - ✅ Account number support (configurable, defaults to 0)
 - ✅ Index tracking (receiveIndex, changeIndex)
 - ✅ Keypair management and derivation
+- ✅ Address generation methods (getReceiveAddress, getChangeAddress, getNextReceiveAddress, getNextChangeAddress, getAllAddresses)
 - ✅ Comprehensive test coverage
 
-**Next Steps**: Address generation and sync (sections 5-6)
+**Next Steps**: Enhanced Sync (section 6)
 
-- Address generation methods
-- Enhanced sync for multiple addresses
-- Gap limit checking
+- Modify `sync()` method to handle HD wallets with multiple addresses
+- Gap limit checking during sync
+- Address discovery from blockchain state
 
 **Future**: Transaction building and signing (sections 7-8)
 
@@ -92,37 +93,37 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - Caches result in `keypairs` map
     - First receive address (index 0) is automatically cached on HD wallet creation
 
-- [ ] Add method `getKeypairForAddress(address: string): KeypairData | undefined`
+- [x] Add method `getKeypairForAddress(address: string): KeypairData | undefined`
     - Looks up keypair from `keypairs` map
     - Returns undefined if address not in wallet
 
 ### 5. Address Generation Methods
 
-- [ ] Add `getNextReceiveAddress(): string`
+- [x] Add `getNextReceiveAddress(): string`
     - Derives keypair at current `receiveIndex`
     - Increments `receiveIndex`
     - Caches keypair in `keypairs` map
     - Returns address string
 
-- [ ] Add `getNextChangeAddress(): string`
+- [x] Add `getNextChangeAddress(): string`
     - Derives keypair at current `changeIndex`
     - Increments `changeIndex`
     - Caches keypair in `keypairs` map
     - Returns address string
 
-- [ ] Add `getReceiveAddress(index: number): string`
+- [x] Add `getReceiveAddress(index: number): string`
     - Derives keypair at specific receive index
     - Does not increment `receiveIndex`
     - Caches keypair if not already cached
     - Returns address string
 
-- [ ] Add `getChangeAddress(index: number): string`
+- [x] Add `getChangeAddress(index: number): string`
     - Derives keypair at specific change index
     - Does not increment `changeIndex`
     - Caches keypair if not already cached
     - Returns address string
 
-- [ ] Add `getAllAddresses(): string[]`
+- [x] Add `getAllAddresses(): string[]`
     - Returns array of all addresses in `keypairs` map
     - Useful for syncing all addresses
 

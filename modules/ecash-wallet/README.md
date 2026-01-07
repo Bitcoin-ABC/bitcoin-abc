@@ -185,3 +185,9 @@ See tests for detailed methods.
 - Add stub methods for HD support (not a functional wallet, but could be used to derive different accounts)
 
 [D19233](https://reviews.bitcoinabc.org/D19233)
+
+# 2.3.9
+
+- Add methods for getting receive and change addresses for HD wallets
+
+[D19245](https://reviews.bitcoinabc.org/D19245)
