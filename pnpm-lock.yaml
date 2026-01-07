@@ -461,6 +461,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
+      qrcode-terminal:
+        specifier: ^0.12.0
+        version: 0.12.0
     devDependencies:
       '@types/chai':
         specifier: ^5.2.3
@@ -474,6 +477,9 @@ importers:
       '@types/pg':
         specifier: ^8.15.5
         version: 8.16.0
+      '@types/qrcode-terminal':
+        specifier: ^0.12.0
+        version: 0.12.2
       '@types/sinon':
         specifier: ^17.0.4
         version: 17.0.4
@@ -5334,6 +5340,9 @@ packages:
 
   '@types/q@1.5.8':
     resolution: {integrity: sha512-hroOstUScF6zhIi+5+x0dzqrHA1EJi+Irri6b1fxolMTqqHIV/Cg77EtnQcZqZCu8hR3mX2BzIxN4/GzI68Kfw==}
+
+  '@types/qrcode-terminal@0.12.2':
+    resolution: {integrity: sha512-v+RcIEJ+Uhd6ygSQ0u5YYY7ZM+la7GgPbs0V/7l/kFs2uO4S8BcIUEMoP7za4DNIqNnUD5npf0A/7kBhrCKG5Q==}
 
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
@@ -13051,6 +13060,10 @@ packages:
   qr-scanner@1.4.2:
     resolution: {integrity: sha512-kV1yQUe2FENvn59tMZW6mOVfpq9mGxGf8l6+EGaXUOd4RBOLg7tRC83OrirM5AtDvZRpdjdlXURsHreAOSPOUw==}
 
+  qrcode-terminal@0.12.0:
+    resolution: {integrity: sha512-EXtzRZmC+YGmGlDFbXKxQiMZNwCLEO6BANKXG4iCtSIM0yqc/pappSx3RIKr4r0uh5JsBckOXeKrB3Iz7mdQpQ==}
+    hasBin: true
+
   qrcode.react@4.2.0:
     resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
     peerDependencies:
@@ -20660,6 +20673,8 @@ snapshots:
   '@types/pulltorefreshjs@0.1.7': {}
 
   '@types/q@1.5.8': {}
+
+  '@types/qrcode-terminal@0.12.2': {}
 
   '@types/qrcode@1.5.6':
     dependencies:
@@ -30684,6 +30699,8 @@ snapshots:
   qr-scanner@1.4.2:
     dependencies:
       '@types/offscreencanvas': 2019.7.3
+
+  qrcode-terminal@0.12.0: {}
 
   qrcode.react@4.2.0(react@19.2.3):
     dependencies:

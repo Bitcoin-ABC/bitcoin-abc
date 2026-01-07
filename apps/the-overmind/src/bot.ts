@@ -4,6 +4,7 @@
 
 import { Context, Bot } from 'grammy';
 import { Pool } from 'pg';
+import * as qrcode from 'qrcode-terminal';
 import {
     HdNode,
     Script,
@@ -422,6 +423,48 @@ export const health = async (
             '❌ Error fetching your health. Please try again later.',
         );
     }
+};
+
+/**
+ * Get and display address for a registered user with QR code
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ */
+export const address = async (ctx: Context, pool: Pool): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is registered
+    const userResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+        await ctx.reply(
+            '❌ You must register first! Use /register to create your wallet address.',
+        );
+        return;
+    }
+
+    const { address } = userResult.rows[0];
+
+    // Generate ASCII QR code (callback is synchronous)
+    let qrCode = '';
+    qrcode.generate(address, { small: true }, (qr: string) => {
+        qrCode = qr;
+    });
+
+    await ctx.reply(
+        `📍 **Your Address**\n\n` +
+            `\`\`\`\n${address}\n\`\`\`\n\n` +
+            `**QR Code:**\n` +
+            `\`\`\`\n${qrCode}\n\`\`\``,
+        { parse_mode: 'Markdown' },
+    );
 };
 
 /**

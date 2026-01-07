@@ -13,6 +13,7 @@ import {
     register,
     claim,
     health,
+    address,
     handleMessage,
     handleMessageReaction,
 } from './src/bot';
@@ -102,6 +103,9 @@ const startup = async () => {
     });
     bot.command('health', async ctx => {
         await health(ctx, pool, chronik);
+    });
+    bot.command('address', async ctx => {
+        await address(ctx, pool);
     });
     console.info('Bot command handlers registered');
 
