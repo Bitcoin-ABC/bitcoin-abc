@@ -1,10 +1,10 @@
 // Copyright (c) 2025 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+pluginManagement { includeBuild(file('../node_modules/@react-native/gradle-plugin').toPath().toRealPath().toAbsolutePath().toString()) }
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'MarlinWallet'
 include ':app'
 include ':wear'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+includeBuild(file('../node_modules/@react-native/gradle-plugin').toPath().toRealPath().toAbsolutePath().toString())
