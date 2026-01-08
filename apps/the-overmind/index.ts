@@ -111,6 +111,15 @@ const startup = async () => {
 
     // Set up message handler for monitored group chat
     bot.on('message', async ctx => {
+        // Log all DMs to the bot
+        if (ctx.chat?.type === 'private') {
+            const username =
+                ctx.from?.username || ctx.from?.first_name || 'unknown';
+            const userId = ctx.from?.id || 'unknown';
+            const messageText =
+                ctx.message.text || ctx.message.caption || '[Non-text message]';
+            console.log(`DM from ${username} (${userId}): ${messageText}`);
+        }
         await handleMessage(ctx, pool, monitoredGroupChatId);
     });
     console.info('Message handler registered for monitored group chat');
