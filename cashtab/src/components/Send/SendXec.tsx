@@ -386,7 +386,7 @@ const SendXec: React.FC = () => {
         cashtabState,
         updateCashtabState,
         chronik,
-        wallet: ecashWallet,
+        ecashWallet,
     } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
     if (!activeWallet) {

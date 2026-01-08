@@ -24,7 +24,7 @@ export function isWalletContextLoaded(
         'updateCashtabState' in context &&
         'processChronikWsMsg' in context &&
         'cashtabState' in context &&
-        'wallet' in context
+        'ecashWallet' in context
     );
 }
 
