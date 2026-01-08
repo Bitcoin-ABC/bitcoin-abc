@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 // Main API
-export { XECPrice } from './api';
+export { XECPrice } from './xec';
 
 // Types
 export { Fiat, CryptoTicker } from './types';

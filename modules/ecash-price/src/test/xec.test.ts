@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import { XECPrice } from '../api';
+import { XECPrice } from '../xec';
 import { CoinGeckoProvider } from '../providers/coingecko';
 import { Fiat, CryptoTicker } from '../types';
 import { ProviderStrategy } from '../strategy';
