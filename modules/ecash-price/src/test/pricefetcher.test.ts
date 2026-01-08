@@ -1,0 +1,595 @@
+// Copyright (c) 2026 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+import { expect } from 'chai';
+import { PriceFetcher } from '../pricefetcher';
+import { MockProvider } from './fixture/mockprovider';
+import { Fiat, CryptoTicker } from '../types';
+import { ProviderStrategy } from '../strategy';
+
+describe('PriceFetcher', () => {
+    describe('fetch', () => {
+        it('should throw error for unsupported strategy', async () => {
+            const provider = new MockProvider({});
+            const fetcher = new PriceFetcher(
+                [provider],
+                'unsupported' as ProviderStrategy,
+            );
+
+            try {
+                await fetcher.fetch({
+                    sources: [CryptoTicker.XEC],
+                    quotes: [Fiat.USD],
+                });
+                expect.fail('Should have thrown an error');
+            } catch (err) {
+                expect(err).to.be.instanceOf(Error);
+                expect((err as Error).message).to.equal(
+                    'Strategy unsupported is not implemented yet',
+                );
+            }
+        });
+
+        it('should return true when first provider succeeds', async () => {
+            const provider1 = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            const provider2 = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0002,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result).to.equal(true);
+        });
+
+        it('should fallback to second provider when first fails', async () => {
+            const provider1 = new MockProvider({ shouldSucceed: false });
+            const provider2 = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0002,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result).to.equal(true);
+        });
+
+        it('should fallback to second provider when first throws', async () => {
+            const provider1 = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: true,
+            });
+            const provider2 = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0002,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result).to.equal(true);
+        });
+
+        it('should return false when all providers fail', async () => {
+            // Providers that throw are considered failures by fetch()
+            const provider1 = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: true,
+            });
+            const provider2 = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: true,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result).to.equal(false);
+        });
+
+        it('should return false when all providers throw', async () => {
+            const provider1 = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: true,
+            });
+            const provider2 = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: true,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result).to.equal(false);
+        });
+
+        it('should cache the response after successful fetch', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            const fetcher = new PriceFetcher([provider]);
+
+            await fetcher.fetch({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
+
+            // Verify cache is set by checking if current() returns without fetching
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(price).to.equal(0.0001);
+        });
+    });
+
+    describe('current', () => {
+        it('should throw error for unsupported strategy when the cache is dirty', async () => {
+            const provider = new MockProvider({});
+            const fetcher = new PriceFetcher(
+                [provider],
+                'unsupported' as ProviderStrategy,
+            );
+
+            try {
+                await fetcher.current({
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                });
+                expect.fail('Should have thrown an error');
+            } catch (err) {
+                expect(err).to.be.instanceOf(Error);
+                expect((err as Error).message).to.equal(
+                    'Strategy unsupported is not implemented yet',
+                );
+            }
+        });
+
+        it('should fetch and return price when cache is not set', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            const fetcher = new PriceFetcher([provider]);
+
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(price).to.equal(0.0001);
+        });
+
+        it('should return price from cache when available and not expired', async () => {
+            const now = Date.now();
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            // Set a response with a recent timestamp to ensure cache is valid
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(now - 1000), // 1 second ago
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher(
+                [provider],
+                ProviderStrategy.FALLBACK,
+                60000,
+            );
+
+            // First call to populate cache
+            const firstPrice = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+            expect(firstPrice).to.equal(0.0001);
+
+            // Change provider to return different price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Second call should use cache (not fetch from provider)
+            const secondPrice = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(secondPrice).to.equal(0.0001); // Should be cached value, not new value
+        });
+
+        it('should fetch when cache is expired', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            // Set cache expiry to 0ms to force immediate expiry
+            const fetcher = new PriceFetcher(
+                [provider],
+                ProviderStrategy.FALLBACK,
+                0,
+            );
+
+            // First call to populate cache
+            await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            // Change provider response to return new price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Second call should fetch new price (cache expired due to 0ms expiry)
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(price).to.equal(0.0002); // Should be new value
+        });
+
+        it('should fetch when cache does not contain requested pair', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            const fetcher = new PriceFetcher([provider]);
+
+            // First call to populate cache with XEC/USD
+            await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            // Setup provider to return EUR price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Request EUR pair - should fetch since it's not in cache
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.EUR,
+            });
+
+            expect(price).to.equal(0.00009);
+        });
+
+        it('should return null when fetch fails', async () => {
+            const provider = new MockProvider({ shouldSucceed: false });
+            const fetcher = new PriceFetcher([provider]);
+
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(price).to.be.equal(null);
+        });
+
+        it('should return null when price data is missing from response', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                response: {
+                    prices: [],
+                },
+            });
+            const fetcher = new PriceFetcher([provider]);
+
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            expect(price).to.be.equal(null);
+        });
+
+        it('should work with cryptocurrency quotes', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                shouldThrow: false,
+            });
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: CryptoTicker.BTC,
+                        provider: provider,
+                        price: 1.32515e-10,
+                        lastUpdated: new Date(1767706673 * 1000),
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher([provider]);
+
+            const price = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: CryptoTicker.BTC,
+            });
+
+            expect(price).to.equal(1.32515e-10);
+        });
+
+        it('should handle multiple sources and quotes in cache', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.BTC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 50000,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher(
+                [provider],
+                ProviderStrategy.FALLBACK,
+                60000,
+            );
+
+            // Fetch all prices at once
+            await fetcher.fetch({
+                sources: [CryptoTicker.XEC, CryptoTicker.BTC],
+                quotes: [Fiat.USD, Fiat.EUR],
+            });
+
+            // All should be available from cache
+            const xecUsd = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+            const xecEur = await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.EUR,
+            });
+            const btcUsd = await fetcher.current({
+                source: CryptoTicker.BTC,
+                quote: Fiat.USD,
+            });
+
+            expect(xecUsd).to.equal(0.0001);
+            expect(xecEur).to.equal(0.00009);
+            expect(btcUsd).to.equal(50000);
+        });
+    });
+
+    describe('currentPairs', () => {
+        it('should return array of prices for multiple pairs', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.BTC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 50000,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher([provider]);
+
+            const prices = await fetcher.currentPairs([
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.EUR },
+                { source: CryptoTicker.BTC, quote: Fiat.USD },
+            ]);
+
+            expect(prices).to.have.length(3);
+            expect(prices[0]).to.equal(0.0001);
+            expect(prices[1]).to.equal(0.00009);
+            expect(prices[2]).to.equal(50000);
+        });
+
+        it('should preserve ordering of pairs', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.BTC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 50000,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher([provider]);
+
+            const pairs = [
+                { source: CryptoTicker.BTC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.EUR },
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+            ];
+
+            const prices = await fetcher.currentPairs(pairs);
+
+            expect(prices).to.have.length(3);
+            // Order should match input order
+            expect(prices[0]).to.equal(50000); // BTC/USD
+            expect(prices[1]).to.equal(0.00009); // XEC/EUR
+            expect(prices[2]).to.equal(0.0001); // XEC/USD
+        });
+
+        it('should return null for pairs that fail to fetch', async () => {
+            const provider = new MockProvider({ shouldSucceed: false });
+            const fetcher = new PriceFetcher([provider]);
+
+            const prices = await fetcher.currentPairs([
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.EUR },
+            ]);
+
+            expect(prices).to.have.length(2);
+            expect(prices[0]).to.be.equal(null);
+            expect(prices[1]).to.be.equal(null);
+        });
+
+        it('should handle mix of cached and uncached pairs', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            const now = Date.now();
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(now - 1000), // 1 second ago
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher(
+                [provider],
+                ProviderStrategy.FALLBACK,
+                60000,
+            );
+
+            // First call to cache USD
+            await fetcher.current({
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+            });
+
+            // Update provider to return both USD and EUR
+            // Since EUR is not cached, currentPairs will fetch all pairs together
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Request both USD (cached) and EUR (not cached)
+            // Since any pair is dirty, currentPairs fetches all pairs together
+            const prices = await fetcher.currentPairs([
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.EUR },
+            ]);
+
+            expect(prices).to.have.length(2);
+            // Both prices come from the fresh fetch (not from cache)
+            expect(prices[0]).to.equal(0.0002); // From fresh fetch
+            expect(prices[1]).to.equal(0.00009); // From fresh fetch
+        });
+    });
+});

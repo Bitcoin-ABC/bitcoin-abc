@@ -67,6 +67,14 @@ export class CryptoTicker {
 export type QuoteCurrency = Fiat | CryptoTicker;
 
 /**
+ * Pair of source cryptocurrency and quote currency
+ */
+export type PricePair = {
+    source: CryptoTicker;
+    quote: QuoteCurrency;
+};
+
+/**
  * Price data for XEC against a quote currency
  */
 export interface PriceData {
