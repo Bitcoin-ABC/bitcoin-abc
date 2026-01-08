@@ -88,14 +88,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -160,14 +159,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -225,14 +223,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -290,14 +287,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = screen.getByTitle('Toggle Multisend');
+        await waitFor(() => expect(toggleMultisend).toBeDisabled());
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -348,7 +344,8 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
@@ -406,7 +403,8 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
@@ -470,14 +468,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -539,14 +536,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -650,14 +646,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        const toggleMultisend = await screen.findByTitle('Toggle Multisend');
+        expect(toggleMultisend).toHaveProperty('disabled', true);
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -719,7 +714,8 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
@@ -789,13 +785,11 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
         ).toHaveTextContent('9,513.12 XEC');
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
-            'disabled',
-            true,
-        );
+        expect(await screen.findByTitle('Toggle Multisend')).toBeDisabled();
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -908,8 +902,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for token mode to be activated (toggle should be on "Tokens")
+        // Wait for ecashWallet to be initialized first (component renders after ecashWallet is set)
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         await waitFor(() => {
-            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
             expect(tokenModeSwitch).toHaveProperty('checked', true);
         });
 
@@ -917,7 +914,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
 
         // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -999,8 +997,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for token mode to be activated (toggle should be on "Tokens")
+        // Wait for ecashWallet to be initialized first (component renders after ecashWallet is set)
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         await waitFor(() => {
-            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
             expect(tokenModeSwitch).toHaveProperty('checked', true);
         });
 
@@ -1008,7 +1009,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
 
         // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -1096,8 +1098,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for token mode to be activated (toggle should be on "Tokens")
+        // Wait for ecashWallet to be initialized first (component renders after ecashWallet is set)
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         await waitFor(() => {
-            const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
             expect(tokenModeSwitch).toHaveProperty('checked', true);
         });
 
@@ -1105,7 +1110,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
 
         // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));

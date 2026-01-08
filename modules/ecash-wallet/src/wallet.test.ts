@@ -285,6 +285,9 @@ describe('wallet.ts', () => {
         // We have no spendableSatsOnlyUtxos before sync
         expect(testWallet.spendableSatsOnlyUtxos()).to.deep.equal([]);
 
+        // balanceSats returns 0n when wallet has no UTXOs
+        expect(testWallet.balanceSats).to.equal(0n);
+
         // Mock a chaintip
         mockChronik.setBlockchainInfo({
             tipHash: DUMMY_TIPHASH,
@@ -308,6 +311,15 @@ describe('wallet.ts', () => {
             { ...DUMMY_UTXO, address: DUMMY_ADDRESS },
             { ...DUMMY_SPENDABLE_COINBASE_UTXO, address: DUMMY_ADDRESS },
         ]);
+
+        // We can get balanceSats (sum of all sats-only UTXOs, including immature coinbase)
+        // Editorial decision: Users want to see sats from immature coinbase utxos
+        // in their balance, even if these are not spendable
+        const expectedBalanceSats =
+            DUMMY_UTXO.sats +
+            DUMMY_SPENDABLE_COINBASE_UTXO.sats +
+            DUMMY_UNSPENDABLE_COINBASE_UTXO.sats;
+        expect(testWallet.balanceSats).to.equal(expectedBalanceSats);
 
         // Now we have utxos (all should have address field)
         expect(testWallet.utxos.length).to.equal(ALL_SUPPORTED_UTXOS.length);

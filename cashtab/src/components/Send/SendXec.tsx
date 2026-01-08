@@ -389,11 +389,14 @@ const SendXec: React.FC = () => {
         ecashWallet,
     } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    if (!activeWallet || !ecashWallet) {
         return null;
     }
+
     const wallet = activeWallet;
-    const { balanceSats, tokens } = wallet.state;
+    const { tokens } = wallet.state;
+
+    const balanceSats = Number(ecashWallet.balanceSats);
 
     const [isTokenMode, setIsTokenMode] = useState<boolean>(false);
     const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);

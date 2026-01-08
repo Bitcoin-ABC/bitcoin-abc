@@ -128,6 +128,13 @@ export class Wallet {
     tipHeight: number;
     /** The utxo set of this wallet */
     utxos: WalletUtxo[];
+    /**
+     * Total balance in satoshis from sats only UTXOs
+     * Does not include sat balance of utxos associated with tokens
+     * DOES include immature coinbase sats
+     * Updated during sync()
+     */
+    balanceSats: bigint;
     /** Whether this is an HD wallet */
     isHD: boolean;
     /** Account number for HD wallets (defaults to 0) */
@@ -161,6 +168,7 @@ export class Wallet {
         // Constructors cannot be async, so we must sync() to get utxos and tipHeight
         this.tipHeight = 0;
         this.utxos = [];
+        this.balanceSats = 0n;
 
         // Initialize HD wallet properties
         this.isHD = baseHdNode !== undefined;
@@ -352,6 +360,7 @@ export class Wallet {
                 result.outputScript,
             );
             this.tipHeight = tipHeight;
+            this.updateBalances();
             return;
         }
 
@@ -436,6 +445,7 @@ export class Wallet {
         // Update wallet state
         this.utxos = allUtxos;
         this.tipHeight = tipHeight;
+        this.updateBalances();
     }
 
     /**
@@ -456,6 +466,21 @@ export class Wallet {
                     utxo => typeof utxo.token === 'undefined',
                 ),
             );
+    }
+
+    /**
+     * Update balanceSats based on current utxos
+     * Called during sync() after utxos are updated
+     *
+     * Editorial decision: Users want to see sats from immature coinbase utxos
+     * in their balance, even if these are not spendable
+     */
+    public updateBalances(): void {
+        // Get all sats-only UTXOs (no tokens, includes immature coinbase)
+        const balanceSatsOnlyUtxos = this.utxos.filter(
+            utxo => typeof utxo.token === 'undefined',
+        );
+        this.balanceSats = Wallet.sumUtxosSats(balanceSatsOnlyUtxos);
     }
 
     /**
@@ -597,6 +622,7 @@ export class Wallet {
         // Copy the mutable state
         clonedWallet.tipHeight = this.tipHeight;
         clonedWallet.utxos = [...this.utxos]; // Shallow copy of the array
+        clonedWallet.balanceSats = this.balanceSats;
 
         // Copy HD wallet state if applicable
         if (this.isHD) {
@@ -1493,6 +1519,9 @@ class WalletAction {
                 this._wallet.utxos.push(walletUtxo);
             }
         }
+
+        // Update balances after modifying utxos
+        this._wallet.updateBalances();
     }
 
     /**

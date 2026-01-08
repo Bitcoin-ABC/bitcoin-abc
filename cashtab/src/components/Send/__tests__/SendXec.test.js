@@ -83,7 +83,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // Input fields are rendered
@@ -143,7 +144,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid address
@@ -201,7 +203,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters an invalid address
@@ -252,7 +255,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -310,7 +314,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -364,7 +369,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -420,7 +426,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a badly formed query string
@@ -480,7 +487,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -554,7 +562,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -628,7 +637,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param and invalid op_return_raw
@@ -716,7 +726,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const op_return_raw =
@@ -862,7 +873,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -966,7 +978,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid address
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -1040,7 +1053,7 @@ describe('<SendXec />', () => {
         );
 
         // Select multi-send mode
-        await user.click(screen.getByTitle('Toggle Multisend'));
+        await user.click(await screen.findByTitle('Toggle Multisend'));
 
         const multiSendInputEl = screen.getByPlaceholderText(
             /One address & amount per line/,
@@ -1109,7 +1122,8 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -1224,7 +1238,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a valid BIP21 query string with a valid amount param
         const op_return_raw =
             '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
@@ -1369,7 +1383,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -1467,7 +1481,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -1576,7 +1590,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a BIP21 query string with firma param for an SLP token
         // This should show a validation error since firma is only valid for ALP tokens
         const token_decimalized_qty = '1';
@@ -1682,7 +1696,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -1809,7 +1823,9 @@ describe('<SendXec />', () => {
         );
 
         // Toggle to token mode
-        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         expect(tokenModeSwitch).toBeInTheDocument();
         await user.click(tokenModeSwitch);
 
@@ -1948,7 +1964,9 @@ describe('<SendXec />', () => {
         );
 
         // Toggle to token mode
-        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         expect(tokenModeSwitch).toBeInTheDocument();
         await user.click(tokenModeSwitch);
 
@@ -2123,7 +2141,9 @@ describe('<SendXec />', () => {
         );
 
         // Toggle to token mode
-        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         expect(tokenModeSwitch).toBeInTheDocument();
         await user.click(tokenModeSwitch);
 
@@ -2295,7 +2315,9 @@ describe('<SendXec />', () => {
         );
 
         // Toggle to token mode
-        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         expect(tokenModeSwitch).toBeInTheDocument();
         await user.click(tokenModeSwitch);
 
@@ -2467,7 +2489,9 @@ describe('<SendXec />', () => {
         );
 
         // Toggle to token mode
-        const tokenModeSwitch = screen.getByTitle('Toggle XEC/Token Mode');
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
         expect(tokenModeSwitch).toBeInTheDocument();
         await user.click(tokenModeSwitch);
 
@@ -2610,7 +2634,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -2736,7 +2760,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = await screen.findByPlaceholderText('Address');
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
         fireEvent.input(addressInputEl, { target: { value: bip21Str } });
         fireEvent.change(addressInputEl, { target: { value: bip21Str } });

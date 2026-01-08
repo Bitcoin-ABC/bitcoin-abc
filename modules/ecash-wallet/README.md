@@ -198,3 +198,9 @@ See tests for detailed methods.
 - Introduce new `WalletUtxo` type with included `address` key, which will help match utxos with keypairs for HD transaction signing (breaking change)
 
 [D19249](https://reviews.bitcoinabc.org/D19249)
+
+# 3.1.0
+
+- Add `balanceSats` as wallet property that updates on `sync()`
+
+[D19266](https://reviews.bitcoinabc.org/D19266)
