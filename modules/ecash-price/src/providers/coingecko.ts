@@ -53,7 +53,7 @@ export class CoinGeckoProvider implements PriceProvider {
             .map(quote => quote.toString())
             .join(',');
 
-        const url = `${this.apiBase}/simple/price?ids=ecash&vs_currencies=${vsCurrencies}&include_last_updated_at=true`;
+        const url = `${this.apiBase}/simple/price?ids=ecash&vs_currencies=${vsCurrencies}&include_last_updated_at=true&precision=full`;
 
         try {
             const response = await fetch(url, {
