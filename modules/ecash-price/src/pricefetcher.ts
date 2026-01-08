@@ -68,12 +68,31 @@ export class PriceFetcher {
             throw new Error(`Strategy ${this.strategy} is not implemented yet`);
         }
 
-        for (const provider of this.providers) {
+        providerLoop: for (const provider of this.providers) {
             try {
                 // We assume all providers should be able to fetch all the
                 // requested prices, so we return the response directly and
                 // don't try to merge the results.
                 const response = await provider.fetchPrices(request);
+
+                // The response contains errors, try next provider
+                if (response.prices.some(p => p.error)) {
+                    continue;
+                }
+
+                // The response is missing some prices, try next provider
+                for (const source of request.sources) {
+                    for (const quote of request.quotes) {
+                        if (
+                            !response.prices.some(
+                                p => p.source === source && p.quote === quote,
+                            )
+                        ) {
+                            continue providerLoop;
+                        }
+                    }
+                }
+
                 this.cachedResponse = response;
                 return true;
             } catch {
