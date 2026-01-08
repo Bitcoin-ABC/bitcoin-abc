@@ -19,13 +19,15 @@ Roadmap
 [x] Add token tx support for likes and dislikes. This must have spam protection, i.e. a "downvote" must cost the downvoting user something as well. Downvote decrements should go to a bot treasury.
 [x] EMPP spec for registration, likes, dislikes to support onchain analytics
 [x] Only allow registration for users in the monitored chat
-[] Herald summary should parse overmind actions
+[x] Add utility methods for MVP (/health, /address)
+[] CI deployments
 [] Add support for a /start info command
-[] Add utility methods for user interaction (check balance, withdraw, show address)
+[] Make sure bot has a picture
+[] Launch
+[] Herald summary should parse overmind actions
+[] Support withdrawals (HP only)
 [] 24-hr cron job to ensure all registered users have at least 1000 XEC
 [] cron job to top-up or reward active users who are liking and disliking a lot; if they have low HP and not from being disliked, top-up; or this could be a bot interaction
-[] CI deployments
-[] Launch
 [] Add admin features to airdrop from the bot treasury or super react
 [] Add arbitrary tipping
 [] Mute users below certain token balances
