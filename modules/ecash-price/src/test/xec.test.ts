@@ -261,4 +261,112 @@ describe('XECPrice', () => {
             expect(price).to.be.equal(null);
         });
     });
+
+    describe('caching', () => {
+        it('should not cache prices by default (0ms expiry)', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            const api = new XECPrice([provider]); // Default: 0ms cache
+
+            // First call
+            const firstPrice = await api.current(Fiat.USD);
+            expect(firstPrice).to.equal(0.0001);
+
+            // Change provider to return different price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Second call should fetch new price (no cache)
+            const secondPrice = await api.current(Fiat.USD);
+            expect(secondPrice).to.equal(0.0002); // Should be new value, not cached
+        });
+
+        it('should cache prices when cacheExpiryMs is set', async () => {
+            const now = Date.now();
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            // Set initial response with recent timestamp
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(now - 1000), // 1 second ago
+                    },
+                ],
+            };
+            const api = new XECPrice(
+                [provider],
+                ProviderStrategy.FALLBACK,
+                60000,
+            ); // 60 second cache
+
+            // First call to populate cache
+            const firstPrice = await api.current(Fiat.USD);
+            expect(firstPrice).to.equal(0.0001);
+
+            // Change provider to return different price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Second call should use cache (not fetch from provider)
+            const secondPrice = await api.current(Fiat.USD);
+            expect(secondPrice).to.equal(0.0001); // Should be cached value, not new value
+        });
+
+        it('should expire cache after cacheExpiryMs', async () => {
+            const provider = new MockProvider({
+                shouldSucceed: true,
+                price: 0.0001,
+            });
+            // Set cache expiry to 10ms to force quick expiry
+            const api = new XECPrice([provider], ProviderStrategy.FALLBACK, 10);
+
+            // First call to populate cache
+            await api.current(Fiat.USD);
+
+            // Wait for cache to expire
+            await new Promise(resolve => setTimeout(resolve, 20));
+
+            // Change provider to return different price
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0002,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+
+            // Second call should fetch new price (cache expired)
+            const price = await api.current(Fiat.USD);
+            expect(price).to.equal(0.0002); // Should be new value
+        });
+    });
 });
