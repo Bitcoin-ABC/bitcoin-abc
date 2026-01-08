@@ -11,7 +11,6 @@ import { Wallet } from 'ecash-wallet';
 import { initDb, initSchema } from './src/db';
 import {
     register,
-    claim,
     health,
     address,
     handleMessage,
@@ -96,10 +95,15 @@ const startup = async () => {
 
     // Set up bot command handlers
     bot.command('register', async ctx => {
-        await register(ctx, master, pool, bot, monitoredGroupChatId);
-    });
-    bot.command('claim', async ctx => {
-        await claim(ctx, pool, wallet, bot, adminGroupChatId);
+        await register(
+            ctx,
+            master,
+            pool,
+            bot,
+            monitoredGroupChatId,
+            wallet,
+            adminGroupChatId,
+        );
     });
     bot.command('health', async ctx => {
         await health(ctx, pool, chronik);

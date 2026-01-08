@@ -65,13 +65,15 @@ export const sendErrorToAdmin = async (
 
 /**
  * Register a user with The Overmind
- * Derives a wallet address for the user and stores it in the database
+ * Derives a wallet address for the user, stores it in the database, and sends 100 HP reward tokens
  * Registration is only allowed for users who are members of the monitored group chat
  * @param ctx - Grammy context from the command
  * @param masterNode - Master HD node derived from the mod's mnemonic
  * @param pool - Database connection pool
  * @param bot - Bot instance for checking chat membership
  * @param monitoredGroupChatId - The monitored group chat ID (required, user must be a member)
+ * @param wallet - The Overmind wallet for sending reward tokens
+ * @param adminChatId - Admin group chat ID for error notifications
  */
 export const register = async (
     ctx: Context,
@@ -79,6 +81,8 @@ export const register = async (
     pool: Pool,
     bot: Bot,
     monitoredGroupChatId: string,
+    wallet: Wallet,
+    adminChatId: string,
 ): Promise<void> => {
     const userId = ctx.from?.id;
     if (!userId) {
@@ -153,80 +157,24 @@ export const register = async (
     // Create user action table for this user
     await createUserActionTable(pool, userId);
 
-    await ctx.reply(
-        `✅ Registration successful!\n\n` +
-            `Your address: \`${address}\`\n` +
-            `User number: ${nextIndex}\n\n` +
-            `You can now receive tokens and interact with The Overmind.\n` +
-            `Use /claim to claim your reward tokens!`,
-        { parse_mode: 'Markdown' },
-    );
-};
-
-/**
- * Claim reward tokens for a registered user
- * Checks if the user's address has already received REWARDS_TOKEN_ID tokens
- * If not, sends the registration reward tokens
- * @param ctx - Grammy context from the command
- * @param pool - Database connection pool
- * @param wallet - The Overmind wallet for sending reward tokens
- * @param bot - Bot instance for sending admin notifications
- * @param adminChatId - Admin group chat ID for error notifications
- */
-export const claim = async (
-    ctx: Context,
-    pool: Pool,
-    wallet: Wallet,
-    bot: Bot,
-    adminChatId: string,
-): Promise<void> => {
-    const userId = ctx.from?.id;
-    if (!userId) {
-        await ctx.reply('❌ Could not identify your user ID.');
-        return;
-    }
-
-    // Check if user is registered
-    const userResult = await pool.query(
-        'SELECT address FROM users WHERE user_tg_id = $1',
-        [userId],
-    );
-
-    if (userResult.rows.length === 0) {
-        await ctx.reply(
-            '❌ You must register first! Use /register to create your wallet address.',
-        );
-        return;
-    }
-
-    const { address } = userResult.rows[0];
-
     // Check if address has already received REWARDS_TOKEN_ID tokens
+    let hasReceivedRewards = false;
     try {
         const utxosRes = await wallet.chronik.address(address).utxos();
         const utxos = utxosRes.utxos || [];
 
         // Check if any UTXO contains REWARDS_TOKEN_ID
-        const hasReceivedRewards = utxos.some(
+        hasReceivedRewards = utxos.some(
             utxo =>
                 typeof utxo.token !== 'undefined' &&
                 utxo.token.tokenId === REWARDS_TOKEN_ID,
         );
-
-        if (hasReceivedRewards) {
-            await ctx.reply(
-                '❌ You have already claimed your reward tokens!\n\n' +
-                    `Your address: \`${address}\``,
-                { parse_mode: 'Markdown' },
-            );
-            return;
-        }
     } catch (err) {
         console.error('Error checking token history:', err);
         await sendErrorToAdmin(
             bot,
             adminChatId,
-            'claim (checking token history)',
+            'register (checking token history)',
             userId,
             err,
         );
@@ -236,112 +184,125 @@ export const claim = async (
         return;
     }
 
-    // Send registration reward tokens
+    // Send registration reward tokens if not already received
     let txid: string | undefined;
-    try {
-        // Sync wallet to ensure we have latest token balance
-        await wallet.sync();
+    if (!hasReceivedRewards) {
+        try {
+            // Sync wallet to ensure we have latest token balance
+            await wallet.sync();
 
-        // Construct EMPP data push for CLAIM: <lokadId><versionByte><actionCode><msgId>
-        // For CLAIM, msgId is 0 since it's not associated with a specific message
-        const lokadIdBytes = strToBytes(LOKAD_ID);
-        const claimWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-        claimWriter.putBytes(lokadIdBytes);
-        claimWriter.putU8(0x00); // versionByte
-        claimWriter.putU8(0x00); // CLAIM action
-        claimWriter.putU32(0); // msgId = 0 for CLAIM (not associated with a message)
-        const claimEmppData = claimWriter.data;
+            // Construct EMPP data push for CLAIM: <lokadId><versionByte><actionCode><msgId>
+            // For CLAIM, msgId is 0 since it's not associated with a specific message
+            const lokadIdBytes = strToBytes(LOKAD_ID);
+            const claimWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
+            claimWriter.putBytes(lokadIdBytes);
+            claimWriter.putU8(0x00); // versionByte
+            claimWriter.putU8(0x00); // CLAIM action
+            claimWriter.putU32(0); // msgId = 0 for CLAIM (not associated with a message)
+            const claimEmppData = claimWriter.data;
 
-        // Create action to send ALP tokens
-        const tokenSendAction: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /** Reward tokens at outIdx 1 */
-                {
-                    sats: DEFAULT_DUST_SATS,
-                    script: Script.fromAddress(address),
-                    tokenId: REWARDS_TOKEN_ID,
-                    atoms: REGISTRATION_REWARD_ATOMS,
-                },
-                /** Starter XEC to support on-chain actions at outIdx 2 */
-                {
-                    sats: REGISTRATION_REWARD_SATS,
-                    script: Script.fromAddress(address),
-                },
-            ],
-            tokenActions: [
-                /** ALP send action */
-                {
-                    type: 'SEND',
-                    tokenId: REWARDS_TOKEN_ID,
-                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                },
-                /** EMPP Data push */
-                {
-                    type: 'DATA',
-                    data: claimEmppData,
-                },
-            ],
-        };
+            // Create action to send ALP tokens
+            const tokenSendAction: payment.Action = {
+                outputs: [
+                    /** Blank OP_RETURN at outIdx 0 */
+                    { sats: 0n },
+                    /** Reward tokens at outIdx 1 */
+                    {
+                        sats: DEFAULT_DUST_SATS,
+                        script: Script.fromAddress(address),
+                        tokenId: REWARDS_TOKEN_ID,
+                        atoms: REGISTRATION_REWARD_ATOMS,
+                    },
+                    /** Starter XEC to support on-chain actions at outIdx 2 */
+                    {
+                        sats: REGISTRATION_REWARD_SATS,
+                        script: Script.fromAddress(address),
+                    },
+                ],
+                tokenActions: [
+                    /** ALP send action */
+                    {
+                        type: 'SEND',
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    /** EMPP Data push */
+                    {
+                        type: 'DATA',
+                        data: claimEmppData,
+                    },
+                ],
+            };
 
-        // Build and broadcast the transaction
-        const resp = await wallet.action(tokenSendAction).build().broadcast();
+            // Build and broadcast the transaction
+            const resp = await wallet
+                .action(tokenSendAction)
+                .build()
+                .broadcast();
 
-        if (resp.success && resp.broadcasted.length > 0) {
-            // Extract txid from the first broadcasted transaction
-            // The broadcast method returns an array of txids
-            txid = resp.broadcasted[0];
-        } else {
-            const errorMsg = `Failed to send reward tokens. Response: ${JSON.stringify(resp)}`;
-            console.error(errorMsg);
+            if (resp.success && resp.broadcasted.length > 0) {
+                // Extract txid from the first broadcasted transaction
+                txid = resp.broadcasted[0];
+            } else {
+                const errorMsg = `Failed to send reward tokens. Response: ${JSON.stringify(resp)}`;
+                console.error(errorMsg);
+                await sendErrorToAdmin(
+                    bot,
+                    adminChatId,
+                    'register (sending reward tokens)',
+                    userId,
+                    new Error(errorMsg),
+                );
+                await ctx.reply(
+                    '❌ Error sending reward tokens. Please try again later.',
+                );
+                return;
+            }
+        } catch (err) {
+            console.error('Error sending reward tokens:', err);
             await sendErrorToAdmin(
                 bot,
                 adminChatId,
-                'claim (sending reward tokens)',
+                'register (sending reward tokens)',
                 userId,
-                new Error(errorMsg),
+                err,
             );
             await ctx.reply(
                 '❌ Error sending reward tokens. Please try again later.',
             );
             return;
         }
-    } catch (err) {
-        console.error('Error sending reward tokens:', err);
-        await sendErrorToAdmin(
-            bot,
-            adminChatId,
-            'claim (sending reward tokens)',
-            userId,
-            err,
-        );
-        await ctx.reply(
-            '❌ Error sending reward tokens. Please try again later.',
-        );
-        return;
-    }
 
-    // Insert action into user's action table
-    const tableName = `user_actions_${userId}`;
-    try {
-        // Ensure table exists (in case user was registered before this feature)
-        await createUserActionTable(pool, userId);
-        await pool.query(
-            `INSERT INTO ${tableName} (action, txid, msg_id, emoji) VALUES ($1, $2, $3, $4)`,
-            ['claim', txid || null, null, null],
-        );
-    } catch (err) {
-        console.error(`Error inserting claim action for user ${userId}:`, err);
-        // Continue execution even if logging fails
+        // Insert action into user's action table
+        const tableName = `user_actions_${userId}`;
+        try {
+            await pool.query(
+                `INSERT INTO ${tableName} (action, txid, msg_id, emoji) VALUES ($1, $2, $3, $4)`,
+                ['claim', txid || null, null, null],
+            );
+        } catch (err) {
+            console.error(
+                `Error inserting claim action for user ${userId}:`,
+                err,
+            );
+            // Continue execution even if logging fails
+        }
     }
 
     const txMessage = txid
-        ? `\n\n🎁 ${REGISTRATION_REWARD_ATOMS.toLocaleString()} reward tokens sent! Transaction: \`${txid}\``
-        : '\n\n⚠️ Reward tokens are being processed.';
+        ? `\n\n❤️ ${REGISTRATION_REWARD_ATOMS.toLocaleString()} HP Filled! Transaction: \`${txid}\``
+        : hasReceivedRewards
+          ? '\n\n✅ You have already received your registration reward!'
+          : '\n\n⚠️ Reward tokens are being processed.';
+
+    const botUsername = ctx.me?.username || 'TheOvermind_bot';
+    const botLink = `[@${botUsername}](https://t.me/${botUsername})`;
 
     await ctx.reply(
-        `✅ Claim successful!` + `\n\nYour address: \`${address}\`` + txMessage,
+        `✅ Registration successful!\n\n` +
+            `Your address: \`${address}\`\n\n` +
+            `Earn HP by sending msgs that collect emoji reactions. Lose HP by sending msgs that collect 👎 reactions. Check your status by sending a DM to ${botLink}` +
+            txMessage,
         { parse_mode: 'Markdown' },
     );
 };
@@ -401,14 +362,18 @@ export const health = async (
 
         // Create graphic indicator (out of 100)
         const maxIndicator = 100;
-        const filledBars = Math.min(Math.floor((balance / maxIndicator) * 10), 10);
+        const filledBars = Math.min(
+            Math.floor((balance / maxIndicator) * 10),
+            10,
+        );
         const emptyBars = 10 - filledBars;
         const indicator = '🟩'.repeat(filledBars) + '🟥'.repeat(emptyBars);
 
         // Build message
         let message = `You have **${formattedBalance} HP**\n\n`;
         // Show actual balance if above max, otherwise show capped value
-        const displayValue = balance > maxIndicator ? balance : Math.min(balance, maxIndicator);
+        const displayValue =
+            balance > maxIndicator ? balance : Math.min(balance, maxIndicator);
         message += `${indicator} ${displayValue}/${maxIndicator}\n`;
 
         // Special message if above 100

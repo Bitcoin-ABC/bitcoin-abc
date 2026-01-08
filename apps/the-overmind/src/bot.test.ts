@@ -25,7 +25,6 @@ import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import {
     register,
-    claim,
     health,
     sendErrorToAdmin,
     handleMessage,
@@ -33,7 +32,7 @@ import {
     handleLike,
     handleDislike,
 } from './bot';
-import { REWARDS_TOKEN_ID, REGISTRATION_REWARD_ATOMS } from './constants';
+import { REWARDS_TOKEN_ID } from './constants';
 
 // Set up chai
 const expect = chai.expect;
@@ -173,8 +172,15 @@ describe('bot', () => {
         let mockBot: Bot;
         let pool: Pool;
         let masterNode: HdNode;
+        let mockChronik: MockChronikClient;
+        let wallet: Wallet;
         let sandbox: sinon.SinonSandbox;
         const MONITORED_CHAT_ID = '12345';
+        const ADMIN_CHAT_ID = '-1001234567890';
+        // Bot wallet SK: all 1s (0101...01)
+        const BOT_SK_ALL_ONES_HEX =
+            '0101010101010101010101010101010101010101010101010101010101010101';
+        const BOT_SK = fromHex(BOT_SK_ALL_ONES_HEX);
 
         beforeEach(async () => {
             sandbox = sinon.createSandbox();
@@ -185,12 +191,27 @@ describe('bot', () => {
             const seed = mnemonicToSeed(testMnemonic);
             masterNode = HdNode.fromSeed(seed);
 
-            // Mock Bot with getChatMember API
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Create wallet with mock chronik using SK of all 1s
+            wallet = Wallet.fromSk(
+                BOT_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Mock Bot with getChatMember API and sendMessage for admin notifications
             mockBot = {
                 api: {
                     getChatMember: sandbox
                         .stub()
                         .resolves({ status: 'member', user: { id: 12345 } }),
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
                 },
             } as unknown as Bot;
 
@@ -206,6 +227,12 @@ describe('bot', () => {
                     id: 12345,
                     type: 'private',
                 },
+                me: {
+                    id: 99999,
+                    is_bot: true,
+                    first_name: 'The Overmind',
+                    username: 'TheOvermind_bot',
+                },
                 reply: sandbox.stub().resolves({
                     message_id: 1,
                     date: Date.now(),
@@ -216,6 +243,42 @@ describe('bot', () => {
 
             // Create in-memory database
             pool = await createTestDb();
+
+            // Set up wallet UTXOs with reward tokens to send
+            mockChronik.setUtxosByAddress(wallet.address, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 10000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 1_000_00n, // 1,000,000 tokens (enough to send rewards)
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 100000n, // XEC for fees
+                    isFinal: true,
+                },
+            ]);
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
         });
 
         afterEach(async () => {
@@ -225,7 +288,7 @@ describe('bot', () => {
             }
         });
 
-        it('should register a new user successfully', async () => {
+        it('should register a new user successfully and send reward tokens', async () => {
             // Derive expected address for first user (hd_index 1, account 1)
             const firstUserNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
             const firstUserPk = firstUserNode.pubkey();
@@ -236,12 +299,25 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(expectedAddress, []);
+
+            // Mock: set up broadcast transaction to return success for any rawTx
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            // Stub broadcastTx to return success for any transaction
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
             await register(
                 mockCtx,
                 masterNode,
                 pool,
                 mockBot,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify user was inserted into database
@@ -268,7 +344,17 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include(
                 `Your address: \`${expectedAddress}\``,
             );
-            expect(replyCall.args[0]).to.include('User number: 1');
+            expect(replyCall.args[0]).to.include(
+                'Earn HP by sending msgs that collect emoji reactions',
+            );
+            expect(replyCall.args[0]).to.include(
+                'Lose HP by sending msgs that collect 👎 reactions',
+            );
+            expect(replyCall.args[0]).to.include(
+                'Check your status by sending a DM to',
+            );
+            expect(replyCall.args[0]).to.include('❤️');
+            expect(replyCall.args[0]).to.include('HP Filled!');
         });
 
         it('should return existing address if user is already registered', async () => {
@@ -288,6 +374,8 @@ describe('bot', () => {
                 pool,
                 mockBot,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify user still exists with same data
@@ -330,6 +418,8 @@ describe('bot', () => {
                 pool,
                 mockBot,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify error message
@@ -377,12 +467,25 @@ describe('bot', () => {
                 );
             }
 
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(expectedAddress, []);
+
+            // Mock: set up broadcast transaction to return success for any rawTx
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            // Stub broadcastTx to return success for any transaction
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
             await register(
                 mockCtx,
                 masterNode,
                 pool,
                 mockBot,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify the new user was inserted with hd_index 10
@@ -394,9 +497,12 @@ describe('bot', () => {
             expect(userResult.rows[0].address).to.equal(expectedAddress);
             expect(userResult.rows[0].hd_index).to.equal(10);
 
-            // Verify reply mentions index 10
+            // Verify reply was called with success message
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include('User number: 10');
+            expect(replyCall.args[0]).to.include('✅ Registration successful!');
+            expect(replyCall.args[0]).to.include(
+                `Your address: \`${expectedAddress}\``,
+            );
         });
 
         it('should derive correct address from HD path', async () => {
@@ -410,12 +516,25 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(expectedAddress, []);
+
+            // Mock: set up broadcast transaction to return success for any rawTx
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            // Stub broadcastTx to return success for any transaction
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
             await register(
                 mockCtx,
                 masterNode,
                 pool,
                 mockBot,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify the address was derived and stored correctly
@@ -446,6 +565,8 @@ describe('bot', () => {
                 pool,
                 botWithNonMember,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify error message contains expected text
@@ -483,6 +604,8 @@ describe('bot', () => {
                 pool,
                 botWithKickedUser,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify error message
@@ -517,6 +640,8 @@ describe('bot', () => {
                 pool,
                 botWithError,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify error message
@@ -553,12 +678,38 @@ describe('bot', () => {
                 toHex(firstUserPkh),
             );
 
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(expectedAddress, []);
+
+            // Mock: set up broadcast transaction to return success for any rawTx
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            // Stub broadcastTx to return success for any transaction
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            // Update botWithMember to include sendMessage for admin notifications
+            const botWithMemberAndAdmin = {
+                api: {
+                    getChatMember: (botWithMember.api as any).getChatMember,
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
             await register(
                 mockCtx,
                 masterNode,
                 pool,
-                botWithMember,
+                botWithMemberAndAdmin,
                 MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
             );
 
             // Verify user was inserted
@@ -591,336 +742,10 @@ describe('bot', () => {
                     errorPool,
                     mockBot,
                     MONITORED_CHAT_ID,
+                    wallet,
+                    ADMIN_CHAT_ID,
                 ),
             ).to.be.rejectedWith('Database connection failed');
-        });
-    });
-
-    describe('claim', () => {
-        let mockCtx: Context;
-        let pool: Pool;
-        let mockChronik: MockChronikClient;
-        let wallet: Wallet;
-        let mockBot: Bot;
-        let sandbox: sinon.SinonSandbox;
-        const ADMIN_CHAT_ID = '-1001234567890';
-        // Bot wallet SK: all 1s (0101...01)
-        const BOT_SK_ALL_ONES_HEX =
-            '0101010101010101010101010101010101010101010101010101010101010101';
-        const BOT_SK = fromHex(BOT_SK_ALL_ONES_HEX);
-        // First user address derived from test mnemonic at m/44'/1899'/1'/0/0
-        const FIRST_USER_ADDRESS =
-            'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
-
-        beforeEach(async () => {
-            sandbox = sinon.createSandbox();
-
-            // Create mock bot
-            mockBot = {
-                api: {
-                    sendMessage: sandbox.stub().resolves({
-                        message_id: 1,
-                        date: Date.now(),
-                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
-                        text: 'test',
-                    }),
-                },
-            } as unknown as Bot;
-
-            // Create mock chronik client
-            mockChronik = new MockChronikClient();
-
-            // Create wallet with mock chronik using SK of all 1s
-            wallet = Wallet.fromSk(
-                BOT_SK,
-                mockChronik as unknown as ChronikClient,
-            );
-
-            // Mock Grammy Context
-            mockCtx = {
-                from: {
-                    id: 12345,
-                    is_bot: false,
-                    first_name: 'Test',
-                    username: 'testuser',
-                },
-                reply: sandbox.stub().resolves({
-                    message_id: 1,
-                    date: Date.now(),
-                    chat: { id: 12345, type: 'private' },
-                    text: 'test',
-                }),
-            } as unknown as Context;
-
-            // Create in-memory database
-            pool = await createTestDb();
-
-            // Set up wallet UTXOs with reward tokens to send
-            mockChronik.setUtxosByAddress(wallet.address, [
-                {
-                    outpoint: {
-                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
-                        outIdx: 0,
-                    },
-                    blockHeight: 800000,
-                    isCoinbase: false,
-                    sats: 10000n,
-                    isFinal: true,
-                    token: {
-                        tokenId: REWARDS_TOKEN_ID,
-                        tokenType: ALP_TOKEN_TYPE_STANDARD,
-                        atoms: 100_000_00n, // 1,000,000 tokens (enough to send rewards)
-                        isMintBaton: false,
-                    },
-                },
-                {
-                    outpoint: {
-                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
-                        outIdx: 0,
-                    },
-                    blockHeight: 800000,
-                    isCoinbase: false,
-                    sats: 100000n, // XEC for fees
-                    isFinal: true,
-                },
-            ]);
-
-            // Mock blockchain info
-            if (!mockChronik.blockchainInfo) {
-                mockChronik.blockchainInfo = () =>
-                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
-            }
-        });
-
-        afterEach(async () => {
-            sandbox.restore();
-            if (pool) {
-                await pool.end();
-            }
-        });
-
-        it('should successfully claim reward tokens for a registered user', async () => {
-            // Insert registered user
-            await pool.query(
-                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
-                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
-            );
-
-            // Mock: user address has no reward tokens yet
-            mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, []);
-
-            // Set up broadcast response with the actual raw transaction hex and txid
-            const rawTxHex =
-                '02000000020100000000000000000000000000000000000000000000000000000000000000000000006441eede692820d8b383624f5821a3d9de7b6d211fb7c85b7927a6c855010581ef6d3e44ee4cca7f739b33080b1af689b9babdc63c18d2c352f1ad15b57dfe55c28d4121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff0200000000000000000000000000000000000000000000000000000000000000000000006441067971a420de0fca420f8221ab978419539bf12b3ae7d2765bf18c718be57d79d754aa1b263354cd6f0e4347c9db799c55ce8bf1860487648bf2b29b5154555e4121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff0500000000000000004b6a503d534c5032000453454e44efb82f4a412819f138f7d01aa39e9378319ac026f332685a539d00791965972d036400000000000000000000001c96980000000a584f564d00000000000022020000000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988aca0860100000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988ac22020000000000001976a91479b000887626b294a914501a4cd226b58b23598388accc200000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000';
-            const expectedTxid =
-                'cf4eb869c671210dacf931d71bfb949f1c0d8f54f7aa45f5a9f592dadce45f5d';
-            mockChronik.setBroadcastTx(rawTxHex, expectedTxid);
-
-            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify action was logged in user action table
-            const actionResult = await pool.query(
-                'SELECT * FROM user_actions_12345 WHERE action = $1',
-                ['claim'],
-            );
-            expect(actionResult.rows).to.have.length(1);
-            expect(actionResult.rows[0].action).to.equal('claim');
-            expect(actionResult.rows[0].txid).to.equal(expectedTxid);
-            expect(actionResult.rows[0].msg_id).to.equal(null);
-
-            // Verify reply was called with success message and expected txid
-            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
-            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include('✅ Claim successful!');
-            expect(replyCall.args[0]).to.include(FIRST_USER_ADDRESS);
-            expect(replyCall.args[0]).to.include('100 reward tokens');
-            expect(replyCall.args[0]).to.include(expectedTxid);
-        });
-
-        it('should reject claim if user is not registered', async () => {
-            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify error reply
-            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
-            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include('❌ You must register first!');
-
-            // Verify no action was logged (table should not exist)
-            const tableCheck = await pool.query(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
-            );
-            expect(parseInt(tableCheck.rows[0].count)).to.equal(0);
-        });
-
-        it('should reject claim if user has already received reward tokens', async () => {
-            // Insert registered user
-            await pool.query(
-                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
-                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
-            );
-
-            // Mock: user address already has reward tokens
-            mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, [
-                {
-                    outpoint: {
-                        txid: '0000000000000000000000000000000000000000000000000000000000000003',
-                        outIdx: 0,
-                    },
-                    blockHeight: 800000,
-                    isCoinbase: false,
-                    sats: 546n,
-                    isFinal: true,
-                    token: {
-                        tokenId: REWARDS_TOKEN_ID,
-                        tokenType: ALP_TOKEN_TYPE_STANDARD,
-                        atoms: REGISTRATION_REWARD_ATOMS,
-                        isMintBaton: false,
-                    },
-                },
-            ]);
-
-            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify error reply
-            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
-            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include(
-                '❌ You have already claimed your reward tokens!',
-            );
-            expect(replyCall.args[0]).to.include(FIRST_USER_ADDRESS);
-
-            // Verify no action was logged (claim was rejected)
-            // Check if table exists, and if so, verify no actions were logged
-            const tableCheck = await pool.query(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
-            );
-            if (parseInt(tableCheck.rows[0].count) > 0) {
-                const actionResult = await pool.query(
-                    'SELECT * FROM user_actions_12345',
-                );
-                expect(actionResult.rows).to.have.length(0);
-            }
-            // If table doesn't exist, that's also fine - no actions were logged
-        });
-
-        it('should handle missing user ID', async () => {
-            // Mock context without user ID
-            const ctxWithoutId = {
-                from: undefined,
-                reply: sandbox.stub().resolves({
-                    message_id: 1,
-                    date: Date.now(),
-                    chat: { id: 12345, type: 'private' },
-                    text: 'test',
-                }),
-            } as unknown as Context;
-
-            await claim(ctxWithoutId, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify error message
-            expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
-                1,
-            );
-            expect(
-                (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
-            ).to.equal('❌ Could not identify your user ID.');
-
-            // Verify no action was logged (table should not exist)
-            const tableCheck = await pool.query(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
-            );
-            expect(parseInt(tableCheck.rows[0].count)).to.equal(0);
-        });
-
-        it('should handle chronik errors when checking token history', async () => {
-            // Insert registered user
-            await pool.query(
-                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
-                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
-            );
-
-            // Mock: chronik address query fails by setting an Error
-            const chronikError = new Error('Chronik connection failed');
-            mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, chronikError);
-
-            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify error reply
-            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
-            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include(
-                '❌ Error checking your token history',
-            );
-
-            // Verify error was sent to admin group
-            expect(mockBot.api.sendMessage).to.have.callCount(1);
-            const adminCall = (mockBot.api.sendMessage as sinon.SinonStub)
-                .firstCall.args;
-            expect(adminCall[0]).to.equal(ADMIN_CHAT_ID);
-            expect(adminCall[1]).to.include('🚨 **Bot Action Error**');
-            expect(adminCall[1]).to.include('claim (checking token history)');
-            expect(adminCall[1]).to.include('User ID: 12345');
-            expect(adminCall[1]).to.include('Chronik connection failed');
-
-            // Verify no action was logged (claim failed)
-            // Check if table exists, and if so, verify no actions were logged
-            const tableCheck = await pool.query(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
-            );
-            if (parseInt(tableCheck.rows[0].count) > 0) {
-                const actionResult = await pool.query(
-                    'SELECT * FROM user_actions_12345',
-                );
-                expect(actionResult.rows).to.have.length(0);
-            }
-            // If table doesn't exist, that's also fine - no actions were logged
-        });
-
-        it('should send error to admin when wallet action throws an error', async () => {
-            // Insert registered user
-            await pool.query(
-                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
-                [12345, FIRST_USER_ADDRESS, 1, 'testuser'],
-            );
-
-            // Mock: user address has no reward tokens yet
-            mockChronik.setUtxosByAddress(FIRST_USER_ADDRESS, []);
-
-            // Mock: make broadcast fail by throwing an error
-            const broadcastError = new Error('Wallet broadcast failed');
-            const rawTxHex =
-                '02000000020100000000000000000000000000000000000000000000000000000000000000000000006441eede692820d8b383624f5821a3d9de7b6d211fb7c85b7927a6c855010581ef6d3e44ee4cca7f739b33080b1af689b9babdc63c18d2c352f1ad15b57dfe55c28d4121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff0200000000000000000000000000000000000000000000000000000000000000000000006441067971a420de0fca420f8221ab978419539bf12b3ae7d2765bf18c718be57d79d754aa1b263354cd6f0e4347c9db799c55ce8bf1860487648bf2b29b5154555e4121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff0500000000000000004b6a503d534c5032000453454e44efb82f4a412819f138f7d01aa39e9378319ac026f332685a539d00791965972d036400000000000000000000001c96980000000a584f564d00000000000022020000000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988aca0860100000000001976a914d3ba9d03889a80df4d5d0b1b8be1a1fcf7ab38a988ac22020000000000001976a91479b000887626b294a914501a4cd226b58b23598388accc200000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000';
-            mockChronik.setBroadcastTx(rawTxHex, broadcastError);
-
-            await claim(mockCtx, pool, wallet, mockBot, ADMIN_CHAT_ID);
-
-            // Verify error reply to user
-            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
-            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
-            expect(replyCall.args[0]).to.include(
-                '❌ Error sending reward tokens',
-            );
-
-            // Verify error was sent to admin group
-            expect(mockBot.api.sendMessage).to.have.callCount(1);
-            const adminCall = (mockBot.api.sendMessage as sinon.SinonStub)
-                .firstCall.args;
-            expect(adminCall[0]).to.equal(ADMIN_CHAT_ID);
-            expect(adminCall[1]).to.include('🚨 **Bot Action Error**');
-            expect(adminCall[1]).to.include('claim (sending reward tokens)');
-            expect(adminCall[1]).to.include('User ID: 12345');
-            expect(adminCall[1]).to.include('Wallet broadcast failed');
-
-            // Verify no action was logged (claim failed)
-            const tableCheck = await pool.query(
-                "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = 'user_actions_12345'",
-            );
-            if (parseInt(tableCheck.rows[0].count) > 0) {
-                const actionResult = await pool.query(
-                    'SELECT * FROM user_actions_12345',
-                );
-                expect(actionResult.rows).to.have.length(0);
-            }
         });
     });
 
