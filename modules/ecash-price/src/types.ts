@@ -42,7 +42,7 @@ export class Fiat {
 export class CryptoTicker {
     private readonly value: string;
 
-    private constructor(value: string) {
+    public constructor(value: string) {
         this.value = value.toLowerCase();
     }
 
@@ -56,6 +56,7 @@ export class CryptoTicker {
     /**
      * Supported cryptocurrency tickers
      */
+    static readonly XEC = new CryptoTicker('xec');
     static readonly BTC = new CryptoTicker('btc');
     static readonly ETH = new CryptoTicker('eth');
 }
@@ -70,7 +71,11 @@ export type QuoteCurrency = Fiat | CryptoTicker;
  */
 export interface PriceData {
     /**
-     * Quote currency (e.g., USD for XEC/USD, or BTC for XEC/BTC)
+     * Source cryptocurrency (e.g., XEC, BTC, ETH)
+     */
+    source: CryptoTicker;
+    /**
+     * Quote currency (e.g., USD or BTC)
      */
     quote: QuoteCurrency;
     /**
@@ -101,7 +106,11 @@ export interface PriceData {
  */
 export interface PriceRequest {
     /**
-     * Array of quote currencies to fetch XEC prices against
+     * Array of source cryptocurrencies to fetch prices against
+     */
+    sources: CryptoTicker[];
+    /**
+     * Array of quote currencies to fetch prices against
      * Can include both fiat currencies (e.g., USD, EUR) and cryptocurrencies (e.g., BTC, ETH)
      */
     quotes: QuoteCurrency[];

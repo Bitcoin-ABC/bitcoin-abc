@@ -125,6 +125,7 @@ describe('XECPrice', () => {
             provider1.response = {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: Fiat.USD,
                         provider: provider1,
                         error: 'Error from provider 1',
@@ -151,6 +152,7 @@ describe('XECPrice', () => {
             provider.response = {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: CryptoTicker.BTC,
                         provider: provider,
                         price: 1.32515e-10,
@@ -202,6 +204,7 @@ describe('XECPrice', () => {
             provider1.response = {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: Fiat.EUR, // Different quote
                         provider: provider1,
                         price: 1.06e-5,
@@ -229,6 +232,7 @@ describe('XECPrice', () => {
             provider1.response = {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: Fiat.USD,
                         provider: provider1,
                         error: 'Error',
@@ -242,6 +246,7 @@ describe('XECPrice', () => {
             provider2.response = {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: Fiat.USD,
                         provider: provider2,
                         // No price, no error - invalid state

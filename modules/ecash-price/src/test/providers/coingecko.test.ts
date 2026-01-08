@@ -28,13 +28,26 @@ describe('CoinGeckoProvider', () => {
     });
 
     describe('fetchPrices', () => {
-        it('should return empty array for empty quotes', async () => {
+        it('should return empty array for empty sources or quotes', async () => {
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [] });
+            let result = await provider.fetchPrices({
+                sources: [],
+                quotes: [],
+            });
+            expect(result.prices).to.be.an('array').that.has.length(0);
+            result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [],
+            });
+            expect(result.prices).to.be.an('array').that.has.length(0);
+            result = await provider.fetchPrices({
+                sources: [],
+                quotes: [Fiat.USD],
+            });
             expect(result.prices).to.be.an('array').that.has.length(0);
         });
 
-        it('should fetch single quote successfully', async () => {
+        it('should fetch single source single quote successfully', async () => {
             const mockResponse = {
                 ecash: {
                     usd: 1.241e-5,
@@ -51,9 +64,13 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices).to.have.length(1);
+            expect(result.prices[0].source).to.equal(CryptoTicker.XEC);
             expect(result.prices[0].quote).to.equal(Fiat.USD);
             expect(result.prices[0].provider).to.equal(provider);
             expect(result.prices[0].price).to.equal(1.241e-5);
@@ -64,7 +81,68 @@ describe('CoinGeckoProvider', () => {
             expect(result.prices[0].error).to.be.equal(undefined);
         });
 
-        it('should fetch multiple quotes successfully', async () => {
+        it('should fetch multiple sources single quote successfully', async () => {
+            const mockResponse = {
+                ecash: {
+                    usd: 1.0,
+                    last_updated_at: 1767706673,
+                },
+                bitcoin: {
+                    usd: 0.1,
+                    last_updated_at: 1767706673,
+                },
+                ethereum: {
+                    usd: 0.01,
+                    last_updated_at: 1767706673,
+                },
+            };
+            mockFetch = async () => {
+                return {
+                    ok: true,
+                    json: async () => mockResponse,
+                } as Response;
+            };
+            global.fetch = mockFetch as typeof fetch;
+
+            const provider = new CoinGeckoProvider();
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC, CryptoTicker.BTC, CryptoTicker.ETH],
+                quotes: [Fiat.USD],
+            });
+
+            expect(result.prices).to.have.length(3);
+            expect(result.prices[0].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[0].quote).to.equal(Fiat.USD);
+            expect(result.prices[0].provider).to.equal(provider);
+            expect(result.prices[0].price).to.equal(1.0);
+            expect(result.prices[0].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[0].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[0].error).to.be.equal(undefined);
+
+            expect(result.prices[1].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[1].quote).to.equal(Fiat.USD);
+            expect(result.prices[1].provider).to.equal(provider);
+            expect(result.prices[1].price).to.equal(0.1);
+            expect(result.prices[1].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[1].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[1].error).to.be.equal(undefined);
+
+            expect(result.prices[2].source).to.equal(CryptoTicker.ETH);
+            expect(result.prices[2].quote).to.equal(Fiat.USD);
+            expect(result.prices[2].provider).to.equal(provider);
+            expect(result.prices[2].price).to.equal(0.01);
+            expect(result.prices[2].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[2].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[2].error).to.be.equal(undefined);
+        });
+
+        it('should fetch single source multiple quotes successfully', async () => {
             const mockResponse = {
                 ecash: {
                     usd: 1.241e-5,
@@ -86,6 +164,7 @@ describe('CoinGeckoProvider', () => {
 
             const provider = new CoinGeckoProvider();
             const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
                 quotes: [
                     Fiat.USD,
                     Fiat.EUR,
@@ -97,64 +176,336 @@ describe('CoinGeckoProvider', () => {
 
             expect(result.prices).to.have.length(5);
 
-            const usdPrice = result.prices.find(p => p.quote === Fiat.USD);
-            expect(usdPrice).to.not.be.equal(undefined);
-            expect(usdPrice?.quote).to.equal(Fiat.USD);
-            expect(usdPrice?.provider).to.equal(provider);
-            expect(usdPrice?.price).to.equal(1.241e-5);
-            expect(usdPrice?.lastUpdated).to.be.instanceOf(Date);
-            expect(usdPrice?.lastUpdated?.getTime()).to.equal(
+            expect(result.prices[0].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[0].quote).to.equal(Fiat.USD);
+            expect(result.prices[0].provider).to.equal(provider);
+            expect(result.prices[0].price).to.equal(1.241e-5);
+            expect(result.prices[0].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[0].lastUpdated?.getTime()).to.equal(
                 1767706673 * 1000,
             );
-            expect(usdPrice?.error).to.be.equal(undefined);
+            expect(result.prices[0].error).to.be.equal(undefined);
 
-            const eurPrice = result.prices.find(p => p.quote === Fiat.EUR);
-            expect(eurPrice).to.not.be.equal(undefined);
-            expect(eurPrice?.quote).to.equal(Fiat.EUR);
-            expect(eurPrice?.provider).to.equal(provider);
-            expect(eurPrice?.price).to.equal(1.06e-5);
-            expect(eurPrice?.lastUpdated).to.be.instanceOf(Date);
-            expect(eurPrice?.lastUpdated?.getTime()).to.equal(
+            expect(result.prices[1].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[1].quote).to.equal(Fiat.EUR);
+            expect(result.prices[1].provider).to.equal(provider);
+            expect(result.prices[1].price).to.equal(1.06e-5);
+            expect(result.prices[1].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[1].lastUpdated?.getTime()).to.equal(
                 1767706673 * 1000,
             );
-            expect(eurPrice?.error).to.be.equal(undefined);
+            expect(result.prices[1].error).to.be.equal(undefined);
 
-            const jpyPrice = result.prices.find(p => p.quote === Fiat.JPY);
-            expect(jpyPrice).to.not.be.equal(undefined);
-            expect(jpyPrice?.quote).to.equal(Fiat.JPY);
-            expect(jpyPrice?.provider).to.equal(provider);
-            expect(jpyPrice?.price).to.equal(0.00194147);
-            expect(jpyPrice?.lastUpdated).to.be.instanceOf(Date);
-            expect(jpyPrice?.lastUpdated?.getTime()).to.equal(
+            expect(result.prices[2].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[2].quote).to.equal(Fiat.JPY);
+            expect(result.prices[2].provider).to.equal(provider);
+            expect(result.prices[2].price).to.equal(0.00194147);
+            expect(result.prices[2].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[2].lastUpdated?.getTime()).to.equal(
                 1767706673 * 1000,
             );
-            expect(jpyPrice?.error).to.be.equal(undefined);
+            expect(result.prices[2].error).to.be.equal(undefined);
 
-            const btcPrice = result.prices.find(
-                p => p.quote === CryptoTicker.BTC,
-            );
-            expect(btcPrice).to.not.be.equal(undefined);
-            expect(btcPrice?.quote).to.equal(CryptoTicker.BTC);
-            expect(btcPrice?.provider).to.equal(provider);
-            expect(btcPrice?.price).to.equal(1.32515e-10);
-            expect(btcPrice?.lastUpdated).to.be.instanceOf(Date);
-            expect(btcPrice?.lastUpdated?.getTime()).to.equal(
+            expect(result.prices[3].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[3].quote).to.equal(CryptoTicker.BTC);
+            expect(result.prices[3].provider).to.equal(provider);
+            expect(result.prices[3].price).to.equal(1.32515e-10);
+            expect(result.prices[3].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[3].lastUpdated?.getTime()).to.equal(
                 1767706673 * 1000,
             );
-            expect(btcPrice?.error).to.be.equal(undefined);
+            expect(result.prices[3].error).to.be.equal(undefined);
 
-            const ethPrice = result.prices.find(
-                p => p.quote === CryptoTicker.ETH,
-            );
-            expect(ethPrice).to.not.be.equal(undefined);
-            expect(ethPrice?.quote).to.equal(CryptoTicker.ETH);
-            expect(ethPrice?.provider).to.equal(provider);
-            expect(ethPrice?.price).to.equal(3.84e-9);
-            expect(ethPrice?.lastUpdated).to.be.instanceOf(Date);
-            expect(ethPrice?.lastUpdated?.getTime()).to.equal(
+            expect(result.prices[4].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[4].quote).to.equal(CryptoTicker.ETH);
+            expect(result.prices[4].provider).to.equal(provider);
+            expect(result.prices[4].price).to.equal(3.84e-9);
+            expect(result.prices[4].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[4].lastUpdated?.getTime()).to.equal(
                 1767706673 * 1000,
             );
-            expect(ethPrice?.error).to.be.equal(undefined);
+            expect(result.prices[4].error).to.be.equal(undefined);
+        });
+
+        it('should fetch multiple sources multiple quotes successfully', async () => {
+            const mockResponse = {
+                bitcoin: {
+                    usd: 89824,
+                    eur: 76987,
+                    jpy: 14089275,
+                    btc: 1.0,
+                    eth: 29.036698,
+                    last_updated_at: 1767880221,
+                },
+                ecash: {
+                    usd: 0.00001158,
+                    eur: 0.00000993,
+                    jpy: 0.00181693,
+                    btc: 1.28888e-10,
+                    eth: 3.745e-9,
+                    last_updated_at: 1767880213,
+                },
+            };
+            mockFetch = async () => {
+                return {
+                    ok: true,
+                    json: async () => mockResponse,
+                } as Response;
+            };
+            global.fetch = mockFetch as typeof fetch;
+
+            const provider = new CoinGeckoProvider();
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC, CryptoTicker.BTC],
+                quotes: [
+                    Fiat.USD,
+                    Fiat.EUR,
+                    Fiat.JPY,
+                    CryptoTicker.BTC,
+                    CryptoTicker.ETH,
+                ],
+            });
+
+            expect(result.prices).to.have.length(10);
+            expect(result.prices[0].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[0].quote).to.equal(Fiat.USD);
+            expect(result.prices[0].provider).to.equal(provider);
+            expect(result.prices[0].price).to.equal(0.00001158);
+            expect(result.prices[0].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[0].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[0].error).to.be.equal(undefined);
+
+            expect(result.prices[1].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[1].quote).to.equal(Fiat.EUR);
+            expect(result.prices[1].provider).to.equal(provider);
+            expect(result.prices[1].price).to.equal(0.00000993);
+            expect(result.prices[1].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[1].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[1].error).to.be.equal(undefined);
+
+            expect(result.prices[2].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[2].quote).to.equal(Fiat.JPY);
+            expect(result.prices[2].provider).to.equal(provider);
+            expect(result.prices[2].price).to.equal(0.00181693);
+            expect(result.prices[2].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[2].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[2].error).to.be.equal(undefined);
+
+            expect(result.prices[3].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[3].quote).to.equal(CryptoTicker.BTC);
+            expect(result.prices[3].provider).to.equal(provider);
+            expect(result.prices[3].price).to.equal(1.28888e-10);
+            expect(result.prices[3].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[3].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[3].error).to.be.equal(undefined);
+
+            expect(result.prices[4].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[4].quote).to.equal(CryptoTicker.ETH);
+            expect(result.prices[4].provider).to.equal(provider);
+            expect(result.prices[4].price).to.equal(3.745e-9);
+            expect(result.prices[4].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[4].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[4].error).to.be.equal(undefined);
+
+            expect(result.prices[5].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[5].quote).to.equal(Fiat.USD);
+            expect(result.prices[5].provider).to.equal(provider);
+            expect(result.prices[5].price).to.equal(89824);
+            expect(result.prices[5].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[5].lastUpdated?.getTime()).to.equal(
+                1767880221 * 1000,
+            );
+            expect(result.prices[5].error).to.be.equal(undefined);
+
+            expect(result.prices[6].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[6].quote).to.equal(Fiat.EUR);
+            expect(result.prices[6].provider).to.equal(provider);
+            expect(result.prices[6].price).to.equal(76987);
+            expect(result.prices[6].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[6].lastUpdated?.getTime()).to.equal(
+                1767880221 * 1000,
+            );
+            expect(result.prices[6].error).to.be.equal(undefined);
+
+            expect(result.prices[7].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[7].quote).to.equal(Fiat.JPY);
+            expect(result.prices[7].provider).to.equal(provider);
+            expect(result.prices[7].price).to.equal(14089275);
+            expect(result.prices[7].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[7].lastUpdated?.getTime()).to.equal(
+                1767880221 * 1000,
+            );
+            expect(result.prices[7].error).to.be.equal(undefined);
+
+            expect(result.prices[8].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[8].quote).to.equal(CryptoTicker.BTC);
+            expect(result.prices[8].provider).to.equal(provider);
+            expect(result.prices[8].price).to.equal(1.0);
+            expect(result.prices[8].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[8].lastUpdated?.getTime()).to.equal(
+                1767880221 * 1000,
+            );
+            expect(result.prices[8].error).to.be.equal(undefined);
+
+            expect(result.prices[9].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[9].quote).to.equal(CryptoTicker.ETH);
+            expect(result.prices[9].provider).to.equal(provider);
+            expect(result.prices[9].price).to.equal(29.036698);
+            expect(result.prices[9].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[9].lastUpdated?.getTime()).to.equal(
+                1767880221 * 1000,
+            );
+            expect(result.prices[9].error).to.be.equal(undefined);
+        });
+
+        it('should handle missing source in response', async () => {
+            const mockResponse = {
+                ecash: {
+                    usd: 0.00001158,
+                    eur: 0.00000993,
+                    jpy: 0.00181693,
+                    btc: 1.28888e-10,
+                    eth: 3.745e-9,
+                    last_updated_at: 1767880213,
+                },
+            };
+            mockFetch = async () => {
+                return {
+                    ok: true,
+                    json: async () => mockResponse,
+                } as Response;
+            };
+            global.fetch = mockFetch as typeof fetch;
+
+            const provider = new CoinGeckoProvider();
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC, CryptoTicker.BTC],
+                quotes: [
+                    Fiat.USD,
+                    Fiat.EUR,
+                    Fiat.JPY,
+                    CryptoTicker.BTC,
+                    CryptoTicker.ETH,
+                ],
+            });
+
+            expect(result.prices).to.have.length(10);
+            expect(result.prices[0].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[0].quote).to.equal(Fiat.USD);
+            expect(result.prices[0].provider).to.equal(provider);
+            expect(result.prices[0].price).to.equal(0.00001158);
+            expect(result.prices[0].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[0].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[0].error).to.be.equal(undefined);
+
+            expect(result.prices[1].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[1].quote).to.equal(Fiat.EUR);
+            expect(result.prices[1].provider).to.equal(provider);
+            expect(result.prices[1].price).to.equal(0.00000993);
+            expect(result.prices[1].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[1].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[1].error).to.be.equal(undefined);
+
+            expect(result.prices[2].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[2].quote).to.equal(Fiat.JPY);
+            expect(result.prices[2].provider).to.equal(provider);
+            expect(result.prices[2].price).to.equal(0.00181693);
+            expect(result.prices[2].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[2].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[2].error).to.be.equal(undefined);
+
+            expect(result.prices[3].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[3].quote).to.equal(CryptoTicker.BTC);
+            expect(result.prices[3].provider).to.equal(provider);
+            expect(result.prices[3].price).to.equal(1.28888e-10);
+            expect(result.prices[3].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[3].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[3].error).to.be.equal(undefined);
+
+            expect(result.prices[4].source).to.equal(CryptoTicker.XEC);
+            expect(result.prices[4].quote).to.equal(CryptoTicker.ETH);
+            expect(result.prices[4].provider).to.equal(provider);
+            expect(result.prices[4].price).to.equal(3.745e-9);
+            expect(result.prices[4].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[4].lastUpdated?.getTime()).to.equal(
+                1767880213 * 1000,
+            );
+            expect(result.prices[4].error).to.be.equal(undefined);
+
+            expect(result.prices[5].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[5].quote).to.equal(Fiat.USD);
+            expect(result.prices[5].provider).to.equal(provider);
+            expect(result.prices[5].price).to.equal(undefined);
+            expect(result.prices[5].lastUpdated).to.equal(undefined);
+            expect(result.prices[5].error).to.be.equal(
+                'Invalid response: missing bitcoin data',
+            );
+
+            expect(result.prices[6].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[6].quote).to.equal(Fiat.EUR);
+            expect(result.prices[6].provider).to.equal(provider);
+            expect(result.prices[6].price).to.equal(undefined);
+            expect(result.prices[6].lastUpdated).to.equal(undefined);
+            expect(result.prices[6].error).to.be.equal(
+                'Invalid response: missing bitcoin data',
+            );
+
+            expect(result.prices[7].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[7].quote).to.equal(Fiat.JPY);
+            expect(result.prices[7].provider).to.equal(provider);
+            expect(result.prices[7].price).to.equal(undefined);
+            expect(result.prices[7].lastUpdated).to.equal(undefined);
+            expect(result.prices[7].error).to.be.equal(
+                'Invalid response: missing bitcoin data',
+            );
+
+            expect(result.prices[8].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[8].quote).to.equal(CryptoTicker.BTC);
+            expect(result.prices[8].provider).to.equal(provider);
+            expect(result.prices[8].price).to.equal(undefined);
+            expect(result.prices[8].lastUpdated).to.equal(undefined);
+            expect(result.prices[8].error).to.be.equal(
+                'Invalid response: missing bitcoin data',
+            );
+
+            expect(result.prices[9].source).to.equal(CryptoTicker.BTC);
+            expect(result.prices[9].quote).to.equal(CryptoTicker.ETH);
+            expect(result.prices[9].provider).to.equal(provider);
+            expect(result.prices[9].price).to.equal(undefined);
+            expect(result.prices[9].lastUpdated).to.equal(undefined);
+            expect(result.prices[9].error).to.be.equal(
+                'Invalid response: missing bitcoin data',
+            );
+        });
+
+        it('should handle unsupported source', async () => {
+            const provider = new CoinGeckoProvider();
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC, new CryptoTicker('unsupported')],
+                quotes: [Fiat.USD],
+            });
+            expect(result.prices).to.have.length(2);
+            expect(result.prices[0].error).to.equal(
+                'Unsupported crypto ticker: unsupported',
+            );
         });
 
         it('should handle HTTP errors', async () => {
@@ -168,7 +519,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices).to.have.length(1);
             expect(result.prices[0].error).to.equal(
@@ -188,7 +542,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices).to.have.length(1);
             expect(result.prices[0].error).to.equal(
@@ -216,6 +573,7 @@ describe('CoinGeckoProvider', () => {
 
             const provider = new CoinGeckoProvider();
             const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
                 quotes: [Fiat.USD, Fiat.EUR],
             });
 
@@ -252,7 +610,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices).to.have.length(1);
             expect(result.prices[0].error).to.equal(
@@ -281,6 +642,7 @@ describe('CoinGeckoProvider', () => {
 
             const provider = new CoinGeckoProvider();
             const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
                 quotes: [Fiat.USD, Fiat.EUR],
             });
 
@@ -302,7 +664,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices).to.have.length(1);
             expect(result.prices[0].error).to.equal(
@@ -334,7 +699,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider({ apiKey: 'test-api-key' });
-            await provider.fetchPrices({ quotes: [Fiat.USD] });
+            await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(capturedHeaders).to.deep.equal({
                 'x-cg-pro-api-key': 'test-api-key',
@@ -362,7 +730,10 @@ describe('CoinGeckoProvider', () => {
             const provider = new CoinGeckoProvider({
                 apiBase: 'https://pro-api.coingecko.com/api/v3',
             });
-            await provider.fetchPrices({ quotes: [Fiat.USD] });
+            await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(capturedUrl).to.include('pro-api.coingecko.com');
         });
@@ -383,7 +754,10 @@ describe('CoinGeckoProvider', () => {
             global.fetch = mockFetch as typeof fetch;
 
             const provider = new CoinGeckoProvider();
-            const result = await provider.fetchPrices({ quotes: [Fiat.USD] });
+            const result = await provider.fetchPrices({
+                sources: [CryptoTicker.XEC],
+                quotes: [Fiat.USD],
+            });
 
             expect(result.prices[0].price).to.equal(1.241e-5);
             expect(result.prices[0].lastUpdated).to.be.equal(undefined);

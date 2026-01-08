@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { QuoteCurrency, PriceRequest } from './types';
+import { CryptoTicker } from './types';
 import type { PriceProvider } from './provider';
 import { ProviderStrategy } from './strategy';
 
@@ -33,6 +34,7 @@ export class XECPrice {
         }
 
         const request: PriceRequest = {
+            sources: [CryptoTicker.XEC],
             quotes: [quote],
         };
 
@@ -40,7 +42,9 @@ export class XECPrice {
         for (const provider of this.providers) {
             try {
                 const response = await provider.fetchPrices(request);
-                const priceData = response.prices.find(p => p.quote === quote);
+                const priceData = response.prices.find(
+                    p => p.source == CryptoTicker.XEC && p.quote === quote,
+                );
 
                 if (!priceData) {
                     continue;

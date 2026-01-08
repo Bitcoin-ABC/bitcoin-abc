@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { PriceProvider } from '../../provider';
-import { Fiat, PriceResponse } from '../../types';
+import { CryptoTicker, Fiat, PriceResponse } from '../../types';
 
 /**
  * Options for creating a MockProvider
@@ -69,6 +69,7 @@ export class MockProvider implements PriceProvider {
             return {
                 prices: [
                     {
+                        source: CryptoTicker.XEC,
                         quote: Fiat.USD,
                         provider: this,
                         price: this.price,
@@ -81,6 +82,7 @@ export class MockProvider implements PriceProvider {
         return {
             prices: [
                 {
+                    source: CryptoTicker.XEC,
                     quote: Fiat.USD,
                     provider: this,
                     error: 'Mock provider error',
