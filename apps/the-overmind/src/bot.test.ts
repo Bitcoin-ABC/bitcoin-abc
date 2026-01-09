@@ -103,7 +103,10 @@ describe('bot', () => {
             expect(callArgs[1]).to.include(`**User:** User ID: ${userId}`);
             expect(callArgs[1]).to.include('**Error:** `Test error message`');
             expect(callArgs[1]).to.include('```');
-            expect(callArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(callArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
         });
 
         it('should handle unknown user when userId is undefined', async () => {
@@ -2346,7 +2349,10 @@ describe('bot', () => {
             expect(callArgs[1]).to.include(AUTHOR_USER_ID.toString());
             expect(callArgs[1]).to.include('liked');
             expect(callArgs[1]).to.include(LIKE_TXID);
-            expect(callArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(callArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
         });
 
         it('should skip if liker is not registered', async () => {
@@ -2458,7 +2464,10 @@ describe('bot', () => {
             expect(callArgs[1]).to.include('🚨 **Bot Action Error**');
             expect(callArgs[1]).to.include('handleLike (sending 1HP)');
             expect(callArgs[1]).to.include(LIKER_USER_ID.toString());
-            expect(callArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(callArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
         });
     });
 
@@ -2653,6 +2662,7 @@ describe('bot', () => {
             expect(dislikerCallArgs[1]).to.include(DISLIKER_TXID);
             expect(dislikerCallArgs[2]).to.deep.equal({
                 parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
             });
 
             // Check author notification
@@ -2664,7 +2674,10 @@ describe('bot', () => {
             expect(authorCallArgs[1]).to.include(DISLIKER_USER_ID.toString());
             expect(authorCallArgs[1]).to.include('penalized');
             expect(authorCallArgs[1]).to.include(AUTHOR_TXID);
-            expect(authorCallArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(authorCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
         });
 
         it('should skip if disliker is not registered', async () => {
@@ -2762,7 +2775,10 @@ describe('bot', () => {
                 'handleDislike (disliker sending 1HP)',
             );
             expect(errorCallArgs[1]).to.include(DISLIKER_USER_ID.toString());
-            expect(errorCallArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(errorCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
 
             // Second call should be the success notification for author
             const successCallArgs = (
@@ -2816,7 +2832,10 @@ describe('bot', () => {
                 'handleDislike (author sending 2HP)',
             );
             expect(authorCallArgs[1]).to.include(AUTHOR_USER_ID.toString());
-            expect(authorCallArgs[2]).to.deep.equal({ parse_mode: 'Markdown' });
+            expect(authorCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
         });
     });
 });

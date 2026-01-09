@@ -57,6 +57,7 @@ export const sendErrorToAdmin = async (
 
         await bot.api.sendMessage(adminChatId, message, {
             parse_mode: 'Markdown',
+            link_preview_options: { is_disabled: true },
         });
     } catch (err) {
         console.error('Failed to send error notification to admin group:', err);
@@ -667,7 +668,10 @@ export const handleLike = async (
                 await bot.api.sendMessage(
                     adminChatId,
                     `${likerUserId} [liked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
-                    { parse_mode: 'Markdown' },
+                    {
+                        parse_mode: 'Markdown',
+                        link_preview_options: { is_disabled: true },
+                    },
                 );
             } catch (err) {
                 console.error(
@@ -844,7 +848,10 @@ export const handleDislike = async (
                 await bot.api.sendMessage(
                     adminChatId,
                     `${dislikerUserId} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
-                    { parse_mode: 'Markdown' },
+                    {
+                        parse_mode: 'Markdown',
+                        link_preview_options: { is_disabled: true },
+                    },
                 );
             } catch (err) {
                 console.error(
@@ -929,7 +936,10 @@ export const handleDislike = async (
                 await bot.api.sendMessage(
                     adminChatId,
                     `${messageAuthorUserId} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${dislikerUserId}`,
-                    { parse_mode: 'Markdown' },
+                    {
+                        parse_mode: 'Markdown',
+                        link_preview_options: { is_disabled: true },
+                    },
                 );
             } catch (err) {
                 console.error(
