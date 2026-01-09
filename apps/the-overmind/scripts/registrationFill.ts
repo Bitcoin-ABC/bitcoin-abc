@@ -11,8 +11,6 @@ import {
     payment,
     ALP_TOKEN_TYPE_STANDARD,
     DEFAULT_DUST_SATS,
-    strToBytes,
-    WriterBytes,
 } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { initDb, createUserActionTable } from '../src/db';
@@ -20,8 +18,8 @@ import {
     REWARDS_TOKEN_ID,
     REGISTRATION_REWARD_ATOMS,
     REGISTRATION_REWARD_SATS,
-    LOKAD_ID,
 } from '../src/constants';
+import { getOvermindEmpp, EmppAction } from '../src/empp';
 
 /**
  * Send a missed registration reward to a user by their address
@@ -125,15 +123,8 @@ const registrationFill = async (address: string): Promise<void> => {
             .reduce((total, utxo) => total + utxo.sats, 0n);
         console.info(`Wallet balance: ${walletBalance} sats`);
 
-        // Construct EMPP data push for CLAIM: <lokadId><versionByte><actionCode><msgId>
-        // For CLAIM, msgId is 0 since it's not associated with a specific message
-        const lokadIdBytes = strToBytes(LOKAD_ID);
-        const claimWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-        claimWriter.putBytes(lokadIdBytes);
-        claimWriter.putU8(0x00); // versionByte
-        claimWriter.putU8(0x00); // CLAIM action
-        claimWriter.putU32(0); // msgId = 0 for CLAIM (not associated with a message)
-        const claimEmppData = claimWriter.data;
+        // Construct EMPP data push for CLAIM
+        const claimEmppData = getOvermindEmpp(EmppAction.CLAIM);
 
         // Create action to send ALP tokens
         const tokenSendAction: payment.Action = {

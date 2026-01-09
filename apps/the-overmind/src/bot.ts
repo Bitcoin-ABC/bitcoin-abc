@@ -13,8 +13,6 @@ import {
     DEFAULT_DUST_SATS,
     shaRmd160,
     toHex,
-    strToBytes,
-    WriterBytes,
 } from 'ecash-lib';
 import { encodeCashAddress } from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
@@ -23,8 +21,8 @@ import {
     REWARDS_TOKEN_ID,
     REGISTRATION_REWARD_ATOMS,
     REGISTRATION_REWARD_SATS,
-    LOKAD_ID,
 } from './constants';
+import { getOvermindEmpp, EmppAction } from './empp';
 import { createUserActionTable } from './db';
 
 /**
@@ -192,15 +190,8 @@ export const register = async (
             // Sync wallet to ensure we have latest token balance
             await wallet.sync();
 
-            // Construct EMPP data push for CLAIM: <lokadId><versionByte><actionCode><msgId>
-            // For CLAIM, msgId is 0 since it's not associated with a specific message
-            const lokadIdBytes = strToBytes(LOKAD_ID);
-            const claimWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-            claimWriter.putBytes(lokadIdBytes);
-            claimWriter.putU8(0x00); // versionByte
-            claimWriter.putU8(0x00); // CLAIM action
-            claimWriter.putU32(0); // msgId = 0 for CLAIM (not associated with a message)
-            const claimEmppData = claimWriter.data;
+            // Construct EMPP data push for CLAIM
+            const claimEmppData = getOvermindEmpp(EmppAction.CLAIM);
 
             // Create action to send ALP tokens
             const tokenSendAction: payment.Action = {
@@ -652,18 +643,8 @@ export const handleLike = async (
         // Sync liker's wallet to ensure we have latest token balance
         await likerWallet.sync();
 
-        // Construct EMPP data push: <lokadId><versionByte><actionCode><msgId>
-        // lokadId: 4 bytes (XOVM)
-        // versionByte: 1 byte (0x00)
-        // actionCode: 1 byte (0x01 for LIKE)
-        // msgId: 4 bytes (u32, little-endian)
-        const lokadIdBytes = strToBytes(LOKAD_ID);
-        const writer = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-        writer.putBytes(lokadIdBytes);
-        writer.putU8(0x00); // versionByte
-        writer.putU8(0x01); // LIKE action
-        writer.putU32(msgId);
-        const likeEmppData = writer.data;
+        // Construct EMPP data push for LIKE
+        const likeEmppData = getOvermindEmpp(EmppAction.LIKE, msgId);
 
         // Create action to send 1HP token
         const tokenSendAction: payment.Action = {
@@ -839,14 +820,8 @@ export const handleDislike = async (
     try {
         await dislikerWallet.sync();
 
-        // Construct EMPP data push for DISLIKE: <lokadId><versionByte><actionCode><msgId>
-        const lokadIdBytes = strToBytes(LOKAD_ID);
-        const dislikeWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-        dislikeWriter.putBytes(lokadIdBytes);
-        dislikeWriter.putU8(0x00); // versionByte
-        dislikeWriter.putU8(0x02); // DISLIKE action
-        dislikeWriter.putU32(msgId);
-        const dislikeEmppData = dislikeWriter.data;
+        // Construct EMPP data push for DISLIKE
+        const dislikeEmppData = getOvermindEmpp(EmppAction.DISLIKE, msgId);
 
         const dislikerTokenSendAction: payment.Action = {
             outputs: [
@@ -927,14 +902,8 @@ export const handleDislike = async (
     try {
         await authorWallet.sync();
 
-        // Construct EMPP data push for DISLIKED: <lokadId><versionByte><actionCode><msgId>
-        const lokadIdBytes = strToBytes(LOKAD_ID);
-        const dislikedWriter = new WriterBytes(4 + 1 + 1 + 4); // lokadId + version + action + msgId
-        dislikedWriter.putBytes(lokadIdBytes);
-        dislikedWriter.putU8(0x00); // versionByte
-        dislikedWriter.putU8(0x03); // DISLIKED action
-        dislikedWriter.putU32(msgId);
-        const dislikedEmppData = dislikedWriter.data;
+        // Construct EMPP data push for DISLIKED
+        const dislikedEmppData = getOvermindEmpp(EmppAction.DISLIKED, msgId);
 
         const authorTokenSendAction: payment.Action = {
             outputs: [

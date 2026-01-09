@@ -48,7 +48,7 @@ All bot txs will be ALP token txs. So, the data push must be EMPP, at the 0-inde
 `lokadId` `toHex(strToBytes("XOVM"))`
 `versionByte` `OO`
 `actionCode`, the associated action with the tx, starting with `REGISTER`, `LIKE`, `DISLIKE`
-`msgId`, `u32`, the telegram msg ID associated with the msg. We store all reacted msgs in a database so that we can always look them up, even if they are deleted or edited by the user. Telegram API does not offer a reliable way to lookup msgs by ID.
+`msgId`, `u32`, (optional, only for actions associated with a msg) the telegram msg ID associated with the msg. We store all reacted msgs in a database so that we can always look them up, even if they are deleted or edited by the user. Telegram API does not offer a reliable way to lookup msgs by ID.
 
 Available `actionCode`s:
 
