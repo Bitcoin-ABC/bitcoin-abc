@@ -2765,7 +2765,7 @@ describe('Support functions', () => {
                     testAction,
                     // Non-token UTXO
                     [DUMMY_UTXO],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // The function should return the massaged outputs
@@ -2795,7 +2795,7 @@ describe('Support functions', () => {
                 const result = finalizeOutputs(
                     testAction,
                     [DUMMY_UTXO],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // The returned output should have the same script and sats
@@ -2824,7 +2824,7 @@ describe('Support functions', () => {
                     testAction,
                     // Sufficient sats for both outputs
                     [{ ...DUMMY_UTXO, sats: 5000n }],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // The returned outputs should be processed correctly
@@ -2852,7 +2852,7 @@ describe('Support functions', () => {
                             outputs: [],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -2879,7 +2879,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -2897,7 +2897,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -2916,7 +2916,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -2938,7 +2938,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -2967,7 +2967,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3003,7 +3003,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3019,7 +3019,7 @@ describe('Support functions', () => {
                             ],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3062,7 +3062,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3100,7 +3100,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3144,7 +3144,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3176,7 +3176,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3197,7 +3197,7 @@ describe('Support functions', () => {
                             tokenActions: [dataAction],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3235,7 +3235,7 @@ describe('Support functions', () => {
                             tokenActions: [slpSendAction, dataAction],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3269,7 +3269,7 @@ describe('Support functions', () => {
                             tokenActions: [mintVaultGenesisAction, dataAction],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3313,7 +3313,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).not.to.throw();
             });
@@ -3371,7 +3371,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3426,7 +3426,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3476,7 +3476,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3530,7 +3530,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3574,7 +3574,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3614,7 +3614,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3656,7 +3656,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, returns processed outputs
@@ -3713,7 +3713,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, check returned outputs
@@ -3757,7 +3757,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3788,7 +3788,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3838,7 +3838,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3888,7 +3888,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3936,7 +3936,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -3984,7 +3984,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4014,7 +4014,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_FUNGIBLE],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4075,7 +4075,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4130,7 +4130,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4184,7 +4184,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4228,7 +4228,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4268,7 +4268,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4310,7 +4310,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, returns processed outputs
@@ -4367,7 +4367,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, check returned outputs
@@ -4413,7 +4413,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4447,7 +4447,7 @@ describe('Support functions', () => {
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4500,7 +4500,7 @@ describe('Support functions', () => {
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4553,7 +4553,7 @@ describe('Support functions', () => {
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4604,7 +4604,7 @@ describe('Support functions', () => {
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4655,7 +4655,7 @@ describe('Support functions', () => {
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP,
                             DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_NFT1_GROUP_MINTBATON,
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4685,7 +4685,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_UTXO],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4741,7 +4741,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4793,7 +4793,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // Should return the processed outputs successfully (3 original + 1 change)
@@ -4835,7 +4835,7 @@ describe('Support functions', () => {
                             },
                         ],
 
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4878,7 +4878,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4921,7 +4921,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -4962,7 +4962,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5003,7 +5003,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_ALP_TOKEN_TYPE_STANDARD],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5104,7 +5104,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // Should return the processed outputs successfully (10 original + 1 change)
@@ -5145,7 +5145,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5190,7 +5190,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, returns processed outputs
@@ -5277,7 +5277,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, returns processed outputs with change added
@@ -5383,7 +5383,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        mockChangeScript,
+                        () => mockChangeScript,
                     ),
                 ).to.throw(
                     Error,
@@ -5475,7 +5475,7 @@ describe('Support functions', () => {
                 const result = finalizeOutputs(
                     testAction,
                     testUtxos,
-                    mockChangeScript,
+                    () => mockChangeScript,
                 );
 
                 // No error thrown, returns processed outputs
@@ -5539,7 +5539,7 @@ describe('Support functions', () => {
                 const resultRearranged = finalizeOutputs(
                     testActionsRearranged,
                     testUtxos,
-                    mockChangeScript,
+                    () => mockChangeScript,
                 );
                 const opReturnHexRearranged =
                     resultRearranged.txOutputs[0].script?.toHex();
@@ -5608,7 +5608,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5663,7 +5663,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5720,7 +5720,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5764,7 +5764,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5804,7 +5804,7 @@ describe('Support functions', () => {
                                 } as Token,
                             },
                         ],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5846,7 +5846,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, returns processed outputs
@@ -5903,7 +5903,7 @@ describe('Support functions', () => {
                             } as Token,
                         },
                     ],
-                    DUMMY_CHANGE_SCRIPT,
+                    () => DUMMY_CHANGE_SCRIPT,
                 );
 
                 // No error thrown, check returned outputs
@@ -5956,7 +5956,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -5993,7 +5993,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -6024,7 +6024,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -6065,7 +6065,7 @@ describe('Support functions', () => {
                             ] as payment.TokenAction[],
                         },
                         [DUMMY_TOKEN_UTXO_SLP_TOKEN_TYPE_MINT_VAULT],
-                        DUMMY_CHANGE_SCRIPT,
+                        () => DUMMY_CHANGE_SCRIPT,
                     ),
                 ).to.throw(
                     Error,
@@ -6762,7 +6762,7 @@ describe('HD Wallet', () => {
         expect(wallet.accountNumber).to.equal(0);
         expect(wallet.receiveIndex).to.equal(0);
         expect(wallet.changeIndex).to.equal(0);
-        expect(wallet.keypairs.size).to.equal(0);
+        expect(wallet.keypairs.size).to.equal(1);
     });
 
     it('Creates HD wallet when hd option is true', () => {
@@ -7136,14 +7136,14 @@ describe('HD Wallet', () => {
         );
     });
 
-    it('getAllAddresses returns empty array for non-HD wallet', () => {
+    it('getAllAddresses returns single address in array for non-HD wallet', () => {
         const mockChronik = new MockChronikClient();
         const wallet = Wallet.fromMnemonic(
             testMnemonic,
             mockChronik as unknown as ChronikClient,
         ); // Non-HD wallet
 
-        expect(wallet.getAllAddresses()).to.deep.equal([]);
+        expect(wallet.getAllAddresses()).to.deep.equal([wallet.address]);
     });
 
     it('HD wallet sync queries UTXOs for all addresses at or below current indices', async () => {

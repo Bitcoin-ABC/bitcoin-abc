@@ -10,7 +10,6 @@ import {
     TxHistoryPage,
     Utxo,
     WsEndpoint,
-    ScriptUtxo,
 } from 'chronik-client';
 import {
     alpSend,
@@ -38,7 +37,7 @@ import {
     TxOutput,
     ALL_BIP143,
 } from 'ecash-lib';
-import { BuiltAction, Wallet } from 'ecash-wallet';
+import { BuiltAction, Wallet, WalletUtxo } from 'ecash-wallet';
 
 import {
     getAgoraPartialAcceptFuelInputs,
@@ -248,17 +247,18 @@ export class AgoraOffer {
         const wallet = params.wallet;
 
         // Get fuel inputs
-        let fuelUtxos: ScriptUtxo[];
+        const walletUtxos = wallet.spendableSatsOnlyUtxos();
+        let fuelUtxos: WalletUtxo[];
         if (this.variant.type === 'ONESHOT') {
             fuelUtxos = getAgoraOneshotAcceptFuelInputs(
                 this,
-                wallet.spendableSatsOnlyUtxos(),
+                walletUtxos,
                 params.feePerKb,
             );
         } else if (typeof params.acceptedAtoms === 'bigint') {
             fuelUtxos = getAgoraPartialAcceptFuelInputs(
                 this,
-                wallet.spendableSatsOnlyUtxos(),
+                walletUtxos,
                 params.acceptedAtoms,
                 params.feePerKb,
             );
@@ -536,9 +536,10 @@ export class AgoraOffer {
         const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
 
         // Determine fuel utxos
+        const walletUtxos = params.wallet.spendableSatsOnlyUtxos();
         const fuelUtxos = getAgoraCancelFuelInputs(
             this,
-            params.wallet.spendableSatsOnlyUtxos(),
+            walletUtxos,
             params.feePerKb,
         );
 

@@ -263,3 +263,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.9
 
 - Publish to catch updated `chronik-client` and `ecash-wallet` deps [D19140](https://reviews.bitcoinabc.org/D19140)
+
+### 2.6.10
+
+- Upgrade types for agora fuel utxo functions to support new `WalletUtxo` type in `ecash-wallet` [D19271](https://reviews.bitcoinabc.org/D19271)

@@ -188,6 +188,15 @@ export class Wallet {
             this.sk = firstKeypair.sk;
             this.pk = firstKeypair.pk;
             this.pkh = firstKeypair.pkh;
+        } else {
+            // For a non-HD wallet, we only have one keypair
+            this.keypairs.set(this.address, {
+                sk: this.sk,
+                pk: this.pk,
+                pkh: this.pkh,
+                script: this.script,
+                address: this.address,
+            });
         }
     }
 
@@ -522,12 +531,98 @@ export class Wallet {
     }
 
     /**
-     * Convert a ScriptUtxo into a TxBuilderInput
+     * Get the private key for a UTXO
+     * Unified method that works for both HD and non-HD wallets
+     *
+     * @param utxo - The UTXO to get the private key for
+     * @returns The private key, or undefined if not found (should not happen for valid wallet UTXOs)
+     */
+    public getPrivateKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined {
+        const keypair = this.getKeypairForAddress(utxo.address);
+        return keypair?.sk;
+    }
+
+    /**
+     * Get the public key for a UTXO
+     * Unified method that works for both HD and non-HD wallets
+     *
+     * @param utxo - The UTXO to get the public key for
+     * @returns The public key, or undefined if not found
+     */
+    public getPublicKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined {
+        const keypair = this.getKeypairForAddress(utxo.address);
+        return keypair?.pk;
+    }
+
+    /**
+     * Get the output script for a UTXO
+     * Unified method that works for both HD and non-HD wallets
+     *
+     * @param utxo - The UTXO to get the script for
+     * @returns The output script, or undefined if not found
+     */
+    public getScriptForUtxo(utxo: WalletUtxo): Script | undefined {
+        const keypair = this.getKeypairForAddress(utxo.address);
+        return keypair?.script;
+    }
+
+    /**
+     * Check if a script belongs to this wallet
+     * For non-HD wallets, checks against the single address script
+     * For HD wallets, checks against all addresses in keypairs map
+     *
+     * @param script - The script to check
+     * @returns True if the script belongs to this wallet
+     */
+    public isWalletScript(script: Script): boolean {
+        const scriptHex = script.toHex();
+        for (const keypair of this.keypairs.values()) {
+            if (keypair.script.toHex() === scriptHex) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the change script for this wallet
+     * Unified method that works for both HD and non-HD wallets
+     * For HD wallets, generates and returns the next change address
+     *
+     * @returns The script for the change address
+     */
+    public getChangeScript(): Script {
+        if (!this.isHD) {
+            // Non-HD wallet: use the single address script
+            return this.script;
+        }
+
+        // HD wallet: get next change address and convert to script
+        const changeAddress = this.getNextChangeAddress();
+        const keypair = this.getKeypairForAddress(changeAddress);
+        if (!keypair) {
+            throw new Error(
+                'Change address keypair not found after generation',
+            );
+        }
+        return keypair.script;
+    }
+
+    /**
+     * Convert a WalletUtxo into a TxBuilderInput
+     * Unified method that works for both HD and non-HD wallets
      */
     public p2pkhUtxoToBuilderInput(
-        utxo: ScriptUtxo,
+        utxo: WalletUtxo,
         sighash = ALL_BIP143,
     ): TxBuilderInput {
+        const keypair = this.getKeypairForAddress(utxo.address);
+        if (!keypair) {
+            throw new Error(
+                `Could not get keypair data for UTXO at address ${utxo.address}`,
+            );
+        }
+
         // Sign and prep utxos for ecash-lib inputs
         return {
             input: {
@@ -537,10 +632,10 @@ export class Wallet {
                 },
                 signData: {
                     sats: utxo.sats,
-                    outputScript: this.script,
+                    outputScript: keypair.script,
                 },
             },
-            signatory: P2PKHSignatory(this.sk, this.pk, sighash),
+            signatory: P2PKHSignatory(keypair.sk, keypair.pk, sighash),
         };
     }
 
@@ -623,13 +718,13 @@ export class Wallet {
         clonedWallet.tipHeight = this.tipHeight;
         clonedWallet.utxos = [...this.utxos]; // Shallow copy of the array
         clonedWallet.balanceSats = this.balanceSats;
+        // Deep copy the keypairs map
+        clonedWallet.keypairs = new Map(this.keypairs);
 
         // Copy HD wallet state if applicable
         if (this.isHD) {
             clonedWallet.receiveIndex = this.receiveIndex;
             clonedWallet.changeIndex = this.changeIndex;
-            // Deep copy the keypairs map
-            clonedWallet.keypairs = new Map(this.keypairs);
         }
 
         return clonedWallet;
@@ -1158,7 +1253,7 @@ class WalletAction {
         // Get the currently selected utxos
         // Clone to avoid mutating the original
         const currentlySelectedUtxos = structuredClone(
-            this.selectUtxosResult.utxos as ScriptUtxo[],
+            this.selectUtxosResult.utxos as WalletUtxo[],
         );
 
         // Get available spendable utxos
@@ -1301,11 +1396,15 @@ class WalletAction {
         /**
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
+         *
+         * We pass a function to finalizeOutputs that will be called only when
+         * a change output is actually needed. This ensures we only increment
+         * changeIndex when we actually use a change address.
          */
         const { paymentOutputs, txOutputs } = finalizeOutputs(
             this.action,
             selectedUtxos,
-            this._wallet.script,
+            () => this._wallet.getChangeScript(),
             dustSats,
         );
 
@@ -1444,9 +1543,9 @@ class WalletAction {
                     'Outputs[i].script must be defined to _updateUtxosAfterSuccessfulBuild',
                 );
             }
-            const script = finalizedOutput.script.toHex();
-            if (script === this._wallet.script.toHex()) {
-                // If this output was created at the wallet's script, it is now a utxo for the wallet
+            const script = finalizedOutput.script;
+            if (this._wallet.isWalletScript(script)) {
+                // If this output was created at one of the wallet's addresses, it is now a utxo for the wallet
 
                 // Parse for tokenType, if any
                 // Get the tokenType for this output by parsing for its associated action
@@ -1507,7 +1606,8 @@ class WalletAction {
             const changeOutput = tx.outputs[changeOutIdx];
 
             // Note that ecash-lib supports change outputs at any Script, so we must still confirm this is going to our wallet's script
-            if (changeOutput.script.toHex() === this._wallet.script.toHex()) {
+            // For HD wallets, this checks against all wallet addresses, not just the first receive address
+            if (this._wallet.isWalletScript(changeOutput.script)) {
                 // This will be a utxo
                 const outputScript = changeOutput.script.toHex();
                 const walletUtxo = getWalletUtxoFromOutput(
@@ -1554,11 +1654,15 @@ class WalletAction {
         /**
          * Validate outputs AND add token-required generated outputs
          * i.e. token change or burn-adjusted token change
+         *
+         * We pass a function to finalizeOutputs that will be called only when
+         * a change output is actually needed. This ensures we only increment
+         * changeIndex when we actually use a change address.
          */
         const { txOutputs } = finalizeOutputs(
             this.action,
             selectedUtxos,
-            this._wallet.script,
+            () => this._wallet.getChangeScript(),
             dustSats,
         );
 
@@ -1620,7 +1724,10 @@ class WalletAction {
     ): { success: boolean; builtAction?: BuiltAction } => {
         // Can you cover the tx without fuelUtxos?
         try {
-            // Conditionally add change output based on noChange parameter
+            // For XEC change:
+            // - Non-HD wallets: use this._wallet.script directly (no changeIndex to worry about)
+            // - HD wallets: use this._wallet.script as dummy first, then rebuild with real change script
+            //   if change was added (to avoid incrementing changeIndex when change isn't needed)
             const outputs = this.action.noChange
                 ? txOutputs
                 : [...txOutputs, this._wallet.script];
@@ -1634,7 +1741,30 @@ class WalletAction {
                 dustSats,
             });
 
-            const txSize = thisTx.serSize();
+            // For HD wallets: check if change output was added by comparing output count
+            // If we got txOutputs.length + 1 outputs, change was added
+            let finalTx = thisTx;
+            if (
+                this._wallet.isHD &&
+                !this.action.noChange &&
+                thisTx.outputs.length === txOutputs.length + 1
+            ) {
+                // Change was added, rebuild with real change script
+                const outputsWithRealChange = [
+                    ...txOutputs,
+                    this._wallet.getChangeScript(),
+                ];
+                const txBuilderWithRealChange = new TxBuilder({
+                    inputs,
+                    outputs: outputsWithRealChange,
+                });
+                finalTx = txBuilderWithRealChange.sign({
+                    feePerKb,
+                    dustSats,
+                });
+            }
+
+            const txSize = finalTx.serSize();
             const txFee = calcTxFee(txSize, feePerKb);
 
             const inputSats = inputs
@@ -1646,9 +1776,9 @@ class WalletAction {
                 // mightTheseUtxosWork --> now we have confirmed they will work
                 // Update utxos if this tx can be broadcasted
                 if (txSize <= maxTxSersize) {
-                    const txid = toHexRev(sha256d(thisTx.ser()));
+                    const txid = toHexRev(sha256d(finalTx.ser()));
                     this._updateUtxosAfterSuccessfulBuild(
-                        thisTx,
+                        finalTx,
                         txid,
                         paymentOutputs,
                     );
@@ -1657,7 +1787,7 @@ class WalletAction {
                     success: true,
                     builtAction: new BuiltAction(
                         this._wallet,
-                        [thisTx],
+                        [finalTx],
                         feePerKb,
                     ),
                 };
@@ -1974,10 +2104,10 @@ interface ActionTotal {
  * @returns Array of UTXOs whose atoms sum exactly to burnAtoms
  */
 export const getTokenUtxosWithExactAtoms = (
-    availableUtxos: ScriptUtxo[],
+    availableUtxos: WalletUtxo[],
     tokenId: string,
     burnAtoms: bigint,
-): { hasExact: boolean; burnUtxos: ScriptUtxo[] } => {
+): { hasExact: boolean; burnUtxos: WalletUtxo[] } => {
     if (burnAtoms <= 0n) {
         throw new Error(
             `burnAtoms of ${burnAtoms} specified for ${tokenId}. burnAtoms must be greater than 0n.`,
@@ -2014,12 +2144,12 @@ export const getTokenUtxosWithExactAtoms = (
     }
 
     // Use dynamic programming to find the exact sum and track UTXOs
-    const dp: Map<bigint, ScriptUtxo[]> = new Map();
+    const dp: Map<bigint, WalletUtxo[]> = new Map();
     dp.set(0n, []);
 
     for (const utxo of relevantUtxos) {
         const atoms = utxo.token!.atoms;
-        const newEntries: Array<[bigint, ScriptUtxo[]]> = [];
+        const newEntries: Array<[bigint, WalletUtxo[]]> = [];
 
         for (const [currentSum, utxos] of dp) {
             const newSum = currentSum + atoms;
@@ -2056,7 +2186,7 @@ export const getTokenUtxosWithExactAtoms = (
     // We use accumulative algo here
     // NB we "know" we have enough utxos as we already would have thrown above if not
     // But, we do not need to return all the utxos here, just enough to cover the burn
-    const utxosWithSufficientAtoms: ScriptUtxo[] = [];
+    const utxosWithSufficientAtoms: WalletUtxo[] = [];
     let currentSum = 0n;
     for (const utxo of relevantUtxos) {
         currentSum += utxo.token!.atoms;
@@ -2077,8 +2207,8 @@ export const getTokenUtxosWithExactAtoms = (
  */
 export const getNftChildGenesisInput = (
     tokenId: string,
-    slpUtxos: ScriptUtxo[],
-): ScriptUtxo | undefined => {
+    slpUtxos: WalletUtxo[],
+): WalletUtxo | undefined => {
     // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
     // because in this case we only want exactly 1 utxo
     for (const utxo of slpUtxos) {
@@ -2092,7 +2222,7 @@ export const getNftChildGenesisInput = (
     }
 
     // If we can't find exactly 1 input, look for the input with the highest qty
-    let highestQtyUtxo: ScriptUtxo | undefined = undefined;
+    let highestQtyUtxo: WalletUtxo | undefined = undefined;
     let highestQty = 0n;
 
     for (const utxo of slpUtxos) {
@@ -2430,7 +2560,7 @@ export enum ChainedTxType {
 interface SelectUtxosResult {
     /** Were we able to select all required utxos */
     success: boolean;
-    utxos?: ScriptUtxo[];
+    utxos?: WalletUtxo[];
     /**
      * If we are missing required token inputs and unable
      * to select utxos, we return a map detailing what
@@ -2528,7 +2658,7 @@ export const selectUtxos = (
      * - Non-token utxos
      * - Coinbase utxos with at least COINBASE_MATURITY confirmations
      */
-    spendableUtxos: ScriptUtxo[],
+    spendableUtxos: WalletUtxo[],
     /**
      * Strategy for selecting satoshis
      * @default SatsSelectionStrategy.REQUIRE_SATS
@@ -2568,7 +2698,7 @@ export const selectUtxos = (
     // If we have it, use it, and we can make this mint in 1 tx
     // If we have an input with qty > 1, we need to chain a fan-out tx; return appropriate error msg
     // If we have no inputs, return appropriate error msg
-    let nftMintInput: ScriptUtxo | undefined = undefined;
+    let nftMintInput: WalletUtxo | undefined = undefined;
     let needsNftMintInput: boolean = false;
     let needsNftFanout: boolean = false;
     if (typeof groupTokenId !== 'undefined') {
@@ -2594,7 +2724,7 @@ export const selectUtxos = (
     // As this function is extended, we will need to count the sats
     // in token utxos
 
-    const selectedUtxos: ScriptUtxo[] = [];
+    const selectedUtxos: WalletUtxo[] = [];
     let selectedUtxosSats = 0n;
 
     // We add requiredUtxos first, if any are specified
@@ -3184,7 +3314,7 @@ export const paymentOutputsToTxOutputs = (
 export const finalizeOutputs = (
     action: payment.Action,
     requiredUtxos: ScriptUtxo[],
-    changeScript: Script,
+    getChangeScript: () => Script,
     dustSats = DEFAULT_DUST_SATS,
 ): { paymentOutputs: payment.PaymentOutput[]; txOutputs: TxOutput[] } => {
     // Make a deep copy of outputs to avoid mutating the action object
@@ -3579,12 +3709,13 @@ export const finalizeOutputs = (
                     }
 
                     // We add a token change output
+                    // Call getChangeScript() only when we actually need to add a change output
                     outputs.push({
                         sats: dustSats,
                         tokenId: tokenId as string,
                         atoms: changeAtoms,
                         isMintBaton: false,
-                        script: changeScript,
+                        script: getChangeScript(),
                     });
                 }
             }

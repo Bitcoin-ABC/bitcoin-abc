@@ -16,7 +16,7 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ## Status
 
-**Completed**: Foundation, Address Generation, and Enhanced Sync (sections 1-6)
+**Completed**: Foundation, Address Generation, Enhanced Sync, Transaction Building, and Signing (sections 1-8)
 
 - ✅ HD wallet type detection
 - ✅ HD wallet constructor via `fromMnemonic` with options
@@ -32,12 +32,27 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - Created `WalletUtxo` interface extending `ScriptUtxo` with `address` field
     - Optimized address derivation (once per address, not per UTXO)
     - Enables efficient UTXO-to-keypair lookup for signing
+- ✅ Change address generation in transactions
+    - Implemented `getChangeScript()` unified method for HD and non-HD wallets
+    - Updated transaction building to use change addresses for HD wallets
+    - Fixed change index incrementing logic (only increments when change output is actually created)
+    - Automatic UTXO set updates after transactions for HD wallets
+- ✅ Unified API for UTXO-to-keypair operations
+    - `getPrivateKeyForUtxo(utxo: WalletUtxo)`: Returns private key for UTXO's address
+    - `getPublicKeyForUtxo(utxo: WalletUtxo)`: Returns public key for UTXO's address
+    - `getScriptForUtxo(utxo: WalletUtxo)`: Returns script for UTXO's address
+    - `isWalletScript(script: Script)`: Checks if script belongs to wallet (any address for HD)
+    - All methods handle both HD and non-HD wallets internally
+- ✅ Signing logic updated for HD wallets
+    - Uses unified API methods for keypair lookup
+    - Supports signing inputs from different HD addresses
+    - Updated `_updateUtxosAfterSuccessfulBuild` to correctly identify wallet-owned outputs for HD wallets
 - ✅ Comprehensive test coverage
+    - HD wallet transaction building and broadcasting tests
+    - Change address verification in tests
+    - Chained transaction support for HD wallets
 
-**Next Steps**: Transaction building and signing (sections 7-8)
-
-- Change address generation in transactions
-- UTXO to private key matching for signing (now enabled by WalletUtxo.address field)
+**Remaining**: See "Remaining Tasks" section at the end of this document
 
 ## Core Requirements
 
@@ -60,11 +75,6 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - Initializes HD wallet state and sets `isHD = true`
     - Supports initializing with known receive and change indices (app devs can store these)
     - Maintains backward compatibility: defaults to non-HD wallet if `hd` option not provided
-
-- [ ] Consider adding `Wallet.fromHDXpub(xpub: string, chronik: ChronikClient)` for watch-only HD wallets
-    - Store xpub instead of private keys
-    - Cannot sign transactions (watch-only mode)
-    - Requires separate `isWatchOnly: boolean` flag
 
 ### 3. Index Tracking
 
@@ -148,29 +158,32 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - Updated all UTXO-returning methods to return `WalletUtxo[]`
     - Enables efficient address-based keypair lookup for signing
 
-- [ ] Add method `syncAndDiscoverAddresses(): Promise<void>`
-    - Manual method for wallet restoration/discovery scenarios
-    - Syncs all known addresses first
-    - Checks addresses sequentially from index 0 with gap limit (e.g., 20 consecutive unused addresses)
-    - Checks for funds at addresses with indices < current index
-    - Automatically discovers and adds addresses that have received funds
-    - Updates indices accordingly
-    - Note: Normal `sync()` assumes indices are accurate and does not perform gap limit checking
-
 ### 7. Change Address Generation in Transactions
 
-- [ ] Modify transaction building methods to use change addresses for HD wallets
-    - In `_buildTx` or similar methods, detect if `isHD === true`
-    - When change is needed, call `getNextChangeAddress()` instead of using single address
-    - Ensure change output uses the newly generated change address
+- [x] Implement unified `getChangeScript()` method
+    - Works for both HD and non-HD wallets
+    - For HD wallets, calls `getNextChangeAddress()` and returns the script
+    - For non-HD wallets, returns the single address script
+    - Automatically caches change addresses in `keypairs` map
 
-- [ ] Update all transaction building methods:
-    - `action()` method
-    - `send()` method
-    - `sendMany()` method
-    - Any other methods that create change outputs
+- [x] Update transaction building methods to use change addresses
+    - Modified `_getBuiltAction()` to use `getChangeScript()` for XEC change
+    - Updated `finalizeOutputs()` call sites to conditionally use `getChangeScript()` only when needed
+    - Fixed change index incrementing to only occur when change output is actually created
 
-- [ ] Ensure change addresses are cached in `keypairs` before transaction signing
+- [x] Update UTXO set management after transactions
+    - Modified `_updateUtxosAfterSuccessfulBuild` to use `isWalletScript()` for HD wallets
+    - Ensures all wallet-owned outputs (including change to different HD addresses) are added to UTXO set
+    - HD wallets now automatically update UTXO set after transactions, matching non-HD behavior
+
+- [x] Update all transaction building methods:
+    - `action()` method - ✅ Uses unified API
+    - `send()` method - ✅ Uses unified API (via `action()`)
+    - `sendMany()` method - ✅ Uses unified API (via `action()`)
+    - Chained transactions - ✅ Uses unified API
+
+- [x] Ensure change addresses are cached in `keypairs` before transaction signing
+    - `getChangeScript()` automatically caches via `getNextChangeAddress()`
 
 ### 8. UTXO to Private Key Matching
 
@@ -179,23 +192,57 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - All UTXOs now have `address` field for direct keypair lookup
     - No need to derive address from script during signing
 
-- [ ] Add method `getPrivateKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined`
-    - Use `utxo.address` (already available in WalletUtxo)
-    - Look up keypair in `keypairs` map using address
-    - Return `sk` from keypair, or undefined if not found
+- [x] Unified API methods for UTXO-to-keypair operations
+    - `getPrivateKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined`
+        - Uses `utxo.address` to look up keypair in `keypairs` map
+        - Returns `sk` from keypair, or undefined if not found
+        - For non-HD wallets, returns `this.sk` directly
+    - `getPublicKeyForUtxo(utxo: WalletUtxo): Uint8Array | undefined`
+        - Similar to `getPrivateKeyForUtxo` but returns public key
+        - For non-HD wallets, returns `this.pk` directly
+    - `getScriptForUtxo(utxo: WalletUtxo): Script | undefined`
+        - Returns script for the UTXO's address
+        - For non-HD wallets, returns `this.script` directly
+    - `isWalletScript(script: Script): boolean`
+        - Checks if a script belongs to the wallet
+        - For HD wallets, checks against all addresses in `keypairs` map
+        - For non-HD wallets, checks against single address script
 
-- [ ] Modify signing logic to use address-based key lookup
-    - Current code uses `P2PKHSignatory(this.sk, this.pk, sighash)` for single-address wallet
-    - For HD wallets, need to:
-        - Use `utxo.address` from each `WalletUtxo` being spent
-        - Look up corresponding private key from `keypairs` map
-        - Create signatory with the correct keypair for each input
+- [x] Updated signing logic to use unified API
+    - Modified `p2pkhUtxoToBuilderInput` to use `getPrivateKeyForUtxo()`, `getPublicKeyForUtxo()`, and `getScriptForUtxo()`
+    - Signing logic now automatically handles both HD and non-HD wallets
+    - Each input uses the correct keypair based on its `WalletUtxo.address` field
+    - No conditional logic needed in calling code - unified API handles it internally
 
-- [ ] Update `_prepareInputs` or similar method
-    - For each UTXO input, use `utxo.address` to determine which address it belongs to
-    - Look up private key for that address
-    - Create appropriate signatory for each input
+- [x] Updated UTXO set management
+    - `_updateUtxosAfterSuccessfulBuild` uses `isWalletScript()` to identify wallet-owned outputs
+    - Correctly handles outputs to different HD addresses (change outputs)
+    - Ensures HD wallets automatically update UTXO set after transactions
 
-- [ ] Consider batch signing optimization
-    - Group inputs by address to minimize keypair lookups
-    - Reuse signatories when multiple inputs share the same address
+- [x] Test coverage
+    - Added `test/hdTransactions.test.ts` with comprehensive HD wallet transaction tests
+    - Tests verify change addresses are correctly generated and used
+    - Tests verify chained transactions work with HD wallets
+    - Tests verify UTXO set updates correctly after transactions
+
+## Remaining Tasks
+
+### Watch-Only HD Wallet Support
+
+- [ ] Add `Wallet.fromHDXpub(xpub: string, chronik: ChronikClient)` for watch-only HD wallets
+    - Store xpub instead of private keys
+    - Cannot sign transactions (watch-only mode)
+    - Requires separate `isWatchOnly: boolean` flag
+    - Should still support address generation and UTXO syncing
+    - Methods that require private keys should throw appropriate errors
+
+### Address Discovery with Gap Limit
+
+- [ ] Add method `syncAndDiscoverAddresses(): Promise<void>`
+    - Manual method for wallet restoration/discovery scenarios
+    - Syncs all known addresses first
+    - Checks addresses sequentially from index 0 with gap limit (e.g., 20 consecutive unused addresses)
+    - Checks for funds at addresses with indices < current index
+    - Automatically discovers and adds addresses that have received funds
+    - Updates indices accordingly
+    - Note: Normal `sync()` assumes indices are accurate and does not perform gap limit checking

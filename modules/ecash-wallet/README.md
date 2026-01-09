@@ -204,3 +204,11 @@ See tests for detailed methods.
 - Add `balanceSats` as wallet property that updates on `sync()`
 
 [D19266](https://reviews.bitcoinabc.org/D19266)
+
+# 3.2.0
+
+- Support for msg signing and txs from HD wallets
+- Similar to non-HD, we also "auto-update" the wallet's utxo set after txs are built
+- For a consistent API, we introduce methods that return different addresses/scripts depending on whether or not the wallet is HD
+
+[D19271](https://reviews.bitcoinabc.org/D19271)

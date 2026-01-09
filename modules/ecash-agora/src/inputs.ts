@@ -43,12 +43,12 @@ const DUMMY_INPUT = {
 /**
  * Determine input utxos to cover an Agora Partial accept offer
  */
-export const getAgoraPartialAcceptFuelInputs = (
+export const getAgoraPartialAcceptFuelInputs = <T extends ScriptUtxo>(
     agoraOffer: AgoraOffer,
-    utxos: ScriptUtxo[],
+    utxos: T[],
     acceptedAtoms: bigint,
     feePerKb = DEFAULT_FEE_SATS_PER_KB,
-): ScriptUtxo[] => {
+): T[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
@@ -85,11 +85,11 @@ export const getAgoraPartialAcceptFuelInputs = (
  * However there is some ambiguity involved with the acceptedAtoms param
  * Cleaner to keep distinct functions
  */
-export const getAgoraOneshotAcceptFuelInputs = (
+export const getAgoraOneshotAcceptFuelInputs = <T extends ScriptUtxo>(
     agoraOffer: AgoraOffer,
-    utxos: ScriptUtxo[],
+    utxos: T[],
     feePerKb = DEFAULT_FEE_SATS_PER_KB,
-): ScriptUtxo[] => {
+): T[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
@@ -122,11 +122,11 @@ export const getAgoraOneshotAcceptFuelInputs = (
 /**
  * Determine input utxos to cancel an Agora offer (Partial or ONESHOT)
  */
-export const getAgoraCancelFuelInputs = (
+export const getAgoraCancelFuelInputs = <T extends ScriptUtxo>(
     agoraOffer: AgoraOffer,
-    utxos: ScriptUtxo[],
+    utxos: T[],
     feePerKb = DEFAULT_FEE_SATS_PER_KB,
-): ScriptUtxo[] => {
+): T[] => {
     const fuelInputs = [];
     const dummyInputs = [];
     let inputSatoshis = 0n;
