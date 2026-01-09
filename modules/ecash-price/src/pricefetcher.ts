@@ -146,8 +146,8 @@ export class PriceFetcher {
         if (
             isCacheDirty &&
             !(await this.fetch({
-                sources: pairs.map(pair => pair.source),
-                quotes: pairs.map(pair => pair.quote),
+                sources: [...new Set(pairs.map(pair => pair.source))],
+                quotes: [...new Set(pairs.map(pair => pair.quote))],
             }))
         ) {
             return pairs.map(() => null);

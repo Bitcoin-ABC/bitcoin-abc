@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { PriceProvider } from '../../provider';
+import type { PriceRequest } from '../../types';
 import { CryptoTicker, Fiat, PriceResponse } from '../../types';
 
 /**
@@ -56,7 +57,7 @@ export class MockProvider implements PriceProvider {
         return this.id;
     }
 
-    async fetchPrices(): Promise<PriceResponse> {
+    async fetchPrices(_request: PriceRequest): Promise<PriceResponse> {
         if (this.shouldThrow) {
             throw new Error('Provider error');
         }

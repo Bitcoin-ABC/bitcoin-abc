@@ -5,7 +5,7 @@
 import { expect } from 'chai';
 import { PriceFetcher } from '../pricefetcher';
 import { MockProvider } from './fixture/mockprovider';
-import { Fiat, CryptoTicker } from '../types';
+import { Fiat, CryptoTicker, PriceRequest, QuoteCurrency } from '../types';
 import { ProviderStrategy } from '../strategy';
 
 describe('PriceFetcher', () => {
@@ -856,6 +856,95 @@ describe('PriceFetcher', () => {
             // Both prices come from the fresh fetch (not from cache)
             expect(prices[0]).to.equal(0.0002); // From fresh fetch
             expect(prices[1]).to.equal(0.00009); // From fresh fetch
+        });
+
+        it('should handle duplicate pairs and only fetch unique source/quote combinations', async () => {
+            let fetchCallCount = 0;
+            const provider = new MockProvider({
+                shouldSucceed: true,
+            });
+            // Track fetch calls by wrapping the fetchPrices method
+            const originalFetchPrices = provider.fetchPrices.bind(provider);
+            let fetchedSources: CryptoTicker[] = [];
+            let fetchedQuotes: QuoteCurrency[] = [];
+            provider.fetchPrices = async (request: PriceRequest) => {
+                fetchCallCount += 1;
+                // Verify that sources and quotes are deduplicated
+                // currentPairs should deduplicate before calling fetch
+                fetchedSources = request.sources;
+                fetchedQuotes = request.quotes;
+                expect(fetchedSources.length).to.equal(2); // XEC and BTC (unique)
+                expect(fetchedQuotes.length).to.equal(2); // USD and EUR (unique)
+                expect(fetchedSources).to.include(CryptoTicker.XEC);
+                expect(fetchedSources).to.include(CryptoTicker.BTC);
+                expect(fetchedQuotes).to.include(Fiat.USD);
+                expect(fetchedQuotes).to.include(Fiat.EUR);
+                return originalFetchPrices(request);
+            };
+
+            provider.response = {
+                prices: [
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 0.0001,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.XEC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 0.00009,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        source: CryptoTicker.BTC,
+                        quote: Fiat.USD,
+                        provider: provider,
+                        price: 50000,
+                        lastUpdated: new Date(),
+                    },
+                    {
+                        // Include BTC/EUR to satisfy all combinations check
+                        // since currentPairs deduplicates and fetches all unique combinations
+                        source: CryptoTicker.BTC,
+                        quote: Fiat.EUR,
+                        provider: provider,
+                        price: 45000,
+                        lastUpdated: new Date(),
+                    },
+                ],
+            };
+            const fetcher = new PriceFetcher([provider]);
+
+            // Pass duplicate pairs - same pair appears multiple times
+            const pairs = [
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.USD }, // Duplicate
+                { source: CryptoTicker.XEC, quote: Fiat.EUR },
+                { source: CryptoTicker.BTC, quote: Fiat.USD },
+                { source: CryptoTicker.XEC, quote: Fiat.USD }, // Duplicate again
+            ];
+
+            const prices = await fetcher.currentPairs(pairs);
+
+            // Should return a price for each pair, including duplicates
+            expect(prices).to.have.length(5);
+            // All XEC/USD pairs should return the same price
+            expect(prices[0]).to.equal(0.0001); // First XEC/USD
+            expect(prices[1]).to.equal(0.0001); // Duplicate XEC/USD
+            expect(prices[2]).to.equal(0.00009); // XEC/EUR
+            expect(prices[3]).to.equal(50000); // BTC/USD
+            expect(prices[4]).to.equal(0.0001); // Duplicate XEC/USD again
+
+            // Verify all duplicates return the same price
+            expect(prices[0]).to.equal(prices[1]);
+            expect(prices[0]).to.equal(prices[4]);
+
+            // Verify fetch was only called once (efficiency check)
+            // The fetch should deduplicate sources and quotes
+            expect(fetchCallCount).to.equal(1);
         });
     });
 });
