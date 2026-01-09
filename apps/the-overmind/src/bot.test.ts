@@ -26,6 +26,7 @@ import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import {
     register,
     health,
+    start,
     sendErrorToAdmin,
     handleMessage,
     handleMessageReaction,
@@ -1629,6 +1630,119 @@ describe('bot', () => {
                 [MSG_ID],
             );
             expect(messageResult.rows[0].likes).to.equal(0);
+        });
+    });
+
+    describe('start', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ID = 12345;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Mock Grammy Context
+            mockCtx = {
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: USER_ID, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should display welcome message for unregistered user', async () => {
+            await start(mockCtx, pool);
+
+            // Verify reply was called
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            // Check that welcome message contains key information
+            expect(message).to.include('Welcome to The Overmind');
+            expect(message).to.include('Register to get your wallet address');
+            expect(message).to.include('100 HP');
+            expect(message).to.include('/register');
+            expect(message).to.include('/health');
+            expect(message).to.include('/address');
+            expect(message).to.include('Like: 1 HP sent from liker');
+            expect(message).to.include('Dislike: 1 HP cost for disliker');
+            expect(message).to.include("You're not registered yet");
+            expect(message).to.not.include('You are registered');
+
+            // Verify parse mode
+            expect(replyCall.args[1]).to.deep.equal({ parse_mode: 'Markdown' });
+        });
+
+        it('should display welcome message for registered user', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [USER_ID, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            await start(mockCtx, pool);
+
+            // Verify reply was called
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            // Check that welcome message contains key information
+            expect(message).to.include('Welcome to The Overmind');
+            expect(message).to.include('Register to get your wallet address');
+            expect(message).to.include('100 HP');
+            expect(message).to.include('You are registered');
+            expect(message).to.include('/health');
+            expect(message).to.include('/address');
+            expect(message).to.not.include("You're not registered yet");
+
+            // Verify parse mode
+            expect(replyCall.args[1]).to.deep.equal({ parse_mode: 'Markdown' });
+        });
+
+        it('should handle missing user ID gracefully', async () => {
+            const mockCtxNoUser = {
+                from: undefined,
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            await start(mockCtxNoUser, pool);
+
+            // Verify error message was sent
+            expect((mockCtxNoUser.reply as sinon.SinonStub).callCount).to.equal(
+                1,
+            );
+            const replyCall = (mockCtxNoUser.reply as sinon.SinonStub)
+                .firstCall;
+            expect(replyCall.args[0]).to.include(
+                'Could not identify your user ID',
+            );
         });
     });
 

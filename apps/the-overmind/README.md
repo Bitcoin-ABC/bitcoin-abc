@@ -20,9 +20,9 @@ Roadmap
 [x] EMPP spec for registration, likes, dislikes to support onchain analytics
 [x] Only allow registration for users in the monitored chat
 [x] Add utility methods for MVP (/health, /address)
-[] CI deployments
-[] Add support for a /start info command
-[] Make sure bot has a picture
+[x] CI deployments
+[x] Add support for a /start info command
+[x] Make sure bot has a picture
 [] Launch
 [] Herald summary should parse overmind actions
 [] Support withdrawals (HP only)

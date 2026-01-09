@@ -13,6 +13,7 @@ import {
     register,
     health,
     address,
+    start,
     handleMessage,
     handleMessageReaction,
 } from './src/bot';
@@ -94,6 +95,9 @@ const startup = async () => {
     console.info(`Wallet balance: ${walletBalance} sats`);
 
     // Set up bot command handlers
+    bot.command('start', async ctx => {
+        await start(ctx, pool);
+    });
     bot.command('register', async ctx => {
         await register(
             ctx,

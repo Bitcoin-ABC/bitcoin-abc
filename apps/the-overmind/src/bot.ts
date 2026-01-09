@@ -391,6 +391,51 @@ export const health = async (
 };
 
 /**
+ * Display welcome message and explain how The Overmind works
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ */
+export const start = async (ctx: Context, pool: Pool): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is registered
+    const userResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+    const isRegistered = userResult.rows.length > 0;
+
+    const welcomeMessage =
+        `🤖 **Welcome to The Overmind!**\n\n` +
+        `The Overmind is a Telegram bot that rewards and punishes users with on-chain token transactions in the main eCash telegram channel.\n\n` +
+        `**How it works:**\n` +
+        `• Register to get your wallet address and receive 100 HP (Hit Points) tokens\n` +
+        `• Earn HP by receiving positive emoji reactions (👍, ❤️, etc.) on your messages\n` +
+        `• Lose HP by receiving negative reactions (👎) on your messages\n` +
+        `• All transactions are recorded on-chain for transparency\n\n` +
+        `**Available Commands:**\n` +
+        `• /start - Show this welcome message\n` +
+        `• /register - Register and receive 100 HP + 1,000 XEC\n` +
+        `• /health - Check your current HP balance\n` +
+        `• /address - View your wallet address and QR code\n\n` +
+        `**Token Details:**\n` +
+        `• Token: HP (Hit Points)\n` +
+        `• Decimals: 0 (whole numbers only)\n` +
+        `• Registration reward: 100 HP\n` +
+        `• Like: 1 HP sent from liker to message author\n` +
+        `• Dislike: 1 HP cost for disliker, 2 HP penalty for message author\n\n` +
+        (isRegistered
+            ? `✅ You are registered! Use /health to check your balance or /address to view your wallet.`
+            : `📝 You're not registered yet. Use /register to get started!`);
+
+    await ctx.reply(welcomeMessage, { parse_mode: 'Markdown' });
+};
+
+/**
  * Get and display address for a registered user with QR code
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
