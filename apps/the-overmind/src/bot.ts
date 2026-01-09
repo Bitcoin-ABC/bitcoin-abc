@@ -95,9 +95,17 @@ export const register = async (
             monitoredGroupChatId,
             userId,
         );
-        // User must be a member, administrator, or creator (not left or kicked)
+        // User must be a member, administrator, creator, or restricted (but still a member)
         const validStatuses = ['member', 'administrator', 'creator'];
-        if (!validStatuses.includes(chatMember.status)) {
+        const isRestrictedMember =
+            chatMember.status === 'restricted' &&
+            'is_member' in chatMember &&
+            chatMember.is_member === true;
+
+        if (!validStatuses.includes(chatMember.status) && !isRestrictedMember) {
+            console.log(
+                `Registration rejected for user ${userId}: status="${chatMember.status}"`,
+            );
             await ctx.reply(
                 '❌ You must be a member of the monitored chat to register. Please join the main eCash telegram channel first.',
             );

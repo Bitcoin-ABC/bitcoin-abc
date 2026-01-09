@@ -663,6 +663,102 @@ describe('bot', () => {
             expect(userResult.rows).to.have.length(0);
         });
 
+        it('should allow registration when user is a restricted member with is_member=true', async () => {
+            // Mock bot to return 'restricted' status with is_member=true
+            const botWithRestrictedMember = {
+                api: {
+                    getChatMember: sandbox.stub().resolves({
+                        status: 'restricted',
+                        is_member: true,
+                        user: { id: 12345 },
+                    }),
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
+            // Derive expected address for first user
+            const firstUserNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const firstUserPk = firstUserNode.pubkey();
+            const firstUserPkh = shaRmd160(firstUserPk);
+            const expectedAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(firstUserPkh),
+            );
+
+            // Mock: user address has no reward tokens yet
+            mockChronik.setUtxosByAddress(expectedAddress, []);
+
+            // Mock: set up broadcast transaction to return success for any rawTx
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            // Stub broadcastTx to return success for any transaction
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithRestrictedMember,
+                MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(1);
+            expect(userResult.rows[0].address).to.equal(expectedAddress);
+        });
+
+        it('should reject registration when user is restricted but is_member=false', async () => {
+            // Mock bot to return 'restricted' status with is_member=false
+            const botWithRestrictedNonMember = {
+                api: {
+                    getChatMember: sandbox.stub().resolves({
+                        status: 'restricted',
+                        is_member: false,
+                        user: { id: 12345 },
+                    }),
+                },
+            } as unknown as Bot;
+
+            await register(
+                mockCtx,
+                masterNode,
+                pool,
+                botWithRestrictedNonMember,
+                MONITORED_CHAT_ID,
+                wallet,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const errorMessage = (mockCtx.reply as sinon.SinonStub).firstCall
+                .args[0];
+            expect(errorMessage).to.include(
+                '❌ You must be a member of the monitored chat to register',
+            );
+
+            // Verify no user was inserted
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+            expect(userResult.rows).to.have.length(0);
+        });
+
         it('should allow registration when user is a member of monitored chat', async () => {
             // Mock bot to return 'member' status (user is a member)
             const botWithMember = {
