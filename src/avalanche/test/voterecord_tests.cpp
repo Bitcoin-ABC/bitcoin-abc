@@ -11,7 +11,8 @@
 
 using namespace avalanche;
 
-struct VoteRecordFixture {
+namespace voterecord_tests {
+struct VoteRecordFixture : public BasicTestingSetup {
     NodeId currentNodeId = -1;
 
     NodeId nextNodeId() {
@@ -22,6 +23,7 @@ struct VoteRecordFixture {
         return currentNodeId;
     }
 };
+} // namespace voterecord_tests
 
 BOOST_FIXTURE_TEST_SUITE(voterecord_tests, VoteRecordFixture)
 
@@ -145,8 +147,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_always_inconclusive) {
         // Vote randomly, but such that there's always enough neutral votes to
         // not gain confidence.
         for (auto j = 0; j < 6; j++) {
-            REGISTER_VOTE_AND_CHECK(vr, InsecureRand32(), false, false, false,
-                                    0);
+            REGISTER_VOTE_AND_CHECK(vr, m_rng.rand32(), false, false, false, 0);
         }
         REGISTER_VOTE_AND_CHECK(vr, -1, false, false, false, 0);
         REGISTER_VOTE_AND_CHECK(vr, -1, false, false, false, 0);
@@ -206,7 +207,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_random_then_inconclusive) {
 
     for (uint32_t i = 0; i < AVALANCHE_FINALIZATION_SCORE - 14; i++) {
         // Vote randomly. Confidence changes are ok.
-        vr.registerVote(nextNodeId(), InsecureRand32());
+        vr.registerVote(nextNodeId(), m_rng.rand32());
         BOOST_CHECK_EQUAL(vr.hasFinalized(), false);
         BOOST_CHECK_EQUAL(vr.isStale(), false);
     }

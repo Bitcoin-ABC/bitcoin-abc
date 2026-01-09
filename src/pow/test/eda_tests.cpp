@@ -181,9 +181,9 @@ BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test) {
     }
 
     for (int j = 0; j < 1000; j++) {
-        CBlockIndex *p1 = &blocks[InsecureRandRange(10000)];
-        CBlockIndex *p2 = &blocks[InsecureRandRange(10000)];
-        CBlockIndex *p3 = &blocks[InsecureRandRange(10000)];
+        CBlockIndex *p1 = &blocks[m_rng.randrange(10000)];
+        CBlockIndex *p2 = &blocks[m_rng.randrange(10000)];
+        CBlockIndex *p3 = &blocks[m_rng.randrange(10000)];
 
         int64_t tdiff = GetBlockProofEquivalentTime(
             *p1, *p2, *p3, config.GetChainParams().GetConsensus());

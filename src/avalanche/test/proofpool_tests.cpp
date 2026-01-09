@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(get_lowest_score_proof) {
 
     const CKey key = CKey::MakeCompressedKey();
     auto buildProofWithRandomOutpoints = [&](uint32_t score) {
-        int numOutpoints = InsecureRand32() % 10 + 1;
+        int numOutpoints = m_rng.rand32() % 10 + 1;
         ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         for (int i = 0; i < numOutpoints; i++) {
             Amount amount = 1 * COIN;

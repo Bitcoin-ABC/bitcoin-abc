@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(proof_random) {
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
 
     for (int i = 0; i < 1000; i++) {
-        const uint32_t score = InsecureRand32();
+        const uint32_t score = m_rng.rand32();
         auto p = buildRandomProof(active_chainstate, score);
         BOOST_CHECK_EQUAL(p->getScore(), score);
 
@@ -47,16 +47,16 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
     auto key = CKey::MakeCompressedKey();
     const CPubKey master = key.GetPubKey();
 
-    const uint64_t sequence = InsecureRandBits(64);
-    const int64_t expiration = InsecureRandBits(64);
+    const uint64_t sequence = m_rng.randbits(64);
+    const int64_t expiration = m_rng.randbits(64);
 
     ProofBuilder pb(sequence, expiration, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
 
     for (int i = 0; i < 3; i++) {
         key.MakeNewKey(true);
-        BOOST_CHECK(pb.addUTXO(COutPoint(TxId(GetRandHash()), InsecureRand32()),
-                               int64_t(InsecureRand32()) * COIN / 100,
-                               InsecureRand32(), InsecureRandBool(), key));
+        BOOST_CHECK(pb.addUTXO(COutPoint(TxId(GetRandHash()), m_rng.rand32()),
+                               int64_t(m_rng.rand32()) * COIN / 100,
+                               m_rng.rand32(), m_rng.randbool(), key));
     }
 
     ProofRef p = pb.build();
@@ -655,17 +655,17 @@ BOOST_AUTO_TEST_CASE(verify) {
     LOCK(cs_main);
     CCoinsViewCache &coins = chainman.ActiveChainstate().CoinsTip();
 
-    COutPoint pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    COutPoint pkh_outpoint(TxId(m_rng.rand256()), m_rng.rand32());
     CTxOut pkh_output(value, GetScriptForRawPubKey(pubkey));
     coins.AddCoin(pkh_outpoint, Coin(pkh_output, height, false), false);
 
-    COutPoint nonstd_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    COutPoint nonstd_outpoint(TxId(m_rng.rand256()), m_rng.rand32());
     CTxOut nonstd_output(value, CScript() << OP_TRUE);
     coins.AddCoin(nonstd_outpoint, Coin(nonstd_output, height, false), false);
 
-    COutPoint p2sh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+    COutPoint p2sh_outpoint(TxId(m_rng.rand256()), m_rng.rand32());
     CTxOut p2sh_output(value,
-                       GetScriptForDestination(ScriptHash(InsecureRand160())));
+                       GetScriptForDestination(ScriptHash(m_rng.rand160())));
     coins.AddCoin(p2sh_outpoint, Coin(p2sh_output, height, false), false);
 
     const auto runCheck = [&](const ProofValidationResult result,
@@ -733,7 +733,7 @@ BOOST_AUTO_TEST_CASE(verify) {
              COutPoint(pkh_outpoint.GetTxId(), pkh_outpoint.GetN() + 1), value,
              height, false, key);
     runCheck(ProofValidationResult::MISSING_UTXO,
-             COutPoint(TxId(InsecureRand256()), pkh_outpoint.GetN()), value,
+             COutPoint(TxId(m_rng.rand256()), pkh_outpoint.GetN()), value,
              height, false, key);
 
     // Non standard script
@@ -806,7 +806,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Wrong stake ordering
     {
-        COutPoint other_pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+        COutPoint other_pkh_outpoint(TxId(m_rng.rand256()), m_rng.rand32());
         CTxOut other_pkh_output(value, GetScriptForRawPubKey(pubkey));
         coins.AddCoin(other_pkh_outpoint, Coin(other_pkh_output, height, false),
                       false);
@@ -831,7 +831,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         {
             gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "11");
             for (auto h = chaintipHeight; h > chaintipHeight - 10; h--) {
-                COutPoint outpoint(TxId(InsecureRand256()), InsecureRand32());
+                COutPoint outpoint(TxId(m_rng.rand256()), m_rng.rand32());
                 CTxOut output(value, GetScriptForRawPubKey(pubkey));
                 runCheck(ProofValidationResult::MISSING_UTXO, outpoint, value,
                          h, false, key);
@@ -861,7 +861,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
         for (const auto &[stakeConfs, configuredStakeConfs, expectedResult] :
              testCases) {
-            COutPoint outpoint(TxId(InsecureRand256()), InsecureRand32());
+            COutPoint outpoint(TxId(m_rng.rand256()), m_rng.rand32());
             CTxOut output(value, GetScriptForRawPubKey(pubkey));
             coins.AddCoin(outpoint, Coin(output, stakeConfs, false), false);
 
@@ -881,7 +881,7 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
 
     std::vector<COutPoint> outpoints(10);
     for (size_t i = 0; i < 10; i++) {
-        outpoints[i] = COutPoint(TxId(InsecureRand256()), InsecureRand32());
+        outpoints[i] = COutPoint(TxId(m_rng.rand256()), m_rng.rand32());
     }
 
     auto computeProofId = [&]() {

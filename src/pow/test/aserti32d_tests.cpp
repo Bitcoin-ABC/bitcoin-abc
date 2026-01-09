@@ -692,7 +692,7 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
         uint32_t nextBits =
             GetNextWorkRequired(pindexChain2, &blkHeaderDummy, chainParams);
         blocks[bidx] =
-            GetBlockIndex(pindexChain2, InsecureRandRange(1200), nextBits);
+            GetBlockIndex(pindexChain2, m_rng.randrange(1200), nextBits);
         pindexChain2 = &blocks[bidx++];
     }
     // Scan back down to make sure all targets are same when we keep cached

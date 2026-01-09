@@ -313,26 +313,26 @@ BOOST_AUTO_TEST_CASE(select_peer_dichotomic) {
 
 BOOST_AUTO_TEST_CASE(select_peer_random) {
     for (int c = 0; c < 1000; c++) {
-        size_t size = InsecureRandBits(10) + 1;
+        size_t size = m_rng.randbits(10) + 1;
         std::vector<Slot> slots;
         slots.reserve(size);
 
-        uint64_t max = InsecureRandBits(3);
+        uint64_t max = m_rng.randbits(3);
         auto next = [&]() {
             uint64_t r = max;
-            max += InsecureRandBits(3);
+            max += m_rng.randbits(3);
             return r;
         };
 
         for (size_t i = 0; i < size; i++) {
             const uint64_t start = next();
-            const uint32_t score = InsecureRandBits(3);
+            const uint32_t score = m_rng.randbits(3);
             max += score;
             slots.emplace_back(start, score, i);
         }
 
         for (int k = 0; k < 100; k++) {
-            uint64_t s = max > 0 ? InsecureRandRange(max) : 0;
+            uint64_t s = max > 0 ? m_rng.randrange(max) : 0;
             auto i = selectPeerImpl(slots, s, max);
             // /!\ Because of the way we construct the vector, the peer id is
             // always the index. This might not be the case in practice.
@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 40000);
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i + 4] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 70000);
@@ -475,7 +475,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
         auto p = buildRandomProof(chainman.ActiveChainstate(),
                                   MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
     }
 
     // Remove all peers.

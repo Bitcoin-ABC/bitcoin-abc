@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
         pindex = active_chainstate.m_chain.Tip()->pprev;
         for (size_t i = 1; i < 3; i++) {
             for (const auto &proof : proofs) {
-                cache.add(pindex, proof, InsecureRandBits(2));
+                cache.add(pindex, proof, m_rng.randbits(2));
                 cache.setWinners(pindex, {CScript()});
             }
 
@@ -568,7 +568,7 @@ BOOST_AUTO_TEST_CASE(pollable_contenders_tests) {
     for (size_t c = 0; c < maxPollable * 2; c++) {
         // Add a new contender with random initial state
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
-        BOOST_CHECK(cache.add(pindex, proof, InsecureRandBits(2)));
+        BOOST_CHECK(cache.add(pindex, proof, m_rng.randbits(2)));
 
         BlockHash dummy;
         StakeContenderId contenderId(blockhash, proof->getId());
