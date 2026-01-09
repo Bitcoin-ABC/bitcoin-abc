@@ -14,6 +14,7 @@ import {
     health,
     address,
     start,
+    stats,
     handleMessage,
     handleMessageReaction,
 } from './src/bot';
@@ -114,6 +115,9 @@ const startup = async () => {
     });
     bot.command('address', async ctx => {
         await address(ctx, pool);
+    });
+    bot.command('stats', async ctx => {
+        await stats(ctx, pool, adminGroupChatId);
     });
     console.info('Bot command handlers registered');
 

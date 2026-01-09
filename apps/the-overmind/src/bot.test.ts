@@ -27,6 +27,7 @@ import {
     register,
     health,
     start,
+    stats,
     sendErrorToAdmin,
     handleMessage,
     handleMessageReaction,
@@ -1746,6 +1747,168 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include(
                 'Could not identify your user ID',
             );
+        });
+    });
+
+    describe('stats', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let sandbox: sinon.SinonSandbox;
+        const ADMIN_CHAT_ID = '-1001234567890';
+        const OTHER_CHAT_ID = '-1009876543210';
+        const USER_ID = 12345;
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Mock Grammy Context
+            mockCtx = {
+                chat: {
+                    id: parseInt(ADMIN_CHAT_ID),
+                    type: 'supergroup',
+                    title: 'Admin Chat',
+                },
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should return statistics when called from admin chat', async () => {
+            // Insert test data
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [USER_ID, 'ecash:test123', 1, 'testuser'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [99999, 'ecash:test456', 2, 'otheruser'],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, likes, dislikes) VALUES ($1, $2, $3, $4, $5, $6)',
+                [100, 'Test message 1', USER_ID, 'testuser', 5, 2],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, likes, dislikes) VALUES ($1, $2, $3, $4, $5, $6)',
+                [101, 'Test message 2', 99999, 'otheruser', 3, 1],
+            );
+
+            await stats(mockCtx, pool, ADMIN_CHAT_ID);
+
+            // Verify reply was called
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            // Check that stats message contains correct information
+            expect(message).to.include('📊 **The Overmind Statistics**');
+            expect(message).to.include('👥 **Registered Users:** 2');
+            expect(message).to.include('👍 **Total Likes:** 8'); // 5 + 3
+            expect(message).to.include('👎 **Total Dislikes:** 3'); // 2 + 1
+
+            // Verify parse mode
+            expect(replyCall.args[1]).to.deep.equal({ parse_mode: 'Markdown' });
+        });
+
+        it('should return zero statistics when database is empty', async () => {
+            await stats(mockCtx, pool, ADMIN_CHAT_ID);
+
+            // Verify reply was called
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            // Check that stats message contains zeros
+            expect(message).to.include('📊 **The Overmind Statistics**');
+            expect(message).to.include('👥 **Registered Users:** 0');
+            expect(message).to.include('👍 **Total Likes:** 0');
+            expect(message).to.include('👎 **Total Dislikes:** 0');
+        });
+
+        it('should reject when called from non-admin chat', async () => {
+            // Change context to non-admin chat
+            mockCtx = {
+                ...mockCtx,
+                chat: {
+                    id: parseInt(OTHER_CHAT_ID),
+                    type: 'supergroup',
+                    title: 'Other Chat',
+                },
+            } as unknown as Context;
+
+            await stats(mockCtx, pool, ADMIN_CHAT_ID);
+
+            // Verify reply was called with error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            expect(message).to.equal(
+                '❌ This command can only be used in the admin chat.',
+            );
+        });
+
+        it('should handle database errors gracefully', async () => {
+            // Stub pool.query to throw an error
+            sandbox
+                .stub(pool, 'query')
+                .rejects(new Error('Database connection failed'));
+
+            await stats(mockCtx, pool, ADMIN_CHAT_ID);
+
+            // Verify reply was called with error message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            expect(message).to.equal(
+                '❌ Error fetching statistics. Please try again later.',
+            );
+        });
+
+        it('should format large numbers with thousands separators', async () => {
+            // Insert test data with large numbers
+            for (let i = 1; i <= 1234; i++) {
+                await pool.query(
+                    'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                    [i, `ecash:test${i}`, i, `user${i}`],
+                );
+            }
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, likes, dislikes) VALUES ($1, $2, $3, $4, $5, $6)',
+                [100, 'Test message', USER_ID, 'testuser', 5678, 1234],
+            );
+
+            await stats(mockCtx, pool, ADMIN_CHAT_ID);
+
+            // Verify reply was called
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            const message = replyCall.args[0];
+
+            // Check that numbers are formatted with thousands separators
+            expect(message).to.include('👥 **Registered Users:** 1,234');
+            expect(message).to.include('👍 **Total Likes:** 5,678');
+            expect(message).to.include('👎 **Total Dislikes:** 1,234');
         });
     });
 

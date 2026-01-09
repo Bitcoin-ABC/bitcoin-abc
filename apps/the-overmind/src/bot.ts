@@ -479,6 +479,58 @@ export const address = async (ctx: Context, pool: Pool): Promise<void> => {
 };
 
 /**
+ * Get statistics about The Overmind
+ * Can only be called from the admin chat
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ * @param adminChatId - Admin group chat ID
+ */
+export const stats = async (
+    ctx: Context,
+    pool: Pool,
+    adminChatId: string,
+): Promise<void> => {
+    // Check if command is called from admin chat
+    const chatId = ctx.chat?.id?.toString();
+    if (chatId !== adminChatId) {
+        await ctx.reply('❌ This command can only be used in the admin chat.');
+        return;
+    }
+
+    try {
+        // Get number of registered users
+        const usersResult = await pool.query(
+            'SELECT COUNT(*) as count FROM users',
+        );
+        const userCount = parseInt(usersResult.rows[0].count, 10);
+
+        // Get total likes and dislikes
+        const reactionsResult = await pool.query(
+            'SELECT COALESCE(SUM(likes), 0) as total_likes, COALESCE(SUM(dislikes), 0) as total_dislikes FROM messages',
+        );
+        const totalLikes = parseInt(reactionsResult.rows[0].total_likes, 10);
+        const totalDislikes = parseInt(
+            reactionsResult.rows[0].total_dislikes,
+            10,
+        );
+
+        // Format the stats message
+        const message =
+            `📊 **The Overmind Statistics**\n\n` +
+            `👥 **Registered Users:** ${userCount.toLocaleString('en-US')}\n` +
+            `👍 **Total Likes:** ${totalLikes.toLocaleString('en-US')}\n` +
+            `👎 **Total Dislikes:** ${totalDislikes.toLocaleString('en-US')}`;
+
+        await ctx.reply(message, { parse_mode: 'Markdown' });
+    } catch (err) {
+        console.error('Error fetching statistics:', err);
+        await ctx.reply(
+            '❌ Error fetching statistics. Please try again later.',
+        );
+    }
+};
+
+/**
  * Handle messages in the monitored group chat
  * Stores messages in the database for reaction tracking
  * @param ctx - Grammy context from the message
