@@ -65,12 +65,12 @@ RUN pnpm install --frozen-lockfile --offline --filter chronik-client...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-wallet...
 RUN pnpm install --frozen-lockfile --offline --filter ecashaddrjs...
 
-# Build local modules
+# Build local modules (dependencies first)
 RUN pnpm --filter b58-ts run build
+RUN pnpm --filter ecashaddrjs run build
 RUN pnpm --filter chronik-client run build
 RUN pnpm --filter ecash-lib run build
 RUN pnpm --filter ecash-wallet run build
-RUN pnpm --filter ecashaddrjs run build
 
 # Install dependencies for the-overmind (now that local modules are built)
 RUN pnpm install --frozen-lockfile --offline --filter the-overmind...
