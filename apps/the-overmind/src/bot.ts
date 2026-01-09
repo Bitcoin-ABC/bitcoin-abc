@@ -452,9 +452,12 @@ export const handleMessage = async (
 
         // Extract message text content
         let messageText = '';
-        if (ctx.message.text) {
+        if (ctx.message.text !== undefined && ctx.message.text !== null) {
             messageText = ctx.message.text;
-        } else if (ctx.message.caption) {
+        } else if (
+            ctx.message.caption !== undefined &&
+            ctx.message.caption !== null
+        ) {
             messageText = ctx.message.caption;
         } else if (ctx.message.sticker) {
             messageText = `[Sticker: ${ctx.message.sticker.emoji || 'sticker'}]`;
