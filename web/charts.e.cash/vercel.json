@@ -1,0 +1,5 @@
+{
+    "installCommand": "",
+    "buildCommand": "pnpm --filter charts-e-cash run build",
+    "outputDirectory": "web/charts.e.cash/.next"
+}
