@@ -5,7 +5,6 @@
 import {
     getMaxDecimalizedAlpQty,
     getAlpGenesisTargetOutputs,
-    getAlpSendTargetOutputs,
     getAlpBurnTargetOutputs,
     getAlpMintTargetOutputs,
     getAlpAgoraListTargetOutputs,
@@ -63,28 +62,6 @@ describe('ALP token methods', () => {
                         includeMintBaton,
                     ),
                 ).toThrow(errorMsg);
-            });
-        });
-    });
-    describe('We can build target outputs for a 1-recipient ALP send tx with or without change', () => {
-        const { expectedReturns } = vectors.getAlpSendTargetOutputs;
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                tokenInputInfo,
-                destinationAddress,
-                firma,
-                returned,
-            } = expectedReturn;
-
-            it(`getAlpSendTargetOutputs: ${description}`, () => {
-                expect(
-                    getAlpSendTargetOutputs(
-                        tokenInputInfo,
-                        destinationAddress,
-                        firma,
-                    ),
-                ).toStrictEqual(returned);
             });
         });
     });

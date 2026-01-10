@@ -12,7 +12,6 @@ import {
     alpMint,
     Script,
     shaRmd160,
-    fromHex,
 } from 'ecash-lib';
 import { AgoraPartial } from 'ecash-agora';
 import { GenesisInfo } from 'chronik-client';
@@ -93,58 +92,6 @@ export const getAlpGenesisTargetOutputs = (
         // [0] OP_RETURN
         // [1] Mint baton
         // [2] genesis qty
-        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-    }
-
-    return targetOutputs;
-};
-
-/**
- * Get targetOutput(s) for an ALP v1 SEND tx
- * This is (almost) identical to getting SLP1 send target outputs
- * However, best practice to keep this a separate function
- * If we support token multisends, ALP and SLP will have different output rules
- *
- * firma
- * We support an (optional) additional empp push for ALP send txs in Cashtab
- * In theory we could support multiple additional empp pushes, but we do not (yet)
- * have a use case for this
- * firma must be a valid hex string
- * firma must not bump the size of the OP_RETURN script above 223 bytes
- * NB a node will prevent a tx broadcasting with OP_RETURN above 223 bytes, with
- * unhelpful error "scriptPubKey" -- so we validate here for the max bytes available
- * assuming we have a 2-output ALP token tx
- */
-export const getAlpSendTargetOutputs = (
-    tokenInputInfo: TokenInputInfo,
-    destinationAddress: string,
-    firma = '',
-): TokenTargetOutput[] => {
-    const { tokenId, sendAmounts } = tokenInputInfo;
-
-    const emppScriptArr = [alpSend(tokenId, ALP_STANDARD, sendAmounts)];
-
-    if (firma !== '') {
-        emppScriptArr.push(fromHex(firma));
-    }
-
-    const script = emppScript(emppScriptArr);
-
-    // Build targetOutputs per slpv1 spec
-    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
-
-    // Initialize with OP_RETURN at 0 index, per spec
-    const targetOutputs: TokenTargetOutput[] = [{ sats: 0n, script }];
-
-    // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
-    targetOutputs.push({
-        sats: BigInt(appConfig.dustSats),
-        script: Script.fromAddress(destinationAddress),
-    });
-
-    // sendAmounts can only be length 1 or 2
-    if (sendAmounts.length > 1) {
-        // Add dust output to hold token change
         targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
     }
 

@@ -9,10 +9,7 @@ import {
     getMaxSendAmountSatoshis,
     isFinalizedInput,
 } from 'transactions';
-import {
-    getSlpSendTargetOutputs,
-    getSlpBurnTargetOutputs,
-} from 'token-protocols/slpv1';
+import { getSlpBurnTargetOutputs } from 'token-protocols/slpv1';
 import { getSendTokenInputs } from 'token-protocols';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import vectors, {
@@ -23,7 +20,8 @@ import vectors, {
 } from '../fixtures/vectors';
 import slpv1Vectors from 'token-protocols/slpv1/fixtures/vectors';
 import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
-import { Ecc, SLP_FUNGIBLE, Script, fromHex } from 'ecash-lib';
+import { Ecc, SLP_FUNGIBLE, Script, fromHex, slpSend } from 'ecash-lib';
+import appConfig from 'config/app';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
     const ecc = new Ecc();
@@ -313,12 +311,24 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 expect(tokenInputInfo.tokenInputs).toStrictEqual(tokenInputs);
                 expect(tokenInputInfo.sendAmounts).toStrictEqual(sendAmounts);
 
-                // Get the targetOutputs
-                const tokenSendTargetOutputs = getSlpSendTargetOutputs(
-                    tokenInputInfo,
-                    destinationAddress,
+                // Construct targetOutputs for SLP send (replacing removed getSlpSendTargetOutputs)
+                const script = slpSend(
+                    tokenId,
                     SLP_FUNGIBLE,
+                    tokenInputInfo.sendAmounts,
                 );
+                const tokenSendTargetOutputs = [
+                    { sats: 0n, script },
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: Script.fromAddress(destinationAddress),
+                    },
+                ];
+                if (tokenInputInfo.sendAmounts.length > 1) {
+                    tokenSendTargetOutputs.push({
+                        sats: BigInt(appConfig.dustSats),
+                    });
+                }
 
                 // SLP v1 SEND
                 expect(

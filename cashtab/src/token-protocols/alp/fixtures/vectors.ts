@@ -11,42 +11,13 @@ import {
     MAX_OUTPUT_AMOUNT_ALP_ATOMS,
     CashtabAlpGenesisInfo,
 } from 'token-protocols/alp';
-import {
-    CashtabUtxo,
-    SlpDecimals,
-    undecimalizeTokenAmount,
-    DUMMY_KEYPAIR,
-} from 'wallet';
-import { Script, toHex, fromHex, strToBytes } from 'ecash-lib';
-import { Token, TokenType, OutPoint } from 'chronik-client';
+import { SlpDecimals, undecimalizeTokenAmount, DUMMY_KEYPAIR } from 'wallet';
+import { Script, toHex, fromHex } from 'ecash-lib';
 import { AgoraPartial } from 'ecash-agora';
 import { agoraPartialAlpTiberium } from './mocks';
 
 const MOCK_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
-const DUMMY_ADDRESS = 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';
-const DUMMY_OUTPOINT: OutPoint = {
-    txid: '0000000000000000000000000000000000000000000000000000000000000000',
-    outIdx: 0,
-};
-const DUMMY_TOKEN_TYPE_ALP: TokenType = {
-    protocol: 'ALP',
-    type: 'ALP_TOKEN_TYPE_STANDARD',
-    number: 1,
-};
-const DUMMY_TOKEN_ALP: Token = {
-    tokenType: DUMMY_TOKEN_TYPE_ALP,
-    tokenId: MOCK_TOKEN_ID,
-    atoms: 1000n,
-    isMintBaton: false,
-};
-const DUMMY_UTXO: CashtabUtxo = {
-    outpoint: DUMMY_OUTPOINT,
-    sats: 546n,
-    blockHeight: 800000,
-    isCoinbase: false,
-    isFinal: true,
-};
 
 interface GetMaxDecimalizedAlpQtyReturn {
     description: string;
@@ -65,13 +36,6 @@ interface GetAlpGenesisTargetOutputsError extends Omit<
     'targetOutputs'
 > {
     errorMsg: string;
-}
-interface GetAlpSendTargetOutputsReturn {
-    description: string;
-    tokenInputInfo: TokenInputInfo;
-    destinationAddress: string;
-    firma: string;
-    returned: TokenTargetOutput[];
 }
 interface GetAlpBurnTargetOutputsReturn {
     description: string;
@@ -97,9 +61,6 @@ interface AlpVectors {
     getAlpGenesisTargetOutputs: {
         expectedReturns: GetAlpGenesisTargetOutputsReturn[];
         expectedErrors: GetAlpGenesisTargetOutputsError[];
-    };
-    getAlpSendTargetOutputs: {
-        expectedReturns: GetAlpSendTargetOutputsReturn[];
     };
     getAlpBurnTargetOutputs: {
         expectedReturns: GetAlpBurnTargetOutputsReturn[];
@@ -313,140 +274,6 @@ const vectors: AlpVectors = {
                 initialQuantity: BigInt(`${MAX_OUTPUT_AMOUNT_ALP_ATOMS}1`),
                 includeMintBaton: true,
                 errorMsg: `Cannot fit 655359 into a u16`,
-            },
-        ],
-    },
-    getAlpSendTargetOutputs: {
-        expectedReturns: [
-            {
-                description: 'We can send a max-qty ALP tx with change',
-                tokenInputInfo: {
-                    // Note that getAlpSendTargetOutputs does not use these
-                    tokenInputs: [
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                    ],
-                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS), 1n],
-                    tokenId: MOCK_TOKEN_ID,
-                },
-                destinationAddress: DUMMY_ADDRESS,
-                firma: '',
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a5037534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111102ffffffffffff010000000000',
-                            ),
-                        ),
-                    },
-                    // Recipient output
-                    {
-                        ...TOKEN_DUST_CHANGE_OUTPUT,
-                        script: Script.fromAddress(DUMMY_ADDRESS),
-                    },
-                    // Change output has no script or address
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description: 'We can send a max-qty ALP tx with no change',
-                tokenInputInfo: {
-                    tokenInputs: [
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                    ],
-                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS)],
-                    tokenId: MOCK_TOKEN_ID,
-                },
-                destinationAddress: DUMMY_ADDRESS,
-                firma: '',
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a5031534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111101ffffffffffff',
-                            ),
-                        ),
-                    },
-                    // Recipient output
-                    {
-                        ...TOKEN_DUST_CHANGE_OUTPUT,
-                        script: Script.fromAddress(DUMMY_ADDRESS),
-                    },
-                    // No token change output
-                ],
-            },
-            {
-                description:
-                    'We can send a max-qty ALP tx with change and a message minimally encoding a Solana address',
-                tokenInputInfo: {
-                    // Note that getAlpSendTargetOutputs does not use these
-                    tokenInputs: [
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                        {
-                            ...DUMMY_UTXO,
-                            token: {
-                                ...DUMMY_TOKEN_ALP,
-                                atoms: MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-                            },
-                        },
-                    ],
-                    sendAmounts: [BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS), 1n],
-                    tokenId: MOCK_TOKEN_ID,
-                },
-                destinationAddress: DUMMY_ADDRESS,
-                firma: `${toHex(
-                    strToBytes('SOL0'),
-                )}4ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745`,
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a5037534c5032000453454e44111111111111111111111111111111111111111111111111111111111111111102ffffffffffff01000000000024534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
-                            ),
-                        ),
-                    },
-                    // Recipient output
-                    {
-                        ...TOKEN_DUST_CHANGE_OUTPUT,
-                        script: Script.fromAddress(DUMMY_ADDRESS),
-                    },
-                    // Change output has no script or address
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
             },
         ],
     },

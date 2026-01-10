@@ -1293,29 +1293,6 @@ export default {
             },
         ],
     },
-    getNftChildSendTargetOutputs: {
-        expectedReturns: [
-            {
-                description: 'We can get the target outputs for sending an NFT',
-                tokenId: MOCK_TOKEN_ID,
-                destinationAddress: SEND_DESTINATION_ADDRESS,
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                `6a04534c500001410453454e4420${MOCK_TOKEN_ID}080000000000000001`,
-                            ),
-                        ),
-                    },
-                    {
-                        script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
-                        sats: BigInt(appConfig.dustSats),
-                    },
-                ],
-            },
-        ],
-    },
     isTokenDustChangeOutput: {
         expectedReturns: [
             {

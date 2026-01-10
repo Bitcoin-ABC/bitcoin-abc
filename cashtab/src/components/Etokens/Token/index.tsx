@@ -39,7 +39,6 @@ import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
 import {
-    getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
@@ -47,21 +46,18 @@ import {
     getNftParentFanInputs,
     getNftParentFanTxTargetOutputs,
     getNft,
-    getNftChildSendTargetOutputs,
     getAgoraAdFuelSats,
     SUPPORTED_MINT_TYPES,
 } from 'token-protocols/slpv1';
 import {
-    getAlpSendTargetOutputs,
     getAlpBurnTargetOutputs,
     getAlpMintTargetOutputs,
     getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
 import {
-    getSendTokenInputs,
-    TokenInputInfo,
     TokenTargetOutput,
     getMaxDecimalizedQty,
+    getSendTokenInputs,
 } from 'token-protocols';
 import { sendXec } from 'transactions';
 import {
@@ -127,7 +123,7 @@ import {
     getChildNftsFromParent,
     getTokenGenesisInfo,
 } from 'chronik';
-import { GenesisInfo, TokenType } from 'chronik-client';
+import { GenesisInfo } from 'chronik-client';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     slpSend,
@@ -137,6 +133,8 @@ import {
     shaRmd160,
     P2PKHSignatory,
     ALL_BIP143,
+    payment,
+    TokenType,
 } from 'ecash-lib';
 import { InlineLoader } from 'components/Common/Spinner';
 import {
@@ -174,9 +172,10 @@ const Token: React.FC = () => {
         ecc,
         chaintipBlockheight,
         fiatPrice,
+        ecashWallet,
     } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    if (!activeWallet || !ecashWallet) {
         return null;
     }
     const wallet = activeWallet;
@@ -211,7 +210,8 @@ const Token: React.FC = () => {
 
     if (cachedInfoLoaded) {
         ({ tokenType, genesisInfo, genesisSupply } = cachedInfo);
-        ({ protocol } = tokenType);
+        tokenType = tokenType as unknown as TokenType | undefined;
+        ({ protocol } = tokenType as any);
         ({ tokenName, tokenTicker, url, hash, decimals } = genesisInfo);
     }
 
@@ -986,46 +986,58 @@ const Token: React.FC = () => {
         const cleanAddress = address.split('?')[0];
 
         try {
-            // Get input utxos for slpv1 or ALP send tx
-            const tokenInputInfo = !isNftChild
-                ? // Note this works for ALP or SLP
-                  getSendTokenInputs(
-                      wallet.state.slpUtxos,
-                      tokenId as string,
-                      amount,
-                      decimals as SlpDecimals,
-                  )
-                : undefined;
+            if (!ecashWallet) {
+                // We do not render the component with ecashWallet, so we do not expect this to happen
+                // Helps typescript clarity
+                throw new Error('Wallet not initialized');
+            }
 
-            // Get targetOutputs for an slpv1 send tx
-            const tokenSendTargetOutputs = isNftChild
-                ? getNftChildSendTargetOutputs(tokenId as string, cleanAddress)
-                : isAlp
-                  ? getAlpSendTargetOutputs(
-                        tokenInputInfo as TokenInputInfo,
-                        cleanAddress,
-                    )
-                  : getSlpSendTargetOutputs(
-                        tokenInputInfo as TokenInputInfo,
-                        cleanAddress,
-                        tokenType!.number,
-                    );
-            // Build and broadcast the tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                tokenSendTargetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                isNftChild
-                    ? getNft(tokenId as string, wallet.state.slpUtxos)
-                    : (tokenInputInfo as TokenInputInfo).tokenInputs,
-            );
+            // Build payment.Action for token send
+            // ecash-wallet handles UTXO selection and token change automatically
+            const sendAtoms = isNftChild
+                ? 1n
+                : BigInt(
+                      undecimalizeTokenAmount(amount, decimals as SlpDecimals),
+                  );
+
+            // All token sends are the same in the ecash-wallet API
+            // ecash-wallet deals with differing token specs
+            const action: payment.Action = {
+                outputs: [
+                    { sats: 0n }, // OP_RETURN at outIdx 0
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: Script.fromAddress(cleanAddress),
+                        tokenId: tokenId as string,
+                        atoms: sendAtoms,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId as string,
+                        tokenType: tokenType as unknown as TokenType,
+                    },
+                ],
+                feePerKb: BigInt(settings.satsPerKb),
+            };
+
+            // Build and broadcast using ecash-wallet
+            const builtAction = ecashWallet.action(action).build();
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Get the first txid (or the only one for single-tx actions)
+            const txid = broadcastResult.broadcasted[0];
 
             confirmRawTx(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >

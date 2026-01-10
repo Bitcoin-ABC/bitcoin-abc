@@ -98,50 +98,6 @@ export const getSlpGenesisTargetOutput = (
 };
 
 /**
- * Get targetOutput(s) for a SLP v1 SEND tx
- * @param tokenInputInfo of getSendTokenInputs
- * @param destinationAddress address where the tokens are being sent
- * @throws if invalid input params are passed to TokenType1.send
- * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}]
- * or [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}]
- * if token change
- * Change output has no address key
- */
-export const getSlpSendTargetOutputs = (
-    tokenInputInfo: TokenInputInfo,
-    destinationAddress: string,
-    tokenType: number,
-): TokenTargetOutput[] => {
-    const { tokenInputs, sendAmounts } = tokenInputInfo;
-
-    // Get tokenId from the tokenUtxo
-
-    const tokenId = tokenInputs[0].token.tokenId;
-
-    const script = slpSend(tokenId, tokenType, sendAmounts);
-
-    // Build targetOutputs per slpv1 spec
-    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
-
-    // Initialize with OP_RETURN at 0 index, per spec
-    const targetOutputs: TokenTargetOutput[] = [{ sats: 0n, script }];
-
-    // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
-    targetOutputs.push({
-        sats: BigInt(appConfig.dustSats),
-        script: Script.fromAddress(destinationAddress),
-    });
-
-    // sendAmounts can only be length 1 or 2
-    if (sendAmounts.length > 1) {
-        // Add dust output to hold token change
-        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-    }
-
-    return targetOutputs;
-};
-
-/**
  * Get targetOutput(s) for a SLP v1 BURN tx
  * Note: a burn tx is a special case of a send tx where you have no destination output
  * You always have a change output as an eCash tx must have at least dust output
@@ -163,7 +119,7 @@ export const getSlpBurnTargetOutputs = (
     const hasChange = sendAmounts.length > 1;
     const tokenChange = hasChange ? sendAmounts[1] : 0n;
 
-    // This step is what makes the tx a burn and not a send, see getSlpSendTargetOutputs
+    // This step is what makes the tx a burn and not a send (no destination output)
     const script = slpSend(tokenId, tokenType, [tokenChange]);
 
     // Build targetOutputs per slpv1 spec
@@ -528,33 +484,6 @@ export const getNft = (tokenId: string, slpUtxos: TokenUtxo[]): TokenUtxo[] => {
     // We have not found a utxo that meets our conditions
     // Return empty array
     return [];
-};
-
-/**
- * Cashtab only supports sending one NFT1 child at a time
- * Which child is sent is determined by input selection
- * So, the user interface for input selection is what mostly drives this tx
- * @param tokenId tokenId of the Parent (aka Group)
- */
-export const getNftChildSendTargetOutputs = (
-    tokenId: string,
-    destinationAddress: string,
-): TokenTargetOutput[] => {
-    // We only ever send 1 NFT
-    const SEND_ONE_CHILD = [1n];
-    const script = slpSend(tokenId, SLP_1_NFT_PROTOCOL_NUMBER, SEND_ONE_CHILD);
-
-    // Implementation notes
-    // - Cashtab only supports sending one NFT at a time
-    // - All NFT Child inputs will have amount of 1
-    // Therefore, we will have no change, and every send tx will have only one token utxo output
-    return [
-        { sats: 0n, script },
-        {
-            script: Script.fromAddress(destinationAddress),
-            sats: BigInt(appConfig.dustSats),
-        },
-    ];
 };
 
 /**

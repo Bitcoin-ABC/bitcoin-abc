@@ -4,7 +4,6 @@
 
 import {
     getSlpGenesisTargetOutput,
-    getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
@@ -16,7 +15,6 @@ import {
     getNftChildGenesisInput,
     getNftChildGenesisTargetOutputs,
     getNft,
-    getNftChildSendTargetOutputs,
     isTokenDustChangeOutput,
     getAgoraAdFuelSats,
 } from 'token-protocols/slpv1';
@@ -130,22 +128,8 @@ describe('slpv1 methods', () => {
             });
         });
     });
-    describe('Get slpv1 send token inputs and outputs', () => {
-        const { expectedReturns, expectedErrors } =
-            tokenProtocolsVectors.getSendTokenInputs;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, tokenInputs, sendAmounts, targetOutputs } =
-                expectedReturn;
-            it(`getSlpSendTargetOutputs: ${description}`, () => {
-                expect(
-                    getSlpSendTargetOutputs(
-                        { tokenInputs, sendAmounts },
-                        SEND_DESTINATION_ADDRESS,
-                        SLP_FUNGIBLE,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
+    describe('Get slpv1 send token inputs', () => {
+        const { expectedErrors } = tokenProtocolsVectors.getSendTokenInputs;
         expectedErrors.forEach(expectedError => {
             const {
                 description,
@@ -397,18 +381,6 @@ describe('slpv1 methods', () => {
             const { description, tokenId, slpUtxos, returned } = vector;
             it(`getNft: ${description}`, () => {
                 expect(getNft(tokenId, slpUtxos)).toStrictEqual(returned);
-            });
-        });
-    });
-    describe('Get targetOutputs for an NFT1 child send tx', () => {
-        const { expectedReturns } = vectors.getNftChildSendTargetOutputs;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, tokenId, destinationAddress, returned } =
-                expectedReturn;
-            it(`getNftChildSendTargetOutputs: ${description}`, () => {
-                expect(
-                    getNftChildSendTargetOutputs(tokenId, destinationAddress),
-                ).toStrictEqual(returned);
             });
         });
     });
