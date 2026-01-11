@@ -405,8 +405,8 @@ export default function ChartRenderer({
                             labelFormatter={(value: string) =>
                                 format(new Date(value), 'MMM dd, yyyy')
                             }
-                            formatter={(value: number) => [
-                                value.toLocaleString(),
+                            formatter={(value: number | undefined) => [
+                                value?.toLocaleString() ?? '0',
                                 'Transactions',
                             ]}
                             contentStyle={{
@@ -477,8 +477,8 @@ export default function ChartRenderer({
                             labelFormatter={(value: string) =>
                                 format(new Date(value), 'MMM dd, yyyy')
                             }
-                            formatter={(value: number) => [
-                                value.toLocaleString(),
+                            formatter={(value: number | undefined) => [
+                                value?.toLocaleString() ?? '0',
                                 'Blocks',
                             ]}
                             contentStyle={{
@@ -555,8 +555,8 @@ export default function ChartRenderer({
                             labelFormatter={(value: string) =>
                                 format(new Date(value), 'MMM dd, yyyy')
                             }
-                            formatter={(value: number) => [
-                                `${value.toFixed(1)} KB`,
+                            formatter={(value: number | undefined) => [
+                                `${value?.toFixed(1) ?? '0.0'} KB`,
                                 'Average Block Size',
                             ]}
                             contentStyle={{
@@ -628,8 +628,10 @@ export default function ChartRenderer({
                             labelFormatter={(value: string) =>
                                 format(new Date(value), 'MMM dd, yyyy')
                             }
-                            formatter={(value: number) => [
-                                formatXECValue(value),
+                            formatter={(value: number | undefined) => [
+                                value !== undefined
+                                    ? formatXECValue(value)
+                                    : '0 XEC',
                                 'Coinbase Output',
                             ]}
                             contentStyle={{
@@ -727,11 +729,13 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        formatXECValue(value),
-                                        LEGEND_LABELS[name] || name,
+                                        value !== undefined
+                                            ? formatXECValue(value)
+                                            : '0 XEC',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -840,11 +844,11 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        value.toLocaleString(),
-                                        LEGEND_LABELS[name] || name,
+                                        value?.toLocaleString() ?? '0',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -942,11 +946,11 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        value.toLocaleString(),
-                                        LEGEND_LABELS[name] || name,
+                                        value?.toLocaleString() ?? '0',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1051,24 +1055,34 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => {
                                         if (name === 'withdrawal_sats') {
                                             return [
-                                                formatBinanceM(value),
-                                                LEGEND_LABELS[name] || name,
+                                                value !== undefined
+                                                    ? formatBinanceM(value)
+                                                    : '0',
+                                                name
+                                                    ? LEGEND_LABELS[name] ||
+                                                      name
+                                                    : '',
                                             ];
                                         }
                                         if (name === 'withdrawal_count') {
                                             return [
-                                                value.toLocaleString(),
-                                                LEGEND_LABELS[name] || name,
+                                                value?.toLocaleString() ?? '0',
+                                                name
+                                                    ? LEGEND_LABELS[name] ||
+                                                      name
+                                                    : '',
                                             ];
                                         }
                                         return [
-                                            value,
-                                            LEGEND_LABELS[name] || name,
+                                            value?.toString() ?? '0',
+                                            name
+                                                ? LEGEND_LABELS[name] || name
+                                                : '',
                                         ];
                                     }}
                                     contentStyle={{
@@ -1165,11 +1179,13 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        formatXECValue(value),
-                                        LEGEND_LABELS[name] || name,
+                                        value !== undefined
+                                            ? formatXECValue(value)
+                                            : '0 XEC',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1274,11 +1290,13 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        formatXECValue(value),
-                                        LEGEND_LABELS[name] || name,
+                                        value !== undefined
+                                            ? formatXECValue(value)
+                                            : '0 XEC',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1380,11 +1398,13 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        formatXECValue(value),
-                                        LEGEND_LABELS[name] || name,
+                                        value !== undefined
+                                            ? formatXECValue(value)
+                                            : '0 XEC',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1488,11 +1508,13 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        formatXECValue(value),
-                                        LEGEND_LABELS[name] || name,
+                                        value !== undefined
+                                            ? formatXECValue(value)
+                                            : '0 XEC',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1602,11 +1624,11 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        value.toLocaleString(),
-                                        LEGEND_LABELS[name] || name,
+                                        value?.toLocaleString() ?? '0',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1755,11 +1777,11 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        value.toLocaleString(),
-                                        LEGEND_LABELS[name] || name,
+                                        value?.toLocaleString() ?? '0',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1892,11 +1914,11 @@ export default function ChartRenderer({
                                         format(new Date(value), 'MMM dd, yyyy')
                                     }
                                     formatter={(
-                                        value: number,
-                                        name: string,
+                                        value: number | undefined,
+                                        name: string | undefined,
                                     ) => [
-                                        value.toLocaleString(),
-                                        LEGEND_LABELS[name] || name,
+                                        value?.toLocaleString() ?? '0',
+                                        name ? LEGEND_LABELS[name] || name : '',
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -2009,8 +2031,8 @@ export default function ChartRenderer({
                             labelFormatter={(value: string) =>
                                 format(new Date(value), 'MMM dd, yyyy')
                             }
-                            formatter={(value: number) => [
-                                `$${value.toFixed(5)}`,
+                            formatter={(value: number | undefined) => [
+                                `$${value?.toFixed(5) ?? '0.00000'}`,
                                 'Price',
                             ]}
                             contentStyle={{
