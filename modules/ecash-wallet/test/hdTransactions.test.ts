@@ -1658,55 +1658,8 @@ describe('HD Wallet can build and broadcast on regtest', () => {
         // We can build and broadcast an ALP BURN
         const alpGenesisTokenIdBurnAtoms = 10n;
         const alpGenesisTokenIdBetaBurnAtomsCannotBurnAll = 100n;
-        const alpDoubleBurnError: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /** Specify a send for alpGenesisTokenId */
-                {
-                    sats: 546n,
-                    script: MOCK_DESTINATION_SCRIPT,
-                    tokenId: alpGenesisTokenId,
-                    atoms: 111n,
-                },
-                /**
-                 * We don't specify any token SEND outputs
-                 * for alpGenesisTokenIdBeta, since we
-                 * want to just burn it
-                 */
-            ],
-            tokenActions: [
-                /** ALP send action for first token */
-                {
-                    type: 'SEND',
-                    tokenId: alpGenesisTokenId,
-                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                },
-                /** ALP burn action for 2nd token */
-                {
-                    type: 'BURN',
-                    tokenId: alpGenesisTokenIdBeta,
-                    burnAtoms: alpGenesisTokenIdBetaBurnAtomsCannotBurnAll,
-                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                },
-                {
-                    type: 'BURN',
-                    tokenId: alpGenesisTokenId,
-                    burnAtoms: alpGenesisTokenIdBurnAtoms,
-                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                },
-            ],
-        };
 
-        // We cannot burn this quantity of the beta token without specifying a SEND action because we do not have a utxo of this size
-        expect(() =>
-            alpWallet.clone().action(alpDoubleBurnError).build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Unable to find UTXOs for ${alpGenesisTokenIdBeta} with exactly ${alpGenesisTokenIdBetaBurnAtomsCannotBurnAll} atoms. Create a UTXO with ${alpGenesisTokenIdBetaBurnAtomsCannotBurnAll} atoms to burn without a SEND action.`,
-        );
-
-        // We can resolve the issue by adding a SEND action for change or by changing the burn amount
+        // ecash-wallet infers a SEND action for ALP token change when exact atoms aren't available
         const alpDoubleBurn: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
@@ -1736,16 +1689,6 @@ describe('HD Wallet can build and broadcast on regtest', () => {
                     type: 'BURN',
                     tokenId: alpGenesisTokenIdBeta,
                     burnAtoms: alpGenesisTokenIdBetaBurnAtomsCannotBurnAll,
-                    tokenType: ALP_TOKEN_TYPE_STANDARD,
-                },
-                /**
-                 * NB we have no specified SEND outputs for this
-                 * build() will automatically add one to return change
-                 * for burnAtoms
-                 */
-                {
-                    type: 'SEND',
-                    tokenId: alpGenesisTokenIdBeta,
                     tokenType: ALP_TOKEN_TYPE_STANDARD,
                 },
                 {

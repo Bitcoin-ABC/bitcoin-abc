@@ -212,3 +212,10 @@ See tests for detailed methods.
 - For a consistent API, we introduce methods that return different addresses/scripts depending on whether or not the wallet is HD
 
 [D19271](https://reviews.bitcoinabc.org/D19271)
+
+# 3.2.1
+
+- For ALP burns, if we do not have an exact qty utxo, we infer a SEND action for change
+- Introduce action preprocessing and typed error, `ExactAtomsNotFoundError`, to support this inferrence
+
+[D19301](https://reviews.bitcoinabc.org/D19301)

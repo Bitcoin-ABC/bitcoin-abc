@@ -742,6 +742,84 @@ export class Wallet {
 }
 
 /**
+ * Preprocess action to infer SEND actions for ALP-only-burn cases.
+ * For ALP burns without SEND actions, if exact atoms are not available but sufficient
+ * total atoms exist, automatically add a SEND action to allow change handling.
+ *
+ * @param action - The payment action to preprocess
+ * @param spendableUtxos - Available UTXOs to check against
+ * @returns A new action with inferred SEND actions added if needed
+ */
+function inferAlpBurnSendActions(
+    action: payment.Action,
+    spendableUtxos: WalletUtxo[],
+): payment.Action {
+    const tokenActions = action.tokenActions ?? [];
+    if (tokenActions.length === 0) {
+        return action;
+    }
+
+    // Find token IDs that have SEND actions
+    const sendActionTokenIds = new Set(
+        tokenActions
+            .filter((ta): ta is payment.SendAction => ta.type === 'SEND')
+            .map(ta => ta.tokenId),
+    );
+
+    // Find ALP BURN actions without corresponding SEND actions
+    const alpBurnActions = tokenActions.filter(
+        (ta): ta is payment.BurnAction =>
+            ta.type === 'BURN' &&
+            ta.tokenType.protocol === 'ALP' &&
+            !sendActionTokenIds.has(ta.tokenId),
+    );
+
+    if (alpBurnActions.length === 0) {
+        return action;
+    }
+
+    // Clone action to avoid mutating the original
+    const modifiedAction: payment.Action = {
+        ...action,
+        tokenActions: [...tokenActions],
+    };
+
+    // For each ALP-only-burn, check if we need to add SEND
+    for (const burnAction of alpBurnActions) {
+        try {
+            const { hasExact } = getTokenUtxosWithExactAtoms(
+                spendableUtxos,
+                burnAction.tokenId,
+                burnAction.burnAtoms,
+            );
+
+            if (!hasExact) {
+                // Don't have exact atoms, add SEND action to allow change
+                modifiedAction.tokenActions!.push({
+                    type: 'SEND',
+                    tokenId: burnAction.tokenId,
+                    tokenType: burnAction.tokenType,
+                });
+            }
+        } catch (error) {
+            // If error is about not finding exact atoms (not insufficient atoms), add SEND
+            if (error instanceof ExactAtomsNotFoundError) {
+                modifiedAction.tokenActions!.push({
+                    type: 'SEND',
+                    tokenId: burnAction.tokenId,
+                    tokenType: burnAction.tokenType,
+                });
+            } else {
+                // Re-throw other errors (e.g., insufficient atoms, invalid input, no UTXOs)
+                throw error;
+            }
+        }
+    }
+
+    return modifiedAction;
+}
+
+/**
  * eCash tx(s) that fulfill(s) an Action
  */
 class WalletAction {
@@ -767,8 +845,14 @@ class WalletAction {
         action: payment.Action,
         satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
     ): WalletAction {
-        const selectUtxosResult = selectUtxos(
+        // Preprocess action: infer SEND actions for ALP-only-burn cases
+        const preprocessedAction = inferAlpBurnSendActions(
             action,
+            wallet.spendableUtxos(),
+        );
+
+        const selectUtxosResult = selectUtxos(
+            preprocessedAction,
             wallet.spendableUtxos(),
             satsStrategy,
         );
@@ -777,9 +861,14 @@ class WalletAction {
         // Since it is dependent on action and spendable utxos, we do not want it
         // to be a standalone param for selectUtxos
         // We need it here to get sat totals for tx building
-        const actionTotal = getActionTotals(action);
-        // Create a new WalletAction with the same wallet and action
-        return new WalletAction(wallet, action, selectUtxosResult, actionTotal);
+        const actionTotal = getActionTotals(preprocessedAction);
+        // Create a new WalletAction with the same wallet and preprocessed action
+        return new WalletAction(
+            wallet,
+            preprocessedAction,
+            selectUtxosResult,
+            actionTotal,
+        );
     }
 
     /**
@@ -2095,6 +2184,21 @@ interface ActionTotal {
 }
 
 /**
+ * Error thrown when exact atoms are not found but sufficient total atoms exist.
+ * This indicates that a SEND action may be needed to handle change.
+ */
+export class ExactAtomsNotFoundError extends Error {
+    constructor(
+        message: string,
+        public readonly tokenId: string,
+        public readonly burnAtoms: bigint,
+    ) {
+        super(message);
+        this.name = 'ExactAtomsNotFoundError';
+    }
+}
+
+/**
  * Finds a combination of UTXOs for a given tokenId whose atoms exactly sum to burnAtoms.
  * Returns the matching UTXOs or throws an error if no exact match is found.
  *
@@ -2102,6 +2206,8 @@ interface ActionTotal {
  * @param tokenId - The token ID to match
  * @param burnAtoms - The exact amount of atoms to burn
  * @returns Array of UTXOs whose atoms sum exactly to burnAtoms
+ * @throws ExactAtomsNotFoundError when exact atoms are not found but sufficient total atoms exist
+ * @throws Error for other cases (invalid input, no UTXOs, insufficient atoms)
  */
 export const getTokenUtxosWithExactAtoms = (
     availableUtxos: WalletUtxo[],
@@ -2175,8 +2281,10 @@ export const getTokenUtxosWithExactAtoms = (
             utxo => utxo.token?.tokenType.type === 'ALP_TOKEN_TYPE_STANDARD',
         )
     ) {
-        throw new Error(
+        throw new ExactAtomsNotFoundError(
             `Unable to find UTXOs for ${tokenId} with exactly ${burnAtoms} atoms. Create a UTXO with ${burnAtoms} atoms to burn without a SEND action.`,
+            tokenId,
+            burnAtoms,
         );
     }
 
@@ -2665,7 +2773,8 @@ export const selectUtxos = (
      */
     satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
 ): SelectUtxosResult => {
-    const { sats, tokens, groupTokenId } = getActionTotals(action);
+    const actionTotals = getActionTotals(action);
+    const { sats, tokens, groupTokenId } = actionTotals;
 
     // Clone spendableUtxos so that we can mutate it in this function without mutating the original
     const clonedSpendableUtxos = structuredClone(spendableUtxos);
@@ -2892,7 +3001,7 @@ export const selectUtxos = (
         }
     }
 
-    // Handle burnAll tokenIds first
+    // Handle burnAll tokenIds
     for (const burnAllTokenId of burnAllTokenIds) {
         if (typeof action.requiredUtxos !== 'undefined') {
             // It gets pretty hairy trying to check if the user already required some or all
@@ -2904,11 +3013,13 @@ export const selectUtxos = (
                 'ecash-wallet does not support requiredUtxos for SLP burn txs',
             );
         }
-        const { hasExact, burnUtxos } = getTokenUtxosWithExactAtoms(
+
+        const result = getTokenUtxosWithExactAtoms(
             clonedSpendableUtxos,
             burnAllTokenId,
             tokens!.get(burnAllTokenId)!.atoms,
         );
+        const { hasExact, burnUtxos } = result;
 
         if (!hasExact) {
             // If we do not have utxos with the exact burn atoms, we must have a chained tx for an intentional BURN

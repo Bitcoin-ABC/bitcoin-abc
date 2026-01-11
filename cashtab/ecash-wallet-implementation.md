@@ -59,11 +59,16 @@ This document tracks the migration of transaction building and broadcasting from
 - **Uses:** `sendXec()` from `transactions/index.js`
 - **Transaction Type:** NFT parent fan-out transaction
 
-#### 2.3. `burn()` (lines ~1307-1360)
+#### 2.3. `burn()` (lines ~1319-1395)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Burn eTokens
-- **Uses:** `sendXec()` from `transactions/index.js` with `isBurn = true`
-- **Transaction Type:** Token BURN transaction
+- **Uses:** `ecash-wallet`'s `action()` API directly
+- **Transaction Type:** Token BURN with `BurnAction`
+- **Migration Notes:**
+    - Uses `payment.Action` with `BurnAction` tokenAction
+    - `ecash-wallet` handles UTXO selection automatically (finds UTXOs that exactly sum to `burnAtoms`)
+    - No manual target outputs needed - just OP_RETURN output
 
 #### 2.4. `handleMint()` (lines ~1362-1420)
 
@@ -96,6 +101,7 @@ This document tracks the migration of transaction building and broadcasting from
 **Migration Notes:**
 
 - `sendToken()` ✅ - Migrated to use `ecash-wallet` directly
+- `burn()` ✅ - Migrated to use `ecash-wallet` directly
 - Remaining functions still use `sendXec()` helper from `transactions/index.js`
 - **Will be migrated to use `ecash-wallet` directly** - replacing `sendXec()` calls with `ecash-wallet`'s `action()` API
 - Some functions require sequential transactions (ad setup + offer)
@@ -207,8 +213,8 @@ This document tracks the migration of transaction building and broadcasting from
 
 1. Migrate `components/Etokens/Token/index.tsx` 🚧 In progress
     - ✅ `sendToken()` - Migrated to `ecash-wallet`
+    - ✅ `burn()` - Migrated to `ecash-wallet`
     - ❌ `createNftMintInputs()` - Still uses `sendXec()`
-    - ❌ `burn()` - Still uses `sendXec()`
     - ❌ `handleMint()` - Still uses `sendXec()`
     - ❌ `listNftOneshot()` - Still uses `sendXec()`
     - ❌ `listAlpPartial()` - Still uses `sendXec()`

@@ -462,11 +462,11 @@ describe('<Token />', () => {
         );
     });
 
-    it('Renders the burn token success notification upon successful burn tx broadcast', async () => {
+    it('Renders the burn token success notification upon successful burn tx broadcast (SLP BURN, no prep tx)', async () => {
         const hex =
-            '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b0100000064416e015895372b0c7af66e744e54c05fac76fad69179763cb2feb35472e77017ebd223f9b3b1c12a9cb2e63570a967a3ee7db8b46ad6820a24cebcf41523d01c1a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441cc7b1ea349953692258fd581b8fc4061a324ac7893586dcbbbb4ef41a32beb142d6e28c06304b99ad7a0c6fde5c55a9b98cdb74be34c65d5631d2a5c5921ce9a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188acbb800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '02000000013023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006441a53005abe517424feab9540a8fcbb0400aa484769767c8a4e6037687332fc72dd76e4ca95c741fa7a0965662cb8cf7e0974591df4f6aa5b30a4392eea4cf1f814121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff010000000000000000376a04534c50000101044255524e203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000100000000';
         const txid =
-            'f3023fd2265ed98438f5d4d01d31a1d94633b496e03d4aad5acd8da240e38736';
+            '2d042ca96e41a23007ec2060b7d55e758eedc03d0b7f700fc70874fb3fe5c37b';
 
         mockedChronik.setBroadcastTx(hex, txid);
 
@@ -533,6 +533,120 @@ describe('<Token />', () => {
             expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+
+    it('Renders the burn token success notification upon successful burn tx broadcast (SLP BURN with chained prep tx)', async () => {
+        const CACHET_TOKEN_ID =
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
+        // Prep tx hex (creates exact UTXO for burn)
+        const prepTxHex =
+            '0200000002fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441f3e03685699f41008c64640d3eded6dec422a3a68671b89b2d40ee814ced447fab63e31cd7348fd79aa2b409cac0b3470ac29a4ac500c69e896b07b91ffa19dd4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff3b0760858b0b20ff50d0db67793892d29d2466b86a0116f7e232792da0c22330010000006441d1221abab6625a03c588cd0c55ca2669c2c58bcb2a799535e49a0c832c36b4b21d7226fe18e52b655c1b14d3190cd2b805b50538cd6038da13b86cd344a7d3684121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000138808000000000000138822020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac1b800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const prepTxid =
+            'bbf4d12597c64e228b9ae6fd79687d696ae16edd748baa4ca76c1907a28fa2a6';
+        // Burn tx hex (burns the exact amount)
+        const burnTxHex =
+            '0200000001a6a28fa207196ca74caa8b74dd6ee16a697d6879fde69a8b224ec69725d1f4bb0100000064418daf8288477c538a57fbd4d1ec73e824cdc4d0c86fa2ae731941c0ec5bb462053bb2c718b38f7e92c0363893c8038c813c9881ee1302b555ef7fee316d799c7e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff010000000000000000376a04534c50000101044255524e20aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000138800000000';
+        const burnTxid =
+            'e9139e80824de5fd5ba2234bd20da926fb974943109658fc6afcd7c7ca8a43b0';
+
+        // Create a wallet with CACHET tokens that require chaining
+        // We have 10000 atoms but want to burn 5000 (requires prep tx)
+        const walletWithCachetForChainedBurn: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
+            state: {
+                ...walletWithXecAndTokensActive.state,
+                slpUtxos: [
+                    {
+                        outpoint: {
+                            txid: '3023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: CACHET_TOKEN_ID,
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            atoms: 10000n, // Have 10000 atoms
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    [CACHET_TOKEN_ID, '100.00'], // 10000 atoms with 2 decimals = 100.00
+                ]),
+            },
+        };
+
+        // Add CACHET token mock
+        const tokenMocks = new Map();
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+        tokenMocks.set(slp1FixedCachet.tokenId, {
+            tx: slp1FixedCachet.tx,
+            tokenInfo: slp1FixedCachet.token,
+        });
+
+        mockedChronik = await prepareContext(
+            localforage,
+            [walletWithCachetForChainedBurn],
+            tokenMocks,
+        );
+
+        // Mock both transactions in the chain (after creating mockedChronik)
+        mockedChronik.setBroadcastTx(prepTxHex, prepTxid);
+        mockedChronik.setBroadcastTx(burnTxHex, burnTxid);
+
+        render(
+            <TokenTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                theme={theme}
+                route={`/token/${CACHET_TOKEN_ID}`}
+            />,
+        );
+
+        // Wait for element to get token info and load
+        expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        // Click the burn switch to show the burn interface
+        await user.click(screen.getByTitle('Toggle Burn'));
+
+        // Enter burn amount of 50.00 (5000 atoms with 2 decimals)
+        // This doesn't match our UTXO of 10000 atoms, so it requires a chained tx
+        await user.type(screen.getByPlaceholderText('Burn Amount'), '50.00');
+
+        // Click the Burn button
+        await user.click(
+            await screen.findByRole('button', { name: /Burn CACHET/ }),
+        );
+
+        // We see a modal and enter the correct confirmation msg
+        await user.type(
+            screen.getByPlaceholderText(`Type "burn CACHET" to confirm`),
+            'burn CACHET',
+        );
+
+        // Click the Confirm button
+        await user.click(screen.getByRole('button', { name: /OK/ }));
+
+        const burnTokenSuccessNotification =
+            await screen.findByText('🔥 Burn successful');
+        // Verify we use the last txid (the actual burn tx, not the prep tx)
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${burnTxid}`,
             ),
         );
     });

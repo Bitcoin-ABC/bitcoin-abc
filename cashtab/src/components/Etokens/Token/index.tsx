@@ -39,7 +39,6 @@ import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
 import {
-    getSlpBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
     getNftChildGenesisInput,
@@ -50,7 +49,6 @@ import {
     SUPPORTED_MINT_TYPES,
 } from 'token-protocols/slpv1';
 import {
-    getAlpBurnTargetOutputs,
     getAlpMintTargetOutputs,
     getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
@@ -1324,35 +1322,57 @@ const Token: React.FC = () => {
         Event('SendToken.js', 'Burn eToken', tokenId as string);
 
         try {
-            // Get input utxos for slpv1 burn tx
-            // This is done the same way as for an slpv1 send tx
-            const tokenInputInfo = getSendTokenInputs(
-                wallet.state.slpUtxos,
-                tokenId as string,
-                formData.burnAmount,
-                decimals as SlpDecimals,
+            if (!ecashWallet) {
+                // We do not render the component with ecashWallet, so we do not expect this to happen
+                // Helps typescript clarity
+                throw new Error('Wallet not initialized');
+            }
+
+            // Calculate burnAtoms from decimal amount
+            const burnAtoms = BigInt(
+                undecimalizeTokenAmount(
+                    formData.burnAmount,
+                    decimals as SlpDecimals,
+                ),
             );
 
-            // Get targetOutputs for an slpv1 burn tx
-            // this is NOT like an slpv1 send tx
-            const tokenBurnTargetOutputs = isAlp
-                ? getAlpBurnTargetOutputs(tokenInputInfo)
-                : getSlpBurnTargetOutputs(tokenInputInfo, tokenType!.number);
+            // Build payment.Action for token burn
+            // ecash-wallet handles UTXO selection automatically
+            const action: payment.Action = {
+                outputs: [
+                    { sats: 0n }, // OP_RETURN at outIdx 0
+                ],
+                tokenActions: [
+                    {
+                        type: 'BURN',
+                        tokenId: tokenId as string,
+                        tokenType: tokenType as unknown as TokenType,
+                        burnAtoms,
+                    },
+                ],
+                feePerKb: BigInt(settings.satsPerKb),
+            };
 
-            // Build and broadcast the tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                tokenBurnTargetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                tokenInputInfo.tokenInputs,
-                true, // skip SLP burn checks
-            );
+            // Build and broadcast using ecash-wallet
+            // Note: ecash-wallet automatically infers SEND action for ALP burns when exact atoms aren't available
+            const builtAction = ecashWallet.action(action).build();
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Get the last txid (for chained transactions, this is the actual burn tx)
+            const txid =
+                broadcastResult.broadcasted[
+                    broadcastResult.broadcasted.length - 1
+                ];
+
             confirmRawTx(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
