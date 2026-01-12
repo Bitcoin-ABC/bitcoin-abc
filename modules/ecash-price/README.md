@@ -79,14 +79,92 @@ const prices = await fetcher.currentPairs([
 
 The cache can be force-refreshed by calling the `fetch` method:
 
-```
+```typescript
 // Manually fetch and cache prices
 const success = await fetcher.fetch({
-sources: [CryptoTicker.XEC, CryptoTicker.BTC],
-quotes: [Fiat.USD, Fiat.EUR],
+    sources: [CryptoTicker.XEC, CryptoTicker.BTC],
+    quotes: [Fiat.USD, Fiat.EUR],
+});
+```
+
+### Price Formatting
+
+The `PriceFormatter` class and `formatPrice` function provide locale-aware price formatting. Prices are automatically formatted with appropriate decimal places based on their magnitude.
+
+#### Using PriceFormatter
+
+```typescript
+import { PriceFetcher, PriceFormatter, Fiat, CryptoTicker } from 'ecash-price';
+import { CoinGeckoProvider } from 'ecash-price/providers/coingecko';
+
+const formatter = new PriceFetcher([new CoinGeckoProvider()]).formatter({
+    locale: 'en-US',
 });
 
+// Format a single price
+const formattedPrice = await formatter.current({
+    source: CryptoTicker.XEC,
+    quote: Fiat.USD,
+});
+// Example output: "$0.00001241"
+
+// Format multiple prices at once
+const formattedPrices = await formatter.currentPairs([
+    { source: CryptoTicker.XEC, quote: Fiat.USD },
+    { source: CryptoTicker.BTC, quote: Fiat.USD },
+    { source: CryptoTicker.XEC, quote: Fiat.EUR },
+]);
+// Example output: ["$0.00001241", "$50,000", "€0.00001"]
 ```
+
+#### Using formatPrice Function Directly
+
+If you already have a price value and just need to format it:
+
+```typescript
+import { formatPrice, Fiat, CryptoTicker } from 'ecash-price';
+
+// Format a fiat price with default locale (en-US)
+const formatted = formatPrice(0.00001241, Fiat.USD);
+// Returns: "$0.00001241"
+
+// Format with a specific locale
+const formattedWithLocale = formatPrice(0.00001241, Fiat.USD, {
+    locale: 'en-US',
+});
+// Returns: "$0.00001241"
+
+// Format with different locales
+const formattedEUR = formatPrice(50.5, Fiat.EUR, { locale: 'de-DE' });
+// Returns: "50,50 €" (German locale uses comma as decimal separator)
+
+const formattedJPY = formatPrice(0.001, Fiat.JPY, { locale: 'ja-JP' });
+// Returns: "￥0.001"
+
+// Format crypto-to-crypto prices
+const formattedCrypto = formatPrice(1.32515, CryptoTicker.BTC, {
+    locale: 'en-US',
+});
+// Returns: "1.32515 BTC"
+
+// Format large prices (no decimals for prices >= 1000)
+const formattedLarge = formatPrice(50000, Fiat.USD, { locale: 'en-US' });
+// Returns: "$50,000"
+
+// Format negative prices
+const formattedNegative = formatPrice(-50.25, Fiat.USD, { locale: 'en-US' });
+// Returns: "-$50.25"
+```
+
+#### Formatting Behavior
+
+The formatter automatically adjusts decimal places based on price magnitude:
+
+- **Prices >= 1000**: No decimal places (e.g., `$50,000`)
+- **Prices between 1 and 1000**: 2 decimal places (e.g., `$50.25`)
+- **Prices < 1**: Up to 8 decimals for fiat, 18 for crypto, showing significant digits (e.g., `$0.000012`)
+
+The formatter uses the absolute value to determine formatting rules but preserves the sign in the output.
 
 #### Key Features
 

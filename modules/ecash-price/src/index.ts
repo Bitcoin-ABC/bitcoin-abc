@@ -4,6 +4,11 @@
 
 // Main API
 export { XECPrice } from './xec';
+export { PriceFetcher } from './pricefetcher';
+
+// Formatter
+export { PriceFormatter, formatPrice } from './formatter';
+export type { PriceFormatterConfig } from './formatter';
 
 // Types
 export { Fiat, CryptoTicker } from './types';

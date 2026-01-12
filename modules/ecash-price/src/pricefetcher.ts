@@ -5,6 +5,8 @@
 import type { PricePair, PriceRequest, PriceResponse } from './types';
 import type { PriceProvider } from './provider';
 import { ProviderStrategy } from './strategy';
+import { PriceFormatter } from './formatter';
+import type { PriceFormatterConfig } from './formatter';
 
 /**
  * Fetch prices as batch
@@ -159,5 +161,15 @@ export class PriceFetcher {
                     p => p.source === pair.source && p.quote === pair.quote,
                 )?.price ?? null,
         );
+    }
+
+    /**
+     * Get a price formatter instance for locale-aware price formatting
+     *
+     * @param config - Optional configuration for the formatter (locale, etc.)
+     * @returns PriceFormatter instance
+     */
+    formatter(config?: PriceFormatterConfig): PriceFormatter {
+        return new PriceFormatter(this, config);
     }
 }
