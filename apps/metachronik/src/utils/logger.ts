@@ -15,7 +15,7 @@ const logger = winston.createLogger({
     ],
 });
 
-// Always add console transport for Railway logs
+// Always add console transport for logs
 logger.add(
     new winston.transports.Console({
         format: winston.format.combine(

@@ -111,28 +111,7 @@ CRON_SCHEDULE=0 */6 * * *
 
 ### Production Deployment
 
-**Railway Configuration:**
-
-```json
-{
-    "$schema": "https://railway.app/railway.schema.json",
-    "build": {
-        "builder": "NIXPACKS"
-    },
-    "deploy": {
-        "startCommand": "npm start",
-        "healthcheckPath": "/health",
-        "healthcheckTimeout": 30000,
-        "restartPolicyType": "ON_FAILURE",
-        "restartPolicyMaxRetries": 10
-    }
-}
-```
-
-**Recommended Railway Plan:**
-
-- **$5 Hobby Plan** (8GB RAM, 8 vCPU) - Optimal for this configuration
-- **$10 Pro Plan** - Could support higher settings if needed
+Production deployment is handled by Bitcoin ABC CI/CD pipeline. The performance optimizations documented here are applicable to any deployment environment with similar hardware specifications (8GB RAM, 8 vCPU).
 
 ---
 
