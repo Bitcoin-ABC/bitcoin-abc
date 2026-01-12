@@ -128,7 +128,7 @@ describe('<CreateTokenForm />', () => {
         );
 
         // On load, the ALP switch is selected by default
-        expect(screen.getByTitle('Create ALP')).toBeChecked();
+        expect(await screen.findByTitle('Create ALP')).toBeChecked();
 
         // Select SLP
         await user.click(screen.getByTitle('Create SLP'));
@@ -276,7 +276,7 @@ describe('<CreateTokenForm />', () => {
         );
 
         // On load, the ALP switch is selected by default
-        expect(screen.getByTitle('Create ALP')).toBeChecked();
+        expect(await screen.findByTitle('Create ALP')).toBeChecked();
 
         // Select SLP
         await user.click(screen.getByTitle('Create SLP'));
@@ -544,7 +544,7 @@ describe('<CreateTokenForm />', () => {
         );
 
         // On load, the ALP switch is selected by default
-        expect(screen.getByTitle('Create ALP')).toBeChecked();
+        expect(await screen.findByTitle('Create ALP')).toBeChecked();
 
         // The user enters valid token metadata
         await user.type(
@@ -694,7 +694,7 @@ describe('<CreateTokenForm />', () => {
         );
 
         // On load, the ALP switch is selected by default
-        expect(screen.getByTitle('Create ALP')).toBeChecked();
+        expect(await screen.findByTitle('Create ALP')).toBeChecked();
 
         // Select SLP
         await user.click(screen.getByTitle('Create SLP'));

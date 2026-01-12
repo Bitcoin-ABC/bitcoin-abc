@@ -38,7 +38,6 @@ import {
     getSlpGenesisTargetOutput,
     getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
-    getNftChildGenesisTargetOutputs,
 } from 'token-protocols/slpv1';
 import {
     getAlpGenesisTargetOutputs,
@@ -47,7 +46,7 @@ import {
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
-import { undecimalizeTokenAmount, TokenUtxo, SlpDecimals } from 'wallet';
+import { undecimalizeTokenAmount, SlpDecimals } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -72,29 +71,32 @@ import {
 } from 'components/Etokens/CreateTokenForm/styles';
 import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
-import { toHex, sha256 } from 'ecash-lib';
+import { toHex, sha256, SLP_TOKEN_TYPE_NFT1_CHILD, payment } from 'ecash-lib';
 
 interface CreateTokenFormProps {
-    nftChildGenesisInput?: TokenUtxo[];
+    /**
+     * For NFT child minting: the groupTokenId (parent token ID)
+     * If provided, this form will be in NFT mint mode
+     */
+    groupTokenId?: string;
 }
-const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
-    nftChildGenesisInput,
-}) => {
+const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
     const ContextValue = useContext(WalletContext);
     if (!isWalletContextLoaded(ContextValue)) {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, ecc, chaintipBlockheight, cashtabState } = ContextValue;
+    const { chronik, ecc, chaintipBlockheight, cashtabState, ecashWallet } =
+        ContextValue;
     const { settings, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    if (!activeWallet || !ecashWallet) {
         return null;
     }
     const wallet = activeWallet;
     const { tokens } = wallet.state;
 
     // Constant to handle rendering of CreateTokenForm for NFT Minting
-    const isNftMint = Array.isArray(nftChildGenesisInput);
+    const isNftMint = typeof groupTokenId !== 'undefined';
 
     const NFT_DECIMALS = 0;
     const NFT_GENESIS_QTY = '1';
@@ -566,8 +568,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
         formData.name !== '' &&
         // Ticker must not be empty
         formData.ticker !== '' &&
-        // If this is an nft mint, we need an NFT Mint Input
-        ((isNftMint && nftChildGenesisInput.length === 1) || !isNftMint) &&
         (tokenIcon === null || tokenIcon.size <= ICON_MAX_UPLOAD_BYTES);
 
     interface TokenIconData {
@@ -656,22 +656,63 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
 
         // Create token per specified user data
         try {
-            // Get target outputs for an SLP v1 genesis tx
-            const targetOutputs = createNftCollection
-                ? getNftParentGenesisTargetOutputs(
-                      genesisInfo,
-                      BigInt(
-                          undecimalizeTokenAmount(
-                              formData.genesisQty,
-                              parseInt(formData.decimals) as SlpDecimals,
-                          ),
-                      ),
-                      createWithMintBaton ? 2 : undefined,
-                  )
-                : isNftMint
-                  ? getNftChildGenesisTargetOutputs(genesisInfo)
-                  : tokenTypeSwitches.slp
-                    ? getSlpGenesisTargetOutput(
+            let txid: string;
+            if (isNftMint) {
+                // Use ecash-wallet for NFT child minting
+                // ecash-wallet automatically handles creating qty-1 inputs if needed
+                if (!groupTokenId) {
+                    throw new Error(
+                        'Group token ID is required for NFT child minting',
+                    );
+                }
+
+                // Construct payment.Action for NFT child genesis
+                const nftChildGenesisAction: payment.Action = {
+                    outputs: [
+                        // Blank OP_RETURN at outIdx 0
+                        { sats: 0n },
+                        // Mint qty at outIdx 1, per SLP spec (must be 1 atom for NFT child)
+                        {
+                            sats: 546n,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            script: ecashWallet.script,
+                            atoms: 1n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            groupTokenId: groupTokenId,
+                            tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                            genesisInfo: genesisInfo,
+                        },
+                    ],
+                    feePerKb: BigInt(settings.satsPerKb),
+                };
+
+                // Build and broadcast using ecash-wallet
+                // ecash-wallet will automatically create a fan-out tx if needed
+
+                const broadcastResult = await ecashWallet
+                    .action(nftChildGenesisAction)
+                    .build()
+                    .broadcast();
+
+                if (!broadcastResult.success) {
+                    throw new Error(
+                        `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                    );
+                }
+
+                // Get the last txid (for chained transactions, this is the actual mint tx)
+                txid =
+                    broadcastResult.broadcasted[
+                        broadcastResult.broadcasted.length - 1
+                    ];
+            } else {
+                // Get target outputs for an SLP v1 genesis tx (not needed for NFT mints)
+                const targetOutputs = createNftCollection
+                    ? getNftParentGenesisTargetOutputs(
                           genesisInfo,
                           BigInt(
                               undecimalizeTokenAmount(
@@ -681,43 +722,42 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({
                           ),
                           createWithMintBaton ? 2 : undefined,
                       )
-                    : getAlpGenesisTargetOutputs(
-                          {
-                              ...genesisInfo,
-                              // Set as Cashtab active wallet public key
-                              authPubkey: activeWallet.pk,
-                              // Note we are omitting the "data" key for now
-                          },
-                          BigInt(
-                              undecimalizeTokenAmount(
-                                  formData.genesisQty,
-                                  parseInt(formData.decimals) as SlpDecimals,
-                              ),
-                          ),
-                          createWithMintBaton,
-                      );
-            const { response } = isNftMint
-                ? await sendXec(
-                      chronik,
-                      ecc,
-                      wallet,
-                      targetOutputs,
-                      settings.satsPerKb,
-                      chaintipBlockheight,
-                      // per spec, this must be at index 0
-                      // https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md
-                      nftChildGenesisInput,
-                  )
-                : await sendXec(
-                      chronik,
-                      ecc,
-                      wallet,
-                      targetOutputs,
-                      settings.satsPerKb,
-                      chaintipBlockheight,
-                  );
-
-            const { txid } = response;
+                    : tokenTypeSwitches.slp
+                      ? getSlpGenesisTargetOutput(
+                            genesisInfo,
+                            BigInt(
+                                undecimalizeTokenAmount(
+                                    formData.genesisQty,
+                                    parseInt(formData.decimals) as SlpDecimals,
+                                ),
+                            ),
+                            createWithMintBaton ? 2 : undefined,
+                        )
+                      : getAlpGenesisTargetOutputs(
+                            {
+                                ...genesisInfo,
+                                // Set as Cashtab active wallet public key
+                                authPubkey: activeWallet.pk,
+                                // Note we are omitting the "data" key for now
+                            },
+                            BigInt(
+                                undecimalizeTokenAmount(
+                                    formData.genesisQty,
+                                    parseInt(formData.decimals) as SlpDecimals,
+                                ),
+                            ),
+                            createWithMintBaton,
+                        );
+                const { response } = await sendXec(
+                    chronik,
+                    ecc,
+                    wallet,
+                    targetOutputs,
+                    settings.satsPerKb,
+                    chaintipBlockheight,
+                );
+                txid = response.txid;
+            }
             setCreatedTokenId(txid);
 
             toast(

@@ -10,10 +10,6 @@ import {
     getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
     getNftParentMintTargetOutputs,
-    getNftParentFanInputs,
-    getNftParentFanTxTargetOutputs,
-    getNftChildGenesisInput,
-    getNftChildGenesisTargetOutputs,
     getNft,
     isTokenDustChangeOutput,
     getAgoraAdFuelSats,
@@ -316,62 +312,6 @@ describe('slpv1 methods', () => {
                 expect(() =>
                     getNftParentMintTargetOutputs(tokenId, mintQty),
                 ).toThrow(errorMsg);
-            });
-        });
-    });
-    describe('Gets required inputs for an NFT1 parent fan-out tx, if present in given slpUtxos', () => {
-        const { expectedReturns } = vectors.getNftParentFanInputs;
-        expectedReturns.forEach(vector => {
-            const { description, tokenId, slpUtxos, returned } = vector;
-            it(`getNftParentFanInputs: ${description}`, () => {
-                expect(getNftParentFanInputs(tokenId, slpUtxos)).toStrictEqual(
-                    returned,
-                );
-            });
-        });
-    });
-    describe('Generate target outputs for an NFT1 parent fan-out tx', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getNftParentFanTxTargetOutputs;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const { description, fanInputs, returned } = expectedReturn;
-            it(`getNftParentFanTxTargetOutputs: ${description}`, () => {
-                expect(getNftParentFanTxTargetOutputs(fanInputs)).toStrictEqual(
-                    returned,
-                );
-            });
-        });
-
-        expectedErrors.forEach(expectedError => {
-            const { description, fanInputs, error } = expectedError;
-            it(`getNftParentFanTxTargetOutputs throws error for: ${description}`, () => {
-                expect(() => getNftParentFanTxTargetOutputs(fanInputs)).toThrow(
-                    error,
-                );
-            });
-        });
-    });
-    describe('Gets required input for an NFT1 child genesis tx, if present in given slpUtxos', () => {
-        const { expectedReturns } = vectors.getNftChildGenesisInput;
-        expectedReturns.forEach(vector => {
-            const { description, tokenId, slpUtxos, returned } = vector;
-            it(`getNftChildGenesisInput: ${description}`, () => {
-                expect(
-                    getNftChildGenesisInput(tokenId, slpUtxos),
-                ).toStrictEqual(returned);
-            });
-        });
-    });
-    describe('Get targetOutputs for an NFT1 child genesis tx', () => {
-        const { expectedReturns } = vectors.getNftChildGenesisTargetOutputs;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, genesisInfo, returned } = expectedReturn;
-            it(`getNftChildGenesisTargetOutputs: ${description}`, () => {
-                expect(
-                    getNftChildGenesisTargetOutputs(genesisInfo),
-                ).toStrictEqual(returned);
             });
         });
     });

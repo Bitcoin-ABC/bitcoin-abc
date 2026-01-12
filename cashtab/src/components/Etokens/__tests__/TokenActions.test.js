@@ -443,12 +443,18 @@ describe('<Token /> available actions rendered', () => {
             ),
         ).toBeInTheDocument();
     });
-    it('We can correctly render an SLP1 NFT Parent token with no NFT Mint inputs, then create some NFT Mint inputs', async () => {
-        const hex =
-            '0200000002cc04a35686950a66845ebf8e37677fffcc5ee0e2b63e3f05822838273149660c01000000644133676de111055b5252b9060c17a282c04dc027a673ea88793dc23164acc27122f6d55cb0a44d20a92d20563f4a743c58762429d35a8a02df3325b3e0f3927c4b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644170e567db30b02af0b7de88b00fd7e97bb4d3b5d372fdd85655599efa9a1b7b913919dc6bcfdaad0ffe4cb5d3be8168b6a7ddd9fed38e34e73642a7331d3691624121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff150000000000000000d96a04534c500001810453454e44200c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc08000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000005222020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac0d070f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            'a6298b3166526bb6ff8e5e088a9be539fb84a1fe8b76d414a701940fc4a19ffe';
-        mockedChronik.setBroadcastTx(hex, txid);
+    it('We can correctly render an SLP1 NFT Parent token with no ready NFT Mint inputs, then mint an NFT as ecash-wallet will automatically prepare them', async () => {
+        // We expect two txids; a fan-out to prep the qty-1 input, and the nft mint itself
+        const inputPrepTxHex =
+            '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064410fab6ef8735fb6b1cfa3378f4a366b691e76f90ab94bce16a5166e27c2a6bcc28764c4b4292fea1fd1da9488b12d9b1a41085ed10b52ed6f77143e0700c818d54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffcc04a35686950a66845ebf8e37677fffcc5ee0e2b63e3f05822838273149660c010000006441a9ce59a39fd5098bf9220cc9d618723d1b3a5c78f3963dd5c6dfc8811392243cf859b7f148fb1ef523ae927b41f75cee4e3a3373a7f350eef8d61f3ba91fd06a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001810453454e44200c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc08000000000000000108000000000000006322020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ace4320f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const inputPrepTxTxid =
+            '0c14ee8ab4b87c194d08acd3dd35cf18fba16cfbed8ca12a20310303dce15d5d';
+        const mintTxHex =
+            '02000000025d5de1dc030331202aa18cedfb6ca1fb18cf35ddd3ac084d197cb8b48aee140c0100000064419ea499208393534e59f9e4a822aa1d65be2bd072911e5e52a15c78cab14f3eac337e54dec29e1e64c94471ee93e91438501436c5c6e2fc5418c1fe2a5de15c034121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff5d5de1dc030331202aa18cedfb6ca1fb18cf35ddd3ac084d197cb8b48aee140c030000006441200390360da6321753362bfdfee4300aa3640f09d3512a91e235c4e4f8f72a43d3ea87eab57657d32234ab7dc3742cab2b86efe727f47ef385cd4a8166c6bc2a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000003c6a04534c500001410747454e4553495304414243310b426974636f696e204142430b636173687461622e636f6d4c0001004c0008000000000000000122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac852f0f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const mintTxid =
+            '72eabc5266341dc296c91d29236056f1281cb0bfd223c004530ec35bfcd7bb12';
+        mockedChronik.setBroadcastTx(inputPrepTxHex, inputPrepTxTxid);
+        mockedChronik.setBroadcastTx(mintTxHex, mintTxid);
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -494,28 +500,11 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // The fan-out action is available
-        expect(
-            screen.getByTitle('Toggle NFT Parent Fan-out'),
-        ).toBeInTheDocument();
-
-        // This action is checked by default if the user has no fanInputs
-        expect(screen.getByTitle('Toggle NFT Parent Fan-out')).toHaveProperty(
-            'checked',
-            true,
-        );
-
         // The mint NFT option is available
         expect(screen.getByTitle('Toggle Mint NFT')).toBeInTheDocument();
 
-        // The mint NFT option is disabled if there are no mint inputs
-        expect(screen.getByTitle('Toggle Mint NFT')).toHaveProperty(
-            'disabled',
-            true,
-        );
-
-        // The mint NFT switch label explains why it is disabled
-        expect(screen.getByText('(no NFT mint inputs)')).toBeInTheDocument();
+        // The mint NFT option is enabled even if there are no qty-1 utxos aka mint inputs
+        expect(screen.getByTitle('Toggle Mint NFT')).toBeEnabled();
 
         // The Airdrop action is available
         expect(screen.getByTitle('Toggle Airdrop')).toBeInTheDocument();
@@ -523,15 +512,38 @@ describe('<Token /> available actions rendered', () => {
         // The Burn action is NOT available
         expect(screen.queryByTitle('Toggle Burn')).not.toBeInTheDocument();
 
-        // We can create NFT mint inputs by executing a fan-out tx
-        await userEvent.click(
-            screen.getByRole('button', { name: /Create NFT Mint Inputs/ }),
+        // We can mint an NFT if we give it a name and a ticker
+        await userEvent.type(
+            await screen.findByPlaceholderText('Enter a name for your NFT'),
+            'Bitcoin ABC',
         );
 
-        // We see expected toast notification
+        // The mint button is disabled as the user has not entered a ticker
+        expect(screen.getByRole('button', { name: /Mint NFT/ })).toHaveProperty(
+            'disabled',
+            true,
+        );
+
         expect(
-            await screen.findByText('NFT Mint inputs created'),
+            screen.getByText('NFT must have a name and a ticker'),
         ).toBeInTheDocument();
+
+        // We give the NFT a ticker
+        await userEvent.type(
+            await screen.findByPlaceholderText('Enter a ticker for your NFT'),
+            'ABC1',
+        );
+
+        // The mint button is no longer disabled
+        expect(screen.getByRole('button', { name: /Mint NFT/ })).toBeEnabled();
+
+        await userEvent.click(screen.getByRole('button', { name: /Mint NFT/ }));
+
+        // We see a preview modal, click OK
+        await userEvent.click(screen.getByText('OK'));
+
+        // We see expected toast notification
+        expect(await screen.findByText('NFT Minted!')).toBeInTheDocument();
     });
     it('We can correctly render an SLP1 NFT Parent token with NFT Mint inputs, then mint an NFT', async () => {
         // We need to use a unique mockedChronik for this test, with at least one nft mint input utxo
@@ -633,33 +645,16 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // The fan-out action is available
-        expect(
-            screen.getByTitle('Toggle NFT Parent Fan-out'),
-        ).toBeInTheDocument();
-
-        // The fan-out action is NOT checked by default because we have a single fan input
-        expect(screen.getByTitle('Toggle NFT Parent Fan-out')).toHaveProperty(
-            'checked',
-            false,
-        );
-
         // The mint NFT option is available
         expect(screen.getByTitle('Toggle Mint NFT')).toBeInTheDocument();
 
         // The mint NFT option is NOT disabled as we have a single mint input
-        expect(screen.getByTitle('Toggle Mint NFT')).toHaveProperty(
-            'disabled',
-            false,
-        );
+        expect(screen.getByTitle('Toggle Mint NFT')).toBeEnabled();
 
         // The mint NFT switch label does not include the disabled explanation
         expect(
             screen.queryByText('(no NFT mint inputs)'),
         ).not.toBeInTheDocument();
-
-        // The mint NFT switch label shows available NFT mint inputs
-        expect(screen.getByText('(1 input available)')).toBeInTheDocument();
 
         // The Airdrop action is available
         expect(screen.getByTitle('Toggle Airdrop')).toBeInTheDocument();
@@ -797,17 +792,6 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // The fan-out action is available
-        expect(
-            screen.getByTitle('Toggle NFT Parent Fan-out'),
-        ).toBeInTheDocument();
-
-        // The fan-out action is NOT checked by default because we have a single fan input
-        expect(screen.getByTitle('Toggle NFT Parent Fan-out')).toHaveProperty(
-            'checked',
-            false,
-        );
-
         // The mint NFT option is available
         expect(screen.getByTitle('Toggle Mint NFT')).toBeInTheDocument();
 
@@ -821,9 +805,6 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.queryByText('(no NFT mint inputs)'),
         ).not.toBeInTheDocument();
-
-        // The mint NFT switch label shows available NFT mint inputs
-        expect(screen.getByText('(1 input available)')).toBeInTheDocument();
 
         // The Airdrop action is available
         expect(screen.getByTitle('Toggle Airdrop')).toBeInTheDocument();

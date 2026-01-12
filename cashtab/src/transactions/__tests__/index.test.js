@@ -18,7 +18,6 @@ import vectors, {
     ignoreUnspendableUtxosVectors,
     sendSlp,
 } from '../fixtures/vectors';
-import slpv1Vectors from 'token-protocols/slpv1/fixtures/vectors';
 import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
 import { Ecc, SLP_FUNGIBLE, Script, fromHex, slpSend } from 'ecash-lib';
 import appConfig from 'config/app';
@@ -365,42 +364,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                     hex: burn.hex,
                     response: { txid: burn.txid },
                 });
-            });
-        });
-    });
-    describe('We can build and broadcast NFT1 parent fan-out txs', () => {
-        const { expectedReturns } = slpv1Vectors.getNftParentFanTxTargetOutputs;
-        const CHAINTIP = 800000;
-        const FEE_RATE_SATS_PER_KB = 1000n;
-
-        // Successfully built and broadcast txs
-        expectedReturns.forEach(async tx => {
-            const { description, fanInputs, returned, rawTx } = tx;
-
-            const { hex, txid } = rawTx;
-            it(`sendXec: ${description}`, async () => {
-                const chronik = new MockChronikClient();
-                chronik.setBroadcastTx(hex, txid);
-                expect(
-                    await sendXec(
-                        chronik,
-                        ecc,
-                        {
-                            ...walletWithTokensInNode,
-                            state: {
-                                ...walletWithTokensInNode.state,
-                                slpUtxos: [
-                                    ...walletWithTokensInNode.state.slpUtxos,
-                                    ...fanInputs,
-                                ],
-                            },
-                        },
-                        returned,
-                        FEE_RATE_SATS_PER_KB,
-                        CHAINTIP,
-                        fanInputs,
-                    ),
-                ).toStrictEqual({ hex, response: { txid } });
             });
         });
     });

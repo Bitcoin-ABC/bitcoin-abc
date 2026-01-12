@@ -53,11 +53,14 @@ This document tracks the migration of transaction building and broadcasting from
     - `ecash-wallet` handles UTXO selection and token change automatically
     - No manual token change output needed
 
-#### 2.2. `createNftMintInputs()` (lines ~1047-1078)
+#### 2.2. `createNftMintInputs()` (REMOVED)
 
-- **Purpose:** Create NFT mint fan-out inputs for NFT parent tokens
-- **Uses:** `sendXec()` from `transactions/index.js`
-- **Transaction Type:** NFT parent fan-out transaction
+- **Status:** ✅ Removed - No longer needed
+- **Reason:** `ecash-wallet` automatically handles creating qty-1 inputs via chained transactions when minting NFT children
+- **Migration Notes:**
+    - Fan-out workflow completely deprecated
+    - NFT child minting now uses `ecash-wallet` directly with `GENESIS` action
+    - `ecash-wallet` automatically creates fan-out transactions if needed
 
 #### 2.3. `burn()` (lines ~1319-1395)
 
@@ -70,13 +73,26 @@ This document tracks the migration of transaction building and broadcasting from
     - `ecash-wallet` handles UTXO selection automatically (finds UTXOs that exactly sum to `burnAtoms`)
     - No manual target outputs needed - just OP_RETURN output
 
-#### 2.4. `handleMint()` (lines ~1362-1420)
+#### 2.4. NFT Child Minting (in `CreateTokenForm/index.tsx`)
+
+- **Status:** ✅ Migrated to ecash-wallet
+- **Purpose:** Mint NFT child tokens from NFT parent tokens
+- **Uses:** `ecash-wallet`'s `action()` API directly
+- **Transaction Type:** NFT child GENESIS transaction
+- **Migration Notes:**
+    - Uses `payment.Action` with `GENESIS` tokenAction for `SLP_TOKEN_TYPE_NFT1_CHILD`
+    - Requires `groupTokenId` (parent token ID) - passed as prop from Token component
+    - `ecash-wallet` automatically handles creating qty-1 inputs via chained transactions if needed
+    - No manual fan-out transactions required
+    - Removed `nftChildGenesisInput` prop - now just passes `groupTokenId` string
+
+#### 2.5. `handleMint()` (lines ~1362-1420)
 
 - **Purpose:** Mint new tokens using mint baton
 - **Uses:** `sendXec()` from `transactions/index.js`
 - **Transaction Type:** Token MINT transaction
 
-#### 2.5. `listNftOneshot()` (lines ~1540-1670)
+#### 2.6. `listNftOneshot()` (lines ~1540-1670)
 
 - **Purpose:** List an NFT for sale on Agora (oneshot offer)
 - **Uses:** `sendXec()` from `transactions/index.js` (called twice - ad setup tx and offer tx)
@@ -84,13 +100,13 @@ This document tracks the migration of transaction building and broadcasting from
     1. Ad setup transaction (sends NFT to P2SH)
     2. Offer transaction (creates Agora oneshot offer)
 
-#### 2.6. `listAlpPartial()` (lines ~1870-1977)
+#### 2.7. `listAlpPartial()` (lines ~1870-1977)
 
 - **Purpose:** List ALP tokens for sale on Agora (partial offer)
 - **Uses:** `sendXec()` from `transactions/index.js`
 - **Transaction Type:** Agora partial offer listing with token inputs
 
-#### 2.7. `listSlpPartial()` (lines ~1979-2140)
+#### 2.8. `listSlpPartial()` (lines ~1979-2140)
 
 - **Purpose:** List SLP tokens for sale on Agora (partial offer)
 - **Uses:** `sendXec()` from `transactions/index.js` (called twice - ad setup tx and offer tx)
@@ -102,6 +118,8 @@ This document tracks the migration of transaction building and broadcasting from
 
 - `sendToken()` ✅ - Migrated to use `ecash-wallet` directly
 - `burn()` ✅ - Migrated to use `ecash-wallet` directly
+- NFT child minting ✅ - Migrated to use `ecash-wallet` directly (in `CreateTokenForm`)
+- Fan-out workflow ✅ - Removed (no longer needed - `ecash-wallet` handles automatically)
 - Remaining functions still use `sendXec()` helper from `transactions/index.js`
 - **Will be migrated to use `ecash-wallet` directly** - replacing `sendXec()` calls with `ecash-wallet`'s `action()` API
 - Some functions require sequential transactions (ad setup + offer)
@@ -214,7 +232,8 @@ This document tracks the migration of transaction building and broadcasting from
 1. Migrate `components/Etokens/Token/index.tsx` 🚧 In progress
     - ✅ `sendToken()` - Migrated to `ecash-wallet`
     - ✅ `burn()` - Migrated to `ecash-wallet`
-    - ❌ `createNftMintInputs()` - Still uses `sendXec()`
+    - ✅ NFT child minting - Migrated to `ecash-wallet` (in `CreateTokenForm`)
+    - ✅ Fan-out workflow - Removed (no longer needed)
     - ❌ `handleMint()` - Still uses `sendXec()`
     - ❌ `listNftOneshot()` - Still uses `sendXec()`
     - ❌ `listAlpPartial()` - Still uses `sendXec()`

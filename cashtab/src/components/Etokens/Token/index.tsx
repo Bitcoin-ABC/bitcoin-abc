@@ -41,9 +41,6 @@ import { getUserLocale } from 'helpers';
 import {
     getMintBatons,
     getMintTargetOutputs,
-    getNftChildGenesisInput,
-    getNftParentFanInputs,
-    getNftParentFanTxTargetOutputs,
     getNft,
     getAgoraAdFuelSats,
     SUPPORTED_MINT_TYPES,
@@ -94,9 +91,6 @@ import {
     TokenUrlCol,
     TokenStatsTableRow,
     SwitchHolder,
-    InfoModalParagraph,
-    ButtonDisabledMsg,
-    ButtonDisabledSpan,
     NftTitle,
     NftTable,
     NftRow,
@@ -292,16 +286,10 @@ const Token: React.FC = () => {
     const [isBlacklisted, setIsBlacklisted] = useState<null | boolean>(null);
     const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
     const [nftTokenIds, setNftTokenIds] = useState<string[]>([]);
-    const [nftChildGenesisInput, setNftChildGenesisInput] = useState<
-        TokenUtxo[]
-    >([]);
-    const [nftFanInputs, setNftFanInputs] = useState<TokenUtxo[]>([]);
     const [availableNftInputs, setAvailableNftInputs] = useState<number>(0);
     const [showTokenTypeInfo, setShowTokenTypeInfo] = useState<boolean>(false);
     const [showAgoraPartialInfo, setShowAgoraPartialInfo] =
         useState<boolean>(false);
-    const [showFanoutInfo, setShowFanoutInfo] = useState<boolean>(false);
-    const [showMintNftInfo, setShowMintNftInfo] = useState<boolean>(false);
     const [sendTokenAddressError, setSendTokenAddressError] = useState<
         false | string
     >(false);
@@ -369,7 +357,6 @@ const Token: React.FC = () => {
         showAirdrop: boolean;
         showBurn: boolean;
         showMint: boolean;
-        showFanout: boolean;
         showMintNft: boolean;
         showSellNft: boolean;
         showSellSlp: boolean;
@@ -381,7 +368,6 @@ const Token: React.FC = () => {
         showAirdrop: false,
         showBurn: false,
         showMint: false,
-        showFanout: false,
         showMintNft: false,
         showSellNft: false,
         showSellSlp: false,
@@ -907,47 +893,30 @@ const Token: React.FC = () => {
 
         if (isNftParent) {
             // If this is an SLP1 NFT Parent
-            // Update nft fan inputs
-            setNftFanInputs(
-                getNftParentFanInputs(tokenId as string, wallet.state.slpUtxos),
-            );
-            // Update nft child genesis input
-            // Note this is always an array, either empty or of 1 qty-1 utxo
-            setNftChildGenesisInput(
-                getNftChildGenesisInput(
-                    tokenId as string,
-                    wallet.state.slpUtxos,
-                ),
-            );
             // Update the child NFTs
             getNfts(tokenId as string);
-            // Get total amount of child genesis inputs
+            // Get total amount of available parent token UTXOs (any qty >= 1)
+            // ecash-wallet will automatically create qty-1 inputs if needed
             const availableNftMintInputs = wallet.state.slpUtxos.filter(
                 (slpUtxo: TokenUtxo) =>
                     slpUtxo?.token?.tokenId === tokenId &&
-                    slpUtxo?.token?.atoms === 1n,
+                    slpUtxo?.token?.atoms >= 1n,
             );
             setAvailableNftInputs(availableNftMintInputs.length);
         }
     }, [wallet.state.slpUtxos, isNftParent]);
 
     useEffect(() => {
-        if (nftChildGenesisInput.length > 0) {
-            // If we have inputs to mint an NFT, NFT1 default action should be Mint NFT
+        if (isNftParent && availableNftInputs > 0) {
+            // If we have any parent token UTXOs (any qty >= 1), default action should be Mint NFT
+            // ecash-wallet automatically handles creating qty-1 inputs if needed
             setSwitches({
                 ...switchesOff,
                 showMintNft: true,
             });
-        } else if (nftFanInputs.length > 0) {
-            // If we have no nftChildGenesisInput but we do have nftFanInputs
-            // default action should be a fan-out tx to get these inputs
-            setSwitches({
-                ...switchesOff,
-                showFanout: true,
-            });
         }
         // Otherwise all switches are off
-    }, [nftFanInputs, nftChildGenesisInput]);
+    }, [isNftParent, availableNftInputs]);
 
     useEffect(() => {
         if (previewedAgoraPartial === null) {
@@ -1045,44 +1014,6 @@ const Token: React.FC = () => {
             clearInputForms();
         } catch (e) {
             console.error(`Error sending ${isNftChild ? 'NFT' : 'token'}`, e);
-            toast.error(`${e}`);
-        }
-    }
-
-    /**
-     * Create SLP1 NFT Mint Fan Inputs
-     * Function may only be called if nftFanInputs is not an empty array
-     * Note the only button that calls this function is disabled if nftFanInputs.length === 0
-     */
-    async function createNftMintInputs() {
-        try {
-            // Get targetOutputs for an slpv1 nft parent fan-out tx
-            const nftFanTargetOutputs =
-                getNftParentFanTxTargetOutputs(nftFanInputs);
-
-            // Build and broadcast the tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                nftFanTargetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                nftFanInputs,
-            );
-
-            confirmRawTx(
-                <a
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    NFT Mint inputs created
-                </a>,
-            );
-            clearInputForms();
-        } catch (e) {
-            console.error(`Error creating NFT mint inputs`, e);
             toast.error(`${e}`);
         }
     }
@@ -2243,57 +2174,6 @@ const Token: React.FC = () => {
                             handleOk={() => setShowAgoraPartialInfo(false)}
                             handleCancel={() => setShowAgoraPartialInfo(false)}
                         />
-                    )}
-                    {showFanoutInfo && (
-                        <Modal
-                            title="Creating NFT mint inputs"
-                            handleOk={() => setShowFanoutInfo(false)}
-                            handleCancel={() => setShowFanoutInfo(false)}
-                            height={300}
-                        >
-                            <InfoModalParagraph>
-                                A genesis tx for an NFT collection determines
-                                the size of your NFT collection.
-                            </InfoModalParagraph>
-                            <InfoModalParagraph>
-                                For example, if you created an NFT Collection
-                                with a supply of 100, you can mint 100
-                                NFTs.{' '}
-                            </InfoModalParagraph>
-                            <InfoModalParagraph>
-                                However, each NFT must be minted from an input
-                                UTXO with qty 1. Cashtab creates these by
-                                splitting your original UTXO into utxos with qty
-                                1.{' '}
-                            </InfoModalParagraph>
-                            <InfoModalParagraph>
-                                These qty 1 NFT Collection utxos can be used to
-                                mint NFTs.
-                            </InfoModalParagraph>
-                        </Modal>
-                    )}
-                    {showMintNftInfo && (
-                        <Modal
-                            title="Minting an NFT"
-                            handleOk={() => setShowMintNftInfo(false)}
-                            handleCancel={() => setShowMintNftInfo(false)}
-                            height={300}
-                        >
-                            <InfoModalParagraph>
-                                You can use an NFT Mint Input (a qty-1 utxo from
-                                an NFT Collection token) to mint an NFT.
-                            </InfoModalParagraph>
-                            <InfoModalParagraph>
-                                NFTs from the same Collection are usually
-                                related somehow. They will be indexed by the
-                                tokenId of the NFT Collection.
-                            </InfoModalParagraph>
-                            <InfoModalParagraph>
-                                For example, popular NFT Collections include
-                                Cryptopunks and Bored Apes. Each individual
-                                Cryptopunk or Bored Ape is its own NFT.
-                            </InfoModalParagraph>
-                        </Modal>
                     )}
                     {showLargeIconModal && (
                         <Modal
@@ -3763,70 +3643,9 @@ const Token: React.FC = () => {
                                         <>
                                             <SwitchHolder>
                                                 <Switch
-                                                    name="Toggle NFT Parent Fan-out"
-                                                    checked={
-                                                        switches.showFanout
-                                                    }
-                                                    handleToggle={() =>
-                                                        // We turn everything else off, whether we are turning this one on or off
-                                                        setSwitches({
-                                                            ...switchesOff,
-                                                            showFanout:
-                                                                !switches.showFanout,
-                                                        })
-                                                    }
-                                                />
-                                                <SwitchLabel>
-                                                    <DataAndQuestionButton>
-                                                        Create NFT mint inputs
-                                                        <IconButton
-                                                            name={`Click for more info about NFT Collection fan-out txs`}
-                                                            icon={
-                                                                <QuestionIcon />
-                                                            }
-                                                            onClick={() =>
-                                                                setShowFanoutInfo(
-                                                                    true,
-                                                                )
-                                                            }
-                                                        />
-                                                    </DataAndQuestionButton>
-                                                </SwitchLabel>
-                                            </SwitchHolder>
-                                            {switches.showFanout && (
-                                                <TokenStatsRow>
-                                                    <SecondaryButton
-                                                        style={{
-                                                            marginTop: '12px',
-                                                            marginBottom: '0px',
-                                                        }}
-                                                        disabled={
-                                                            nftFanInputs.length ===
-                                                            0
-                                                        }
-                                                        onClick={
-                                                            createNftMintInputs
-                                                        }
-                                                    >
-                                                        Create NFT Mint Inputs
-                                                    </SecondaryButton>
-                                                    <ButtonDisabledMsg>
-                                                        {nftFanInputs.length ===
-                                                        0
-                                                            ? 'No token utxos exist with qty !== 1'
-                                                            : ''}
-                                                    </ButtonDisabledMsg>
-                                                </TokenStatsRow>
-                                            )}
-                                            <SwitchHolder>
-                                                <Switch
                                                     name="Toggle Mint NFT"
                                                     checked={
                                                         switches.showMintNft
-                                                    }
-                                                    disabled={
-                                                        nftChildGenesisInput.length ===
-                                                        0
                                                     }
                                                     handleToggle={() =>
                                                         // We turn everything else off, whether we are turning this one on or off
@@ -3838,47 +3657,12 @@ const Token: React.FC = () => {
                                                     }
                                                 />
                                                 <SwitchLabel>
-                                                    <DataAndQuestionButton>
-                                                        Mint NFT{' '}
-                                                        {availableNftInputs ===
-                                                        0 ? (
-                                                            <ButtonDisabledSpan>
-                                                                &nbsp;(no NFT
-                                                                mint inputs)
-                                                            </ButtonDisabledSpan>
-                                                        ) : (
-                                                            <p>
-                                                                &nbsp; (
-                                                                {
-                                                                    availableNftInputs
-                                                                }{' '}
-                                                                input
-                                                                {availableNftInputs >
-                                                                1
-                                                                    ? 's'
-                                                                    : ''}{' '}
-                                                                available)
-                                                            </p>
-                                                        )}
-                                                        <IconButton
-                                                            name={`Click for more info about minting an NFT`}
-                                                            icon={
-                                                                <QuestionIcon />
-                                                            }
-                                                            onClick={() =>
-                                                                setShowMintNftInfo(
-                                                                    true,
-                                                                )
-                                                            }
-                                                        />
-                                                    </DataAndQuestionButton>
+                                                    Mint NFT
                                                 </SwitchLabel>
                                             </SwitchHolder>
                                             {switches.showMintNft && (
                                                 <CreateTokenForm
-                                                    nftChildGenesisInput={
-                                                        nftChildGenesisInput
-                                                    }
+                                                    groupTokenId={tokenId}
                                                 />
                                             )}
                                         </>
