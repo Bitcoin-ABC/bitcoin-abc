@@ -9,7 +9,7 @@ import { redirects } from "./app/data/redirects";
 const scriptSrc =
   process.env.NODE_ENV === "development"
     ? "'self' 'unsafe-inline' 'unsafe-eval'"
-    : "'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com 'unsafe-eval'";
+    : "'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com 'unsafe-eval'";
 
 const strapi = new URL(process.env.NEXT_PUBLIC_STRAPI_URL!);
 const strapiScorecard = new URL(process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL!);
@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
             style-src 'self' 'unsafe-inline' fonts.googleapis.com;
             font-src 'self' fonts.gstatic.com data:;
             img-src 'self' blob: https://www.google-analytics.com https://www.googletagmanager.com https: data:;
-            connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://avalanche.cash;
+            connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://avalanche.cash https://static.cloudflareinsights.com;
             object-src 'none';
             base-uri 'self';
             frame-ancestors 'none';
