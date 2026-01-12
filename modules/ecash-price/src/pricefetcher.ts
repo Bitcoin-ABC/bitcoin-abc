@@ -40,7 +40,9 @@ export class PriceFetcher {
 
         // If the cache doesn't contain the requested price, it is dirty
         const priceData = this.cachedResponse?.prices.find(
-            p => p.source === pair.source && p.quote === pair.quote,
+            p =>
+                p.source.toString() === pair.source.toString() &&
+                p.quote.toString() === pair.quote.toString(),
         );
         if (!priceData) {
             return true;
@@ -87,7 +89,9 @@ export class PriceFetcher {
                     for (const quote of request.quotes) {
                         if (
                             !response.prices.some(
-                                p => p.source === source && p.quote === quote,
+                                p =>
+                                    p.source.toString() === source.toString() &&
+                                    p.quote.toString() === quote.toString(),
                             )
                         ) {
                             continue providerLoop;
@@ -128,7 +132,9 @@ export class PriceFetcher {
 
         return (
             this.cachedResponse?.prices.find(
-                p => p.source === pair.source && p.quote === pair.quote,
+                p =>
+                    p.source.toString() === pair.source.toString() &&
+                    p.quote.toString() === pair.quote.toString(),
             )?.price ?? null
         );
     }
@@ -158,7 +164,9 @@ export class PriceFetcher {
         return pairs.map(
             pair =>
                 this.cachedResponse?.prices.find(
-                    p => p.source === pair.source && p.quote === pair.quote,
+                    p =>
+                        p.source.toString() === pair.source.toString() &&
+                        p.quote.toString() === pair.quote.toString(),
                 )?.price ?? null,
         );
     }

@@ -11,7 +11,7 @@ import type { PriceProvider } from './provider';
 export class Fiat {
     private readonly value: string;
 
-    private constructor(value: string) {
+    public constructor(value: string) {
         this.value = value.toLowerCase();
     }
 

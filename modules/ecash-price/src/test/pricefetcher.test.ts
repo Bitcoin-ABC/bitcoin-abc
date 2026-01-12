@@ -947,4 +947,17 @@ describe('PriceFetcher', () => {
             expect(fetchCallCount).to.equal(1);
         });
     });
+    describe('instance checking', () => {
+        it('should find prices in cache when the types are built from constructor', async () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+
+            const price = await fetcher.current({
+                source: new CryptoTicker('xec'),
+                quote: new Fiat('usd'),
+            });
+
+            expect(price).to.equal(0.00001241);
+        });
+    });
 });
