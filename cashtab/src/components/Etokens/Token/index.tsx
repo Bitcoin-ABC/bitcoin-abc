@@ -40,15 +40,10 @@ import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
 import {
     getMintBatons,
-    getMintTargetOutputs,
     getNft,
     getAgoraAdFuelSats,
-    SUPPORTED_MINT_TYPES,
 } from 'token-protocols/slpv1';
-import {
-    getAlpMintTargetOutputs,
-    getAlpAgoraListTargetOutputs,
-} from 'token-protocols/alp';
+import { getAlpAgoraListTargetOutputs } from 'token-protocols/alp';
 import {
     TokenTargetOutput,
     getMaxDecimalizedQty,
@@ -1325,29 +1320,19 @@ const Token: React.FC = () => {
     async function handleMint() {
         Event('SendToken.js', 'Mint eToken', tokenId as string);
 
-        // We only use 1 mint baton
-        const mintBaton = mintBatons[0];
-        const tokenTypeNumberFromUtxo = mintBaton.token.tokenType.number;
-
         try {
-            // Get targetOutputs for an slpv1 burn tx
-            // this is NOT like an slpv1 send tx
-            const mintTargetOutputs = isAlp
-                ? getAlpMintTargetOutputs(
-                      tokenId as string,
-                      BigInt(
-                          undecimalizeTokenAmount(
-                              formData.mintAmount,
-                              decimals as SlpDecimals,
-                          ),
-                      ),
-                  )
-                : getMintTargetOutputs(
-                      tokenId as string,
-                      decimals as SlpDecimals,
-                      formData.mintAmount,
-                      tokenTypeNumberFromUtxo as SUPPORTED_MINT_TYPES,
-                  );
+            if (!ecashWallet) {
+                // We do not render the component with ecashWallet, so we do not expect this to happen
+                // Helps typescript clarity
+                throw new Error('Wallet not initialized');
+            }
+
+            // Note: Minting is not currently supported for SLP_TOKEN_TYPE_MINT_VAULT tokens.
+            // MINT_VAULT tokens don't have mint batons (they use a different mechanism where any UTXO
+            // at the mint vault address can mint). Since getMintBatons() filters for isMintBaton === true,
+            // it returns an empty array for MINT_VAULT tokens, so the mint switch (which only appears
+            // when mintBatons.length > 0) will never be shown for these tokens in the UI.
+
             // We should not be able to get here without at least one mint baton,
             // as the mint switch would be disabled
             // Still, handle
@@ -1355,19 +1340,61 @@ const Token: React.FC = () => {
                 throw new Error(`Unable to find mint baton for ${tokenName}`);
             }
 
-            // Build and broadcast the tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                mintTargetOutputs,
-                settings.satsPerKb,
-                chaintipBlockheight,
-                [mintBaton],
+            // Calculate minted atoms (undecimalized)
+            const mintedAtoms = BigInt(
+                undecimalizeTokenAmount(
+                    formData.mintAmount,
+                    decimals as SlpDecimals,
+                ),
             );
+
+            // Build payment.Action for token mint
+            // ecash-wallet handles UTXO selection automatically, including finding mint batons
+            const action: payment.Action = {
+                outputs: [
+                    { sats: 0n }, // OP_RETURN at outIdx 0
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: ecashWallet.script,
+                        tokenId: tokenId as string,
+                        atoms: mintedAtoms,
+                    },
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: ecashWallet.script,
+                        tokenId: tokenId as string,
+                        atoms: 0n,
+                        isMintBaton: true,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'MINT',
+                        tokenId: tokenId as string,
+                        tokenType: tokenType as unknown as TokenType,
+                    },
+                ],
+                feePerKb: BigInt(settings.satsPerKb),
+            };
+
+            // Build and broadcast using ecash-wallet
+            const builtAction = ecashWallet.action(action).build();
+            console.log(`rawTx: ${builtAction.txs[0].toHex()}`);
+            console.log(`txid: ${builtAction.txs[0].txid()}`);
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Get the first txid (or the only one for single-tx actions)
+            const txid = broadcastResult.broadcasted[0];
+
             confirmRawTx(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >

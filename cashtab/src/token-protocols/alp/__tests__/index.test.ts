@@ -6,7 +6,6 @@ import {
     getMaxDecimalizedAlpQty,
     getAlpGenesisTargetOutputs,
     getAlpBurnTargetOutputs,
-    getAlpMintTargetOutputs,
     getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
 import vectors from '../fixtures/vectors';
@@ -71,17 +70,6 @@ describe('ALP token methods', () => {
             const { description, tokenInputInfo, returned } = expectedReturn;
             it(`getAlpBurnTargetOutputs: ${description}`, () => {
                 expect(getAlpBurnTargetOutputs(tokenInputInfo)).toStrictEqual(
-                    returned,
-                );
-            });
-        });
-    });
-    describe('We can build target outputs for an ALP mint tx', () => {
-        const { expectedReturns } = vectors.getAlpMintTargetOutputs;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, tokenId, mintQty, returned } = expectedReturn;
-            it(`getAlpMintTargetOutputs: ${description}`, () => {
-                expect(getAlpMintTargetOutputs(tokenId, mintQty)).toStrictEqual(
                     returned,
                 );
             });

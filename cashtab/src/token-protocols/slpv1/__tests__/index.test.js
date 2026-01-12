@@ -6,7 +6,6 @@ import {
     getSlpGenesisTargetOutput,
     getSlpBurnTargetOutputs,
     getMintBatons,
-    getMintTargetOutputs,
     getMaxDecimalizedSlpQty,
     getNftParentGenesisTargetOutputs,
     getNftParentMintTargetOutputs,
@@ -190,50 +189,6 @@ describe('slpv1 methods', () => {
             const { description, utxos, tokenId, returned } = vector;
             it(`getMintBatons: ${description}`, () => {
                 expect(getMintBatons(utxos, tokenId)).toStrictEqual(returned);
-            });
-        });
-    });
-    describe('Generate target outputs for an slpv1 mint tx', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getMintTargetOutputs;
-        expectedReturns.forEach(vector => {
-            const {
-                description,
-                tokenId,
-                decimals,
-                mintQty,
-                tokenProtocolNumber,
-                targetOutputs,
-            } = vector;
-            it(`getMintTargetOutputs: ${description}`, () => {
-                expect(
-                    getMintTargetOutputs(
-                        tokenId,
-                        decimals,
-                        mintQty,
-                        tokenProtocolNumber,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-        expectedErrors.forEach(vector => {
-            const {
-                description,
-                tokenId,
-                decimals,
-                mintQty,
-                tokenProtocolNumber,
-                error,
-            } = vector;
-            it(`getMintTargetOutputs throws error for: ${description}`, () => {
-                expect(() =>
-                    getMintTargetOutputs(
-                        tokenId,
-                        decimals,
-                        mintQty,
-                        tokenProtocolNumber,
-                    ),
-                ).toThrow(error);
             });
         });
     });

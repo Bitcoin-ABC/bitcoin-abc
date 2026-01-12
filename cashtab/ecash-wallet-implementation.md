@@ -5,7 +5,7 @@ This document tracks the migration of transaction building and broadcasting from
 ## Status
 
 - ✅ **SendXec.tsx** - Already migrated to ecash-wallet
-- 🚧 **components/Etokens/Token/index.tsx** - In progress (sendToken() migrated)
+- 🚧 **components/Etokens/Token/index.tsx** - In progress (sendToken(), burn(), handleMint() migrated)
 
 ## Components That Send Transactions
 
@@ -86,11 +86,18 @@ This document tracks the migration of transaction building and broadcasting from
     - No manual fan-out transactions required
     - Removed `nftChildGenesisInput` prop - now just passes `groupTokenId` string
 
-#### 2.5. `handleMint()` (lines ~1362-1420)
+#### 2.5. `handleMint()` (lines ~1325-1383)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Mint new tokens using mint baton
-- **Uses:** `sendXec()` from `transactions/index.js`
+- **Uses:** `ecash-wallet`'s `action()` API directly
 - **Transaction Type:** Token MINT transaction
+- **Migration Notes:**
+    - Uses `payment.Action` with `MINT` tokenAction
+    - `ecash-wallet` handles UTXO selection automatically
+    - Uses `requiredUtxos` to specify the mint baton UTXO
+    - Outputs include: OP_RETURN, minted token output, and mint baton output
+    - Removed dependency on `getMintTargetOutputs()` and `getAlpMintTargetOutputs()` helper functions
 
 #### 2.6. `listNftOneshot()` (lines ~1540-1670)
 
@@ -118,6 +125,7 @@ This document tracks the migration of transaction building and broadcasting from
 
 - `sendToken()` ✅ - Migrated to use `ecash-wallet` directly
 - `burn()` ✅ - Migrated to use `ecash-wallet` directly
+- `handleMint()` ✅ - Migrated to use `ecash-wallet` directly
 - NFT child minting ✅ - Migrated to use `ecash-wallet` directly (in `CreateTokenForm`)
 - Fan-out workflow ✅ - Removed (no longer needed - `ecash-wallet` handles automatically)
 - Remaining functions still use `sendXec()` helper from `transactions/index.js`
@@ -232,9 +240,9 @@ This document tracks the migration of transaction building and broadcasting from
 1. Migrate `components/Etokens/Token/index.tsx` 🚧 In progress
     - ✅ `sendToken()` - Migrated to `ecash-wallet`
     - ✅ `burn()` - Migrated to `ecash-wallet`
+    - ✅ `handleMint()` - Migrated to `ecash-wallet`
     - ✅ NFT child minting - Migrated to `ecash-wallet` (in `CreateTokenForm`)
     - ✅ Fan-out workflow - Removed (no longer needed)
-    - ❌ `handleMint()` - Still uses `sendXec()`
     - ❌ `listNftOneshot()` - Still uses `sendXec()`
     - ❌ `listAlpPartial()` - Still uses `sendXec()`
     - ❌ `listSlpPartial()` - Still uses `sendXec()`

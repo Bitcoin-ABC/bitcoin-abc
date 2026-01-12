@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import appConfig from 'config/app';
-import { undecimalizeTokenAmount } from 'wallet';
 import {
     Script,
     slpGenesis,
@@ -25,9 +24,6 @@ import {
 export const SLP_1_PROTOCOL_NUMBER = 1;
 export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
-
-// Note we have to specify the numbers here and not the constants for ts lint reasons
-export type SUPPORTED_MINT_TYPES = 1 | 129;
 
 export const MAX_OUTPUT_AMOUNT_SLP_ATOMS = 0xffffffffffffffffn;
 
@@ -137,50 +133,6 @@ export const getMintBatons = (
             utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
             utxo.token?.isMintBaton === true, // UTXO is a minting baton.
     ) as TokenUtxo[];
-};
-
-/**
- * Get targetOutput(s) for a SLP v1 MINT tx
- * Note: Cashtab only supports slpv1 mints that preserve the baton at the wallet's address
- * Spec: https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#mint---extended-minting-transaction
- * @param tokenId
- * @param decimals decimals for this tokenId
- * @param mintQty decimalized string for token qty
- * @throws if invalid input params are passed to TokenType1.mint
- * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}, {sats: 546n}]
- * Note: we always return minted qty at index 1
- * Note we always return a mint baton at index 2
- */
-export const getMintTargetOutputs = (
-    tokenId: string,
-    decimals: SlpDecimals,
-    mintQty: string,
-    tokenProtocolNumber: SUPPORTED_MINT_TYPES,
-): TokenTargetOutput[] => {
-    // We must undecimalize mintQty
-
-    // Get undecimalized string, i.e. "token satoshis"
-    const tokenSatoshis = BigInt(undecimalizeTokenAmount(mintQty, decimals));
-
-    const script = slpMint(
-        tokenId,
-        tokenProtocolNumber,
-        tokenSatoshis,
-        CASHTAB_SLP1_MINT_MINTBATON_VOUT,
-    );
-
-    // Build targetOutputs per slpv1 spec
-    // Dust output at v1 receives the minted qty (per spec)
-    // Dust output at v2 for mint baton (per Cashtab)
-
-    return [
-        // SLP 1 script
-        { sats: 0n, script },
-        // Dust output for mint qty
-        TOKEN_DUST_CHANGE_OUTPUT,
-        // Dust output for mint baton
-        TOKEN_DUST_CHANGE_OUTPUT,
-    ];
 };
 
 /**

@@ -9,7 +9,6 @@ import {
     alpGenesis,
     alpSend,
     alpBurn,
-    alpMint,
     Script,
     shaRmd160,
 } from 'ecash-lib';
@@ -127,32 +126,6 @@ export const getAlpBurnTargetOutputs = (
     // We still need to ensure the tx has at least one output of dust satoshis to be valid
     // Using the token dust utxo is a convenient way of doing this
     return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
-};
-
-/**
- * Get targetOutput(s) for an ALP MINT tx
- * Note: Cashtab only supports ALP mints that preserve the baton at the wallet's address
- */
-export const getAlpMintTargetOutputs = (
-    tokenId: string,
-    mintQty: bigint,
-): TokenTargetOutput[] => {
-    const script = emppScript([
-        alpMint(tokenId as string, ALP_STANDARD, {
-            atomsArray: [mintQty],
-            // Mint baton is consumed and reborn
-            numBatons: 1,
-        }),
-    ]);
-
-    return [
-        // SLP 1 script
-        { sats: 0n, script },
-        // Dust output for mint qty
-        TOKEN_DUST_CHANGE_OUTPUT,
-        // Dust output for mint baton
-        TOKEN_DUST_CHANGE_OUTPUT,
-    ];
 };
 
 /**

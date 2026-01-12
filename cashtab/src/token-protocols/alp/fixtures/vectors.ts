@@ -42,12 +42,6 @@ interface GetAlpBurnTargetOutputsReturn {
     tokenInputInfo: TokenInputInfo;
     returned: TokenTargetOutput[];
 }
-interface GetAlpMintTargetOutputReturn {
-    description: string;
-    tokenId: string;
-    mintQty: bigint;
-    returned: TokenTargetOutput[];
-}
 interface GetAlpAgoraListTargetOutputsReturn {
     description: string;
     tokenInputInfo: TokenInputInfo;
@@ -64,9 +58,6 @@ interface AlpVectors {
     };
     getAlpBurnTargetOutputs: {
         expectedReturns: GetAlpBurnTargetOutputsReturn[];
-    };
-    getAlpMintTargetOutputs: {
-        expectedReturns: GetAlpMintTargetOutputReturn[];
     };
     getAlpAgoraListTargetOutputs: {
         expectedReturns: GetAlpAgoraListTargetOutputsReturn[];
@@ -321,28 +312,6 @@ const vectors: AlpVectors = {
                     {
                         ...TOKEN_DUST_CHANGE_OUTPUT,
                     },
-                ],
-            },
-        ],
-    },
-    getAlpMintTargetOutputs: {
-        expectedReturns: [
-            {
-                description:
-                    'We can get target outputs for an ALP mint tx for highest 1-output qty',
-                tokenId: MOCK_TOKEN_ID,
-                mintQty: BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS),
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a5032534c503200044d494e54111111111111111111111111111111111111111111111111111111111111111101ffffffffffff01',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                    TOKEN_DUST_CHANGE_OUTPUT,
                 ],
             },
         ],
