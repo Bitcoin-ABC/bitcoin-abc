@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { ChronikClient, ScriptUtxo, TokenInfo, Tx } from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import { jsonReplacer, getCoingeckoApiUrl } from '../src/utils';
+import { jsonReplacer } from '../src/utils';
 import unrevivedBlockMocks from '../test/mocks/block';
 import { jsonReviver } from '../src/utils';
 import { handleBlockFinalized, StoredMock } from '../src/events';
@@ -21,6 +21,7 @@ import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
 import mockStakers from '../test/mocks/stakers';
+import { MockProvider, PriceFetcher } from 'ecash-price';
 
 const mockedChronik = new MockChronikClient();
 const chronik = new ChronikClient(config.chronik);
@@ -106,7 +107,7 @@ async function generateMock(
     block: StoredMock,
     txids: string[],
 ) {
-    const { outputScriptInfoMap, tokenInfoMap, coingeckoResponse } = block;
+    const { outputScriptInfoMap, tokenInfoMap, priceFetchingResponse } = block;
     // Get txids from your saved block
     const savedTxids = block.blockTxs.map(tx => {
         return tx.txid;
@@ -194,16 +195,15 @@ async function generateMock(
         }
     });
 
-    // Mock coingecko price response
-    // onNoMatch: 'throwException' helps to debug if mock is not being used
+    // Mock a successful price fetching request
+    const mockProvider = new MockProvider({ shouldSucceed: true });
+    mockProvider.response = priceFetchingResponse;
+    const mockFetcher = new PriceFetcher([mockProvider]);
+
+    // Mock successful staker info request
     const mock = new MockAdapter(axios, {
         onNoMatch: 'throwException',
     });
-
-    // Mock a successful API request
-    mock.onGet(getCoingeckoApiUrl(config)).reply(200, coingeckoResponse);
-
-    // Mock successful staker info request
     mock.onGet(
         `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
     ).reply(200, mockStakers);
@@ -223,6 +223,7 @@ async function generateMock(
         MOCK_HASH,
         MOCK_HEIGHT,
         memoryCache,
+        mockFetcher,
         true,
     )) as StoredMock;
 

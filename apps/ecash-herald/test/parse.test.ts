@@ -62,7 +62,7 @@ describe('parse.js functions', function () {
         const {
             blockTxs,
             parsedBlock,
-            coingeckoPrices,
+            fetchedPrices,
             activeStakers,
             tokenInfoMap,
             outputScriptInfoMap,
@@ -75,7 +75,7 @@ describe('parse.js functions', function () {
         assert.deepEqual(
             getBlockTgMessage(
                 parsedBlock,
-                coingeckoPrices,
+                fetchedPrices,
                 tokenInfoMap,
                 outputScriptInfoMap,
                 activeStakers,

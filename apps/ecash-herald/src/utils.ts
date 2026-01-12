@@ -3,11 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import axios from 'axios';
-import config, { HeraldConfig, HeraldPriceApi, FiatCode } from '../config';
+import config from '../config';
 import BigNumber from 'bignumber.js';
 import addressDirectory from '../constants/addresses';
 import { consume } from 'ecash-lib';
 import { MemoryCache } from 'cache-manager';
+import { CryptoTicker, Fiat } from 'ecash-price';
 
 export const returnAddressPreview = (
     cashAddress: string,
@@ -26,113 +27,11 @@ export const returnAddressPreview = (
     )}...${unprefixedAddress.slice(-sliceSize)}`;
 };
 
-/**
- * Get the price API url herald would use for specified config
- * @param config ecash-herald config object
- * @returns expected URL of price API call
- */
-export const getCoingeckoApiUrl = (config: HeraldConfig): string => {
-    return `${config.priceApi.apiBase}?ids=${config.priceApi.cryptos
-        .map(crypto => crypto.coingeckoSlug)
-        .join(',')}&vs_currencies=${
-        config.priceApi.fiat
-    }&precision=${config.priceApi.precision.toString()}`;
-};
-
-export interface CoinGeckoPrice {
-    fiat: FiatCode;
+export interface FetchedPrice {
+    fiat: Fiat;
     price: number;
-    ticker: string;
+    ticker: CryptoTicker;
 }
-export interface CoinGeckoResponse {
-    bitcoin: { usd: number };
-    ethereum: { usd: number };
-    ecash: { usd: number };
-}
-interface GetCoingeckPricesResponse {
-    coingeckoResponse: CoinGeckoResponse;
-    coingeckoPrices: CoinGeckoPrice[];
-}
-export const getCoingeckoPrices = async (
-    priceInfoObj: HeraldPriceApi,
-): Promise<false | GetCoingeckPricesResponse> => {
-    const { apiBase, cryptos, fiat, precision } = priceInfoObj;
-    const coingeckoSlugs = cryptos.map(crypto => crypto.coingeckoSlug);
-    const apiUrl = `${apiBase}?ids=${coingeckoSlugs.join(
-        ',',
-    )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
-    // https://api.coingecko.com/api/v3/simple/price?ids=ecash,bitcoin,ethereum&vs_currencies=usd&precision=8
-    let coingeckoApiResponse;
-    try {
-        coingeckoApiResponse = await axios.get(apiUrl);
-        const { data } = coingeckoApiResponse;
-        // Validate for expected shape
-        // For each key in `cryptoIds`, data must contain {<fiat>: <price>}
-        const coingeckoPriceArray = [];
-        if (data && typeof data === 'object') {
-            for (let i = 0; i < coingeckoSlugs.length; i += 1) {
-                const thisCoingeckoSlug = coingeckoSlugs[i];
-                if (
-                    !data[thisCoingeckoSlug] ||
-                    !data[thisCoingeckoSlug][fiat]
-                ) {
-                    return false;
-                }
-                // Create more useful output format
-                const thisPriceInfo = {
-                    fiat,
-                    price: data[thisCoingeckoSlug][fiat],
-                    ticker: cryptos.filter(
-                        el => el.coingeckoSlug === thisCoingeckoSlug,
-                    )[0].ticker,
-                };
-                if (thisPriceInfo.ticker === 'XEC') {
-                    coingeckoPriceArray.unshift(thisPriceInfo);
-                } else {
-                    coingeckoPriceArray.push(thisPriceInfo);
-                }
-            }
-            return {
-                coingeckoResponse: data,
-                coingeckoPrices: coingeckoPriceArray,
-            };
-        }
-        return false;
-    } catch {
-        console.log(
-            'CoinGecko API request failed, building message without price data',
-        );
-    }
-    return false;
-};
-
-export const formatPrice = (price: number, fiatCode: FiatCode): string => {
-    // Get symbol
-    let fiatSymbol = config.fiatReference[fiatCode];
-
-    // If you can't find the symbol, don't show one
-    if (typeof fiatSymbol === 'undefined') {
-        fiatSymbol = '';
-    }
-
-    // No decimal points for prices greater than 100
-    if (price > 100) {
-        return `${fiatSymbol}${price.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-        })}`;
-    }
-    // 2 decimal places for prices between 1 and 100
-    if (price > 1) {
-        return `${fiatSymbol}${price.toLocaleString('en-US', {
-            maximumFractionDigits: 2,
-        })}`;
-    }
-    // All decimal places for lower prices
-    // For now, these will only be XEC prices
-    return `${fiatSymbol}${price.toLocaleString('en-US', {
-        maximumFractionDigits: 8,
-    })}`;
-};
 
 /**
  * Return a formatted string for a telegram msg given an amount of satoshis     *
@@ -268,6 +167,18 @@ export const jsonReplacer = function (_key: string, value: any) {
                         dataType: 'BigIntReplacer',
                         value: thisKeyValue[1].toString(),
                     };
+                } else if (thisKeyValue[1] instanceof CryptoTicker) {
+                    // Replace it
+                    thisKeyValue[1] = {
+                        dataType: 'CryptoTickerReplacer',
+                        value: thisKeyValue[1].toString(),
+                    };
+                } else if (thisKeyValue[1] instanceof Fiat) {
+                    // Replace it
+                    thisKeyValue[1] = {
+                        dataType: 'FiatReplacer',
+                        value: thisKeyValue[1].toString(),
+                    };
                 }
             }
         }
@@ -284,6 +195,16 @@ export const jsonReplacer = function (_key: string, value: any) {
     } else if (typeof value === 'bigint') {
         return {
             dataType: 'BigIntReplacer',
+            value: value.toString(),
+        };
+    } else if (value instanceof CryptoTicker) {
+        return {
+            dataType: 'CryptoTickerReplacer',
+            value: value.toString(),
+        };
+    } else if (value instanceof Fiat) {
+        return {
+            dataType: 'FiatReplacer',
             value: value.toString(),
         };
     } else {
@@ -318,6 +239,14 @@ export const jsonReviver = (_key: string, value: any) => {
                             );
                         } else if (thisValue.dataType === 'BigIntReplacer') {
                             value.value[i][1] = BigInt(value.value[i][1].value);
+                        } else if (
+                            thisValue.dataType === 'CryptoTickerReplacer'
+                        ) {
+                            value.value[i][1] = new CryptoTicker(
+                                thisValue.value,
+                            );
+                        } else if (thisValue.dataType === 'FiatReplacer') {
+                            value.value[i][1] = new Fiat(thisValue.value);
                         }
                     }
                 }
@@ -329,6 +258,12 @@ export const jsonReviver = (_key: string, value: any) => {
         }
         if (value.dataType === 'BigIntReplacer') {
             return BigInt(value.value);
+        }
+        if (value.dataType === 'CryptoTickerReplacer') {
+            return new CryptoTicker(value.value);
+        }
+        if (value.dataType === 'FiatReplacer') {
+            return new Fiat(value.value);
         }
     }
     return value;

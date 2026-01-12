@@ -17,7 +17,7 @@ import cachedTokenInfoMap from '../constants/tokens';
 import {
     jsonReviver,
     bigNumberAmountToLocaleString,
-    CoinGeckoPrice,
+    FetchedPrice,
     toXec,
 } from '../src/utils';
 import {
@@ -34,7 +34,6 @@ import {
 import { prepareStringForTelegramHTML, splitOverflowTgMsg } from './telegram';
 import { OutputscriptInfo } from './chronik';
 import {
-    formatPrice,
     satsToFormattedValue,
     returnAddressPreview,
     containsOnlyPrintableAscii,
@@ -52,6 +51,7 @@ import {
     AlpTokenType_Type,
 } from 'chronik-client';
 import { MemoryCache } from 'cache-manager';
+import { CryptoTicker, Fiat, formatPrice } from 'ecash-price';
 
 const miners: KnownMiners = JSON.parse(
     JSON.stringify(knownMinersJson),
@@ -1558,13 +1558,13 @@ export const getSwapTgMsg = (
 /**
  * Build a string formatted for Telegram's API using HTML encoding
  * @param parsedBlock
- * @param coingeckoPrices if no coingecko API error
+ * @param fetchedPrices if no coingecko API error
  * @param tokenInfoMap if no chronik API error
  * @param addressInfoMap if no chronik API error
  */
 export const getBlockTgMessage = (
     parsedBlock: HeraldParsedBlock,
-    coingeckoPrices: false | CoinGeckoPrice[],
+    fetchedPrices: FetchedPrice[],
     tokenInfoMap: false | Map<string, GenesisInfo>,
     outputScriptInfoMap: false | Map<string, OutputscriptInfo>,
     activeStakers?: CoinDanceStaker[],
@@ -1572,8 +1572,10 @@ export const getBlockTgMessage = (
     const { hash, height, miner, staker, numTxs, parsedTxs } = parsedBlock;
     const { emojis } = config;
 
-    const xecPrice =
-        coingeckoPrices !== false ? coingeckoPrices[0].price : undefined;
+    const xecPrice = fetchedPrices.find(
+        fetchedPrice =>
+            fetchedPrice.ticker.toString() === CryptoTicker.XEC.toString(),
+    )?.price;
 
     // Define newsworthy types of txs in parsedTxs
     // These arrays will be used to present txs in batches by type
@@ -2030,14 +2032,14 @@ export const getBlockTgMessage = (
         );
     }
 
-    // Display prices as set in config.js
-    if (coingeckoPrices) {
+    if (fetchedPrices.length > 0) {
         // Iterate over prices and add a line for each price in the object
-
-        for (let i = 0; i < coingeckoPrices.length; i += 1) {
-            const { fiat, ticker, price } = coingeckoPrices[i];
+        for (let i = 0; i < fetchedPrices.length; i += 1) {
+            const { fiat, ticker, price } = fetchedPrices[i];
             const thisFormattedPrice = formatPrice(price, fiat);
-            tgMsg.push(`1 ${ticker} = ${thisFormattedPrice}`);
+            tgMsg.push(
+                `1 ${ticker.toString().toUpperCase()} = ${thisFormattedPrice}`,
+            );
         }
     }
 
@@ -3381,7 +3383,7 @@ export const summarizeTxHistory = (
                     : config.emojis.priceDown
             }<b>1 XEC = ${formatPrice(
                 xecPriceUsd!,
-                'usd',
+                Fiat.USD,
             )}</b> <i>(${usd_24h_change.toFixed(2)}%)</i>`,
         );
         tgMsg.push(

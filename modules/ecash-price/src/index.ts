@@ -28,3 +28,7 @@ export { ProviderStrategy } from './strategy';
 // Providers
 export { CoinGeckoProvider } from './providers/coingecko';
 export type { CoinGeckoConfig } from './providers/coingecko';
+
+// Test utilities
+export { MockProvider } from './test/fixture/mockprovider';
+export type { MockProviderOptions } from './test/fixture/mockprovider';

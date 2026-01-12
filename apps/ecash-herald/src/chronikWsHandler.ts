@@ -7,6 +7,7 @@ import { handleBlockFinalized, handleBlockInvalidated } from './events';
 import TelegramBot from 'node-telegram-bot-api';
 import { MemoryCache } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
+import type { PriceFetcher } from 'ecash-price';
 
 export const parseWebsocketMessage = async (
     chronik: ChronikClient,
@@ -14,6 +15,9 @@ export const parseWebsocketMessage = async (
     telegramBot: TelegramBot | MockTelegramBot,
     channelId: string,
     memoryCache: MemoryCache,
+    // If no priceFetcher is provided, use the default CoinGeckoProvider.
+    // This is intended for using a mock provider in tests
+    priceFetcher?: PriceFetcher,
 ) => {
     // Get height and msg type
     // Note 1: herald only subscribes to blocks, so only MsgBlockClient is expected here
@@ -37,6 +41,7 @@ export const parseWebsocketMessage = async (
                 blockHash,
                 blockHeight,
                 memoryCache,
+                priceFetcher,
             );
         }
         case 'BLK_INVALIDATED': {
@@ -65,6 +70,9 @@ export const initializeWebsocket = async (
     telegramBot: TelegramBot | MockTelegramBot,
     channelId: string,
     memoryCache: MemoryCache,
+    // If no priceFetcher is provided, use the default CoinGeckoProvider
+    // This is intended for using a mock provider in tests
+    priceFetcher?: PriceFetcher,
 ): Promise<WsEndpoint> => {
     // Subscribe to chronik websocket
     const ws = chronik.ws({
@@ -75,6 +83,7 @@ export const initializeWebsocket = async (
                 telegramBot,
                 channelId,
                 memoryCache,
+                priceFetcher,
             );
         },
     });

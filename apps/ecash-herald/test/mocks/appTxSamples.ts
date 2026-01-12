@@ -4,8 +4,8 @@
 
 import { GenesisInfo } from 'chronik-client';
 import opReturn from '../../constants/op_return';
-import { CoinGeckoPrice } from '../../src/utils';
-
+import { FetchedPrice } from '../../src/utils';
+import { Fiat, CryptoTicker } from 'ecash-price';
 interface SwapMock {
     hex: string;
     msg: string;
@@ -26,7 +26,7 @@ interface AirdropMock {
     airdropRecipientsKeyValueArray: RecipientsArray;
     tokenId: false | string;
     tokenInfo: false | GenesisInfo;
-    coingeckoPrices: CoinGeckoPrice[];
+    coingeckoPrices: FetchedPrice[];
     msg: string;
     msgApiFailure: string;
 }
@@ -43,7 +43,7 @@ interface EncryptedCashtabMsgMock {
     sendingAddress: string;
     xecReceivingOutputsKeyValueArray: RecipientsArray;
     stackArray: string[];
-    coingeckoPrices: CoinGeckoPrice[];
+    coingeckoPrices: FetchedPrice[];
     msg: string;
     msgApiFailure: string;
 }
@@ -327,9 +327,9 @@ const appTxSamples: AppTxSamples = {
                 decimals: 3,
             },
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'qqf...yd0 airdropped $2 to 12 holders of <a href="https://explorer.e.cash/tx/7c06091e745037b46c5ea60def8ad526274c2caabb1fae6c4ac89fad02fedf9a">ePLK</a>|Csongor baby has been born. Take this little gift from a proud father!',
             msgApiFailure:
@@ -365,9 +365,9 @@ const appTxSamples: AppTxSamples = {
                 decimals: 8,
             },
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'qrm...r48 airdropped $0.002 to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">DET</a>',
             msgApiFailure:
@@ -396,9 +396,9 @@ const appTxSamples: AppTxSamples = {
             tokenId: false,
             tokenInfo: false,
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'Invalid Airdrop',
             msgApiFailure: 'Invalid Airdrop',
@@ -419,9 +419,9 @@ const appTxSamples: AppTxSamples = {
             tokenId: false,
             tokenInfo: false,
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'Invalid Airdrop',
             msgApiFailure: 'Invalid Airdrop',
@@ -465,9 +465,9 @@ const appTxSamples: AppTxSamples = {
                 '0281d8b3db5585bf24903022d9c5f3b8cafed757f254840c0f7bc872fda070745cb6cef3d645fc7e4403e2bc212e616db6691ab415cd1f7e9abcebdd8738e775a05ebeb14fadbdbf5941e0e4804e0c075239d0906ca5d5c00a93ebae11df7770c4aeeaef5b804abca08c10520fa47a6dc3df018378334a15f7ea3075bc9b8840a8',
             ],
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'qq4...jyt sent an encrypted message and $8 to qr6...xkv',
             msgApiFailure:
@@ -491,9 +491,9 @@ const appTxSamples: AppTxSamples = {
                 '034e582d3789a6ff5119c9ef243b4e126eacc51a922504439b2edba9cbb313a170a34e9e763943a59af3345867aa364ba8f089f992d1072cefedf02ce0dbb9b56023aa115ab180cc521b25553735f5ae58fbd2ff6bb750c710792dcbb356cf816604deec3ee9767e7a76fd757f617d174b127cef0b3162dc888075e99147b25014ab61d86108abae51421efbc060f6eff7edffff9d54f17f64ced6b0f973a8f44164b58337470a5a60d9f8ecb43a82dd8c989f409285e97ec3417426ceaca6a919a7b3bb8cdcfa679c9af950972ee43160',
             ],
             coingeckoPrices: [
-                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
-                { fiat: 'usd', price: 25000, ticker: 'BTC' },
-                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+                { fiat: Fiat.USD, price: 0.00003333, ticker: CryptoTicker.XEC },
+                { fiat: Fiat.USD, price: 25000, ticker: CryptoTicker.BTC },
+                { fiat: Fiat.USD, price: 1900, ticker: CryptoTicker.ETH },
             ],
             msg: 'qq9...fgx sent an encrypted message and $0.0002 to qrm...r48 and 1 other',
             msgApiFailure:

@@ -15,13 +15,15 @@ import {
     summarizeTxHistory,
     HeraldParsedBlock,
 } from './parse';
+import { jsonReviver, getNextStakingReward, FetchedPrice } from './utils';
 import {
-    getCoingeckoPrices,
-    jsonReviver,
-    getNextStakingReward,
-    CoinGeckoPrice,
-    CoinGeckoResponse,
-} from './utils';
+    CoinGeckoProvider,
+    CryptoTicker,
+    Fiat,
+    MockProvider,
+    PriceFetcher,
+    PriceResponse,
+} from 'ecash-price';
 import { sendBlockSummary } from './telegram';
 import {
     getTokenInfoMap,
@@ -61,9 +63,9 @@ export interface SendMessageResponse {
 export interface StoredMock {
     blockTxs: Tx[];
     parsedBlock: HeraldParsedBlock;
-    coingeckoResponse: CoinGeckoResponse;
+    priceFetchingResponse: PriceResponse;
     activeStakers?: CoinDanceStaker[];
-    coingeckoPrices: CoinGeckoPrice[];
+    fetchedPrices: FetchedPrice[];
     tokenInfoMap: Map<string, GenesisInfo>;
     outputScriptInfoMap: Map<string, OutputscriptInfo>;
     blockSummaryTgMsgs: string[];
@@ -94,6 +96,8 @@ export const handleBlockFinalized = async (
     blockHash: string,
     blockHeight: number,
     memoryCache: MemoryCache,
+    // If no mockFetcher is provided, use the default CoinGeckoProvider
+    mockFetcher: PriceFetcher | undefined = undefined,
     returnMocks = false,
 ): Promise<
     | StoredMock
@@ -148,9 +152,26 @@ export const handleBlockFinalized = async (
     );
 
     // Get price info for tg msg, if available
-    const resp = await getCoingeckoPrices(config.priceApi);
-    const coingeckoPrices = resp !== false ? resp.coingeckoPrices : false;
-    const coingeckoResponse = resp !== false ? resp.coingeckoResponse : false;
+    const priceFetcher =
+        mockFetcher ?? new PriceFetcher([new CoinGeckoProvider()]);
+    const pairs = [
+        { source: CryptoTicker.XEC, quote: Fiat.USD },
+        { source: CryptoTicker.BTC, quote: Fiat.USD },
+        { source: CryptoTicker.ETH, quote: Fiat.USD },
+    ];
+    const fetchedPrices = (await priceFetcher.currentPairs(pairs)).reduce(
+        (result, price, index) => {
+            if (price !== null) {
+                result.push({
+                    fiat: pairs[index].quote,
+                    price: price,
+                    ticker: pairs[index].source,
+                });
+            }
+            return result;
+        },
+        [] as FetchedPrice[],
+    );
 
     const { staker } = parsedBlock;
     let activeStakers: CoinDanceStaker[] | undefined;
@@ -170,7 +191,7 @@ export const handleBlockFinalized = async (
 
     const blockSummaryTgMsgs = getBlockTgMessage(
         parsedBlock,
-        coingeckoPrices,
+        fetchedPrices,
         tokenInfoMap,
         outputScriptInfoMap,
         activeStakers,
@@ -180,19 +201,29 @@ export const handleBlockFinalized = async (
         // returnMocks is used in the script function generateMocks
         // Using it as a flag here ensures the script is always using the same function
         // as the app
-        // Note you need coingeckoResponse so you can mock the axios response for coingecko
+        // Note you need priceFetchingResponse so you can mock the response from the price fetcher
         return {
             blockTxs,
             parsedBlock,
-            coingeckoResponse,
+            priceFetchingResponse: {
+                prices: fetchedPrices.map(fetchedPrice => {
+                    return {
+                        source: fetchedPrice.ticker,
+                        quote: fetchedPrice.fiat,
+                        provider: new MockProvider(),
+                        price: fetchedPrice.price,
+                        lastUpdated: new Date(),
+                    };
+                }),
+            },
             activeStakers,
-            coingeckoPrices,
+            fetchedPrices,
             tokenInfoMap,
             outputScriptInfoMap,
             blockSummaryTgMsgs,
             blockSummaryTgMsgsApiFailure: getBlockTgMessage(
                 parsedBlock,
-                false, // failed coingecko price lookup
+                [], // failed coingecko price lookup
                 false, // failed chronik token ID lookup
                 false, // failed balances lookup for output scripts
                 undefined, // no activeStakers

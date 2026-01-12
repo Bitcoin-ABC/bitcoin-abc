@@ -59,6 +59,8 @@ export class CryptoTicker {
     static readonly XEC = new CryptoTicker('xec');
     static readonly BTC = new CryptoTicker('btc');
     static readonly ETH = new CryptoTicker('eth');
+    static readonly XMR = new CryptoTicker('xmr');
+    static readonly SOL = new CryptoTicker('sol');
 }
 
 /**

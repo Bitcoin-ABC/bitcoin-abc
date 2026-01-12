@@ -849,6 +849,7 @@ builds:
             - apps/ecash-herald/
             - modules/mock-chronik-client/
             - modules/ecashaddrjs/
+            - modules/ecash-price/
             - modules/chronik-client/
         env:
             JS_PROJECT_ROOT: apps/ecash-herald
@@ -858,6 +859,7 @@ builds:
             - chronik-client
             - ecash-lib
             - ecash-agora
+            - ecash-price
             - mock-chronik-client
         templates:
             - js-mocha
@@ -1146,6 +1148,14 @@ builds:
             - ecash-wallet
         templates:
             - js-mocha
+
+    ecash-price:
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecash-price...
+            pnpm --filter ecash-price run build
 
     ecash-price-tests:
         runOnDiffRegex:

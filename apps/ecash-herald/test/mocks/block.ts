@@ -5647,10 +5647,48 @@ const mockedBlock: any = {
             ],
         },
     },
-    coingeckoResponse: {
-        bitcoin: { usd: 30000 },
-        ecash: { usd: 0.0001 },
-        ethereum: { usd: 2000 },
+    priceFetchingResponse: {
+        prices: [
+            {
+                source: {
+                    dataType: 'CryptoTickerReplacer',
+                    value: 'btc',
+                },
+                quote: {
+                    dataType: 'FiatReplacer',
+                    value: 'usd',
+                },
+                provider: 'mock',
+                price: 30000,
+                lastUpdated: '2026-01-12T22:26:03.095Z',
+            },
+            {
+                source: {
+                    dataType: 'CryptoTickerReplacer',
+                    value: 'xec',
+                },
+                quote: {
+                    dataType: 'FiatReplacer',
+                    value: 'usd',
+                },
+                provider: 'mock',
+                price: 0.0001,
+                lastUpdated: '2026-01-12T22:26:03.095Z',
+            },
+            {
+                source: {
+                    dataType: 'CryptoTickerReplacer',
+                    value: 'eth',
+                },
+                quote: {
+                    dataType: 'FiatReplacer',
+                    value: 'usd',
+                },
+                provider: 'mock',
+                price: 2000,
+                lastUpdated: '2026-01-12T22:26:03.095Z',
+            },
+        ],
     },
     activeStakers: [
         {
@@ -6086,10 +6124,40 @@ const mockedBlock: any = {
             payoutAddress: 'ecash:qrm7esgdmmerkgg6d572spglg25776yqtsczgtwz06',
         },
     ],
-    coingeckoPrices: [
-        { fiat: 'usd', price: 0.0001, ticker: 'XEC' },
-        { fiat: 'usd', price: 30000, ticker: 'BTC' },
-        { fiat: 'usd', price: 2000, ticker: 'ETH' },
+    fetchedPrices: [
+        {
+            fiat: {
+                dataType: 'FiatReplacer',
+                value: 'usd',
+            },
+            price: 0.0001,
+            ticker: {
+                dataType: 'CryptoTickerReplacer',
+                value: 'XEC',
+            },
+        },
+        {
+            fiat: {
+                dataType: 'FiatReplacer',
+                value: 'usd',
+            },
+            price: 30000,
+            ticker: {
+                dataType: 'CryptoTickerReplacer',
+                value: 'BTC',
+            },
+        },
+        {
+            fiat: {
+                dataType: 'FiatReplacer',
+                value: 'usd',
+            },
+            price: 2000,
+            ticker: {
+                dataType: 'CryptoTickerReplacer',
+                value: 'ETH',
+            },
+        },
     ],
     tokenInfoMap: {
         dataType: 'Map',

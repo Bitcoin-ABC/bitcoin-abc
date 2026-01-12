@@ -6,7 +6,7 @@ import assert from 'assert';
 import config from '../config';
 import secrets from '../secrets';
 import unrevivedBlock from './mocks/block';
-import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
+import { jsonReviver } from '../src/utils';
 import { blockInvalidedTgMsg } from './mocks/blockInvalidated';
 import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 import {
@@ -19,6 +19,7 @@ import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { caching, MemoryCache } from 'cache-manager';
+import { MockProvider, PriceFetcher } from 'ecash-price';
 import FakeTimers, { InstalledClock } from '@sinonjs/fake-timers';
 import { ChronikClient, TokenInfo } from 'chronik-client';
 const block: StoredMock = JSON.parse(
@@ -40,7 +41,9 @@ describe('ecash-herald events.js', function () {
     beforeEach(() => {
         clock = FakeTimers.install();
     });
-    afterEach(() => {
+    afterEach(async () => {
+        // Run all pending timers to ensure async operations complete
+        await clock.runAllAsync();
         // Restore timers
         clock.uninstall();
     });
@@ -87,16 +90,15 @@ describe('ecash-herald events.js', function () {
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
-        // Mock coingecko price response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        // Mock coingecko price response using MockProvider
+        const mockProvider = new MockProvider({ shouldSucceed: true });
+        mockProvider.response = thisBlock.priceFetchingResponse;
+        const mockFetcher = new PriceFetcher([mockProvider]);
+
+        // Mock a successful staking reward API request
         const mock = new MockAdapter(axios, {
             onNoMatch: 'throwException',
         });
-
-        const mockResult = thisBlock.coingeckoResponse;
-
-        // Mock a successful API request
-        mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
 
         // Mock a successful staker info request
         mock.onGet(
@@ -110,6 +112,7 @@ describe('ecash-herald events.js', function () {
             thisBlock.parsedBlock.hash,
             thisBlock.parsedBlock.height,
             memoryCache,
+            mockFetcher,
         );
 
         // Check that sendMessage was called successfully
@@ -166,14 +169,16 @@ describe('ecash-herald events.js', function () {
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
-        // Mock coingecko price response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
+        // Mock coingecko price response using MockProvider (failing)
+        const mockProvider = new MockProvider({
+            shouldSucceed: false,
+        });
+        const mockFetcher = new PriceFetcher([mockProvider]);
+
+        // Mock a successful staking reward API request
+        const _ = new MockAdapter(axios, {
             onNoMatch: 'throwException',
         });
-
-        // Mock a failed API request
-        mock.onGet(getCoingeckoApiUrl(config)).reply(500, { error: 'error' });
 
         const result = await handleBlockFinalized(
             mockedChronik as unknown as ChronikClient,
@@ -182,6 +187,7 @@ describe('ecash-herald events.js', function () {
             thisBlock.parsedBlock.hash,
             thisBlock.parsedBlock.height,
             memoryCache,
+            mockFetcher,
         );
 
         // Check that sendMessage was called successfully

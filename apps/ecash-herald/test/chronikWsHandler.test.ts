@@ -10,7 +10,9 @@ import {
     encodeOutputScript,
 } from 'ecashaddrjs';
 import unrevivedBlock from './mocks/block';
-import { jsonReviver, getCoingeckoApiUrl } from '../src/utils';
+import { jsonReviver } from '../src/utils';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import { blockInvalidedTgMsg } from './mocks/blockInvalidated';
 import {
     initializeWebsocket,
@@ -21,9 +23,8 @@ import {
     MockWsEndpoint,
 } from '../../../modules/mock-chronik-client';
 import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
 import { caching, MemoryCache } from 'cache-manager';
+import { MockProvider, PriceFetcher } from 'ecash-price';
 import { ChronikClient, TokenInfo, WsMsgClient, Tx } from 'chronik-client';
 import { StoredMock } from '../src/events';
 const block: StoredMock = JSON.parse(
@@ -167,18 +168,15 @@ describe('ecash-herald chronikWsHandler.js', function () {
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
-        // Mock coingecko price response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        // Mock coingecko price response using MockProvider
+        const mockProvider = new MockProvider({ shouldSucceed: true });
+        mockProvider.response = thisBlock.priceFetchingResponse;
+        const mockFetcher = new PriceFetcher([mockProvider]);
+
+        // Mock a successful staking reward API request
         const mock = new MockAdapter(axios, {
             onNoMatch: 'throwException',
         });
-
-        const mockResult = thisBlock.coingeckoResponse;
-
-        // Mock a successful API request
-        mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
-
-        // Mock a successful staking reward API request
         mock.onGet(config.stakingRewardApiUrl).reply(200, {
             nextBlockHeight: thisBlock.parsedBlock.height + 1,
             scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
@@ -198,6 +196,7 @@ describe('ecash-herald chronikWsHandler.js', function () {
             telegramBot,
             channelId,
             memoryCache,
+            mockFetcher,
         );
 
         // Build expected array of successful msg returns
@@ -257,16 +256,16 @@ describe('ecash-herald chronikWsHandler.js', function () {
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
-        // Mock coingecko price response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        // Mock coingecko price response using MockProvider (failing)
+        const mockProvider = new MockProvider({
+            shouldSucceed: false,
+        });
+        const mockFetcher = new PriceFetcher([mockProvider]);
+
+        // Mock a successful staking reward API request
         const mock = new MockAdapter(axios, {
             onNoMatch: 'throwException',
         });
-
-        // Mock a failed API request
-        mock.onGet(getCoingeckoApiUrl(config)).reply(500, { error: 'error' });
-
-        // Mock a successful staking reward API request
         mock.onGet(config.stakingRewardApiUrl).reply(200, {
             nextBlockHeight: thisBlock.parsedBlock.height + 1,
             scriptHex: thisBlock.blockTxs[0].outputs[2].outputScript,
@@ -281,6 +280,7 @@ describe('ecash-herald chronikWsHandler.js', function () {
             telegramBot,
             channelId,
             memoryCache,
+            mockFetcher,
         );
 
         // Build expected array of successful msg returns

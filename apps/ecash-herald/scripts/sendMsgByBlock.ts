@@ -24,7 +24,6 @@
 
 import { handleBlockFinalized } from '../src/events';
 import { sendBlockSummary } from '../src/telegram';
-import { getCoingeckoApiUrl } from '../src/utils';
 import config from '../config';
 import { ChronikClient } from 'chronik-client';
 import secrets from '../secrets';
@@ -34,6 +33,7 @@ import { StoredMock } from '../src/events';
 import mockStakers from '../test/mocks/stakers';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { CryptoTicker, Fiat, MockProvider, PriceFetcher } from 'ecash-price';
 
 // Default to the genesis block
 let height = 0;
@@ -71,23 +71,44 @@ async function sendMsgByBlock(
     });
     // We do not need this value if we are not using the live API
     let hash = height.toString();
+    let mockFetcher: PriceFetcher | undefined = undefined;
     if (!liveApi) {
         // Mock price API
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        const mockResult = {
-            bitcoin: { usd: 25000.0 },
-            ecash: { usd: 0.00003333 },
-            ethereum: { usd: 1900.0 },
+        const mockProvider = new MockProvider({ shouldSucceed: true });
+        mockProvider.response = {
+            prices: [
+                {
+                    source: CryptoTicker.BTC,
+                    quote: Fiat.USD,
+                    provider: mockProvider,
+                    price: 25000.0,
+                    lastUpdated: new Date(),
+                },
+                {
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    provider: mockProvider,
+                    price: 0.00003333,
+                    lastUpdated: new Date(),
+                },
+                {
+                    source: CryptoTicker.ETH,
+                    quote: Fiat.USD,
+                    provider: mockProvider,
+                    price: 1900.0,
+                    lastUpdated: new Date(),
+                },
+            ],
         };
-        // coingecko prices
-        mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+        mockFetcher = new PriceFetcher([mockProvider]);
+
         // staking
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
         mock.onGet(
             `https://coin.dance/api/stakers/${secrets.prod.stakerApiKey}`,
         ).reply(200, mockStakers);
     } else {
         // Get hash if we are using live API calls
-
         const block = await chronik.block(height);
         hash = block.blockInfo.hash;
     }
@@ -99,6 +120,7 @@ async function sendMsgByBlock(
         hash,
         height,
         memoryCache,
+        mockFetcher,
         true,
     )) as StoredMock;
 

@@ -4,25 +4,12 @@
 
 import { SendMessageOptions } from 'node-telegram-bot-api';
 
-interface CryptoSlug {
-    coingeckoSlug: string;
-    ticker: string;
-}
-export type FiatCode = 'usd' | 'eur' | 'gbp' | 'jpy';
-export interface HeraldPriceApi {
-    apiBase: string;
-    cryptos: CryptoSlug[];
-    fiat: FiatCode;
-    precision: number;
-}
 export interface HeraldConfig {
     cacheTtlMsecs: number;
     xecSendDisplayCount: number;
     chronik: string[];
     blockExplorer: string;
     tokenLandingBase: string;
-    priceApi: HeraldPriceApi;
-    fiatReference: { usd: string; jpy: string; eur: string; gbp: string };
     stakingRewardApiUrl: string;
     ifpAddress: string;
     tgMsgOptions: SendMessageOptions;
@@ -112,17 +99,6 @@ const config: HeraldConfig = {
     ],
     blockExplorer: 'https://explorer.e.cash',
     tokenLandingBase: 'https://cashtab.com/#/token',
-    priceApi: {
-        apiBase: 'https://api.coingecko.com/api/v3/simple/price',
-        cryptos: [
-            { coingeckoSlug: 'ecash', ticker: 'XEC' },
-            { coingeckoSlug: 'bitcoin', ticker: 'BTC' },
-            { coingeckoSlug: 'ethereum', ticker: 'ETH' },
-        ],
-        fiat: 'usd',
-        precision: 8,
-    },
-    fiatReference: { usd: '$', jpy: '¥', eur: '€', gbp: '£' },
     stakingRewardApiUrl: 'https://avalanche.cash/api/nextstakingreward',
     ifpAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     tgMsgOptions: {

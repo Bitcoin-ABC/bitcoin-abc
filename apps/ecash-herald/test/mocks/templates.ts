@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { FiatCode } from '../../config';
-import { CoinGeckoPrice } from '../../src/utils';
+import { CryptoTicker, Fiat } from 'ecash-price';
+import { FetchedPrice } from '../../src/utils';
 
 interface TgStringFixture {
     dangerous: string;
@@ -13,7 +13,7 @@ interface TgStringFixture {
 interface Templates {
     telegramHtmlStrings: TgStringFixture;
     addressPreviews: { address: string; preview: string; sliceSize: number }[];
-    mockCoingeckoPrices: CoinGeckoPrice[];
+    mockCoingeckoPrices: FetchedPrice[];
 }
 const templates: Templates = {
     telegramHtmlStrings: {
@@ -81,19 +81,19 @@ const templates: Templates = {
     ],
     mockCoingeckoPrices: [
         {
-            fiat: 'usd' as FiatCode,
+            fiat: Fiat.USD,
             price: 0.00003,
-            ticker: 'XEC',
+            ticker: CryptoTicker.XEC,
         },
         {
-            fiat: 'usd' as FiatCode,
+            fiat: Fiat.USD,
             price: 28044.64857505,
-            ticker: 'BTC',
+            ticker: CryptoTicker.BTC,
         },
         {
-            fiat: 'usd' as FiatCode,
+            fiat: Fiat.USD,
             price: 1900.73166438,
-            ticker: 'ETH',
+            ticker: CryptoTicker.ETH,
         },
     ],
 };

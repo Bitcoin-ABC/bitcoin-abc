@@ -33,6 +33,10 @@ function _toCoingeckoId(ticker: CryptoTicker): string {
             return 'bitcoin';
         case CryptoTicker.ETH:
             return 'ethereum';
+        case CryptoTicker.XMR:
+            return 'monero';
+        case CryptoTicker.SOL:
+            return 'solana';
     }
 
     throw new Error(`Unsupported crypto ticker: ${ticker}`);

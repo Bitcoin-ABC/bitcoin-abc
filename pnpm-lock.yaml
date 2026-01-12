@@ -156,6 +156,9 @@ importers:
       ecash-lib:
         specifier: file:../../modules/ecash-lib
         version: link:../../modules/ecash-lib
+      ecash-price:
+        specifier: file:../../modules/ecash-price
+        version: link:../../modules/ecash-price
       ecashaddrjs:
         specifier: file:../../modules/ecashaddrjs
         version: link:../../modules/ecashaddrjs

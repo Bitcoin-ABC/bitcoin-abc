@@ -95,6 +95,7 @@ COPY modules/ecash-lib/ ./modules/ecash-lib/
 COPY modules/ecash-wallet/ ./modules/ecash-wallet/
 COPY modules/ecash-agora/ ./modules/ecash-agora/
 COPY modules/mock-chronik-client/ ./modules/mock-chronik-client/
+COPY modules/ecash-price/ ./modules/ecash-price/
 COPY apps/ecash-herald/ ./apps/ecash-herald/
 
 # Install dependencies for local modules first
@@ -105,6 +106,7 @@ RUN pnpm install --frozen-lockfile --offline --filter ecash-lib...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-wallet...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-agora...
 RUN pnpm install --frozen-lockfile --offline --filter mock-chronik-client...
+RUN pnpm install --frozen-lockfile --offline --filter ecash-price...
 
 # Build local modules
 RUN pnpm --filter b58-ts run build
@@ -114,6 +116,7 @@ RUN pnpm --filter ecash-lib run build
 RUN pnpm --filter ecash-wallet run build
 RUN pnpm --filter ecash-agora run build
 RUN pnpm --filter mock-chronik-client run build
+RUN pnpm --filter ecash-price run build
 
 # Install dependencies for ecash-herald (now that local modules are built)
 RUN pnpm install --frozen-lockfile --offline --filter ecash-herald...
