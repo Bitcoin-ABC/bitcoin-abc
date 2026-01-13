@@ -53,6 +53,9 @@ import {
     ChainedTxType,
     getMaxP2pkhOutputs,
     removeSpentUtxos,
+    batchTokenSendOutputs,
+    checkTokenSendExceedsMaxOutputs,
+    RequiredTokenInputs,
 } from './wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
@@ -6280,6 +6283,741 @@ describe('getWalletUtxoFromOutput', () => {
                     mockOutputScript,
                 ),
             ).to.throw('Token type is required for token utxos');
+        });
+    });
+});
+
+describe('batchTokenSendOutputs', () => {
+    const createOutput = (index: number): payment.PaymentTokenOutput => ({
+        sats: 546n,
+        script: DUMMY_SCRIPT,
+        tokenId: '11'.repeat(32),
+        atoms: BigInt(index) * 1000n,
+        isMintBaton: false,
+    });
+
+    context('Error cases', () => {
+        it('Throws error when maxOutputsPerTx is 0', () => {
+            expect(() => batchTokenSendOutputs([createOutput(0)], 0)).to.throw(
+                'batchTokenSendOutputs called with maxOutputsPerTx of 0; must be greater than 1',
+            );
+        });
+
+        it('Throws error when maxOutputsPerTx is 1', () => {
+            expect(() => batchTokenSendOutputs([createOutput(0)], 1)).to.throw(
+                'batchTokenSendOutputs called with maxOutputsPerTx of 1; must be greater than 1',
+            );
+        });
+
+        it('Throws error when maxOutputsPerTx is negative', () => {
+            expect(() => batchTokenSendOutputs([createOutput(0)], -1)).to.throw(
+                'batchTokenSendOutputs called with maxOutputsPerTx of -1; must be greater than 1',
+            );
+        });
+    });
+
+    context('Empty array', () => {
+        it('Returns empty array for empty input', () => {
+            const result = batchTokenSendOutputs([], 19);
+            expect(result).to.deep.equal([]);
+        });
+    });
+
+    context('Single output', () => {
+        it('Returns single batch with one output', () => {
+            const outputs = [createOutput(0)];
+            const result = batchTokenSendOutputs(outputs, 19);
+            expect(result).to.have.length(1);
+            expect(result[0]).to.have.length(1);
+            expect(result[0][0]).to.deep.equal(outputs[0]);
+        });
+    });
+
+    context(
+        'Basic batching (maxOutputsPerTx = 19, maxEventOutputsPerTx = 18)',
+        () => {
+            const maxOutputsPerTx = 19;
+            const maxEventOutputsPerTx = 18;
+
+            it('Returns single batch when outputs = maxEventOutputsPerTx', () => {
+                const outputs = Array.from(
+                    { length: maxEventOutputsPerTx },
+                    (_, i) => createOutput(i),
+                );
+                const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+                expect(result).to.have.length(1);
+                expect(result[0]).to.have.length(maxEventOutputsPerTx);
+            });
+
+            it('Returns one batch when outputs = maxEventOutputsPerTx + 1 (optimization combines last batch, because chainedTxOmega does not need a change output)', () => {
+                const outputs = Array.from(
+                    { length: maxEventOutputsPerTx + 1 },
+                    (_, i) => createOutput(i),
+                );
+                const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+                // Optimization combines last batch of 1 element with previous batch
+                // since maxOutputsPerTx = 19, the last tx can have 19 outputs
+                expect(result).to.have.length(1);
+                expect(result[0]).to.have.length(maxEventOutputsPerTx + 1);
+            });
+
+            it('Returns two batches when outputs = maxEventOutputsPerTx * 2', () => {
+                const outputs = Array.from(
+                    { length: maxEventOutputsPerTx * 2 },
+                    (_, i) => createOutput(i),
+                );
+                const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+                expect(result).to.have.length(2);
+                expect(result[0]).to.have.length(maxEventOutputsPerTx);
+                expect(result[1]).to.have.length(maxEventOutputsPerTx);
+            });
+
+            it('Returns three batches when outputs = maxEventOutputsPerTx * 2 + 1', () => {
+                const outputs = Array.from(
+                    { length: maxEventOutputsPerTx * 2 + 1 },
+                    (_, i) => createOutput(i),
+                );
+                const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+                expect(result).to.have.length(2); // Last batch with 1 element gets combined
+                expect(result[0]).to.have.length(maxEventOutputsPerTx);
+                expect(result[1]).to.have.length(maxEventOutputsPerTx + 1);
+            });
+
+            it('Returns three batches when outputs = maxEventOutputsPerTx * 2 + 2', () => {
+                const outputs = Array.from(
+                    { length: maxEventOutputsPerTx * 2 + 2 },
+                    (_, i) => createOutput(i),
+                );
+                const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+                expect(result).to.have.length(3);
+                expect(result[0]).to.have.length(maxEventOutputsPerTx);
+                expect(result[1]).to.have.length(maxEventOutputsPerTx);
+                expect(result[2]).to.have.length(2);
+            });
+        },
+    );
+
+    context('Last batch optimization (maxOutputsPerTx > 2)', () => {
+        it('Combines last batch when it has 1 element (maxOutputsPerTx = 3)', () => {
+            const maxOutputsPerTx = 3;
+            const maxEventOutputsPerTx = 2;
+            const outputs = Array.from(
+                { length: maxEventOutputsPerTx * 2 + 1 },
+                (_, i) => createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(2); // Combined from 3 to 2
+            expect(result[0]).to.have.length(maxEventOutputsPerTx);
+            expect(result[1]).to.have.length(maxEventOutputsPerTx + 1);
+        });
+
+        it('Does not combine last batch when it has 2 elements (maxOutputsPerTx = 3)', () => {
+            const maxOutputsPerTx = 3;
+            const maxEventOutputsPerTx = 2;
+            const outputs = Array.from(
+                { length: maxEventOutputsPerTx * 2 + 2 },
+                (_, i) => createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(3); // Not combined
+            expect(result[0]).to.have.length(maxEventOutputsPerTx);
+            expect(result[1]).to.have.length(maxEventOutputsPerTx);
+            expect(result[2]).to.have.length(2);
+        });
+
+        it('Combines last batch with multiple preceding batches (maxOutputsPerTx = 5)', () => {
+            const maxOutputsPerTx = 5;
+            const maxEventOutputsPerTx = 4;
+            const outputs = Array.from(
+                { length: maxEventOutputsPerTx * 3 + 1 },
+                (_, i) => createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(3); // Combined from 4 to 3
+            expect(result[0]).to.have.length(maxEventOutputsPerTx);
+            expect(result[1]).to.have.length(maxEventOutputsPerTx);
+            expect(result[2]).to.have.length(maxEventOutputsPerTx + 1);
+        });
+    });
+
+    context('No optimization when maxOutputsPerTx = 2', () => {
+        it('Does not combine last batch when maxOutputsPerTx = 2', () => {
+            const maxOutputsPerTx = 2;
+            const maxEventOutputsPerTx = 1;
+            const outputs = Array.from(
+                { length: maxEventOutputsPerTx * 2 + 1 },
+                (_, i) => createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(3); // Not combined (maxOutputsPerTx = 2, so no optimization)
+            expect(result[0]).to.have.length(1);
+            expect(result[1]).to.have.length(1);
+            expect(result[2]).to.have.length(1);
+        });
+    });
+
+    context('Real-world values: SLP_MAX_SEND_OUTPUTS (19)', () => {
+        const maxOutputsPerTx = SLP_MAX_SEND_OUTPUTS; // 19
+
+        it('Handles exactly 18 outputs (single batch)', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(1);
+            expect(result[0]).to.have.length(18);
+        });
+
+        it('Handles 19 outputs (two batches, last combined; so one batch)', () => {
+            const outputs = Array.from({ length: 19 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(1); // Combined: 18 + 1 = 19 (fits in one tx)
+            expect(result[0]).to.have.length(19);
+        });
+
+        it('Handles 36 outputs (two batches)', () => {
+            const outputs = Array.from({ length: 36 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(2);
+            expect(result[0]).to.have.length(18);
+            expect(result[1]).to.have.length(18);
+        });
+
+        it('Handles 37 outputs (two batches, last combined)', () => {
+            const outputs = Array.from({ length: 37 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(2); // Combined: [18, 18+1=19]
+            expect(result[0]).to.have.length(18);
+            expect(result[1]).to.have.length(19);
+        });
+
+        it('Handles 42 outputs (three batches, no combination)', () => {
+            const outputs = Array.from({ length: 42 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            // 42 = 18 + 18 + 6, so 3 batches: [18, 18, 6]
+            // Last batch has 6 elements (not 1), so no combination
+            expect(result).to.have.length(3);
+            expect(result[0]).to.have.length(18);
+            expect(result[1]).to.have.length(18);
+            expect(result[2]).to.have.length(6);
+        });
+    });
+
+    context('Real-world values: ALP_POLICY_MAX_OUTPUTS (29)', () => {
+        const maxOutputsPerTx = ALP_POLICY_MAX_OUTPUTS; // 29
+
+        it('Handles exactly 28 outputs (single batch)', () => {
+            const outputs = Array.from({ length: 28 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(1);
+            expect(result[0]).to.have.length(28);
+        });
+
+        it('Handles 29 outputs (two batches, last combined)', () => {
+            const outputs = Array.from({ length: 29 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(1); // Combined: 28 + 1 = 29 (fits in one tx)
+            expect(result[0]).to.have.length(29);
+        });
+
+        it('Handles 56 outputs (two batches)', () => {
+            const outputs = Array.from({ length: 56 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(2);
+            expect(result[0]).to.have.length(28);
+            expect(result[1]).to.have.length(28);
+        });
+
+        it('Handles 57 outputs (two batches, last combined)', () => {
+            const outputs = Array.from({ length: 57 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, maxOutputsPerTx);
+            expect(result).to.have.length(2); // Combined: [28, 28+1=29]
+            expect(result[0]).to.have.length(28);
+            expect(result[1]).to.have.length(29);
+        });
+    });
+
+    context('Edge cases', () => {
+        it('Preserves output order', () => {
+            const outputs = Array.from({ length: 37 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, 19);
+            // Flatten and check order
+            const flattened = result.flat();
+            expect(flattened).to.have.length(37);
+            for (let i = 0; i < 37; i++) {
+                expect(flattened[i].atoms).to.equal(BigInt(i) * 1000n);
+            }
+        });
+
+        it('Handles very large number of outputs', () => {
+            const outputs = Array.from({ length: 100 }, (_, i) =>
+                createOutput(i),
+            );
+            const result = batchTokenSendOutputs(outputs, 19);
+            // 100 outputs / 18 maxEventOutputsPerTx = 5.55... = 6 batches
+            // Last batch: 100 % 18 = 10 outputs (not 1, so no combination)
+            // Expected: 6 batches
+            expect(result.length).to.equal(6);
+            // Verify batch sizes
+            expect(result[0]).to.have.length(18);
+            expect(result[1]).to.have.length(18);
+            expect(result[2]).to.have.length(18);
+            expect(result[3]).to.have.length(18);
+            expect(result[4]).to.have.length(18);
+            expect(result[5]).to.have.length(10);
+        });
+    });
+});
+
+describe('checkTokenSendExceedsMaxOutputs', () => {
+    const tokenId1 = '11'.repeat(32);
+    const tokenId2 = '22'.repeat(32);
+    const DUMMY_SCRIPT = Script.p2pkh(fromHex('00'.repeat(20)));
+
+    const createSendOutput = (
+        tokenId: string,
+        atoms: bigint,
+    ): payment.PaymentTokenOutput => ({
+        sats: 546n,
+        script: DUMMY_SCRIPT,
+        tokenId,
+        atoms,
+        isMintBaton: false,
+    });
+
+    context('SLP tokens', () => {
+        const tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
+
+        it('Returns false when no send actions', () => {
+            const action: payment.Action = {
+                outputs: [createSendOutput(tokenId1, 1000n)],
+                tokenActions: [],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+
+        it('Returns false when outputs are within limit (no change)', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+
+        it('Returns false when exactly at limit (18 outputs + OP_RETURN = 19)', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+
+        it('Returns true when outputs exceed limit (19 outputs + OP_RETURN = 20)', () => {
+            const outputs = Array.from({ length: 19 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                true,
+            );
+        });
+
+        it('Returns true when outputs exceed limit with change output', () => {
+            const outputs = Array.from(
+                { length: 18 },
+                (_, _i) => createSendOutput(tokenId1, 1000n), // All outputs have same atoms
+            );
+            const totalOutputAtoms = 18000n; // 18 * 1000
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            // Input atoms > output atoms, so change output will be added
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: totalOutputAtoms + 1n, // More than sum of outputs
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            // 18 outputs + 1 change + 1 OP_RETURN = 20 > 19
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(true);
+        });
+
+        it('Returns false when at limit with change output (18 outputs + 1 change + OP_RETURN = 19)', () => {
+            const outputs = Array.from({ length: 17 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            // Input atoms > output atoms, so change output will be added
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: 20000n, // More than sum of outputs
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            // 17 outputs + 1 change + 1 OP_RETURN = 19 (at limit)
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(false);
+        });
+
+        it('Returns false when no change needed (input atoms = output atoms)', () => {
+            const outputs = Array.from({ length: 18 }, () =>
+                createSendOutput(tokenId1, 1000n),
+            );
+            const totalOutputAtoms = 18000n;
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: totalOutputAtoms, // Exactly matches output atoms
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(false);
+        });
+
+        it('Ignores genesis token outputs', () => {
+            const outputs = [
+                createSendOutput(payment.GENESIS_TOKEN_ID_PLACEHOLDER, 1000n),
+                ...Array.from({ length: 19 }, (_, i) =>
+                    createSendOutput(tokenId1, BigInt(i) * 1000n),
+                ),
+            ];
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            // Genesis output should be ignored, so 19 outputs + OP_RETURN = 20 > 19
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                true,
+            );
+        });
+
+        it('Ignores outputs for different tokenIds', () => {
+            const outputs = [
+                ...Array.from({ length: 18 }, (_, i) =>
+                    createSendOutput(tokenId1, BigInt(i) * 1000n),
+                ),
+                ...Array.from({ length: 5 }, (_, i) =>
+                    createSendOutput(tokenId2, BigInt(i) * 1000n),
+                ),
+            ];
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            // Only tokenId1 outputs count, so 18 outputs + OP_RETURN = 19 (at limit)
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+    });
+
+    context('ALP tokens', () => {
+        const tokenType = ALP_TOKEN_TYPE_STANDARD;
+
+        it('Returns false when outputs are within limit (no change)', () => {
+            const outputs = Array.from({ length: 28 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+
+        it('Returns false when exactly at limit (28 outputs + OP_RETURN = 29)', () => {
+            const outputs = Array.from({ length: 28 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                false,
+            );
+        });
+
+        it('Returns true when outputs exceed limit (29 outputs + OP_RETURN = 30)', () => {
+            const outputs = Array.from({ length: 29 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(checkTokenSendExceedsMaxOutputs(action, tokenType)).to.equal(
+                true,
+            );
+        });
+
+        it('Returns true when outputs exceed limit with change output', () => {
+            const outputs = Array.from(
+                { length: 28 },
+                (_, _i) => createSendOutput(tokenId1, 1000n), // All outputs have same atoms
+            );
+            const totalOutputAtoms = 28000n; // 28 * 1000
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            // Input atoms > output atoms, so change output will be added
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: totalOutputAtoms + 1n, // More than sum of outputs
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            // 28 outputs + 1 change + 1 OP_RETURN = 30 > 29
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(true);
+        });
+    });
+
+    context('Edge cases', () => {
+        const tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
+
+        it('Returns false when tokens map is undefined', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, undefined),
+            ).to.equal(false);
+        });
+
+        it('Returns false when tokenId not in tokens map', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId2, // Different tokenId
+                    {
+                        atoms: 20000n,
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(false);
+        });
+
+        it('Returns false when input atoms <= output atoms (no change)', () => {
+            const outputs = Array.from({ length: 18 }, () =>
+                createSendOutput(tokenId1, 1000n),
+            );
+            const totalOutputAtoms = 18000n;
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: totalOutputAtoms - 1n, // Less than output atoms
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(false);
+        });
+
+        it('Returns false when requiredTokenInputs.atoms is 0', () => {
+            const outputs = Array.from({ length: 18 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i) * 1000n),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType,
+                    },
+                ],
+            };
+            const tokens = new Map<string, RequiredTokenInputs>([
+                [
+                    tokenId1,
+                    {
+                        atoms: 0n, // Zero atoms, no change
+                        atomsMustBeExact: false,
+                        needsMintBaton: false,
+                    },
+                ],
+            ]);
+            expect(
+                checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
+            ).to.equal(false);
         });
     });
 });

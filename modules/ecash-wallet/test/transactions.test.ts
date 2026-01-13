@@ -689,47 +689,6 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        const slpSendActionTooManyOutputs: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /**
-                 * SEND qtys at outIdx 1-17
-                 * In this way, we expect token change
-                 * at outIdx 19, the higest available outIdx
-                 * for SLP token outputs
-                 */
-                ...tokenSendOutputs,
-                // Add a single additional token output
-                // We will try to add a token change output and this will be an output too far for spec
-                {
-                    sats: 546n,
-                    script: slpWallet.script,
-                    tokenId: slpGenesisTokenId,
-                    atoms: BigInt(1n),
-                },
-            ],
-            tokenActions: [
-                /** SLP send action */
-                {
-                    type: 'SEND',
-                    tokenId: slpGenesisTokenId,
-                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
-                },
-            ],
-        };
-
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_FUNGIBLE.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpWallet
             .action(slpSendAction)
@@ -830,6 +789,44 @@ describe('Wallet can build and broadcast on regtest', () => {
         );
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        const slpSendActionTooManyOutputs: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-17
+                 * In this way, we expect token change
+                 * at outIdx 19, the higest available outIdx
+                 * for SLP token outputs
+                 */
+                ...tokenSendOutputs,
+                // Add a single additional token output
+                // We will try to add a token change output and this will be an output too far for spec
+                {
+                    sats: 546n,
+                    script: slpWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: BigInt(1n),
+                },
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                },
+            ],
+        };
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
     });
     it('We can handle ALP ALP_TOKEN_TYPE_STANDARD token actions', async () => {
         // Init the wallet
@@ -1468,7 +1465,7 @@ describe('Wallet can build and broadcast on regtest', () => {
             mintVaultScripthash: toHex(slpMintVaultWallet.pkh),
         };
 
-        const genesisMintQty = 1_000n;
+        const genesisMintQty = 2_000n;
 
         // Construct the Action for this tx
         const slpGenesisAction: payment.Action = {
@@ -1545,47 +1542,6 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        const slpSendActionTooManyOutputs: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /**
-                 * SEND qtys at outIdx 1-17
-                 * In this way, we expect token change
-                 * at outIdx 19, the higest available outIdx
-                 * for SLP token outputs
-                 */
-                ...tokenSendOutputs,
-                // Add a single additional token output
-                // We will try to add a token change output and this will be an output too far for spec
-                {
-                    sats: 546n,
-                    script: slpMintVaultWallet.script,
-                    tokenId: slpGenesisTokenId,
-                    atoms: BigInt(1n),
-                },
-            ],
-            tokenActions: [
-                /** SLP send action */
-                {
-                    type: 'SEND',
-                    tokenId: slpGenesisTokenId,
-                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
-                },
-            ],
-        };
-
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpMintVaultWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_MINT_VAULT.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpMintVaultWallet
             .action(slpSendAction)
@@ -1652,7 +1608,45 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
 
-        const burnAtoms = 700n;
+        const slpSendActionTooManyOutputs: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-17
+                 * In this way, we expect token change
+                 * at outIdx 19, the higest available outIdx
+                 * for SLP token outputs
+                 */
+                ...tokenSendOutputs,
+                // Add a single additional token output
+                // We will try to add a token change output and this will be an output too far for spec
+                {
+                    sats: 546n,
+                    script: slpMintVaultWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: BigInt(1n),
+                },
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_MINT_VAULT,
+                },
+            ],
+        };
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpMintVaultWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
+
+        const burnAtoms = 1528n; // We have this exact utxo
         const slpBurnAction: payment.Action = {
             outputs: [
                 /** Blank OP_RETURN at outIdx 0 */
@@ -1848,47 +1842,6 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        const slpSendActionTooManyOutputs: payment.Action = {
-            outputs: [
-                /** Blank OP_RETURN at outIdx 0 */
-                { sats: 0n },
-                /**
-                 * SEND qtys at outIdx 1-17
-                 * In this way, we expect token change
-                 * at outIdx 19, the higest available outIdx
-                 * for SLP token outputs
-                 */
-                ...tokenSendOutputs,
-                // Add a single additional token output
-                // We will try to add a token change output and this will be an output too far for spec
-                {
-                    sats: 546n,
-                    script: slpWallet.script,
-                    tokenId: slpGenesisTokenId,
-                    atoms: BigInt(1n),
-                },
-            ],
-            tokenActions: [
-                /** SLP send action */
-                {
-                    type: 'SEND',
-                    tokenId: slpGenesisTokenId,
-                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
-                },
-            ],
-        };
-
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_NFT1_GROUP.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpWallet
             .action(slpSendAction)
@@ -1989,6 +1942,44 @@ describe('Wallet can build and broadcast on regtest', () => {
         );
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        const slpSendActionTooManyOutputs: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /**
+                 * SEND qtys at outIdx 1-17
+                 * In this way, we expect token change
+                 * at outIdx 19, the higest available outIdx
+                 * for SLP token outputs
+                 */
+                ...tokenSendOutputs,
+                // Add a single additional token output
+                // We will try to add a token change output and this will be an output too far for spec
+                {
+                    sats: 546n,
+                    script: slpWallet.script,
+                    tokenId: slpGenesisTokenId,
+                    atoms: BigInt(1n),
+                },
+            ],
+            tokenActions: [
+                /** SLP send action */
+                {
+                    type: 'SEND',
+                    tokenId: slpGenesisTokenId,
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                },
+            ],
+        };
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
     });
     it('We can handle SLP SLP_TOKEN_TYPE_NFT1_CHILD token actions', async () => {
         // Init the wallet
@@ -2602,5 +2593,918 @@ describe('Wallet can build and broadcast on regtest', () => {
             0n,
         );
         expect(totalAtoms).to.equal(150n); // 100 + 50
+    });
+    it('We can send a chained token tx to 42 recipients for an ALP ALP_TOKEN_TYPE_STANDARD token', async () => {
+        // Init the wallet
+        const chainedTokenWallet = Wallet.fromSk(
+            fromHex('19'.repeat(32)),
+            chronik,
+        );
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, chainedTokenWallet.script);
+
+        // Sync the wallet
+        await chainedTokenWallet.sync();
+
+        // First, create an ALP token
+        const alpGenesisInfo = {
+            tokenTicker: 'CHAIN',
+            tokenName: 'Chained Token Test',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(chainedTokenWallet.pk),
+        };
+
+        const genesisMintQty = 100_000n; // Enough tokens for 42 recipients
+
+        // Construct the Action for genesis
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: chainedTokenWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: chainedTokenWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await chainedTokenWallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const alpTokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid ALP genesis tx
+        const tokenInfo = await chronik.token(alpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('ALP_TOKEN_TYPE_STANDARD');
+
+        // Now create a send action with 42 recipients
+        // This exceeds ALP_POLICY_MAX_OUTPUTS (29), so it will require chained txs
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        // Create 42 unique recipient addresses
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: alpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const alpChainedSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 42 recipient outputs */
+                ...recipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // Build the chained transaction
+        const chainedSendResp = await chainedTokenWallet
+            .action(alpChainedSendAction)
+            .build()
+            .broadcast();
+
+        // Verify we got multiple transactions (chained)
+        expect(chainedSendResp.broadcasted.length).to.be.greaterThan(1);
+
+        // Verify all transactions were broadcast successfully and are valid token txs
+        for (let i = 0; i < chainedSendResp.broadcasted.length; i++) {
+            const txid = chainedSendResp.broadcasted[i];
+            const tx = await chronik.tx(txid);
+
+            // Verify it's a valid token transaction
+            expect(tx.tokenEntries).to.have.length(1);
+            const tokenEntry = tx.tokenEntries[0];
+            expect(tokenEntry.txType).to.equal('SEND');
+            expect(tokenEntry.tokenId).to.equal(alpTokenId);
+            expect(tokenEntry.tokenType.type).to.equal(
+                'ALP_TOKEN_TYPE_STANDARD',
+            );
+            expect(tokenEntry.tokenType.protocol).to.equal('ALP');
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+            // Verify OP_RETURN output exists at index 0
+            expect(tx.outputs[0].sats).to.equal(0n);
+
+            // Verify all token outputs have the correct tokenId
+            const tokenOutputs = tx.outputs.filter(
+                output => output.token !== undefined,
+            );
+            for (const output of tokenOutputs) {
+                expect(output.token?.tokenId).to.equal(alpTokenId);
+                expect(output.token?.tokenType.type).to.equal(
+                    'ALP_TOKEN_TYPE_STANDARD',
+                );
+            }
+        }
+
+        // ALP can do this in 2 txs
+        expect(chainedSendResp.broadcasted.length).to.equal(2);
+
+        // chainedTxAlpha fits as many outputs as possible
+        const chainedTxAlpha = await chronik.tx(chainedSendResp.broadcasted[0]);
+
+        // We have 31 total outputs; 1xOP_RETURN + 29x token outputs + 1x XEC change
+        expect(chainedTxAlpha.outputs.length).to.equal(31);
+
+        // The last output is XEC change only
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1].sats,
+        ).to.equal(6271433n);
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1].token,
+        ).to.equal(undefined);
+
+        // The 2nd-to-last output is the input for the next tx
+
+        // We have non-dust XEC sats combined with token change
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2].sats,
+        ).to.equal(8997n);
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2].token
+                ?.atoms,
+        ).to.equal(72000n);
+
+        const chainedTxOmega = await chronik.tx(chainedSendResp.broadcasted[1]);
+
+        // chainedTxOmega should have exactly 1 input, which is the 2nd-to-last output from chainedTxAlpha
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInput = chainedTxOmega.inputs[0];
+        expect(chainedInput.prevOut.txid).to.equal(chainedTxAlpha.txid);
+        expect(chainedInput.prevOut.outIdx).to.equal(29); // 2nd-to-last output index
+        expect(chainedInput.sats).to.equal(8997n);
+        expect(chainedInput.token?.atoms).to.equal(72000n);
+
+        // We have only OP_RETURN and token outputs for chainedTxOmega
+        expect(chainedTxOmega.outputs.length).to.equal(16);
+
+        // Start at 1 as we do not expect the OP_RETURN output to be a token utxo
+        for (let i = 1; i < chainedTxOmega.outputs.length; i++) {
+            expect(chainedTxOmega.outputs[i].token?.tokenId).to.equal(
+                alpTokenId,
+            );
+        }
+
+        // The last output has exactly dust sats
+        expect(
+            chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
+        ).to.equal(DEFAULT_DUST_SATS);
+    });
+    it('We can send an ALP tx to 29 recipients as 1 tx, but data actions are not supported in chained token send transactions', async () => {
+        /**
+         * Data actions are not currently supported in chained token send transactions.
+         * This test confirms that attempting to include a data action in a chained token send
+         * will throw an error.
+         */
+
+        // Init the wallet
+        const alp29Wallet = Wallet.fromSk(fromHex('1b'.repeat(32)), chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, alp29Wallet.script);
+
+        // Sync the wallet
+        await alp29Wallet.sync();
+
+        // First, create an ALP token
+        const alpGenesisInfo = {
+            tokenTicker: 'ALP29',
+            tokenName: 'ALP 29 Recipients Test',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(alp29Wallet.pk),
+        };
+
+        // Need enough tokens for:
+        // 1. First send: (ALP_POLICY_MAX_OUTPUTS - 1) recipients * 1000 atoms = 28,000 atoms
+        // 2. Second send (with data action): (ALP_POLICY_MAX_OUTPUTS - 1) recipients * 1000 atoms = 28,000 atoms
+        // Total: 56,000 atoms, plus some buffer for change
+        const genesisMintQty = 100_000n;
+
+        // Construct the Action for genesis
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: alp29Wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: alp29Wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await alp29Wallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const alpTokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid ALP genesis tx
+        const tokenInfo = await chronik.token(alpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('ALP_TOKEN_TYPE_STANDARD');
+
+        // Now create a send action with ALP_POLICY_MAX_OUTPUTS - 1 recipients
+        // This should fit in 1 tx with change (ALP_POLICY_MAX_OUTPUTS - 1 recipients + 1 change = ALP_POLICY_MAX_OUTPUTS token outputs)
+        const numRecipients = ALP_POLICY_MAX_OUTPUTS - 1;
+        const atomsPerRecipient = 1000n;
+
+        // Create ALP_POLICY_MAX_OUTPUTS - 1 unique recipient addresses
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: alpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const alp29RecipientsAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** ALP_POLICY_MAX_OUTPUTS - 1 recipient outputs */
+                ...recipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // Build and broadcast - should be 1 tx
+        const singleTxResp = await alp29Wallet
+            .action(alp29RecipientsAction)
+            .build()
+            .broadcast();
+
+        // Verify we got exactly 1 transaction
+        expect(singleTxResp.broadcasted.length).to.equal(1);
+
+        const singleTx = await chronik.tx(singleTxResp.broadcasted[0]);
+        expect(singleTx.tokenEntries).to.have.length(1);
+        expect(singleTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(singleTx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+        expect(singleTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify we have expected outputs: 29x token outputs (ALP_POLICY_MAX_OUTPUTS), 1xOP_RETURN, 1x XEC change
+        expect(singleTx.outputs.length).to.equal(
+            ALP_POLICY_MAX_OUTPUTS + 1 + 1,
+        );
+
+        // Verify we have exactly ALP_POLICY_MAX_OUTPUTS token outputs (ALP_POLICY_MAX_OUTPUTS - 1 recipients + 1 change)
+        const tokenOutputs = singleTx.outputs.filter(
+            output => output.token !== undefined,
+        );
+        expect(tokenOutputs.length).to.equal(ALP_POLICY_MAX_OUTPUTS);
+
+        // Now test that data actions are not supported in chained token send transactions
+        // Send to ALP_POLICY_MAX_OUTPUTS recipients (29), which exceeds the max when including change
+        // This would trigger chained transactions, but data actions are not supported
+        const oneByteData = new TextEncoder().encode('x'); // 1 byte data
+
+        // Create ALP_POLICY_MAX_OUTPUTS recipient outputs (one more than before)
+        const maxRecipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < ALP_POLICY_MAX_OUTPUTS; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            maxRecipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: alpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const alpMaxRecipientsWithOneByteData: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** ALP_POLICY_MAX_OUTPUTS recipient outputs */
+                ...maxRecipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                {
+                    type: 'DATA',
+                    data: oneByteData,
+                },
+            ],
+        };
+
+        // This should throw an error because data actions are not supported in chained transactions
+        expect(() =>
+            alp29Wallet
+                .clone()
+                .action(alpMaxRecipientsWithOneByteData)
+                .build(ALL_BIP143),
+        ).to.throw(
+            Error,
+            'Data actions are not supported in chained token send transactions.',
+        );
+    });
+    it('We can send a chained token tx to 42 recipients for an SLP SLP_TOKEN_TYPE_FUNGIBLE token', async () => {
+        // Init the wallet
+        const chainedSlpWallet = Wallet.fromSk(
+            fromHex('1a'.repeat(32)),
+            chronik,
+        );
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, chainedSlpWallet.script);
+
+        // Sync the wallet
+        await chainedSlpWallet.sync();
+
+        // First, create an SLP token
+        const slpGenesisInfo = {
+            tokenTicker: 'CHAIN',
+            tokenName: 'Chained SLP Token Test',
+            url: 'cashtab.com',
+            decimals: 0,
+        };
+
+        const genesisMintQty = 100_000n; // Enough tokens for 42 recipients
+
+        // Construct the Action for genesis
+        const slpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: chainedSlpWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: chainedSlpWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    genesisInfo: slpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await chainedSlpWallet
+            .action(slpGenesisAction)
+            .build()
+            .broadcast();
+
+        const slpTokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid SLP genesis tx
+        const tokenInfo = await chronik.token(slpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('SLP_TOKEN_TYPE_FUNGIBLE');
+
+        // Now create a send action with 42 recipients
+        // This exceeds SLP_MAX_SEND_OUTPUTS (19), so it will require chained txs
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        // Create 42 unique recipient addresses
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: slpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const slpChainedSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 42 recipient outputs */
+                ...recipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: slpTokenId,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                },
+            ],
+        };
+
+        // Build the chained transaction
+        const chainedSendResp = await chainedSlpWallet
+            .action(slpChainedSendAction)
+            .build()
+            .broadcast();
+
+        // Verify we got multiple transactions (chained)
+        expect(chainedSendResp.broadcasted.length).to.be.greaterThan(1);
+
+        // Verify all transactions were broadcast successfully and are valid token txs
+        for (let i = 0; i < chainedSendResp.broadcasted.length; i++) {
+            const txid = chainedSendResp.broadcasted[i];
+            const tx = await chronik.tx(txid);
+
+            // Verify it's a valid token transaction
+            expect(tx.tokenEntries).to.have.length(1);
+            const tokenEntry = tx.tokenEntries[0];
+            expect(tokenEntry.txType).to.equal('SEND');
+            expect(tokenEntry.tokenId).to.equal(slpTokenId);
+            expect(tokenEntry.tokenType.type).to.equal(
+                'SLP_TOKEN_TYPE_FUNGIBLE',
+            );
+            expect(tokenEntry.tokenType.protocol).to.equal('SLP');
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+            // Verify OP_RETURN output exists at index 0
+            expect(tx.outputs[0].sats).to.equal(0n);
+
+            // Verify all token outputs have the correct tokenId
+            const tokenOutputs = tx.outputs.filter(
+                output => output.token !== undefined,
+            );
+            for (const output of tokenOutputs) {
+                expect(output.token?.tokenId).to.equal(slpTokenId);
+                expect(output.token?.tokenType.type).to.equal(
+                    'SLP_TOKEN_TYPE_FUNGIBLE',
+                );
+            }
+        }
+
+        // SLP can do this in 3 txs (SLP_MAX_SEND_OUTPUTS = 19)
+        // First tx: 19 recipients, second tx: 19 recipients, third tx: 4 recipients + change
+        expect(chainedSendResp.broadcasted.length).to.equal(3);
+
+        // chainedTxAlpha fits as many outputs as possible
+        const chainedTxAlpha = await chronik.tx(chainedSendResp.broadcasted[0]);
+
+        // We have 21 total outputs; 1xOP_RETURN + 18x recipient token outputs + 1x token chained output + 1x XEC change
+        expect(chainedTxAlpha.outputs.length).to.equal(21);
+
+        // The last output is XEC change only
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1].token,
+        ).to.equal(undefined);
+
+        // The 2nd-to-last output is the chained output (input for next tx)
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(slpTokenId);
+        expect(chainedOutputAlpha.sats).to.equal(15180n);
+        expect(chainedOutputAlpha.token?.atoms).to.equal(82000n);
+
+        // chainedTxBeta (second tx)
+        const chainedTxBeta = await chronik.tx(chainedSendResp.broadcasted[1]);
+
+        // chainedTxBeta should have exactly 1 input, which is the 2nd-to-last output from chainedTxAlpha
+        expect(chainedTxBeta.inputs.length).to.equal(1);
+        const chainedInputBeta = chainedTxBeta.inputs[0];
+        expect(chainedInputBeta.prevOut.txid).to.equal(chainedTxAlpha.txid);
+        expect(chainedInputBeta.prevOut.outIdx).to.equal(19); // 2nd-to-last output index
+
+        // We have 20 total outputs; 1xOP_RETURN + 18x token outputs + 1x chained output
+        // All the XEC-only change is handled in chainedTxAlpha
+        expect(chainedTxBeta.outputs.length).to.equal(20);
+
+        // The last output is the chained output (input for next tx)
+        const chainedOutputBeta =
+            chainedTxBeta.outputs[chainedTxBeta.outputs.length - 1];
+        expect(chainedOutputBeta.token?.tokenId).to.equal(slpTokenId);
+        expect(chainedOutputBeta.sats).to.equal(4329n);
+        expect(chainedOutputBeta.token?.atoms).to.equal(64000n);
+
+        // chainedTxOmega (final tx)
+        const chainedTxOmega = await chronik.tx(chainedSendResp.broadcasted[2]);
+
+        // chainedTxOmega should have exactly 1 input, which is the 2nd-to-last output from chainedTxBeta
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInputOmega = chainedTxOmega.inputs[0];
+        expect(chainedInputOmega.prevOut.txid).to.equal(chainedTxBeta.txid);
+        expect(chainedInputOmega.prevOut.outIdx).to.equal(19); // 2nd-to-last output index
+
+        // We have only OP_RETURN and token outputs for chainedTxOmega
+        expect(chainedTxOmega.outputs.length).to.equal(8); // 1 OP_RETURN + 7 recipients
+
+        // Start at 1 as we do not expect the OP_RETURN output to be a token utxo
+        for (let i = 1; i < chainedTxOmega.outputs.length; i++) {
+            expect(chainedTxOmega.outputs[i].token?.tokenId).to.equal(
+                slpTokenId,
+            );
+        }
+
+        // The last output has exactly dust sats (token change)
+        expect(
+            chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
+        ).to.equal(DEFAULT_DUST_SATS);
+    });
+
+    it('We can send a chained token tx and then another tx without syncing', async () => {
+        // This test verifies that the wallet's UTXO set is correctly updated after
+        // building/broadcasting chained token transactions, so subsequent transactions
+        // can use the updated UTXO set without needing to sync
+        const wallet = Wallet.fromSk(fromHex('1c'.repeat(32)), chronik);
+
+        // Send enough XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, wallet.script);
+        await wallet.sync();
+
+        // First, create an ALP token
+        const alpGenesisInfo = {
+            tokenTicker: 'CHAIN2',
+            tokenName: 'Chained Token Test 2',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(wallet.pk),
+        };
+
+        const genesisMintQty = 200_000n; // Enough for chained send + another send
+
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        const genesisResp = await wallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const tokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid ALP genesis tx
+        const tokenInfo = await chronik.token(tokenId);
+        expect(tokenInfo.tokenType.type).to.equal('ALP_TOKEN_TYPE_STANDARD');
+
+        // Now create a chained send action with 42 recipients
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const chainedSendAction: payment.Action = {
+            outputs: [{ sats: 0n }, ...recipientOutputs],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // Build and broadcast the chained transaction
+        const chainedSendResp = await wallet
+            .action(chainedSendAction)
+            .build()
+            .broadcast();
+
+        // Verify we got multiple transactions (chained)
+        expect(chainedSendResp.broadcasted.length).to.equal(2);
+
+        // Verify all chained transactions are valid
+        for (const txid of chainedSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            expect(tx.tokenEntries[0].tokenId).to.equal(tokenId);
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+        }
+
+        // Now send another transaction WITHOUT syncing
+        // This should work because the wallet's UTXO set was updated after the chained send
+        const additionalRecipientScript = Script.p2pkh(
+            fromHex('ff'.repeat(20)),
+        );
+        const additionalSendAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: additionalRecipientScript,
+                    tokenId,
+                    atoms: 5000n,
+                    isMintBaton: false,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // This should succeed without syncing because the wallet's UTXO set
+        // was updated after the chained send
+        const additionalSendResp = await wallet
+            .action(additionalSendAction)
+            .build()
+            .broadcast();
+
+        // Verify the additional transaction was successful
+        expect(additionalSendResp.success).to.equal(true);
+        expect(additionalSendResp.broadcasted.length).to.equal(1);
+
+        const additionalTx = await chronik.tx(
+            additionalSendResp.broadcasted[0],
+        );
+        expect(additionalTx.tokenEntries).to.have.length(1);
+        expect(additionalTx.tokenEntries[0].txType).to.equal('SEND');
+        expect(additionalTx.tokenEntries[0].tokenId).to.equal(tokenId);
+        expect(additionalTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify the output went to the correct recipient
+        const recipientOutput = additionalTx.outputs.find(
+            output => output.outputScript === additionalRecipientScript.toHex(),
+        );
+        expect(recipientOutput).to.not.equal(undefined);
+        expect(recipientOutput?.token?.tokenId).to.equal(tokenId);
+        expect(recipientOutput?.token?.atoms).to.equal(5000n);
+    });
+
+    it('Edge case: chained token send fuel UTXO threshold (hardcoded)', async () => {
+        // This test verifies the fuel UTXO selection logic with a hardcoded threshold
+        // Threshold found via binary search: 27629 sats is the minimum needed
+        // for a chained token send with 42 recipients
+        //
+        // Test cases:
+        // 1. 27628 sats (1 sat short): should fail during build phase
+        // 2. 27629 sats (threshold): should build and broadcast successfully
+
+        const slpGenesisInfo = {
+            tokenTicker: 'EDGE',
+            tokenName: 'Edge Case Test Token',
+            url: 'cashtab.com',
+            decimals: 0,
+        };
+
+        const genesisMintQty = 100_000n;
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        // Helper to create genesis action for a wallet
+        const createGenesisAction = (wallet: Wallet): payment.Action => ({
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: wallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    genesisInfo: slpGenesisInfo,
+                },
+            ],
+        });
+
+        // Helper to create recipient outputs
+        const createRecipientOutputs = (
+            tokenId: string,
+        ): payment.PaymentTokenOutput[] => {
+            const outputs: payment.PaymentTokenOutput[] = [];
+            for (let i = 0; i < numRecipients; i++) {
+                const hex = i.toString(16).padStart(40, '0');
+                const script = Script.p2pkh(fromHex(hex));
+                outputs.push({
+                    sats: DEFAULT_DUST_SATS,
+                    script,
+                    tokenId,
+                    atoms: atomsPerRecipient,
+                    isMintBaton: false,
+                });
+            }
+            return outputs;
+        };
+
+        // Helper to create chained send action
+        const createChainedSendAction = (tokenId: string): payment.Action => ({
+            outputs: [{ sats: 0n }, ...createRecipientOutputs(tokenId)],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                },
+            ],
+        });
+
+        // Hardcoded threshold found via binary search
+        // This is the amount needed AFTER genesis to build the chained send
+        // We need to account for genesis transaction cost to get the amount needed BEFORE genesis
+        const requiredAfterGenesis = 25_626n; // Amount needed after genesis (found via debug logs)
+        const genesisTxCost = 1423n; // Cost of genesis transaction
+        const thresholdAmount = requiredAfterGenesis + genesisTxCost;
+        const oneSatShortAmount = thresholdAmount - 1n; // (1 sat short)
+
+        // Test 1: One sat short - should fail during build
+        const oneSatShortWallet = Wallet.fromSk(
+            fromHex('7a'.repeat(32)),
+            chronik,
+        );
+
+        await runner.sendToScript(oneSatShortAmount, oneSatShortWallet.script);
+        await oneSatShortWallet.sync();
+
+        const oneSatShortGenesisResp = await oneSatShortWallet
+            .action(createGenesisAction(oneSatShortWallet))
+            .build()
+            .broadcast();
+
+        const oneSatShortTokenId = oneSatShortGenesisResp.broadcasted[0];
+
+        expect(() =>
+            oneSatShortWallet
+                .action(createChainedSendAction(oneSatShortTokenId))
+                .build(),
+        ).to.throw(
+            Error,
+            'Insufficient sats to complete chained token send. Have 26171 sats, insufficient to cover chained tx required sats (15180) + fee (variable with inputs).',
+        );
+
+        // Test 2: Just enough sats - should build and broadcast successfully
+        const justEnoughWallet = Wallet.fromSk(
+            fromHex('8a'.repeat(32)),
+            chronik,
+        );
+
+        await runner.sendToScript(thresholdAmount, justEnoughWallet.script);
+        await justEnoughWallet.sync();
+
+        const justEnoughGenesisResp = await justEnoughWallet
+            .action(createGenesisAction(justEnoughWallet))
+            .build()
+            .broadcast();
+
+        const justEnoughTokenId = justEnoughGenesisResp.broadcasted[0];
+
+        const justEnoughBuilt = await justEnoughWallet
+            .action(createChainedSendAction(justEnoughTokenId))
+            .build();
+
+        const justEnoughResp = await justEnoughBuilt.broadcast();
+
+        // Should have multiple chained transactions
+        expect(justEnoughResp.success).to.equal(true);
+        expect(justEnoughResp.broadcasted.length).to.equal(3);
+
+        // The last output has token dust sats as expected
+        const chainedTxOmega = await chronik.tx(justEnoughResp.broadcasted[2]);
+        expect(
+            chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
+        ).to.equal(DEFAULT_DUST_SATS);
     });
 });

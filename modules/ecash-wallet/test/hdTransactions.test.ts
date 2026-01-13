@@ -858,17 +858,6 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_FUNGIBLE.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpWallet
             .action(slpSendAction)
@@ -891,8 +880,7 @@ describe('HD Wallet can build and broadcast on regtest', () => {
 
         // Token change is at output index 19 (outIdx 19)
         const tokenChangeOutput = sendTx.outputs[19];
-        expect(tokenChangeOutput.token).to.not.equal(undefined);
-        expect(tokenChangeOutput.token!.tokenId).to.equal(slpGenesisTokenId);
+        expect(tokenChangeOutput.token?.tokenId).to.equal(slpGenesisTokenId);
 
         // Token change should be at changeIndex 2
         const expectedTokenChangeIndex = 2;
@@ -1016,6 +1004,48 @@ describe('HD Wallet can build and broadcast on regtest', () => {
         );
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
+
+        // Verify chained transactions and HD wallet change addresses
+        const chainedTxAlpha = await chronik.tx(
+            chainedSendResponse.broadcasted[0],
+        );
+        const chainedTxOmega = await chronik.tx(
+            chainedSendResponse.broadcasted[1],
+        );
+
+        // Verify chainedTxAlpha has the expected structure
+        expect(chainedTxAlpha.tokenEntries).to.have.length(1);
+        expect(chainedTxAlpha.tokenEntries[0].txType).to.equal('SEND');
+        expect(chainedTxAlpha.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify chainedTxOmega has exactly 1 input from chainedTxAlpha
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInput = chainedTxOmega.inputs[0];
+        expect(chainedInput.prevOut.txid).to.equal(chainedTxAlpha.txid);
+
+        // Verify HD wallet change addresses in chained transactions
+        // The chained output (token change) in chainedTxAlpha should use a new change address
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        // Verify the input references the correct output index (2nd-to-last output)
+        expect(chainedInput.prevOut.outIdx).to.equal(
+            chainedTxAlpha.outputs.length - 2,
+        );
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(slpGenesisTokenId);
+        const chainedOutputAddress = Address.fromScriptHex(
+            chainedOutputAlpha.outputScript,
+        ).toString();
+        // This should be a wallet change address
+        const allWalletAddresses = slpWallet.getAllAddresses();
+        expect(allWalletAddresses).to.include(chainedOutputAddress);
     });
     it('We can handle ALP ALP_TOKEN_TYPE_STANDARD token actions', async () => {
         // Init the wallet
@@ -1595,8 +1625,7 @@ describe('HD Wallet can build and broadcast on regtest', () => {
 
         // First token change is at output index 10 (outIdx 10)
         const firstTokenChangeOutput = sendTx.outputs[10];
-        expect(firstTokenChangeOutput.token).to.not.equal(undefined);
-        expect(firstTokenChangeOutput.token!.tokenId).to.equal(
+        expect(firstTokenChangeOutput.token?.tokenId).to.equal(
             alpGenesisTokenId,
         );
 
@@ -1614,8 +1643,7 @@ describe('HD Wallet can build and broadcast on regtest', () => {
 
         // Second token change is at output index 11 (outIdx 11)
         const secondTokenChangeOutput = sendTx.outputs[11];
-        expect(secondTokenChangeOutput.token).to.not.equal(undefined);
-        expect(secondTokenChangeOutput.token!.tokenId).to.equal(
+        expect(secondTokenChangeOutput.token?.tokenId).to.equal(
             alpGenesisTokenIdBeta,
         );
 
@@ -1730,8 +1758,7 @@ describe('HD Wallet can build and broadcast on regtest', () => {
 
         // Token change for alpGenesisTokenId is at output index 2 (outIdx 2)
         const burnTokenChangeOutputAlpha = burnTx.outputs[2];
-        expect(burnTokenChangeOutputAlpha.token).to.not.equal(undefined);
-        expect(burnTokenChangeOutputAlpha.token!.tokenId).to.equal(
+        expect(burnTokenChangeOutputAlpha.token?.tokenId).to.equal(
             alpGenesisTokenId,
         );
 
@@ -1749,8 +1776,7 @@ describe('HD Wallet can build and broadcast on regtest', () => {
 
         // Token change for alpGenesisTokenIdBeta is at output index 3 (outIdx 3)
         const burnTokenChangeOutputBeta = burnTx.outputs[3];
-        expect(burnTokenChangeOutputBeta.token).to.not.equal(undefined);
-        expect(burnTokenChangeOutputBeta.token!.tokenId).to.equal(
+        expect(burnTokenChangeOutputBeta.token?.tokenId).to.equal(
             alpGenesisTokenIdBeta,
         );
 
@@ -1975,17 +2001,6 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpMintVaultWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_MINT_VAULT.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpMintVaultWallet
             .action(slpSendAction)
@@ -2051,6 +2066,48 @@ describe('HD Wallet can build and broadcast on regtest', () => {
         );
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpMintVaultWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
+
+        // Verify chained transactions and HD wallet change addresses
+        const chainedTxAlpha = await chronik.tx(
+            chainedSendResponse.broadcasted[0],
+        );
+        const chainedTxOmega = await chronik.tx(
+            chainedSendResponse.broadcasted[1],
+        );
+
+        // Verify chainedTxAlpha has the expected structure
+        expect(chainedTxAlpha.tokenEntries).to.have.length(1);
+        expect(chainedTxAlpha.tokenEntries[0].txType).to.equal('SEND');
+        expect(chainedTxAlpha.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify chainedTxOmega has exactly 1 input from chainedTxAlpha
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInput = chainedTxOmega.inputs[0];
+        expect(chainedInput.prevOut.txid).to.equal(chainedTxAlpha.txid);
+
+        // Verify HD wallet change addresses in chained transactions
+        // The chained output (token change) in chainedTxAlpha should use a new change address
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        // Verify the input references the correct output index (2nd-to-last output)
+        expect(chainedInput.prevOut.outIdx).to.equal(
+            chainedTxAlpha.outputs.length - 2,
+        );
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(slpGenesisTokenId);
+        const chainedOutputAddress = Address.fromScriptHex(
+            chainedOutputAlpha.outputScript,
+        ).toString();
+        // This should be a wallet change address
+        const allWalletAddresses = slpMintVaultWallet.getAllAddresses();
+        expect(allWalletAddresses).to.include(chainedOutputAddress);
 
         const burnAtoms = 700n;
         const slpBurnAction: payment.Action = {
@@ -2278,17 +2335,6 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // For SLP, we can't build a tx that needs token change if that token change would be the 20th output
-        expect(() =>
-            slpWallet
-                .clone()
-                .action(slpSendActionTooManyOutputs)
-                .build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Tx needs a token change output to avoid burning atoms of ${slpGenesisTokenId}, but the token change output would be at outIdx 20 which is greater than the maximum allowed outIdx of 19 for SLP_TOKEN_TYPE_NFT1_GROUP.`,
-        );
-
         // Build and broadcast
         const sendResponse = await slpWallet
             .action(slpSendAction)
@@ -2389,6 +2435,48 @@ describe('HD Wallet can build and broadcast on regtest', () => {
         );
         expect(chainedBurnTx.tokenEntries[0].burnSummary).to.equal(``);
         expect(chainedBurnTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // If we build a TX that requires max spec outputs of SLP +1 due to requiring change, it will automatically be chained
+        const chainedSendResponse = await slpWallet
+            .action(slpSendActionTooManyOutputs)
+            .build()
+            .broadcast();
+        expect(chainedSendResponse.success).to.equal(true);
+        expect(chainedSendResponse.broadcasted).to.have.length(2);
+
+        // Verify chained transactions and HD wallet change addresses
+        const chainedTxAlpha = await chronik.tx(
+            chainedSendResponse.broadcasted[0],
+        );
+        const chainedTxOmega = await chronik.tx(
+            chainedSendResponse.broadcasted[1],
+        );
+
+        // Verify chainedTxAlpha has the expected structure
+        expect(chainedTxAlpha.tokenEntries).to.have.length(1);
+        expect(chainedTxAlpha.tokenEntries[0].txType).to.equal('SEND');
+        expect(chainedTxAlpha.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        // Verify chainedTxOmega has exactly 1 input from chainedTxAlpha
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInput = chainedTxOmega.inputs[0];
+        expect(chainedInput.prevOut.txid).to.equal(chainedTxAlpha.txid);
+
+        // Verify HD wallet change addresses in chained transactions
+        // The chained output (token change) in chainedTxAlpha should use a new change address
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        // Verify the input references the correct output index (2nd-to-last output)
+        expect(chainedInput.prevOut.outIdx).to.equal(
+            chainedTxAlpha.outputs.length - 2,
+        );
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(slpGenesisTokenId);
+        const chainedOutputAddress = Address.fromScriptHex(
+            chainedOutputAlpha.outputScript,
+        ).toString();
+        // This should be a wallet change address
+        const allWalletAddresses = slpWallet.getAllAddresses();
+        expect(allWalletAddresses).to.include(chainedOutputAddress);
     });
     it('We can handle SLP SLP_TOKEN_TYPE_NFT1_CHILD token actions', async () => {
         // Init the wallet
@@ -3002,5 +3090,392 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             0n,
         );
         expect(totalAtoms).to.equal(150n); // 100 + 50
+    });
+    it('We can send a chained token tx to 42 recipients for an ALP ALP_TOKEN_TYPE_STANDARD token', async () => {
+        // Init the HD wallet
+        const chainedTokenWallet = createHDWallet(8, chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        const receiveAddress = chainedTokenWallet.getReceiveAddress(0);
+        const receiveScript = Script.fromAddress(receiveAddress);
+        await runner.sendToScript(inputSats, receiveScript);
+
+        // Sync the wallet
+        await chainedTokenWallet.sync();
+
+        // First, create an ALP token
+        const alpGenesisInfo = {
+            tokenTicker: 'CHAIN',
+            tokenName: 'Chained Token Test',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(chainedTokenWallet.pk),
+        };
+
+        const genesisMintQty = 100_000n; // Enough tokens for 42 recipients
+
+        // Construct the Action for genesis
+        const alpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: chainedTokenWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: chainedTokenWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await chainedTokenWallet
+            .action(alpGenesisAction)
+            .build()
+            .broadcast();
+
+        const alpTokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid ALP genesis tx
+        const tokenInfo = await chronik.token(alpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('ALP_TOKEN_TYPE_STANDARD');
+
+        // Now create a send action with 42 recipients
+        // This exceeds ALP_POLICY_MAX_OUTPUTS (29), so it will require chained txs
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        // Create 42 unique recipient addresses
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: alpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const alpChainedSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 42 recipient outputs */
+                ...recipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: alpTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        // Build the chained transaction
+        const chainedSendResp = await chainedTokenWallet
+            .action(alpChainedSendAction)
+            .build()
+            .broadcast();
+
+        // Verify we got multiple transactions (chained)
+        expect(chainedSendResp.broadcasted.length).to.be.greaterThan(1);
+
+        // Verify all transactions were broadcast successfully
+        for (const txid of chainedSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+        }
+
+        // ALP can do this in 2 txs
+        expect(chainedSendResp.broadcasted.length).to.equal(2);
+
+        // chainedTxAlpha fits as many outputs as possible
+        const chainedTxAlpha = await chronik.tx(chainedSendResp.broadcasted[0]);
+
+        // We have 31 total outputs; 1xOP_RETURN + 29x token outputs + 1x XEC change
+        expect(chainedTxAlpha.outputs.length).to.equal(31);
+
+        // The last output is XEC change only
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1].token,
+        ).to.equal(undefined);
+
+        // The 2nd-to-last output is the input for the next tx
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(alpTokenId);
+
+        // Verify HD wallet change addresses
+        // The chained output (token change) should use a wallet change address
+        const chainedOutputAddress = Address.fromScriptHex(
+            chainedOutputAlpha.outputScript,
+        ).toString();
+        const allWalletAddresses = chainedTokenWallet.getAllAddresses();
+        expect(allWalletAddresses).to.include(chainedOutputAddress);
+
+        // XEC change should also use a wallet change address
+        const xecChangeOutput =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1];
+        const xecChangeAddress = Address.fromScriptHex(
+            xecChangeOutput.outputScript,
+        ).toString();
+        expect(allWalletAddresses).to.include(xecChangeAddress);
+
+        // Verify chained output and XEC change use different addresses
+        expect(chainedOutputAddress).to.not.equal(xecChangeAddress);
+
+        const chainedTxOmega = await chronik.tx(chainedSendResp.broadcasted[1]);
+
+        // chainedTxOmega should have exactly 1 input, which is the 2nd-to-last output from chainedTxAlpha
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInput = chainedTxOmega.inputs[0];
+        expect(chainedInput.prevOut.txid).to.equal(chainedTxAlpha.txid);
+        expect(chainedInput.prevOut.outIdx).to.equal(29); // 2nd-to-last output index
+
+        // We have only OP_RETURN and token outputs for chainedTxOmega
+        expect(chainedTxOmega.outputs.length).to.equal(16);
+
+        // Start at 1 as we do not expect the OP_RETURN output to be a token utxo
+        for (let i = 1; i < chainedTxOmega.outputs.length; i++) {
+            expect(chainedTxOmega.outputs[i].token?.tokenId).to.equal(
+                alpTokenId,
+            );
+        }
+
+        // The last output has exactly dust sats
+        expect(
+            chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
+        ).to.equal(DEFAULT_DUST_SATS);
+    });
+    it('We can send a chained token tx to 42 recipients for an SLP SLP_TOKEN_TYPE_FUNGIBLE token', async () => {
+        // Init the HD wallet
+        const chainedSlpWallet = createHDWallet(9, chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        const receiveAddress = chainedSlpWallet.getReceiveAddress(0);
+        const receiveScript = Script.fromAddress(receiveAddress);
+        await runner.sendToScript(inputSats, receiveScript);
+
+        // Sync the wallet
+        await chainedSlpWallet.sync();
+
+        // First, create an SLP token
+        const slpGenesisInfo = {
+            tokenTicker: 'CHAIN',
+            tokenName: 'Chained SLP Token Test',
+            url: 'cashtab.com',
+            decimals: 0,
+        };
+
+        const genesisMintQty = 100_000n; // Enough tokens for 42 recipients
+
+        // Construct the Action for genesis
+        const slpGenesisAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** Mint qty at outIdx 1 */
+                {
+                    sats: 546n,
+                    script: chainedSlpWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                /** Mint baton at outIdx 2 */
+                {
+                    sats: 546n,
+                    script: chainedSlpWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    genesisInfo: slpGenesisInfo,
+                },
+            ],
+        };
+
+        // Build and broadcast genesis
+        const genesisResp = await chainedSlpWallet
+            .action(slpGenesisAction)
+            .build()
+            .broadcast();
+
+        const slpTokenId = genesisResp.broadcasted[0];
+
+        // Verify it's a valid SLP genesis tx
+        const tokenInfo = await chronik.token(slpTokenId);
+        expect(tokenInfo.tokenType.type).to.equal('SLP_TOKEN_TYPE_FUNGIBLE');
+
+        // Now create a send action with 42 recipients
+        // This exceeds SLP_MAX_SEND_OUTPUTS (19), so it will require chained txs
+        const numRecipients = 42;
+        const atomsPerRecipient = 1000n;
+
+        // Create 42 unique recipient addresses
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+        for (let i = 0; i < numRecipients; i++) {
+            // Create unique addresses for each recipient
+            const hex = i.toString(16).padStart(40, '0');
+            const script = Script.p2pkh(fromHex(hex));
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script,
+                tokenId: slpTokenId,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const slpChainedSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** 42 recipient outputs */
+                ...recipientOutputs,
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: slpTokenId,
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                },
+            ],
+        };
+
+        // Build the chained transaction
+        const chainedSendResp = await chainedSlpWallet
+            .action(slpChainedSendAction)
+            .build()
+            .broadcast();
+
+        // Verify we got multiple transactions (chained)
+        expect(chainedSendResp.broadcasted.length).to.be.greaterThan(1);
+
+        // Verify all transactions were broadcast successfully
+        for (const txid of chainedSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+        }
+
+        // SLP can do this in 3 txs (SLP_MAX_SEND_OUTPUTS = 19)
+        // First tx: 18 recipients + 1 chained output, second tx: 18 recipients + 1 chained output, third tx: 6 recipients + 1 token change
+        expect(chainedSendResp.broadcasted.length).to.equal(3);
+
+        // chainedTxAlpha fits as many outputs as possible
+        const chainedTxAlpha = await chronik.tx(chainedSendResp.broadcasted[0]);
+
+        // We have 21 total outputs; 1xOP_RETURN + 18x recipient token outputs + 1x token chained output + 1x XEC change
+        expect(chainedTxAlpha.outputs.length).to.equal(21);
+
+        // The last output is XEC change only
+        expect(
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1].token,
+        ).to.equal(undefined);
+
+        // The 2nd-to-last output is the chained output (input for next tx)
+        const chainedOutputAlpha =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 2];
+        expect(chainedOutputAlpha.token?.tokenId).to.equal(slpTokenId);
+
+        // Verify HD wallet change addresses
+        // The chained output (token change) should use a wallet change address
+        const chainedOutputAddress = Address.fromScriptHex(
+            chainedOutputAlpha.outputScript,
+        ).toString();
+        const allWalletAddresses = chainedSlpWallet.getAllAddresses();
+        expect(allWalletAddresses).to.include(chainedOutputAddress);
+
+        // XEC change should also use a wallet change address
+        const xecChangeOutput =
+            chainedTxAlpha.outputs[chainedTxAlpha.outputs.length - 1];
+        const xecChangeAddress = Address.fromScriptHex(
+            xecChangeOutput.outputScript,
+        ).toString();
+        expect(allWalletAddresses).to.include(xecChangeAddress);
+
+        // Verify chained output and XEC change use different addresses
+        expect(chainedOutputAddress).to.not.equal(xecChangeAddress);
+
+        // chainedTxBeta (second tx)
+        const chainedTxBeta = await chronik.tx(chainedSendResp.broadcasted[1]);
+
+        // chainedTxBeta should have exactly 1 input, which is the 2nd-to-last output from chainedTxAlpha
+        expect(chainedTxBeta.inputs.length).to.equal(1);
+        const chainedInputBeta = chainedTxBeta.inputs[0];
+        expect(chainedInputBeta.prevOut.txid).to.equal(chainedTxAlpha.txid);
+        expect(chainedInputBeta.prevOut.outIdx).to.equal(19); // 2nd-to-last output index
+
+        // We have 20 total outputs; 1xOP_RETURN + 18x recipient token outputs + 1x token chained output
+        expect(chainedTxBeta.outputs.length).to.equal(20);
+
+        // The last output is the chained output (input for next tx)
+        const chainedOutputBeta =
+            chainedTxBeta.outputs[chainedTxBeta.outputs.length - 1];
+        expect(chainedOutputBeta.token?.tokenId).to.equal(slpTokenId);
+
+        // Verify HD wallet change address for chained output in beta
+        const chainedOutputBetaAddress = Address.fromScriptHex(
+            chainedOutputBeta.outputScript,
+        ).toString();
+        expect(allWalletAddresses).to.include(chainedOutputBetaAddress);
+
+        // chainedTxOmega (third tx)
+        const chainedTxOmega = await chronik.tx(chainedSendResp.broadcasted[2]);
+
+        // chainedTxOmega should have exactly 1 input, which is the last output from chainedTxBeta
+        expect(chainedTxOmega.inputs.length).to.equal(1);
+        const chainedInputOmega = chainedTxOmega.inputs[0];
+        expect(chainedInputOmega.prevOut.txid).to.equal(chainedTxBeta.txid);
+        expect(chainedInputOmega.prevOut.outIdx).to.equal(19); // Last output index
+
+        // chainedTxOmega has no XEC change (per chained.md spec: "No change")
+        // We have 8 total outputs; 1xOP_RETURN + 6x recipient token outputs + 1x token change
+        expect(chainedTxOmega.outputs.length).to.equal(8);
+
+        // Verify HD wallet change addresses in chainedTxOmega
+        // Token change should use a wallet change address (at the last output since there's no XEC change)
+        const tokenChangeOutputOmega =
+            chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1];
+        expect(tokenChangeOutputOmega.token?.tokenId).to.equal(slpTokenId);
+        const tokenChangeAddressOmega = Address.fromScriptHex(
+            tokenChangeOutputOmega.outputScript,
+        ).toString();
+        expect(allWalletAddresses).to.include(tokenChangeAddressOmega);
     });
 });

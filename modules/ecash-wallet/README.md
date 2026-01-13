@@ -46,7 +46,7 @@ See tests for detailed methods.
 ### Phase Two, extended functionality
 
 [x] Support for chained XEC txs, i.e. handling an Action that requires more than one tx due to the 100,000 byte tx size restriction
-[] Support for chained token txs, i.e. handling an Action that requires more than one tx due to token protocol per-tx output limits
+[x] Support for chained token txs, i.e. handling an Action that requires more than one tx due to token protocol per-tx output limits
 
 ### Phase Three, wishlist
 
@@ -219,3 +219,9 @@ See tests for detailed methods.
 - Introduce action preprocessing and typed error, `ExactAtomsNotFoundError`, to support this inferrence
 
 [D19301](https://reviews.bitcoinabc.org/D19301)
+
+# 3.3.0
+
+- Support for chained token txs
+
+[D19316](https://reviews.bitcoinabc.org/D19316)

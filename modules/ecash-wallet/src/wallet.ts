@@ -78,6 +78,13 @@ const CHAINED_TX_ALPHA_RESERVED_OUTPUTS = 2;
 const NTH_TX_IN_CHAIN_INPUTS = 1;
 
 /**
+ * Dummy prevOut txid for preliminary txs in chained token sends
+ * To be used for PreliminaryTxs that will be updated with the real txid
+ * when we convert PreliminaryTxs to final signed txs
+ */
+const DUMMY_PRELIMINARY_TXID = '99'.repeat(32);
+
+/**
  * Keypair data for an HD wallet address
  */
 export interface KeypairData {
@@ -887,8 +894,9 @@ class WalletAction {
                 return this._buildIntentionalBurnChained(sighash);
             case ChainedTxType.NFT_MINT_FANOUT:
                 return this._buildNftMintFanoutChained(sighash);
+            case ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS:
+                return this._buildTokenSendChained(sighash);
             default:
-                // For now, we only support intentional SLP burns and NFT mint fanouts
                 throw new Error(
                     `Unsupported chained transaction type: ${this.selectUtxosResult.chainedTxType}`,
                 );
@@ -1004,6 +1012,571 @@ class WalletAction {
             .build(sighash) as BuiltAction;
 
         chainedTxs.push(nftMintTx.txs[0]);
+
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+    }
+
+    /**
+     * Build a chained token send tx to handle sending token atoms to
+     * more outputs than could be handled by a single tx
+     *
+     * - Use a combined token change / XEC change output for chainedTxAlpha and chainedTx
+     * - Calculate total sats required for the entire action, including dust sats and fees for every tx in the chain,
+     *   by building the txs in reverse order (chainedTxOmega ... chainedTxAlpha)
+     * - Build the actual txs in order of broadcast, as we need to know the txid of the previous tx to update the input of the next tx
+     */
+    private _buildTokenSendChained(sighash = ALL_BIP143): BuiltAction {
+        const { tokenActions } = this.action;
+        const sendActions = tokenActions?.filter(
+            action => action.type === 'SEND',
+        ) as payment.SendAction[] | undefined;
+
+        if (!sendActions || sendActions.length === 0) {
+            throw new Error(
+                'No SEND action found in _buildTokenSendChained for token send chained tx',
+            );
+        }
+
+        // For now, we only support chained txs for a single tokenId
+        if (sendActions.length > 1) {
+            throw new Error(
+                'Chained token sends are only supported for a single tokenId',
+            );
+        }
+
+        // Check for DATA actions - not supported in chained token send transactions
+        const dataActions = tokenActions?.filter(
+            action => action.type === 'DATA',
+        ) as payment.DataAction[] | undefined;
+        if (dataActions && dataActions.length > 0) {
+            throw new Error(
+                'Data actions are not supported in chained token send transactions.',
+            );
+        }
+
+        const sendAction = sendActions[0];
+        const { tokenId, tokenType } = sendAction;
+
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        // Get token send outputs for this tokenId
+        const tokenSendOutputs = this.action.outputs.filter(
+            output =>
+                'tokenId' in output &&
+                output.tokenId === tokenId &&
+                typeof (output as payment.PaymentTokenOutput).atoms !==
+                    'undefined',
+        ) as payment.PaymentTokenOutput[];
+
+        // Determine max outputs based on token protocol
+        const maxOutputsPerTx =
+            tokenType.protocol === 'SLP'
+                ? SLP_MAX_SEND_OUTPUTS
+                : ALP_POLICY_MAX_OUTPUTS;
+
+        // Get required utxos for this tokenId
+        const requiredUtxos = this.selectUtxosResult.utxos || [];
+        const tokenUtxos = requiredUtxos.filter(
+            utxo =>
+                'token' in utxo &&
+                utxo.token?.tokenId === tokenId &&
+                !utxo.token?.isMintBaton,
+        );
+
+        // Calculate total input atoms
+        const totalInputAtoms = tokenUtxos.reduce(
+            (sum, utxo) => sum + (utxo.token?.atoms || 0n),
+            0n,
+        );
+
+        // Calculate total output atoms (excluding potential change)
+        const totalOutputAtoms = tokenSendOutputs.reduce(
+            (sum, output) => sum + (output.atoms || 0n),
+            0n,
+        );
+
+        // Determine if we have token change
+        const tokenChange = totalInputAtoms - totalOutputAtoms;
+        const hasTokenChange = tokenChange > 0n;
+
+        // If we have token change, add it to tokenSendOutputs BEFORE batching
+        // This way it gets batched along with the other outputs and the optimization works correctly
+        if (hasTokenChange) {
+            tokenSendOutputs.push({
+                isMintBaton: false,
+                sats: dustSats,
+                script: this._wallet.getChangeScript(),
+                tokenId,
+                atoms: tokenChange,
+            });
+        }
+
+        // Batch the outputs (now including change if any)
+        const batchedOutputs = batchTokenSendOutputs(
+            tokenSendOutputs,
+            maxOutputsPerTx,
+        );
+
+        if (batchedOutputs.length === 0) {
+            throw new Error('No token send outputs to batch');
+        }
+
+        // Build preliminary txs from back to front (TxOmega to TxAlpha)
+        const preliminaryTxs: {
+            inputs: TxBuilderInput[];
+            outputs: TxBuilderOutput[];
+        }[] = [];
+
+        // Initialize required atoms and satoshis for subsequent txs
+        let requiredAtomsInSubsequentTxs = 0n;
+        let requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs = 0n;
+
+        // Iterate backwards over batches
+        for (let i = batchedOutputs.length - 1; i >= 0; i -= 1) {
+            const batch = batchedOutputs[i];
+
+            // Build send amounts array for this batch
+            const sendAmountsThisBatch = batch.map(
+                output => output.atoms || 0n,
+            );
+
+            // If we need atoms for subsequent txs, add them to sendAmounts
+            if (requiredAtomsInSubsequentTxs !== 0n) {
+                sendAmountsThisBatch.push(requiredAtomsInSubsequentTxs);
+            }
+
+            // Build OP_RETURN script for this tx
+            let opReturnScript: Script;
+            if (tokenType.protocol === 'ALP') {
+                opReturnScript = emppScript([
+                    alpSend(tokenId, tokenType.number, sendAmountsThisBatch),
+                ]);
+            } else {
+                opReturnScript = slpSend(
+                    tokenId,
+                    tokenType.number,
+                    sendAmountsThisBatch,
+                );
+            }
+
+            // Build outputs for this tx
+            const outputsThisBatch: TxBuilderOutput[] = [
+                { sats: 0n, script: opReturnScript },
+            ];
+
+            // Add token recipient outputs
+            // For the last batch, if we have change, it's already included in the batch
+            // For other batches, we add all outputs normally
+            for (const output of batch) {
+                if (!output.script) {
+                    // Not expected to ever happen
+                    // Type-safe for output.script below
+                    throw new Error(
+                        'Token send output must have a script defined',
+                    );
+                }
+                outputsThisBatch.push({
+                    sats: dustSats,
+                    script: output.script,
+                });
+            }
+
+            // Calculate satoshis needed for dust token outputs
+            const satoshisToCoverDustTokenOutputs = outputsThisBatch.reduce(
+                (sum, output) => {
+                    // TxBuilderOutput can be TxOutput | Script
+                    // Script doesn't have sats, so check if it's a TxOutput
+                    if ('sats' in output) {
+                        return sum + output.sats;
+                    }
+                    return sum;
+                },
+                0n,
+            );
+
+            // If this is not the last tx, add change output for next tx
+            if (requiredAtomsInSubsequentTxs !== 0n) {
+                outputsThisBatch.push({
+                    sats: requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs,
+                    script: this._wallet.getChangeScript(),
+                });
+            }
+
+            if (i === 0) {
+                // This is TxAlpha (first tx)
+                // Add XEC change output (using dummy script for fee estimation)
+                outputsThisBatch.push(DUMMY_P2PKH);
+
+                // Build inputs from selected utxos (using dummy signatory for fee estimation)
+                const inputs = tokenUtxos.map(utxo => {
+                    const input = this._wallet.p2pkhUtxoToBuilderInput(
+                        utxo,
+                        sighash,
+                    );
+                    // Replace signatory with dummy for fee estimation
+                    return {
+                        ...input,
+                        signatory: P2PKHSignatory(DUMMY_SK, DUMMY_PK, sighash),
+                    };
+                });
+
+                // Add fuel inputs by trying to sign with dummy ECC and adding UTXOs if signing fails
+                const fueledInputs = inputs;
+
+                // Try to sign with dummy ECC for fee estimation
+                let signedSuccessfully = false;
+                let signedTx: Tx | undefined;
+                try {
+                    const testTxBuilder = new TxBuilder({
+                        inputs: fueledInputs,
+                        outputs: outputsThisBatch,
+                    });
+                    signedTx = testTxBuilder.sign({
+                        ecc: eccDummy,
+                        feePerKb,
+                        dustSats,
+                    });
+                    signedSuccessfully = true;
+                } catch {
+                    // Signing failed, we need fuel inputs
+                    signedSuccessfully = false;
+                }
+
+                // If signing failed, add fuel UTXOs one by one until signing succeeds
+                if (!signedSuccessfully) {
+                    // Filter out UTXOs that are already in inputs (to avoid double-spending)
+                    // Note: spendableSatsOnlyUtxos() already excludes token UTXOs
+                    const fuelUtxos = this._wallet
+                        .spendableSatsOnlyUtxos()
+                        .filter(
+                            fuelUtxo =>
+                                // Don't use UTXOs already in inputs
+                                !fueledInputs.some(
+                                    input =>
+                                        input.input.prevOut.txid ===
+                                            fuelUtxo.outpoint.txid &&
+                                        input.input.prevOut.outIdx ===
+                                            fuelUtxo.outpoint.outIdx,
+                                ),
+                        );
+
+                    for (const fuelUtxo of fuelUtxos) {
+                        const fuelInput = this._wallet.p2pkhUtxoToBuilderInput(
+                            fuelUtxo,
+                            sighash,
+                        );
+                        // Use dummy signatory for fee estimation
+                        fueledInputs.push({
+                            ...fuelInput,
+                            signatory: P2PKHSignatory(
+                                DUMMY_SK,
+                                DUMMY_PK,
+                                sighash,
+                            ),
+                        });
+
+                        // Try to sign again with dummy ECC
+                        try {
+                            const testTxBuilder = new TxBuilder({
+                                inputs: fueledInputs,
+                                outputs: outputsThisBatch,
+                            });
+                            signedTx = testTxBuilder.sign({
+                                ecc: eccDummy,
+                                feePerKb,
+                                dustSats,
+                            });
+                            signedSuccessfully = true;
+                            break;
+                        } catch {
+                            // Still not enough, continue to next fuel UTXO
+                            continue;
+                        }
+                    }
+                }
+
+                // If we still couldn't sign after adding all available fuel UTXOs, throw an error
+                if (!signedSuccessfully || !signedTx) {
+                    const inputSats = fueledInputs.reduce(
+                        (sum, input) =>
+                            sum + (input.input.signData?.sats || 0n),
+                        0n,
+                    );
+
+                    throw new Error(
+                        `Insufficient sats to complete chained token send. Have ${inputSats} sats, insufficient to cover chained tx required sats (${requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs}) + fee (variable with inputs).`,
+                    );
+                }
+
+                // If we successfully signed with dummy ECC, we can afford the whole chain
+                // because the first tx includes a chained output with sufficient sats
+                // (requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs) to cover all subsequent transactions
+                // Note: We'll do real signing when we build forward (below)
+
+                preliminaryTxs.unshift({
+                    inputs: fueledInputs,
+                    outputs: outputsThisBatch,
+                });
+            } else {
+                // This is a TxChained (not first, not last) or TxOmega (last)
+                // The chained output from the previous tx (in forward order) goes to a change address
+                // Since we're building from back to front, we don't know yet what change script the previous
+                // transaction will use. For fee calculation purposes, we use a dummy p2pkh script (same size
+                // as the actual change script, so same fee impact). The actual signatory and outputScript
+                // will be updated when we build and sign the transactions from front to back, based on the
+                // actual change output from the previous transaction.
+                //
+                // We avoid calling getChangeScript() here to prevent generating unused change addresses.
+                const inputThisTx: TxBuilderInput = {
+                    input: {
+                        prevOut: {
+                            txid: DUMMY_PRELIMINARY_TXID,
+                            outIdx: maxOutputsPerTx,
+                        },
+                        signData: {
+                            sats: dustSats, // Will be updated after fee calculation
+                            outputScript: DUMMY_P2PKH, // Dummy p2pkh script for fee calculation
+                        },
+                    },
+                    signatory: P2PKHSignatory(DUMMY_SK, DUMMY_PK, sighash),
+                };
+
+                // Calculate fee for this tx using a dummy tx builder
+                const dummyTxBuilder = new TxBuilder({
+                    inputs: [inputThisTx],
+                    outputs: outputsThisBatch,
+                });
+                const dummyTxSigned = dummyTxBuilder.sign({
+                    ecc: eccDummy,
+                    feePerKb,
+                    dustSats,
+                });
+                const feeThisTx = calcTxFee(dummyTxSigned.serSize(), feePerKb);
+
+                // Calculate required input value
+                const requiredInputValue =
+                    feeThisTx +
+                    satoshisToCoverDustTokenOutputs +
+                    requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs;
+
+                // Update input value
+                inputThisTx.input.signData!.sats = requiredInputValue;
+
+                // Update required satoshis for next tx up the chain
+                requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs +=
+                    feeThisTx + satoshisToCoverDustTokenOutputs;
+
+                // Update required atoms for next tx up the chain
+                const batchAtoms = batch.reduce(
+                    (sum, output) => sum + (output.atoms || 0n),
+                    0n,
+                );
+                requiredAtomsInSubsequentTxs += batchAtoms;
+
+                preliminaryTxs.unshift({
+                    inputs: [inputThisTx],
+                    outputs: outputsThisBatch,
+                });
+            }
+        }
+
+        // Now build and sign all txs in order
+        const chainedTxs: Tx[] = [];
+        const paymentOutputsHistory: payment.PaymentOutput[][] = [];
+        let prevOutTxid = '';
+
+        for (let i = 0; i < preliminaryTxs.length; i += 1) {
+            // For the first tx (TxAlpha), replace dummy signatories with real ones
+            if (i === 0) {
+                const txAlphaInputs = preliminaryTxs[i].inputs.map(input => {
+                    // Find the original UTXO to get the real keypair
+                    const utxo = tokenUtxos.find(
+                        utxo =>
+                            utxo.outpoint.txid === input.input.prevOut.txid &&
+                            utxo.outpoint.outIdx === input.input.prevOut.outIdx,
+                    );
+                    if (utxo) {
+                        // This is a token UTXO, use real signatory
+                        return this._wallet.p2pkhUtxoToBuilderInput(
+                            utxo,
+                            sighash,
+                        );
+                    }
+                    // This is a fuel UTXO, find it and use real signatory
+                    const fuelUtxo = this._wallet
+                        .spendableSatsOnlyUtxos()
+                        .find(
+                            fuelUtxo =>
+                                fuelUtxo.outpoint.txid ===
+                                    input.input.prevOut.txid &&
+                                fuelUtxo.outpoint.outIdx ===
+                                    input.input.prevOut.outIdx,
+                        );
+                    if (fuelUtxo) {
+                        return this._wallet.p2pkhUtxoToBuilderInput(
+                            fuelUtxo,
+                            sighash,
+                        );
+                    }
+                    // Fallback (shouldn't happen)
+                    return input;
+                });
+                // Also replace dummy change script with real one
+                const txAlphaOutputs = preliminaryTxs[i].outputs.map(
+                    (output, idx) => {
+                        // Last output is the XEC change output
+                        if (
+                            idx === preliminaryTxs[i].outputs.length - 1 &&
+                            output instanceof Script &&
+                            output.toHex() === DUMMY_P2PKH.toHex()
+                        ) {
+                            return this._wallet.getChangeScript();
+                        }
+                        return output;
+                    },
+                );
+                preliminaryTxs[i] = {
+                    inputs: txAlphaInputs,
+                    outputs: txAlphaOutputs,
+                };
+            }
+
+            // Update prevOut txid for chained txs (not the first)
+            if (i !== 0 && prevOutTxid !== '') {
+                // For subsequent transactions, find the LAST TOKEN OUTPUT from the previous transaction
+                // Iterate backwards through paymentOutputs to find the last one with a tokenId
+                const prevPaymentOutputs = paymentOutputsHistory[i - 1];
+                let lastTokenOutputIndex = -1;
+                for (let j = prevPaymentOutputs.length - 1; j >= 0; j--) {
+                    const output = prevPaymentOutputs[j];
+                    if ('tokenId' in output && output.tokenId === tokenId) {
+                        lastTokenOutputIndex = j;
+                        break;
+                    }
+                }
+
+                if (lastTokenOutputIndex === -1) {
+                    throw new Error(
+                        `Could not find last token output in previous transaction ${i - 1} paymentOutputs`,
+                    );
+                }
+
+                // The outIdx in the transaction is the index in paymentOutputs (since OP_RETURN at 0 is included)
+                const chainedOutputIndex = lastTokenOutputIndex;
+                const prevSignedTx = chainedTxs[i - 1];
+                const chainedOutput = prevSignedTx.outputs[chainedOutputIndex];
+
+                // Get the keypair for the chained output address
+                const chainedOutputAddress = Address.fromScriptHex(
+                    chainedOutput.script.toHex(),
+                ).toString();
+                const keypair =
+                    this._wallet.getKeypairForAddress(chainedOutputAddress);
+                if (!keypair) {
+                    throw new Error(
+                        `Could not get keypair for chained output address ${chainedOutputAddress}`,
+                    );
+                }
+
+                const chainedInput: TxBuilderInput = {
+                    input: {
+                        prevOut: {
+                            txid: prevOutTxid,
+                            outIdx: chainedOutputIndex,
+                        },
+                        signData: {
+                            sats: chainedOutput.sats,
+                            outputScript: chainedOutput.script,
+                        },
+                    },
+                    signatory: P2PKHSignatory(keypair.sk, keypair.pk, sighash),
+                };
+
+                // Replace the dummy input with the actual chained output input
+                preliminaryTxs[i].inputs[0] = chainedInput;
+            }
+
+            // Build and sign this tx
+            const txBuilder = new TxBuilder(preliminaryTxs[i]);
+            const signedTx = txBuilder.sign({
+                ecc: this._wallet.ecc,
+                feePerKb,
+                dustSats,
+            });
+
+            // Get txid for this tx
+            const txid = toHexRev(sha256d(signedTx.ser()));
+
+            // Update UTXOs after building this transaction (similar to _getBuiltAction)
+            // Construct paymentOutputs for this transaction
+            const batchIndex = i;
+            const batch = batchedOutputs[batchIndex];
+            const paymentOutputs: payment.PaymentOutput[] = [];
+
+            // Add OP_RETURN output (sats: 0n)
+            paymentOutputs.push({ sats: 0n });
+
+            // Add token outputs from the batch
+            for (const output of batch) {
+                paymentOutputs.push({
+                    sats: dustSats,
+                    script: output.script,
+                    tokenId: output.tokenId,
+                    atoms: output.atoms,
+                    isMintBaton: output.isMintBaton,
+                });
+            }
+
+            // If this is not the last tx, add the change output for next tx
+            if (i < preliminaryTxs.length - 1) {
+                // Find the chained output: the last output with a wallet script
+                // This is always the last token output
+                let changeOutput: (typeof signedTx.outputs)[0] | undefined;
+                for (let j = signedTx.outputs.length - 1; j >= 0; j--) {
+                    const output = signedTx.outputs[j];
+                    if (this._wallet.isWalletScript(output.script)) {
+                        changeOutput = output;
+                        break;
+                    }
+                }
+
+                if (changeOutput) {
+                    // Calculate atoms for the change output
+                    // This is the sum of atoms in all subsequent batches
+                    let changeAtoms = 0n;
+                    for (let j = i + 1; j < batchedOutputs.length; j++) {
+                        const subsequentBatch = batchedOutputs[j];
+                        for (const output of subsequentBatch) {
+                            changeAtoms += output.atoms || 0n;
+                        }
+                    }
+
+                    paymentOutputs.push({
+                        sats: changeOutput.sats,
+                        script: changeOutput.script,
+                        tokenId,
+                        atoms: changeAtoms,
+                        isMintBaton: false,
+                    });
+                }
+            }
+
+            // Update UTXOs for this transaction
+            this._updateUtxosAfterSuccessfulBuild(
+                signedTx,
+                txid,
+                paymentOutputs,
+            );
+
+            // Store paymentOutputs for this transaction so we can find the last token output
+            paymentOutputsHistory.push(paymentOutputs);
+
+            // Set prevOutTxid for next iteration
+            prevOutTxid = txid;
+
+            chainedTxs.push(signedTx);
+        }
 
         return new BuiltAction(this._wallet, chainedTxs, feePerKb);
     }
@@ -2130,7 +2703,7 @@ export class PostageTx {
  * We store sufficient information to let us know what token
  * inputs are required to fulfill this user-specified Action
  */
-interface RequiredTokenInputs {
+export interface RequiredTokenInputs {
     /**
      * The total atoms of the tokenId required by this action
      * e.g. for SEND, it would be the total number of atoms
@@ -2656,6 +3229,8 @@ export enum ChainedTxType {
     NFT_MINT_FANOUT = 'NFT_MINT_FANOUT',
     /** We need to chain a tx to intentional burn an SLP token */
     INTENTIONAL_BURN = 'INTENTIONAL_BURN',
+    /** We need to chain txs because token send outputs exceed protocol max outputs per tx */
+    TOKEN_SEND_EXCEEDS_MAX_OUTPUTS = 'TOKEN_SEND_EXCEEDS_MAX_OUTPUTS',
 
     /**
      * NB we intentionally omit EXCEEDS_MAX_SERSIZE as we cannot
@@ -2758,6 +3333,101 @@ interface SelectUtxosResult {
  * 2) this is "good enough" for the SLP and agora 2-part chained txs; if you want, can add more specific handling for optimizing chained txs
  *
  */
+/**
+ * Check if token send outputs exceed protocol max outputs per tx
+ *
+ * This determines if a chained transaction is needed by counting:
+ * - All send outputs for each tokenId
+ * - Potential change outputs (when input atoms > output atoms)
+ *
+ * @param action - The payment action to check
+ * @param tokenType - The token type (SLP or ALP)
+ * @param tokens - Map of required token inputs (used to estimate change outputs)
+ * @returns true if outputs exceed max, false otherwise
+ */
+export const checkTokenSendExceedsMaxOutputs = (
+    action: payment.Action,
+    tokenType: TokenType,
+    tokens?: Map<string, RequiredTokenInputs>,
+): boolean => {
+    const sendActions = action.tokenActions?.filter(
+        action => action.type === 'SEND',
+    ) as payment.SendAction[] | undefined;
+
+    if (!sendActions || sendActions.length === 0) {
+        return false;
+    }
+
+    // Count send outputs for each tokenId
+    const sendOutputCounts = new Map<string, number>();
+    let totalSendOutputs = 0;
+
+    for (const output of action.outputs) {
+        if (
+            'tokenId' in output &&
+            typeof output.tokenId !== 'undefined' &&
+            output.tokenId !== payment.GENESIS_TOKEN_ID_PLACEHOLDER
+        ) {
+            const tokenId = output.tokenId as string;
+            if (
+                sendActions.some(sendAction => sendAction.tokenId === tokenId)
+            ) {
+                const currentCount = sendOutputCounts.get(tokenId) || 0;
+                sendOutputCounts.set(tokenId, currentCount + 1);
+                totalSendOutputs++;
+            }
+        }
+    }
+
+    // Check if we'll need change outputs by estimating from tokens map
+    // We need to estimate if there will be change by comparing input atoms to output atoms
+    if (typeof tokens !== 'undefined') {
+        for (const [tokenId] of sendActions.map(
+            action => [action.tokenId] as [string],
+        )) {
+            const requiredTokenInputs = tokens.get(tokenId);
+            if (requiredTokenInputs) {
+                // Get output atoms for this tokenId
+                const outputAtoms = action.outputs
+                    .filter(
+                        (o: payment.PaymentOutput) =>
+                            'tokenId' in o &&
+                            o.tokenId === tokenId &&
+                            typeof (o as payment.PaymentTokenOutput).atoms !==
+                                'undefined',
+                    )
+                    .reduce(
+                        (sum: bigint, o: payment.PaymentOutput) =>
+                            sum +
+                            ((o as payment.PaymentTokenOutput).atoms || 0n),
+                        0n,
+                    );
+
+                // Check if we'll have change (input atoms > output atoms)
+                if (
+                    requiredTokenInputs.atoms > outputAtoms &&
+                    requiredTokenInputs.atoms > 0n
+                ) {
+                    // We'll need a change output, add 1 to the count for this tokenId
+                    const currentCount = sendOutputCounts.get(tokenId) || 0;
+                    sendOutputCounts.set(tokenId, currentCount + 1);
+                    totalSendOutputs++;
+                }
+            }
+        }
+    }
+
+    // Determine max outputs based on token protocol
+    const maxOutputs =
+        tokenType.protocol === 'SLP'
+            ? SLP_MAX_SEND_OUTPUTS
+            : ALP_POLICY_MAX_OUTPUTS;
+
+    // Check if total outputs (including change) would exceed max
+    // Note: we add 1 for the OP_RETURN output at index 0
+    return totalSendOutputs + 1 > maxOutputs;
+};
+
 export const selectUtxos = (
     action: payment.Action,
     /**
@@ -2781,6 +3451,21 @@ export const selectUtxos = (
 
     // Init "chainedTxType" as NONE
     let chainedTxType = ChainedTxType.NONE;
+
+    // Check if token send outputs exceed protocol max outputs per tx
+    // This check must happen EARLY, before any early returns, so we can detect
+    // chained transaction needs even if we have enough utxos
+    const tokenType = getTokenType(action);
+    if (typeof tokenType !== 'undefined') {
+        const result = checkTokenSendExceedsMaxOutputs(
+            action,
+            tokenType,
+            tokens,
+        );
+        if (result) {
+            chainedTxType = ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS;
+        }
+    }
 
     let tokenIdsWithRequiredUtxos: string[] = [];
 
@@ -3063,7 +3748,6 @@ export const selectUtxos = (
             tokenIdsWithRequiredUtxos.length === 0
         ) {
             // If selectedUtxos fulfill the requirements of this Action, return them
-
             return {
                 success: true,
                 utxos: selectedUtxos,
@@ -3365,6 +4049,64 @@ export const getTokenType = (action: payment.Action): TokenType | undefined => {
     }
 
     return tokenType;
+};
+
+/**
+ * Batch token send outputs for chained transactions
+ *
+ * Splits token send outputs into batches that fit within protocol limits.
+ * Each batch (except the last) reserves space for a change output that will
+ * be used as input for the next transaction in the chain.
+ *
+ * @param sendOutputs - Array of token send outputs to batch
+ * @param maxOutputsPerTx - Maximum outputs allowed per tx (SLP_MAX_SEND_OUTPUTS or ALP_POLICY_MAX_OUTPUTS)
+ * @returns Array of batches, where each batch is an array of outputs
+ */
+export const batchTokenSendOutputs = (
+    sendOutputs: payment.PaymentTokenOutput[],
+    maxOutputsPerTx: number,
+): payment.PaymentTokenOutput[][] => {
+    if (maxOutputsPerTx <= 1) {
+        throw new Error(
+            `batchTokenSendOutputs called with maxOutputsPerTx of ${maxOutputsPerTx}; must be greater than 1`,
+        );
+    }
+    if (sendOutputs.length === 0) {
+        return [];
+    }
+
+    // Every tx except the last (TxOmega) must reserve space for a change output
+    // that will be used as input for the next tx in the chain
+    // So if maxOutputsPerTx is 29, only TxOmega can have 29 outputs
+    // Preceding txs can have 28 outputs + 1 change output
+    const maxEventOutputsPerTx = maxOutputsPerTx - 1;
+    const batched = Array.from(
+        { length: Math.ceil(sendOutputs.length / maxEventOutputsPerTx) },
+        (_, i) =>
+            sendOutputs.slice(
+                i * maxEventOutputsPerTx,
+                (i + 1) * maxEventOutputsPerTx,
+            ),
+    );
+
+    if (maxOutputsPerTx > 2 && batched.length > 1) {
+        // If we are working with a max batch size greater than 2
+        // Check to see if the last batch can be combined with the preceding batch
+        const lastBatch = batched[batched.length - 1];
+        if (lastBatch.length === 1) {
+            // If we have one element in the last batch, i.e. in TxOmega
+            // Remove this length-1 array from batched and add it into the previous batch
+            // Remember TxOmega does not need to "save room" for a change tx, so we can fit this
+            // (Token change is already included in the sendOutputs before batching, so it's
+            // already accounted for in the batches)
+            batched.pop();
+            batched[batched.length - 1] = [
+                ...batched[batched.length - 1],
+                lastBatch[0],
+            ];
+        }
+    }
+    return batched;
 };
 
 // Convert user-specified ecash-wallet Output[] to TxOutput[], so we can build
