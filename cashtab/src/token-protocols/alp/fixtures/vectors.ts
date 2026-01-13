@@ -7,12 +7,9 @@ import {
     TOKEN_DUST_CHANGE_OUTPUT,
     TokenInputInfo,
 } from 'token-protocols';
-import {
-    MAX_OUTPUT_AMOUNT_ALP_ATOMS,
-    CashtabAlpGenesisInfo,
-} from 'token-protocols/alp';
-import { SlpDecimals, undecimalizeTokenAmount, DUMMY_KEYPAIR } from 'wallet';
-import { Script, toHex, fromHex } from 'ecash-lib';
+import { MAX_OUTPUT_AMOUNT_ALP_ATOMS } from 'token-protocols/alp';
+import { SlpDecimals } from 'wallet';
+import { Script, fromHex } from 'ecash-lib';
 import { AgoraPartial } from 'ecash-agora';
 import { agoraPartialAlpTiberium } from './mocks';
 
@@ -23,19 +20,6 @@ interface GetMaxDecimalizedAlpQtyReturn {
     description: string;
     decimals: SlpDecimals;
     returned: string;
-}
-interface GetAlpGenesisTargetOutputsReturn {
-    description: string;
-    genesisInfo: CashtabAlpGenesisInfo;
-    initialQuantity: bigint;
-    includeMintBaton: boolean;
-    targetOutputs: TokenTargetOutput[];
-}
-interface GetAlpGenesisTargetOutputsError extends Omit<
-    GetAlpGenesisTargetOutputsReturn,
-    'targetOutputs'
-> {
-    errorMsg: string;
 }
 interface GetAlpBurnTargetOutputsReturn {
     description: string;
@@ -51,10 +35,6 @@ interface GetAlpAgoraListTargetOutputsReturn {
 interface AlpVectors {
     getMaxDecimalizedAlpQty: {
         expectedReturns: GetMaxDecimalizedAlpQtyReturn[];
-    };
-    getAlpGenesisTargetOutputs: {
-        expectedReturns: GetAlpGenesisTargetOutputsReturn[];
-        expectedErrors: GetAlpGenesisTargetOutputsError[];
     };
     getAlpBurnTargetOutputs: {
         expectedReturns: GetAlpBurnTargetOutputsReturn[];
@@ -115,156 +95,6 @@ const vectors: AlpVectors = {
                 description: '9 decimals',
                 decimals: 9,
                 returned: '281474.976710655',
-            },
-        ],
-    },
-    getAlpGenesisTargetOutputs: {
-        expectedReturns: [
-            {
-                description: 'Fixed supply eToken mint for token with decimals',
-                genesisInfo: {
-                    tokenName: 'ethantest',
-                    tokenTicker: 'ETN',
-                    url: 'https://cashtab.com/',
-                    hash: '',
-                    decimals: 3,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt(undecimalizeTokenAmount('5000', 3)),
-                includeMintBaton: false,
-                targetOutputs: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504c5c534c5032000747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10301404b4c00000000',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description:
-                    'Variable supply eToken mint for token with decimals',
-                genesisInfo: {
-                    tokenName: 'ethantest',
-                    tokenTicker: 'ETN',
-                    url: 'https://cashtab.com/',
-                    hash: '',
-                    decimals: 3,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt(undecimalizeTokenAmount('5000', 3)),
-                includeMintBaton: true,
-                targetOutputs: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504c5c534c5032000747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10301404b4c00000001',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description:
-                    'Variable supply eToken mint for tokenId 50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-                genesisInfo: {
-                    tokenName: 'tabcash',
-                    tokenTicker: 'TBC',
-                    url: 'https://cashtabapp.com/',
-                    hash: '',
-                    decimals: 0,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt('100'),
-                includeMintBaton: true,
-                targetOutputs: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b1000164000000000001',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description:
-                    'Fixed supply eToken mint at max supply for 9 decimal token',
-                genesisInfo: {
-                    tokenName: 'tabcash',
-                    tokenTicker: 'TBC',
-                    url: 'https://cashtabapp.com/',
-                    hash: '',
-                    decimals: 9,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt(
-                    undecimalizeTokenAmount('281474.976710655', 9),
-                ),
-                includeMintBaton: true,
-                targetOutputs: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10901ffffffffffff01',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description:
-                    'Variable supply eToken mint at max supply for 0 decimal token',
-                genesisInfo: {
-                    tokenName: 'tabcash',
-                    tokenTicker: 'TBC',
-                    url: 'https://cashtabapp.com/',
-                    hash: '',
-                    decimals: 0,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt(MAX_OUTPUT_AMOUNT_ALP_ATOMS),
-                includeMintBaton: true,
-                targetOutputs: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504c5d534c5032000747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f0021023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b10001ffffffffffff01',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-        ],
-        expectedErrors: [
-            {
-                description: 'Exceed 0xffffffffffffffff for genesis qty',
-                genesisInfo: {
-                    tokenName: 'ethantest',
-                    tokenTicker: 'ETN',
-                    url: 'https://cashtab.com/',
-                    hash: '',
-                    decimals: 0,
-                    authPubkey: toHex(DUMMY_KEYPAIR.pk),
-                },
-                initialQuantity: BigInt(`${MAX_OUTPUT_AMOUNT_ALP_ATOMS}1`),
-                includeMintBaton: true,
-                errorMsg: `Cannot fit 655359 into a u16`,
             },
         ],
     },

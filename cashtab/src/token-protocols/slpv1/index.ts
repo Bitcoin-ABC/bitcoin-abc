@@ -5,7 +5,6 @@
 import appConfig from 'config/app';
 import {
     Script,
-    slpGenesis,
     slpSend,
     slpMint,
     TxBuilder,
@@ -13,7 +12,6 @@ import {
     Signatory,
     TxBuilderOutput,
 } from 'ecash-lib';
-import { GenesisInfo } from 'chronik-client';
 import { TokenUtxo, CashtabUtxo, SlpDecimals } from 'wallet';
 import {
     TOKEN_DUST_CHANGE_OUTPUT,
@@ -32,54 +30,6 @@ const DUMMY_TXID =
 
 // For SLPv1 Mint txs, Cashtab always puts the mint baton at mintBatonVout 2
 const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
-
-/**
- * Get targetOutput for a SLP v1 genesis tx
- * @param genesisInfo object containing token info for genesis tx
- * @param initialQuantity
- * @param mintBatonOutIdx
- * @throws if invalid input params are passed to TokenType1.genesis
- */
-export const getSlpGenesisTargetOutput = (
-    genesisInfo: GenesisInfo,
-    initialQuantity: bigint,
-    mintBatonOutIdx: 2 | undefined = undefined,
-): TokenTargetOutput[] => {
-    if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx !== 2) {
-        throw new Error(
-            'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
-        );
-    }
-
-    const targetOutputs = [];
-
-    const script = slpGenesis(
-        SLP_1_PROTOCOL_NUMBER,
-        genesisInfo,
-        initialQuantity,
-        mintBatonOutIdx,
-    );
-
-    // Per SLP v1 spec, OP_RETURN must be at index 0
-    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
-    targetOutputs.push({ sats: 0n, script });
-
-    // Per SLP v1 spec, genesis tx is minted to output at index 1
-    // In Cashtab, we mint genesis txs to our own Path1899 address
-    // Expected behavior for Cashtab tx building is to add change address to output
-    // with no address
-    targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-
-    // If the user specified the creation of a mint baton, add it
-    // Note: Cashtab only supports the creation of one mint baton at index 2
-    if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx === 2) {
-        targetOutputs.push({
-            sats: BigInt(appConfig.dustSats),
-        });
-    }
-
-    return targetOutputs;
-};
 
 /**
  * Get targetOutput(s) for a SLP v1 BURN tx
@@ -159,52 +109,6 @@ export const getMaxDecimalizedSlpQty = (decimals: SlpDecimals): string => {
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
-};
-
-/**
- * Get targetOutput for a SLP v1 NFT Parent (aka Group) genesis tx
- * @param genesisInfo object containing token info for genesis tx
- * @param initialQuantity
- * @param mintBatonOutIdx
- * @throws if invalid input params are passed to TokenType1.genesis
- * @returns
- */
-export const getNftParentGenesisTargetOutputs = (
-    genesisInfo: GenesisInfo,
-    initialQuantity: bigint,
-    mintBatonOutIdx: 2 | undefined = undefined,
-): TokenTargetOutput[] => {
-    if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx !== 2) {
-        throw new Error(
-            'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
-        );
-    }
-
-    const targetOutputs = [];
-
-    const script = slpGenesis(
-        SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
-        genesisInfo,
-        initialQuantity,
-        mintBatonOutIdx,
-    );
-
-    // Per SLP v1 spec, OP_RETURN must be at index 0
-    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
-    targetOutputs.push({ sats: 0n, script });
-
-    // Per SLP v1 spec, genesis tx is minted to output at index 1
-    // In Cashtab, we mint genesis txs to our own Path1899 address
-    // If an output does not have an address, Cashtab will add its change address
-    targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-
-    // If the user specified the creation of a mint baton, add it
-    // Note: Cashtab only supports the creation of one mint baton at index 2
-    if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx === 2) {
-        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-    }
-
-    return targetOutputs;
 };
 
 /**

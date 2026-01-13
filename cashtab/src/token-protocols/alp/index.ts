@@ -6,7 +6,6 @@ import { SlpDecimals } from 'wallet';
 import {
     ALP_STANDARD,
     emppScript,
-    alpGenesis,
     alpSend,
     alpBurn,
     Script,
@@ -56,45 +55,6 @@ export const getMaxDecimalizedAlpQty = (decimals: SlpDecimals): string => {
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
-};
-
-/**
- * Get targetOutput for an ALP v1 genesis tx
- */
-export const getAlpGenesisTargetOutputs = (
-    genesisInfo: CashtabAlpGenesisInfo,
-    initialQuantity: bigint,
-    includeMintBaton = true,
-): TokenTargetOutput[] => {
-    const targetOutputs = [];
-
-    const script = emppScript([
-        alpGenesis(ALP_STANDARD, genesisInfo, {
-            atomsArray: [initialQuantity],
-            numBatons: includeMintBaton ? 1 : 0,
-        }),
-    ]);
-
-    targetOutputs.push({ sats: 0n, script });
-
-    // Per ALP spec, mint batons are minted at earlier outputs, then qty
-    // Cashtab only supports ALP genesis with 1 output qty or ALP genesis with
-    // 1 output qty and 1 mint baton
-    // In Cashtab, we mint genesis txs to our own Path1899 address
-    // Expected behavior for Cashtab tx building is to add change address to output
-    // with no address
-    targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-
-    if (includeMintBaton) {
-        // We need another output if we have a mint baton
-        // NB that, when we have a mint baton, ouputs are
-        // [0] OP_RETURN
-        // [1] Mint baton
-        // [2] genesis qty
-        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-    }
-
-    return targetOutputs;
 };
 
 /**

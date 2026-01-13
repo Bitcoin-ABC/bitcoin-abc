@@ -3,11 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    getSlpGenesisTargetOutput,
     getSlpBurnTargetOutputs,
     getMintBatons,
     getMaxDecimalizedSlpQty,
-    getNftParentGenesisTargetOutputs,
     getNftParentMintTargetOutputs,
     getNft,
     isTokenDustChangeOutput,
@@ -78,50 +76,6 @@ describe('slpv1 methods', () => {
         MOCK_PARTIAL_P2SH = Script.p2sh(
             shaRmd160(MOCK_PARTIAL.script().bytecode),
         );
-    });
-    describe('Generating etoken genesis tx target outputs', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getSlpGenesisTargetOutput;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                mintBatonOutIdx,
-                targetOutputs,
-            } = expectedReturn;
-            it(`getSlpGenesisTargetOutput: ${description}`, () => {
-                expect(
-                    getSlpGenesisTargetOutput(
-                        genesisInfo,
-                        initialQuantity,
-                        mintBatonOutIdx,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                mintBatonOutIdx,
-                errorMsg,
-            } = expectedError;
-            it(`getSlpGenesisTargetOutput throws error for: ${description}`, () => {
-                expect(() =>
-                    getSlpGenesisTargetOutput(
-                        genesisInfo,
-                        initialQuantity,
-                        mintBatonOutIdx,
-                    ),
-                ).toThrow(errorMsg);
-            });
-        });
     });
     describe('Get slpv1 send token inputs', () => {
         const { expectedErrors } = tokenProtocolsVectors.getSendTokenInputs;
@@ -198,50 +152,6 @@ describe('slpv1 methods', () => {
             const { description, decimals, returned } = vector;
             it(`getMaxDecimalizedSlpQty: ${description}`, () => {
                 expect(getMaxDecimalizedSlpQty(decimals)).toBe(returned);
-            });
-        });
-    });
-    describe('Get targetOutputs for NFT1 parent genesis tx', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getNftParentGenesisTargetOutputs;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                mintBatonOutIdx,
-                targetOutputs,
-            } = expectedReturn;
-            it(`getNftParentGenesisTargetOutputs: ${description}`, () => {
-                expect(
-                    getNftParentGenesisTargetOutputs(
-                        genesisInfo,
-                        initialQuantity,
-                        mintBatonOutIdx,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                mintBatonOutIdx,
-                errorMsg,
-            } = expectedError;
-            it(`getNftParentGenesisTargetOutputs throws error for: ${description}`, () => {
-                expect(() =>
-                    getNftParentGenesisTargetOutputs(
-                        genesisInfo,
-                        initialQuantity,
-                        mintBatonOutIdx,
-                    ),
-                ).toThrow(errorMsg);
             });
         });
     });

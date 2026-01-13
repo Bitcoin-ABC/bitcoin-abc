@@ -34,16 +34,9 @@ import getCroppedImg, {
 import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
-import {
-    getSlpGenesisTargetOutput,
-    getMaxDecimalizedSlpQty,
-    getNftParentGenesisTargetOutputs,
-} from 'token-protocols/slpv1';
-import {
-    getAlpGenesisTargetOutputs,
-    getMaxDecimalizedAlpQty,
-} from 'token-protocols/alp';
-import { sendXec } from 'transactions';
+import appConfig from 'config/app';
+import { getMaxDecimalizedSlpQty } from 'token-protocols/slpv1';
+import { getMaxDecimalizedAlpQty } from 'token-protocols/alp';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount, SlpDecimals } from 'wallet';
@@ -71,7 +64,16 @@ import {
 } from 'components/Etokens/CreateTokenForm/styles';
 import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
-import { toHex, sha256, SLP_TOKEN_TYPE_NFT1_CHILD, payment } from 'ecash-lib';
+import {
+    toHex,
+    sha256,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
+    SLP_TOKEN_TYPE_FUNGIBLE,
+    SLP_TOKEN_TYPE_NFT1_GROUP,
+    ALP_TOKEN_TYPE_STANDARD,
+    payment,
+    TokenType,
+} from 'ecash-lib';
 
 interface CreateTokenFormProps {
     /**
@@ -86,8 +88,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, ecc, chaintipBlockheight, cashtabState, ecashWallet } =
-        ContextValue;
+    const { cashtabState, ecashWallet } = ContextValue;
     const { settings, activeWallet } = cashtabState;
     if (!activeWallet || !ecashWallet) {
         return null;
@@ -710,53 +711,88 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                         broadcastResult.broadcasted.length - 1
                     ];
             } else {
-                // Get target outputs for an SLP v1 genesis tx (not needed for NFT mints)
-                const targetOutputs = createNftCollection
-                    ? getNftParentGenesisTargetOutputs(
-                          genesisInfo,
-                          BigInt(
-                              undecimalizeTokenAmount(
-                                  formData.genesisQty,
-                                  parseInt(formData.decimals) as SlpDecimals,
-                              ),
-                          ),
-                          createWithMintBaton ? 2 : undefined,
-                      )
-                    : tokenTypeSwitches.slp
-                      ? getSlpGenesisTargetOutput(
-                            genesisInfo,
-                            BigInt(
-                                undecimalizeTokenAmount(
-                                    formData.genesisQty,
-                                    parseInt(formData.decimals) as SlpDecimals,
-                                ),
-                            ),
-                            createWithMintBaton ? 2 : undefined,
-                        )
-                      : getAlpGenesisTargetOutputs(
-                            {
-                                ...genesisInfo,
-                                // Set as Cashtab active wallet public key
-                                authPubkey: activeWallet.pk,
-                                // Note we are omitting the "data" key for now
-                            },
-                            BigInt(
-                                undecimalizeTokenAmount(
-                                    formData.genesisQty,
-                                    parseInt(formData.decimals) as SlpDecimals,
-                                ),
-                            ),
-                            createWithMintBaton,
-                        );
-                const { response } = await sendXec(
-                    chronik,
-                    ecc,
-                    wallet,
-                    targetOutputs,
-                    settings.satsPerKb,
-                    chaintipBlockheight,
+                // Build token genesis using ecash-wallet
+                if (!ecashWallet) {
+                    // We do not render the component with ecashWallet, so we do not expect this to happen
+                    // Helps typescript clarity
+                    throw new Error('Wallet not initialized');
+                }
+
+                // Calculate genesis quantity (undecimalized)
+                const genesisQty = BigInt(
+                    undecimalizeTokenAmount(
+                        formData.genesisQty,
+                        parseInt(formData.decimals) as SlpDecimals,
+                    ),
                 );
-                txid = response.txid;
+
+                // Determine token type
+                let tokenType: TokenType;
+                if (createNftCollection) {
+                    tokenType = SLP_TOKEN_TYPE_NFT1_GROUP;
+                } else if (tokenTypeSwitches.slp) {
+                    tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
+                } else {
+                    tokenType = ALP_TOKEN_TYPE_STANDARD;
+                }
+
+                // Build outputs array
+                // Both ALP and SLP use the same output structure in Cashtab: qty at outIdx 1, mint baton at outIdx 2
+                const outputs: payment.PaymentOutput[] = [
+                    { sats: 0n }, // OP_RETURN at outIdx 0
+                    {
+                        sats: BigInt(appConfig.dustSats),
+                        script: ecashWallet.script,
+                        tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                        atoms: genesisQty,
+                    },
+                ];
+                if (createWithMintBaton) {
+                    outputs.push({
+                        sats: BigInt(appConfig.dustSats),
+                        script: ecashWallet.script,
+                        tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                        isMintBaton: true,
+                        atoms: 0n,
+                    });
+                }
+
+                // Build genesis info for ALP (includes authPubkey)
+                const finalGenesisInfo =
+                    tokenType.type === 'ALP_TOKEN_TYPE_STANDARD'
+                        ? {
+                              ...genesisInfo,
+                              // Set as Cashtab active wallet public key
+                              authPubkey: activeWallet.pk,
+                              // Note we are omitting the "data" key for now
+                          }
+                        : genesisInfo;
+
+                // Build payment.Action for token genesis
+                const genesisAction: payment.Action = {
+                    outputs,
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType,
+                            genesisInfo: finalGenesisInfo,
+                        },
+                    ],
+                    feePerKb: BigInt(settings.satsPerKb),
+                };
+
+                // Build and broadcast using ecash-wallet
+                const builtAction = ecashWallet.action(genesisAction).build();
+                const broadcastResult = await builtAction.broadcast();
+
+                if (!broadcastResult.success) {
+                    throw new Error(
+                        `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                    );
+                }
+
+                // Get the first txid (genesis transactions are single-tx)
+                txid = broadcastResult.broadcasted[0];
             }
             setCreatedTokenId(txid);
 

@@ -6,6 +6,7 @@ This document tracks the migration of transaction building and broadcasting from
 
 - ✅ **SendXec.tsx** - Already migrated to ecash-wallet
 - 🚧 **components/Etokens/Token/index.tsx** - In progress (sendToken(), burn(), handleMint() migrated)
+- ✅ **components/Etokens/CreateTokenForm/index.tsx** - Migrated (token creation migrated)
 
 ## Components That Send Transactions
 
@@ -22,8 +23,7 @@ This document tracks the migration of transaction building and broadcasting from
 
 **Used by:**
 
-- `components/Etokens/Token/index.tsx` (multiple functions)
-- `components/Etokens/CreateTokenForm/index.tsx` (token creation)
+- `components/Etokens/Token/index.tsx` (Agora listing functions only)
 
 **Migration Notes:**
 
@@ -86,7 +86,7 @@ This document tracks the migration of transaction building and broadcasting from
     - No manual fan-out transactions required
     - Removed `nftChildGenesisInput` prop - now just passes `groupTokenId` string
 
-#### 2.5. `handleMint()` (lines ~1325-1383)
+#### 2.5. `handleMint()` (lines ~1320-1383)
 
 - **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Mint new tokens using mint baton
@@ -94,10 +94,10 @@ This document tracks the migration of transaction building and broadcasting from
 - **Transaction Type:** Token MINT transaction
 - **Migration Notes:**
     - Uses `payment.Action` with `MINT` tokenAction
-    - `ecash-wallet` handles UTXO selection automatically
-    - Uses `requiredUtxos` to specify the mint baton UTXO
+    - `ecash-wallet` handles UTXO selection automatically, including finding mint batons
     - Outputs include: OP_RETURN, minted token output, and mint baton output
     - Removed dependency on `getMintTargetOutputs()` and `getAlpMintTargetOutputs()` helper functions
+    - Note: Minting is not currently supported for SLP_TOKEN_TYPE_MINT_VAULT tokens (they don't have mint batons, so the UI never shows the mint option for them)
 
 #### 2.6. `listNftOneshot()` (lines ~1540-1670)
 
@@ -139,25 +139,24 @@ This document tracks the migration of transaction building and broadcasting from
 
 **File:** `cashtab/src/components/Etokens/CreateTokenForm/index.tsx`
 
-**Status:** ❌ Not migrated
+**Status:** ✅ Migrated
 
 **Functions that send transactions:**
 
-#### 3.1. Token Creation (lines ~690-720)
+#### 3.1. Token Creation (lines ~717-820)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Create new tokens (genesis transactions)
-- **Uses:** `sendXec()` from `transactions/index.js`
+- **Uses:** `ecash-wallet`'s `action()` API directly
 - **Transaction Type:** Token genesis transaction
-- **Special Cases:**
-    - NFT collection creation
-    - NFT child minting (requires NFT parent input at index 0)
-
-**Migration Notes:**
-
-- Currently uses `sendXec()` from `transactions/index.js`
-- **Will be migrated to use `ecash-wallet` directly** - replacing `sendXec()` calls with `ecash-wallet`'s `action()` API
-- Handles both regular token creation and NFT creation
-- NFT child creation requires specific NFT parent input
+- **Migration Notes:**
+    - Uses `payment.Action` with `GENESIS` tokenAction
+    - Supports SLP fungible, SLP NFT parent (collection), and ALP token creation
+    - Handles optional mint baton creation
+    - Uses `GENESIS_TOKEN_ID_PLACEHOLDER` for genesis outputs
+    - Both ALP and SLP use the same output structure: qty at outIdx 1, mint baton at outIdx 2
+    - Removed dependency on `getSlpGenesisTargetOutput()`, `getNftParentGenesisTargetOutputs()`, and `getAlpGenesisTargetOutputs()` helper functions
+    - NFT child minting was already migrated (uses ecash-wallet directly)
 
 ---
 
@@ -249,9 +248,9 @@ This document tracks the migration of transaction building and broadcasting from
     - Pay special attention to sequential transaction flows (ad setup + offer)
     - Token transactions require specific token UTXOs as required inputs
 
-2. Migrate `components/Etokens/CreateTokenForm/index.tsx`
-    - Replace `sendXec()` calls with `ecash-wallet`'s `action()` API
-    - Handle token genesis and NFT creation
+2. Migrate `components/Etokens/CreateTokenForm/index.tsx` ✅ Complete
+    - ✅ Token creation/genesis - Migrated to `ecash-wallet`
+    - ✅ NFT child minting - Already migrated (uses ecash-wallet directly)
 
 3. Migrate `components/Agora/OrderBook/index.tsx`
     - Replace direct `ecash-lib`/`ecash-agora` usage with `ecash-wallet`

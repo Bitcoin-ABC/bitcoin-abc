@@ -4,7 +4,6 @@
 
 import {
     getMaxDecimalizedAlpQty,
-    getAlpGenesisTargetOutputs,
     getAlpBurnTargetOutputs,
     getAlpAgoraListTargetOutputs,
 } from 'token-protocols/alp';
@@ -17,50 +16,6 @@ describe('ALP token methods', () => {
             const { description, decimals, returned } = vector;
             it(`getMaxDecimalizedAlpQty: ${description}`, () => {
                 expect(getMaxDecimalizedAlpQty(decimals)).toBe(returned);
-            });
-        });
-    });
-    describe('We can generate expected ALP genesis target outputs with and without a mint baton', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getAlpGenesisTargetOutputs;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                includeMintBaton,
-                targetOutputs,
-            } = expectedReturn;
-            it(`getAlpGenesisTargetOutputs: ${description}`, () => {
-                expect(
-                    getAlpGenesisTargetOutputs(
-                        genesisInfo,
-                        initialQuantity,
-                        includeMintBaton,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const {
-                description,
-                genesisInfo,
-                initialQuantity,
-                includeMintBaton,
-                errorMsg,
-            } = expectedError;
-            it(`getAlpGenesisTargetOutputs throws error for: ${description}`, () => {
-                expect(() =>
-                    getAlpGenesisTargetOutputs(
-                        genesisInfo,
-                        initialQuantity,
-                        includeMintBaton,
-                    ),
-                ).toThrow(errorMsg);
             });
         });
     });
