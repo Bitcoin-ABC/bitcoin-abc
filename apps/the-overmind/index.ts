@@ -15,6 +15,7 @@ import {
     address,
     start,
     stats,
+    respawn,
     handleMessage,
     handleMessageReaction,
 } from './src/bot';
@@ -115,6 +116,9 @@ const startup = async () => {
     });
     bot.command('address', async ctx => {
         await address(ctx, pool);
+    });
+    bot.command('respawn', async ctx => {
+        await respawn(ctx, pool, chronik, wallet, bot, adminGroupChatId);
     });
     bot.command('stats', async ctx => {
         await stats(ctx, pool, adminGroupChatId);

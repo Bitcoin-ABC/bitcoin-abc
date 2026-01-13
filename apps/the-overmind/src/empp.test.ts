@@ -121,5 +121,35 @@ describe('empp', () => {
             expect(data1).to.deep.equal(data2);
             expect(data1.length).to.equal(6);
         });
+
+        it('should generate RESPAWN action EMPP data without msgId bytes', () => {
+            const data = getOvermindEmpp(EmppAction.RESPAWN);
+
+            // Should be 6 bytes: 4 (lokadId) + 1 (version) + 1 (action) - no msgId bytes
+            expect(data.length).to.equal(6);
+
+            // First 4 bytes should be 'XOVM' (0x584F564D)
+            expect(data[0]).to.equal(0x58); // 'X'
+            expect(data[1]).to.equal(0x4f); // 'O'
+            expect(data[2]).to.equal(0x56); // 'V'
+            expect(data[3]).to.equal(0x4d); // 'M'
+
+            // Version byte (index 4)
+            expect(data[4]).to.equal(0x00);
+
+            // Action byte (index 5) - RESPAWN = 0x04
+            expect(data[5]).to.equal(0x04);
+
+            // No msgId bytes - data ends here
+        });
+
+        it('should ignore msgId for RESPAWN action even if provided', () => {
+            const data1 = getOvermindEmpp(EmppAction.RESPAWN);
+            const data2 = getOvermindEmpp(EmppAction.RESPAWN, 12345);
+
+            // Both should produce identical data (6 bytes, no msgId)
+            expect(data1).to.deep.equal(data2);
+            expect(data1.length).to.equal(6);
+        });
     });
 });

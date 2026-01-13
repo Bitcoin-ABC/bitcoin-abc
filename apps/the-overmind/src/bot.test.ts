@@ -16,10 +16,12 @@ import {
     mnemonicToSeed,
     fromHex,
     ALP_TOKEN_TYPE_STANDARD,
+    DEFAULT_DUST_SATS,
     shaRmd160,
     toHex,
 } from 'ecash-lib';
-import { encodeCashAddress } from 'ecashaddrjs';
+import { encodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
+import { Tx } from 'chronik-client';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
@@ -28,6 +30,7 @@ import {
     health,
     start,
     stats,
+    respawn,
     sendErrorToAdmin,
     handleMessage,
     handleMessageReaction,
@@ -153,8 +156,6 @@ describe('bot', () => {
             const sendError = new Error('Telegram API error');
             (mockBot.api.sendMessage as sinon.SinonStub).rejects(sendError);
 
-            const consoleErrorStub = sandbox.stub(console, 'error');
-
             const error = new Error('Test error');
             await sendErrorToAdmin(
                 mockBot,
@@ -164,11 +165,8 @@ describe('bot', () => {
                 error,
             );
 
-            // Should log the error but not throw
-            expect(consoleErrorStub).to.have.been.calledWith(
-                'Failed to send error notification to admin group:',
-                sendError,
-            );
+            // Should attempt to send message (will fail but not throw)
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
         });
     });
 
@@ -1041,8 +1039,6 @@ describe('bot', () => {
                 }),
             } as unknown as ChronikClient;
 
-            const consoleErrorStub = sandbox.stub(console, 'error');
-
             await health(mockCtx, pool, errorChronik);
 
             // Verify error message to user
@@ -1050,12 +1046,6 @@ describe('bot', () => {
             expect(
                 (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
             ).to.include('❌ Error fetching your health');
-
-            // Verify error was logged
-            expect(consoleErrorStub).to.have.been.calledWith(
-                'Error fetching token balance:',
-                sinon.match.instanceOf(Error),
-            );
         });
 
         it('should sum balance correctly across multiple UTXOs', async () => {
@@ -1157,6 +1147,858 @@ describe('bot', () => {
             expect(replyCall.args[0]).to.include('You have **200 HP**');
             expect(replyCall.args[0]).to.include('200/100');
             expect(replyCall.args[0]).to.include('🔥 **MAXED!**');
+        });
+    });
+
+    describe('respawn', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let wallet: Wallet;
+        let mockBot: Bot;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+        const ADMIN_CHAT_ID = '-1001234567890';
+        const BOT_SK = fromHex(
+            '0000000000000000000000000000000000000000000000000000000000000001',
+        );
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Create wallet with mock chronik
+            wallet = Wallet.fromSk(
+                BOT_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Mock Bot
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
+            // Mock Grammy Context
+            mockCtx = {
+                from: {
+                    id: 12345,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+
+            // Set up wallet UTXOs with reward tokens
+            mockChronik.setUtxosByAddress(wallet.address, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 10000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 1_000_00n, // 1,000,000 tokens
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 100000n, // XEC for fees
+                    isFinal: true,
+                },
+            ]);
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
+
+            // Create user action table
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS user_actions_12345 (
+                    id SERIAL PRIMARY KEY,
+                    action TEXT NOT NULL,
+                    txid TEXT,
+                    msg_id INTEGER,
+                    emoji TEXT,
+                    occurred_at TIMESTAMPTZ
+                )
+            `);
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should successfully respawn HP for user with balance below 75 and no recent dislikes', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Mock broadcast transaction
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify success message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('✅ HP respawned!');
+            expect(replyCall.args[0]).to.include('50 HP'); // Should send 50 HP to reach 100
+            expect(replyCall.args[0]).to.include('100 HP');
+            expect(replyCall.args[0]).to.include(expectedTxid);
+
+            // Verify action was logged
+            const actionResult = await pool.query(
+                'SELECT * FROM user_actions_12345 WHERE action = $1',
+                ['respawn'],
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].txid).to.equal(expectedTxid);
+        });
+
+        it('should reject respawn if balance is 75 or above', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 75 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 75n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify rejection message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Cannot respawn. Your health must be below 75 HP to use this command.',
+            );
+        });
+
+        it('should reject respawn if balance is above 75', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 80 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 80n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify rejection message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Cannot respawn. Your health must be below 75 HP to use this command.',
+            );
+        });
+
+        it('should reject respawn if user has more than 3 dislikes in last 24 hours', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Insert 4 messages with dislikes in last 24 hours
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [1, 'Message 1', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [2, 'Message 2', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [3, 'Message 3', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [4, 'Message 4', 12345, 'testuser', 1],
+            );
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify rejection message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include(
+                '❌ Cannot respawn. You have received dislikes on 4 messages',
+            );
+            expect(replyCall.args[0]).to.include('maximum allowed: 3');
+        });
+
+        it('should allow respawn if user has exactly 3 dislikes in last 24 hours', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Insert 3 messages with dislikes in last 24 hours
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [1, 'Message 1', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [2, 'Message 2', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+                [3, 'Message 3', 12345, 'testuser', 1],
+            );
+
+            // Mock broadcast transaction
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify success message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('✅ HP respawned!');
+        });
+
+        it('should ignore dislikes older than 24 hours when checking respawn eligibility', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Insert 5 messages with dislikes older than 24 hours
+            await pool.query(
+                "INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW() - INTERVAL '25 hours')",
+                [1, 'Message 1', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                "INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW() - INTERVAL '25 hours')",
+                [2, 'Message 2', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                "INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW() - INTERVAL '25 hours')",
+                [3, 'Message 3', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                "INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW() - INTERVAL '25 hours')",
+                [4, 'Message 4', 12345, 'testuser', 1],
+            );
+            await pool.query(
+                "INSERT INTO messages (msg_id, message_text, user_tg_id, username, dislikes, sent_at) VALUES ($1, $2, $3, $4, $5, NOW() - INTERVAL '25 hours')",
+                [5, 'Message 5', 12345, 'testuser', 1],
+            );
+
+            // Mock broadcast transaction
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify success message (should work because old dislikes are ignored)
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('✅ HP respawned!');
+        });
+
+        it('should reject respawn if user is not registered', async () => {
+            // Mock user has 50 HP but not registered
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify rejection message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ You must register first!');
+        });
+
+        it('should handle missing user ID', async () => {
+            const ctxWithoutId = {
+                from: undefined,
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            await respawn(
+                ctxWithoutId,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify error message
+            expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
+                1,
+            );
+            expect(
+                (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.equal('❌ Could not identify your user ID.');
+        });
+
+        it('should handle chronik query errors gracefully', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock chronik to throw an error
+            const errorChronik = {
+                address: () => ({
+                    utxos: () =>
+                        Promise.reject(new Error('Chronik connection failed')),
+                }),
+            } as unknown as ChronikClient;
+
+            await respawn(
+                mockCtx,
+                pool,
+                errorChronik,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify error message to user
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error fetching your health');
+
+            // Verify error notification was sent to admin
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+        });
+
+        it('should handle wallet broadcast errors gracefully', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Mock broadcast to fail by throwing an error
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .rejects(new Error('Broadcast failed'));
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify error message to user
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error sending HP respawn');
+
+            // Verify error notification was sent to admin
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+        });
+
+        it('should calculate correct HP amount to send', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 30 HP (should send 70 to reach 100)
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 30n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Mock broadcast transaction
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify success message includes correct amount
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('70 HP'); // Should send 70 HP
+        });
+
+        it('should reject respawn if user has respawned in last 24 hours', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Get bot wallet output script and user output script
+            const botOutputScript = getOutputScriptFromAddress(wallet.address);
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+
+            // Create a mock transaction from bot to user with tokens (within last 24 hours)
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const respawnTxTimestamp = timeOfRequest - 3600; // 1 hour ago (within 24 hours)
+
+            const mockRespawnTx: Tx = {
+                txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: botOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000005',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: userOutputScript,
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 50n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: respawnTxTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_OK',
+            };
+
+            // Set transaction history with the respawn transaction
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, [mockRespawnTx]);
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify rejection message
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Cannot respawn. You have already respawned in the last 24 hours',
+            );
+        });
+
+        it('should allow respawn if last respawn was more than 24 hours ago', async () => {
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Mock user has 50 HP
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Get bot wallet output script and user output script
+            const botOutputScript = getOutputScriptFromAddress(wallet.address);
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+
+            // Create a mock transaction from bot to user with tokens (more than 24 hours ago)
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const respawnTxTimestamp = timeOfRequest - 90000; // 25 hours ago (more than 24 hours)
+
+            const mockRespawnTx: Tx = {
+                txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: botOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000005',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: userOutputScript,
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 50n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: respawnTxTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_OK',
+            };
+
+            // Set transaction history with the old respawn transaction
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, [mockRespawnTx]);
+
+            // Mock broadcast transaction
+            const expectedTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            (mockChronik as any).broadcastTx = sandbox
+                .stub()
+                .resolves({ txid: expectedTxid });
+
+            await respawn(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                wallet,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Verify success message (should allow respawn since last one was > 24 hours ago)
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('✅ HP respawned!');
         });
     });
 

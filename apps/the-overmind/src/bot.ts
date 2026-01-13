@@ -14,7 +14,7 @@ import {
     shaRmd160,
     toHex,
 } from 'ecash-lib';
-import { encodeCashAddress } from 'ecashaddrjs';
+import { encodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import {
@@ -308,6 +308,87 @@ export const register = async (
 };
 
 /**
+ * Check if user has respawned in the last 24 hours by checking transaction history
+ * @param userAddress - User's address
+ * @param botWalletAddress - Bot wallet address
+ * @param chronik - Chronik client for querying blockchain
+ * @returns true if user has respawned in last 24 hours, false otherwise
+ */
+const hasRespawnedInLast24Hours = async (
+    userAddress: string,
+    botWalletAddress: string,
+    chronik: ChronikClient,
+): Promise<boolean> => {
+    try {
+        // Get timestamp 24 hours ago (in seconds)
+        const timeOfRequest = Math.ceil(Date.now() / 1000);
+        const timestamp24HoursAgo = timeOfRequest - 86400; // 24 hours in seconds
+
+        // Get user's transaction history
+        const userOutputScript = getOutputScriptFromAddress(userAddress);
+        const botOutputScript = getOutputScriptFromAddress(botWalletAddress);
+
+        // Get transaction history (first page, should be enough for recent txs)
+        const history = await chronik.address(userAddress).history(0, 25);
+
+        // Check each transaction in history
+        for (const tx of history.txs) {
+            // Get transaction timestamp
+            const txTimestamp =
+                tx.timeFirstSeen !== 0
+                    ? tx.timeFirstSeen
+                    : tx.block?.timestamp || -1;
+
+            // Skip if transaction is older than 24 hours
+            if (txTimestamp < timestamp24HoursAgo && txTimestamp !== -1) {
+                // Transactions are in reverse chronological order, so we can stop here
+                break;
+            }
+
+            // Check if bot wallet sent this transaction (has inputs from bot wallet)
+            let hasBotInput = false;
+            for (const input of tx.inputs) {
+                if (input.outputScript === botOutputScript) {
+                    hasBotInput = true;
+                    break;
+                }
+            }
+
+            if (!hasBotInput) {
+                continue;
+            }
+
+            // Check if user received REWARDS_TOKEN_ID tokens in this transaction
+            let receivedRewardToken = false;
+            for (const output of tx.outputs) {
+                if (
+                    output.outputScript === userOutputScript &&
+                    typeof output.token !== 'undefined' &&
+                    output.token.tokenId === REWARDS_TOKEN_ID
+                ) {
+                    receivedRewardToken = true;
+                    break;
+                }
+            }
+
+            if (receivedRewardToken) {
+                // This is likely a respawn transaction (bot sent reward tokens to user)
+                // Note: This could also be a registration, but registration only happens once
+                // and users can't respawn until they're registered, so this check is valid
+                return true;
+            }
+        }
+
+        return false;
+    } catch (err) {
+        // If we can't check history, allow the respawn (fail open)
+        // This prevents blocking users due to chronik errors
+        console.error('Error checking respawn history:', err);
+        return false;
+    }
+};
+
+/**
  * Get and display health (HP balance) for a registered user
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
@@ -391,6 +472,251 @@ export const health = async (
 };
 
 /**
+ * Respawn user's HP back to 100
+ * Checks balance (must be below 75), dislike history (max 3 in last 24hrs), and respawn cooldown (1 per day)
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ * @param chronik - Chronik client for querying blockchain
+ * @param wallet - The Overmind wallet for sending HP tokens
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ */
+export const respawn = async (
+    ctx: Context,
+    pool: Pool,
+    chronik: ChronikClient,
+    wallet: Wallet,
+    bot: Bot,
+    adminChatId: string,
+): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is registered
+    const userResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+        await ctx.reply(
+            '❌ You must register first! Use /register to create your wallet address.',
+        );
+        return;
+    }
+
+    const { address } = userResult.rows[0];
+
+    // Get token balance from blockchain
+    let tokenBalanceAtoms = 0n;
+    try {
+        const utxosRes = await chronik.address(address).utxos();
+        const utxos = utxosRes.utxos || [];
+
+        // Sum up token atoms for REWARDS_TOKEN_ID
+        for (const utxo of utxos) {
+            if (
+                typeof utxo.token !== 'undefined' &&
+                utxo.token.tokenId === REWARDS_TOKEN_ID
+            ) {
+                tokenBalanceAtoms += utxo.token.atoms;
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching token balance:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'respawn (fetching balance)',
+            userId,
+            err,
+        );
+        await ctx.reply(
+            '❌ Error fetching your health. Please try again later.',
+        );
+        return;
+    }
+
+    const balance = Number(tokenBalanceAtoms);
+
+    // Check if balance is 75 or above
+    if (balance >= 75) {
+        await ctx.reply(
+            '❌ Cannot respawn. Your health must be below 75 HP to use this command.',
+        );
+        return;
+    }
+
+    // Check if user has respawned in the last 24 hours
+    try {
+        const hasRespawned = await hasRespawnedInLast24Hours(
+            address,
+            wallet.address,
+            chronik,
+        );
+        if (hasRespawned) {
+            await ctx.reply(
+                '❌ Cannot respawn. You have already respawned in the last 24 hours. Please wait before using this command again.',
+            );
+            return;
+        }
+    } catch (err) {
+        console.error('Error checking respawn history:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'respawn (checking respawn history)',
+            userId,
+            err,
+        );
+        await ctx.reply(
+            '❌ Error checking your respawn history. Please try again later.',
+        );
+        return;
+    }
+
+    // Check dislike history - count messages by this user that received dislikes in last 24 hours
+    try {
+        const dislikeHistoryResult = await pool.query(
+            `SELECT COUNT(*) as count 
+             FROM messages 
+             WHERE user_tg_id = $1 
+             AND dislikes > 0 
+             AND sent_at > NOW() - INTERVAL '24 hours'`,
+            [userId],
+        );
+        const dislikeCount = parseInt(dislikeHistoryResult.rows[0].count, 10);
+
+        if (dislikeCount > 3) {
+            await ctx.reply(
+                `❌ Cannot respawn. You have received dislikes on ${dislikeCount} messages in the last 24 hours (maximum allowed: 3).`,
+            );
+            return;
+        }
+    } catch (err) {
+        console.error('Error checking dislike history:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'respawn (checking dislike history)',
+            userId,
+            err,
+        );
+        await ctx.reply(
+            '❌ Error checking your dislike history. Please try again later.',
+        );
+        return;
+    }
+
+    // Calculate how much HP to send (bring balance to 100)
+    const targetBalance = 100n;
+    const currentBalance = tokenBalanceAtoms;
+    const hpToSend = targetBalance - currentBalance;
+
+    if (hpToSend <= 0n) {
+        await ctx.reply(
+            '❌ Your health is already at or above 100 HP. No respawn needed.',
+        );
+        return;
+    }
+
+    // Send HP from bot wallet to user
+    let txid: string | undefined;
+    try {
+        // Sync wallet to ensure we have latest token balance
+        await wallet.sync();
+
+        // Construct EMPP data push for RESPAWN
+        const respawnEmppData = getOvermindEmpp(EmppAction.RESPAWN);
+
+        // Create action to send ALP tokens
+        const tokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** HP tokens at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(address),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: hpToSend,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: respawnEmppData,
+                },
+            ],
+        };
+
+        // Build and broadcast the transaction
+        const resp = await wallet.action(tokenSendAction).build().broadcast();
+
+        if (resp.success && resp.broadcasted.length > 0) {
+            // Extract txid from the first broadcasted transaction
+            txid = resp.broadcasted[0];
+        } else {
+            const errorMsg = `Failed to send HP respawn. Response: ${JSON.stringify(resp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'respawn (sending HP)',
+                userId,
+                new Error(errorMsg),
+            );
+            await ctx.reply(
+                '❌ Error sending HP respawn. Please try again later.',
+            );
+            return;
+        }
+    } catch (err) {
+        console.error('Error sending HP respawn:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'respawn (sending HP)',
+            userId,
+            err,
+        );
+        await ctx.reply('❌ Error sending HP respawn. Please try again later.');
+        return;
+    }
+
+    // Insert action into user's action table
+    const tableName = `user_actions_${userId}`;
+    try {
+        await pool.query(
+            `INSERT INTO ${tableName} (action, txid, msg_id, emoji) VALUES ($1, $2, $3, $4)`,
+            ['respawn', txid || null, null, null],
+        );
+    } catch (err) {
+        console.error(
+            `Error inserting respawn action for user ${userId}:`,
+            err,
+        );
+        // Continue execution even if logging fails
+    }
+
+    await ctx.reply(
+        `✅ HP respawned! You received **${hpToSend.toString()} HP** and your health is now at 100 HP.\n\n` +
+            `Transaction: \`${txid}\``,
+        { parse_mode: 'Markdown' },
+    );
+};
+
+/**
  * Display welcome message and explain how The Overmind works
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
@@ -421,7 +747,8 @@ export const start = async (ctx: Context, pool: Pool): Promise<void> => {
         `• /start - Show this welcome message\n` +
         `• /register - Register and receive 100 HP + 1,000 XEC\n` +
         `• /health - Check your current HP balance\n` +
-        `• /address - View your wallet address and QR code\n\n` +
+        `• /address - View your wallet address and QR code\n` +
+        `• /respawn - Respawn your HP back to 100 (requires health < 75, < 3 dislikes in last 24hrs, and max 1 per day)\n\n` +
         `**Token Details:**\n` +
         `• Token: HP (Hit Points)\n` +
         `• Decimals: 0 (whole numbers only)\n` +

@@ -13,6 +13,7 @@ export enum EmppAction {
     LIKE = 0x01,
     DISLIKE = 0x02,
     DISLIKED = 0x03,
+    RESPAWN = 0x04,
 }
 
 /**
@@ -29,8 +30,9 @@ export const getOvermindEmpp = (
 ): Uint8Array => {
     const lokadIdBytes = strToBytes(LOKAD_ID);
 
-    // CLAIM action has no msgId bytes
-    const includeMsgId = action !== EmppAction.CLAIM;
+    // CLAIM and RESPAWN actions have no msgId bytes
+    const includeMsgId =
+        action !== EmppAction.CLAIM && action !== EmppAction.RESPAWN;
     const writer = new WriterBytes(4 + 1 + 1 + (includeMsgId ? 4 : 0)); // lokadId + version + action + (optional msgId)
 
     writer.putBytes(lokadIdBytes);
