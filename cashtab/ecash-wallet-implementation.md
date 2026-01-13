@@ -23,7 +23,7 @@ This document tracks the migration of transaction building and broadcasting from
 
 **Used by:**
 
-- `components/Etokens/Token/index.tsx` (Agora listing functions only)
+- `components/Etokens/Token/index.tsx` (`listNftOneshot()` and `listSlpPartial()` only)
 
 **Migration Notes:**
 
@@ -107,11 +107,17 @@ This document tracks the migration of transaction building and broadcasting from
     1. Ad setup transaction (sends NFT to P2SH)
     2. Offer transaction (creates Agora oneshot offer)
 
-#### 2.7. `listAlpPartial()` (lines ~1870-1977)
+#### 2.7. `listAlpPartial()` (lines ~1883-1970)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** List ALP tokens for sale on Agora (partial offer)
-- **Uses:** `sendXec()` from `transactions/index.js`
+- **Uses:** `ecash-wallet`'s `action()` API directly with `getAgoraPaymentAction()` from `ecash-agora`
 - **Transaction Type:** Agora partial offer listing with token inputs
+- **Migration Notes:**
+    - Uses `getAgoraPaymentAction()` from `ecash-agora` to build the `payment.Action`
+    - `ecash-wallet` automatically handles token UTXO selection and change
+    - Removed dependency on `getAlpAgoraListTargetOutputs()` and `getSendTokenInputs()` for this function
+    - ALP partial listings are single-transaction (unlike SLP which requires 2 sequential txs)
 
 #### 2.8. `listSlpPartial()` (lines ~1979-2140)
 
@@ -126,6 +132,7 @@ This document tracks the migration of transaction building and broadcasting from
 - `sendToken()` ✅ - Migrated to use `ecash-wallet` directly
 - `burn()` ✅ - Migrated to use `ecash-wallet` directly
 - `handleMint()` ✅ - Migrated to use `ecash-wallet` directly
+- `listAlpPartial()` ✅ - Migrated to use `ecash-wallet` directly (uses `getAgoraPaymentAction()` from `ecash-agora`)
 - NFT child minting ✅ - Migrated to use `ecash-wallet` directly (in `CreateTokenForm`)
 - Fan-out workflow ✅ - Removed (no longer needed - `ecash-wallet` handles automatically)
 - Remaining functions still use `sendXec()` helper from `transactions/index.js`
@@ -240,10 +247,10 @@ This document tracks the migration of transaction building and broadcasting from
     - ✅ `sendToken()` - Migrated to `ecash-wallet`
     - ✅ `burn()` - Migrated to `ecash-wallet`
     - ✅ `handleMint()` - Migrated to `ecash-wallet`
+    - ✅ `listAlpPartial()` - Migrated to `ecash-wallet` (uses `getAgoraPaymentAction()` from `ecash-agora`)
     - ✅ NFT child minting - Migrated to `ecash-wallet` (in `CreateTokenForm`)
     - ✅ Fan-out workflow - Removed (no longer needed)
     - ❌ `listNftOneshot()` - Still uses `sendXec()`
-    - ❌ `listAlpPartial()` - Still uses `sendXec()`
     - ❌ `listSlpPartial()` - Still uses `sendXec()`
     - Pay special attention to sequential transaction flows (ad setup + offer)
     - Token transactions require specific token UTXOs as required inputs

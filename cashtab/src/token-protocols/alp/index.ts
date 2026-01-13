@@ -8,17 +8,13 @@ import {
     emppScript,
     alpSend,
     alpBurn,
-    Script,
-    shaRmd160,
 } from 'ecash-lib';
-import { AgoraPartial } from 'ecash-agora';
 import { GenesisInfo } from 'chronik-client';
 import {
     TokenInputInfo,
     TokenTargetOutput,
     TOKEN_DUST_CHANGE_OUTPUT,
 } from 'token-protocols';
-import appConfig from 'config/app';
 
 /**
  * Cashtab methods to support ALP tx construction
@@ -86,37 +82,4 @@ export const getAlpBurnTargetOutputs = (
     // We still need to ensure the tx has at least one output of dust satoshis to be valid
     // Using the token dust utxo is a convenient way of doing this
     return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
-};
-
-/**
- * Get targetOutput(s) for listing an Agora Partial
- * offer for ALP
- */
-export const getAlpAgoraListTargetOutputs = (
-    tokenInputInfo: TokenInputInfo,
-    agoraPartial: AgoraPartial,
-): TokenTargetOutput[] => {
-    const { tokenId, sendAmounts } = tokenInputInfo;
-
-    const agoraScript = agoraPartial.script();
-    const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
-
-    const offerTargetOutputs: TokenTargetOutput[] = [
-        {
-            sats: 0n,
-            // Note, unlike SLP
-            // We will possibly have token change for the tx that creates the offer
-            script: emppScript([
-                agoraPartial.adPushdata(),
-                alpSend(tokenId, agoraPartial.tokenType, sendAmounts),
-            ]),
-        },
-        // Token utxo we are offering for sale
-        { sats: BigInt(appConfig.dustSats), script: agoraP2sh },
-    ];
-    if (sendAmounts.length > 1) {
-        offerTargetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
-    }
-
-    return offerTargetOutputs;
 };

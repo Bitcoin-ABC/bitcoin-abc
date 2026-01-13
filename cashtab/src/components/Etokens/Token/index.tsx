@@ -43,7 +43,6 @@ import {
     getNft,
     getAgoraAdFuelSats,
 } from 'token-protocols/slpv1';
-import { getAlpAgoraListTargetOutputs } from 'token-protocols/alp';
 import {
     TokenTargetOutput,
     getMaxDecimalizedQty,
@@ -129,6 +128,7 @@ import {
     AgoraOneshotAdSignatory,
     AgoraPartialAdSignatory,
     AgoraPartial,
+    getAgoraPaymentAction,
 } from 'ecash-agora';
 import OrderBook from 'components/Agora/OrderBook';
 import Collection, {
@@ -1893,44 +1893,45 @@ const Token: React.FC = () => {
             toast.error(`Error listing ALP partial: tokenId is undefined`);
             return;
         }
+        if (!tokenType) {
+            // Should never happen
+            toast.error(`Error listing ALP partial: tokenType is undefined`);
+            return;
+        }
+        if (!ecashWallet) {
+            // Should never happen
+            toast.error(`Error listing ALP partial: wallet not initialized`);
+            return;
+        }
 
         // offeredTokens is in units of token satoshis
         const offeredTokens = previewedAgoraPartial.offeredAtoms();
 
-        const satsPerKb = settings.satsPerKb;
-
-        // Get enough token utxos to cover the listing
-        // Note that getSendTokenInputs expects decimalized tokens as a string and decimals as a param
-        // Because we have undecimalized tokens in token sats from the AgoraPartial object,
-        // We pass this and "0" as decimals
-        const alpInputsInfo = getSendTokenInputs(
-            wallet.state.slpUtxos,
-            tokenId,
-            // This is already in units of token sats
-            offeredTokens.toString(),
-            0, // offeredTokens is already undecimalized
-        );
-
-        // Get sendAmounts and input token utxos like a normal token send tx
-        const { tokenInputs } = alpInputsInfo;
-        const offerTargetOutputs = getAlpAgoraListTargetOutputs(
-            alpInputsInfo,
-            previewedAgoraPartial,
-        );
-
         let offerTxid;
         try {
-            // Build and broadcast the ad setup tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                offerTargetOutputs,
-                satsPerKb,
-                chaintipBlockheight,
-                tokenInputs,
-            );
-            offerTxid = response.txid;
+            // Build payment.Action for Agora ALP partial listing using ecash-agora helper
+            const agoraListAction = getAgoraPaymentAction({
+                type: 'LIST',
+                tokenType,
+                variant: { type: 'PARTIAL', params: previewedAgoraPartial },
+            });
+
+            // Add feePerKb to the action
+            agoraListAction.feePerKb = BigInt(settings.satsPerKb);
+
+            // Build and broadcast using ecash-wallet
+            // ecash-wallet automatically handles token UTXO selection and change
+            const builtAction = ecashWallet.action(agoraListAction).build();
+            const broadcastResult = await builtAction.broadcast();
+
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            // Get the first txid (ALP partial listings are single-tx)
+            offerTxid = broadcastResult.broadcasted[0];
 
             // Calculate decimalized total offered amount for notifications
             const decimalizedOfferedTokens = decimalizeTokenAmount(

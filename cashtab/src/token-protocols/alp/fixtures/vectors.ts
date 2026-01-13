@@ -10,8 +10,6 @@ import {
 import { MAX_OUTPUT_AMOUNT_ALP_ATOMS } from 'token-protocols/alp';
 import { SlpDecimals } from 'wallet';
 import { Script, fromHex } from 'ecash-lib';
-import { AgoraPartial } from 'ecash-agora';
-import { agoraPartialAlpTiberium } from './mocks';
 
 const MOCK_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
@@ -26,21 +24,12 @@ interface GetAlpBurnTargetOutputsReturn {
     tokenInputInfo: TokenInputInfo;
     returned: TokenTargetOutput[];
 }
-interface GetAlpAgoraListTargetOutputsReturn {
-    description: string;
-    tokenInputInfo: TokenInputInfo;
-    agoraPartial: AgoraPartial;
-    returned: TokenTargetOutput[];
-}
 interface AlpVectors {
     getMaxDecimalizedAlpQty: {
         expectedReturns: GetMaxDecimalizedAlpQtyReturn[];
     };
     getAlpBurnTargetOutputs: {
         expectedReturns: GetAlpBurnTargetOutputsReturn[];
-    };
-    getAlpAgoraListTargetOutputs: {
-        expectedReturns: GetAlpAgoraListTargetOutputsReturn[];
     };
 }
 const vectors: AlpVectors = {
@@ -141,67 +130,6 @@ const vectors: AlpVectors = {
                     // Self send dust output -- in this case it is a token utxo holding change
                     {
                         ...TOKEN_DUST_CHANGE_OUTPUT,
-                    },
-                ],
-            },
-        ],
-    },
-    getAlpAgoraListTargetOutputs: {
-        expectedReturns: [
-            {
-                description:
-                    'We can list an ALP token as an AgoraPartial with token change',
-                tokenInputInfo: {
-                    tokenId: '',
-                    tokenInputs: [],
-                    sendAmounts: [1024n, 99000n],
-                },
-                agoraPartial: agoraPartialAlpTiberium,
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504b41475230075041525449414c000161ff1f0000000000737b02000000000061ff1f00000000008636ba26023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b117534c5032000453454e4402000400000000b88201000000',
-                            ),
-                        ),
-                    },
-                    {
-                        ...TOKEN_DUST_CHANGE_OUTPUT,
-                        script: new Script(
-                            fromHex(
-                                'a914ccd73a5da0f68ef5884daf7c7c5bee816c6cee3587',
-                            ),
-                        ),
-                    },
-                    TOKEN_DUST_CHANGE_OUTPUT,
-                ],
-            },
-            {
-                description:
-                    'We can list an ALP token as an AgoraPartial without token change',
-                tokenInputInfo: {
-                    tokenId: '',
-                    tokenInputs: [],
-                    sendAmounts: [1024n],
-                },
-                agoraPartial: agoraPartialAlpTiberium,
-                returned: [
-                    {
-                        sats: 0n,
-                        script: new Script(
-                            fromHex(
-                                '6a504b41475230075041525449414c000161ff1f0000000000737b02000000000061ff1f00000000008636ba26023c72addb4fdf09af94f0c94d7fe92a386a7e70cf8a1d85916386bb2535c7b1b111534c5032000453454e4401000400000000',
-                            ),
-                        ),
-                    },
-                    {
-                        ...TOKEN_DUST_CHANGE_OUTPUT,
-                        script: new Script(
-                            fromHex(
-                                'a914ccd73a5da0f68ef5884daf7c7c5bee816c6cee3587',
-                            ),
-                        ),
                     },
                 ],
             },
