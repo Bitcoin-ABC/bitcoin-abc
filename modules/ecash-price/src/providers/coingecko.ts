@@ -128,14 +128,16 @@ export class CoinGeckoProvider implements PriceProvider {
                 };
             }
 
+            // Parse the response body ONCE before the loop
+            const data = (await response.json()) as {
+                [sourceId: string]: {
+                    [currency: string]: number | undefined;
+                    last_updated_at?: number;
+                };
+            };
+
             for (const source of request.sources) {
                 const sourceId = _toCoingeckoId(source);
-                const data = (await response.json()) as {
-                    [sourceId: string]: {
-                        [currency: string]: number | undefined;
-                        last_updated_at?: number;
-                    };
-                };
                 const sourceData = data[sourceId];
                 if (!sourceData) {
                     prices.push(
