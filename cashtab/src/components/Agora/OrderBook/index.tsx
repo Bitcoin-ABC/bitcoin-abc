@@ -37,9 +37,7 @@ import {
     toBigInt,
     SlpDecimals,
     undecimalizeTokenAmount,
-    CashtabUtxo,
 } from 'wallet';
-import { ignoreUnspendableUtxos } from 'transactions';
 import {
     toFormattedXec,
     getFormattedFiatPrice,
@@ -79,26 +77,13 @@ import {
 } from 'components/Etokens/Token/styled';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
-import {
-    Script,
-    P2PKHSignatory,
-    ALL_BIP143,
-    toHex,
-    fromHex,
-    shaRmd160,
-    Address,
-} from 'ecash-lib';
+import { toHex, shaRmd160, Address } from 'ecash-lib';
 import appConfig from 'config/app';
 import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
-import {
-    AgoraOffer,
-    AgoraPartial,
-    getAgoraPartialAcceptFuelInputs,
-    getAgoraCancelFuelInputs,
-} from 'ecash-agora';
+import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 
 /**
@@ -204,10 +189,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Confirm we have all context required to load the page
         return null;
     }
-    const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
+    const { fiatPrice, chronik, agora, cashtabState, ecashWallet } =
         ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (typeof activeWallet === 'undefined') {
+    if (typeof activeWallet === 'undefined' || !ecashWallet) {
         // Note that, in the app, we will never render this component without an activeWallet
         // Because the App component will only show OnBoarding in this case
         // But because we directly test this component with context, we must handle this case
@@ -241,81 +226,24 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Get user fee from settings
         const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
-        // Potential input utxos for this transaction
-        // non-token utxos that are spendable
-        const eligibleUtxos = ignoreUnspendableUtxos(
-            wallet.state.nonSlpUtxos,
-            chaintipBlockheight,
-        );
-
-        // Get utxos to cover the cancel fee
-        let fuelUtxos;
         try {
-            fuelUtxos = getAgoraCancelFuelInputs(
-                agoraPartial,
-                eligibleUtxos,
-                satsPerKb,
-            ) as CashtabUtxo[];
-        } catch (err) {
-            console.error(
-                'Error determining fuel inputs for offer cancel',
-                err,
-            );
-            return toast.error(`${err}`);
-        }
-
-        const fuelInputs = [];
-        for (const fuelUtxo of fuelUtxos) {
-            // Convert from Cashtab utxo to signed ecash-lib input
-            fuelInputs.push({
-                input: {
-                    prevOut: {
-                        txid: fuelUtxo.outpoint.txid,
-                        outIdx: fuelUtxo.outpoint.outIdx,
-                    },
-                    signData: {
-                        sats: fuelUtxo.sats,
-                        // Send the tokens back to the same address as the fuelUtxo
-                        outputScript: Script.p2pkh(fromHex(wallet.hash)),
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
-            });
-        }
-
-        // Build the cancel tx
-        const cancelTxSer = agoraPartial
-            .cancelTx({
-                // Cashtab one-addr
-                // This works here because we lookup cancelable offers by the same addr
-                // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: fromHex(wallet.sk),
-                fuelInputs: fuelInputs,
-                // Change to user addr
-                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
+            // Use ecash-agora's cancel() method which handles fuel inputs and broadcasting via ecash-wallet
+            const broadcastResult = await agoraPartial.cancel({
+                wallet: ecashWallet,
                 feePerKb: satsPerKb,
-            })
-            .ser();
+                dustSats: BigInt(appConfig.dustSats),
+            });
 
-        // Convert to hex
-        // Note that broadcastTx will accept cancelTxSer
-        // But hex is a better way to store raw txs for integration tests
-        const hex = toHex(cancelTxSer);
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Cancel transaction failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
 
-        // Broadcast the cancel tx
-        let resp;
-        try {
-            console.log('OrderBook cancel - hex:', hex);
-            console.log('OrderBook cancel - satsPerKb:', settings.satsPerKb);
-            resp = await chronik.broadcastTx(hex);
-            console.log('OrderBook cancel - resp:', resp);
+            const txid = broadcastResult.broadcasted[0];
             toast(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -345,82 +273,27 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Determine tx fee from settings
         const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
-        // Potential input utxos for this transaction
-        // non-token utxos that are spendable
-        const eligibleUtxos = ignoreUnspendableUtxos(
-            wallet.state.nonSlpUtxos,
-            chaintipBlockheight,
-        );
-
-        let acceptFuelInputs;
         try {
-            acceptFuelInputs = getAgoraPartialAcceptFuelInputs(
-                agoraPartial,
-                eligibleUtxos,
-                preparedTokenSatoshis,
-                satsPerKb,
-            ) as CashtabUtxo[];
-        } catch (err) {
-            console.error(
-                'Error determining fuel inputs for offer accept',
-                err,
-            );
-            // Hide the confirmation modal
-            setShowConfirmBuyModal(false);
-            // Error notification
-            return toast.error(`${err}`);
-        }
-
-        const signedFuelInputs = [];
-        for (const fuelUtxo of acceptFuelInputs) {
-            // Sign and prep utxos for ecash-lib inputs
-            signedFuelInputs.push({
-                input: {
-                    prevOut: {
-                        txid: fuelUtxo.outpoint.txid,
-                        outIdx: fuelUtxo.outpoint.outIdx,
-                    },
-                    signData: {
-                        sats: fuelUtxo.sats,
-                        outputScript: Script.p2pkh(fromHex(wallet.hash)),
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
+            // Use ecash-agora's take() method which handles fuel inputs and broadcasting via ecash-wallet
+            const broadcastResult = await agoraPartial.take({
+                wallet: ecashWallet,
+                covenantSk: DUMMY_KEYPAIR.sk,
+                covenantPk: DUMMY_KEYPAIR.pk,
+                acceptedAtoms: preparedTokenSatoshis,
+                feePerKb: satsPerKb,
+                dustSats: BigInt(appConfig.dustSats),
             });
-        }
 
-        // Use an arbitrary sk, pk for the convenant
-        let acceptTxSer;
-        try {
-            acceptTxSer = agoraPartial
-                .acceptTx({
-                    covenantSk: DUMMY_KEYPAIR.sk,
-                    covenantPk: DUMMY_KEYPAIR.pk,
-                    fuelInputs: signedFuelInputs,
-                    recipientScript: Script.p2pkh(fromHex(wallet.hash)),
-                    feePerKb: satsPerKb,
-                    acceptedAtoms: preparedTokenSatoshis,
-                })
-                .ser();
-        } catch (err) {
-            console.error('Error accepting offer', err);
-            toast.error(`${err}`);
-            return;
-        }
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Accept transaction failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
 
-        // We need hex so we can log it to get integration test mocks
-        const hex = toHex(acceptTxSer);
-
-        let resp;
-        try {
-            resp = await chronik.broadcastTx(hex);
+            const txid = broadcastResult.broadcasted[0];
             toast(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -457,6 +330,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
         } catch (err) {
             console.error('Error accepting offer', err);
             toast.error(`${err}`);
+            // Hide the confirmation modal on error
+            setShowConfirmBuyModal(false);
         }
     };
 
