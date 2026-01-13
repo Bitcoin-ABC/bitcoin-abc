@@ -8,15 +8,17 @@ export { PriceFetcher } from './pricefetcher';
 
 // Formatter
 export { PriceFormatter, formatPrice } from './formatter';
-export type { PriceFormatterConfig } from './formatter';
+export type { PriceFormatterConfig, FormattedStatistics } from './formatter';
 
 // Types
-export { Fiat, CryptoTicker } from './types';
+export { Fiat, CryptoTicker, Period } from './types';
 export type {
     QuoteCurrency,
     PriceData,
     PriceRequest,
     PriceResponse,
+    PricePair,
+    Statistics,
 } from './types';
 
 // Provider interface

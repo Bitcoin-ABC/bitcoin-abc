@@ -7,6 +7,7 @@ import { PriceFetcher } from '../pricefetcher';
 import { PriceFormatter } from '../formatter';
 import { MockProvider } from './fixture/mockprovider';
 import { Fiat, CryptoTicker } from '../types';
+import type { Statistics } from '../types';
 
 describe('PriceFormatter', () => {
     describe('constructor', () => {
@@ -708,6 +709,158 @@ describe('PriceFormatter', () => {
             expect(formattedPairs).to.have.length(2);
             expect(formattedPairs[0]).to.equal('$123.00');
             expect(formattedPairs[1]).to.equal('€456.00');
+        });
+    });
+
+    describe('formatStatistics', () => {
+        it('should format statistics with USD quote', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'en-US' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+                currentPrice: 0.00001241,
+                marketCap: 2000000000,
+                volume: 50000000,
+                priceChangeValue: 0.00000031,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.source).to.equal(CryptoTicker.XEC);
+            expect(formatted.quote).to.equal(Fiat.USD);
+            expect(formatted.currentPrice).to.equal('$0.00001241');
+            expect(formatted.marketCap).to.equal('$2,000,000,000');
+            expect(formatted.volume).to.equal('$50,000,000');
+            expect(formatted.priceChangeValue).to.equal('$0.00000031');
+            expect(formatted.priceChangePercent).to.equal('2.50%');
+        });
+
+        it('should format statistics with negative price change', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'en-US' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.BTC,
+                quote: Fiat.USD,
+                currentPrice: 50000,
+                marketCap: 1000000000000,
+                volume: 20000000000,
+                priceChangeValue: -500,
+                priceChangePercent: -0.01, // -1% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.currentPrice).to.equal('$50,000');
+            expect(formatted.marketCap).to.equal('$1,000,000,000,000');
+            expect(formatted.volume).to.equal('$20,000,000,000');
+            expect(formatted.priceChangeValue).to.equal('-$500.00');
+            expect(formatted.priceChangePercent).to.equal('-1.00%');
+        });
+
+        it('should format statistics with EUR quote and locale', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'fr-FR' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.ETH,
+                quote: Fiat.EUR,
+                currentPrice: 2000,
+                marketCap: 250000000000,
+                volume: 10000000000,
+                priceChangeValue: 50,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.source).to.equal(CryptoTicker.ETH);
+            expect(formatted.quote).to.equal(Fiat.EUR);
+            expect(formatted.currentPrice).to.include('2');
+            expect(formatted.currentPrice).to.include('000');
+            // Intl.NumberFormat uses non-breaking space before % in fr-FR locale
+            expect(formatted.priceChangePercent).to.include('2,50');
+            expect(formatted.priceChangePercent).to.include('%');
+        });
+
+        it('should format statistics with cryptocurrency quote', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'en-US' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.XEC,
+                quote: CryptoTicker.BTC,
+                currentPrice: 0.0000000001,
+                marketCap: 1000,
+                volume: 50,
+                priceChangeValue: 0.0000000000025,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.source).to.equal(CryptoTicker.XEC);
+            expect(formatted.quote).to.equal(CryptoTicker.BTC);
+            expect(formatted.currentPrice).to.include('0.0000000001');
+            expect(formatted.currentPrice).to.include('BTC');
+            expect(formatted.marketCap).to.include('1,000');
+            expect(formatted.marketCap).to.include('BTC');
+            expect(formatted.volume).to.include('50');
+            expect(formatted.volume).to.include('BTC');
+            expect(formatted.priceChangeValue).to.include('0.0000000000025');
+            expect(formatted.priceChangeValue).to.include('BTC');
+            expect(formatted.priceChangePercent).to.equal('2.50%');
+        });
+
+        it('should format statistics with large market cap', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'en-US' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.BTC,
+                quote: Fiat.USD,
+                currentPrice: 100000,
+                marketCap: 2000000000000,
+                volume: 50000000000,
+                priceChangeValue: 1000,
+                priceChangePercent: 0.01, // 1% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.currentPrice).to.equal('$100,000');
+            expect(formatted.marketCap).to.equal('$2,000,000,000,000');
+            expect(formatted.volume).to.equal('$50,000,000,000');
+            expect(formatted.priceChangeValue).to.equal('$1,000');
+            expect(formatted.priceChangePercent).to.equal('1.00%');
+        });
+
+        it('should format statistics with small price change percentage', () => {
+            const provider = new MockProvider({ shouldSucceed: true });
+            const fetcher = new PriceFetcher([provider]);
+            const formatter = fetcher.formatter({ locale: 'en-US' });
+
+            const statistics: Statistics = {
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+                currentPrice: 0.0001,
+                marketCap: 2000000000,
+                volume: 50000000,
+                priceChangeValue: 0.0000001,
+                priceChangePercent: 0.001, // 0.1% as decimal factor
+            };
+
+            const formatted = formatter.formatStatistics(statistics);
+
+            expect(formatted.priceChangePercent).to.equal('0.10%');
         });
     });
 });

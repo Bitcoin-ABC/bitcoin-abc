@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import type { PricePair, QuoteCurrency } from './types';
-import { Fiat } from './types';
+import type { PricePair, QuoteCurrency, Statistics } from './types';
+import { Fiat, CryptoTicker } from './types';
 import type { PriceFetcher } from './pricefetcher';
 
 /**
@@ -159,4 +159,68 @@ export class PriceFormatter {
     private formatPrice(price: number, quote: QuoteCurrency): string {
         return formatPrice(price, quote, this.config);
     }
+
+    /**
+     * Format statistics data
+     *
+     * @param statistics - Statistics data to format
+     * @returns Formatted statistics object with formatted values as strings
+     */
+    formatStatistics(statistics: Statistics): FormattedStatistics {
+        const locale = this.config?.locale ?? PRICE_FORMATTER_DEFAULT_LOCALE;
+        const quote = statistics.quote;
+
+        const formattedPercent = new Intl.NumberFormat(locale, {
+            style: 'percent',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(statistics.priceChangePercent);
+
+        return {
+            source: statistics.source,
+            quote: statistics.quote,
+            currentPrice: this.formatPrice(statistics.currentPrice, quote),
+            marketCap: this.formatPrice(statistics.marketCap, quote),
+            volume: this.formatPrice(statistics.volume, quote),
+            priceChangeValue: this.formatPrice(
+                statistics.priceChangeValue,
+                quote,
+            ),
+            priceChangePercent: formattedPercent,
+        };
+    }
+}
+
+/**
+ * Formatted statistics with formatted values as strings
+ */
+export interface FormattedStatistics {
+    /**
+     * Source cryptocurrency
+     */
+    source: CryptoTicker;
+    /**
+     * Quote currency (fiat or crypto)
+     */
+    quote: QuoteCurrency;
+    /**
+     * Formatted current price
+     */
+    currentPrice: string;
+    /**
+     * Formatted market capitalization
+     */
+    marketCap: string;
+    /**
+     * Formatted 24-hour trading volume
+     */
+    volume: string;
+    /**
+     * Formatted price change value
+     */
+    priceChangeValue: string;
+    /**
+     * Formatted price change percentage (e.g., "2.50%" or "-1.25%")
+     */
+    priceChangePercent: string;
 }

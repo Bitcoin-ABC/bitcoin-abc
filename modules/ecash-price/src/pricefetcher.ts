@@ -2,7 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import type { PricePair, PriceRequest, PriceResponse } from './types';
+import type {
+    PricePair,
+    PriceRequest,
+    PriceResponse,
+    Period,
+    Statistics,
+} from './types';
 import type { PriceProvider } from './provider';
 import { ProviderStrategy } from './strategy';
 import { PriceFormatter } from './formatter';
@@ -179,5 +185,33 @@ export class PriceFetcher {
      */
     formatter(config?: PriceFormatterConfig): PriceFormatter {
         return new PriceFormatter(this, config);
+    }
+
+    /**
+     * Get statistics for a given pair and period.
+     * Uses the first available provider that supports statistics.
+     *
+     * @param pair - Pair of source cryptocurrency and quote currency
+     * @param period - Time period for statistics (e.g., 24h)
+     * @returns Statistics data or null if fetch failed
+     */
+    async stats(pair: PricePair, period: Period): Promise<Statistics | null> {
+        if (this.strategy !== ProviderStrategy.FALLBACK) {
+            throw new Error(`Strategy ${this.strategy} is not implemented yet`);
+        }
+
+        for (const provider of this.providers) {
+            try {
+                const statistics = await provider.fetchStats(pair, period);
+                if (statistics !== null) {
+                    return statistics;
+                }
+            } catch {
+                // Provider threw an error, try next one
+                continue;
+            }
+        }
+
+        return null;
     }
 }

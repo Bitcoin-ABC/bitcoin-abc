@@ -8,7 +8,8 @@
     "license": "MIT",
     "scripts": {
         "build": "tsc && tsc -p ./tsconfig.build.json",
-        "test": "mocha --import=tsx ./src/test/*.test.ts ./src/test/**/*.test.ts"
+        "test": "mocha --import=tsx ./src/test/*.test.ts ./src/test/**/*.test.ts",
+        "fetch-coingecko": "tsx scripts/fetch-coingecko.ts"
     },
     "devDependencies": {
         "@types/chai": "^4.3.20",

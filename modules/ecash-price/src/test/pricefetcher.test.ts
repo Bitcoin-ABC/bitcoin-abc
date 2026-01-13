@@ -5,7 +5,13 @@
 import { expect } from 'chai';
 import { PriceFetcher } from '../pricefetcher';
 import { MockProvider } from './fixture/mockprovider';
-import { Fiat, CryptoTicker, PriceRequest, QuoteCurrency } from '../types';
+import {
+    Fiat,
+    CryptoTicker,
+    PriceRequest,
+    QuoteCurrency,
+    Period,
+} from '../types';
 import { ProviderStrategy } from '../strategy';
 
 describe('PriceFetcher', () => {
@@ -958,6 +964,169 @@ describe('PriceFetcher', () => {
             });
 
             expect(price).to.equal(0.00001241);
+        });
+    });
+
+    describe('stats', () => {
+        it('should throw error for unsupported strategy', async () => {
+            const provider = new MockProvider({});
+            const fetcher = new PriceFetcher(
+                [provider],
+                'unsupported' as ProviderStrategy,
+            );
+
+            try {
+                await fetcher.stats(
+                    { source: CryptoTicker.XEC, quote: Fiat.USD },
+                    Period.HOURS_24,
+                );
+                expect.fail('Should have thrown an error');
+            } catch (err) {
+                expect(err).to.be.instanceOf(Error);
+                expect((err as Error).message).to.equal(
+                    'Strategy unsupported is not implemented yet',
+                );
+            }
+        });
+
+        it('should return statistics when first provider succeeds', async () => {
+            const statistics = {
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+                currentPrice: 0.0001,
+                marketCap: 2000000000,
+                volume: 50000000,
+                priceChangeValue: 0.0000025,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const provider1 = new MockProvider({
+                statistics,
+            });
+            const provider2 = new MockProvider({
+                statistics: {
+                    ...statistics,
+                    currentPrice: 0.0002,
+                },
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.not.be.equal(null);
+            expect(result).to.deep.equal(statistics);
+        });
+
+        it('should fallback to second provider when first returns null', async () => {
+            const statistics = {
+                source: CryptoTicker.BTC,
+                quote: Fiat.USD,
+                currentPrice: 50000,
+                marketCap: 1000000000000,
+                volume: 20000000000,
+                priceChangeValue: -500,
+                priceChangePercent: -0.01, // -1% as decimal factor
+            };
+
+            const provider1 = new MockProvider({});
+            const provider2 = new MockProvider({
+                statistics,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.BTC, quote: Fiat.USD },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.not.be.equal(null);
+            expect(result).to.deep.equal(statistics);
+        });
+
+        it('should fallback to second provider when first throws', async () => {
+            const statistics = {
+                source: CryptoTicker.ETH,
+                quote: Fiat.EUR,
+                currentPrice: 2000,
+                marketCap: 250000000000,
+                volume: 10000000000,
+                priceChangeValue: 50,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const provider1 = new MockProvider({
+                shouldThrow: true,
+            });
+            const provider2 = new MockProvider({
+                statistics,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.ETH, quote: Fiat.EUR },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.not.be.equal(null);
+            expect(result).to.deep.equal(statistics);
+        });
+
+        it('should return null when all providers fail', async () => {
+            const provider1 = new MockProvider({});
+            const provider2 = new MockProvider({});
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.be.equal(null);
+        });
+
+        it('should return null when all providers throw', async () => {
+            const provider1 = new MockProvider({
+                shouldThrow: true,
+            });
+            const provider2 = new MockProvider({
+                shouldThrow: true,
+            });
+            const fetcher = new PriceFetcher([provider1, provider2]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.XEC, quote: Fiat.USD },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.be.equal(null);
+        });
+
+        it('should work with cryptocurrency quote currency', async () => {
+            const statistics = {
+                source: CryptoTicker.XEC,
+                quote: CryptoTicker.BTC,
+                currentPrice: 0.0000000001,
+                marketCap: 1000,
+                volume: 50,
+                priceChangeValue: 0.0000000000025,
+                priceChangePercent: 0.025, // 2.5% as decimal factor
+            };
+
+            const provider = new MockProvider({
+                statistics,
+            });
+            const fetcher = new PriceFetcher([provider]);
+
+            const result = await fetcher.stats(
+                { source: CryptoTicker.XEC, quote: CryptoTicker.BTC },
+                Period.HOURS_24,
+            );
+
+            expect(result).to.not.be.equal(null);
+            expect(result).to.deep.equal(statistics);
         });
     });
 });

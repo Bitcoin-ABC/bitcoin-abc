@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import type { PriceProvider } from '../../provider';
-import type { PriceRequest } from '../../types';
+import type { PriceRequest, PricePair, Period, Statistics } from '../../types';
 import { CryptoTicker, Fiat, PriceResponse } from '../../types';
 
 /**
@@ -29,6 +29,11 @@ export interface MockProviderOptions {
      * Custom response to return (overrides shouldSucceed behavior)
      */
     response?: PriceResponse;
+    /**
+     * Custom statistics to return (used when fetchStats is called)
+     * If not provided, fetchStats returns null
+     */
+    statistics?: Statistics;
 }
 
 /**
@@ -41,12 +46,14 @@ export class MockProvider implements PriceProvider {
     private shouldThrow: boolean;
     private price: number;
     response?: PriceResponse;
+    statistics?: Statistics;
 
     constructor(options: MockProviderOptions = {}) {
         this.shouldSucceed = options.shouldSucceed ?? true;
         this.shouldThrow = options.shouldThrow ?? false;
         this.price = options.price ?? 1.241e-5;
         this.response = options.response;
+        this.statistics = options.statistics;
     }
 
     toString(): string {
@@ -90,5 +97,16 @@ export class MockProvider implements PriceProvider {
                 },
             ],
         };
+    }
+
+    async fetchStats(
+        _pair: PricePair,
+        _period: Period,
+    ): Promise<Statistics | null> {
+        if (this.shouldThrow) {
+            throw new Error('Provider error');
+        }
+
+        return this.statistics ?? null;
     }
 }

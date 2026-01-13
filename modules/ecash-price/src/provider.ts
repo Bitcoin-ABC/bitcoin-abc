@@ -2,7 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import type { PriceRequest, PriceResponse } from './types';
+import type {
+    PriceRequest,
+    PriceResponse,
+    PricePair,
+    Period,
+    Statistics,
+} from './types';
 
 /**
  * Abstract interface for price providers
@@ -44,4 +50,13 @@ export interface PriceProvider {
      *          Each PriceData entry may have an error field if that quote failed
      */
     fetchPrices(request: PriceRequest): Promise<PriceResponse>;
+
+    /**
+     * Fetch statistics for a given pair and period
+     *
+     * @param pair - Pair of source cryptocurrency and quote currency
+     * @param period - Time period for statistics (e.g., 24h)
+     * @returns Statistics data or null if fetch failed
+     */
+    fetchStats(pair: PricePair, period: Period): Promise<Statistics | null>;
 }

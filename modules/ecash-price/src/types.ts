@@ -135,3 +135,47 @@ export interface PriceResponse {
      */
     prices: PriceData[];
 }
+
+/**
+ * Supported time periods for statistics
+ */
+export enum Period {
+    /**
+     * 24 hour period
+     */
+    HOURS_24 = '24h',
+}
+
+/**
+ * Statistics data for a cryptocurrency pair over a given period
+ */
+export interface Statistics {
+    /**
+     * Source cryptocurrency (e.g., XEC, BTC, ETH)
+     */
+    source: CryptoTicker;
+    /**
+     * Quote currency (e.g., USD or BTC)
+     */
+    quote: QuoteCurrency;
+    /**
+     * Current price in units of quote currency per source cryptocurrency
+     */
+    currentPrice: number;
+    /**
+     * Market capitalization in units of quote currency
+     */
+    marketCap: number;
+    /**
+     * 24-hour trading volume in units of quote currency
+     */
+    volume: number;
+    /**
+     * Price change value over the period in units of quote currency
+     */
+    priceChangeValue: number;
+    /**
+     * Price change percentage over the period
+     */
+    priceChangePercent: number;
+}

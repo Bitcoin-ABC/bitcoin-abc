@@ -2,8 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import type { PriceData, PriceRequest, PriceResponse } from '../types';
-import { CryptoTicker } from '../types';
+import type {
+    PriceData,
+    PriceRequest,
+    PriceResponse,
+    PricePair,
+    Statistics,
+} from '../types';
+import { CryptoTicker, Period } from '../types';
 import type { PriceProvider } from '../provider';
 
 /**
@@ -209,6 +215,76 @@ export class CoinGeckoProvider implements PriceProvider {
                     })
                     .flat(),
             };
+        }
+    }
+
+    async fetchStats(
+        pair: PricePair,
+        period: Period,
+    ): Promise<Statistics | null> {
+        if (period !== Period.HOURS_24) {
+            return null;
+        }
+
+        try {
+            const sourceId = _toCoingeckoId(pair.source);
+            const quoteId = pair.quote.toString();
+
+            const url = `${this.apiBase}/simple/price?ids=${sourceId}&vs_currencies=${quoteId}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&precision=full`;
+
+            const response = await fetch(url, {
+                headers: this.apiKey
+                    ? { 'x-cg-pro-api-key': this.apiKey }
+                    : undefined,
+            });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            const data = (await response.json()) as {
+                [sourceId: string]: {
+                    [key: string]: number | undefined;
+                };
+            };
+
+            const sourceData = data[sourceId];
+            if (!sourceData) {
+                return null;
+            }
+
+            const price = sourceData[quoteId];
+            const marketCap = sourceData[`${quoteId}_market_cap`];
+            const volume = sourceData[`${quoteId}_24h_vol`];
+            const priceChangePercentFromApi =
+                sourceData[`${quoteId}_24h_change`];
+
+            if (
+                typeof price !== 'number' ||
+                typeof marketCap !== 'number' ||
+                typeof volume !== 'number' ||
+                typeof priceChangePercentFromApi !== 'number'
+            ) {
+                return null;
+            }
+
+            // Convert percentage from API (e.g., 2.5 for 2.5%) to decimal factor (e.g., 0.025)
+            const priceChangePercent = priceChangePercentFromApi / 100;
+
+            // Calculate price change value from decimal factor
+            const priceChangeValue = price * priceChangePercent;
+
+            return {
+                source: pair.source,
+                quote: pair.quote,
+                currentPrice: price,
+                marketCap,
+                volume,
+                priceChangeValue,
+                priceChangePercent,
+            };
+        } catch {
+            return null;
         }
     }
 }
