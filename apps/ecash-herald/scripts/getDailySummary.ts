@@ -27,6 +27,13 @@ import { CoinDanceStaker } from '../src/events';
 import { sendBlockSummary } from '../src/telegram';
 import secrets from '../secrets';
 import TelegramBot from 'node-telegram-bot-api';
+import {
+    CoinGeckoProvider,
+    CryptoTicker,
+    Fiat,
+    PriceFetcher,
+    Period,
+} from 'ecash-price';
 
 // Initialize telegram bot to send msgs to dev channel
 const { dev } = secrets;
@@ -41,17 +48,14 @@ const chronik = new ChronikClient(config.chronik);
  * @param channelId
  */
 const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
-    // Get price info for tg msg, if available
-    let priceInfo;
-    try {
-        priceInfo = (
-            await axios.get(
-                `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
-            )
-        ).data.ecash;
-    } catch {
+    const priceFetcher = new PriceFetcher([new CoinGeckoProvider()]);
+    const statistics = await priceFetcher.stats(
+        { source: CryptoTicker.XEC, quote: Fiat.USD },
+        Period.HOURS_24,
+    );
+    if (statistics === null) {
         console.error(
-            'CoinGecko API request failed for daily summary, building message without price data',
+            'Failed to fetch XEC price statistics, building message without price data',
         );
     }
 
@@ -124,7 +128,7 @@ const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
         tokenInfoMap,
         3, // agora tokens to show
         0, // non-agora tokens to show
-        priceInfo,
+        statistics,
         activeStakers,
     );
 

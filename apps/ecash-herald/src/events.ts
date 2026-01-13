@@ -23,6 +23,7 @@ import {
     MockProvider,
     PriceFetcher,
     PriceResponse,
+    Period,
 } from 'ecash-price';
 import { sendBlockSummary } from './telegram';
 import {
@@ -325,6 +326,7 @@ export const handleUtcMidnight = async (
     telegramBot: TelegramBot,
     channelId: string,
     secondChannelId?: string,
+    mockFetcher: PriceFetcher | undefined = undefined,
 ) => {
     // It is a new day
     // Send the daily summary
@@ -381,18 +383,12 @@ export const handleUtcMidnight = async (
     const tokenInfoMap = await getTokenInfoMap(chronik, tokensToday);
 
     // Get XEC price and market info
-    let priceInfo;
-    try {
-        priceInfo = (
-            await axios.get(
-                `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`,
-            )
-        ).data.ecash;
-    } catch {
-        console.error(
-            'CoinGecko API request failed for daily summary, building message without price data',
-        );
-    }
+    const priceFetcher =
+        mockFetcher ?? new PriceFetcher([new CoinGeckoProvider()]);
+    const statistics = await priceFetcher.stats(
+        { source: CryptoTicker.XEC, quote: Fiat.USD },
+        Period.HOURS_24,
+    );
 
     let activeStakers: CoinDanceStaker[] | undefined;
     // If we have a staker, get more info from API
@@ -415,7 +411,7 @@ export const handleUtcMidnight = async (
         tokenInfoMap,
         AGORA_TOKENS_MAX_RENDER,
         NON_AGORA_TOKENS_MAX_RENDER,
-        priceInfo,
+        statistics,
         activeStakers,
     );
 

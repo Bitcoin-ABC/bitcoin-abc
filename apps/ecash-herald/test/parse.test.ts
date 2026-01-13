@@ -36,6 +36,7 @@ import {
 } from '../src/parse';
 import appTxSamples from './mocks/appTxSamples';
 import { dailyTxs, tokenInfoMap } from './mocks/dailyTxs';
+import { CryptoTicker, Fiat } from 'ecash-price';
 
 const {
     swaps,
@@ -446,10 +447,13 @@ describe('parse.js functions', function () {
                 10, // show all tested agora tokens
                 10, // show all tested non-agora tokens
                 {
-                    usd: 0.00003487,
-                    usd_market_cap: 689047177.8128564,
-                    usd_24h_vol: 5957332.9687223025,
-                    usd_24h_change: -0.3973642442197056,
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    currentPrice: 0.00003487,
+                    marketCap: 689047177.8128564,
+                    volume: 5957332.9687223025,
+                    priceChangePercent: -0.003973642442197056,
+                    priceChangeValue: -0.000000013856,
                 },
                 block.activeStakers,
             ),
@@ -534,10 +538,13 @@ describe('parse.js functions', function () {
                 10, // show all tested agora tokens
                 10, // show all tested non-agora tokens
                 {
-                    usd: 0.00003487,
-                    usd_market_cap: 689047177.8128564,
-                    usd_24h_vol: 5957332.9687223025,
-                    usd_24h_change: -0.3973642442197056,
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    currentPrice: 0.00003487,
+                    marketCap: 689047177.8128564,
+                    volume: 5957332.9687223025,
+                    priceChangePercent: -0.003973642442197056,
+                    priceChangeValue: -0.000000013856,
                 },
                 block.activeStakers,
             ),
@@ -620,6 +627,7 @@ describe('parse.js functions', function () {
                 tokenInfoMap,
                 10, // show all tested agora tokens
                 10, // show all tested non-agora tokens
+                null,
             ),
             [
                 '<b>14 Oct 2024</b>\n' +

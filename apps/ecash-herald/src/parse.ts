@@ -51,7 +51,7 @@ import {
     AlpTokenType_Type,
 } from 'chronik-client';
 import { MemoryCache } from 'cache-manager';
-import { CryptoTicker, Fiat, formatPrice } from 'ecash-price';
+import { CryptoTicker, Fiat, formatPrice, Statistics } from 'ecash-price';
 
 const miners: KnownMiners = JSON.parse(
     JSON.stringify(knownMinersJson),
@@ -67,12 +67,6 @@ const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 export const IFP_OUTPUTSCRIPT =
     'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
 
-interface PriceInfo {
-    usd: number;
-    usd_market_cap: number;
-    usd_24h_vol: number;
-    usd_24h_change: number;
-}
 interface HeraldStaker {
     staker: string;
     reward: bigint;
@@ -2389,7 +2383,7 @@ export const initializeOrIncrementTokenData = (
  * @param tokenInfoMap tokenId => genesisInfo
  * @param agoraTokensMaxRender how many agora tokens to render, useful for showing more or less info
  * @param nonAgoraTokensMaxRender same for non-agora token actions. this info is less interesting in the summary.
- * @param priceInfo { usd, usd_market_cap, usd_24h_vol, usd_24h_change }
+ * @param statistics Statistics from PriceFetcher.stats
  * @param activeStakers
  */
 export const summarizeTxHistory = (
@@ -2398,11 +2392,12 @@ export const summarizeTxHistory = (
     tokenInfoMap: false | Map<string, GenesisInfo>,
     agoraTokensMaxRender: number,
     nonAgoraTokensMaxRender: number,
-    priceInfo?: PriceInfo,
+    statistics: Statistics | null,
     activeStakers?: CoinDanceStaker[],
 ): string[] => {
     const xecPriceUsd =
-        typeof priceInfo !== 'undefined' ? priceInfo.usd : undefined;
+        statistics !== null ? statistics.currentPrice : undefined;
+
     // Throw out any unconfirmed txs
     txs.filter(tx => typeof tx.block !== 'undefined');
 
@@ -3374,25 +3369,24 @@ export const summarizeTxHistory = (
     tgMsg.push('');
 
     // Market summary
-    if (typeof priceInfo !== 'undefined') {
-        const { usd_market_cap, usd_24h_vol, usd_24h_change } = priceInfo;
+    if (statistics !== null) {
         tgMsg.push(
             `${
-                usd_24h_change > 0
+                statistics.priceChangePercent > 0
                     ? config.emojis.priceUp
                     : config.emojis.priceDown
             }<b>1 XEC = ${formatPrice(
                 xecPriceUsd!,
                 Fiat.USD,
-            )}</b> <i>(${usd_24h_change.toFixed(2)}%)</i>`,
+            )}</b> <i>(${(statistics.priceChangePercent * 100).toFixed(2)}%)</i>`,
         );
         tgMsg.push(
-            `Trading volume: $${usd_24h_vol.toLocaleString('en-US', {
+            `Trading volume: $${statistics.volume.toLocaleString('en-US', {
                 maximumFractionDigits: 0,
             })}`,
         );
         tgMsg.push(
-            `Market cap: $${usd_market_cap.toLocaleString('en-US', {
+            `Market cap: $${statistics.marketCap.toLocaleString('en-US', {
                 maximumFractionDigits: 0,
             })}`,
         );
