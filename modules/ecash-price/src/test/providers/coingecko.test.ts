@@ -762,6 +762,67 @@ describe('CoinGeckoProvider', () => {
             expect(result.prices[0].price).to.equal(1.241e-5);
             expect(result.prices[0].lastUpdated).to.be.equal(undefined);
         });
+
+        it('should fetch prices successfully with constructor-built pairs', async () => {
+            const mockResponse = {
+                ecash: {
+                    usd: 1.241e-5,
+                    eur: 1.06e-5,
+                    btc: 1.32515e-10,
+                    last_updated_at: 1767706673,
+                },
+            };
+
+            mockFetch = async () => {
+                return {
+                    ok: true,
+                    json: async () => mockResponse,
+                } as Response;
+            };
+            global.fetch = mockFetch as typeof fetch;
+
+            const provider = new CoinGeckoProvider();
+            const result = await provider.fetchPrices({
+                sources: [new CryptoTicker('xec')],
+                quotes: [
+                    new Fiat('usd'),
+                    new Fiat('eur'),
+                    new CryptoTicker('btc'),
+                ],
+            });
+
+            expect(result.prices).to.have.length(3);
+
+            expect(result.prices[0].source.toString()).to.equal('xec');
+            expect(result.prices[0].quote.toString()).to.equal('usd');
+            expect(result.prices[0].provider).to.equal(provider);
+            expect(result.prices[0].price).to.equal(1.241e-5);
+            expect(result.prices[0].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[0].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[0].error).to.be.equal(undefined);
+
+            expect(result.prices[1].source.toString()).to.equal('xec');
+            expect(result.prices[1].quote.toString()).to.equal('eur');
+            expect(result.prices[1].provider).to.equal(provider);
+            expect(result.prices[1].price).to.equal(1.06e-5);
+            expect(result.prices[1].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[1].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[1].error).to.be.equal(undefined);
+
+            expect(result.prices[2].source.toString()).to.equal('xec');
+            expect(result.prices[2].quote.toString()).to.equal('btc');
+            expect(result.prices[2].provider).to.equal(provider);
+            expect(result.prices[2].price).to.equal(1.32515e-10);
+            expect(result.prices[2].lastUpdated).to.be.instanceOf(Date);
+            expect(result.prices[2].lastUpdated?.getTime()).to.equal(
+                1767706673 * 1000,
+            );
+            expect(result.prices[2].error).to.be.equal(undefined);
+        });
     });
 
     describe('toString and toJSON', () => {

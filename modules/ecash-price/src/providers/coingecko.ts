@@ -26,16 +26,16 @@ export interface CoinGeckoConfig {
  * Map a CryptoTicker to a CoinGecko ID
  */
 function _toCoingeckoId(ticker: CryptoTicker): string {
-    switch (ticker) {
-        case CryptoTicker.XEC:
+    switch (ticker.toString()) {
+        case CryptoTicker.XEC.toString():
             return 'ecash';
-        case CryptoTicker.BTC:
+        case CryptoTicker.BTC.toString():
             return 'bitcoin';
-        case CryptoTicker.ETH:
+        case CryptoTicker.ETH.toString():
             return 'ethereum';
-        case CryptoTicker.XMR:
+        case CryptoTicker.XMR.toString():
             return 'monero';
-        case CryptoTicker.SOL:
+        case CryptoTicker.SOL.toString():
             return 'solana';
     }
 
