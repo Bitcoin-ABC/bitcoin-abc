@@ -234,18 +234,20 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
 endif()
 
 # Conditionally regenerate ecmult_static_pre_g.h if it does not exist
-add_executable(gen_ecmult_static_pre_g ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_ecmult_static_pre_g.c)
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_pre_g.h
-	COMMAND gen_ecmult_static_pre_g
-	DEPENDS gen_ecmult_static_pre_g
-	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMENT "Generating src/ecmult_static_pre_g.h"
-)
-add_custom_target(generate_ecmult_h ALL
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_pre_g.h
-)
-add_dependencies(secp256k1 generate_ecmult_h)
+include(NativeExecutable)
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
+	add_native_executable(gen_ecmult_static_pre_g src/gen_ecmult_static_pre_g.c)
+	add_custom_command(
+		OUTPUT src/ecmult_static_pre_g.h
+		COMMAND  "$<TARGET_FILE:gen_ecmult_static_pre_g>"
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMENT "Generating src/ecmult_static_pre_g.h"
+	)
+	add_custom_target(generate_ecmult_h ALL
+		DEPENDS src/ecmult_static_pre_g.h
+	)
+	add_dependencies(secp256k1 generate_ecmult_h)
+endif()
 
 set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
 set(VALID_PRECISIONS 2 4 8)
@@ -258,7 +260,6 @@ option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's ellipti
 if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
 
-	include(NativeExecutable)
 	native_add_cmake_flags(
 		"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
 		"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
