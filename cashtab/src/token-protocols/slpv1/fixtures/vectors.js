@@ -466,44 +466,6 @@ export default {
             },
         ],
     },
-    getNft: {
-        expectedReturns: [
-            {
-                description: 'Returns the NFT if it exists in given utxo set',
-                tokenId: MOCK_TOKEN_ID,
-                slpUtxos: [
-                    { sats: 546n },
-                    {
-                        token: {
-                            tokenId: MOCK_TOKEN_ID,
-                        },
-                    },
-                ],
-                returned: [
-                    {
-                        token: {
-                            tokenId: MOCK_TOKEN_ID,
-                        },
-                    },
-                ],
-            },
-            {
-                description:
-                    'Returns an empty array if no utxos of correct tokenId are in this utxo set',
-                tokenId: MOCK_TOKEN_ID,
-                slpUtxos: [
-                    { sats: 546n },
-                    {
-                        token: {
-                            tokenId:
-                                '2222222222222222222222222222222222222222222222222222222222222222',
-                        },
-                    },
-                ],
-                returned: [],
-            },
-        ],
-    },
     isTokenDustChangeOutput: {
         expectedReturns: [
             {

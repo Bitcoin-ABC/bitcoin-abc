@@ -38,17 +38,8 @@ import { token as tokenConfig } from 'config/token';
 import { isValidCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
-import {
-    getMintBatons,
-    getNft,
-    getAgoraAdFuelSats,
-} from 'token-protocols/slpv1';
-import {
-    TokenTargetOutput,
-    getMaxDecimalizedQty,
-    getSendTokenInputs,
-} from 'token-protocols';
-import { sendXec } from 'transactions';
+import { getMintBatons, getAgoraAdFuelSats } from 'token-protocols/slpv1';
+import { getMaxDecimalizedQty, getSendTokenInputs } from 'token-protocols';
 import {
     decimalizeTokenAmount,
     toSatoshis,
@@ -114,13 +105,14 @@ import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     slpSend,
     SLP_NFT1_CHILD,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
     Script,
     fromHex,
+    toHex,
     shaRmd160,
-    P2PKHSignatory,
-    ALL_BIP143,
     payment,
     TokenType,
+    TxBuilder,
 } from 'ecash-lib';
 import { InlineLoader } from 'components/Common/Spinner';
 import {
@@ -156,7 +148,6 @@ const Token: React.FC = () => {
         updateCashtabState,
         chronik,
         agora,
-        ecc,
         chaintipBlockheight,
         fiatPrice,
         ecashWallet,
@@ -168,7 +159,6 @@ const Token: React.FC = () => {
     const wallet = activeWallet;
     // We get sk/pk/hash when wallet changes
 
-    const changeScript = Script.fromAddress(wallet.address);
     const { tokens, balanceSats } = wallet.state;
 
     const { tokenId } = useParams();
@@ -1477,6 +1467,17 @@ const Token: React.FC = () => {
     };
 
     const listNft = async () => {
+        if (typeof tokenId !== 'string') {
+            // Should never happen
+            toast.error(`Error listing NFT: tokenId is undefined`);
+            return;
+        }
+        if (!ecashWallet) {
+            // Should never happen
+            toast.error(`Error listing NFT: wallet not initialized`);
+            return;
+        }
+
         const listPriceSatoshis =
             selectedCurrency === appConfig.ticker
                 ? toSatoshis(Number(formData.nftListPrice))
@@ -1537,51 +1538,49 @@ const Token: React.FC = () => {
         // This will be dust + fee
         const adFuelOutputSats = appConfig.dustSats + offerTxFuelSats;
 
-        // Input needs to be the child NFT utxo with appropriate signData
-        // Get the NFT utxo from Cashtab wallet
-        const [thisNftUtxo] = getNft(tokenId as string, wallet.state.slpUtxos);
-        // Prepare it for an ecash-lib tx
-        const adSetupInputs = [
-            {
-                input: {
-                    prevOut: {
-                        txid: thisNftUtxo.outpoint.txid,
-                        outIdx: thisNftUtxo.outpoint.outIdx,
-                    },
-                    signData: {
-                        sats: BigInt(appConfig.dustSats),
-                        outputScript: changeScript,
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
-            },
-        ];
-        const adSetupTargetOutputs = [
-            {
-                sats: 0n,
-                script: slpSend(tokenId as string, SLP_NFT1_CHILD, [1n]),
-            },
-            { sats: BigInt(adFuelOutputSats), script: agoraAdP2sh },
-        ];
-
-        // Broadcast the ad setup tx
+        // Broadcast the ad setup tx using ecash-wallet
         let adSetupTxid;
         try {
-            // Build and broadcast the ad setup tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                adSetupTargetOutputs,
-                satsPerKb,
-                chaintipBlockheight,
-                adSetupInputs,
-            );
-            adSetupTxid = response.txid;
+            // Build payment.Action for ad setup transaction
+            // This sends the NFT to the P2SH address with fuel for the offer tx
+            // Output 0: OP_RETURN (ecash-wallet will build the script from tokenActions)
+            // Output 1: P2SH output with NFT (for the offer tx)
+            // ecash-wallet will automatically select the NFT UTXO based on the token send action
+            const adSetupOutputs: payment.PaymentOutput[] = [
+                { sats: 0n }, // OP_RETURN - ecash-wallet will build the script
+                {
+                    sats: BigInt(adFuelOutputSats),
+                    script: agoraAdP2sh,
+                    tokenId: tokenId as string,
+                    atoms: 1n, // NFT quantity is always 1
+                },
+            ];
+
+            const adSetupAction: payment.Action = {
+                outputs: adSetupOutputs,
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId as string,
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    },
+                ],
+                feePerKb: BigInt(satsPerKb),
+            };
+
+            // Build and broadcast using ecash-wallet
+            const builtAdSetupAction = ecashWallet
+                .action(adSetupAction)
+                .build();
+            const adSetupBroadcastResult = await builtAdSetupAction.broadcast();
+
+            if (!adSetupBroadcastResult.success) {
+                throw new Error(
+                    `Ad setup transaction broadcast failed: ${adSetupBroadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            adSetupTxid = adSetupBroadcastResult.broadcasted[0];
 
             confirmRawTx(
                 <a
@@ -1599,38 +1598,44 @@ const Token: React.FC = () => {
             return;
         }
 
-        const offerInputs = [
-            // The actual NFT
-            {
-                input: {
-                    prevOut: {
-                        // Since we just broadcast the ad tx and know how it was built,
-                        // this prevOut will always look like this
-                        txid: adSetupTxid,
-                        outIdx: 1,
-                    },
-                    signData: {
-                        sats: BigInt(adFuelOutputSats),
-                        redeemScript: agoraAdScript,
-                    },
-                },
-                signatory: AgoraOneshotAdSignatory(fromHex(wallet.sk)),
-            },
-        ];
-
+        // Build and broadcast the offer transaction
+        // This uses a P2SH input with custom signatory, so we build it manually with TxBuilder
         let offerTxid;
         try {
-            // Build and broadcast the ad setup tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                offerTargetOutputs,
-                satsPerKb,
-                chaintipBlockheight,
-                offerInputs,
+            const offerInputs = [
+                {
+                    input: {
+                        prevOut: {
+                            // Since we just broadcast the ad tx and know how it was built,
+                            // this prevOut will always look like this
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: BigInt(adFuelOutputSats),
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraOneshotAdSignatory(fromHex(wallet.sk)),
+                },
+            ];
+
+            // Build the offer transaction using TxBuilder
+            const offerTxBuilder = new TxBuilder({
+                inputs: offerInputs,
+                outputs: offerTargetOutputs,
+            });
+
+            const offerTx = offerTxBuilder.sign({
+                feePerKb: BigInt(satsPerKb),
+                dustSats: BigInt(appConfig.dustSats),
+            });
+
+            // Broadcast using ecash-wallet's chronik
+            const { txid } = await ecashWallet.chronik.broadcastTx(
+                toHex(offerTx.ser()),
             );
-            offerTxid = response.txid;
+            offerTxid = txid;
 
             // Maintain this notification as we do not parse listing prices in websocket
             toast(
@@ -1968,14 +1973,34 @@ const Token: React.FC = () => {
     };
 
     const listSlpPartial = async () => {
+        if (previewedAgoraPartial === null) {
+            // Should never happen
+            toast.error(
+                `Error listing SLP partial: Agora preview is undefined`,
+            );
+            return;
+        }
+        if (typeof tokenId !== 'string') {
+            // Should never happen
+            toast.error(`Error listing SLP partial: tokenId is undefined`);
+            return;
+        }
+        if (!tokenType) {
+            // Should never happen
+            toast.error(`Error listing SLP partial: tokenType is undefined`);
+            return;
+        }
+        if (!ecashWallet) {
+            // Should never happen
+            toast.error(`Error listing SLP partial: wallet not initialized`);
+            return;
+        }
+
         // offeredTokens is in units of token satoshis
         const offeredTokens = (
             previewedAgoraPartial as AgoraPartial
         ).offeredAtoms();
 
-        // To guarantee we have no utxo conflicts while sending a chain of 2 txs
-        // We ensure that the target output of the ad setup tx will include enough XEC
-        // to cover the offer tx
         const satsPerKb = settings.satsPerKb;
 
         const agoraAdScript = (
@@ -1995,7 +2020,7 @@ const Token: React.FC = () => {
             0, // offeredTokens is already undecimalized
         );
 
-        const { tokenInputs, sendAmounts } = slpInputsInfo;
+        const { sendAmounts } = slpInputsInfo;
 
         // Seller finishes offer setup + sends tokens to the advertised P2SH
         const agoraScript = (previewedAgoraPartial as AgoraPartial).script();
@@ -2007,7 +2032,7 @@ const Token: React.FC = () => {
                 // We will not have any token change for the tx that creates the offer
                 // This is bc the ad setup tx sends the exact amount of tokens we need
                 // for the ad tx (the offer)
-                script: slpSend(tokenId as string, tokenType!.number, [
+                script: slpSend(tokenId as string, tokenType.number, [
                     sendAmounts[0],
                 ]),
             },
@@ -2025,66 +2050,66 @@ const Token: React.FC = () => {
         // So, the fuel input must be adSetupSatoshis more than dust
         const agoraAdFuelInputSats = appConfig.dustSats + adSetupSatoshis;
 
-        const adSetupInputs = [];
-        for (const slpTokenInput of tokenInputs) {
-            adSetupInputs.push({
-                input: {
-                    prevOut: slpTokenInput.outpoint,
-                    signData: {
-                        sats: BigInt(appConfig.dustSats),
-                        outputScript: changeScript,
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
-            });
-        }
-        const adSetupTargetOutputs: TokenTargetOutput[] = [
-            {
-                sats: 0n,
-                // We use sendAmounts here instead of sendAmounts[0] used in offerTargetOutputs
-                // They may be the same thing, i.e. sendAmounts may be an array of length one
-                // But we could have token change for the ad setup tx
-                script: slpSend(
-                    tokenId as string,
-                    (previewedAgoraPartial as AgoraPartial).tokenType,
-                    sendAmounts,
-                ),
-            },
-            {
-                sats: BigInt(agoraAdFuelInputSats),
-                script: agoraAdP2sh,
-            },
-        ];
-
-        // Include token change output for the ad setup tx if we have change
-        if (sendAmounts.length > 1) {
-            adSetupTargetOutputs.push({ sats: BigInt(appConfig.dustSats) });
-        }
-
         // Calculate decimalized total offered amount for notifications
         const decimalizedOfferedTokens = decimalizeTokenAmount(
             offeredTokens.toString(),
             decimals as SlpDecimals,
         );
 
-        // Broadcast the ad setup tx
+        // Broadcast the ad setup tx using ecash-wallet
         let adSetupTxid;
         try {
-            // Build and broadcast the ad setup tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                adSetupTargetOutputs,
-                satsPerKb,
-                chaintipBlockheight,
-                adSetupInputs,
-            );
-            adSetupTxid = response.txid;
+            // Build payment.Action for ad setup transaction
+            // This sends tokens to the P2SH address with fuel for the offer tx
+            // Output 0: OP_RETURN (ecash-wallet will build the script from tokenActions)
+            // Output 1: P2SH output with tokens (for the offer tx)
+            // Output 2 (if change): Token change output
+            const adSetupOutputs: payment.PaymentOutput[] = [
+                { sats: 0n }, // OP_RETURN - ecash-wallet will build the script
+                {
+                    sats: BigInt(agoraAdFuelInputSats),
+                    script: agoraAdP2sh,
+                    tokenId: tokenId as string,
+                    atoms: sendAmounts[0], // The amount being sent to P2SH
+                },
+            ];
+
+            // Include token change output for the ad setup tx if we have change
+            if (sendAmounts.length > 1) {
+                adSetupOutputs.push({
+                    sats: BigInt(appConfig.dustSats),
+                    script: ecashWallet.script,
+                    tokenId: tokenId as string,
+                    atoms: sendAmounts[1],
+                });
+            }
+
+            // ecash-wallet will automatically select the required token UTXOs based on the token send action
+            const adSetupAction: payment.Action = {
+                outputs: adSetupOutputs,
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId as string,
+                        tokenType,
+                    },
+                ],
+                feePerKb: BigInt(satsPerKb),
+            };
+
+            // Build and broadcast using ecash-wallet
+            const builtAdSetupAction = ecashWallet
+                .action(adSetupAction)
+                .build();
+            const adSetupBroadcastResult = await builtAdSetupAction.broadcast();
+
+            if (!adSetupBroadcastResult.success) {
+                throw new Error(
+                    `Ad setup transaction broadcast failed: ${adSetupBroadcastResult.errors?.join(', ')}`,
+                );
+            }
+
+            adSetupTxid = adSetupBroadcastResult.broadcasted[0];
 
             confirmRawTx(
                 <a
@@ -2102,39 +2127,44 @@ const Token: React.FC = () => {
             return;
         }
 
-        // Now that we know the prevOut txid, we can make the real input
-        const offerInputs = [
-            // The utxo storing the tokens to be offered
-            {
-                input: {
-                    prevOut: {
-                        // Since we just broadcast the ad tx and know how it was built,
-                        // this prevOut will always look like this
-                        txid: adSetupTxid,
-                        outIdx: 1,
-                    },
-                    signData: {
-                        sats: BigInt(agoraAdFuelInputSats),
-                        redeemScript: agoraAdScript,
-                    },
-                },
-                signatory: AgoraPartialAdSignatory(fromHex(wallet.sk)),
-            },
-        ];
-
+        // Build and broadcast the offer transaction
+        // This uses a P2SH input with custom signatory, so we build it manually with TxBuilder
         let offerTxid;
         try {
-            // Build and broadcast the ad setup tx
-            const { response } = await sendXec(
-                chronik,
-                ecc,
-                wallet,
-                offerTargetOutputs,
-                satsPerKb,
-                chaintipBlockheight,
-                offerInputs,
+            const offerInputs = [
+                {
+                    input: {
+                        prevOut: {
+                            // Since we just broadcast the ad tx and know how it was built,
+                            // this prevOut will always look like this
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: BigInt(agoraAdFuelInputSats),
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraPartialAdSignatory(fromHex(wallet.sk)),
+                },
+            ];
+
+            // Build the offer transaction using TxBuilder
+            const offerTxBuilder = new TxBuilder({
+                inputs: offerInputs,
+                outputs: offerTargetOutputs,
+            });
+
+            const offerTx = offerTxBuilder.sign({
+                feePerKb: BigInt(satsPerKb),
+                dustSats: BigInt(appConfig.dustSats),
+            });
+
+            // Broadcast using ecash-wallet's chronik
+            const { txid } = await ecashWallet.chronik.broadcastTx(
+                toHex(offerTx.ser()),
             );
-            offerTxid = response.txid;
+            offerTxid = txid;
 
             // Maintain this notification as we do not parse listing prices in websocket
             toast(

@@ -7,7 +7,6 @@ import {
     getMintBatons,
     getMaxDecimalizedSlpQty,
     getNftParentMintTargetOutputs,
-    getNft,
     isTokenDustChangeOutput,
     getAgoraAdFuelSats,
 } from 'token-protocols/slpv1';
@@ -177,15 +176,6 @@ describe('slpv1 methods', () => {
                 expect(() =>
                     getNftParentMintTargetOutputs(tokenId, mintQty),
                 ).toThrow(errorMsg);
-            });
-        });
-    });
-    describe('Gets NFT utxo for an NFT 1 child', () => {
-        const { expectedReturns } = vectors.getNft;
-        expectedReturns.forEach(vector => {
-            const { description, tokenId, slpUtxos, returned } = vector;
-            it(`getNft: ${description}`, () => {
-                expect(getNft(tokenId, slpUtxos)).toStrictEqual(returned);
             });
         });
     });

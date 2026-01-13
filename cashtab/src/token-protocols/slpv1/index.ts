@@ -145,38 +145,6 @@ export const getNftParentMintTargetOutputs = (
 };
 
 /**
- * We are effectively getting this NFT
- * The NFT is stored at a dust utxo from a previous NFT Child send tx or its NFT Child genesis tx
- * Because this is an NFT, "there can be only one" of these utxos. The wallet either has it or it does not.
- * @param tokenId tokenId of the NFT (SLP1 NFT Child)
- * @param slpUtxos What Cashtab stores at the wallet.state.slpUtxos key
- * @returns Array of ONLY ONE cashtab utxo where tokenId === tokenId
- * Otherwise an empty array
- *
- * Function could be called "getNftChildSendInput" -- however, we will probably use this function
- * for more than simply getting the required input for sending an NFT
- *
- * NOTE
- * We do not "check" to see if we have more than one utxo of this NFT
- * This is not expected to happen -- though it could happen if this function is used in the wrong context,
- * for example called with a tokenId of a token that is not an NFT1 child
- * Dev responsibly -- imo it is not worth performing this check every time the function is called
- * Only use this function when sending a type1 NFT child
- */
-export const getNft = (tokenId: string, slpUtxos: TokenUtxo[]): TokenUtxo[] => {
-    // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
-    // because in this case we only want exactly 1 utxo
-    for (const utxo of slpUtxos) {
-        if (utxo.token?.tokenId === tokenId) {
-            return [utxo];
-        }
-    }
-    // We have not found a utxo that meets our conditions
-    // Return empty array
-    return [];
-};
-
-/**
  * Test if a given targetOutput is TOKEN_DUST_CHANGE_OUTPUT
  * Such an output needs 'script' added for the sending wallet's address
  * @param targetOutput
