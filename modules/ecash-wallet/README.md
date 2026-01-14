@@ -243,3 +243,9 @@ See tests for detailed methods.
 - Update method name `updateBalance` instead of `updateBalances`
 
 [D19352](https://reviews.bitcoinabc.org/D19352)
+
+# 3.6.0
+
+- Add `addReceivedTx` method to support updating the utxo set and balance of a wallet with an incoming tx, including processing inputs to remove spent UTXOs
+
+[D19351](https://reviews.bitcoinabc.org/D19351)

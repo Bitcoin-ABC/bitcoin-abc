@@ -46,7 +46,12 @@ import {
     EccDummy,
     P2PKH_OUTPUT_SIZE,
 } from 'ecash-lib';
-import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
+import {
+    ChronikClient,
+    ScriptUtxo,
+    TokenType,
+    Tx as ChronikTx,
+} from 'chronik-client';
 
 const eccDummy = new EccDummy();
 export const DUMMY_SK = fromHex(
@@ -547,6 +552,152 @@ export class Wallet {
             // If building the transaction fails (e.g., insufficient funds), return 0n
             return 0n;
         }
+    }
+
+    /**
+     * Add received UTXOs from a transaction to the wallet's UTXO set and remove spent UTXOs.
+     * This method is useful for updating the wallet state when receiving a transaction
+     * without performing a full sync.
+     *
+     * Only outputs that belong to the wallet (match wallet addresses) are added.
+     * Outputs with a "spentBy" key are ignored (already spent).
+     * Outputs that are already in the UTXO set are ignored (no duplicates).
+     *
+     * Inputs are processed to remove any UTXOs that belong to the wallet and are being spent.
+     * This ensures the wallet stays in sync when a transaction is sent from another instance
+     * of the same wallet (e.g., desktop vs mobile).
+     *
+     * @param tx - The transaction object from chronik-client
+     * @returns Balance deltas: sats delta and token deltas (tokenId -> atoms delta)
+     */
+    public addReceivedTx(tx: ChronikTx): {
+        balanceSatsDelta: bigint;
+        tokenDeltas: Map<string, bigint>;
+    } {
+        let balanceSatsDelta = 0n;
+        const tokenDeltas = new Map<string, bigint>();
+
+        // Process inputs: remove spent UTXOs from the wallet
+        for (const input of tx.inputs) {
+            const { prevOut } = input;
+            const { txid, outIdx } = prevOut;
+
+            // Find the UTXO being spent
+            const utxoIndex = this.utxos.findIndex(
+                utxo =>
+                    utxo.outpoint.txid === txid &&
+                    utxo.outpoint.outIdx === outIdx,
+            );
+
+            if (utxoIndex >= 0) {
+                const spentUtxo = this.utxos[utxoIndex];
+
+                // Remove the UTXO from the wallet's UTXO set
+                this.utxos.splice(utxoIndex, 1);
+
+                // Update balance delta: subtract sats if it's not a token UTXO
+                if (typeof spentUtxo.token === 'undefined') {
+                    balanceSatsDelta -= spentUtxo.sats;
+                    this.balanceSats -= spentUtxo.sats;
+                } else {
+                    // Update token delta: subtract atoms for spent token UTXO
+                    const tokenId = spentUtxo.token.tokenId;
+                    const currentDelta = tokenDeltas.get(tokenId) ?? 0n;
+                    // Only subtract if it's not a mint baton (mint batons don't have atoms)
+                    if (!spentUtxo.token.isMintBaton) {
+                        tokenDeltas.set(
+                            tokenId,
+                            currentDelta - spentUtxo.token.atoms,
+                        );
+                    }
+                }
+            }
+        }
+
+        // Process outputs: add received UTXOs to the wallet
+        for (let i = 0; i < tx.outputs.length; i++) {
+            const output = tx.outputs[i];
+
+            // Skip outputs that have been spent (have spentBy key)
+            if (typeof output.spentBy !== 'undefined') {
+                continue;
+            }
+
+            // Derive address from outputScript early
+            const address = Address.fromScriptHex(
+                output.outputScript,
+            ).toString();
+
+            // Check if this address belongs to the wallet
+            let belongsToWallet = false;
+            if (this.isHD) {
+                // For HD wallets, check if address is in keypairs
+                belongsToWallet = this.keypairs.has(address);
+            } else {
+                // For non-HD wallets, check if it matches the single address
+                belongsToWallet = address === this.address;
+            }
+            if (!belongsToWallet) {
+                continue;
+            }
+
+            // Check if this UTXO already exists in the wallet's UTXO set
+            const outpoint = {
+                txid: tx.txid,
+                outIdx: i,
+            };
+            const existingUtxo = this.utxos.find(
+                utxo =>
+                    utxo.outpoint.txid === outpoint.txid &&
+                    utxo.outpoint.outIdx === outpoint.outIdx,
+            );
+            if (existingUtxo) {
+                // UTXO already exists, skip
+                continue;
+            }
+
+            // Create the WalletUtxo
+            const walletUtxo: WalletUtxo = {
+                outpoint,
+                blockHeight: tx.block?.height ?? -1, // Use block height if available, otherwise mempool
+                isCoinbase: tx.isCoinbase ?? false,
+                sats: output.sats,
+                isFinal: tx.isFinal ?? false,
+                address,
+            };
+
+            // Add token information if present
+            if (output.token) {
+                walletUtxo.token = {
+                    tokenId: output.token.tokenId,
+                    tokenType: output.token.tokenType,
+                    atoms: output.token.atoms,
+                    isMintBaton: output.token.isMintBaton,
+                };
+            }
+
+            // Add the UTXO to the wallet's UTXO set
+            this.utxos.push(walletUtxo);
+
+            // Update balance delta: add sats if this is NOT a token UTXO
+            if (typeof walletUtxo.token === 'undefined') {
+                balanceSatsDelta += walletUtxo.sats;
+                this.balanceSats += walletUtxo.sats;
+            } else {
+                // Update token delta: add atoms for received token UTXO
+                const tokenId = walletUtxo.token.tokenId;
+                const currentDelta = tokenDeltas.get(tokenId) ?? 0n;
+                // Only add if it's not a mint baton (mint batons don't have atoms)
+                if (!walletUtxo.token.isMintBaton) {
+                    tokenDeltas.set(
+                        tokenId,
+                        currentDelta + walletUtxo.token.atoms,
+                    );
+                }
+            }
+        }
+
+        return { balanceSatsDelta, tokenDeltas };
     }
 
     /**

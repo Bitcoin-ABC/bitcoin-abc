@@ -38,6 +38,8 @@ import {
     Token,
     TokenType,
     ScriptUtxo,
+    Tx as ChronikTx,
+    TokenStatus,
 } from 'chronik-client';
 import { MockChronikClient } from 'mock-chronik-client';
 import {
@@ -8161,5 +8163,695 @@ describe('HD Wallet', () => {
             { ...DUMMY_UTXO, address: wallet.address },
         ]);
         expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+    });
+
+    describe('addReceivedTx', () => {
+        let mockChronik: MockChronikClient;
+        let testWallet: Wallet;
+        const OTHER_SK = fromHex('33'.repeat(32));
+        const OTHER_PK = testEcc.derivePubkey(OTHER_SK);
+        const OTHER_HASH = shaRmd160(OTHER_PK);
+        const OTHER_SCRIPT = Script.p2pkh(OTHER_HASH);
+
+        beforeEach(() => {
+            mockChronik = new MockChronikClient();
+            testWallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+            testWallet.balanceSats = 0n;
+            testWallet.utxos = [];
+        });
+
+        it('Adds a received non-token UTXO and updates balance', () => {
+            const txid = 'aa'.repeat(32);
+            const sats = 100_000n;
+            const blockHeight = 800001;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+                block: {
+                    hash: DUMMY_TIPHASH,
+                    height: blockHeight,
+                    timestamp: 1234567890,
+                },
+            };
+
+            expect(testWallet.utxos.length).to.equal(0);
+            const initialBalance = testWallet.balanceSats;
+            expect(initialBalance).to.equal(0n);
+
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0]).to.deep.equal({
+                outpoint: { txid, outIdx: 0 },
+                blockHeight,
+                isCoinbase: false,
+                sats,
+                isFinal: true,
+                address: DUMMY_ADDRESS,
+            });
+            expect(testWallet.balanceSats).to.equal(sats);
+            expect(result.balanceSatsDelta).to.equal(sats);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Adds a received token UTXO but does not update balance', () => {
+            const txid = 'bb'.repeat(32);
+            const sats = 546n;
+            const tokenId = 'cc'.repeat(32);
+            const atoms = 1000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            expect(testWallet.utxos.length).to.equal(0);
+            const initialBalance = testWallet.balanceSats;
+            expect(initialBalance).to.equal(0n);
+
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].token).to.deep.equal({
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                atoms,
+                isMintBaton: false,
+            });
+            // Balance should not be updated for token UTXOs
+            expect(testWallet.balanceSats).to.equal(0n);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Ignores outputs with spentBy key', () => {
+            const txid = 'dd'.repeat(32);
+            const sats = 50_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        spentBy: {
+                            txid: 'ee'.repeat(32),
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            // UTXO should not be added because it has spentBy
+            expect(testWallet.utxos.length).to.equal(0);
+            expect(testWallet.balanceSats).to.equal(0n);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Ignores outputs that do not belong to the wallet', () => {
+            const txid = 'ff'.repeat(32);
+            const sats = 75_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: OTHER_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            // UTXO should not be added because it doesn't belong to this wallet
+            expect(testWallet.utxos.length).to.equal(0);
+            expect(testWallet.balanceSats).to.equal(0n);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Ignores outputs that already exist in the UTXO set', () => {
+            const txid = '11'.repeat(32);
+            const sats = 25_000n;
+
+            // Add UTXO manually first
+            testWallet.utxos.push({
+                outpoint: { txid, outIdx: 0 },
+                blockHeight: DUMMY_TIPHEIGHT,
+                isCoinbase: false,
+                sats,
+                isFinal: true,
+                address: DUMMY_ADDRESS,
+            });
+            testWallet.balanceSats = sats;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            // UTXO should not be added again (no duplicates)
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.balanceSats).to.equal(initialBalance);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Handles multiple outputs in a transaction', () => {
+            const txid = '22'.repeat(32);
+            const sats1 = 30_000n;
+            const sats2 = 40_000n;
+            const sats3 = 50_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats: sats1,
+                        outputScript: OTHER_SCRIPT.toHex(), // Not wallet's address
+                    },
+                    {
+                        sats: sats2,
+                        outputScript: DUMMY_SCRIPT.toHex(), // Wallet's address
+                    },
+                    {
+                        sats: sats3,
+                        outputScript: DUMMY_SCRIPT.toHex(), // Wallet's address
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            // Should add 2 UTXOs (outputs 1 and 2 belong to wallet)
+            expect(testWallet.utxos.length).to.equal(2);
+            expect(testWallet.utxos[0].outpoint.outIdx).to.equal(1);
+            expect(testWallet.utxos[0].sats).to.equal(sats2);
+            expect(testWallet.utxos[1].outpoint.outIdx).to.equal(2);
+            expect(testWallet.utxos[1].sats).to.equal(sats3);
+            expect(testWallet.balanceSats).to.equal(sats2 + sats3);
+            expect(result.balanceSatsDelta).to.equal(sats2 + sats3);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Handles mempool transaction (no block)', () => {
+            const txid = '33'.repeat(32);
+            const sats = 60_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: false,
+                // No block field - mempool transaction
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].blockHeight).to.equal(-1); // Mempool
+            expect(testWallet.utxos[0].isFinal).to.equal(false);
+            expect(result.balanceSatsDelta).to.equal(sats);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Handles coinbase transaction', () => {
+            const txid = '44'.repeat(32);
+            const sats = 31_250_000n;
+            const blockHeight = 800002;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+                block: {
+                    hash: DUMMY_TIPHASH,
+                    height: blockHeight,
+                    timestamp: 1234567890,
+                },
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].isCoinbase).to.equal(true);
+            expect(testWallet.utxos[0].blockHeight).to.equal(blockHeight);
+            expect(result.balanceSatsDelta).to.equal(sats);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Works with HD wallets', async () => {
+            const mnemonic =
+                'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+            const hdWallet = Wallet.fromMnemonic(
+                mnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+
+            // Get the first receive address
+            const receiveAddress = hdWallet.getReceiveAddress(0);
+            const receiveScript = Script.fromAddress(receiveAddress);
+
+            const txid = '55'.repeat(32);
+            const sats = 80_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: receiveScript.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            expect(hdWallet.utxos.length).to.equal(0);
+            const initialBalance = hdWallet.balanceSats;
+            expect(initialBalance).to.equal(0n);
+
+            const result = hdWallet.addReceivedTx(tx);
+
+            expect(hdWallet.utxos.length).to.equal(1);
+            expect(hdWallet.utxos[0].address).to.equal(receiveAddress);
+            expect(hdWallet.utxos[0].sats).to.equal(sats);
+            expect(hdWallet.balanceSats).to.equal(sats);
+            expect(result.balanceSatsDelta).to.equal(sats);
+            expect(hdWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Handles mixed token and non-token outputs', () => {
+            const txid = '66'.repeat(32);
+            const sats1 = 546n; // Token UTXO
+            const sats2 = 90_000n; // Non-token UTXO
+            const tokenId = '77'.repeat(32);
+            const atoms = 2000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats: sats1,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        sats: sats2,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(2);
+            // First UTXO has token, so balance should only include sats2
+            expect(testWallet.balanceSats).to.equal(sats2);
+            expect(testWallet.utxos[0].token?.tokenId).to.equal(tokenId);
+            expect(testWallet.utxos[1].token).to.equal(undefined);
+            expect(result.balanceSatsDelta).to.equal(sats2);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Handles mint baton token UTXO', () => {
+            const txid = '88'.repeat(32);
+            const sats = 546n;
+            const tokenId = '99'.repeat(32);
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 0n,
+                            isMintBaton: true,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].token?.isMintBaton).to.equal(true);
+            expect(testWallet.utxos[0].token?.atoms).to.equal(0n);
+            // Mint baton is a token UTXO, so balance should not be updated
+            expect(testWallet.balanceSats).to.equal(0n);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Removes spent UTXOs from inputs and returns balance deltas', () => {
+            const initialSats = 200_000n;
+            const receivedSats = 100_000n;
+            // Net delta = received - spent (spent is the full initialSats from the UTXO)
+            const expectedNetDelta = receivedSats - initialSats;
+
+            // Add an initial UTXO to the wallet
+            const initialTxid = '00'.repeat(32);
+            testWallet.utxos.push({
+                outpoint: { txid: initialTxid, outIdx: 0 },
+                blockHeight: DUMMY_TIPHEIGHT,
+                isCoinbase: false,
+                sats: initialSats,
+                isFinal: true,
+                address: DUMMY_ADDRESS,
+            });
+            testWallet.balanceSats = initialSats;
+
+            // Create a transaction that spends the initial UTXO and receives a new one
+            const txid = '11'.repeat(32);
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: initialTxid,
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: initialSats,
+                        sequenceNo: 0xffffffff,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: receivedSats,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                    {
+                        sats: initialSats - receivedSats - 1000n, // Change output (not wallet's)
+                        outputScript: OTHER_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = testWallet.addReceivedTx(tx);
+
+            // Verify the spent UTXO was removed
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(
+                testWallet.utxos.find(
+                    utxo =>
+                        utxo.outpoint.txid === initialTxid &&
+                        utxo.outpoint.outIdx === 0,
+                ),
+            ).to.equal(undefined);
+
+            // Verify the new UTXO was added
+            const newUtxo = testWallet.utxos.find(
+                utxo =>
+                    utxo.outpoint.txid === txid && utxo.outpoint.outIdx === 0,
+            );
+            expect(newUtxo).to.not.equal(undefined);
+            expect(newUtxo?.sats).to.equal(receivedSats);
+
+            // Verify balance delta (received - spent)
+            expect(result.balanceSatsDelta).to.equal(expectedNetDelta);
+            expect(testWallet.balanceSats).to.equal(
+                initialSats + expectedNetDelta,
+            );
+            expect(testWallet.balanceSats).to.equal(
+                initialSats + result.balanceSatsDelta,
+            );
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Handles token UTXO spending and receiving with balance deltas', () => {
+            const tokenId = 'aa'.repeat(32);
+            const initialAtoms = 5000n;
+            const receivedAtoms = 3000n;
+            // Net delta = received - spent (spent is the full initialAtoms from the UTXO)
+            const expectedTokenDelta = receivedAtoms - initialAtoms;
+
+            // Add an initial token UTXO
+            const initialTxid = '22'.repeat(32);
+            testWallet.utxos.push({
+                outpoint: { txid: initialTxid, outIdx: 0 },
+                blockHeight: DUMMY_TIPHEIGHT,
+                isCoinbase: false,
+                sats: 546n,
+                isFinal: true,
+                address: DUMMY_ADDRESS,
+                token: {
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: initialAtoms,
+                    isMintBaton: false,
+                },
+            });
+
+            // Create a transaction that spends the token UTXO and receives a new one
+            const txid = '33'.repeat(32);
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: initialTxid,
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 546n,
+                        sequenceNo: 0xffffffff,
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: initialAtoms, // Input shows the full amount from the UTXO
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 546n,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: receivedAtoms,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            const result = testWallet.addReceivedTx(tx);
+
+            // Verify token delta (received - spent from UTXO)
+            expect(result.tokenDeltas.get(tokenId)).to.equal(
+                expectedTokenDelta,
+            );
+            expect(result.balanceSatsDelta).to.equal(0n); // Token UTXOs don't affect sats balance
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
     });
 });

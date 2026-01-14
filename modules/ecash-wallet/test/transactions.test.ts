@@ -3728,4 +3728,97 @@ describe('Wallet can build and broadcast on regtest', () => {
             'Error: Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict',
         );
     });
+
+    it('We can add received UTXOs from a transaction using addReceivedTx()', async () => {
+        // Create two wallets
+        const walletA = Wallet.fromSk(fromHex('aa'.repeat(32)), chronik);
+        const walletB = Wallet.fromSk(fromHex('bb'.repeat(32)), chronik);
+
+        // Sync both wallets
+        await walletA.sync();
+        await walletB.sync();
+
+        // Give wallet A a balance
+        const inputSats = 1_000_000_00n; // 1M XEC
+        await runner.sendToScript(inputSats, walletA.script);
+        await walletA.sync();
+
+        // Verify wallet A has balance and wallet B has 0 balance
+        expect(walletA.balanceSats).to.equal(1_000_000_00n);
+        expect(walletB.balanceSats).to.equal(0n);
+        expect(walletB.utxos).to.have.length(0);
+
+        // Wallet A sends to wallet B
+        const sendSats = 100_000n; // 100k sats
+        const sendAction = walletA.action({
+            outputs: [
+                {
+                    script: walletB.script,
+                    sats: sendSats,
+                },
+            ],
+        });
+        const sendResp = await sendAction.build().broadcast();
+        expect(sendResp.success).to.equal(true);
+        const txid = sendResp.broadcasted[0];
+
+        // Get the transaction from chronik
+        const tx = await chronik.tx(txid);
+
+        // Verify wallet B still shows 0 balance (hasn't synced)
+        expect(walletB.balanceSats).to.equal(0n);
+        expect(walletB.utxos).to.have.length(0);
+
+        // Clone wallet B to have another un-synced version
+        const walletBClone = Wallet.fromSk(fromHex('bb'.repeat(32)), chronik);
+
+        // Don't sync the clone - it should have 0 balance
+        expect(walletBClone.balanceSats).to.equal(0n);
+        expect(walletBClone.utxos).to.have.length(0);
+
+        // Use addReceivedTx() on wallet B
+        const result = walletB.addReceivedTx(tx);
+
+        // Verify wallet B now has UTXOs and balance
+        expect(walletB.utxos.length).to.equal(1);
+        // Find the UTXO that was received
+        const receivedUtxo = walletB.utxos.find(
+            utxo =>
+                utxo.outpoint.txid === txid &&
+                utxo.sats === sendSats &&
+                utxo.address === walletB.address,
+        );
+
+        expect(receivedUtxo?.outpoint.txid).to.equal(txid);
+        expect(receivedUtxo?.outpoint.outIdx).to.equal(0);
+        expect(receivedUtxo?.sats).to.equal(sendSats);
+        expect(receivedUtxo?.address).to.equal(walletB.address);
+        expect(walletB.balanceSats).to.equal(sendSats);
+
+        // Verify balance deltas
+        expect(result.balanceSatsDelta).to.equal(sendSats); // Received sendSats, no inputs spent
+        expect(result.tokenDeltas.size).to.equal(0); // No token transactions
+
+        // Sync the clone
+        await walletBClone.sync();
+
+        // Verify the clone has the same UTXO set and balance as wallet B
+        expect(walletBClone.utxos.length).to.equal(walletB.utxos.length);
+        expect(walletBClone.balanceSats).to.equal(walletB.balanceSats);
+
+        // Verify both have the same received UTXO
+        const cloneReceivedUtxo = walletBClone.utxos.find(
+            utxo =>
+                utxo.outpoint.txid === txid &&
+                utxo.sats === sendSats &&
+                utxo.address === walletBClone.address,
+        );
+        expect(cloneReceivedUtxo?.outpoint.txid).to.equal(
+            receivedUtxo?.outpoint.txid,
+        );
+        expect(cloneReceivedUtxo?.outpoint.outIdx).to.equal(
+            receivedUtxo?.outpoint.outIdx,
+        );
+        expect(cloneReceivedUtxo?.sats).to.equal(receivedUtxo?.sats);
+    });
 });
