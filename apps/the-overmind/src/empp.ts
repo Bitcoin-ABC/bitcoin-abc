@@ -14,6 +14,7 @@ export enum EmppAction {
     DISLIKE = 0x02,
     DISLIKED = 0x03,
     RESPAWN = 0x04,
+    WITHDRAW = 0x05,
 }
 
 /**
@@ -30,9 +31,11 @@ export const getOvermindEmpp = (
 ): Uint8Array => {
     const lokadIdBytes = strToBytes(LOKAD_ID);
 
-    // CLAIM and RESPAWN actions have no msgId bytes
+    // CLAIM, RESPAWN, and WITHDRAW actions have no msgId bytes
     const includeMsgId =
-        action !== EmppAction.CLAIM && action !== EmppAction.RESPAWN;
+        action !== EmppAction.CLAIM &&
+        action !== EmppAction.RESPAWN &&
+        action !== EmppAction.WITHDRAW;
     const writer = new WriterBytes(4 + 1 + 1 + (includeMsgId ? 4 : 0)); // lokadId + version + action + (optional msgId)
 
     writer.putBytes(lokadIdBytes);
@@ -47,4 +50,44 @@ export const getOvermindEmpp = (
     }
 
     return writer.data;
+};
+
+/**
+ * Parse EMPP data push to extract action code
+ * Format: <lokadId (4 bytes)><versionByte (1 byte)><actionCode (1 byte)><msgId (4 bytes, optional)>
+ * Returns action code or null if parsing fails
+ * @param emppData - EMPP data as Uint8Array
+ * @returns Action code (number) or null if invalid
+ */
+export const parseEmppActionCode = (emppData: Uint8Array): number | null => {
+    try {
+        // Minimum length: 4 (lokadId) + 1 (version) + 1 (action) = 6 bytes
+        // Actions without msgId (CLAIM, RESPAWN, WITHDRAW) are 6 bytes
+        // Actions with msgId (LIKE, DISLIKE, DISLIKED) are 10 bytes
+        if (emppData.length < 6) {
+            return null;
+        }
+
+        // Check LOKAD_ID (first 4 bytes)
+        const lokadIdBytes = strToBytes(LOKAD_ID);
+        if (emppData.length < lokadIdBytes.length) {
+            return null;
+        }
+
+        for (let i = 0; i < lokadIdBytes.length; i++) {
+            if (emppData[i] !== lokadIdBytes[i]) {
+                return null; // Not our LOKAD_ID
+            }
+        }
+
+        // Version byte at index 4 (should be 0x00)
+        if (emppData[4] !== 0x00) {
+            return null;
+        }
+
+        // Action code is at index 5
+        return emppData[5];
+    } catch {
+        return null;
+    }
 };

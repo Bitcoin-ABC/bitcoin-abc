@@ -19,6 +19,7 @@ import {
     DEFAULT_DUST_SATS,
     shaRmd160,
     toHex,
+    emppScript,
 } from 'ecash-lib';
 import { encodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
 import { Tx } from 'chronik-client';
@@ -31,6 +32,12 @@ import {
     start,
     stats,
     respawn,
+    withdraw,
+    handleWithdrawConfirm,
+    handleWithdrawCancel,
+    setWithdrawState,
+    clearWithdrawState,
+    isInWithdrawWorkflow,
     sendErrorToAdmin,
     handleMessage,
     handleMessageReaction,
@@ -38,6 +45,7 @@ import {
     handleDislike,
 } from './bot';
 import { REWARDS_TOKEN_ID } from './constants';
+import { getOvermindEmpp, EmppAction } from './empp';
 
 // Set up chai
 const expect = chai.expect;
@@ -309,8 +317,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             // Stub broadcastTx to return success for any transaction
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await register(
@@ -477,8 +485,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             // Stub broadcastTx to return success for any transaction
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await register(
@@ -526,8 +534,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             // Stub broadcastTx to return success for any transaction
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await register(
@@ -696,8 +704,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             // Stub broadcastTx to return success for any transaction
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await register(
@@ -784,14 +792,14 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             // Stub broadcastTx to return success for any transaction
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             // Update botWithMember to include sendMessage for admin notifications
             const botWithMemberAndAdmin = {
                 api: {
-                    getChatMember: (botWithMember.api as any).getChatMember,
+                    getChatMember: botWithMember.api.getChatMember,
                     sendMessage: sandbox.stub().resolves({
                         message_id: 1,
                         date: Date.now(),
@@ -1292,8 +1300,8 @@ describe('bot', () => {
             // Mock broadcast transaction
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await respawn(
@@ -1519,8 +1527,8 @@ describe('bot', () => {
             // Mock broadcast transaction
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await respawn(
@@ -1590,8 +1598,8 @@ describe('bot', () => {
             // Mock broadcast transaction
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await respawn(
@@ -1737,8 +1745,8 @@ describe('bot', () => {
             ]);
 
             // Mock broadcast to fail by throwing an error
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .rejects(new Error('Broadcast failed'));
 
             await respawn(
@@ -1790,8 +1798,8 @@ describe('bot', () => {
             // Mock broadcast transaction
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await respawn(
@@ -1982,8 +1990,8 @@ describe('bot', () => {
             // Mock broadcast transaction
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            (mockChronik as any).broadcastTx = sandbox
-                .stub()
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
                 .resolves({ txid: expectedTxid });
 
             await respawn(
@@ -1999,6 +2007,1038 @@ describe('bot', () => {
             expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
             const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
             expect(replyCall.args[0]).to.include('✅ HP respawned!');
+        });
+    });
+
+    describe('withdraw', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let mockBot: Bot;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+        const WITHDRAW_ADDRESS =
+            'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
+        const ADMIN_CHAT_ID = '-1001234567890';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Mock Bot
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
+            // Mock Grammy Context
+            mockCtx = {
+                from: {
+                    id: 12345,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                reply: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: 12345, type: 'private' },
+                    text: 'test',
+                }),
+                message: {
+                    message_id: 1,
+                    date: Date.now(),
+                    text: '/withdraw',
+                    chat: { id: 12345, type: 'private' },
+                },
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+
+            // Insert registered user
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [12345, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Create user action table
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS user_actions_12345 (
+                    id SERIAL PRIMARY KEY,
+                    action TEXT NOT NULL,
+                    txid TEXT,
+                    msg_id BIGINT,
+                    emoji TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            `);
+
+            // Set up user UTXOs with HP tokens
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 100n, // 100 HP
+                        isMintBaton: false,
+                    },
+                },
+            ]);
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
+
+            // Set empty transaction history (no withdrawals)
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, []);
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+            // Clear any withdrawal states set during tests
+            if (typeof USER_ID !== 'undefined') {
+                clearWithdrawState(USER_ID);
+            }
+        });
+
+        it('should reject withdrawal when user ID is missing', async () => {
+            const ctxWithoutId = {
+                ...mockCtx,
+                from: undefined,
+            } as unknown as Context;
+
+            await withdraw(
+                ctxWithoutId,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((ctxWithoutId.reply as sinon.SinonStub).callCount).to.equal(
+                1,
+            );
+            expect(
+                (ctxWithoutId.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Could not identify your user ID.');
+        });
+
+        it('should reject withdrawal when user is not registered', async () => {
+            // Remove user from database
+            await pool.query(
+                'DELETE FROM users WHERE user_tg_id = $1',
+                [12345],
+            );
+
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text =
+                    '/withdraw ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2 50';
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ You must register first!');
+        });
+
+        it('should reject withdrawal with invalid syntax (missing arguments)', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = '/withdraw';
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('❌ **Invalid syntax**');
+            expect(replyCall.args[0]).to.include(
+                'Usage: `/withdraw <address> <amount>`',
+            );
+        });
+
+        it('should reject withdrawal with invalid syntax (only address)', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text =
+                    '/withdraw ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('❌ **Invalid syntax**');
+        });
+
+        it('should reject withdrawal with invalid address', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = '/withdraw invalid_address 50';
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Invalid address. Please provide a valid eCash address.',
+            );
+        });
+
+        it('should reject withdrawal with invalid amount (NaN)', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} abc`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Please provide a valid positive number for the amount.',
+            );
+        });
+
+        it('should reject withdrawal with invalid amount (zero)', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 0`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Please provide a valid positive number for the amount.',
+            );
+        });
+
+        it('should reject withdrawal with invalid amount (negative)', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} -10`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Please provide a valid positive number for the amount.',
+            );
+        });
+
+        it('should reject withdrawal when user has no HP', async () => {
+            // Set user UTXOs with no HP tokens
+            mockChronik.setUtxosByAddress(USER_ADDRESS, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                },
+            ]);
+
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 50`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ You have no HP to withdraw.');
+        });
+
+        it('should reject withdrawal when amount exceeds balance', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 150`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Amount exceeds your balance');
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('100 HP');
+        });
+
+        it('should reject withdrawal when user has withdrawn in last 24 hours', async () => {
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const txTimestamp = timeOfRequest - 3600; // 1 hour ago
+
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+
+            // Create a WITHDRAW transaction in the last 24 hours
+            const withdrawEmppData = getOvermindEmpp(EmppAction.WITHDRAW);
+            const opReturnScript = emppScript([withdrawEmppData]);
+
+            const mockWithdrawTx: Tx = {
+                txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: userOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: toHex(opReturnScript.bytecode),
+                        sats: 0n,
+                    },
+                    {
+                        outputScript:
+                            getOutputScriptFromAddress(WITHDRAW_ADDRESS),
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 50n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: txTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
+            };
+
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, [mockWithdrawTx]);
+
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 50`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include(
+                '❌ Cannot withdraw. You have already withdrawn in the last 24 hours',
+            );
+        });
+
+        it('should handle error when fetching balance', async () => {
+            // Make chronik throw an error when fetching UTXOs
+            const errorChronik = {
+                address: () => ({
+                    utxos: () => Promise.reject(new Error('Chronik error')),
+                }),
+            } as unknown as ChronikClient;
+
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 50`;
+            }
+
+            await withdraw(mockCtx, pool, errorChronik, mockBot, ADMIN_CHAT_ID);
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error fetching your health');
+            expect(
+                (mockBot.api.sendMessage as sinon.SinonStub).callCount,
+            ).to.equal(1);
+        });
+
+        it('should handle error when checking withdraw history', async () => {
+            // Make chronik throw an error when fetching history
+            // Note: hasWithdrawnInLast24Hours fails open (returns false on error),
+            // so we need to make the error happen in a way that bypasses the fail-open
+            // Actually, the function catches errors and returns false, so the withdraw
+            // will continue. But if we make the address().history() call throw before
+            // the try-catch, it should be caught by the withdraw function's try-catch.
+            // However, hasWithdrawnInLast24Hours has its own try-catch, so it will
+            // return false and the withdraw will continue. This test should verify
+            // that the function continues normally when history check fails (fail-open behavior).
+            const errorChronik = {
+                address: (_addr: string) => ({
+                    utxos: () =>
+                        Promise.resolve({
+                            utxos: [
+                                {
+                                    outpoint: {
+                                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                                        outIdx: 0,
+                                    },
+                                    blockHeight: 800000,
+                                    isCoinbase: false,
+                                    sats: 1000n,
+                                    isFinal: true,
+                                    token: {
+                                        tokenId: REWARDS_TOKEN_ID,
+                                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                                        atoms: 100n,
+                                        isMintBaton: false,
+                                    },
+                                },
+                            ],
+                        }),
+                    history: () => Promise.reject(new Error('History error')),
+                }),
+            } as unknown as ChronikClient;
+
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 50`;
+            }
+
+            await withdraw(mockCtx, pool, errorChronik, mockBot, ADMIN_CHAT_ID);
+
+            // hasWithdrawnInLast24Hours fails open, so it returns false on error
+            // and the withdraw continues normally, showing the confirmation
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            expect(
+                (mockCtx.reply as sinon.SinonStub).firstCall.args[0],
+            ).to.include('📋 **Withdrawal Summary**');
+        });
+
+        it('should show confirmation message with buttons for valid withdrawal', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 50`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('📋 **Withdrawal Summary**');
+            expect(replyCall.args[0]).to.include(WITHDRAW_ADDRESS);
+            expect(replyCall.args[0]).to.include('50 HP');
+            expect(replyCall.args[0]).to.include('Confirm this withdrawal?');
+
+            // Check that reply_markup (keyboard) is included
+            expect(replyCall.args[1]).to.have.property('reply_markup');
+        });
+
+        it('should allow withdrawal equal to balance', async () => {
+            if (mockCtx.message && 'text' in mockCtx.message) {
+                mockCtx.message.text = `/withdraw ${WITHDRAW_ADDRESS} 100`;
+            }
+
+            await withdraw(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect((mockCtx.reply as sinon.SinonStub).callCount).to.equal(1);
+            const replyCall = (mockCtx.reply as sinon.SinonStub).firstCall;
+            expect(replyCall.args[0]).to.include('📋 **Withdrawal Summary**');
+            expect(replyCall.args[0]).to.include('100 HP');
+        });
+    });
+
+    describe('handleWithdrawConfirm', () => {
+        let mockCtx: Context;
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let mockBot: Bot;
+        let masterNode: HdNode;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+        const WITHDRAW_ADDRESS =
+            'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
+        const ADMIN_CHAT_ID = '-1001234567890';
+        const USER_ID = 12345;
+        const TEST_MNEMONIC =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Initialize master node from test mnemonic
+            const seed = mnemonicToSeed(TEST_MNEMONIC);
+            masterNode = HdNode.fromSeed(seed);
+
+            // Mock Bot
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
+            // Mock Grammy Context with callback query methods
+            mockCtx = {
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                answerCallbackQuery: sandbox.stub().resolves(true),
+                editMessageText: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: USER_ID, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+
+            // Create in-memory database
+            pool = await createTestDb();
+
+            // Insert registered user with HD index
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [USER_ID, USER_ADDRESS, 1, 'testuser'],
+            );
+
+            // Create user action table
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS user_actions_${USER_ID} (
+                    id SERIAL PRIMARY KEY,
+                    action TEXT NOT NULL,
+                    txid TEXT,
+                    msg_id BIGINT,
+                    emoji TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            `);
+
+            // Derive user wallet address
+            const userNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const userPubkey = userNode.pubkey();
+            const userPkh = shaRmd160(userPubkey);
+            const derivedAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(userPkh),
+            );
+
+            // Set up user UTXOs with HP tokens and XEC
+            mockChronik.setUtxosByAddress(derivedAddress, [
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 1000n,
+                    isFinal: true,
+                    token: {
+                        tokenId: REWARDS_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 100n, // 100 HP
+                        isMintBaton: false,
+                    },
+                },
+                {
+                    outpoint: {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                        outIdx: 0,
+                    },
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    sats: 100000n, // XEC for fees
+                    isFinal: true,
+                },
+            ]);
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
+
+            // Set up a mock broadcast response
+            // The wallet will build a transaction dynamically, so we need to stub broadcastTx
+            // to return success for any raw transaction
+            // Note: We'll stub this in individual tests that need it
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+            // Clear any withdrawal states set during tests
+            clearWithdrawState(USER_ID);
+        });
+
+        it('should reject when user ID is missing', async () => {
+            const ctxWithoutId = {
+                ...mockCtx,
+                from: undefined,
+            } as unknown as Context;
+
+            await handleWithdrawConfirm(
+                ctxWithoutId,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (ctxWithoutId.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (ctxWithoutId.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: '❌ Could not identify your user ID.',
+            });
+        });
+
+        it('should reject when withdrawal state is missing', async () => {
+            // Ensure no state is set
+            clearWithdrawState(USER_ID);
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: '❌ Withdrawal session expired. Please start over.',
+            });
+            // Should not call editMessageText when state is missing
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(0);
+        });
+
+        it('should reject when user is not found in database', async () => {
+            // Remove user from database
+            await pool.query('DELETE FROM users WHERE user_tg_id = $1', [
+                USER_ID,
+            ]);
+
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: WITHDRAW_ADDRESS,
+                amount: 50n,
+                userAddress: USER_ADDRESS,
+            });
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ User not found. Please register first.');
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+        });
+
+        it('should handle error when deriving wallet fails', async () => {
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: WITHDRAW_ADDRESS,
+                amount: 50n,
+                userAddress: USER_ADDRESS,
+            });
+
+            // Use an invalid HD index that might cause derivation issues
+            await pool.query(
+                'UPDATE users SET hd_index = $1 WHERE user_tg_id = $2',
+                [-1, USER_ID],
+            );
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error deriving wallet');
+            expect(
+                (mockBot.api.sendMessage as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+        });
+
+        it('should successfully process withdrawal and send transaction', async () => {
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: WITHDRAW_ADDRESS,
+                amount: 50n,
+                userAddress: USER_ADDRESS,
+            });
+
+            // Stub broadcastTx to return success
+            const mockTxid =
+                '0000000000000000000000000000000000000000000000000000000000000003';
+            sandbox.stub(mockChronik, 'broadcastTx').resolves({
+                txid: mockTxid,
+            });
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            // Check that callback query was answered
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: 'Processing withdrawal...',
+            });
+
+            // Check that message was edited with success
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            const editCall = (mockCtx.editMessageText as sinon.SinonStub)
+                .firstCall;
+            expect(editCall.args[0]).to.include(
+                '✅ **Withdrawal successful!**',
+            );
+            expect(editCall.args[0]).to.include('50 HP');
+            expect(editCall.args[0]).to.include(WITHDRAW_ADDRESS);
+            expect(editCall.args[0]).to.include(
+                '0000000000000000000000000000000000000000000000000000000000000003',
+            );
+
+            // Check that state was cleared
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+
+            // Check that action was logged in database
+            const actionResult = await pool.query(
+                `SELECT * FROM user_actions_${USER_ID} WHERE action = 'withdraw'`,
+            );
+            expect(actionResult.rows).to.have.length(1);
+            expect(actionResult.rows[0].txid).to.equal(
+                '0000000000000000000000000000000000000000000000000000000000000003',
+            );
+        });
+
+        it('should handle error when wallet sync fails', async () => {
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: WITHDRAW_ADDRESS,
+                amount: 50n,
+                userAddress: USER_ADDRESS,
+            });
+
+            // Make chronik throw an error during sync
+            const errorChronik = {
+                ...mockChronik,
+                address: () => ({
+                    utxos: () => Promise.reject(new Error('Sync error')),
+                }),
+            } as unknown as ChronikClient;
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                errorChronik,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).firstCall.args[0],
+            ).to.include('❌ Error:');
+            expect(
+                (mockBot.api.sendMessage as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+        });
+
+        it('should handle error when broadcast fails', async () => {
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: WITHDRAW_ADDRESS,
+                amount: 50n,
+                userAddress: USER_ADDRESS,
+            });
+
+            // Make broadcast fail by stubbing it to reject
+            sandbox
+                .stub(mockChronik, 'broadcastTx')
+                .rejects(new Error('Broadcast failed'));
+
+            await handleWithdrawConfirm(
+                mockCtx,
+                pool,
+                mockChronik as unknown as ChronikClient,
+                masterNode,
+                mockBot,
+                ADMIN_CHAT_ID,
+            );
+
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            const errorMessage = (mockCtx.editMessageText as sinon.SinonStub)
+                .firstCall.args[0];
+            expect(errorMessage).to.satisfy(
+                (msg: string) =>
+                    msg.includes('❌ Error') ||
+                    msg.includes('❌ Error sending HP withdrawal'),
+            );
+            expect(
+                (mockBot.api.sendMessage as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+        });
+    });
+
+    describe('handleWithdrawCancel', () => {
+        let mockCtx: Context;
+        let sandbox: sinon.SinonSandbox;
+        const USER_ID = 12345;
+
+        beforeEach(() => {
+            sandbox = sinon.createSandbox();
+
+            // Mock Grammy Context with callback query methods
+            mockCtx = {
+                from: {
+                    id: USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'testuser',
+                },
+                answerCallbackQuery: sandbox.stub().resolves(true),
+                editMessageText: sandbox.stub().resolves({
+                    message_id: 1,
+                    date: Date.now(),
+                    chat: { id: USER_ID, type: 'private' },
+                    text: 'test',
+                }),
+            } as unknown as Context;
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+            // Clear any withdrawal states set during tests
+            clearWithdrawState(USER_ID);
+        });
+
+        it('should reject when user ID is missing', async () => {
+            const ctxWithoutId = {
+                ...mockCtx,
+                from: undefined,
+            } as unknown as Context;
+
+            await handleWithdrawCancel(ctxWithoutId);
+
+            expect(
+                (ctxWithoutId.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (ctxWithoutId.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: '❌ Could not identify your user ID.',
+            });
+        });
+
+        it('should cancel withdrawal and clear state', async () => {
+            // Set withdrawal state
+            setWithdrawState(USER_ID, {
+                address: 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
+                amount: 50n,
+                userAddress: 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw',
+            });
+
+            await handleWithdrawCancel(mockCtx);
+
+            // Check that callback query was answered
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: 'Withdrawal canceled',
+            });
+
+            // Check that message was edited
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).firstCall.args[0],
+            ).to.equal('❌ Withdrawal canceled.');
+
+            // Check that state was cleared
+            expect(isInWithdrawWorkflow(USER_ID)).to.equal(false);
+        });
+
+        it('should handle cancellation even when state does not exist', async () => {
+            // Don't set withdrawal state
+
+            await handleWithdrawCancel(mockCtx);
+
+            // Check that callback query was answered
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.answerCallbackQuery as sinon.SinonStub).firstCall
+                    .args[0],
+            ).to.deep.include({
+                text: 'Withdrawal canceled',
+            });
+
+            // Check that message was edited
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).callCount,
+            ).to.equal(1);
+            expect(
+                (mockCtx.editMessageText as sinon.SinonStub).firstCall.args[0],
+            ).to.equal('❌ Withdrawal canceled.');
         });
     });
 

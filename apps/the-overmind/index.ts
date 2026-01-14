@@ -16,8 +16,11 @@ import {
     start,
     stats,
     respawn,
+    withdraw,
     handleMessage,
     handleMessageReaction,
+    handleWithdrawConfirm,
+    handleWithdrawCancel,
 } from './src/bot';
 
 /**
@@ -123,6 +126,9 @@ const startup = async () => {
     bot.command('stats', async ctx => {
         await stats(ctx, pool, adminGroupChatId);
     });
+    bot.command('withdraw', async ctx => {
+        await withdraw(ctx, pool, chronik, bot, adminGroupChatId);
+    });
     console.info('Bot command handlers registered');
 
     // Set up message handler for monitored group chat
@@ -156,6 +162,37 @@ const startup = async () => {
     });
     console.info('Reaction handler registered for monitored group chat');
 
+    // Set up callback query handlers for withdraw workflow
+    bot.callbackQuery(/^withdraw_confirm_(\d+)$/, async ctx => {
+        const userId = parseInt(ctx.match[1], 10);
+        if (ctx.from?.id === userId) {
+            await handleWithdrawConfirm(
+                ctx,
+                pool,
+                chronik,
+                master,
+                bot,
+                adminGroupChatId,
+            );
+        } else {
+            await ctx.answerCallbackQuery({
+                text: '❌ This withdrawal is not yours.',
+            });
+        }
+    });
+
+    bot.callbackQuery(/^withdraw_cancel_(\d+)$/, async ctx => {
+        const userId = parseInt(ctx.match[1], 10);
+        if (ctx.from?.id === userId) {
+            await handleWithdrawCancel(ctx);
+        } else {
+            await ctx.answerCallbackQuery({
+                text: '❌ This withdrawal is not yours.',
+            });
+        }
+    });
+    console.info('Callback query handlers registered');
+
     // Start bot polling with allowed updates including message_reaction
     // Note: Bot must be an administrator in the monitored group chat to receive reaction updates
     await bot.start({
@@ -163,6 +200,7 @@ const startup = async () => {
             'message',
             'message_reaction',
             'message_reaction_count',
+            'callback_query',
         ],
     });
     console.info('Bot started and polling for updates');

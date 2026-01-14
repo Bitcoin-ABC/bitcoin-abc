@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Context, Bot } from 'grammy';
+import { Context, Bot, InlineKeyboard } from 'grammy';
 import { Pool } from 'pg';
 import * as qrcode from 'qrcode-terminal';
 import {
@@ -14,7 +14,11 @@ import {
     shaRmd160,
     toHex,
 } from 'ecash-lib';
-import { encodeCashAddress, getOutputScriptFromAddress } from 'ecashaddrjs';
+import {
+    encodeCashAddress,
+    getOutputScriptFromAddress,
+    isValidCashAddress,
+} from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import {
@@ -23,6 +27,7 @@ import {
     REGISTRATION_REWARD_SATS,
 } from './constants';
 import { getOvermindEmpp, EmppAction } from './empp';
+import { hasWithdrawnInLast24Hours } from './chronik';
 import { createUserActionTable } from './db';
 
 /**
@@ -717,6 +722,432 @@ export const respawn = async (
 };
 
 /**
+ * Withdrawal workflow state
+ * Maps user ID to their current withdrawal state
+ */
+interface WithdrawState {
+    address: string;
+    amount: bigint;
+    userAddress: string; // User's registered address
+}
+
+const withdrawStates = new Map<number, WithdrawState>();
+
+/**
+ * Check if a user is currently in a withdrawal workflow
+ * @param userId - Telegram user ID
+ * @returns true if user is in withdraw workflow, false otherwise
+ */
+export const isInWithdrawWorkflow = (userId: number): boolean => {
+    return withdrawStates.has(userId);
+};
+
+/**
+ * Clear withdrawal state for a user (for testing)
+ * @param userId - Telegram user ID
+ */
+export const clearWithdrawState = (userId: number): void => {
+    withdrawStates.delete(userId);
+};
+
+/**
+ * Set withdrawal state for a user (for testing)
+ * @param userId - Telegram user ID
+ * @param state - Withdrawal state to set
+ */
+export const setWithdrawState = (
+    userId: number,
+    state: WithdrawState,
+): void => {
+    withdrawStates.set(userId, state);
+};
+
+/**
+ * Handle withdrawal command
+ * Syntax: /withdraw <address> <amount>
+ * Validates address and amount, then shows confirmation with yes/no buttons
+ * @param ctx - Grammy context from the command
+ * @param pool - Database connection pool
+ * @param chronik - Chronik client for querying blockchain
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ */
+export const withdraw = async (
+    ctx: Context,
+    pool: Pool,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.reply('❌ Could not identify your user ID.');
+        return;
+    }
+
+    // Check if user is registered
+    const userResult = await pool.query(
+        'SELECT address FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+        await ctx.reply(
+            '❌ You must register first! Use /register to create your wallet address.',
+        );
+        return;
+    }
+
+    const { address: userAddress } = userResult.rows[0];
+
+    // Parse command arguments
+    const messageText = ctx.message?.text || '';
+    const parts = messageText.trim().split(/\s+/);
+
+    // Remove the command itself (/withdraw)
+    if (parts.length > 0 && parts[0].startsWith('/')) {
+        parts.shift();
+    }
+
+    // Check if address and amount are provided
+    if (parts.length < 2) {
+        await ctx.reply(
+            '❌ **Invalid syntax**\n\n' +
+                'Usage: `/withdraw <address> <amount>`\n\n' +
+                'Example: `/withdraw ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw 50`',
+            { parse_mode: 'Markdown' },
+        );
+        return;
+    }
+
+    const address = parts[0].trim();
+    const amountStr = parts[1].trim();
+
+    // Validate address
+    if (!isValidCashAddress(address)) {
+        await ctx.reply(
+            '❌ Invalid address. Please provide a valid eCash address.',
+        );
+        return;
+    }
+
+    // Validate amount
+    let amount: number;
+    try {
+        amount = parseInt(amountStr, 10);
+        if (isNaN(amount) || amount <= 0) {
+            await ctx.reply(
+                '❌ Please provide a valid positive number for the amount.',
+            );
+            return;
+        }
+    } catch {
+        await ctx.reply('❌ Please provide a valid number for the amount.');
+        return;
+    }
+
+    // Get user's current HP balance
+    let tokenBalanceAtoms = 0n;
+    try {
+        const utxosRes = await chronik.address(userAddress).utxos();
+        const utxos = utxosRes.utxos || [];
+
+        // Sum up token atoms for REWARDS_TOKEN_ID
+        for (const utxo of utxos) {
+            if (
+                typeof utxo.token !== 'undefined' &&
+                utxo.token.tokenId === REWARDS_TOKEN_ID
+            ) {
+                tokenBalanceAtoms += utxo.token.atoms;
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching token balance:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'withdraw (fetching balance)',
+            userId,
+            err,
+        );
+        await ctx.reply(
+            '❌ Error fetching your health. Please try again later.',
+        );
+        return;
+    }
+
+    const balance = Number(tokenBalanceAtoms);
+
+    if (balance === 0) {
+        await ctx.reply('❌ You have no HP to withdraw.');
+        return;
+    }
+
+    // Validate amount is less than or equal to balance
+    if (amount > balance) {
+        await ctx.reply(
+            `❌ Amount exceeds your balance. Your balance: ${balance.toLocaleString('en-US')} HP`,
+        );
+        return;
+    }
+
+    // Check if user has withdrawn in the last 24 hours
+    try {
+        const hasWithdrawn = await hasWithdrawnInLast24Hours(
+            userAddress,
+            chronik,
+        );
+        if (hasWithdrawn) {
+            await ctx.reply(
+                '❌ Cannot withdraw. You have already withdrawn in the last 24 hours. Please wait before using this command again.',
+            );
+            return;
+        }
+    } catch (err) {
+        console.error('Error checking withdraw history:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'withdraw (checking withdraw history)',
+            userId,
+            err,
+        );
+        await ctx.reply(
+            '❌ Error checking your withdraw history. Please try again later.',
+        );
+        return;
+    }
+
+    // Store state for confirmation callback
+    withdrawStates.set(userId, {
+        address,
+        amount: BigInt(amount),
+        userAddress,
+    });
+
+    // Show summary with yes/no buttons
+    const summaryMessage =
+        `📋 **Withdrawal Summary**\n\n` +
+        `**Address:** \`${address}\`\n` +
+        `**Amount:** ${amount.toLocaleString('en-US')} HP\n\n` +
+        `Confirm this withdrawal?`;
+
+    const keyboard = new InlineKeyboard()
+        .text('✅ Yes', `withdraw_confirm_${userId}`)
+        .text('❌ No', `withdraw_cancel_${userId}`);
+
+    await ctx.reply(summaryMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+    });
+};
+
+/**
+ * Handle withdrawal confirmation callback
+ * @param ctx - Grammy context from the callback query
+ * @param pool - Database connection pool
+ * @param chronik - Chronik client for querying blockchain
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ */
+export const handleWithdrawConfirm = async (
+    ctx: Context,
+    pool: Pool,
+    chronik: ChronikClient,
+    masterNode: HdNode,
+    bot: Bot,
+    adminChatId: string,
+): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.answerCallbackQuery({
+            text: '❌ Could not identify your user ID.',
+        });
+        return;
+    }
+
+    const state = withdrawStates.get(userId);
+    if (!state) {
+        await ctx.answerCallbackQuery({
+            text: '❌ Withdrawal session expired. Please start over.',
+        });
+        return;
+    }
+
+    await ctx.answerCallbackQuery({ text: 'Processing withdrawal...' });
+
+    // Get user's HD index
+    const userResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+        await ctx.editMessageText('❌ User not found. Please register first.');
+        withdrawStates.delete(userId);
+        return;
+    }
+
+    const { hd_index: hdIndex } = userResult.rows[0];
+
+    // Initialize user's wallet
+    let userSk;
+    try {
+        const userNode = masterNode.derivePath(`m/44'/1899'/${hdIndex}'/0/0`);
+        userSk = userNode.seckey();
+        if (!userSk) {
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'withdraw (deriving wallet)',
+                userId,
+                new Error('Failed to derive secret key from HD index'),
+            );
+            await ctx.editMessageText(
+                '❌ Error deriving wallet. Please try again later.',
+            );
+            withdrawStates.delete(userId);
+            return;
+        }
+    } catch (err) {
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'withdraw (deriving wallet)',
+            userId,
+            err,
+        );
+        await ctx.editMessageText(
+            '❌ Error deriving wallet. Please try again later.',
+        );
+        withdrawStates.delete(userId);
+        return;
+    }
+    const userWallet = Wallet.fromSk(userSk, chronik);
+
+    // Send HP tokens
+    let txid: string | undefined;
+    try {
+        // Sync wallet to ensure we have latest token balance
+        await userWallet.sync();
+
+        // Construct EMPP data push for WITHDRAW
+        const withdrawEmppData = getOvermindEmpp(EmppAction.WITHDRAW);
+
+        // Create action to send ALP tokens
+        const tokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** HP tokens at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(state.address),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: state.amount,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: withdrawEmppData,
+                },
+            ],
+        };
+
+        // Build and broadcast the transaction
+        const resp = await userWallet
+            .action(tokenSendAction)
+            .build()
+            .broadcast();
+
+        if (resp.success && resp.broadcasted.length > 0) {
+            txid = resp.broadcasted[0];
+        } else {
+            const errorMsg = `Failed to send HP withdrawal. Response: ${JSON.stringify(resp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'withdraw (sending HP)',
+                userId,
+                new Error(errorMsg),
+            );
+            await ctx.editMessageText(
+                '❌ Error sending HP withdrawal. Please try again later.',
+            );
+            withdrawStates.delete(userId);
+            return;
+        }
+    } catch (err) {
+        console.error('Error sending HP withdrawal:', err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'withdraw (sending HP)',
+            userId,
+            err,
+        );
+        await ctx.editMessageText(`❌ Error: ${errorMessage}`);
+        withdrawStates.delete(userId);
+        return;
+    }
+
+    // Insert action into user's action table
+    const tableName = `user_actions_${userId}`;
+    try {
+        await pool.query(
+            `INSERT INTO ${tableName} (action, txid, msg_id, emoji) VALUES ($1, $2, $3, $4)`,
+            ['withdraw', txid || null, null, null],
+        );
+    } catch (err) {
+        console.error(
+            `Error inserting withdraw action for user ${userId}:`,
+            err,
+        );
+        // Continue execution even if logging fails
+    }
+
+    // Clean up state
+    withdrawStates.delete(userId);
+
+    await ctx.editMessageText(
+        `✅ **Withdrawal successful!**\n\n` +
+            `**Amount:** ${state.amount.toString()} HP\n` +
+            `**Address:** \`${state.address}\`\n` +
+            `**Transaction:** \`${txid}\``,
+        { parse_mode: 'Markdown' },
+    );
+};
+
+/**
+ * Handle withdrawal cancellation callback
+ * @param ctx - Grammy context from the callback query
+ */
+export const handleWithdrawCancel = async (ctx: Context): Promise<void> => {
+    const userId = ctx.from?.id;
+    if (!userId) {
+        await ctx.answerCallbackQuery({
+            text: '❌ Could not identify your user ID.',
+        });
+        return;
+    }
+
+    withdrawStates.delete(userId);
+    await ctx.answerCallbackQuery({ text: 'Withdrawal canceled' });
+    await ctx.editMessageText('❌ Withdrawal canceled.');
+};
+
+/**
  * Display welcome message and explain how The Overmind works
  * @param ctx - Grammy context from the command
  * @param pool - Database connection pool
@@ -748,7 +1179,8 @@ export const start = async (ctx: Context, pool: Pool): Promise<void> => {
         `• /register - Register and receive 100 HP + 1,000 XEC\n` +
         `• /health - Check your current HP balance\n` +
         `• /address - View your wallet address and QR code\n` +
-        `• /respawn - Respawn your HP back to 100 (requires health < 75, < 3 dislikes in last 24hrs, and max 1 per day)\n\n` +
+        `• /respawn - Respawn your HP back to 100 (requires health < 75, < 3 dislikes in last 24hrs, and max 1 per day)\n` +
+        `• /withdraw <address> <amount> - Withdraw HP to an address (max 1 per 24hrs)\n\n` +
         `**Token Details:**\n` +
         `• Token: HP (Hit Points)\n` +
         `• Decimals: 0 (whole numbers only)\n` +
