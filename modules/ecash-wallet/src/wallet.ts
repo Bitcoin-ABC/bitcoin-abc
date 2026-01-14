@@ -485,6 +485,71 @@ export class Wallet {
     }
 
     /**
+     * Calculate the maximum amount of satoshis this wallet can send
+     * Accounts for transaction fees and optional extra outputs (e.g., OP_RETURN for Cashtab messages)
+     *
+     * @param extraOutputs - Optional array of additional outputs to include in the transaction (e.g., OP_RETURN)
+     * @param feePerKb - Fee per kilobyte in satoshis (defaults to DEFAULT_FEE_SATS_PER_KB)
+     * @returns The maximum sendable amount in satoshis, or 0n if insufficient funds
+     */
+    public maxSendSats(
+        extraOutputs: TxOutput[] = [],
+        feePerKb: bigint = DEFAULT_FEE_SATS_PER_KB,
+    ): bigint {
+        // Get all spendable sats-only UTXOs
+        const spendableUtxos = this.spendableSatsOnlyUtxos();
+
+        if (spendableUtxos.length === 0) {
+            return 0n;
+        }
+
+        // Calculate total balance from spendable UTXOs
+        const totalSats = spendableUtxos.reduce(
+            (sum, utxo) => sum + utxo.sats,
+            0n,
+        );
+
+        // Build dummy inputs from all spendable UTXOs
+        const inputs: TxBuilderInput[] = spendableUtxos.map(utxo =>
+            this.p2pkhUtxoToBuilderInput(utxo, ALL_BIP143),
+        );
+
+        // Build outputs: extra outputs + max send output (total balance)
+        // We use a dummy p2pkh script for the max send output to estimate fee
+        // The actual recipient script may differ, but this gives a reasonable estimate
+        const outputs: TxBuilderOutput[] = [
+            ...extraOutputs,
+            {
+                sats: totalSats,
+                script: DUMMY_P2PKH,
+            },
+        ];
+
+        try {
+            // Build and sign a dummy transaction to calculate the fee
+            const txBuilder = new TxBuilder({ inputs, outputs });
+            const signedTx = txBuilder.sign({
+                ecc: eccDummy,
+                feePerKb,
+                dustSats: DEFAULT_DUST_SATS,
+            });
+
+            // Calculate the transaction fee
+            const txSize = signedTx.serSize();
+            const txFee = calcTxFee(txSize, feePerKb);
+
+            // Max sendable amount is total balance minus fee
+            const maxSendSats = totalSats - txFee;
+
+            // Return 0n if the result would be negative (insufficient funds)
+            return maxSendSats > 0n ? maxSendSats : 0n;
+        } catch {
+            // If building the transaction fails (e.g., insufficient funds), return 0n
+            return 0n;
+        }
+    }
+
+    /**
      * Update balanceSats based on current utxos
      * Called during sync() after utxos are updated
      *

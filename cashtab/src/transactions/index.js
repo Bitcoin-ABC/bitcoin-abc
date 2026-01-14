@@ -12,20 +12,9 @@ import {
     TxBuilder,
     P2PKHSignatory,
     ALL_BIP143,
-    calcTxFee,
-    EccDummy,
 } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import appConfig from 'config/app';
-
-const DUMMY_SK = fromHex(
-    '112233445566778899001122334455667788990011223344556677889900aabb',
-);
-const eccDummy = new EccDummy();
-const DUMMY_PK = eccDummy.derivePubkey(DUMMY_SK);
-const DUMMY_P2PKH = Script.p2pkh(
-    fromHex('0123456789012345678901234567890123456789'),
-);
 
 /**
  * Build and broadcast an eCash tx
@@ -230,73 +219,6 @@ export const sendXec = async (
     throw new Error('Insufficient funds');
 };
 
-/**
- * Determine the max amount a wallet can send
- * @param {object} wallet Cashtab wallet
- * @param {[] or [{script: <script>}]} scriptOutputs other output e.g. a Cashtab Msg to be sent in a max send tx
- * @param {number} satsPerKb
- * @returns {integer} max amount of satoshis that a Cashtab wallet can send
- */
-export const getMaxSendAmountSatoshis = (
-    wallet,
-    scriptOutputs,
-    chaintipBlockheight,
-    satsPerKb,
-) => {
-    // xecUtxos are all spendable nonSlpUtxos in the wallet
-    const xecInputs = ignoreUnspendableUtxos(
-        wallet.state.nonSlpUtxos,
-        chaintipBlockheight,
-    );
-
-    // Get total send qty of all non-token
-    const totalSatsInWallet = xecInputs.reduce(
-        (prev, curr) => prev + curr.sats,
-        0n,
-    );
-    // prepare inputs, i.e. all XEC utxos
-    const inputs = [];
-    for (const input of xecInputs) {
-        inputs.push({
-            input: {
-                prevOut: input.outpoint,
-                signData: {
-                    sats: input.sats,
-                    // Cashtab inputs will always be p2pkh utxos
-                    outputScript: DUMMY_P2PKH,
-                },
-            },
-            signatory: P2PKHSignatory(DUMMY_SK, DUMMY_PK, ALL_BIP143),
-        });
-    }
-
-    // prepare output, i.e. sending all possible XEC
-    // assume p2pkh recipient. means you may pay slightly higher fee if send to p2sh.
-    // allows you to get a max value without inputting an address, better UX
-    const outputs = scriptOutputs.concat([
-        {
-            sats: totalSatsInWallet,
-            script: DUMMY_P2PKH,
-        },
-    ]);
-
-    // Initialize TransactionBuilder
-    const txBuilder = new TxBuilder({
-        inputs,
-        outputs,
-    });
-
-    const tx = txBuilder.sign({
-        feePerKb: BigInt(satsPerKb),
-        dustSats: BigInt(appConfig.dustSats),
-        ecc: eccDummy,
-    });
-    // Calculate the tx fee
-    const txFeeInSatoshis = calcTxFee(tx.serSize(), BigInt(satsPerKb));
-    // The max send amount is totalSatsInWallet less txFeeInSatoshis
-    const maxSendAmountSatoshis = totalSatsInWallet - txFeeInSatoshis;
-    return Number(maxSendAmountSatoshis);
-};
 
 /**
  * Get desired target outputs from validated user input for eCash multi-send tx in Cashtab

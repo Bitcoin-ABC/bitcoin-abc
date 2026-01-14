@@ -28,6 +28,7 @@ import {
     MAX_TX_SERSIZE,
     OP_RETURN_MAX_BYTES,
     Tx,
+    TxOutput,
     HdNode,
     mnemonicToSeed,
 } from 'ecash-lib';
@@ -348,6 +349,34 @@ describe('wallet.ts', () => {
                 .build(ALL_BIP143)
                 .builtTxs[0].size(),
         ).to.deep.equal(360);
+
+        // We can calculate max sendable amount
+        const spendableSats =
+            DUMMY_UTXO.sats + DUMMY_SPENDABLE_COINBASE_UTXO.sats;
+        expect(spendableSats).to.equal(312_505_46n);
+
+        const maxSendSats = testWallet.maxSendSats();
+        // maxSendSats should be less than total spendable sats (due to fees)
+        expect(maxSendSats).to.equal(312_502_20n);
+
+        // We can calculate max sendable amount with extra outputs (e.g., OP_RETURN)
+        const opReturnOutput: TxOutput = {
+            sats: 0n,
+            script: new Script(new Uint8Array([OP_RETURN, 0x00, 0x00])),
+        };
+        const maxSendSatsWithOpReturn = testWallet.maxSendSats([
+            opReturnOutput,
+        ]);
+
+        // With OP_RETURN, max sendable should be less (due to larger tx size and higher fee)
+        expect(maxSendSatsWithOpReturn).to.equal(312_502_08n);
+
+        // We can calculate max sendable amount with custom fee
+        const customFeePerKb = 5000n; // 5000 sats per KB (higher than default 1000)
+        const maxSendSatsCustomFee = testWallet.maxSendSats([], customFeePerKb);
+
+        // With higher fee, max sendable should be less still
+        expect(maxSendSatsCustomFee).to.equal(312_489_16n);
 
         // We can get the fee of a tx without broadcasting it
         expect(

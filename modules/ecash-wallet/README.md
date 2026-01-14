@@ -225,3 +225,9 @@ See tests for detailed methods.
 - Support for chained token txs
 
 [D19316](https://reviews.bitcoinabc.org/D19316)
+
+# 3.4.0
+
+- Add `maxSendSats` method for determining how many sats we can send to leave no balance remaining in the wallet
+
+[D19349](https://reviews.bitcoinabc.org/D19349)

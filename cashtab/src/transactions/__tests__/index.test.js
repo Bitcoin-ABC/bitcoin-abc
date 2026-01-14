@@ -6,7 +6,6 @@ import {
     sendXec,
     getMultisendTargetOutputs,
     ignoreUnspendableUtxos,
-    getMaxSendAmountSatoshis,
     isFinalizedInput,
 } from 'transactions';
 import { getSlpBurnTargetOutputs } from 'token-protocols/slpv1';
@@ -18,8 +17,8 @@ import vectors, {
     ignoreUnspendableUtxosVectors,
     sendSlp,
 } from '../fixtures/vectors';
-import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
-import { Ecc, SLP_FUNGIBLE, Script, fromHex, slpSend } from 'ecash-lib';
+import { wallet } from 'transactions/fixtures/mocks';
+import { Ecc, SLP_FUNGIBLE, Script, slpSend } from 'ecash-lib';
 import appConfig from 'config/app';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
@@ -365,106 +364,6 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                     response: { txid: burn.txid },
                 });
             });
-        });
-    });
-    describe('We can get the max amount of XEC that a wallet can send', () => {
-        const MOCK_CHAINTIP = 800000;
-        it('We determine the max-send amount as the total value of all nonSlpUtxos less the required fee in satoshis', () => {
-            const SATOSHIS_PER_KB = 1000n;
-            expect(
-                getMaxSendAmountSatoshis(
-                    walletWithTokensInNode,
-                    [],
-                    MOCK_CHAINTIP,
-                    SATOSHIS_PER_KB,
-                ),
-            ).toStrictEqual(999815);
-        });
-        it('We can also determine the max send amount if the user includes a Cashtab Msg', () => {
-            const SATOSHIS_PER_KB = 1000n;
-            expect(
-                getMaxSendAmountSatoshis(
-                    walletWithTokensInNode,
-                    [
-                        {
-                            sats: 0n,
-                            script: new Script(
-                                fromHex(
-                                    '6a04007461622bf09f998ff09f93acf09faba1f09f9180f09f95b5efb88ff09f9191f09f8e83f09faa96f09f908bf09f8eaf',
-                                ),
-                            ),
-                        },
-                    ],
-                    MOCK_CHAINTIP,
-                    SATOSHIS_PER_KB,
-                ),
-            ).toStrictEqual(999756);
-        });
-        it('The max send amount is lower if the fee is higher', () => {
-            const SATOSHIS_PER_KB = 2000n;
-            expect(
-                getMaxSendAmountSatoshis(
-                    walletWithTokensInNode,
-                    [],
-                    MOCK_CHAINTIP,
-                    SATOSHIS_PER_KB,
-                ),
-            ).toStrictEqual(999630);
-        });
-        it('We must adjust for a higher fee if we have more utxos', () => {
-            const SATOSHIS_PER_KB = 1000n;
-            const MOCK_BASE_XEC_UTXO = {
-                outpoint: {
-                    txid: '1111111111111111111111111111111111111111111111111111111111111111',
-                },
-                blockHeight: 700000,
-                isCoinbase: false,
-            };
-            expect(
-                getMaxSendAmountSatoshis(
-                    {
-                        ...walletWithTokensInNode,
-                        state: {
-                            ...walletWithTokensInNode.state,
-                            nonSlpUtxos: [
-                                ...walletWithTokensInNode.state.nonSlpUtxos,
-                                { ...MOCK_BASE_XEC_UTXO, sats: 1000000n },
-                            ],
-                        },
-                    },
-                    [],
-                    MOCK_CHAINTIP,
-                    SATOSHIS_PER_KB,
-                ),
-            ).toStrictEqual(1999674);
-        });
-        it('An immature Coinbase utxo will be ignored in the onMax calculation', () => {
-            const SATOSHIS_PER_KB = 2000n;
-            const MOCK_STAKING_REWARD_UTXO = {
-                outpoint: {
-                    txid: '1111111111111111111111111111111111111111111111111111111111111111',
-                },
-                blockHeight: 799999,
-                isCoinbase: true,
-                sats: 325000n,
-            };
-            expect(
-                getMaxSendAmountSatoshis(
-                    {
-                        ...walletWithTokensInNode,
-                        state: {
-                            ...walletWithTokensInNode.state,
-                            nonSlpUtxos: [
-                                ...walletWithTokensInNode.state.nonSlpUtxos,
-                                MOCK_STAKING_REWARD_UTXO,
-                            ],
-                        },
-                    },
-                    [],
-                    MOCK_CHAINTIP,
-                    SATOSHIS_PER_KB,
-                ),
-            ).toStrictEqual(999630);
         });
     });
     describe('We can tell whether or not a requiredInput needs a normal p2pkh signature from the wallet', () => {

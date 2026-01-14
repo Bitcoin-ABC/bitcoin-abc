@@ -34,10 +34,7 @@ import {
     Info,
     TokenIdPreview,
 } from 'components/Common/Atoms';
-import {
-    getMultisendTargetOutputs,
-    getMaxSendAmountSatoshis,
-} from 'transactions';
+import { getMultisendTargetOutputs } from 'transactions';
 import { ChronikClient } from 'chronik-client';
 import {
     getCashtabMsgTargetOutput,
@@ -380,7 +377,6 @@ const SendXec: React.FC = () => {
     }
     const location = useLocation();
     const {
-        chaintipBlockheight,
         fiatPrice,
         apiError,
         cashtabState,
@@ -1958,20 +1954,12 @@ const SendXec: React.FC = () => {
 
         // Build a tx sending all non-token utxos
         // Determine the amount being sent (outputs less fee)
-        let maxSendSatoshis;
-        try {
-            // An error will be thrown if the wallet has insufficient funds to send more than dust
-            maxSendSatoshis = getMaxSendAmountSatoshis(
-                wallet,
-                intendedTargetOutputs,
-                chaintipBlockheight,
-                settings.satsPerKb,
-            );
-        } catch {
-            // Set to zero. In this case, 0 is the max amount we can send, and we know
-            // this will trigger the expected dust validation error
-            maxSendSatoshis = 0;
-        }
+        // Use ecash-wallet's maxSendSats() method which accounts for fees
+        const maxSendSats = ecashWallet.maxSendSats(
+            intendedTargetOutputs,
+            BigInt(settings.satsPerKb),
+        );
+        const maxSendSatoshis = Number(maxSendSats);
 
         // Convert to XEC to set in form
         const maxSendXec = toXec(maxSendSatoshis);

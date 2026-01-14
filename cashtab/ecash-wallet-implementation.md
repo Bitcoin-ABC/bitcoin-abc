@@ -4,7 +4,9 @@ This document tracks the migration of transaction building and broadcasting from
 
 ## Status
 
-- ✅ **SendXec.tsx** - Already migrated to ecash-wallet
+- ✅ **SendXec.tsx** - Migrated to ecash-wallet
+    - Uses `ecashWallet.maxSendSats()` instead of `getMaxSendAmountSatoshis()`
+    - Uses `ecashWallet.action().build().broadcast()` instead of `sendXec()`
 - ✅ **components/Etokens/Token/index.tsx** - Migrated (all functions migrated to ecash-wallet or hybrid approach)
 - ✅ **components/Etokens/CreateTokenForm/index.tsx** - Migrated (token creation migrated)
 
@@ -14,23 +16,34 @@ This document tracks the migration of transaction building and broadcasting from
 
 **File:** `cashtab/src/transactions/index.js`
 
-**Status:** ❌ Not migrated (to be removed last)
+**Status:** ⚠️ Mostly migrated (to be removed last)
 
 **Functions:**
 
-- `sendXec()` - Main function that builds and broadcasts XEC transactions using `ecash-lib`'s `TxBuilder` directly
-- `getMaxSendAmountSatoshis()` - Calculates max send amount (uses `TxBuilder` for fee calculation)
+- `sendXec()` - ✅ **Replaced** - `SendXec.tsx` now uses `ecashWallet.action().build().broadcast()` directly
+- `getMaxSendAmountSatoshis()` - ✅ **Replaced** - Now uses `ecashWallet.maxSendSats()` from `ecash-wallet`
+- `getMultisendTargetOutputs()` - ⚠️ **Still used** - Utility function for parsing multi-send inputs (not transaction building)
 
 **Used by:**
 
-- None (all functions in `components/Etokens/Token/index.tsx` have been migrated)
+- `SendXec.tsx`:
+    - ✅ `getMaxSendAmountSatoshis()` → Migrated to `ecashWallet.maxSendSats()`
+    - ✅ `sendXec()` → Migrated to `ecashWallet.action().build().broadcast()`
+    - ⚠️ `getMultisendTargetOutputs()` → Still used (utility function for parsing)
 
 **Migration Notes:**
 
+- ✅ `getMaxSendAmountSatoshis()` has been replaced with `ecashWallet.maxSendSats()` in `SendXec.tsx`
+    - `ecash-wallet` now provides `maxSendSats()` method that:
+        - Calculates maximum sendable amount accounting for transaction fees
+        - Supports optional extra outputs (e.g., OP_RETURN for Cashtab messages)
+        - Supports custom fee rates
+        - Returns `bigint` (converted to `number` in Cashtab for form compatibility)
+- ✅ `sendXec()` has been replaced with `ecashWallet.action().build().broadcast()` in `SendXec.tsx`
+    - `SendXec.tsx` now uses `ecash-wallet`'s `action()` API directly for building and broadcasting XEC transactions
+- ⚠️ `getMultisendTargetOutputs()` is still used but is a utility function for parsing user input, not for transaction building
 - **This file will be removed LAST** as part of the cleanup phase
-- Components will be migrated first to use `ecash-wallet` directly, replacing all calls to `sendXec()`
-- Once all components are migrated and no longer depend on this file, it can be safely removed
-- This includes removing all utility functions related to transactions from Cashtab itself
+- Once `getMultisendTargetOutputs()` is migrated or replaced, this file can be safely removed
 
 ---
 
@@ -284,7 +297,10 @@ This document tracks the migration of transaction building and broadcasting from
 ### Phase 2: Cleanup (Remove unused utilities)
 
 5. Remove `transactions/index.js` and related transaction utilities
-    - Only after all components are migrated and no longer use `sendXec()`
+    - ✅ `getMaxSendAmountSatoshis()` - Replaced with `ecashWallet.maxSendSats()` in `SendXec.tsx`
+    - ✅ `sendXec()` - Replaced with `ecashWallet.action().build().broadcast()` in `SendXec.tsx`
+    - ⚠️ `getMultisendTargetOutputs()` - Still used in `SendXec.tsx` (utility function for parsing multi-send inputs)
+    - Once `getMultisendTargetOutputs()` is migrated or replaced, this file can be safely removed
     - Remove all utility functions related to transactions from Cashtab itself
 
 ### Phase 3: Final Cleanup (Wallet storage structure)
