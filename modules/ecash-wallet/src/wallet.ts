@@ -1017,7 +1017,7 @@ class WalletAction {
 
         chainedTxs.push(burnTx.txs[0]);
 
-        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb, this);
     }
 
     private _buildNftMintFanoutChained(sighash = ALL_BIP143): BuiltAction {
@@ -1078,7 +1078,7 @@ class WalletAction {
 
         chainedTxs.push(nftMintTx.txs[0]);
 
-        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb, this);
     }
 
     /**
@@ -1643,7 +1643,7 @@ class WalletAction {
             chainedTxs.push(signedTx);
         }
 
-        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb, this);
     }
 
     private _buildSizeLimitExceededChained(
@@ -1909,7 +1909,7 @@ class WalletAction {
         }
 
         // Build and broadcast the chained txs
-        return new BuiltAction(this._wallet, chainedTxs, feePerKb);
+        return new BuiltAction(this._wallet, chainedTxs, feePerKb, this);
     }
 
     /**
@@ -2516,6 +2516,7 @@ class WalletAction {
                         this._wallet,
                         [finalTx],
                         feePerKb,
+                        this,
                     ),
                 };
             }
@@ -2555,6 +2556,17 @@ class BuiltTx {
 }
 
 /**
+ * Configuration options for broadcasting transactions
+ */
+export interface BroadcastConfig {
+    /**
+     * If true (default), automatically sync and rebuild on UTXO conflict errors
+     * (missing inputs or mempool conflicts). If false, return the error immediately.
+     */
+    retryOnUtxoConflict?: boolean;
+}
+
+/**
  * An action may have more than one Tx
  * So, we use the BuiltAction class to handle the txs property as an array
  * All methods return an array. So, we can still tell if this is a "normal" one-tx action
@@ -2566,14 +2578,53 @@ export class BuiltAction {
     public txs: Tx[];
     public builtTxs: BuiltTx[];
     public feePerKb: bigint;
-    constructor(wallet: Wallet, txs: Tx[], feePerKb: bigint) {
+    /**
+     * Optional reference to the WalletAction that created this BuiltAction.
+     * Used to rebuild the transaction if broadcast fails due to out-of-sync UTXO set.
+     */
+    private _walletAction?: WalletAction;
+    constructor(
+        wallet: Wallet,
+        txs: Tx[],
+        feePerKb: bigint,
+        walletAction?: WalletAction,
+    ) {
         this._wallet = wallet;
         this.txs = txs;
         this.feePerKb = feePerKb;
         this.builtTxs = txs.map(tx => new BuiltTx(tx, feePerKb));
+        this._walletAction = walletAction;
     }
 
-    public async broadcast() {
+    /**
+     * Determines if an error should trigger a wallet sync and broadcast retry.
+     * Currently checks for:
+     * - Missing inputs error (bad-txns-inputs-missingorspent)
+     * - Mempool conflict error (txn-mempool-conflict)
+     *
+     * In practice these errors almost always mean the wallet tried to broadcast() with
+     * an out-of-sync utxo set
+     *
+     * @param error - The error object or string to check
+     * @returns true if the error indicates we should sync and retry, false otherwise
+     */
+    private _shouldSyncAndRetry(error: unknown): boolean {
+        const errorStr = `${error}`;
+        return (
+            errorStr.includes('bad-txns-inputs-missingorspent') ||
+            errorStr.includes('txn-mempool-conflict')
+        );
+    }
+
+    /**
+     * Broadcast the built transaction(s) to the network.
+     *
+     * @param config - Optional configuration for broadcasting. Defaults to { retryOnUtxoConflict: true }
+     * @returns Object with success status, broadcasted txids, and any errors
+     */
+    public async broadcast(
+        config: BroadcastConfig = { retryOnUtxoConflict: true },
+    ) {
         // We must broadcast each tx in order and separately
         // We must track which txs broadcast successfully
         // If any tx in the chain fails, we stop, and return the txs that broadcast successfully and those that failed
@@ -2591,6 +2642,62 @@ export class BuiltAction {
                 );
                 broadcasted.push(txid);
             } catch (err) {
+                // Check if this error should trigger a sync and retry
+                // Only do this if the failure happened on the first tx (i === 0)
+                // This allows us to rebuild the entire chain with fresh UTXOs
+                // If a later tx in the chain fails, it's more complex and we don't handle it
+                if (
+                    config.retryOnUtxoConflict !== false &&
+                    this._shouldSyncAndRetry(err) &&
+                    i === 0 &&
+                    this._walletAction
+                ) {
+                    // Sync and rebuild - if it's a chained tx, we rebuild the entire chain
+                    await this._wallet.sync();
+                    try {
+                        // Create a new WalletAction to re-select UTXOs with the synced wallet state
+                        const rebuiltWalletAction = this._wallet.action(
+                            this._walletAction.action,
+                            this._walletAction.selectUtxosResult.satsStrategy,
+                        );
+                        const rebuiltAction = rebuiltWalletAction.build();
+                        const rebuiltTxs = rebuiltAction.txs.map(tx =>
+                            toHex(tx.ser()),
+                        );
+
+                        // Broadcast all rebuilt transactions (may be 1 or more for chained txs)
+                        for (let j = 0; j < rebuiltTxs.length; j++) {
+                            const { txid } =
+                                await this._wallet.chronik.broadcastTx(
+                                    rebuiltTxs[j],
+                                );
+                            broadcasted.push(txid);
+                        }
+
+                        // Update this BuiltAction's txs to match the rebuilt one
+                        this.txs = rebuiltAction.txs;
+                        this.builtTxs = rebuiltAction.builtTxs;
+                        // We've successfully broadcast all rebuilt txs, so we're done
+                        break;
+                    } catch (retryErr) {
+                        // Retry also failed, return the error
+                        console.error(
+                            `Error broadcasting after sync and rebuild retry:`,
+                            retryErr,
+                        );
+                        return {
+                            success: false,
+                            broadcasted,
+                            unbroadcasted: txsToBroadcast.slice(i),
+                            errors: [`${retryErr}`],
+                        };
+                    }
+                }
+                // If we get here, either:
+                // 1. The error doesn't require sync/retry
+                // 2. The failure happened on a later tx in a chain (i > 0) - we don't handle this
+                // 3. We don't have a WalletAction reference - can't rebuild
+                // In all these cases, return the error immediately
                 console.error(
                     `Error broadcasting tx ${i + 1} of ${
                         txsToBroadcast.length

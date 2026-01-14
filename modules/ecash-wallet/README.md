@@ -231,3 +231,9 @@ See tests for detailed methods.
 - Add `maxSendSats` method for determining how many sats we can send to leave no balance remaining in the wallet
 
 [D19349](https://reviews.bitcoinabc.org/D19349)
+
+# 3.5.0
+
+- If broadcasting a tx fails due to `bad-txns-inputs-missingorspent` or `txn-mempool-conflict`, resync the utxo set and try again
+
+[D19348](https://reviews.bitcoinabc.org/D19348)

@@ -3507,4 +3507,225 @@ describe('Wallet can build and broadcast on regtest', () => {
             chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
         ).to.equal(DEFAULT_DUST_SATS);
     });
+
+    it('We can handle missing inputs error by syncing, rebuilding, and rebroadcasting', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('99'.repeat(32)), chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, testWallet.script);
+
+        // Sync to get real UTXOs
+        await testWallet.sync();
+        expect(testWallet.utxos.length).to.be.greaterThan(0);
+
+        // Step 1: Send a tx to itself to create 5 UTXOs
+        const selfSendSats = 200_000_00n; // 2M XEC split into 5 outputs
+        const selfSendOutputs = Array.from({ length: 5 }, () => ({
+            script: testWallet.script,
+            sats: selfSendSats / 5n,
+        }));
+        const selfSendResp = await testWallet
+            .action({ outputs: selfSendOutputs })
+            .build()
+            .broadcast();
+        expect(selfSendResp.success).to.equal(true);
+
+        // Sync to get the new UTXOs
+        await testWallet.sync();
+
+        // Capture the UTXO set BEFORE the external send (so we can restore it later)
+        const utxosBeforeExternalSend = testWallet.utxos.map(utxo => ({
+            ...utxo,
+            outpoint: { ...utxo.outpoint },
+        }));
+
+        // Step 2: Send a tx to an external address (this will spend a UTXO)
+        const sendSats = 546n;
+        const externalSendAction = testWallet.action({
+            outputs: [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                    sats: sendSats,
+                },
+            ],
+        });
+        const externalSendBuilt = externalSendAction.build();
+
+        // Capture the input(s) here so we know which utxo was spent
+        const firstTxInputs = externalSendBuilt.txs[0].inputs.map(input => ({
+            txid: input.prevOut.txid,
+            outIdx: input.prevOut.outIdx,
+        }));
+
+        // Send the tx, thus spending firstTxInputs
+        const externalSendResp = await externalSendBuilt.broadcast();
+        expect(externalSendResp.success).to.equal(true);
+        const firstTxid = externalSendResp.broadcasted[0];
+
+        // Store the UTXO that was spent in the first transaction
+        // We know it is only a single utxo from debug logs in this test
+        const spentUtxo = firstTxInputs[0];
+
+        // Step 3: Reset the wallet's UTXO set to still include the UTXO that was just spent
+        // This simulates the wallet being out of sync - it still thinks it has a UTXO that was spent
+        // We restore the UTXO set from before the external send
+        testWallet.utxos = utxosBeforeExternalSend.map(utxo => ({
+            ...utxo,
+            outpoint: { ...utxo.outpoint },
+        }));
+
+        // Step 4: Without syncing, try to send a different tx
+        // This should get a mempool conflict error, then sync, rebuild, and rebroadcast
+        const duplicateSendAction = testWallet.action({
+            outputs: [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                    // We modify the sendSats to make sure we get a different rawTx and different txid
+                    // If we do not do this, the wallet will just broadcast the same txid no problem
+                    sats: sendSats + 1n,
+                },
+            ],
+        });
+
+        // The build is okay with no error, as there is no network state check when we build
+        const duplicateSendBuilt = duplicateSendAction.build();
+
+        // Verify that we built it with a used UTXO (one that was already spent in the first transaction)
+        const duplicateSendInputs = duplicateSendBuilt.txs[0].inputs.map(
+            input => ({
+                txid: input.prevOut.txid,
+                outIdx: input.prevOut.outIdx,
+            }),
+        );
+
+        // The duplicate send should try to use the same UTXO that was already spent in the first transaction
+        // This confirms the transaction was built with stale UTXO data
+        expect(duplicateSendInputs).to.deep.include(spentUtxo);
+
+        // Try to broadcast - this should fail with mempool conflict or missing inputs error
+        // The code should then sync, rebuild, and rebroadcast successfully
+        // NB verified we do see the error and rebroadcast in debug log; there is not a way to internally inspect
+        // that in this test, tho you can follow the earlier logic to see how it would be impossible to broadcast
+        // the already-spend utxo
+        const resp = await duplicateSendBuilt.broadcast();
+
+        // Should have successfully broadcast after sync and rebuild
+        expect(resp.success).to.equal(true);
+        expect(resp.broadcasted.length).to.equal(1);
+
+        // Verify the tx was actually broadcast by checking chronik
+        const tx = await chronik.tx(resp.broadcasted[0]);
+        expect(tx.inputs.length).to.be.greaterThan(0);
+        expect(tx.outputs.length).to.be.greaterThan(0);
+
+        // The txid should be different from the first one (since it was rebuilt)
+        expect(resp.broadcasted[0]).to.not.equal(firstTxid);
+    });
+
+    it('We can opt out of handling missing inputs error by syncing, rebuilding, and rebroadcasting', async () => {
+        // Init the wallet
+        const testWallet = Wallet.fromSk(fromHex('99'.repeat(32)), chronik);
+
+        // Send 1M XEC to the wallet
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, testWallet.script);
+
+        // Sync to get real UTXOs
+        await testWallet.sync();
+        expect(testWallet.utxos.length).to.be.greaterThan(0);
+
+        // Step 1: Send a tx to itself to create 5 UTXOs
+        const selfSendSats = 200_000_00n; // 2M XEC split into 5 outputs
+        const selfSendOutputs = Array.from({ length: 5 }, () => ({
+            script: testWallet.script,
+            sats: selfSendSats / 5n,
+        }));
+        const selfSendResp = await testWallet
+            .action({ outputs: selfSendOutputs })
+            .build()
+            .broadcast();
+        expect(selfSendResp.success).to.equal(true);
+
+        // Sync to get the new UTXOs
+        await testWallet.sync();
+
+        // Capture the UTXO set BEFORE the external send (so we can restore it later)
+        const utxosBeforeExternalSend = testWallet.utxos.map(utxo => ({
+            ...utxo,
+            outpoint: { ...utxo.outpoint },
+        }));
+
+        // Step 2: Send a tx to an external address (this will spend a UTXO)
+        const sendSats = 546n;
+        const externalSendAction = testWallet.action({
+            outputs: [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                    sats: sendSats,
+                },
+            ],
+        });
+        const externalSendBuilt = externalSendAction.build();
+
+        // Capture the input(s) here so we know which utxo was spent
+        const firstTxInputs = externalSendBuilt.txs[0].inputs.map(input => ({
+            txid: input.prevOut.txid,
+            outIdx: input.prevOut.outIdx,
+        }));
+
+        // Send the tx, thus spending firstTxInputs
+        const externalSendResp = await externalSendBuilt.broadcast();
+        expect(externalSendResp.success).to.equal(true);
+
+        // Store the UTXO that was spent in the first transaction
+        // We know it is only a single utxo from debug logs in this test
+        const spentUtxo = firstTxInputs[0];
+
+        // Step 3: Reset the wallet's UTXO set to still include the UTXO that was just spent
+        // This simulates the wallet being out of sync - it still thinks it has a UTXO that was spent
+        // We restore the UTXO set from before the external send
+        testWallet.utxos = utxosBeforeExternalSend.map(utxo => ({
+            ...utxo,
+            outpoint: { ...utxo.outpoint },
+        }));
+
+        // Step 4: Without syncing, try to send a different tx
+        const duplicateSendAction = testWallet.action({
+            outputs: [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                    // We modify the sendSats to make sure we get a different rawTx and different txid
+                    // If we do not do this, the wallet will just broadcast the same txid no problem
+                    sats: sendSats + 1n,
+                },
+            ],
+        });
+
+        // The build is okay with no error, as there is no network state check when we build
+        const duplicateSendBuilt = duplicateSendAction.build();
+
+        // Verify that we built it with a used UTXO (one that was already spent in the first transaction)
+        const duplicateSendInputs = duplicateSendBuilt.txs[0].inputs.map(
+            input => ({
+                txid: input.prevOut.txid,
+                outIdx: input.prevOut.outIdx,
+            }),
+        );
+
+        // The duplicate send should try to use the same UTXO that was already spent in the first transaction
+        // This confirms the transaction was built with stale UTXO data
+        expect(duplicateSendInputs).to.deep.include(spentUtxo);
+
+        // If we opt out of resyncing on utxo conflict, we get our expected error
+        const resp = await duplicateSendBuilt.broadcast({
+            retryOnUtxoConflict: false,
+        });
+        expect(resp.success).to.equal(false);
+        expect(resp.errors).to.have.length(1);
+        expect(resp.errors![0]).to.equal(
+            'Error: Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict',
+        );
+    });
 });
