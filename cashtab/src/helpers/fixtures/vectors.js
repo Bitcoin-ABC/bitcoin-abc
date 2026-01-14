@@ -20,6 +20,7 @@ import {
     walletWithXecAndTokens_pre_2_9_0,
     walletWithXecAndTokens_pre_2_55_0,
 } from 'components/App/fixtures/mocks';
+import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
 // Test vectors for helper functions
 
@@ -160,6 +161,119 @@ export default {
                     },
                 },
                 cashtabWalletJSON: cashtabWalletMultiPathWithTokensJson,
+            },
+        ],
+    },
+    getMultisendTargetOutputs: {
+        expectedReturns: [
+            {
+                description: 'Airdrop',
+                userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150\necash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035,50\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,150\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4400\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,200`,
+                targetOutputs: [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                        ),
+                        sats: 15000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                        ),
+                        sats: 5000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                        ),
+                        sats: 15000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                        ),
+                        sats: 440000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                        ),
+                        sats: 5000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                        ),
+                        sats: 20000n,
+                    },
+                ],
+            },
+            {
+                description:
+                    'Multisend format with extra space around address and value',
+                userMultisendInput: `   ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr   ,   150\n   ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035 ,     50       `,
+                targetOutputs: [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                        ),
+                        sats: 15000n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                        ),
+                        sats: 5000n,
+                    },
+                ],
+            },
+            {
+                description: 'One address in multi format',
+                userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150`,
+                targetOutputs: [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                        ),
+                        sats: 15000n,
+                    },
+                ],
+            },
+            {
+                description: 'Multisend including a non-integer JS result',
+                userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,151.52\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,151.52\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4444.44\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50.51\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,202.02`,
+                targetOutputs: [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                        ),
+                        sats: 15152n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                        ),
+                        sats: 15152n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                        ),
+                        sats: 444444n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                        ),
+                        sats: 5051n,
+                    },
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                        ),
+                        sats: 20202n,
+                    },
+                ],
             },
         ],
     },

@@ -10,8 +10,10 @@ import {
     TxOutput,
     TokenEntry,
 } from 'chronik-client';
+import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { toSatoshis } from 'wallet';
 import {
     StoredCashtabState_Pre_3_42_0,
     CashtabPathInfo,
@@ -530,4 +532,31 @@ export const previewTokenId = (tokenId: string): string => {
  */
 export const previewSolAddr = (solAddr: string): string => {
     return `${solAddr.slice(0, 3)}...${solAddr.slice(-3)}`;
+};
+
+/**
+ * Get desired target outputs from validated user input for eCash multi-send tx in Cashtab
+ * Note: Input should be validated with isValidMultiSendUserInput() before calling this function
+ * @param userMultisendInput formData.address from Send.js screen, validated for multi-send
+ * @returns targetOutputs array with script and sats for each output
+ */
+export const getMultisendTargetOutputs = (
+    userMultisendInput: string,
+): Array<{ script: Script; sats: bigint }> => {
+    // User input is validated as a string of
+    // address, value\naddress, value\naddress, value\n
+    const addressValueArray = userMultisendInput.split('\n');
+
+    const targetOutputs: Array<{ script: Script; sats: bigint }> = [];
+    for (const addressValueCsvPair of addressValueArray) {
+        const addressValueLineArray = addressValueCsvPair.split(',');
+        const valueXec = parseFloat(addressValueLineArray[1].trim());
+        // targetOutputs expects satoshis at value key
+        const valueSats = toSatoshis(valueXec);
+        targetOutputs.push({
+            script: Script.fromAddress(addressValueLineArray[0].trim()),
+            sats: BigInt(valueSats),
+        });
+    }
+    return targetOutputs;
 };

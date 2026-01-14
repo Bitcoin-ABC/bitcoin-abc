@@ -14,6 +14,7 @@ import {
     previewAddress,
     previewTokenId,
     previewSolAddr,
+    getMultisendTargetOutputs,
 } from 'helpers';
 import vectors from 'helpers/fixtures/vectors';
 
@@ -165,6 +166,22 @@ describe('Cashtab helper functions', () => {
         it('previewSolAddr: should handle short Sol addresses', () => {
             const solAddr = 'abc123';
             expect(previewSolAddr(solAddr)).toBe('abc...123');
+        });
+    });
+
+    describe('getMultisendTargetOutputs', () => {
+        // Unit test for each vector in fixtures for the getMultisendTargetOutputs case
+        const { expectedReturns } = vectors.getMultisendTargetOutputs;
+
+        // Successfully built and broadcast txs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, userMultisendInput, targetOutputs } =
+                expectedReturn;
+            it(`getMultisendTargetOutputs: ${description}`, () => {
+                expect(
+                    getMultisendTargetOutputs(userMultisendInput),
+                ).toStrictEqual(targetOutputs);
+            });
         });
     });
 });

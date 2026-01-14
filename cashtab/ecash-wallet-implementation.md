@@ -12,24 +12,19 @@ This document tracks the migration of transaction building and broadcasting from
 
 ## Components That Send Transactions
 
-### 1. transactions/index.js
+### 1. transactions/ (entire directory)
 
-**File:** `cashtab/src/transactions/index.js`
+**Directory:** `cashtab/src/transactions/`
 
-**Status:** ⚠️ Mostly migrated (to be removed last)
+**Status:** ✅ **Removed** - Phase 2 cleanup complete
 
-**Functions:**
+**Functions (all removed/migrated):**
 
-- `sendXec()` - ✅ **Replaced** - `SendXec.tsx` now uses `ecashWallet.action().build().broadcast()` directly
-- `getMaxSendAmountSatoshis()` - ✅ **Replaced** - Now uses `ecashWallet.maxSendSats()` from `ecash-wallet`
-- `getMultisendTargetOutputs()` - ⚠️ **Still used** - Utility function for parsing multi-send inputs (not transaction building)
-
-**Used by:**
-
-- `SendXec.tsx`:
-    - ✅ `getMaxSendAmountSatoshis()` → Migrated to `ecashWallet.maxSendSats()`
-    - ✅ `sendXec()` → Migrated to `ecashWallet.action().build().broadcast()`
-    - ⚠️ `getMultisendTargetOutputs()` → Still used (utility function for parsing)
+- ✅ `sendXec()` - **Removed** - Replaced with `ecashWallet.action().build().broadcast()` in `SendXec.tsx`
+- ✅ `getMaxSendAmountSatoshis()` - **Removed** - Replaced with `ecashWallet.maxSendSats()` in `SendXec.tsx`
+- ✅ `getMultisendTargetOutputs()` - **Moved** - Moved to `helpers/index.ts` (utility function for parsing, not transaction building)
+- ✅ `ignoreUnspendableUtxos()` - **Removed** - No longer needed (only used by `sendXec()`)
+- ✅ `isFinalizedInput()` - **Removed** - No longer needed (only used by `sendXec()`)
 
 **Migration Notes:**
 
@@ -41,9 +36,10 @@ This document tracks the migration of transaction building and broadcasting from
         - Returns `bigint` (converted to `number` in Cashtab for form compatibility)
 - ✅ `sendXec()` has been replaced with `ecashWallet.action().build().broadcast()` in `SendXec.tsx`
     - `SendXec.tsx` now uses `ecash-wallet`'s `action()` API directly for building and broadcasting XEC transactions
-- ⚠️ `getMultisendTargetOutputs()` is still used but is a utility function for parsing user input, not for transaction building
-- **This file will be removed LAST** as part of the cleanup phase
-- Once `getMultisendTargetOutputs()` is migrated or replaced, this file can be safely removed
+- ✅ `getMultisendTargetOutputs()` has been moved to `helpers/index.ts` as it's a utility function for parsing user input, not for transaction building
+- ✅ `getMultisendTargetOutputsVectors` test vectors have been moved to `helpers/fixtures/vectors.js`
+- ✅ `transactions/` directory (including `index.js`, `__tests__/index.test.js`, and `fixtures/`) has been completely deleted
+- ✅ All transaction building functions have been removed from Cashtab
 
 ---
 
@@ -294,14 +290,17 @@ This document tracks the migration of transaction building and broadcasting from
     - ✅ `acceptOffer()` - Migrated to use `agoraOneshot.take()` with `ecash-wallet`
     - ✅ `cancelOffer()` - Migrated to use `agoraOneshot.cancel()` with `ecash-wallet`
 
-### Phase 2: Cleanup (Remove unused utilities)
+### Phase 2: Cleanup (Remove unused utilities) ✅ Complete
 
-5. Remove `transactions/index.js` and related transaction utilities
+5. ✅ Remove `transactions/` directory and related transaction utilities
     - ✅ `getMaxSendAmountSatoshis()` - Replaced with `ecashWallet.maxSendSats()` in `SendXec.tsx`
     - ✅ `sendXec()` - Replaced with `ecashWallet.action().build().broadcast()` in `SendXec.tsx`
-    - ⚠️ `getMultisendTargetOutputs()` - Still used in `SendXec.tsx` (utility function for parsing multi-send inputs)
-    - Once `getMultisendTargetOutputs()` is migrated or replaced, this file can be safely removed
-    - Remove all utility functions related to transactions from Cashtab itself
+    - ✅ `getMultisendTargetOutputs()` - Moved to `helpers/index.ts` (utility function for parsing)
+    - ✅ `getMultisendTargetOutputsVectors` - Moved to `helpers/fixtures/vectors.js`
+    - ✅ `ignoreUnspendableUtxos()` - Removed (only used by `sendXec()`)
+    - ✅ `isFinalizedInput()` - Removed (only used by `sendXec()`)
+    - ✅ `transactions/` directory - Completely deleted (including `index.js`, `__tests__/index.test.js`, and `fixtures/`)
+    - ✅ All transaction building functions removed from Cashtab
 
 ### Phase 3: Final Cleanup (Wallet storage structure)
 

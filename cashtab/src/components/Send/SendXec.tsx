@@ -34,7 +34,7 @@ import {
     Info,
     TokenIdPreview,
 } from 'components/Common/Atoms';
-import { getMultisendTargetOutputs } from 'transactions';
+import { getMultisendTargetOutputs } from 'helpers';
 import { ChronikClient } from 'chronik-client';
 import {
     getCashtabMsgTargetOutput,
