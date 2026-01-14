@@ -376,7 +376,7 @@ export class Wallet {
                 result.outputScript,
             );
             this.tipHeight = tipHeight;
-            this.updateBalances();
+            this.updateBalance();
             return;
         }
 
@@ -461,7 +461,7 @@ export class Wallet {
         // Update wallet state
         this.utxos = allUtxos;
         this.tipHeight = tipHeight;
-        this.updateBalances();
+        this.updateBalance();
     }
 
     /**
@@ -556,7 +556,7 @@ export class Wallet {
      * Editorial decision: Users want to see sats from immature coinbase utxos
      * in their balance, even if these are not spendable
      */
-    public updateBalances(): void {
+    public updateBalance(): void {
         // Get all sats-only UTXOs (no tokens, includes immature coinbase)
         const balanceSatsOnlyUtxos = this.utxos.filter(
             utxo => typeof utxo.token === 'undefined',
@@ -2348,7 +2348,7 @@ class WalletAction {
         }
 
         // Update balances after modifying utxos
-        this._wallet.updateBalances();
+        this._wallet.updateBalance();
     }
 
     /**

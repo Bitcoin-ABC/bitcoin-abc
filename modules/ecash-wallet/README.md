@@ -237,3 +237,9 @@ See tests for detailed methods.
 - If broadcasting a tx fails due to `bad-txns-inputs-missingorspent` or `txn-mempool-conflict`, resync the utxo set and try again
 
 [D19348](https://reviews.bitcoinabc.org/D19348)
+
+# 3.5.1
+
+- Update method name `updateBalance` instead of `updateBalances`
+
+[D19352](https://reviews.bitcoinabc.org/D19352)
