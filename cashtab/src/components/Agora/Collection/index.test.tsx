@@ -45,6 +45,8 @@ import Collection from 'components/Agora/Collection/';
 import { Bounce, ToastContainer } from 'react-toastify';
 import { ChronikClient } from 'chronik-client';
 import { Agora } from 'ecash-agora';
+import { Wallet } from 'ecash-wallet';
+import { fromHex } from 'ecash-lib';
 
 /**
  * Test expected behavior of the Collection component
@@ -56,6 +58,39 @@ describe('<Collection />', () => {
     beforeEach(async () => {
         mockedChronik = new MockChronikClient();
     });
+
+    // Helper function to create a mock ecashWallet from a Cashtab wallet
+    const createMockEcashWallet = async (
+        wallet: typeof agoraPartialAlphaWallet | typeof agoraPartialBetaWallet,
+        chronik: MockChronikClient,
+    ) => {
+        // Set up blockchain info
+        chronik.setBlockchainInfo({
+            tipHash:
+                '0000000000000000115e051672e3d4a6c523598594825a1194862937941296fe',
+            tipHeight: CHAINTIPBLOCKHEIGHT,
+        });
+
+        // Set up UTXOs for the wallet address
+        const allUtxos = wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos);
+        chronik.setUtxosByAddress(wallet.address, allUtxos);
+
+        // Create and sync the wallet
+        const ecashWallet = Wallet.fromSk(
+            fromHex(wallet.sk),
+            chronik as unknown as ChronikClient,
+        );
+        await ecashWallet.sync();
+
+        // Verify the wallet has the required method
+        if (typeof ecashWallet.spendableSatsOnlyUtxos !== 'function') {
+            throw new Error(
+                'Wallet instance does not have spendableSatsOnlyUtxos method',
+            );
+        }
+
+        return ecashWallet;
+    };
     afterEach(async () => {
         jest.clearAllMocks();
     });
@@ -69,6 +104,11 @@ describe('<Collection />', () => {
             [],
         );
 
+        const mockEcashWallet = await createMockEcashWallet(
+            agoraPartialAlphaWallet,
+            mockedChronik,
+        );
+
         render(
             <ThemeProvider theme={theme}>
                 <Collection
@@ -79,8 +119,8 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={agoraPartialAlphaWallet}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
         );
@@ -111,6 +151,11 @@ describe('<Collection />', () => {
             new Error('some query error'),
         );
 
+        const mockEcashWallet = await createMockEcashWallet(
+            agoraPartialAlphaWallet,
+            mockedChronik,
+        );
+
         render(
             <ThemeProvider theme={theme}>
                 <Collection
@@ -121,8 +166,8 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={agoraPartialAlphaWallet}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
         );
@@ -167,6 +212,11 @@ describe('<Collection />', () => {
             );
         }
 
+        const mockEcashWallet = await createMockEcashWallet(
+            agoraPartialAlphaWallet,
+            mockedChronik,
+        );
+
         // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
@@ -192,8 +242,8 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={agoraPartialAlphaWallet}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
         );
@@ -253,6 +303,11 @@ describe('<Collection />', () => {
             );
         }
 
+        const mockEcashWallet = await createMockEcashWallet(
+            agoraPartialAlphaWallet,
+            mockedChronik,
+        );
+
         // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
@@ -278,8 +333,8 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={agoraPartialAlphaWallet}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                     loadOnClick
                 />
             </ThemeProvider>,
@@ -337,6 +392,11 @@ describe('<Collection />', () => {
             'df0737a3f86e8761e1b00197935c49b8589e20320ced101d640b874f7cded2b2';
         mockedChronik.setBroadcastTx(mockCancelHex, mockCancelTxid);
 
+        const mockEcashWallet = await createMockEcashWallet(
+            agoraPartialAlphaWallet,
+            mockedChronik,
+        );
+
         // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
@@ -362,8 +422,8 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={agoraPartialAlphaWallet}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
         );
@@ -448,6 +508,18 @@ describe('<Collection />', () => {
             isFinal: false,
         };
 
+        const testWallet = {
+            ...agoraPartialBetaWallet,
+            state: {
+                ...agoraPartialBetaWallet.state,
+                nonSlpUtxos: [affordItUtxo],
+            },
+        };
+        const mockEcashWallet = await createMockEcashWallet(
+            testWallet,
+            mockedChronik,
+        );
+
         // Must include ToastContainer to test notification
         render(
             <ThemeProvider theme={theme}>
@@ -473,14 +545,8 @@ describe('<Collection />', () => {
                     settings={testSettings2010}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    wallet={{
-                        ...agoraPartialBetaWallet,
-                        state: {
-                            ...agoraPartialBetaWallet.state,
-                            nonSlpUtxos: [affordItUtxo],
-                        },
-                    }}
                     chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
+                    ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
         );

@@ -231,7 +231,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
             const broadcastResult = await agoraPartial.cancel({
                 wallet: ecashWallet,
                 feePerKb: satsPerKb,
-                dustSats: BigInt(appConfig.dustSats),
             });
 
             if (!broadcastResult.success) {
@@ -281,7 +280,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 covenantPk: DUMMY_KEYPAIR.pk,
                 acceptedAtoms: preparedTokenSatoshis,
                 feePerKb: satsPerKb,
-                dustSats: BigInt(appConfig.dustSats),
             });
 
             if (!broadcastResult.success) {

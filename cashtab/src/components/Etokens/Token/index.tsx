@@ -148,7 +148,6 @@ const Token: React.FC = () => {
         updateCashtabState,
         chronik,
         agora,
-        chaintipBlockheight,
         fiatPrice,
         ecashWallet,
     } = ContextValue;
@@ -2954,11 +2953,7 @@ const Token: React.FC = () => {
                                             offers={
                                                 nftActiveOffer as unknown as OneshotOffer[]
                                             }
-                                            chronik={chronik}
-                                            chaintipBlockheight={
-                                                chaintipBlockheight
-                                            }
-                                            wallet={wallet}
+                                            ecashWallet={ecashWallet}
                                             cashtabCache={cashtabCache}
                                             userLocale={userLocale}
                                             fiatPrice={fiatPrice}
@@ -3060,8 +3055,7 @@ const Token: React.FC = () => {
                                 settings={settings}
                                 fiatPrice={fiatPrice}
                                 userLocale={userLocale}
-                                wallet={wallet}
-                                chaintipBlockheight={chaintipBlockheight}
+                                ecashWallet={ecashWallet}
                                 noCollectionInfo
                             />
                         </>

@@ -23,10 +23,16 @@ const Nfts: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { fiatPrice, chronik, agora, cashtabState, chaintipBlockheight } =
-        ContextValue;
+    const {
+        fiatPrice,
+        chronik,
+        agora,
+        cashtabState,
+        chaintipBlockheight,
+        ecashWallet,
+    } = ContextValue;
     const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    if (!activeWallet || !ecashWallet) {
         return null;
     }
     const wallet = activeWallet;
@@ -158,10 +164,7 @@ const Nfts: React.FC = () => {
                                                     settings={settings}
                                                     fiatPrice={fiatPrice}
                                                     userLocale={userLocale}
-                                                    wallet={wallet}
-                                                    chaintipBlockheight={
-                                                        chaintipBlockheight
-                                                    }
+                                                    ecashWallet={ecashWallet}
                                                     loadOnClick
                                                 />
                                             );

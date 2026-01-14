@@ -221,35 +221,35 @@ This document tracks the migration of transaction building and broadcasting from
 
 **File:** `cashtab/src/components/Agora/Collection/index.tsx`
 
-**Status:** ❌ Not migrated
+**Status:** ✅ Migrated
 
 **Functions that send transactions:**
 
-#### 5.1. `acceptOffer()` in `OneshotSwiper` (lines ~156-250)
+#### 5.1. `acceptOffer()` in `OneshotSwiper` (lines ~156-200)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Buy an NFT from an Agora oneshot offer
-- **Uses:** Direct `ecash-lib` and `ecash-agora` APIs
-- **Transaction Building:**
-    - Uses `agoraOneshot.acceptTx()` from `ecash-agora`
-    - Manually signs fuel inputs using `P2PKHSignatory`
-    - Broadcasts via `chronik.broadcastTx()`
+- **Uses:** `ecash-agora`'s `take()` method with `ecash-wallet`
 - **Transaction Type:** Agora oneshot offer acceptance
+- **Migration Notes:**
+    - Uses `agoraOneshot.take()` from `ecash-agora` which handles fuel input selection and signing via `ecash-wallet`
+    - `ecash-wallet` automatically handles fuel UTXO selection and signing
+    - Broadcasting is handled by `ecash-wallet` via the `take()` method
+    - Removed dependency on manual fuel input signing with `P2PKHSignatory`
+    - Removed dependency on `getAgoraOneshotAcceptFuelInputs()` and `ignoreUnspendableUtxos()`
 
-#### 5.2. `cancelOffer()` in `OneshotSwiper` (lines ~252-349)
+#### 5.2. `cancelOffer()` in `OneshotSwiper` (lines ~202-250)
 
+- **Status:** ✅ Migrated to ecash-wallet
 - **Purpose:** Cancel an NFT Agora oneshot listing
-- **Uses:** Direct `ecash-lib` and `ecash-agora` APIs
-- **Transaction Building:**
-    - Uses `agoraOneshot.cancelTx()` from `ecash-agora`
-    - Manually signs fuel inputs using `P2PKHSignatory`
-    - Broadcasts via `chronik.broadcastTx()`
+- **Uses:** `ecash-agora`'s `cancel()` method with `ecash-wallet`
 - **Transaction Type:** Agora oneshot offer cancellation
-
-**Migration Notes:**
-
-- Similar to OrderBook component - uses `ecash-agora` directly
-- Manually handles fuel input signing
-- Should migrate to use `ecash-wallet` for fuel input handling and broadcasting
+- **Migration Notes:**
+    - Uses `agoraOneshot.cancel()` from `ecash-agora` which handles fuel input selection and signing via `ecash-wallet`
+    - `ecash-wallet` automatically handles fuel UTXO selection and signing
+    - Broadcasting is handled by `ecash-wallet` via the `cancel()` method
+    - Removed dependency on manual fuel input signing with `P2PKHSignatory`
+    - Removed dependency on `getAgoraCancelFuelInputs()` and `ignoreUnspendableUtxos()`
 
 ---
 
@@ -277,9 +277,9 @@ This document tracks the migration of transaction building and broadcasting from
     - ✅ `cancelOffer()` - Migrated to use `agoraPartial.cancel()` with `ecash-wallet`
     - ✅ `acceptOffer()` - Migrated to use `agoraPartial.take()` with `ecash-wallet`
 
-4. Migrate `components/Agora/Collection/index.tsx`
-    - Similar to OrderBook, replace direct transaction building with `ecash-wallet`
-    - Use `ecash-wallet` for fuel input handling and broadcasting
+4. Migrate `components/Agora/Collection/index.tsx` ✅ Complete
+    - ✅ `acceptOffer()` - Migrated to use `agoraOneshot.take()` with `ecash-wallet`
+    - ✅ `cancelOffer()` - Migrated to use `agoraOneshot.cancel()` with `ecash-wallet`
 
 ### Phase 2: Cleanup (Remove unused utilities)
 

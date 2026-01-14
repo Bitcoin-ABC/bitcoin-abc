@@ -1,15 +1,9 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import {
-    Agora,
-    AgoraOffer,
-    AgoraOneshot,
-    getAgoraOneshotAcceptFuelInputs,
-    getAgoraCancelFuelInputs,
-} from 'ecash-agora';
+import { Agora, AgoraOffer, AgoraOneshot } from 'ecash-agora';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Alert, Info, TokenIdPreview } from 'components/Common/Atoms';
@@ -42,9 +36,9 @@ import { getFormattedFiatPrice } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
-import { toHex, Script, fromHex, P2PKHSignatory, ALL_BIP143 } from 'ecash-lib';
-import { ActiveCashtabWallet, toXec, DUMMY_KEYPAIR, CashtabUtxo } from 'wallet';
-import { ignoreUnspendableUtxos } from 'transactions';
+import { toHex } from 'ecash-lib';
+import { toXec, DUMMY_KEYPAIR } from 'wallet';
+import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import { explorer } from 'config/explorer';
 import { getTokenGenesisInfo } from 'chronik';
@@ -79,8 +73,7 @@ interface CollectionProps {
     settings: CashtabSettings;
     fiatPrice: null | number;
     userLocale: string;
-    wallet: ActiveCashtabWallet;
-    chaintipBlockheight: number;
+    ecashWallet: Wallet | null;
     /**
      * Do not render token icon or name for the Collection.
      * Useful for rendering on page that already shows this info,
@@ -112,9 +105,7 @@ interface OneshotSwiperProps {
     settings: CashtabSettings;
     userLocale: string;
     fiatPrice: null | number;
-    chronik: ChronikClient;
-    wallet: ActiveCashtabWallet;
-    chaintipBlockheight: number;
+    ecashWallet: Wallet | null;
     /**
      * We need the ability to manipulate this param in the higher order component
      * So, we pass a setter here
@@ -130,9 +121,7 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
     settings,
     userLocale,
     fiatPrice,
-    wallet,
-    chronik,
-    chaintipBlockheight,
+    ecashWallet,
     setOffers,
 }) => {
     const [selectedIndex, setSelectedIndex] = useState<null | number>(null);
@@ -157,71 +146,31 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Determine tx fee from settings
         const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
-        // Potential input utxos for this transaction
-        // non-token utxos that are spendable
-        const eligibleUtxos = ignoreUnspendableUtxos(
-            wallet.state.nonSlpUtxos,
-            chaintipBlockheight,
-        );
+        if (ecashWallet == null) {
+            toast.error('Wallet not initialized');
+            return;
+        }
 
-        let acceptFuelInputs;
         try {
-            acceptFuelInputs = getAgoraOneshotAcceptFuelInputs(
-                agoraOneshot,
-                eligibleUtxos,
-                satsPerKb,
-            ) as CashtabUtxo[];
-        } catch (err) {
-            console.error(
-                'Error determining fuel inputs for offer accept',
-                err,
-            );
-            return toast.error(`${err}`);
-        }
-
-        const signedFuelInputs = [];
-        for (const fuelUtxo of acceptFuelInputs) {
-            // Sign and prep utxos for ecash-lib inputs
-            const recipientScript = Script.p2pkh(fromHex(wallet.hash));
-            signedFuelInputs.push({
-                input: {
-                    prevOut: {
-                        txid: fuelUtxo.outpoint.txid,
-                        outIdx: fuelUtxo.outpoint.outIdx,
-                    },
-                    signData: {
-                        sats: fuelUtxo.sats,
-                        outputScript: recipientScript,
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
-            });
-        }
-
-        // Use an arbitrary sk, pk for the convenant
-        const acceptTxSer = agoraOneshot
-            .acceptTx({
+            // Use ecash-agora's take() method which handles fuel inputs and broadcasting via ecash-wallet
+            // ecashWallet is guaranteed to be non-null after the check above
+            const broadcastResult = await agoraOneshot.take({
+                wallet: ecashWallet as Wallet,
                 covenantSk: DUMMY_KEYPAIR.sk,
                 covenantPk: DUMMY_KEYPAIR.pk,
-                fuelInputs: signedFuelInputs,
-                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
                 feePerKb: satsPerKb,
-            })
-            .ser();
+            });
 
-        // We need hex so we can log it to get integration test mocks
-        const hex = toHex(acceptTxSer);
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Accept transaction failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
 
-        let resp;
-        try {
-            resp = await chronik.broadcastTx(hex);
+            const txid = broadcastResult.broadcasted[0];
             toast(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -253,80 +202,29 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         // Get user fee from settings
         const satsPerKb: bigint = BigInt(settings.satsPerKb);
 
-        // Potential input utxos for this transaction
-        // non-token utxos that are spendable
-        const eligibleUtxos = ignoreUnspendableUtxos(
-            wallet.state.nonSlpUtxos,
-            chaintipBlockheight,
-        );
+        if (ecashWallet == null) {
+            toast.error('Wallet not initialized');
+            return;
+        }
 
-        // Get utxos to cover the cancel fee
-        let fuelUtxos;
         try {
-            fuelUtxos = getAgoraCancelFuelInputs(
-                agoraOneshot,
-                eligibleUtxos,
-                satsPerKb,
-            ) as CashtabUtxo[];
-        } catch (err) {
-            console.error(
-                'Error determining fuel inputs for offer cancel',
-                err,
-            );
-            return toast.error(`${err}`);
-        }
-
-        const fuelInputs = [];
-        for (const fuelUtxo of fuelUtxos) {
-            // Send the tokens back to the same address as the fuelUtxo
-            const recipientScript = Script.p2pkh(fromHex(wallet.hash));
-
-            // Convert from Cashtab utxo to signed ecash-lib input
-            fuelInputs.push({
-                input: {
-                    prevOut: {
-                        txid: fuelUtxo.outpoint.txid,
-                        outIdx: fuelUtxo.outpoint.outIdx,
-                    },
-                    signData: {
-                        sats: fuelUtxo.sats,
-                        outputScript: recipientScript,
-                    },
-                },
-                signatory: P2PKHSignatory(
-                    fromHex(wallet.sk),
-                    fromHex(wallet.pk),
-                    ALL_BIP143,
-                ),
-            });
-        }
-
-        // Build the cancel tx
-        const cancelTxSer = agoraOneshot
-            .cancelTx({
-                // Cashtab one-address sk
-                // This works here because we lookup cancelable offers by the same sk
-                // Would need a different approach if Cashtab starts supporting HD wallets
-                cancelSk: fromHex(wallet.sk),
-                fuelInputs: fuelInputs,
-                // Change to wallet
-                recipientScript: Script.p2pkh(fromHex(wallet.hash)),
+            // Use ecash-agora's cancel() method which handles fuel inputs and broadcasting via ecash-wallet
+            // ecashWallet is guaranteed to be non-null after the check above
+            const broadcastResult = await agoraOneshot.cancel({
+                wallet: ecashWallet as Wallet,
                 feePerKb: satsPerKb,
-            })
-            .ser();
+            });
 
-        // Convert to hex
-        // Note that broadcastTx will accept cancelTxSer
-        // But hex is a better way to store raw txs for integration tests
-        const hex = toHex(cancelTxSer);
+            if (!broadcastResult.success) {
+                throw new Error(
+                    `Cancel transaction failed: ${broadcastResult.errors?.join(', ')}`,
+                );
+            }
 
-        // Broadcast the cancel tx
-        let resp;
-        try {
-            resp = await chronik.broadcastTx(hex);
+            const txid = broadcastResult.broadcasted[0];
             toast(
                 <a
-                    href={`${explorer.blockExplorerUrl}/tx/${resp.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -377,7 +275,9 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             return;
         }
         // We know this is a ONESHOT offer but type safety
-        const isMaker = wallet.pk === toHex(params.cancelPk);
+        const isMaker =
+            ecashWallet != null &&
+            toHex(ecashWallet.pk) === toHex(params.cancelPk);
         const priceSatoshis = params.enforcedOutputs[1].sats;
         const priceXec = toXec(priceSatoshis);
         const formattedPrice = getFormattedFiatPrice(
@@ -437,7 +337,9 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
                             <InlineLoader />
                         );
                     const isMaker =
-                        wallet.pk === toHex(offer.variant.params.cancelPk);
+                        ecashWallet != null &&
+                        toHex(ecashWallet.pk) ===
+                            toHex(offer.variant.params.cancelPk);
                     const priceSatoshis =
                         offer.variant.params.enforcedOutputs[1].sats;
                     const priceXec = toXec(priceSatoshis);
@@ -501,8 +403,7 @@ const Collection: React.FC<CollectionProps> = ({
     settings,
     fiatPrice,
     userLocale,
-    wallet,
-    chaintipBlockheight,
+    ecashWallet,
     noCollectionInfo = false,
     loadOnClick = false,
 }) => {
@@ -649,9 +550,7 @@ const Collection: React.FC<CollectionProps> = ({
                                 <OneshotSwiper
                                     offers={activeOffers}
                                     setOffers={setActiveOffers}
-                                    chronik={chronik}
-                                    chaintipBlockheight={chaintipBlockheight}
-                                    wallet={wallet}
+                                    ecashWallet={ecashWallet}
                                     cashtabCache={cashtabCache}
                                     userLocale={userLocale}
                                     fiatPrice={fiatPrice}
