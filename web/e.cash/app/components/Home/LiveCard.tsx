@@ -22,12 +22,11 @@ function calculateAmount(tx: Tx): bigint {
 /**
  * Helper function to format time since sent
  */
-function formatTimeSince(timeFirstSeen: number): string {
+function formatTimeSince(timeFirstSeen: number, currentTime: number): string {
   if (!timeFirstSeen || timeFirstSeen === 0) {
     return "--";
   }
-  const now = Math.floor(Date.now() / 1000);
-  const secondsAgo = now - timeFirstSeen;
+  const secondsAgo = currentTime - timeFirstSeen;
 
   if (secondsAgo < 60) {
     return `${secondsAgo}s ago`;
@@ -71,6 +70,18 @@ function AnimatedEllipsis() {
 
 export default function LiveCard() {
   const { mempool, isLoadingMempool } = useChronik();
+  const [currentTime, setCurrentTime] = useState(() =>
+    Math.floor(Date.now() / 1000),
+  );
+
+  // Update current time to refresh time displays
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Math.floor(Date.now() / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Get the most recent MAX_TRANSACTIONS transactions
   const transactions = useMemo(() => {
@@ -86,7 +97,10 @@ export default function LiveCard() {
             <div className="flex flex-col gap-1">
               {transactions.map((tx, index) => {
                 const amount = calculateAmount(tx);
-                const timeSince = formatTimeSince(tx.timeFirstSeen);
+                const timeSince = formatTimeSince(
+                  tx.timeFirstSeen,
+                  currentTime,
+                );
                 return (
                   <motion.div
                     key={tx.txid}
