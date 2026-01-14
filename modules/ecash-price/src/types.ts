@@ -23,16 +23,46 @@ export class Fiat {
     }
 
     /**
+     * List all supported fiat currencies
+     * @returns Array of all supported Fiat instances
+     */
+    static listAll(): Fiat[] {
+        return Object.values(Fiat).filter(
+            (value): value is Fiat => value instanceof Fiat,
+        );
+    }
+
+    /**
      * Supported fiat currency codes
      */
-    static readonly USD = new Fiat('usd');
+    static readonly AED = new Fiat('aed');
+    static readonly AUD = new Fiat('aud');
+    static readonly BHD = new Fiat('bhd');
+    static readonly BRL = new Fiat('brl');
+    static readonly CAD = new Fiat('cad');
+    static readonly CHF = new Fiat('chf');
+    static readonly CLP = new Fiat('clp');
+    static readonly CNY = new Fiat('cny');
     static readonly EUR = new Fiat('eur');
     static readonly GBP = new Fiat('gbp');
+    static readonly HKD = new Fiat('hkd');
+    static readonly IDR = new Fiat('idr');
+    static readonly ILS = new Fiat('ils');
+    static readonly INR = new Fiat('inr');
     static readonly JPY = new Fiat('jpy');
-    static readonly CAD = new Fiat('cad');
-    static readonly AUD = new Fiat('aud');
-    static readonly CHF = new Fiat('chf');
-    static readonly CNY = new Fiat('cny');
+    static readonly KRW = new Fiat('krw');
+    static readonly MYR = new Fiat('myr');
+    static readonly NGN = new Fiat('ngn');
+    static readonly NOK = new Fiat('nok');
+    static readonly NZD = new Fiat('nzd');
+    static readonly PHP = new Fiat('php');
+    static readonly RUB = new Fiat('rub');
+    static readonly SAR = new Fiat('sar');
+    static readonly TRY = new Fiat('try');
+    static readonly TWD = new Fiat('twd');
+    static readonly USD = new Fiat('usd');
+    static readonly VND = new Fiat('vnd');
+    static readonly ZAR = new Fiat('zar');
 }
 
 /**
