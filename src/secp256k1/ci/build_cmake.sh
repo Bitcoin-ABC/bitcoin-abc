@@ -55,7 +55,7 @@ ninja $CMAKE_TARGET
 
 # Print information about binaries so that we can see that the architecture is correct
 file *tests || true
-file *-bench || true
+file *bench || true
 file libsecp256k1.* || true
 
 popd
