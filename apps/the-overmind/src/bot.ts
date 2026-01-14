@@ -68,6 +68,52 @@ export const sendErrorToAdmin = async (
 };
 
 /**
+ * Get usernames from database or fallback to user IDs
+ * @param pool - Database connection pool
+ * @param userIds - Array of Telegram user IDs
+ * @returns Map of user ID to username (or user ID as string if username not available)
+ */
+const getUsernamesOrId = async (
+    pool: Pool,
+    userIds: number[],
+): Promise<Map<number, string>> => {
+    const resultMap = new Map<number, string>();
+
+    // Initialize map with user IDs as fallback
+    for (const userId of userIds) {
+        resultMap.set(userId, userId.toString());
+    }
+
+    if (userIds.length === 0) {
+        return resultMap;
+    }
+
+    try {
+        // Use IN clause with parameterized query for better compatibility
+        const placeholders = userIds.map((_, i) => `$${i + 1}`).join(', ');
+        const result = await pool.query(
+            `SELECT user_tg_id, username FROM users WHERE user_tg_id IN (${placeholders})`,
+            userIds,
+        );
+        for (const row of result.rows) {
+            const userId =
+                typeof row.user_tg_id === 'bigint'
+                    ? Number(row.user_tg_id)
+                    : row.user_tg_id;
+            const username = row.username || userId.toString();
+            resultMap.set(userId, username);
+        }
+    } catch (err) {
+        console.error(
+            `Error fetching usernames for users ${userIds.join(', ')}:`,
+            err,
+        );
+    }
+
+    return resultMap;
+};
+
+/**
  * Register a user with The Overmind
  * Derives a wallet address for the user, stores it in the database, and sends 100 HP reward tokens
  * Registration is only allowed for users who are members of the monitored group chat
@@ -1465,9 +1511,18 @@ export const handleLike = async (
             // Send notification to admin channel
             // Mb this will get too noisy, but it's a useful record, and also helps unit tests
             try {
+                const usernames = await getUsernamesOrId(pool, [
+                    likerUserId,
+                    messageAuthorUserId,
+                ]);
+                const likerUsername =
+                    usernames.get(likerUserId) || likerUserId.toString();
+                const authorUsername =
+                    usernames.get(messageAuthorUserId) ||
+                    messageAuthorUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${likerUserId} [liked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
+                    `${likerUsername} [liked](https://explorer.e.cash/tx/${txid}) msg by ${authorUsername}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -1639,9 +1694,18 @@ export const handleDislike = async (
             );
             // Send notification to admin channel
             try {
+                const usernames = await getUsernamesOrId(pool, [
+                    dislikerUserId,
+                    messageAuthorUserId,
+                ]);
+                const dislikerUsername =
+                    usernames.get(dislikerUserId) || dislikerUserId.toString();
+                const authorUsername =
+                    usernames.get(messageAuthorUserId) ||
+                    messageAuthorUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${dislikerUserId} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${messageAuthorUserId}`,
+                    `${dislikerUsername} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${authorUsername}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -1721,9 +1785,18 @@ export const handleDislike = async (
             );
             // Send notification to admin channel
             try {
+                const usernames = await getUsernamesOrId(pool, [
+                    messageAuthorUserId,
+                    dislikerUserId,
+                ]);
+                const authorUsername =
+                    usernames.get(messageAuthorUserId) ||
+                    messageAuthorUserId.toString();
+                const dislikerUsername =
+                    usernames.get(dislikerUserId) || dislikerUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${messageAuthorUserId} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${dislikerUserId}`,
+                    `${authorUsername} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${dislikerUsername}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },

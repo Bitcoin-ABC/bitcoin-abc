@@ -4486,10 +4486,49 @@ describe('bot', () => {
                 mockBot.api.sendMessage as sinon.SinonStub
             ).getCall(0).args;
             expect(callArgs[0]).to.equal(ADMIN_CHAT_ID);
-            expect(callArgs[1]).to.include(LIKER_USER_ID.toString());
-            expect(callArgs[1]).to.include(AUTHOR_USER_ID.toString());
+            // Verify usernames are used (set in beforeEach: 'liker' and 'author')
+            expect(callArgs[1]).to.include('liker');
+            expect(callArgs[1]).to.include('author');
             expect(callArgs[1]).to.include('liked');
             expect(callArgs[1]).to.include(LIKE_TXID);
+            expect(callArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
+        });
+
+        it('should use usernames instead of user IDs in admin notification', async () => {
+            // Users are already inserted with usernames in beforeEach
+            // 'liker' for LIKER_USER_ID and 'author' for AUTHOR_USER_ID
+            await handleLike(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                LIKER_USER_ID,
+                AUTHOR_USER_ID,
+                100, // msgId
+            );
+
+            // Check that admin notification was sent with usernames
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(callArgs[0]).to.equal(ADMIN_CHAT_ID);
+            const message = callArgs[1];
+
+            // Verify usernames are used instead of user IDs
+            expect(message).to.include('liker');
+            expect(message).to.include('author');
+            expect(message).to.include('liked');
+            expect(message).to.include(LIKE_TXID);
+
+            // Verify user IDs are NOT in the message
+            expect(message).to.not.include(LIKER_USER_ID.toString());
+            expect(message).to.not.include(AUTHOR_USER_ID.toString());
+
             expect(callArgs[2]).to.deep.equal({
                 parse_mode: 'Markdown',
                 link_preview_options: { is_disabled: true },
@@ -4797,8 +4836,9 @@ describe('bot', () => {
                 mockBot.api.sendMessage as sinon.SinonStub
             ).getCall(0).args;
             expect(dislikerCallArgs[0]).to.equal(ADMIN_CHAT_ID);
-            expect(dislikerCallArgs[1]).to.include(DISLIKER_USER_ID.toString());
-            expect(dislikerCallArgs[1]).to.include(AUTHOR_USER_ID.toString());
+            // Verify usernames are used (set in beforeEach: 'disliker' and 'author')
+            expect(dislikerCallArgs[1]).to.include('disliker');
+            expect(dislikerCallArgs[1]).to.include('author');
             expect(dislikerCallArgs[1]).to.include('disliked');
             expect(dislikerCallArgs[1]).to.include(DISLIKER_TXID);
             expect(dislikerCallArgs[2]).to.deep.equal({
@@ -4811,10 +4851,74 @@ describe('bot', () => {
                 mockBot.api.sendMessage as sinon.SinonStub
             ).getCall(1).args;
             expect(authorCallArgs[0]).to.equal(ADMIN_CHAT_ID);
-            expect(authorCallArgs[1]).to.include(AUTHOR_USER_ID.toString());
-            expect(authorCallArgs[1]).to.include(DISLIKER_USER_ID.toString());
+            // Verify usernames are used (set in beforeEach: 'disliker' and 'author')
+            expect(authorCallArgs[1]).to.include('author');
+            expect(authorCallArgs[1]).to.include('disliker');
             expect(authorCallArgs[1]).to.include('penalized');
             expect(authorCallArgs[1]).to.include(AUTHOR_TXID);
+            expect(authorCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
+        });
+
+        it('should use usernames instead of user IDs in admin notifications', async () => {
+            // Users are already inserted with usernames in beforeEach
+            // 'disliker' for DISLIKER_USER_ID and 'author' for AUTHOR_USER_ID
+            await handleDislike(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                BOT_WALLET_ADDRESS,
+                DISLIKER_USER_ID,
+                AUTHOR_USER_ID,
+                200, // msgId
+            );
+
+            // Should send two admin notifications on success (one for disliker, one for author)
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check disliker notification
+            const dislikerCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(dislikerCallArgs[0]).to.equal(ADMIN_CHAT_ID);
+            const dislikerMessage = dislikerCallArgs[1];
+
+            // Verify usernames are used instead of user IDs in disliker notification
+            expect(dislikerMessage).to.include('disliker');
+            expect(dislikerMessage).to.include('author');
+            expect(dislikerMessage).to.include('disliked');
+            expect(dislikerMessage).to.include(DISLIKER_TXID);
+
+            // Verify user IDs are NOT in the disliker message
+            expect(dislikerMessage).to.not.include(DISLIKER_USER_ID.toString());
+            expect(dislikerMessage).to.not.include(AUTHOR_USER_ID.toString());
+
+            expect(dislikerCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
+
+            // Check author notification
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(authorCallArgs[0]).to.equal(ADMIN_CHAT_ID);
+            const authorMessage = authorCallArgs[1];
+
+            // Verify usernames are used instead of user IDs in author notification
+            expect(authorMessage).to.include('author');
+            expect(authorMessage).to.include('disliker');
+            expect(authorMessage).to.include('penalized');
+            expect(authorMessage).to.include(AUTHOR_TXID);
+
+            // Verify user IDs are NOT in the author message
+            expect(authorMessage).to.not.include(AUTHOR_USER_ID.toString());
+            expect(authorMessage).to.not.include(DISLIKER_USER_ID.toString());
+
             expect(authorCallArgs[2]).to.deep.equal({
                 parse_mode: 'Markdown',
                 link_preview_options: { is_disabled: true },
