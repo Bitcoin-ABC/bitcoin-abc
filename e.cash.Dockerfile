@@ -1,4 +1,8 @@
-FROM node:22-bookworm-slim AS builder
+# Copyright (c) 2026 The Bitcoin ABC developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+FROM node:22-trixie-slim AS builder
 WORKDIR /app
 
 # Install pnpm
@@ -41,7 +45,7 @@ COPY web/e.cash/$PREVIEW_BUILD web/e.cash/next.config.ts
 # Build from monorepo root
 RUN pnpm --filter e.cash run build
 
-FROM node:22-bookworm-slim AS runner
+FROM node:22-trixie-slim AS runner
 WORKDIR /app
 
 # Install pnpm
