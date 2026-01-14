@@ -7,7 +7,6 @@
 import { useEffect } from "react";
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { ComponentProps } from "react";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -38,14 +37,14 @@ export default function Analytics() {
 
   if (!isEnabled) return null;
 
-  const scriptProps: ComponentProps<typeof Script> = {
+  const scriptProps = {
     src: `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`,
-    strategy: "afterInteractive",
+    strategy: "afterInteractive" as const,
   };
 
   return (
     <>
-      <Script {...scriptProps} />
+      <Script {...(scriptProps as Record<string, unknown>)} />
       <Script id="gtag-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
