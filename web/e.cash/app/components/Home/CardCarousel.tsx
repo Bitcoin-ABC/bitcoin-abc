@@ -8,6 +8,7 @@ import ContentContainer from "../Atoms/ContentContainer";
 import Image from "next/image";
 import PlusHeader from "../Atoms/PlusHeader";
 import { motion } from "framer-motion";
+import LiveCard from "./LiveCard";
 
 export default function CardCarousel() {
   type CardProps = {
@@ -84,11 +85,7 @@ export default function CardCarousel() {
             image="/roadmap.png"
             href="/roadmap"
           />
-          <Card
-            text="Live transactions"
-            image="/live-transactions.png"
-            href="https://explorer.e.cash/"
-          />
+          <LiveCard />
         </motion.div>
       </div>
     </ContentContainer>

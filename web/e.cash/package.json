@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@splinetool/react-spline": "^4.0.0",
+    "chronik-client": "file:../../modules/chronik-client",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
     "motion": "^12.23.26",

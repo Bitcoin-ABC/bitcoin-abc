@@ -1569,6 +1569,9 @@ importers:
       '@splinetool/react-spline':
         specifier: ^4.0.0
         version: 4.1.0(@splinetool/runtime@1.12.27)(next@16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.97.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      chronik-client:
+        specifier: file:../../modules/chronik-client
+        version: link:../../modules/chronik-client
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

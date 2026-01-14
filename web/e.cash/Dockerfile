@@ -8,12 +8,28 @@ RUN npm install -g pnpm
 COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .
 COPY package.json .
+
+# Copy package.json files for dependency resolution
+COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
+COPY modules/chronik-client/package.json ./modules/chronik-client/
 COPY web/e.cash/package.json ./web/e.cash/
 
 # Fetch dependencies (pnpm best practice for Docker)
 RUN pnpm fetch --frozen-lockfile
 
-# Install dependencies
+# Copy source files for local modules
+COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
+COPY modules/chronik-client/ ./modules/chronik-client/
+
+# Install dependencies for local modules first
+RUN pnpm install --frozen-lockfile --offline --filter ecashaddrjs...
+RUN pnpm install --frozen-lockfile --offline --filter chronik-client...
+
+# Build local modules (dependencies first)
+RUN pnpm --filter ecashaddrjs run build
+RUN pnpm --filter chronik-client run build
+
+# Install dependencies for e.cash (now that local modules are built)
 RUN pnpm install --frozen-lockfile --offline --filter e.cash...
 
 # Copy source files

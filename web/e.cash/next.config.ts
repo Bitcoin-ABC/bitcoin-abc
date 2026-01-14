@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
             style-src 'self' 'unsafe-inline' fonts.googleapis.com;
             font-src 'self' fonts.gstatic.com data:;
             img-src 'self' blob: https://www.google-analytics.com https://www.googletagmanager.com https: data:;
-            connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://avalanche.cash https://static.cloudflareinsights.com;
+            connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://avalanche.cash https://static.cloudflareinsights.com https://chronik.e.cash wss://chronik.e.cash;
             object-src 'none';
             base-uri 'self';
             frame-ancestors 'none';

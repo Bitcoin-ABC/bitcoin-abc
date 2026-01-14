@@ -9,6 +9,7 @@ import "./globals.css";
 import Navbar from "./components/Atoms/NavBar";
 import Footer from "./components/Atoms/Footer";
 import Analytics from "./components/Analytics";
+import { ChronikProvider } from "./context/ChronikContext";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -78,14 +79,16 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
       >
-        <Suspense fallback={null}>
-          <Analytics />
-        </Suspense>
-        <Navbar showBanner={showBanner} />
-        <div className={showBanner ? "pt-[40px] sm:pt-[30px]" : ""}>
-          {children}
-        </div>
-        <Footer />
+        <ChronikProvider>
+          <Suspense fallback={null}>
+            <Analytics />
+          </Suspense>
+          <Navbar showBanner={showBanner} />
+          <div className={showBanner ? "pt-[40px] sm:pt-[30px]" : ""}>
+            {children}
+          </div>
+          <Footer />
+        </ChronikProvider>
       </body>
     </html>
   );
