@@ -23,6 +23,36 @@ export class Fiat {
     }
 
     /**
+     * Get the name of the fiat currency
+     * @param locale - Locale to use for the name
+     * @returns Name of the fiat currency (e.g. "US Dollar")
+     */
+    name(locale: string): string | null {
+        return (
+            new Intl.DisplayNames([locale], { type: 'currency' }).of(
+                this.value,
+            ) ?? null
+        );
+    }
+
+    /**
+     * Get the symbol of the fiat currency
+     * @param locale - Locale to use for the symbol
+     * @returns Symbol of the fiat currency (e.g. "$")
+     */
+    symbol(locale: string): string | null {
+        return (
+            new Intl.NumberFormat(locale, {
+                style: 'currency',
+                currency: this.value,
+                currencyDisplay: 'narrowSymbol',
+            })
+                .formatToParts()
+                .find(x => x.type === 'currency')?.value ?? null
+        );
+    }
+
+    /**
      * List all supported fiat currencies
      * @returns Array of all supported Fiat instances
      */

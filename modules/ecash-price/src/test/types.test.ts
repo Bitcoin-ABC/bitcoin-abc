@@ -29,4 +29,33 @@ describe('Fiat', () => {
             });
         });
     });
+
+    describe('name', () => {
+        it('should return currency names for different locales', () => {
+            expect(Fiat.USD.name('en-US')).to.be.equal('US Dollar');
+            expect(Fiat.USD.name('fr-FR')).to.be.equal('dollar des États-Unis');
+
+            expect(Fiat.EUR.name('en-US')).to.be.equal('Euro');
+            expect(Fiat.EUR.name('fr-FR')).to.be.equal('euro');
+
+            // The name is the code itself in both locales
+            expect(new Fiat('foo').name('en-US')).to.equal('foo');
+            expect(new Fiat('foo').name('fr-FR')).to.equal('foo');
+        });
+    });
+
+    describe('symbol', () => {
+        it('should return currency symbol for different locales', () => {
+            expect(Fiat.USD.symbol('en-US')).to.be.equal('$');
+            // Actually the same symbol in both locales
+            expect(Fiat.USD.symbol('fr-FR')).to.be.equal('$');
+
+            expect(Fiat.EUR.symbol('en-US')).to.be.equal('€');
+            expect(Fiat.EUR.symbol('fr-FR')).to.be.equal('€');
+
+            // When there is no symbol for the currency, the ticker is returned
+            expect(new Fiat('foo').symbol('en-US')).to.be.equal('FOO');
+            expect(new Fiat('foo').symbol('fr-FR')).to.be.equal('FOO');
+        });
+    });
 });
