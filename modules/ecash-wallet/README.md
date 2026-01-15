@@ -249,3 +249,9 @@ See tests for detailed methods.
 - Add `addReceivedTx` method to support updating the utxo set and balance of a wallet with an incoming tx, including processing inputs to remove spent UTXOs
 
 [D19351](https://reviews.bitcoinabc.org/D19351)
+
+# 3.6.1
+
+- Make ` addReceivedTx` robust against txs with non-standard address types
+
+[D19371](https://reviews.bitcoinabc.org/D19371)

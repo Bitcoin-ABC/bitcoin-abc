@@ -8461,6 +8461,99 @@ describe('HD Wallet', () => {
             );
         });
 
+        it('Skips OP_RETURN outputs and processes valid outputs', () => {
+            const txid = '55'.repeat(32);
+            const opReturnScript =
+                '6a5037534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302f40100000000c20300000000';
+            const validSats = 100_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 2,
+                inputs: [],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript: opReturnScript, // OP_RETURN output
+                    },
+                    {
+                        sats: validSats,
+                        outputScript: DUMMY_SCRIPT.toHex(), // Valid wallet output
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            expect(initialBalance).to.equal(0n);
+
+            // Should not throw an error
+            const result = testWallet.addReceivedTx(tx);
+
+            // OP_RETURN output should be skipped, valid output should be added
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].outpoint.outIdx).to.equal(1); // Second output
+            expect(testWallet.utxos[0].sats).to.equal(validSats);
+            expect(testWallet.balanceSats).to.equal(validSats);
+            expect(result.balanceSatsDelta).to.equal(validSats);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
+        it('Skips unsupported output script types gracefully', () => {
+            const txid = '66'.repeat(32);
+            const unsupportedScript = 'ff00'; // Invalid/unsupported script
+            const validSats = 75_000n;
+
+            const tx: ChronikTx = {
+                txid,
+                version: 1,
+                inputs: [],
+                outputs: [
+                    {
+                        sats: 0n,
+                        outputScript: unsupportedScript, // Unsupported script type
+                    },
+                    {
+                        sats: validSats,
+                        outputScript: DUMMY_SCRIPT.toHex(), // Valid wallet output
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const initialBalance = testWallet.balanceSats;
+            expect(initialBalance).to.equal(0n);
+
+            // Should not throw an error, should catch and skip unsupported script
+            const result = testWallet.addReceivedTx(tx);
+
+            // Unsupported output should be skipped, valid output should be added
+            expect(testWallet.utxos.length).to.equal(1);
+            expect(testWallet.utxos[0].outpoint.outIdx).to.equal(1); // Second output
+            expect(testWallet.utxos[0].sats).to.equal(validSats);
+            expect(testWallet.balanceSats).to.equal(validSats);
+            expect(result.balanceSatsDelta).to.equal(validSats);
+            expect(testWallet.balanceSats).to.equal(
+                initialBalance + result.balanceSatsDelta,
+            );
+        });
+
         it('Handles mempool transaction (no block)', () => {
             const txid = '33'.repeat(32);
             const sats = 60_000n;

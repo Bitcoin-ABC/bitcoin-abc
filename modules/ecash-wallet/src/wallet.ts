@@ -623,10 +623,19 @@ export class Wallet {
                 continue;
             }
 
+            // Skip OP_RETURN outputs (they start with 0x6a = "6a" in hex)
+            if (output.outputScript.startsWith('6a')) {
+                continue;
+            }
+
             // Derive address from outputScript early
-            const address = Address.fromScriptHex(
-                output.outputScript,
-            ).toString();
+            let address: string;
+            try {
+                address = Address.fromScriptHex(output.outputScript).toString();
+            } catch {
+                // Skip unsupported output script types
+                continue;
+            }
 
             // Check if this address belongs to the wallet
             let belongsToWallet = false;
