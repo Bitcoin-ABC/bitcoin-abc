@@ -1836,17 +1836,30 @@ const Token: React.FC = () => {
             // Counter to prevent infinite loop
             let attempts = 0;
             const MAX_ATTEMPTS = 25;
-            while (actualPrice > firmaBidPrice && attempts < MAX_ATTEMPTS) {
+            // IMPORTANT: We use >= instead of > to ensure we always price STRICTLY BELOW the bid price.
+            // This is necessary because:
+            // 1. The bid API rounds to 2 decimals, which can round up
+            // 2. firma-mint uses Math.floor() when calculating acceptablePriceSats, which can be slightly lower
+            // 3. Offers priced exactly at the bid can be rejected as "too expensive"
+            // By ensuring actualPrice < firmaBidPrice, we avoid this edge case.
+            while (actualPrice >= firmaBidPrice && attempts < MAX_ATTEMPTS) {
                 priceNanoSatsPerAtom -=
                     NANOSATS_PER_ATOM_REDUCTION_PER_ITERATION;
                 // This time we only update the price, we do not need to update locktime
-                firmaPartial = await agora.selectParams({
-                    ...firmaPartialParams,
-                    priceNanoSatsPerAtom,
-                });
-                actualPrice = getFirmaPartialUnitPrice(firmaPartial);
-                // loop repeats until actualPrice <= firmaBidPrice
-                attempts += 1;
+                try {
+                    firmaPartial = await agora.selectParams({
+                        ...firmaPartialParams,
+                        priceNanoSatsPerAtom,
+                    });
+                    actualPrice = getFirmaPartialUnitPrice(firmaPartial);
+                    // loop repeats until actualPrice <= firmaBidPrice
+                    attempts += 1;
+                } catch {
+                    // If reducing the price makes it invalid (e.g., minAcceptedTokens too small),
+                    // break and use the last valid partial. This can happen when we're already
+                    // at or very close to the minimum valid price.
+                    break;
+                }
             }
             if (attempts >= MAX_ATTEMPTS) {
                 // If we try more than MAX_ATTEMPTS times, there is probably something wrong
