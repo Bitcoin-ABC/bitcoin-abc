@@ -15,11 +15,16 @@ import { initializeDb } from './src/db';
 // Connection URL (default)
 const MONGODB_URL = `mongodb://${secrets.prod.db.username}:${secrets.prod.db.password}@${secrets.prod.db.containerName}:${secrets.prod.db.port}`;
 const client = new MongoClient(MONGODB_URL);
-// Check if database exists
 
-// Initialize websocket connection and log incoming blocks
-initializeDb(client).then(
-    db => {
+/**
+ * Main startup function
+ */
+async function main(): Promise<void> {
+    try {
+        // Initialize database
+        const db = await initializeDb(client);
+        console.log('Database initialized');
+
         // Initialize telegramBot
         const telegramBot = initializeTelegramBot(
             secrets.prod.botId,
@@ -29,55 +34,55 @@ initializeDb(client).then(
         );
 
         // Start polling
-        const botPromise = telegramBot.start();
+        telegramBot.start();
         console.log('Telegram bot started polling');
 
         // Start the express app to expose API endpoints
         const server = startExpressServer(config.port, db, telegramBot, fs);
         console.log(`Express server started on port ${config.port}`);
 
-        // Gracefully shut down on app termination
-        process.on('SIGTERM', async () => {
-            // kill <pid> from terminal
-            server.close();
-            console.log('token-server shut down by SIGTERM');
-            // Shut down the telegram bot
-            telegramBot.stop();
-            await botPromise;
-            console.log('Telegram bot stopped polling');
+        // Graceful shutdown function
+        const gracefulShutdown = async (): Promise<void> => {
+            console.log('Shutting down token-server gracefully...');
+            try {
+                // Stop accepting new connections
+                server.close(() => {
+                    console.log('Express server closed');
+                });
 
-            // Shut down the database
-            client.close().then(() => {
+                // Stop bot polling (this ends the polling loop cleanly)
+                await telegramBot.stop();
+                console.log('Telegram bot stopped polling');
+
+                // Close database connection
+                await client.close();
                 console.log('MongoDB connection closed');
-                // Shut down token-server in non-error condition
-                process.exit(0);
-            });
-        });
 
-        process.on('SIGINT', async () => {
-            // ctrl + c in nodejs
-            server.close();
-            console.log('token-server shut down by ctrl+c');
-            // Shut down the telegram bot
-            telegramBot.stop();
-            await botPromise;
-            console.log('Telegram bot stopped polling');
-
-            // Shut down the database
-            client.close().then(() => {
-                console.log('MongoDB connection closed');
-                // Shut down token-server in non-error condition
                 process.exit(0);
-            });
-        });
-    },
-    err => {
-        console.log(`Error initializing database`, err);
-        // Shut down the database
-        client.close().then(() => {
-            console.log('MongoDB connection closed');
-            // Shut down token-server in error condition
-            process.exit(1);
-        });
-    },
-);
+            } catch (err) {
+                console.error('Error during graceful shutdown:', err);
+                process.exit(1);
+            }
+        };
+
+        // Listen for Docker's stop signals
+        process.on('SIGTERM', gracefulShutdown); // Docker sends this on `docker stop`
+        process.on('SIGINT', gracefulShutdown); // For manual Ctrl+C
+
+        console.log('🎉 token-server startup completed successfully!');
+    } catch (err) {
+        console.error('Failed to start token-server:', err);
+        try {
+            await client.close();
+        } catch (closeErr) {
+            console.error('Error closing database connection:', closeErr);
+        }
+        process.exit(1);
+    }
+}
+
+// Start the application
+main().catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+});
