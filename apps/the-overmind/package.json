@@ -24,7 +24,7 @@
         "ecash-lib": "file:../../modules/ecash-lib",
         "ecash-wallet": "file:../../modules/ecash-wallet",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
-        "grammy": "^1.38.4",
+        "grammy": "^1.39.2",
         "pg": "^8.16.3",
         "qrcode-terminal": "^0.12.0"
     },

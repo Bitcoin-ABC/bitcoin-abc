@@ -456,8 +456,8 @@ importers:
         specifier: file:../../modules/ecashaddrjs
         version: link:../../modules/ecashaddrjs
       grammy:
-        specifier: ^1.38.4
-        version: 1.38.4
+        specifier: ^1.39.2
+        version: 1.39.2
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -3440,9 +3440,6 @@ packages:
 
   '@gerrit0/mini-shiki@3.20.0':
     resolution: {integrity: sha512-Wa57i+bMpK6PGJZ1f2myxo3iO+K/kZikcyvH8NIqNNZhQUbDav7V9LQmWOXhf946mz5c1NZ19WMsGYiDKTryzQ==}
-
-  '@grammyjs/types@3.22.2':
-    resolution: {integrity: sha512-uu7DX2ezhnBPozL3bXHmwhLvaFsh59E4QyviNH4Cij7EdVekYrs6mCzeXsa2pDk30l3uXo7DBahlZLzTPtpYZg==}
 
   '@grammyjs/types@3.23.0':
     resolution: {integrity: sha512-D3jQ4UWERPsyR3op/YFudMMIPNTU47vy7L51uO9/73tMELmjO/+LX5N36/Y0CG5IQfIsz43MxiHI5rgsK0/k+g==}
@@ -8943,10 +8940,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  grammy@1.38.4:
-    resolution: {integrity: sha512-z07Kin3HgRwMdy40KUs+c9fmNBvGlSxGwcqY8NAH0a8KULGFYEMQaFAo3ge0V5tvmgr02Jgubkf54KjHLAMCbw==}
-    engines: {node: ^12.20.0 || >=14.13.1}
 
   grammy@1.39.2:
     resolution: {integrity: sha512-7mLdNsNI2HBN1Gjombx7p3/Cjfgw/kErR/Qv3pDRw2qO/dYEdK8B9G9rpdZayNID+3qFQVTXNqxcGpG38mC2TQ==}
@@ -17796,8 +17789,6 @@ snapshots:
       '@shikijs/types': 3.20.0
       '@shikijs/vscode-textmate': 10.0.2
 
-  '@grammyjs/types@3.22.2': {}
-
   '@grammyjs/types@3.23.0': {}
 
   '@hapi/hoek@9.3.0': {}
@@ -24378,16 +24369,6 @@ snapshots:
   graceful-fs@4.2.10: {}
 
   graceful-fs@4.2.11: {}
-
-  grammy@1.38.4:
-    dependencies:
-      '@grammyjs/types': 3.22.2
-      abort-controller: 3.0.0
-      debug: 4.4.3(supports-color@5.5.0)
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
 
   grammy@1.39.2:
     dependencies:
