@@ -195,7 +195,7 @@ const startup = async () => {
 
     // Start bot polling with allowed updates including message_reaction
     // Note: Bot must be an administrator in the monitored group chat to receive reaction updates
-    await bot.start({
+    bot.start({
         allowed_updates: [
             'message',
             'message_reaction',
