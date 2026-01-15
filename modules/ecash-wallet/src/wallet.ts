@@ -2761,6 +2761,7 @@ export class BuiltAction {
      * Currently checks for:
      * - Missing inputs error (bad-txns-inputs-missingorspent)
      * - Mempool conflict error (txn-mempool-conflict)
+     * - Finalized tx conflict error (finalized-tx-conflict)
      *
      * In practice these errors almost always mean the wallet tried to broadcast() with
      * an out-of-sync utxo set
@@ -2772,7 +2773,8 @@ export class BuiltAction {
         const errorStr = `${error}`;
         return (
             errorStr.includes('bad-txns-inputs-missingorspent') ||
-            errorStr.includes('txn-mempool-conflict')
+            errorStr.includes('txn-mempool-conflict') ||
+            errorStr.includes('finalized-tx-conflict')
         );
     }
 

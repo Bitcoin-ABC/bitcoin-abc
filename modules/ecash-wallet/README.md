@@ -255,3 +255,9 @@ See tests for detailed methods.
 - Make ` addReceivedTx` robust against txs with non-standard address types
 
 [D19371](https://reviews.bitcoinabc.org/D19371)
+
+# 3.6.2
+
+- If broadcasting a tx fails due to `finalized-tx-conflict`, resync the utxo set and try again
+
+[D19376](https://reviews.bitcoinabc.org/D19376)
