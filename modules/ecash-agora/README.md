@@ -267,3 +267,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.10
 
 - Upgrade types for agora fuel utxo functions to support new `WalletUtxo` type in `ecash-wallet` [D19271](https://reviews.bitcoinabc.org/D19271)
+
+### 2.6.11
+
+- Publish to catch updated `ecash-wallet` dep [D19357](https://reviews.bitcoinabc.org/D19357)
