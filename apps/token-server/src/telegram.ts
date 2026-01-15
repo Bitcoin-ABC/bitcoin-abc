@@ -44,6 +44,27 @@ export const initializeTelegramBot = (
     // Initialize telegram bot
     const telegramBot = new Bot(botId);
 
+    if (telegramBot.isRunning()) {
+        console.log('Telegram bot is already running, skip initialization');
+        return telegramBot;
+    }
+
+    console.log('Telegram bot is not running, initializing...');
+
+    // Install the error handler first
+    telegramBot.catch(err => {
+        const ctx = err.ctx;
+        console.error(`Error while handling update ${ctx.update.update_id}:`);
+        const e = err.error;
+        if (e instanceof GrammyError) {
+            console.error('Error in request:', e.description);
+        } else if (e instanceof HttpError) {
+            console.error('Could not contact Telegram:', e);
+        } else {
+            console.error('Unknown error:', e);
+        }
+    });
+
     // Add event handler for admin actions
     telegramBot.on('callback_query:data', async ctx => {
         const callbackQuery = ctx.callbackQuery;
@@ -187,22 +208,6 @@ export const initializeTelegramBot = (
             } server`,
         });
     });
-
-    telegramBot.catch(err => {
-        const ctx = err.ctx;
-        console.error(`Error while handling update ${ctx.update.update_id}:`);
-        const e = err.error;
-        if (e instanceof GrammyError) {
-            console.error('Error in request:', e.description);
-        } else if (e instanceof HttpError) {
-            console.error('Could not contact Telegram:', e);
-        } else {
-            console.error('Unknown error:', e);
-        }
-    });
-
-    // Start polling
-    telegramBot.start();
 
     // Return this bot with event handler
     return telegramBot;

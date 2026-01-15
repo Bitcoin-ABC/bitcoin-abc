@@ -28,17 +28,23 @@ initializeDb(client).then(
             db,
         );
 
+        // Start polling
+        const botPromise = telegramBot.start();
+        console.log('Telegram bot started polling');
+
         // Start the express app to expose API endpoints
         const server = startExpressServer(config.port, db, telegramBot, fs);
         console.log(`Express server started on port ${config.port}`);
 
         // Gracefully shut down on app termination
-        process.on('SIGTERM', () => {
+        process.on('SIGTERM', async () => {
             // kill <pid> from terminal
             server.close();
             console.log('token-server shut down by SIGTERM');
             // Shut down the telegram bot
             telegramBot.stop();
+            await botPromise;
+            console.log('Telegram bot stopped polling');
 
             // Shut down the database
             client.close().then(() => {
@@ -48,12 +54,14 @@ initializeDb(client).then(
             });
         });
 
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             // ctrl + c in nodejs
             server.close();
             console.log('token-server shut down by ctrl+c');
             // Shut down the telegram bot
             telegramBot.stop();
+            await botPromise;
+            console.log('Telegram bot stopped polling');
 
             // Shut down the database
             client.close().then(() => {
