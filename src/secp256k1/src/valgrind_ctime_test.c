@@ -123,7 +123,7 @@ void run_tests(secp256k1_context *ctx, unsigned char *key) {
     CHECK(recid >= 0 && recid <= 3);
 #endif
 
-#if ENABLE_MODULE_SCHNORR
+#ifdef ENABLE_MODULE_SCHNORR
     /* Test schnorr signing. */
     VALGRIND_MAKE_MEM_UNDEFINED(key, 32);
     ret = secp256k1_schnorr_sign(ctx, sig, msg, key, NULL, NULL);
