@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, {
     SecondaryButton,

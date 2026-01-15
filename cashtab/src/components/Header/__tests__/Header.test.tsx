@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { WalletProvider } from 'wallet/context';
 import App from 'components/App/App';
 import CashtabSettings from 'config/CashtabSettings';

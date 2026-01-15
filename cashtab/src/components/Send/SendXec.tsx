@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import Modal from 'components/Common/Modal';
 import PrimaryButton, {

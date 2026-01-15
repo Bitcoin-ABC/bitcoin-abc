@@ -5,7 +5,7 @@
 import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import Receive from 'components/Receive/Receive';

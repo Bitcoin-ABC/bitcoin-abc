@@ -8,7 +8,7 @@ import { theme } from 'assets/styles/theme';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import UncontrolledLink from 'components/Common/UncontrolledLink';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 
 describe('<UncontrolledLink />', () => {

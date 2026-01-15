@@ -23,19 +23,19 @@ To get Cashtab running quickly:
 
 2. **Start the development server:**
     ```bash
-    npm start
+    pnpm start
     ```
 
 The app will open at [http://localhost:3000](http://localhost:3000).
 
 ## Browser Extension
 
-1. `npm run extension`
+1. `pnpm run extension`
 2. Open Chrome or Brave
 3. Navigate to `chrome://extensions/` (or `brave://extensions/`)
 4. Enable Developer Mode
 5. Click "Load unpacked"
-6. Select the `extension/dist` folder that was created with `npm run extension`
+6. Select the `extension/dist` folder that was created with `pnpm run extension`
 
 ## Developing web apps that interact with the extension
 

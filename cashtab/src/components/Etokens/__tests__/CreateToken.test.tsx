@@ -14,7 +14,7 @@ import localforage from 'localforage';
 import { prepareContext, mockPrice } from 'test';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { WalletProvider } from 'wallet/context';
 import { ChronikClient } from 'chronik-client';
 import { Ecc } from 'ecash-lib';

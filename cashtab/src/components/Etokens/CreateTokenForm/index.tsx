@@ -42,7 +42,7 @@ import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount, SlpDecimals } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import {
     Form,
     SwitchRow,

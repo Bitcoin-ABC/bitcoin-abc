@@ -5,7 +5,7 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { WalletProvider } from 'wallet/context';
 import App from 'components/App/App';
 import PropTypes from 'prop-types';

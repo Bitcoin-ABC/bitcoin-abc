@@ -79,7 +79,7 @@ import {
     firmaRedeemTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { getHashes } from 'wallet';
 import userEvent from '@testing-library/user-event';
 

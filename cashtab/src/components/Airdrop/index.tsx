@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import BigNumber from 'bignumber.js';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';

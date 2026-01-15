@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import styled, { css } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { XecTxType } from 'chronik';
 
 export const TxWrapper = styled.div`

@@ -4,7 +4,7 @@
 
 import React, { ReactNode } from 'react';
 import styled, { css } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { toast } from 'react-toastify';
 

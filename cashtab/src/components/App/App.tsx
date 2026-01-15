@@ -43,7 +43,7 @@ import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';

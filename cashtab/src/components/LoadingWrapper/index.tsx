@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { HashRouter as Router } from 'react-router-dom';
+import { HashRouter as Router } from 'react-router';
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import { Agora } from 'ecash-agora';

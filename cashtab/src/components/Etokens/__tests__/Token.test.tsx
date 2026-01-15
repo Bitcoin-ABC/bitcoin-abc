@@ -22,7 +22,7 @@ import { token as tokenConfig } from 'config/token';
 import { prepareContext, mockPrice } from 'test';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { WalletProvider } from 'wallet/context';
 import { ChronikClient, Utxo } from 'chronik-client';
 import { Agora } from 'ecash-agora';

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import TokenListItem, { ExtendedCashtabCachedTokenInfo } from './TokenListItem';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import styled from 'styled-components';
 
 const TokenLink = styled(Link)`
