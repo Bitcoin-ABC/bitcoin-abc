@@ -31,6 +31,37 @@ import { hasWithdrawnInLast24Hours } from './chronik';
 import { createUserActionTable } from './db';
 
 /**
+ * In-memory map of user ID to username
+ * Populated on startup and updated when users register
+ */
+const usernameMap = new Map<number, string>();
+
+/**
+ * Load all usernames from database into memory
+ * Should be called on app startup
+ * @param pool - Database connection pool
+ */
+export const loadUsernames = async (pool: Pool): Promise<void> => {
+    try {
+        const result = await pool.query(
+            'SELECT user_tg_id, username FROM users',
+        );
+        usernameMap.clear();
+        for (const row of result.rows) {
+            const userId =
+                typeof row.user_tg_id === 'bigint'
+                    ? Number(row.user_tg_id)
+                    : row.user_tg_id;
+            const username = row.username || userId.toString();
+            usernameMap.set(userId, username);
+        }
+        console.info(`Loaded ${usernameMap.size} usernames into memory`);
+    } catch (err) {
+        console.error('Error loading usernames:', err);
+    }
+};
+
+/**
  * Send an error notification to the admin group chat
  * @param bot - Bot instance for sending messages
  * @param adminChatId - Admin group chat ID
@@ -68,46 +99,17 @@ export const sendErrorToAdmin = async (
 };
 
 /**
- * Get usernames from database or fallback to user IDs
- * @param pool - Database connection pool
+ * Get usernames from in-memory map or fallback to user IDs
  * @param userIds - Array of Telegram user IDs
  * @returns Map of user ID to username (or user ID as string if username not available)
  */
-const getUsernamesOrId = async (
-    pool: Pool,
-    userIds: number[],
-): Promise<Map<number, string>> => {
+const getUsernamesOrId = (userIds: number[]): Map<number, string> => {
     const resultMap = new Map<number, string>();
 
-    // Initialize map with user IDs as fallback
     for (const userId of userIds) {
-        resultMap.set(userId, userId.toString());
-    }
-
-    if (userIds.length === 0) {
-        return resultMap;
-    }
-
-    try {
-        // Use IN clause with parameterized query for better compatibility
-        const placeholders = userIds.map((_, i) => `$${i + 1}`).join(', ');
-        const result = await pool.query(
-            `SELECT user_tg_id, username FROM users WHERE user_tg_id IN (${placeholders})`,
-            userIds,
-        );
-        for (const row of result.rows) {
-            const userId =
-                typeof row.user_tg_id === 'bigint'
-                    ? Number(row.user_tg_id)
-                    : row.user_tg_id;
-            const username = row.username || userId.toString();
-            resultMap.set(userId, username);
-        }
-    } catch (err) {
-        console.error(
-            `Error fetching usernames for users ${userIds.join(', ')}:`,
-            err,
-        );
+        // Get username from in-memory map, fallback to userId as string
+        const username = usernameMap.get(userId) || userId.toString();
+        resultMap.set(userId, username);
     }
 
     return resultMap;
@@ -182,6 +184,10 @@ export const register = async (
 
     if (existingUser.rows.length > 0) {
         const { address } = existingUser.rows[0];
+        // Update username in map in case it changed
+        const username = ctx.from?.username || null;
+        const displayUsername = username || userId.toString();
+        usernameMap.set(userId, displayUsername);
         await ctx.reply(
             `✅ You are already registered!\n\n` + `Address: \`${address}\``,
             { parse_mode: 'Markdown' },
@@ -211,6 +217,10 @@ export const register = async (
         'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4) ON CONFLICT (user_tg_id) DO NOTHING',
         [userId, address, nextIndex, username],
     );
+
+    // Update in-memory username map
+    const displayUsername = username || userId.toString();
+    usernameMap.set(userId, displayUsername);
 
     // Create user action table for this user
     await createUserActionTable(pool, userId);
@@ -1511,7 +1521,7 @@ export const handleLike = async (
             // Send notification to admin channel
             // Mb this will get too noisy, but it's a useful record, and also helps unit tests
             try {
-                const usernames = await getUsernamesOrId(pool, [
+                const usernames = getUsernamesOrId([
                     likerUserId,
                     messageAuthorUserId,
                 ]);
@@ -1694,7 +1704,7 @@ export const handleDislike = async (
             );
             // Send notification to admin channel
             try {
-                const usernames = await getUsernamesOrId(pool, [
+                const usernames = getUsernamesOrId([
                     dislikerUserId,
                     messageAuthorUserId,
                 ]);
@@ -1785,7 +1795,7 @@ export const handleDislike = async (
             );
             // Send notification to admin channel
             try {
-                const usernames = await getUsernamesOrId(pool, [
+                const usernames = getUsernamesOrId([
                     messageAuthorUserId,
                     dislikerUserId,
                 ]);

@@ -43,6 +43,7 @@ import {
     handleMessageReaction,
     handleLike,
     handleDislike,
+    loadUsernames,
 } from './bot';
 import { REWARDS_TOKEN_ID } from './constants';
 import { getOvermindEmpp, EmppAction } from './empp';
@@ -4423,6 +4424,9 @@ describe('bot', () => {
                 [AUTHOR_USER_ID, authorAddress, 2, 'author'],
             );
 
+            // Load usernames into memory
+            await loadUsernames(pool);
+
             // Set up UTXOs for liker's wallet (they need tokens to send)
             const likerSk = likerNode.seckey();
             if (likerSk) {
@@ -4734,6 +4738,9 @@ describe('bot', () => {
                 'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
                 [AUTHOR_USER_ID, authorAddress, 4, 'author'],
             );
+
+            // Load usernames into memory
+            await loadUsernames(pool);
 
             // Set up UTXOs for disliker's wallet (they need tokens to send)
             const dislikerSk = dislikerNode.seckey();

@@ -21,6 +21,7 @@ import {
     handleMessageReaction,
     handleWithdrawConfirm,
     handleWithdrawCancel,
+    loadUsernames,
 } from './src/bot';
 
 /**
@@ -63,6 +64,9 @@ const startup = async () => {
 
     // Initialize database schema
     await initSchema(pool);
+
+    // Load usernames into memory
+    await loadUsernames(pool);
 
     // Initialize Telegram bot
     const bot = new Bot(telegramBotToken);
