@@ -73,6 +73,13 @@ export const startExpressServer = (
 
             logIpInfo(req);
 
+            if (typeof address !== 'string') {
+                return res.status(500).json({
+                    address,
+                    error: `Address is not a string`,
+                });
+            }
+
             if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,
@@ -139,6 +146,13 @@ export const startExpressServer = (
         async function (req: Request, res: Response) {
             // Get the requested address
             const address = req.params.address;
+
+            if (typeof address !== 'string') {
+                return res.status(500).json({
+                    address,
+                    error: `Address is not a string`,
+                });
+            }
 
             logIpInfo(req);
 
@@ -273,6 +287,13 @@ export const startExpressServer = (
         async function (req: Request, res: Response) {
             // Get the requested address
             const address = req.params.address;
+
+            if (typeof address !== 'string') {
+                return res.status(500).json({
+                    address,
+                    error: `Address is not a string`,
+                });
+            }
 
             logIpInfo(req);
 

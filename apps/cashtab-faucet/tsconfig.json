@@ -7,6 +7,10 @@
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "alwaysStrict": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "express": ["./node_modules/@types/express"]
+        }
     }
 }

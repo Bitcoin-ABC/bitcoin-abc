@@ -147,6 +147,13 @@ import { config } from './config';
             // Get the requested address
             let address = req.params.address;
 
+            if (typeof address !== 'string') {
+                return res.status(400).json({
+                    error: 'Invalid address',
+                    msg: 'The address is not a string',
+                });
+            }
+
             // Perform an address decode/encode rountrip. This ensures that
             // we don't get a duplicated address, once with and once without
             // the prefix, and also checks the validity of the address.
