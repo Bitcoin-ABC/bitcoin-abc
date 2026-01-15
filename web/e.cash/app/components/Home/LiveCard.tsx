@@ -31,15 +31,15 @@ function formatTimeSince(timeFirstSeen: number, currentTime: number): string {
   if (secondsAgo < 60) {
     return `${secondsAgo}s ago`;
   }
-  const minutesAgo = Math.floor(secondsAgo / 60);
+  const minutesAgo = Math.round(secondsAgo / 60);
   if (minutesAgo < 60) {
     return `${minutesAgo}m ago`;
   }
-  const hoursAgo = Math.floor(minutesAgo / 60);
+  const hoursAgo = Math.round(minutesAgo / 60);
   if (hoursAgo < 24) {
     return `${hoursAgo}h ago`;
   }
-  const daysAgo = Math.floor(hoursAgo / 24);
+  const daysAgo = Math.round(hoursAgo / 24);
   return `${daysAgo}d ago`;
 }
 
