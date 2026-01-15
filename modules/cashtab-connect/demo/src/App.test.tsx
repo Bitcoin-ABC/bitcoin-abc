@@ -2,19 +2,19 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 
 // Mock the cashtab-connect library
-jest.mock('cashtab-connect', () => {
-    const mockCashtabConnect = jest.fn();
-    const mockRequestAddress = jest.fn();
-    const mockSendXec = jest.fn();
-    const mockSendToken = jest.fn();
-    const mockSendBip21 = jest.fn();
-    const mockWaitForExtension = jest.fn();
+vi.mock('cashtab-connect', () => {
+    const mockCashtabConnect = vi.fn();
+    const mockRequestAddress = vi.fn();
+    const mockSendXec = vi.fn();
+    const mockSendToken = vi.fn();
+    const mockSendBip21 = vi.fn();
+    const mockWaitForExtension = vi.fn();
 
     mockCashtabConnect.mockReturnValue({
         requestAddress: mockRequestAddress,
@@ -60,22 +60,24 @@ describe('Cashtab Connect Demo App', () => {
 
     beforeEach(() => {
         // Clear all mocks before each test
-        jest.clearAllMocks();
+        vi.clearAllMocks();
 
         // Get the mock instance
         mockCashtabInstance = {
-            requestAddress: jest.fn(),
-            sendXec: jest.fn(),
-            sendToken: jest.fn(),
-            sendBip21: jest.fn(),
-            waitForExtension: jest.fn(),
+            requestAddress: vi.fn(),
+            sendXec: vi.fn(),
+            sendToken: vi.fn(),
+            sendBip21: vi.fn(),
+            waitForExtension: vi.fn(),
         };
 
-        (CashtabConnect as jest.Mock).mockReturnValue(mockCashtabInstance);
+        (CashtabConnect as ReturnType<typeof vi.fn>).mockReturnValue(
+            mockCashtabInstance,
+        );
     });
 
     describe('Extension Status', () => {
-        test('shows checking status initially', () => {
+        it('shows checking status initially', () => {
             mockCashtabInstance.waitForExtension.mockImplementation(
                 () => new Promise(() => {}), // Never resolves to keep checking state
             );
@@ -90,7 +92,7 @@ describe('Cashtab Connect Demo App', () => {
             ).toBeInTheDocument();
         });
 
-        test('shows available status when extension is detected', async () => {
+        it('shows available status when extension is detected', async () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
 
             render(<App />);
@@ -106,7 +108,7 @@ describe('Cashtab Connect Demo App', () => {
             ).toBeInTheDocument();
         });
 
-        test('shows unavailable status when extension is not detected', async () => {
+        it('shows unavailable status when extension is not detected', async () => {
             mockCashtabInstance.waitForExtension.mockRejectedValue(
                 new CashtabExtensionUnavailableError(),
             );
@@ -129,7 +131,7 @@ describe('Cashtab Connect Demo App', () => {
             ).toBeInTheDocument();
         });
 
-        test('download link opens in new tab', async () => {
+        it('download link opens in new tab', async () => {
             mockCashtabInstance.waitForExtension.mockRejectedValue(
                 new CashtabExtensionUnavailableError(),
             );
@@ -154,7 +156,7 @@ describe('Cashtab Connect Demo App', () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
         });
 
-        test('request address button is disabled when extension is not available', async () => {
+        it('request address button is disabled when extension is not available', async () => {
             mockCashtabInstance.waitForExtension.mockRejectedValue(
                 new CashtabExtensionUnavailableError(),
             );
@@ -169,7 +171,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('request address button is enabled when extension is available', async () => {
+        it('request address button is enabled when extension is available', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -180,7 +182,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('successfully requests address', async () => {
+        it('successfully requests address', async () => {
             const mockAddress =
                 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
             mockCashtabInstance.requestAddress.mockResolvedValue(mockAddress);
@@ -211,7 +213,7 @@ describe('Cashtab Connect Demo App', () => {
             expect(mockCashtabInstance.requestAddress).toHaveBeenCalledTimes(1);
         });
 
-        test('handles extension unavailable error', async () => {
+        it('handles extension unavailable error', async () => {
             mockCashtabInstance.requestAddress.mockRejectedValue(
                 new CashtabExtensionUnavailableError(),
             );
@@ -236,7 +238,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('handles user denial error', async () => {
+        it('handles user denial error', async () => {
             mockCashtabInstance.requestAddress.mockRejectedValue(
                 new CashtabAddressDeniedError(),
             );
@@ -261,7 +263,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('handles timeout error', async () => {
+        it('handles timeout error', async () => {
             mockCashtabInstance.requestAddress.mockRejectedValue(
                 new CashtabTimeoutError(),
             );
@@ -286,7 +288,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('shows loading state during address request', async () => {
+        it('shows loading state during address request', async () => {
             mockCashtabInstance.requestAddress.mockImplementation(
                 () =>
                     new Promise(resolve =>
@@ -316,7 +318,7 @@ describe('Cashtab Connect Demo App', () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
         });
 
-        test('send XEC button is disabled when extension is not available', async () => {
+        it('send XEC button is disabled when extension is not available', async () => {
             mockCashtabInstance.waitForExtension.mockRejectedValue(
                 new CashtabExtensionUnavailableError(),
             );
@@ -331,7 +333,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('send XEC button is enabled when extension is available', async () => {
+        it('send XEC button is enabled when extension is available', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -342,7 +344,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('successfully sends XEC', async () => {
+        it('successfully sends XEC', async () => {
             mockCashtabInstance.sendXec.mockResolvedValue(undefined);
 
             render(<App />);
@@ -370,7 +372,7 @@ describe('Cashtab Connect Demo App', () => {
             );
         });
 
-        test('handles send XEC error', async () => {
+        it('handles send XEC error', async () => {
             mockCashtabInstance.sendXec.mockRejectedValue(
                 new Error('Failed to send XEC'),
             );
@@ -395,7 +397,7 @@ describe('Cashtab Connect Demo App', () => {
             });
         });
 
-        test('validates required fields', async () => {
+        it('validates required fields', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -420,7 +422,7 @@ describe('Cashtab Connect Demo App', () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
         });
 
-        test('successfully sends token', async () => {
+        it('successfully sends token', async () => {
             mockCashtabInstance.sendToken.mockResolvedValue(undefined);
 
             render(<App />);
@@ -451,7 +453,7 @@ describe('Cashtab Connect Demo App', () => {
             );
         });
 
-        test('handles send token error', async () => {
+        it('handles send token error', async () => {
             mockCashtabInstance.sendToken.mockRejectedValue(
                 new Error('Failed to send token'),
             );
@@ -482,7 +484,7 @@ describe('Cashtab Connect Demo App', () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
         });
 
-        test('successfully sends BIP21', async () => {
+        it('successfully sends BIP21', async () => {
             mockCashtabInstance.sendBip21.mockResolvedValue(undefined);
 
             render(<App />);
@@ -511,7 +513,7 @@ describe('Cashtab Connect Demo App', () => {
             );
         });
 
-        test('handles send BIP21 error', async () => {
+        it('handles send BIP21 error', async () => {
             mockCashtabInstance.sendBip21.mockRejectedValue(
                 new Error('Failed to send BIP21'),
             );
@@ -542,7 +544,7 @@ describe('Cashtab Connect Demo App', () => {
             mockCashtabInstance.waitForExtension.mockResolvedValue(undefined);
         });
 
-        test('can update transaction address', async () => {
+        it('can update transaction address', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -558,7 +560,7 @@ describe('Cashtab Connect Demo App', () => {
             expect(addressInput).toHaveValue('ecash:newaddress123');
         });
 
-        test('can update transaction amount', async () => {
+        it('can update transaction amount', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -573,7 +575,7 @@ describe('Cashtab Connect Demo App', () => {
             expect(amountInput).toHaveValue(500);
         });
 
-        test('can update token ID', async () => {
+        it('can update token ID', async () => {
             render(<App />);
 
             await waitFor(() => {
@@ -588,7 +590,7 @@ describe('Cashtab Connect Demo App', () => {
             expect(tokenIdInput).toHaveValue('newtokenid123');
         });
 
-        test('can update BIP21 string', async () => {
+        it('can update BIP21 string', async () => {
             render(<App />);
 
             await waitFor(() => {

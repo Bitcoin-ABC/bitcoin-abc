@@ -24,14 +24,15 @@ Build the cashtab-connect library locally:
 
 ```bash
 cd modules/cashtab-connect
-npm run build
+pnpm install
+pnpm run build
 ```
 
 Then run the demo locally:
 
 ```bash
 cd modules/cashtab-connect/demo
-npm start
+pnpm start
 ```
 
 3. **Open the Demo**
@@ -123,7 +124,7 @@ The demo uses:
 - **Extension not detected**: Make sure the Cashtab extension is installed and enabled
 - **Address request fails**: Check that the extension is active and you're on a supported page
 - **Transaction doesn't open**: Verify the recipient address is valid and the amount is positive
-- **React build issues**: Make sure all dependencies are installed with `npm install`
+- **React build issues**: Make sure all dependencies are installed with `pnpm install`
 
 ## Notes
 

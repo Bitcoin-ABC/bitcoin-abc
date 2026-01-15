@@ -2,44 +2,31 @@
     "name": "demo",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "dependencies": {
         "@testing-library/dom": "^10.4.0",
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.3.1",
         "@testing-library/user-event": "^13.5.0",
-        "@types/jest": "^27.5.2",
-        "@types/node": "^16.18.126",
+        "@types/node": "^20.11.29",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
         "cashtab-connect": "file:..",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
-        "react-scripts": "5.0.1",
         "typescript": "^5.9.3",
         "web-vitals": "^2.1.4"
     },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^5.1.2",
+        "jsdom": "^27.4.0",
+        "vite": "^7.3.1",
+        "vitest": "^4.0.17"
+    },
     "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
+        "start": "vite",
+        "build": "tsc && vite build",
+        "test": "vitest",
+        "preview": "vite preview"
     }
 }
