@@ -19,6 +19,8 @@ Then, run the development server:
 ```bash
 # From repository root
 pnpm install --frozen-lockfile
+pnpm --filter ecashaddrjs build
+pnpm --filter chronik-client build
 pnpm --filter e.cash run dev
 ```
 
