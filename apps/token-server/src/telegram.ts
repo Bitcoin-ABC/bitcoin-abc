@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Bot, InputFile } from 'grammy';
+import { Bot, GrammyError, HttpError, InputFile } from 'grammy';
 import config from '../config';
 import { Db } from 'mongodb';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
@@ -186,6 +186,19 @@ export const initializeTelegramBot = (
                 isRemovalRequest ? `removed from ` : `restored to `
             } server`,
         });
+    });
+
+    telegramBot.catch(err => {
+        const ctx = err.ctx;
+        console.error(`Error while handling update ${ctx.update.update_id}:`);
+        const e = err.error;
+        if (e instanceof GrammyError) {
+            console.error('Error in request:', e.description);
+        } else if (e instanceof HttpError) {
+            console.error('Could not contact Telegram:', e);
+        } else {
+            console.error('Unknown error:', e);
+        }
     });
 
     // Start polling
