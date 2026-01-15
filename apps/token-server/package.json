@@ -4,10 +4,11 @@
     "description": "Manage a token issuing hot wallet for Cashtab rewards tokens",
     "main": "index.js",
     "scripts": {
+        "start": "tsx index.ts",
         "test": "mocha",
         "build": "tsc -p ./tsconfig.build.json",
-        "prebuild": "ts-node scripts/prepSecrets.ts",
-        "pretest": "ts-node scripts/prepSecrets.ts",
+        "prebuild": "tsx scripts/prepSecrets.ts",
+        "pretest": "tsx scripts/prepSecrets.ts",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },
@@ -35,7 +36,6 @@
         "@types/mongodb": "^4.0.6",
         "@types/multer": "^2.0.0",
         "@types/node": "^20.11.29",
-        "@types/node-telegram-bot-api": "^0.64.6",
         "@types/supertest": "^6.0.2",
         "axios-mock-adapter": "^2.0.0",
         "memfs": "^4.7.7",
@@ -45,7 +45,7 @@
         "mongodb-memory-server": "^10.1.2",
         "nyc": "^15.1.0",
         "supertest": "^6.3.4",
-        "ts-node": "^10.9.2",
+        "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     },
     "dependencies": {
@@ -57,10 +57,10 @@
         "ecpair": "^2.1.0",
         "ethereum-blockies-base64": "^1.0.2",
         "express": "^4.18.3",
+        "grammy": "^1.39.2",
         "helmet": "^7.1.0",
         "mongodb": "^6.10.0",
         "multer": "^2.0.2",
-        "node-telegram-bot-api": "^0.65.1",
         "sharp": "^0.33.2",
         "tiny-secp256k1": "^2.2.3"
     }

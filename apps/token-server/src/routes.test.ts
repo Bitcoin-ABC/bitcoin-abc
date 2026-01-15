@@ -6,7 +6,7 @@ import * as http from 'http';
 import request from 'supertest';
 import config from '../config';
 import { startExpressServer } from '../src/routes';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { createFsFromVolume, vol, IFs, DirectoryJSON } from 'memfs';
 import sharp from 'sharp';
 import { MongoClient, Db } from 'mongodb';
@@ -36,7 +36,7 @@ describe('routes.js', function () {
     let badDbApp: http.Server;
 
     // Mock a stub telegram bot
-    const mockedTgBot = { sendPhoto: () => {} };
+    const mockedTgBot = { api: { sendPhoto: () => Promise.resolve({}) } };
 
     // Initialize fs, to be memfs in these tests
     let fs: IFs;
@@ -55,14 +55,14 @@ describe('routes.js', function () {
         app = startExpressServer(
             TEST_PORT,
             testDb,
-            mockedTgBot as unknown as TelegramBot,
+            mockedTgBot as unknown as Bot,
             fs,
         );
         const TEST_PORT_BAD_DB = 5001;
         badDbApp = startExpressServer(
             TEST_PORT_BAD_DB,
             {} as unknown as Db,
-            mockedTgBot as unknown as TelegramBot,
+            mockedTgBot as unknown as Bot,
             fs,
         );
     });

@@ -4,13 +4,13 @@ Server to manage token-icons rendered in Cashtab. Also manages agora blacklist.
 
 ## Development
 
-`npm start` to run locally
+`pnpm start` to run locally
 
 Note: you will have to adjust the `imageDir` param in `config` to test serving of static image files
 
 ## Note on secrets.ts
 
-You will need a secrets.ts file if you plan to run the server locally (or deployed). If you run `npm test` without a `secrets.ts` file, token-server will use `secrets.sample.ts`.
+You will need a secrets.ts file if you plan to run the server locally (or deployed). If you run `pnpm test` without a `secrets.ts` file, token-server will use `secrets.sample.ts`.
 
 Some secrets are needed for integration testing. These are included in `secrets.sample.ts`. However, if you have your own `secrets.ts` file, then the tests will reference it (and fail if its `prod` key differs from `secrets.sample.ts`).
 

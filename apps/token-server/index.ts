@@ -38,7 +38,7 @@ initializeDb(client).then(
             server.close();
             console.log('token-server shut down by SIGTERM');
             // Shut down the telegram bot
-            telegramBot.stopPolling();
+            telegramBot.stop();
 
             // Shut down the database
             client.close().then(() => {
@@ -53,7 +53,7 @@ initializeDb(client).then(
             server.close();
             console.log('token-server shut down by ctrl+c');
             // Shut down the telegram bot
-            telegramBot.stopPolling();
+            telegramBot.stop();
 
             // Shut down the database
             client.close().then(() => {

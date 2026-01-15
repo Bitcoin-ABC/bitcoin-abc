@@ -12,7 +12,7 @@ import config from '../config';
 import secrets from '../secrets';
 import { isTokenImageRequest, isValidTokenId } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
 import { Db } from 'mongodb';
@@ -63,7 +63,7 @@ interface FsLikeRoutes {
 export const startExpressServer = (
     port: number,
     db: Db,
-    telegramBot: TelegramBot,
+    telegramBot: Bot,
     fs: FsLikeRoutes | IFs,
 ): http.Server => {
     // Initialize express
