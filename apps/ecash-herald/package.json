@@ -7,11 +7,12 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "build": "tsc -p ./tsconfig.build.json",
-        "prebuild": "ts-node scripts/prepSecrets.ts",
-        "pretest": "ts-node scripts/prepSecrets.ts",
+        "prebuild": "tsx scripts/prepSecrets.ts",
+        "pretest": "tsx scripts/prepSecrets.ts",
         "junit": "mocha test --reporter mocha-junit-reporter",
-        "generateMock": "node scripts/generateMock",
-        "sendMsgByBlock": "node scripts/sendMsgByBlock"
+        "getDailySummary": "tsx scripts/getDailySummary",
+        "generateMock": "tsx scripts/generateMock",
+        "sendMsgByBlock": "tsx scripts/sendMsgByBlock"
     },
     "keywords": [
         "ecash",
@@ -33,18 +34,18 @@
         "ecash-lib": "file:../../modules/ecash-lib",
         "ecash-price": "file:../../modules/ecash-price",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
-        "node-telegram-bot-api": "^0.66.0"
+        "grammy": "^1.39.2"
     },
     "devDependencies": {
         "@sinonjs/fake-timers": "^11.2.2",
         "@types/mocha": "^10.0.9",
-        "@types/node-telegram-bot-api": "^0.64.7",
+        "@types/node": "^25.0.8",
         "@types/sinonjs__fake-timers": "^8.1.5",
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
         "mocha-suppress-logs": "^0.3.1",
         "nyc": "^15.1.0",
-        "ts-node": "^10.9.2",
+        "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     }
 }

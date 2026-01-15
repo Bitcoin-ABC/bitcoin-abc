@@ -115,7 +115,7 @@ describe('ecash-herald chronikWsHandler.js', function () {
             );
 
             // Check that sendMessage was not called
-            assert.strictEqual(telegramBot.messageSent, false);
+            assert.strictEqual(telegramBot.api.messageSent, false);
 
             assert.deepEqual(result, false);
         }
@@ -204,8 +204,8 @@ describe('ecash-herald chronikWsHandler.js', function () {
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
-                channelId,
-                msg: thisBlockExpectedMsgs[i],
+                chat_id: channelId,
+                text: thisBlockExpectedMsgs[i],
                 options: config.tgMsgOptions,
             });
         }
@@ -288,14 +288,14 @@ describe('ecash-herald chronikWsHandler.js', function () {
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
-                channelId,
-                msg: thisBlockExpectedMsgs[i],
+                chat_id: channelId,
+                text: thisBlockExpectedMsgs[i],
                 options: config.tgMsgOptions,
             });
         }
 
         // Check that sendMessage was called successfully
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         // Check that the correct msg info was sent
         assert.deepEqual(result, msgSuccessArray);
@@ -340,7 +340,7 @@ describe('ecash-herald chronikWsHandler.js', function () {
             blockHeight: thisBlock.parsedBlock.height,
         };
         const telegramBot = new MockTelegramBot();
-        telegramBot.setExpectedError(
+        telegramBot.api.setExpectedError(
             'sendMessage',
             'Error: message failed to send',
         );
@@ -397,12 +397,12 @@ describe('ecash-herald chronikWsHandler.js', function () {
             memoryCache,
         );
 
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         const msgSuccess = {
             success: true,
-            channelId,
-            msg: blockInvalidedTgMsg,
+            chat_id: channelId,
+            text: blockInvalidedTgMsg,
             options: config.tgMsgOptions,
         };
 

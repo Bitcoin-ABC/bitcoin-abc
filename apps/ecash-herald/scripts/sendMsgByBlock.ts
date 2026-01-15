@@ -27,7 +27,7 @@ import { sendBlockSummary } from '../src/telegram';
 import config from '../config';
 import { ChronikClient } from 'chronik-client';
 import secrets from '../secrets';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { caching } from 'cache-manager';
 import { StoredMock } from '../src/events';
 import mockStakers from '../test/mocks/stakers';
@@ -40,7 +40,7 @@ let height = 0;
 
 // Use live API for axios calls and not mocks
 // Default to false as it doesn't take much testing to rate limit coingecko API
-let liveApi = false;
+let liveApi = true;
 
 // Look for blockheight specified from command line
 if (process.argv && typeof process.argv[2] !== 'undefined') {
@@ -55,11 +55,11 @@ if (process.argv && typeof process.argv[2] !== 'undefined') {
 const chronik = new ChronikClient(config.chronik);
 const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
-const telegramBotDev = new TelegramBot(botId);
+const telegramBotDev = new Bot(botId);
 
 async function sendMsgByBlock(
     chronik: ChronikClient,
-    telegramBot: TelegramBot,
+    telegramBot: Bot,
     channelId: string,
     height: number,
 ) {

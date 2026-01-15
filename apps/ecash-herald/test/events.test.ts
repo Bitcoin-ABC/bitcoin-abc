@@ -116,15 +116,15 @@ describe('ecash-herald events.js', function () {
         );
 
         // Check that sendMessage was called successfully
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         // Build expected array of successful msg returns
         const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
-                channelId,
-                msg: thisBlockExpectedMsgs[i],
+                chat_id: channelId,
+                text: thisBlockExpectedMsgs[i],
                 options: config.tgMsgOptions,
             });
         }
@@ -191,15 +191,15 @@ describe('ecash-herald events.js', function () {
         );
 
         // Check that sendMessage was called successfully
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         // Build expected array of successful msg returns
         const msgSuccessArray = [];
         for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
             msgSuccessArray.push({
                 success: true,
-                channelId,
-                msg: thisBlockExpectedMsgs[i],
+                chat_id: channelId,
+                text: thisBlockExpectedMsgs[i],
                 options: config.tgMsgOptions,
             });
         }
@@ -232,7 +232,7 @@ describe('ecash-herald events.js', function () {
         );
 
         // Check that sendMessage was called successfully
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         // Expect the backup msg
         const expectedMsg = `New Block Found\n\n${thisBlock.parsedBlock.height.toLocaleString(
@@ -246,8 +246,8 @@ describe('ecash-herald events.js', function () {
         // Check that the correct msg info was sent
         assert.deepEqual(result, {
             success: true,
-            channelId,
-            msg: expectedMsg,
+            chat_id: channelId,
+            text: expectedMsg,
             options: config.tgMsgOptions,
         });
     });
@@ -285,7 +285,7 @@ describe('ecash-herald events.js', function () {
         }
 
         const telegramBot = new MockTelegramBot();
-        telegramBot.setExpectedError(
+        telegramBot.api.setExpectedError(
             'sendMessage',
             'Error: message failed to send',
         );
@@ -327,12 +327,12 @@ describe('ecash-herald events.js', function () {
         );
 
         // Check that sendMessage was called successfully
-        assert.strictEqual(telegramBot.messageSent, true);
+        assert.strictEqual(telegramBot.api.messageSent, true);
 
         const msgSuccess = {
             success: true,
-            channelId,
-            msg: blockInvalidedTgMsg,
+            chat_id: channelId,
+            text: blockInvalidedTgMsg,
             options: config.tgMsgOptions,
         };
 

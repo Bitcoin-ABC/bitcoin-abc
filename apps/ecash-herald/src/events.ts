@@ -35,7 +35,7 @@ import {
 } from './chronik';
 import knownMinersJson from '../constants/miners';
 import { ChronikClient, CoinbaseData, Tx, GenesisInfo } from 'chronik-client';
-import TelegramBot, { Message } from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { MemoryCache } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 
@@ -92,7 +92,7 @@ export interface CoinDanceStaker {
  */
 export const handleBlockFinalized = async (
     chronik: ChronikClient,
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     blockHash: string,
     blockHeight: number,
@@ -101,11 +101,7 @@ export const handleBlockFinalized = async (
     mockFetcher: PriceFetcher | undefined = undefined,
     returnMocks = false,
 ): Promise<
-    | StoredMock
-    | Message
-    | SendMessageResponse
-    | boolean
-    | (Message | SendMessageResponse)[]
+    StoredMock | SendMessageResponse | boolean | SendMessageResponse[]
 > => {
     // Get block txs
     // TODO blockTxs are paginated, need a function to get them all
@@ -126,11 +122,11 @@ export const handleBlockFinalized = async (
             `<a href="${config.blockExplorer}/block/${blockHash}">explorer</a>`;
 
         try {
-            return (await telegramBot.sendMessage(
+            return (await telegramBot.api.sendMessage(
                 channelId,
                 errorTgMsg,
                 config.tgMsgOptions,
-            )) as Message | SendMessageResponse;
+            )) as SendMessageResponse;
         } catch (err) {
             console.log(
                 `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockFinalized`,
@@ -257,7 +253,7 @@ export const handleBlockFinalized = async (
  */
 export const handleBlockInvalidated = async (
     chronik: ChronikClient,
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     blockHash: string,
     blockHeight: number,
@@ -308,7 +304,7 @@ export const handleBlockInvalidated = async (
         `Guessed reject reason: ${reason}`;
 
     try {
-        return await telegramBot.sendMessage(
+        return await telegramBot.api.sendMessage(
             channelId,
             errorTgMsg,
             config.tgMsgOptions,
@@ -323,7 +319,7 @@ export const handleBlockInvalidated = async (
 
 export const handleUtcMidnight = async (
     chronik: ChronikClient,
-    telegramBot: TelegramBot,
+    telegramBot: Bot,
     channelId: string,
     secondChannelId?: string,
     mockFetcher: PriceFetcher | undefined = undefined,

@@ -2,10 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-/* Mock node-telegram-bot-api TelegramBot instance
+import { SendMessageOptions } from '../../config';
+
+/* Mock grammy Bot instance
  * Supports sendMessage function
  */
-import { SendMessageOptions } from 'node-telegram-bot-api';
 export const mockChannelId = '-1001999999999';
 
 interface NetworkError extends Error {
@@ -14,12 +15,12 @@ interface NetworkError extends Error {
 
 export interface SendMessageResponse {
     success: boolean;
-    channelId: string;
-    msg: string;
+    chat_id: string;
+    text: string;
     options: SendMessageOptions;
 }
 
-export interface MockTelegramBotInterface {
+export interface MockTelegramBotApiInterface {
     messageSent: boolean;
     errors: { [key: string]: string | undefined };
     callCount: number;
@@ -37,7 +38,7 @@ export interface MockTelegramBotInterface {
     resetCallCount: () => void;
 }
 
-export class MockTelegramBot implements MockTelegramBotInterface {
+export class MockTelegramBotApi implements MockTelegramBotApiInterface {
     public messageSent = false;
     public errors: { [key: string]: string | undefined } = {};
     public callCount = 0;
@@ -46,8 +47,8 @@ export class MockTelegramBot implements MockTelegramBotInterface {
     } = {};
 
     public sendMessage(
-        channelId: string,
-        msg: string,
+        chat_id: string,
+        text: string,
         options: SendMessageOptions,
     ): SendMessageResponse {
         this.callCount++;
@@ -69,7 +70,7 @@ export class MockTelegramBot implements MockTelegramBotInterface {
         // Check for regular errors
         if (!this.errors.sendMessage) {
             this.messageSent = true;
-            return { success: true, channelId, msg, options };
+            return { success: true, chat_id, text, options };
         }
         throw new Error(this.errors.sendMessage || 'Unknown error');
     }
@@ -90,5 +91,17 @@ export class MockTelegramBot implements MockTelegramBotInterface {
         this.callCount = 0;
         this.callCountErrors = {};
         this.errors = {};
+    }
+}
+
+export interface MockTelegramBotInterface {
+    api: MockTelegramBotApiInterface;
+}
+
+export class MockTelegramBot implements MockTelegramBotInterface {
+    public api: MockTelegramBotApiInterface;
+
+    constructor() {
+        this.api = new MockTelegramBotApi();
     }
 }

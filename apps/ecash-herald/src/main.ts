@@ -6,12 +6,12 @@ import config from '../config';
 import { caching } from 'cache-manager';
 import { initializeWebsocket } from './chronikWsHandler';
 import { ChronikClient } from 'chronik-client';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 
 export const main = async (
     chronik: ChronikClient,
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     telegramChannelId: string,
 ) => {
     // Initialize a cache

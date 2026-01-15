@@ -2,7 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { SendMessageOptions } from 'node-telegram-bot-api';
+export interface SendMessageOptions {
+    parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
+    link_preview_options?: { is_disabled: boolean };
+    reply_to_message_id?: number;
+}
 
 export interface HeraldConfig {
     cacheTtlMsecs: number;
@@ -103,7 +107,7 @@ const config: HeraldConfig = {
     ifpAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     tgMsgOptions: {
         parse_mode: 'HTML',
-        disable_web_page_preview: true,
+        link_preview_options: { is_disabled: true },
     },
     whaleSats: {
         // 20 billion xec

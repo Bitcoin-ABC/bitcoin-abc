@@ -2,11 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import config from '../config';
-import TelegramBot, {
-    Message,
-    SendMessageOptions,
-} from 'node-telegram-bot-api';
+import config, { SendMessageOptions } from '../config';
+import { Bot } from 'grammy';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import { SendMessageResponse } from './events';
 
@@ -45,16 +42,16 @@ export const prepareStringForTelegramHTML = (string: string): string => {
  * @returns Promise that resolves with the message result or rejects with the final error
  */
 export const heraldSend = async (
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     message: string,
-    options: any,
+    options: SendMessageOptions,
     maxRetries: number = 3,
     baseDelay: number = 1000,
 ): Promise<SendMessageResponse> => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            return (await telegramBot.sendMessage(
+            return (await telegramBot.api.sendMessage(
                 channelId,
                 message,
                 options,
@@ -154,7 +151,7 @@ export const splitOverflowTgMsg = (tgMsgArray: string[]): string[] => {
 
 export const sendBlockSummary = async (
     tgMsgStrings: string[],
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     blockheightOrMsgDesc?: number | string,
 ) => {
@@ -178,8 +175,8 @@ export const sendBlockSummary = async (
     const msgSuccessArray = [];
     for (let i = 0; i < tgMsgStrings.length; i += 1) {
         const thisMsg = tgMsgStrings[i];
-        let msgSuccess: Message | SendMessageResponse;
-        const thisMsgOptions: SendMessageOptions =
+        let msgSuccess: SendMessageResponse;
+        const thisMsgOptions =
             typeof msgReplyId === 'number'
                 ? {
                       ...config.tgMsgOptions,

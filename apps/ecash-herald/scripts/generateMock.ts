@@ -19,7 +19,7 @@ import MockAdapter from 'axios-mock-adapter';
 import { caching } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import secrets from '../secrets';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import mockStakers from '../test/mocks/stakers';
 import { MockProvider, PriceFetcher } from 'ecash-price';
 
@@ -32,7 +32,7 @@ const { botId, channelId } = dev.telegram;
 const blockMocks = JSON.parse(JSON.stringify(unrevivedBlockMocks), jsonReviver);
 
 // Initialize telegram bot to send msgs to dev channel
-const telegramBotDev = new TelegramBot(botId);
+const telegramBotDev = new Bot(botId);
 
 /**
  * generateMock
@@ -101,7 +101,7 @@ const txids = [
 async function generateMock(
     chronik: ChronikClient,
     mockedChronik: MockChronikClient,
-    telegramBot: TelegramBot,
+    telegramBot: Bot,
     mockedTelegramBot: MockTelegramBot,
     channelId: string,
     block: StoredMock,

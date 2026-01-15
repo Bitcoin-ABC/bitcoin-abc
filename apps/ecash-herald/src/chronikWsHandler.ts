@@ -4,7 +4,7 @@
 
 import { ChronikClient, WsEndpoint, WsMsgClient } from 'chronik-client';
 import { handleBlockFinalized, handleBlockInvalidated } from './events';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import { MemoryCache } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import type { PriceFetcher } from 'ecash-price';
@@ -12,7 +12,7 @@ import type { PriceFetcher } from 'ecash-price';
 export const parseWebsocketMessage = async (
     chronik: ChronikClient,
     wsMsg: WsMsgClient,
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     memoryCache: MemoryCache,
     // If no priceFetcher is provided, use the default CoinGeckoProvider.
@@ -67,7 +67,7 @@ export const parseWebsocketMessage = async (
 
 export const initializeWebsocket = async (
     chronik: ChronikClient,
-    telegramBot: TelegramBot | MockTelegramBot,
+    telegramBot: Bot | MockTelegramBot,
     channelId: string,
     memoryCache: MemoryCache,
     // If no priceFetcher is provided, use the default CoinGeckoProvider

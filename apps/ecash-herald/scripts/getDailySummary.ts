@@ -26,7 +26,7 @@ import { summarizeTxHistory } from '../src/parse';
 import { CoinDanceStaker } from '../src/events';
 import { sendBlockSummary } from '../src/telegram';
 import secrets from '../secrets';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import {
     CoinGeckoProvider,
     CryptoTicker,
@@ -38,7 +38,7 @@ import {
 // Initialize telegram bot to send msgs to dev channel
 const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
-const telegramBotDev = new TelegramBot(botId);
+const telegramBotDev = new Bot(botId);
 
 const chronik = new ChronikClient(config.chronik);
 
@@ -47,7 +47,7 @@ const chronik = new ChronikClient(config.chronik);
  * @param telegramBot
  * @param channelId
  */
-const getDailySummary = async (telegramBot: TelegramBot, channelId: string) => {
+const getDailySummary = async (telegramBot: Bot, channelId: string) => {
     const priceFetcher = new PriceFetcher([new CoinGeckoProvider()]);
     const statistics = await priceFetcher.stats(
         { source: CryptoTicker.XEC, quote: Fiat.USD },

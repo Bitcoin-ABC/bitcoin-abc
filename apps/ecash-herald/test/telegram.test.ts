@@ -55,7 +55,7 @@ describe('ecash-herald telegram.js functions', function () {
         const channelId = mockChannelId;
 
         // Set an expected error in sendMessage method
-        telegramBot.setExpectedError(
+        telegramBot.api.setExpectedError(
             'sendMessage',
             'Error: message failed to send',
         );
@@ -106,7 +106,11 @@ describe('ecash-herald telegram.js functions', function () {
             const channelId = mockChannelId;
 
             // Mock a network error that should be retried for all 3 attempts
-            telegramBot.setCallCountError('sendMessage', 'socket hang up', 3);
+            telegramBot.api.setCallCountError(
+                'sendMessage',
+                'socket hang up',
+                3,
+            );
 
             try {
                 await heraldSend(
@@ -120,7 +124,7 @@ describe('ecash-herald telegram.js functions', function () {
                 assert.fail('Expected error to be thrown');
             } catch (error) {
                 assert.strictEqual((error as Error).message, 'socket hang up');
-                assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+                assert.strictEqual(telegramBot.api.callCount, 3); // Should have tried 3 times
             }
         });
 
@@ -129,7 +133,7 @@ describe('ecash-herald telegram.js functions', function () {
             const channelId = mockChannelId;
 
             // Mock EFATAL error that should be retried for all 3 attempts
-            telegramBot.setCallCountError(
+            telegramBot.api.setCallCountError(
                 'sendMessage',
                 'Network connection failed',
                 3,
@@ -150,7 +154,7 @@ describe('ecash-herald telegram.js functions', function () {
                     (error as Error).message,
                     'Network connection failed',
                 );
-                assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+                assert.strictEqual(telegramBot.api.callCount, 3); // Should have tried 3 times
             }
         });
 
@@ -160,7 +164,7 @@ describe('ecash-herald telegram.js functions', function () {
 
             // Override sendMessage to track calls and throw ECONNRESET
             let callCount = 0;
-            telegramBot.sendMessage = () => {
+            telegramBot.api.sendMessage = () => {
                 callCount++;
                 const networkError = new Error(
                     'ECONNRESET: Connection reset by peer',
@@ -193,7 +197,7 @@ describe('ecash-herald telegram.js functions', function () {
 
             // Override sendMessage to track calls and throw ETIMEDOUT
             let callCount = 0;
-            telegramBot.sendMessage = () => {
+            telegramBot.api.sendMessage = () => {
                 callCount++;
                 const networkError = new Error(
                     'ETIMEDOUT: Connection timed out',
@@ -226,7 +230,7 @@ describe('ecash-herald telegram.js functions', function () {
 
             // Override sendMessage to track calls and throw API error
             let callCount = 0;
-            telegramBot.sendMessage = () => {
+            telegramBot.api.sendMessage = () => {
                 callCount++;
                 const apiError = new Error(
                     "ETELEGRAM: 400 Bad Request: can't parse entities",
@@ -260,7 +264,7 @@ describe('ecash-herald telegram.js functions', function () {
 
             // Override sendMessage to track calls and throw auth error
             let callCount = 0;
-            telegramBot.sendMessage = () => {
+            telegramBot.api.sendMessage = () => {
                 callCount++;
                 const authError = new Error(
                     'ETELEGRAM: 401 Unauthorized',
@@ -293,7 +297,11 @@ describe('ecash-herald telegram.js functions', function () {
             const channelId = mockChannelId;
 
             // Mock sendMessage to fail twice, then succeed on third call
-            telegramBot.setCallCountError('sendMessage', 'socket hang up', 2);
+            telegramBot.api.setCallCountError(
+                'sendMessage',
+                'socket hang up',
+                2,
+            );
 
             const result = await heraldSend(
                 telegramBot,
@@ -303,7 +311,7 @@ describe('ecash-herald telegram.js functions', function () {
                 3,
                 15,
             );
-            assert.strictEqual(telegramBot.callCount, 3); // Should have tried 3 times
+            assert.strictEqual(telegramBot.api.callCount, 3); // Should have tried 3 times
             assert.strictEqual(
                 (result as unknown as { success: boolean }).success,
                 true,

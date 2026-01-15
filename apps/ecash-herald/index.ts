@@ -4,7 +4,7 @@
 
 import { ChronikClient } from 'chronik-client';
 import { CronJob } from 'cron';
-import TelegramBot from 'node-telegram-bot-api';
+import { Bot } from 'grammy';
 import secrets from './secrets';
 import config from './config';
 import { main } from './src/main';
@@ -13,7 +13,7 @@ import { handleUtcMidnight } from './src/events';
 // Initialize telegram bot on app startup
 const { botId, channelId, dailyChannelId, mainChannelId } =
     secrets.prod.telegram;
-const telegramBot = new TelegramBot(botId);
+const telegramBot = new Bot(botId);
 
 // Initialize chronik on app startup
 const chronik = new ChronikClient(config.chronik);
