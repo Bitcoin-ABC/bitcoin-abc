@@ -3,14 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { webViewError } from './common';
-import {
-    Ecc,
-    shaRmd160,
-    TxBuilder,
-    DEFAULT_DUST_SATS,
-    DEFAULT_FEE_SATS_PER_KB,
-    calcTxFee,
-} from 'ecash-lib';
+import { Ecc, shaRmd160 } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { buildAction } from './wallet';
@@ -150,27 +143,7 @@ export async function calculateTransactionAmountSats(
 
 // Calculate maximum spendable amount
 export function calculateMaxSpendableAmount(wallet: Wallet): number {
-    // Select all spendable utxos and calculate the size of a transaction that
-    // sends them all to a single p2pkh output + change output
-    const spendableUtxos = wallet.spendableSatsOnlyUtxos();
-    const balanceSats = Wallet.sumUtxosSats(spendableUtxos);
-    const inputs = spendableUtxos.map(
-        utxo => wallet.p2pkhUtxoToBuilderInput(utxo)!,
-    );
-    const txBuilder = new TxBuilder({
-        inputs,
-        // No leftover in this case, send all to self
-        outputs: [wallet.script],
-    });
-    const thisTx = txBuilder.sign({
-        feePerKb: DEFAULT_FEE_SATS_PER_KB,
-        dustSats: DEFAULT_DUST_SATS,
-    });
-
-    const txSize = thisTx.serSize();
-    const txFee = calcTxFee(txSize, DEFAULT_FEE_SATS_PER_KB);
-
-    return satsToXec(Number(balanceSats - txFee));
+    return satsToXec(Number(wallet.maxSendSats()));
 }
 
 // Estimate transaction fee
