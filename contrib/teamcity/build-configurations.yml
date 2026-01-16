@@ -1164,3 +1164,13 @@ builds:
             JS_PROJECT_ROOT: modules/ecash-price
         templates:
             - js-mocha
+
+    marlin-wallet-tests:
+        runOnDiffRegex:
+            - apps/marlin-wallet/web/
+        env:
+            JS_PROJECT_ROOT: apps/marlin-wallet/web
+        templates:
+            - js-mocha
+        depends:
+            - mock-chronik-client
