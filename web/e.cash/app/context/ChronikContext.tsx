@@ -105,6 +105,13 @@ export function ChronikProvider({ children }: { children: ReactNode }) {
               setMempool((prevTxs) =>
                 prevTxs.filter((tx) => tx.txid !== msg.txid),
               );
+            } else if (msg.type === "Tx" && msg.msgType === "TX_FINALIZED") {
+              // Update transaction to mark it as finalized
+              setMempool((prevTxs) =>
+                prevTxs.map((tx) =>
+                  tx.txid === msg.txid ? { ...tx, isFinal: true } : tx,
+                ),
+              );
             }
           },
           onConnect: () => {

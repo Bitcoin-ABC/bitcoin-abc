@@ -9,6 +9,7 @@ import { Tx } from "chronik-client";
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useChronik } from "../../context/ChronikContext";
+import { cn } from "@/app/utils/cn";
 
 const MAX_TRANSACTIONS = 4;
 
@@ -101,6 +102,7 @@ export default function LiveCard() {
                   tx.timeFirstSeen,
                   currentTime,
                 );
+                const isFinalized = tx.isFinal;
                 return (
                   <motion.div
                     key={tx.txid}
@@ -117,7 +119,10 @@ export default function LiveCard() {
                       href={`https://explorer.e.cash/tx/${tx.txid}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg bg-white/5 p-2 hover:bg-white/10 lg:p-3"
+                      className={cn(
+                        "block rounded-lg bg-white/5 p-2 hover:bg-white/10 lg:p-3",
+                        isFinalized ? "bg-white/5" : "bg-accentMedium/20",
+                      )}
                     >
                       <div className="flex flex-col gap-1 lg:gap-2 xl:flex-row xl:items-center xl:justify-between">
                         <div className="font-mono text-xs text-white/90">
@@ -127,8 +132,28 @@ export default function LiveCard() {
                           <span className="text-xs font-semibold text-white xl:text-sm">
                             {formatAmount(amount)}
                           </span>
-                          <span className="text-xs text-white/50">
-                            {timeSince}
+                          <span className="flex items-center gap-2 text-xs text-white/50">
+                            {timeSince}{" "}
+                            {isFinalized ? (
+                              <Image
+                                src="/check-mark-circle.svg"
+                                alt="check"
+                                width={10}
+                                height={10}
+                                className="opacity-50"
+                              />
+                            ) : (
+                              <motion.span
+                                animate={{ opacity: [0.2, 1, 0.2] }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                              >
+                                Finalizing...
+                              </motion.span>
+                            )}
                           </span>
                         </div>
                       </div>
