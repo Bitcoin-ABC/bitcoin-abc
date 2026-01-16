@@ -23,7 +23,7 @@ import {
     calculateMaxSpendableAmount,
     estimateTransactionFee,
 } from './amount';
-import { getAddress, WalletData, buildTx } from './wallet';
+import { getAddress, WalletData, buildAction } from './wallet';
 import {
     getMnemonic,
     storeMnemonic,
@@ -1012,7 +1012,12 @@ async function validateAndSend() {
     try {
         // Convert XEC to satoshis (1 XEC = 100 satoshis)
         const sats = Math.round(amount * 100);
-        const builtTx = buildTx(ecashWallet, address, sats, sendOpReturnRaw);
+        const builtAction = buildAction(
+            ecashWallet,
+            address,
+            sats,
+            sendOpReturnRaw,
+        );
 
         if (sendOpReturnRaw && isPayButtonTransaction(sendOpReturnRaw)) {
             // For PayButton transactions, we broadcast to the PayButton node first
@@ -1022,7 +1027,8 @@ async function validateAndSend() {
                 const paybuttonChronik = new ChronikClient([
                     'https://xec.paybutton.io',
                 ]);
-                await paybuttonChronik.broadcastTx(builtTx.tx.ser());
+                const txsToBroadcast = builtAction.txs.map(tx => tx.toHex());
+                await paybuttonChronik.broadcastTxs(txsToBroadcast);
                 webViewLog(
                     `Sent ${amount} ${config.ticker} to ${address} via PayButton`,
                 );
@@ -1031,7 +1037,7 @@ async function validateAndSend() {
             }
         }
 
-        await builtTx.broadcast();
+        await builtAction.broadcast();
         webViewLog(`Sent ${amount} ${config.ticker} to ${address}`);
     } catch (error) {
         webViewError('Failed to send transaction:', error);

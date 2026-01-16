@@ -6,7 +6,7 @@ import * as chai from 'chai';
 import { Address, OP_RETURN } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from 'mock-chronik-client';
-import { getAddress, buildTx } from '../src/wallet';
+import { getAddress, buildAction } from '../src/wallet';
 
 const expect = chai.expect;
 
@@ -77,13 +77,18 @@ describe('wallet.ts', function () {
                 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
             const sats = 10000;
 
-            const tx = buildTx(wallet, recipientAddress, sats);
+            const builtAction = buildAction(wallet, recipientAddress, sats);
 
-            expect(tx).to.not.be.equal(null);
+            expect(builtAction).to.not.be.equal(null);
+            expect(builtAction.txs.length).to.be.equal(1);
             expect(
-                Address.fromScript(tx.tx.outputs[0].script).toString(),
+                Address.fromScript(
+                    builtAction.txs[0].outputs[0].script,
+                ).toString(),
             ).to.be.equal(recipientAddress);
-            expect(tx.tx.outputs[0].sats).to.be.equal(BigInt(sats));
+            expect(builtAction.txs[0].outputs[0].sats).to.be.equal(
+                BigInt(sats),
+            );
         });
 
         it('Should build transaction with OP_RETURN', function () {
@@ -92,19 +97,29 @@ describe('wallet.ts', function () {
             const sats = 10000;
             const opReturnRaw = '0450415900'; // PayButton protocol
 
-            const tx = buildTx(wallet, recipientAddress, sats, opReturnRaw);
+            const builtAction = buildAction(
+                wallet,
+                recipientAddress,
+                sats,
+                opReturnRaw,
+            );
 
-            expect(tx).to.not.be.equal(null);
+            expect(builtAction).to.not.be.equal(null);
+            expect(builtAction.txs.length).to.be.equal(1);
             // First output should be OP_RETURN with 0 sats
-            expect(tx.tx.outputs[0].sats).to.be.equal(BigInt(0));
-            expect(tx.tx.outputs[0].script.toHex()).to.be.equal(
+            expect(builtAction.txs[0].outputs[0].sats).to.be.equal(BigInt(0));
+            expect(builtAction.txs[0].outputs[0].script.toHex()).to.be.equal(
                 OP_RETURN.toString(16) + opReturnRaw,
             );
             // Second output should be the recipient address
             expect(
-                Address.fromScript(tx.tx.outputs[1].script).toString(),
+                Address.fromScript(
+                    builtAction.txs[0].outputs[1].script,
+                ).toString(),
             ).to.be.equal(recipientAddress);
-            expect(tx.tx.outputs[1].sats).to.be.equal(BigInt(sats));
+            expect(builtAction.txs[0].outputs[1].sats).to.be.equal(
+                BigInt(sats),
+            );
         });
     });
 });

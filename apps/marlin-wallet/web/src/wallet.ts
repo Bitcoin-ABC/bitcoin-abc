@@ -23,8 +23,8 @@ export function getAddress(wallet: Wallet): string | null {
         .toString();
 }
 
-// Build a transaction with the given parameters
-export function buildTx(
+// Build a wallet action with the given parameters
+export function buildAction(
     wallet: Wallet,
     recipientAddress: string,
     sats: number,

@@ -1165,6 +1165,20 @@ builds:
         templates:
             - js-mocha
 
+    marlin-wallet:
+        runOnDiffRegex:
+            - apps/marlin-wallet/web/
+        depends:
+            - chronik-client
+            - ecash-lib
+            - ecash-wallet
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter marlin-wallet-web...
+            pnpm --filter marlin-wallet-web run build
+
     marlin-wallet-tests:
         runOnDiffRegex:
             - apps/marlin-wallet/web/
@@ -1173,4 +1187,7 @@ builds:
         templates:
             - js-mocha
         depends:
+            - chronik-client
             - mock-chronik-client
+            - ecash-lib
+            - ecash-wallet

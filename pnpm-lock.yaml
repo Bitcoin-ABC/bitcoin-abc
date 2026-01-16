@@ -313,14 +313,14 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       chronik-client:
-        specifier: ^3.0.0
-        version: 3.7.0
+        specifier: file:../../../modules/chronik-client
+        version: link:../../../modules/chronik-client
       ecash-lib:
-        specifier: ^4.3.3
-        version: 4.5.2
+        specifier: file:../../../modules/ecash-lib
+        version: link:../../../modules/ecash-lib
       ecash-wallet:
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: file:../../../modules/ecash-wallet
+        version: link:../../../modules/ecash-wallet
       pulltorefreshjs:
         specifier: ^0.1.22
         version: 0.1.22
@@ -6361,9 +6361,6 @@ packages:
       react-native-b4a:
         optional: true
 
-  b58-ts@0.1.0:
-    resolution: {integrity: sha512-FC/2pfMxrlLQp1o9hwOGAy/1zCHYId5gpojwHL/BqoMFv/BnZXwHDH1zpx9jSL4C9k55Fm2R9j/F868qaQH5kw==}
-
   babel-jest@29.7.0:
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -7905,12 +7902,6 @@ packages:
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
-
-  ecash-lib@4.5.2:
-    resolution: {integrity: sha512-klP5D6PABh16vwj3qs8nOQZx0rjJqCm4D2qHVJvJTFMKxv2AHZBJh2O3UmxzzagXXW28JYIp/7+PEDQfJgf6Yg==}
-
-  ecash-wallet@1.5.0:
-    resolution: {integrity: sha512-pjGl8TXXL1//oYQ6qThjQVFKVbfN2NrKSTcUbbrOkiMgykI9DnUMLWCI6tM/2fBvS0O69d7P+vSr0kx2RdGkTg==}
 
   ecashaddrjs@2.0.0:
     resolution: {integrity: sha512-EvK1V4D3+nIEoD0ggy/b0F4lW39/72R9aOs/scm6kxMVuXu16btc+H74eQv7okNfXaQWKgolEekZkQ6wfcMMLw==}
@@ -21418,8 +21409,6 @@ snapshots:
 
   b4a@1.7.3: {}
 
-  b58-ts@0.1.0: {}
-
   babel-jest@29.7.0(@babel/core@7.28.5):
     dependencies:
       '@babel/core': 7.28.5
@@ -23150,20 +23139,6 @@ snapshots:
   duplexer@0.1.2: {}
 
   eastasianwidth@0.2.0: {}
-
-  ecash-lib@4.5.2:
-    dependencies:
-      b58-ts: 0.1.0
-      ecashaddrjs: 2.0.0
-
-  ecash-wallet@1.5.0:
-    dependencies:
-      chronik-client: 3.7.0
-      ecash-lib: 4.5.2
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - utf-8-validate
 
   ecashaddrjs@2.0.0: {}
 

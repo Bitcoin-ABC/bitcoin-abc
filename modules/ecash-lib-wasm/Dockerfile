@@ -2,7 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-FROM rust:1.76.0
+FROM rust:1.87.0
 
 RUN apt-get update \
     && apt-get install clang binaryen -y \

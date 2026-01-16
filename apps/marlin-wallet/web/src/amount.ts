@@ -13,7 +13,7 @@ import {
 } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
-import { buildTx } from './wallet';
+import { buildAction } from './wallet';
 
 // Conversion function for display
 export function satsToXec(sats: number): number {
@@ -184,16 +184,22 @@ export function estimateTransactionFee(
         // Convert XEC to satoshis (1 XEC = 100 satoshis)
         const amountSatoshis = Math.round(amountXEC * 100);
 
+        // Clone the wallet so we don't mutate the original by removing the
+        // spent utxos
+        const clonedWallet = wallet.clone();
+
         // Build the transaction to get fee estimate
-        const builtTx = buildTx(
-            wallet,
+        const builtAction = buildAction(
+            clonedWallet,
             recipientAddress,
             amountSatoshis,
             opReturnRaw,
         );
 
         // Get fee in satoshis and convert to XEC
-        const feeSatoshis = Number(builtTx.fee());
+        const feeSatoshis = Number(
+            builtAction.builtTxs.reduce((acc, tx) => acc + tx.fee(), 0n),
+        );
         const feeXEC = satsToXec(feeSatoshis);
         const totalXEC = amountXEC + feeXEC;
 

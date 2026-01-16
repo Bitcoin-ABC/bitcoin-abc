@@ -6,6 +6,13 @@ A super simple eCash Wallet application, focusing on UX and security.
 
 At this stage it works on Android, IOS, with companion apps for WearOS and WatchOS.
 
+Prerequisite:
+
+```bash
+cd web
+./install-dependencies.sh
+```
+
 Run on Android:
 `pnpm run android`
 
