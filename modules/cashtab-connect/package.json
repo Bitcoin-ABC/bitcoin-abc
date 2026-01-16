@@ -38,10 +38,10 @@
     "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/modules/cashtab-connect#readme",
     "devDependencies": {
         "@types/chai": "^4.2.22",
-        "@types/mocha": "^9.1.1",
+        "@types/mocha": "^10.0.10",
         "@types/node": "^24.0.10",
         "chai": "^4.3.4",
-        "mocha": "^9.1.3",
+        "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
         "prettier": "^3.7.4",
         "ts-node": "^10.4.0",

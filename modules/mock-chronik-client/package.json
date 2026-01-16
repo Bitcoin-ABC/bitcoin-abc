@@ -19,7 +19,7 @@
         "@types/ws": "^8.5.13",
         "chai": "^5.1.2",
         "chai-as-promised": "^8.0.1",
-        "mocha": "^10.8.2",
+        "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
         "nyc": "^15.1.0",
         "ts-node": "^10.9.2",
