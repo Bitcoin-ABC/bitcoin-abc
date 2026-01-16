@@ -53,7 +53,5 @@ export function buildAction(
     });
 
     // Create the action with outputs
-    const action = wallet.action({ outputs });
-
-    return action.build();
+    return wallet.action({ outputs });
 }

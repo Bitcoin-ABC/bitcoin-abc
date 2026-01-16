@@ -1012,12 +1012,8 @@ async function validateAndSend() {
     try {
         // Convert XEC to satoshis (1 XEC = 100 satoshis)
         const sats = Math.round(amount * 100);
-        const builtAction = buildAction(
-            ecashWallet,
-            address,
-            sats,
-            sendOpReturnRaw,
-        );
+        const action = buildAction(ecashWallet, address, sats, sendOpReturnRaw);
+        const builtAction = action.build();
 
         if (sendOpReturnRaw && isPayButtonTransaction(sendOpReturnRaw)) {
             // For PayButton transactions, we broadcast to the PayButton node first

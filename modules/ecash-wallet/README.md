@@ -261,3 +261,9 @@ See tests for detailed methods.
 - If broadcasting a tx fails due to `finalized-tx-conflict`, resync the utxo set and try again
 
 [D19376](https://reviews.bitcoinabc.org/D19376)
+
+# 3.7.0
+
+- Add a `WalletAction.inspect()` method that can't be broadcasted and won't update the utxos. This can be used to inspect the tx and compute the fees without impacting the wallet.
+
+[D19390](https://reviews.bitcoinabc.org/D19390)

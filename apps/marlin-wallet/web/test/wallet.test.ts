@@ -77,7 +77,8 @@ describe('wallet.ts', function () {
                 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
             const sats = 10000;
 
-            const builtAction = buildAction(wallet, recipientAddress, sats);
+            const action = buildAction(wallet, recipientAddress, sats);
+            const builtAction = action.build();
 
             expect(builtAction).to.not.be.equal(null);
             expect(builtAction.txs.length).to.be.equal(1);
@@ -97,12 +98,13 @@ describe('wallet.ts', function () {
             const sats = 10000;
             const opReturnRaw = '0450415900'; // PayButton protocol
 
-            const builtAction = buildAction(
+            const action = buildAction(
                 wallet,
                 recipientAddress,
                 sats,
                 opReturnRaw,
             );
+            const builtAction = action.build();
 
             expect(builtAction).to.not.be.equal(null);
             expect(builtAction.txs.length).to.be.equal(1);

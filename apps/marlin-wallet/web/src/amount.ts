@@ -184,22 +184,17 @@ export function estimateTransactionFee(
         // Convert XEC to satoshis (1 XEC = 100 satoshis)
         const amountSatoshis = Math.round(amountXEC * 100);
 
-        // Clone the wallet so we don't mutate the original by removing the
-        // spent utxos
-        const clonedWallet = wallet.clone();
-
         // Build the transaction to get fee estimate
-        const builtAction = buildAction(
-            clonedWallet,
+        const action = buildAction(
+            wallet,
             recipientAddress,
             amountSatoshis,
             opReturnRaw,
         );
+        const inspectAction = action.inspect();
 
         // Get fee in satoshis and convert to XEC
-        const feeSatoshis = Number(
-            builtAction.builtTxs.reduce((acc, tx) => acc + tx.fee(), 0n),
-        );
+        const feeSatoshis = Number(inspectAction.fee());
         const feeXEC = satsToXec(feeSatoshis);
         const totalXEC = amountXEC + feeXEC;
 

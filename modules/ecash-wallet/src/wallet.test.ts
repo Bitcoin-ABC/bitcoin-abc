@@ -477,6 +477,100 @@ describe('wallet.ts', () => {
         expect(tx.tx.outputs[0].sats).to.equal(1000n);
     });
 
+    it('Can inspect transaction without modifying wallet UTXOs', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock a chaintip
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Mock a utxo set
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+
+        // Sync the wallet
+        await testWallet.sync();
+
+        // Store original UTXO count
+        const originalUtxoCount = testWallet.utxos.length;
+        const originalUtxos = structuredClone(testWallet.utxos);
+
+        // Inspect a transaction (should not modify UTXOs)
+        const inspectAction = testWallet
+            .action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 1000n,
+                    },
+                ],
+            })
+            .inspect(ALL_BIP143);
+
+        // Verify inspect() returns InspectAction
+        expect(inspectAction).to.not.equal(undefined);
+        expect(inspectAction.txs).to.be.an('array');
+        expect(inspectAction.txs.length).to.be.greaterThan(0);
+
+        // Verify wallet UTXOs were not modified
+        expect(testWallet.utxos.length).to.equal(originalUtxoCount);
+        expect(testWallet.utxos).to.deep.equal(originalUtxos);
+    });
+
+    it('InspectAction.fee() returns same fee as build()', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        // Mock a chaintip
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Mock a utxo set
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+
+        // Sync the wallet
+        await testWallet.sync();
+
+        const action = testWallet.action({
+            outputs: [
+                {
+                    script: MOCK_DESTINATION_SCRIPT,
+                    sats: 546n,
+                },
+            ],
+        });
+
+        // Get fee from inspect()
+        const inspectAction = action.inspect(ALL_BIP143);
+        const inspectFee = inspectAction.fee();
+
+        // Get fee from build()
+        const builtAction = action.build(ALL_BIP143);
+        const buildFee = builtAction.builtTxs.reduce(
+            (acc, tx) => acc + tx.fee(),
+            0n,
+        );
+
+        // Fees should be the same
+        expect(inspectFee).to.equal(buildFee);
+    });
+
     it('Can build transaction with XEC change output when noChange is false or undefined', async () => {
         const mockChronik = new MockChronikClient();
         const testWallet = Wallet.fromSk(

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
+    SigHashType,
     Script,
     Ecc,
     shaRmd160,
@@ -1049,6 +1050,11 @@ function inferAlpBurnSendActions(
     }
 
     return modifiedAction;
+}
+
+interface BuildConfig {
+    sighash: SigHashType;
+    updateUtxos: boolean;
 }
 
 /**
@@ -2229,15 +2235,11 @@ class WalletAction {
     }
 
     /**
-     * Build (but do not broadcast) an eCash tx to handle the
-     * action specified by the constructor
-     *
-     * NB that, for now, we will throw an error if we cannot handle
-     * all instructions in a single tx
-     *
-     * NB calling build() will always update the wallet's utxo set to reflect the post-broadcast state
+     * Build (but do not broadcast) eCash txs to handle the action specified by
+     * the constructor.
      */
-    public build(sighash = ALL_BIP143): BuiltAction {
+    private _build(config: BuildConfig): BuiltAction {
+        const { sighash, updateUtxos } = config;
         if (
             this.selectUtxosResult.satsStrategy ===
             SatsSelectionStrategy.NO_SATS
@@ -2313,6 +2315,7 @@ class WalletAction {
             feePerKb,
             dustSats,
             maxTxSersize,
+            updateUtxos,
         );
         if (builtActionResult.success && builtActionResult.builtAction) {
             // Check we do not exceed broadcast size
@@ -2368,6 +2371,7 @@ class WalletAction {
                     feePerKb,
                     dustSats,
                     maxTxSersize,
+                    updateUtxos,
                 );
                 if (
                     builtActionResult.success &&
@@ -2396,6 +2400,27 @@ class WalletAction {
                 typeof txFee !== 'undefined' ? ` (${txFee})` : ``
             }`,
         );
+    }
+
+    /**
+     * Build (but do not broadcast) eCash txs to handle the
+     * action specified by the constructor
+     *
+     * NB calling build() will always update the wallet's utxo set to reflect
+     * the post-broadcast state
+     */
+    public build(sighash = ALL_BIP143): BuiltAction {
+        return this._build({ sighash, updateUtxos: true });
+    }
+
+    /**
+     * Build eCash txs to handle the action specified by the constructor.
+     * Return an InspectAction that can be used to inspect the txs without
+     * updating the wallet's utxo set and can't be broadcast.
+     */
+    public inspect(sighash = ALL_BIP143): InspectAction {
+        const builtAction = this._build({ sighash, updateUtxos: false });
+        return new InspectAction(builtAction.builtTxs);
     }
 
     /**
@@ -2608,6 +2633,7 @@ class WalletAction {
         feePerKb: bigint,
         dustSats: bigint,
         maxTxSersize: number,
+        updateUtxos: boolean,
     ): { success: boolean; builtAction?: BuiltAction } => {
         // Can you cover the tx without fuelUtxos?
         try {
@@ -2661,8 +2687,14 @@ class WalletAction {
             // Do your inputs cover outputSum + txFee?
             if (inputSats >= this.actionTotal.sats + txFee) {
                 // mightTheseUtxosWork --> now we have confirmed they will work
-                // Update utxos if this tx can be broadcasted
-                if (txSize <= maxTxSersize) {
+                // Update utxos if this tx can be broadcasted.
+                // If it exceeds the max tx size, the callsite should catch this
+                // and convert to chained txs. In this special case we don't
+                // want to update the utxos but we still return success to
+                // distinguish from other errors. It is the responsibility of
+                // the callsite to check the tx size and decide what to do
+                // accordingly.
+                if (updateUtxos !== false && txSize <= maxTxSersize) {
                     const txid = toHexRev(sha256d(finalTx.ser()));
                     this._updateUtxosAfterSuccessfulBuild(
                         finalTx,
@@ -2724,6 +2756,27 @@ export interface BroadcastConfig {
      * (missing inputs or mempool conflicts). If false, return the error immediately.
      */
     retryOnUtxoConflict?: boolean;
+}
+
+/**
+ * An action that can't be broadcasted and won't update the utxos.
+ * This can be used to inspect the tx and compute the fees without impacting the
+ * wallet.
+ */
+export class InspectAction {
+    public txs: BuiltTx[];
+
+    constructor(txs: BuiltTx[]) {
+        this.txs = txs;
+    }
+
+    /**
+     * Get the total fee of the txs.
+     * @returns The total fee of the txs in satoshis.
+     */
+    public fee(): bigint {
+        return this.txs.reduce((acc, tx) => acc + tx.fee(), 0n);
+    }
 }
 
 /**
