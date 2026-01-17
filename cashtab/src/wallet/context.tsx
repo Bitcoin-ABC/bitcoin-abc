@@ -16,7 +16,6 @@ export function isWalletContextLoaded(
         'chronik' in context &&
         'agora' in context &&
         'ecc' in context &&
-        'chaintipBlockheight' in context &&
         'fiatPrice' in context &&
         'cashtabLoaded' in context &&
         'loading' in context &&
@@ -32,7 +31,6 @@ interface NullDefaultUseWalletReturnType {
     chronik: undefined;
     agora: undefined;
     ecc: undefined;
-    chaintipBlockheight: undefined;
     fiatPrice: undefined;
     cashtabLoaded: undefined;
     loading: undefined;
@@ -46,7 +44,6 @@ const nullDefaultUseWalletReturnType: NullDefaultUseWalletReturnType = {
     chronik: undefined,
     agora: undefined,
     ecc: undefined,
-    chaintipBlockheight: undefined,
     fiatPrice: undefined,
     cashtabLoaded: undefined,
     loading: undefined,

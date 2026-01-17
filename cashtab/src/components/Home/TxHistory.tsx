@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
+import { toHex } from 'ecash-lib';
 import Tx from 'components/Home/Tx';
 import TxHistoryPagination from 'components/Home/TxHistoryPagination';
 import { CashtabTx } from 'wallet';
@@ -23,13 +24,14 @@ const TxHistory: React.FC = () => {
         updateCashtabState,
         transactionHistory,
     } = ContextValue;
-    const { settings, activeWallet } = cashtabState;
+    const { settings } = cashtabState;
+    const { ecashWallet } = ContextValue;
 
-    if (!activeWallet) {
+    if (!ecashWallet) {
         return null;
     }
 
-    const hashes = [activeWallet.hash];
+    const hashes = [toHex(ecashWallet.pkh)];
     const fiatCurrency =
         settings && settings.fiatCurrency ? settings.fiatCurrency : 'usd';
     const userLocale = getUserLocale(navigator);
@@ -40,7 +42,7 @@ const TxHistory: React.FC = () => {
     const [showPagination, setShowPagination] = useState(false);
 
     // Get the path1899 address (path 1899 is always defined in CashtabWalletPaths)
-    const path1899Address = activeWallet.address;
+    const path1899Address = ecashWallet.address;
 
     // Get first page transactions from context
     const txs = transactionHistory?.firstPageTxs || [];

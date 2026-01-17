@@ -37,12 +37,12 @@ const Airdrop = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
-    const { cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    const { chronik, agora, cashtabState, updateCashtabState, ecashWallet } =
+        ContextValue;
+    const { cashtabCache } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
     const location = useLocation();
 
     const [calculatingAirdrop, setCalculatingAirdrop] =
@@ -241,7 +241,7 @@ const Airdrop = () => {
 
         const excludedAddresses = [];
         if (ignoreOwnAddress) {
-            excludedAddresses.push(wallet.address);
+            excludedAddresses.push(ecashWallet.address);
         }
         if (ignoreMintAddress) {
             if (typeof mintAddress === 'undefined') {

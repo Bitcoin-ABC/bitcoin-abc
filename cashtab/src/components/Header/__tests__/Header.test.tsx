@@ -134,11 +134,16 @@ describe('<Header />', () => {
             },
         );
 
-        await prepareContext(localforage, multipleWallets, tokenMocks);
+        // Get mockChronik with UTXOs set up for all wallets including validActiveWallets
+        const testMockChronik = await prepareContext(
+            localforage,
+            multipleWallets,
+            tokenMocks,
+        );
 
         render(
             <HeaderTestWrapper
-                chronik={mockChronik}
+                chronik={testMockChronik}
                 agora={mockAgora}
                 ecc={mockEcc}
                 route="/"
@@ -151,15 +156,17 @@ describe('<Header />', () => {
 
         const select = screen.getByTestId('wallet-select');
         expect(select).toBeInTheDocument();
-        expect(select).toHaveValue('MyWallet');
+        // The value is the address of the wallet, though the display name is still the name
+        expect(select).toHaveValue(
+            'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+        );
 
         fireEvent.change(select, {
-            target: { value: validActiveWallets[1].name },
+            target: { value: validActiveWallets[1].address },
         });
-        expect(
-            await screen.findByText(validActiveWallets[1].name),
-        ).toBeInTheDocument();
-        expect(select).toHaveValue(validActiveWallets[1].name);
+
+        const updatedSelect = await screen.findByTestId('wallet-select');
+        expect(updatedSelect).toHaveValue(validActiveWallets[1].address);
     });
 
     it('hides balances if balanceVisible is false', async () => {

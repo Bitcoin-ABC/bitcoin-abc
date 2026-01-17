@@ -4,40 +4,6 @@
 
 export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
-    getBalanceSatsVectors: {
-        expectedReturns: [
-            {
-                description: 'Kind of a normal balance calculation',
-                nonSlpUtxos: [
-                    { sats: 546n },
-                    { sats: 150000000n },
-                    { sats: 62500000n },
-                ],
-                balanceSats: 212500546,
-            },
-            {
-                description: 'Wallet balance of total XEC supply',
-                nonSlpUtxos: [
-                    { sats: 700000000000000n },
-                    { sats: 700000000000000n },
-                    { sats: 700000000000000n },
-                ],
-                balanceSats: 2100000000000000,
-            },
-            {
-                description: 'Empty array returns 0 balance',
-                nonSlpUtxos: [],
-                balanceSats: 0,
-            },
-        ],
-        expectedErrors: [
-            {
-                description: 'Call with non-Array',
-                nonSlpUtxos: { somekey: 'an object instead of an array' },
-                errorMsg: 'nonSlpUtxos.reduce is not a function',
-            },
-        ],
-    },
     toXec: {
         expectedReturns: [
             {

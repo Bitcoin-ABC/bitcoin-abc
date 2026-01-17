@@ -21,10 +21,8 @@ export const Receive: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState } = contextValue;
-    const { activeWallet } = cashtabState;
-    const wallet = activeWallet;
-    if (!wallet) {
+    const { ecashWallet } = contextValue;
+    if (!ecashWallet) {
         return null;
     }
     // Get device window width
@@ -52,7 +50,7 @@ export const Receive: React.FC = () => {
     const [bip21Qty, setBip21Qty] = useState<string>('');
     const [bip21QtyError, setBip21QtyError] = useState<false | string>(false);
 
-    const queryString = `${wallet.address}${
+    const queryString = `${ecashWallet.address}${
         receiveFirma
             ? `?token_id=${FIRMA.tokenId}${
                   bip21Qty ? `&token_decimalized_qty=${bip21Qty}` : ``

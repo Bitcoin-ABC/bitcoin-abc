@@ -107,7 +107,6 @@ import {
     SLP_NFT1_CHILD,
     SLP_TOKEN_TYPE_NFT1_CHILD,
     Script,
-    fromHex,
     toHex,
     shaRmd160,
     payment,
@@ -151,14 +150,15 @@ const Token: React.FC = () => {
         fiatPrice,
         ecashWallet,
     } = ContextValue;
-    const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet || !ecashWallet) {
+    const { settings, cashtabCache, tokens } = cashtabState;
+    if (!ecashWallet || !tokens) {
         return null;
     }
-    const wallet = activeWallet;
-    // We get sk/pk/hash when wallet changes
-
-    const { tokens, balanceSats } = wallet.state;
+    // Get token UTXOs from ecashWallet.utxos
+    const tokenUtxos = ecashWallet.utxos.filter(
+        (utxo): utxo is TokenUtxo => utxo.token !== undefined,
+    );
+    const balanceSats = Number(ecashWallet.balanceSats);
 
     const { tokenId } = useParams();
 
@@ -375,7 +375,7 @@ const Token: React.FC = () => {
 
     // Check if the user has mint batons for this token
     // If they don't, disable the mint switch and label why
-    const mintBatons = getMintBatons(wallet.state.slpUtxos, tokenId as string);
+    const mintBatons = getMintBatons(tokenUtxos, tokenId as string);
 
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [confirmMintModalVisible, setConfirmMintModalVisible] =
@@ -881,14 +881,14 @@ const Token: React.FC = () => {
             getNfts(tokenId as string);
             // Get total amount of available parent token UTXOs (any qty >= 1)
             // ecash-wallet will automatically create qty-1 inputs if needed
-            const availableNftMintInputs = wallet.state.slpUtxos.filter(
+            const availableNftMintInputs = tokenUtxos.filter(
                 (slpUtxo: TokenUtxo) =>
                     slpUtxo?.token?.tokenId === tokenId &&
                     slpUtxo?.token?.atoms >= 1n,
             );
             setAvailableNftInputs(availableNftMintInputs.length);
         }
-    }, [wallet.state.slpUtxos, isNftParent]);
+    }, [tokenUtxos, isNftParent]);
 
     useEffect(() => {
         if (isNftParent && availableNftInputs > 0) {
@@ -1368,8 +1368,6 @@ const Token: React.FC = () => {
 
             // Build and broadcast using ecash-wallet
             const builtAction = ecashWallet.action(action).build();
-            console.log(`rawTx: ${builtAction.txs[0].toHex()}`);
-            console.log(`txid: ${builtAction.txs[0].txid()}`);
             const broadcastResult = await builtAction.broadcast();
 
             if (!broadcastResult.success) {
@@ -1500,13 +1498,13 @@ const Token: React.FC = () => {
             },
             {
                 sats: BigInt(listPriceSatoshis),
-                script: Script.p2pkh(fromHex(wallet.hash)),
+                script: Script.p2pkh(ecashWallet.pkh),
             },
         ];
 
         const agoraOneshot = new AgoraOneshot({
             enforcedOutputs,
-            cancelPk: fromHex(activeWallet.pk),
+            cancelPk: ecashWallet.pk,
         });
         const agoraAdScript = agoraOneshot.adScript();
         const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
@@ -1528,7 +1526,7 @@ const Token: React.FC = () => {
         ];
         const offerTxFuelSats = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraOneshotAdSignatory(fromHex(wallet.sk)),
+            AgoraOneshotAdSignatory(ecashWallet.sk),
             offerTargetOutputs,
             BigInt(satsPerKb),
         );
@@ -1615,7 +1613,7 @@ const Token: React.FC = () => {
                             redeemScript: agoraAdScript,
                         },
                     },
-                    signatory: AgoraOneshotAdSignatory(fromHex(wallet.sk)),
+                    signatory: AgoraOneshotAdSignatory(ecashWallet.sk),
                 },
             ];
 
@@ -1719,7 +1717,7 @@ const Token: React.FC = () => {
                     tokenProtocol: protocol as 'ALP' | 'SLP',
                     offeredAtoms: userSuggestedOfferedTokens,
                     priceNanoSatsPerAtom: priceNanoSatsPerTokenSatoshi,
-                    makerPk: fromHex(wallet.pk),
+                    makerPk: ecashWallet.pk,
                     minAcceptedAtoms,
                 },
                 appConfig.scriptIntegerBits,
@@ -1817,7 +1815,7 @@ const Token: React.FC = () => {
                 tokenProtocol: protocol as 'ALP' | 'SLP',
                 offeredAtoms: userSuggestedOfferedTokens,
                 priceNanoSatsPerAtom: priceNanoSatsPerAtom,
-                makerPk: fromHex(wallet.pk),
+                makerPk: ecashWallet.pk,
                 minAcceptedAtoms: userSuggestedOfferedTokens,
             };
             firmaPartial = await agora.selectParams(
@@ -2025,7 +2023,7 @@ const Token: React.FC = () => {
         // Because we have undecimalized tokens in token sats from the AgoraPartial object,
         // We pass this and "0" as decimals
         const slpInputsInfo = getSendTokenInputs(
-            wallet.state.slpUtxos,
+            tokenUtxos,
             tokenId as string,
             // This is already in units of token sats
             offeredTokens.toString(),
@@ -2053,7 +2051,7 @@ const Token: React.FC = () => {
 
         const adSetupSatoshis = getAgoraAdFuelSats(
             agoraAdScript,
-            AgoraPartialAdSignatory(fromHex(wallet.sk)),
+            AgoraPartialAdSignatory(ecashWallet.sk),
             offerTargetOutputs,
             BigInt(satsPerKb),
         );
@@ -2157,7 +2155,7 @@ const Token: React.FC = () => {
                             redeemScript: agoraAdScript,
                         },
                     },
-                    signatory: AgoraPartialAdSignatory(fromHex(wallet.sk)),
+                    signatory: AgoraPartialAdSignatory(ecashWallet.sk),
                 },
             ];
 

@@ -119,7 +119,6 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
@@ -166,7 +165,6 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
@@ -242,7 +240,6 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
@@ -333,7 +330,6 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                     loadOnClick
                 />
@@ -422,7 +418,6 @@ describe('<Collection />', () => {
                     settings={testSettings}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,
@@ -545,7 +540,6 @@ describe('<Collection />', () => {
                     settings={testSettings2010}
                     fiatPrice={FIAT_PRICE}
                     userLocale={'en-US'}
-                    chaintipBlockheight={CHAINTIPBLOCKHEIGHT}
                     ecashWallet={mockEcashWallet}
                 />
             </ThemeProvider>,

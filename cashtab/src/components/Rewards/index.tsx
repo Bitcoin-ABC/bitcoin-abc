@@ -19,12 +19,11 @@ const Rewards = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState } = ContextValue;
-    const { activeWallet } = cashtabState;
-    if (!activeWallet) {
+    const { ecashWallet } = ContextValue;
+    if (!ecashWallet) {
         return null;
     }
-    const address = activeWallet.address;
+    const address = ecashWallet.address;
     const ELAPSED_TIMER = { hours: '00', minutes: '00', seconds: '00' };
     const [isEligible, setIsEligible] = useState<null | boolean>(null);
     const [eligibleAgainTimestamp, setEligibleAgainTimestamp] = useState<

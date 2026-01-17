@@ -384,13 +384,10 @@ const SendXec: React.FC = () => {
         chronik,
         ecashWallet,
     } = ContextValue;
-    const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet || !ecashWallet) {
+    const { settings, cashtabCache, tokens } = cashtabState;
+    if (!ecashWallet || !tokens) {
         return null;
     }
-
-    const wallet = activeWallet;
-    const { tokens } = wallet.state;
 
     const balanceSats = Number(ecashWallet.balanceSats);
 

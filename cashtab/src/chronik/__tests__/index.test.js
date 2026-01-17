@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    organizeUtxosByType,
     parseTx,
     getTxNotificationMsg,
     getTokenGenesisInfo,
@@ -62,17 +61,6 @@ describe('Cashtab chronik.js functions', () => {
                         genesisInfo,
                     ),
                 ).toEqual(returned);
-            });
-        });
-    });
-    describe('Separates SLP and non-SLP utxos', () => {
-        const { expectedReturns } = vectors.organizeUtxosByType;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, chronikUtxos, returned } = expectedReturn;
-            it(`organizeUtxosByType: ${description}`, () => {
-                expect(organizeUtxosByType(chronikUtxos)).toStrictEqual(
-                    returned,
-                );
             });
         });
     });

@@ -58,18 +58,17 @@ const Etokens = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { loading, cashtabState } = ContextValue;
-    const { cashtabCache, activeWallet } = cashtabState;
-    if (activeWallet === undefined) {
+    const { loading, cashtabState, ecashWallet } = ContextValue;
+    const { cashtabCache, tokens } = cashtabState;
+
+    if (!tokens || !ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
-    const { tokens } = wallet.state;
 
     const [tokenSearch, setTokenSearch] = useState<string>('');
 
     // tokensInWallet is a key value array of the cashtab cache tokens Map,
-    // except that it contains only the tokens in wallet.state.tokens,
+    // except that it contains only the tokens in cashtabState.tokens,
     // and, in addition to cached info, it has the user's token balance
     const [tokensInWallet, setTokensInWallet] = useState<null | TokenInfoKv[]>(
         null,

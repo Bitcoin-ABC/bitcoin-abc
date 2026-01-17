@@ -4,7 +4,6 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import { ActiveCashtabWallet } from 'wallet';
 import {
     TrashcanIcon,
     EditIcon,
@@ -43,7 +42,6 @@ import {
     createCashtabWallet,
     generateMnemonic,
     StoredCashtabWallet,
-    createActiveCashtabWallet,
 } from 'wallet';
 import { previewAddress } from 'helpers';
 import { sortWalletsForDisplay } from 'wallet';
@@ -71,15 +69,15 @@ const Wallets = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        cashtabState,
-        chronik,
-        setLoading,
-        updateCashtabState,
-        handleActivatingCopiedWallet,
-    } = ContextValue;
-    const { wallets, contactList, activeWallet } = cashtabState;
-    if (activeWallet === undefined) {
+    const { cashtabState, setLoading, updateCashtabState, getWalletByAddress } =
+        ContextValue;
+    const { wallets, contactList } = cashtabState;
+    const { ecashWallet } = ContextValue;
+    if (!ecashWallet) {
+        return null;
+    }
+    const activeStoredWallet = getWalletByAddress(ecashWallet.address);
+    if (!activeStoredWallet) {
         return null;
     }
 
@@ -221,12 +219,19 @@ const Wallets = () => {
             // Update localforage and state
             const updates: {
                 wallets: StoredCashtabWallet[];
-                activeWallet?: ActiveCashtabWallet;
             } = { wallets };
-            if (activeWallet.mnemonic === walletToBeRenamed.mnemonic) {
+            if (
+                activeStoredWallet &&
+                activeStoredWallet.mnemonic === walletToBeRenamed.mnemonic
+            ) {
                 // Also update the active wallet name
-                activeWallet.name = formData.renamedWalletName;
-                updates.activeWallet = activeWallet;
+                activeStoredWallet.name = formData.renamedWalletName;
+                // Update the wallet in the wallets array
+                updates.wallets = cashtabState.wallets.map(wallet =>
+                    wallet.address === activeStoredWallet.address
+                        ? { ...wallet, name: formData.renamedWalletName }
+                        : wallet,
+                );
             }
             await updateCashtabState(updates);
             toast.success(
@@ -410,13 +415,19 @@ const Wallets = () => {
         const copiedWallet = wallets.find(wallet => wallet.name === walletName);
 
         // If the copied wallet is not the active wallet, activate it
-        if (copiedWallet && activeWallet.mnemonic !== copiedWallet.mnemonic) {
+        if (
+            copiedWallet &&
+            activeStoredWallet &&
+            activeStoredWallet.mnemonic !== copiedWallet.mnemonic
+        ) {
             // Event("Category", "Action", "Label")
             // Track number of times a different wallet is activated
             Event('Configure.js', 'Activate', '');
 
-            // Only update the activeWalletAddress in storage for address copying
-            await handleActivatingCopiedWallet(copiedWallet.address);
+            // Update activeWalletAddress in state (which also persists to storage)
+            await updateCashtabState({
+                activeWalletAddress: copiedWallet.address,
+            });
         }
 
         // Close the tab after copying - this works when the tab was opened by JavaScript
@@ -430,12 +441,11 @@ const Wallets = () => {
         Event('Configure.js', 'Activate', '');
 
         try {
-            const activeWallet = await createActiveCashtabWallet(
-                chronik,
-                walletToActivate,
-                cashtabState.cashtabCache,
-            );
-            await updateCashtabState({ activeWallet: activeWallet });
+            // Update active wallet address in state (which also persists to storage)
+            // This triggers the useEffect that calls initializeWallet()
+            await updateCashtabState({
+                activeWalletAddress: walletToActivate.address,
+            });
         } catch (error) {
             console.error('Error activating wallet:', error);
             toast.error('Failed to activate wallet. Please try again.');
@@ -547,7 +557,7 @@ const Wallets = () => {
                                 Reject
                             </button>
                         </div>
-                        {sortWalletsForDisplay(activeWallet, wallets).map(
+                        {sortWalletsForDisplay(activeStoredWallet, wallets).map(
                             (wallet, index) => (
                                 <WalletAddressRow
                                     key={`${wallet.name}_${index}`}
@@ -602,7 +612,7 @@ const Wallets = () => {
             )}
             <WalletsList title="Wallets">
                 <WalletsPanel>
-                    {sortWalletsForDisplay(activeWallet, wallets).map(
+                    {sortWalletsForDisplay(activeStoredWallet, wallets).map(
                         (wallet, index) =>
                             index === 0 ? (
                                 <Wallet key={`${wallet.name}_${index}`}>

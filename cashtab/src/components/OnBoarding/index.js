@@ -8,18 +8,14 @@ import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';
-import {
-    createCashtabWallet,
-    generateMnemonic,
-    createActiveCashtabWallet,
-} from 'wallet';
+import { createCashtabWallet, generateMnemonic } from 'wallet';
 import { WelcomeCtn, WelcomeLink, WelcomeText } from './styles';
 import Modal from 'components/Common/Modal';
 import { ModalTextArea } from 'components/Common/Inputs';
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { updateCashtabState, cashtabState, chronik } = ContextValue;
+    const { updateCashtabState } = ContextValue;
 
     const [importedMnemonic, setImportedMnemonic] = useState('');
     const [showImportWalletModal, setShowImportWalletModal] = useState(false);
@@ -37,15 +33,11 @@ const OnBoarding = () => {
         Event('Onboarding.js', 'Create Wallet', 'Imported');
         try {
             const importedWallet = createCashtabWallet(importedMnemonic);
-            // Note that if a user imports a wallet from OnBoarding, we must also set the active wallet
-            const activeWallet = await createActiveCashtabWallet(
-                chronik,
-                importedWallet,
-                cashtabState.cashtabCache,
-            );
+            // Set activeWalletAddress in CashtabState (this also persists to storage)
+            // This will trigger initializeWallet() in useWallet
             await updateCashtabState({
                 wallets: [importedWallet],
-                activeWallet: activeWallet,
+                activeWalletAddress: importedWallet.address,
             });
             // Close the modal
             setShowImportWalletModal(false);
@@ -61,14 +53,11 @@ const OnBoarding = () => {
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'New');
         const newWallet = createCashtabWallet(generateMnemonic());
-        const newActiveWallet = await createActiveCashtabWallet(
-            chronik,
-            newWallet,
-            cashtabState.cashtabCache,
-        );
+        // Set activeWalletAddress in CashtabState (this also persists to storage)
+        // This will trigger initializeWallet() in useWallet
         await updateCashtabState({
             wallets: [newWallet],
-            activeWallet: newActiveWallet,
+            activeWalletAddress: newWallet.address,
         });
     }
 

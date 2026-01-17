@@ -193,10 +193,25 @@ describe('useWallet hook rendering in different localforage states', () => {
                 satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM, // Number format (no longer serialized)
             }),
         );
-        await waitFor(() =>
-            expect(result.current.cashtabState.activeWallet).toStrictEqual(
-                walletWithXecAndTokensActive,
-            ),
+        // Wait for ecashWallet to be initialized
+        await waitFor(() => expect(result.current.ecashWallet).not.toBeNull());
+        // Verify wallet address matches
+        expect(result.current.ecashWallet.address).toBe(
+            walletWithXecAndTokensActive.address,
+        );
+        // Verify wallet exists in wallets array (without state property)
+        const activeWallet = result.current.cashtabState.wallets.find(
+            wallet => wallet.address === walletWithXecAndTokensActive.address,
+        );
+        expect(activeWallet).toBeDefined();
+        expect(activeWallet.address).toBe(walletWithXecAndTokensActive.address);
+        expect(activeWallet.name).toBe(walletWithXecAndTokensActive.name);
+        expect(activeWallet.sk).toBe(walletWithXecAndTokensActive.sk);
+        expect(activeWallet.pk).toBe(walletWithXecAndTokensActive.pk);
+        expect(activeWallet.hash).toBe(walletWithXecAndTokensActive.hash);
+        // Verify tokens map is populated
+        expect(result.current.cashtabState.tokens).toEqual(
+            walletWithXecAndTokensActive.state.tokens,
         );
     });
     it('An incoming tx message from the websocket causes the wallet to update', async () => {
@@ -211,11 +226,25 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         const { result } = renderHook(() => useWallet(mockedChronik));
 
-        // Wait for the wallet to load
-        await waitFor(() =>
-            expect(result.current.cashtabState.activeWallet).toStrictEqual(
-                walletWithXecAndTokensActive,
-            ),
+        // Wait for ecashWallet to be initialized
+        await waitFor(() => expect(result.current.ecashWallet).not.toBeNull());
+        // Verify wallet address matches
+        expect(result.current.ecashWallet.address).toBe(
+            walletWithXecAndTokensActive.address,
+        );
+        // Verify wallet exists in wallets array (without state property)
+        const activeWallet = result.current.cashtabState.wallets.find(
+            wallet => wallet.address === walletWithXecAndTokensActive.address,
+        );
+        expect(activeWallet).toBeDefined();
+        expect(activeWallet.address).toBe(walletWithXecAndTokensActive.address);
+        expect(activeWallet.name).toBe(walletWithXecAndTokensActive.name);
+        expect(activeWallet.sk).toBe(walletWithXecAndTokensActive.sk);
+        expect(activeWallet.pk).toBe(walletWithXecAndTokensActive.pk);
+        expect(activeWallet.hash).toBe(walletWithXecAndTokensActive.hash);
+        // Verify tokens map is populated
+        expect(result.current.cashtabState.tokens).toEqual(
+            walletWithXecAndTokensActive.state.tokens,
         );
 
         const expectedCache = new CashtabCache();

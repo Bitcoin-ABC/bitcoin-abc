@@ -308,9 +308,8 @@ describe('<Nfts />', () => {
         );
 
         // Wait for the wallet to load
-        expect(
-            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        const balanceElement = await screen.findByTitle('Balance XEC');
+        expect(balanceElement).toHaveTextContent('9,513.12 XEC');
 
         // The switch is still set to Manage Listings, so we do not see buy listings
         expect(toggleNftsSwitch).toHaveProperty('checked', true);

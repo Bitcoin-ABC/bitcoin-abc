@@ -3435,10 +3435,10 @@ export const EtokensWalletMock: ActiveCashtabWallet = {
         ]),
     },
     mnemonic: 'army army army army army army army army army army army army',
-    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-    hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+    address: 'ecash:qr78y59zz80dm3cwuk388r097pupwdguau4d0kvns8',
+    hash: 'fc7250a211deddc70ee5a2738de5f07817351cef',
     sk: '1111111111111111111111111111111111111111111111111111111111111111',
-    pk: '1111111111111111111111111111111111111111111111111111111111111111',
+    pk: '034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa',
     name: 'Etokens Test',
 };
 export const EtokensStoredCashtabCache = {

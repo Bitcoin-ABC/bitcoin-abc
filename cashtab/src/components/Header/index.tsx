@@ -10,7 +10,7 @@ import { getUserLocale } from 'helpers';
 import appConfig from 'config/app';
 import Cashtab from 'assets/cashtab_xec.png';
 import PopOut from 'assets/popout.png';
-import { toXec, createActiveCashtabWallet } from 'wallet';
+import { toXec } from 'wallet';
 import { FIRMA } from 'constants/tokens';
 import Ecash from 'assets/ecash.png';
 import Staking from 'assets/staking.png';
@@ -47,51 +47,53 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
         return null;
     }
     const {
-        chronik,
         cashtabState,
         updateCashtabState,
         loading,
         setLoading,
         fiatPrice,
         firmaPrice,
+        ecashWallet,
+        getWalletByAddress,
     } = ContextValue;
-    const { wallets, activeWallet, settings } = cashtabState;
+    const { wallets, settings, tokens } = cashtabState;
 
-    if (!activeWallet) {
+    if (!ecashWallet || !tokens) {
         // Without an active wallet, all components except App, which renders Onboarding, are disabled
         return null;
     }
 
-    const address = activeWallet.address;
+    const activeStoredWallet = getWalletByAddress(ecashWallet.address);
+    if (!activeStoredWallet) {
+        return null;
+    }
+    const activeWalletAddress = ecashWallet.address;
 
-    const menuWallets = sortWalletsForDisplay(activeWallet, wallets);
+    const menuWallets = sortWalletsForDisplay(activeStoredWallet, wallets);
 
     const handleSelectWallet = async (
         e: React.ChangeEvent<HTMLSelectElement>,
     ) => {
-        const walletName = e.target.value;
+        const selectedWalletAddress = e.target.value;
 
-        // Get the active wallet by name
-        const walletToActivate = wallets.find(
-            wallet => wallet.name === walletName,
-        );
+        // Get the wallet to activate by name
+        const walletToActivate = getWalletByAddress(selectedWalletAddress);
 
-        if (typeof walletToActivate === 'undefined') {
+        if (walletToActivate === null) {
             return;
         }
 
         setLoading(true);
         try {
-            const activeWallet = await createActiveCashtabWallet(
-                chronik,
-                walletToActivate,
-                cashtabState.cashtabCache,
-            );
-            await updateCashtabState({ activeWallet: activeWallet });
+            // Update active wallet address in state (which also persists to storage)
+            // This triggers the useEffect that calls initializeWallet()
+            await updateCashtabState({
+                activeWalletAddress: walletToActivate.address,
+            });
         } catch (error) {
             console.error('Error switching wallet:', error);
             // Reset dropdown to previous value on error
-            e.target.value = activeWallet.name;
+            e.target.value = activeWalletAddress;
         } finally {
             setLoading(false);
         }
@@ -119,7 +121,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
             maximumFractionDigits: appConfig.fiatDecimals,
         });
 
-    const balanceXec = toXec(activeWallet.state.balanceSats);
+    const balanceXec = toXec(Number(ecashWallet.balanceSats));
 
     const formattedBalanceXec = formatBalance(
         balanceXec,
@@ -127,17 +129,14 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
     );
 
     const balanceXecx =
-        Number(
-            activeWallet.state.tokens.get(appConfig.vipTokens.xecx.tokenId),
-        ) || 0;
+        Number(tokens.get(appConfig.vipTokens.xecx.tokenId)) || 0;
 
     const formattedBalanceXecx = formatBalance(
         balanceXecx,
         appConfig.cashDecimals,
     );
 
-    const balanceFirma =
-        Number(activeWallet.state.tokens.get(FIRMA.tokenId)) || 0;
+    const balanceFirma = Number(tokens.get(FIRMA.tokenId)) || 0;
 
     const formattedBalanceFirma = formatBalance(
         balanceFirma,
@@ -243,7 +242,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                         </ExtenstionButton>
                     )}
                     <WalletHeaderActions
-                        address={address}
+                        address={ecashWallet.address}
                         settings={settings}
                         updateCashtabState={updateCashtabState}
                     />
@@ -252,11 +251,11 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                         id="wallets"
                         data-testid="wallet-select"
                         onChange={e => handleSelectWallet(e)}
-                        value={activeWallet.name}
+                        value={activeWalletAddress}
                         disabled={loading}
                     >
                         {menuWallets.map((wallet, index) => (
-                            <WalletOption key={index} value={wallet.name}>
+                            <WalletOption key={index} value={wallet.address}>
                                 {wallet.name}
                             </WalletOption>
                         ))}

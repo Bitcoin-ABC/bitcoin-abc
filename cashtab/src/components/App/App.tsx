@@ -84,23 +84,24 @@ const App = () => {
         initialUtxoSyncComplete,
         update,
         refreshTransactionHistory,
+        ecashWallet,
+        apiError,
     } = ContextValue;
-    const { wallets, activeWallet } = cashtabState;
-    const wallet = typeof activeWallet !== 'undefined' ? activeWallet : false;
+    const { wallets, tokens } = cashtabState;
+    const hasWallet = ecashWallet !== null;
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     const location = useLocation();
     const navigate = useNavigate();
 
     // Easter egg boolean not used in extension/src/components/App.js
-    const hasTab =
-        wallet !== false
-            ? hasEnoughToken(
-                  wallet.state.tokens,
-                  '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-                  '1',
-              )
-            : false;
+    const hasTab = hasWallet
+        ? hasEnoughToken(
+              tokens,
+              '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+              '1',
+          )
+        : false;
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
@@ -108,7 +109,7 @@ const App = () => {
                 <>
                     <ExtensionFrame />
                     {/** We can only render the address sharing modal if we have a wallet */}
-                    {wallet !== false && <Extension />}
+                    {hasWallet && <Extension />}
                 </>
             ) : (
                 <>
@@ -146,12 +147,12 @@ const App = () => {
                     aria-label="Notifications"
                 />
                 <WalletBody>
-                    <WalletCtn showFooter={wallet !== false}>
+                    <WalletCtn showFooter={hasWallet}>
                         {!cashtabLoaded ? (
                             <LoadingCtn title="Cashtab Loading" />
                         ) : (
                             <>
-                                {wallet === false ? (
+                                {!hasWallet && !apiError ? (
                                     <OnBoarding />
                                 ) : (
                                     <PullToRefresh
@@ -161,7 +162,7 @@ const App = () => {
                                             await update();
                                             await refreshTransactionHistory();
                                         }}
-                                        disabled={loading || !wallet}
+                                        disabled={loading || !hasWallet}
                                     >
                                         <Header
                                             path={location.pathname}
@@ -285,7 +286,7 @@ const App = () => {
                             </>
                         )}
                     </WalletCtn>
-                    {wallet !== false && (
+                    {hasWallet && (
                         <Footer>
                             <DesktopLogo>
                                 <CashtabLogo src={Cashtab} alt="cashtab" />

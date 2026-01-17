@@ -89,12 +89,13 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         return null;
     }
     const { cashtabState, ecashWallet } = ContextValue;
-    const { settings, activeWallet } = cashtabState;
-    if (!activeWallet || !ecashWallet) {
+    const { settings, tokens } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
-    const { tokens } = wallet.state;
+    if (!tokens) {
+        return null;
+    }
 
     // Constant to handle rendering of CreateTokenForm for NFT Minting
     const isNftMint = typeof groupTokenId !== 'undefined';
@@ -763,7 +764,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                         ? {
                               ...genesisInfo,
                               // Set as Cashtab active wallet public key
-                              authPubkey: activeWallet.pk,
+                              authPubkey: toHex(ecashWallet.pk),
                               // Note we are omitting the "data" key for now
                           }
                         : genesisInfo;

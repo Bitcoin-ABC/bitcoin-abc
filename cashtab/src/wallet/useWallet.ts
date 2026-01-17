@@ -12,9 +12,7 @@ import {
 import { storage, initializeStorage } from 'platform';
 import {
     getTransactionHistory,
-    organizeUtxosByType,
     parseTx,
-    getTokenBalances,
     getTokenGenesisInfo,
     getTxNotificationMsg,
 } from 'chronik';
@@ -31,10 +29,8 @@ import {
 } from 'helpers';
 import {
     createCashtabWallet,
-    getBalanceSats,
-    ActiveCashtabWallet,
     StoredCashtabWallet,
-    createActiveCashtabWallet,
+    generateTokensFromWalletUtxos,
     LegacyCashtabWallet,
     CashtabTx,
 } from 'wallet';
@@ -49,9 +45,10 @@ import {
     MsgTxClient,
 } from 'chronik-client';
 import { Agora } from 'ecash-agora';
-import { Ecc } from 'ecash-lib';
+import { Ecc, toHex } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { fromHex } from 'ecash-lib';
+
 import CashtabCache from 'config/CashtabCache';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -71,20 +68,20 @@ export interface TransactionHistory {
 
 export type UpdateCashtabState = (updates: {
     [key: string]:
-        | ActiveCashtabWallet
         | CashtabCache
         | CashtabContact[]
         | CashtabSettings
         | CashtabCacheJson
         | StoredCashtabWallet[]
-        | string;
+        | Map<string, string>
+        | string
+        | null;
 }) => Promise<boolean>;
 
 export interface UseWalletReturnType {
     chronik: ChronikClient;
     agora: Agora;
     ecc: Ecc;
-    chaintipBlockheight: number;
     fiatPrice: number | null;
     firmaPrice: number | null;
     cashtabLoaded: boolean;
@@ -93,7 +90,6 @@ export interface UseWalletReturnType {
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     apiError: boolean;
     updateCashtabState: UpdateCashtabState;
-    handleActivatingCopiedWallet: (walletAddress: string) => Promise<void>;
     processChronikWsMsg: (msg: WsMsgClient) => Promise<boolean>;
     cashtabState: CashtabState;
     transactionHistory: TransactionHistory | null;
@@ -109,8 +105,16 @@ export interface UseWalletReturnType {
     setCashtabState: React.Dispatch<React.SetStateAction<CashtabState>>;
     /**
      * Wallet instance from ecash-wallet, initialized from active wallet sk
+     * This is the Wallet instance from ecash-wallet
+     * Wallet name is stored in cashtabState.wallets (StoredCashtabWallet)
      */
     ecashWallet: Wallet | null;
+    /**
+     * Get a StoredCashtabWallet by its address
+     * @param address The wallet address to look up
+     * @returns The StoredCashtabWallet if found, null otherwise
+     */
+    getWalletByAddress: (address: string) => StoredCashtabWallet | null;
 }
 
 const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
@@ -124,7 +128,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [initialUtxoSyncComplete, setInitialUtxoSyncComplete] =
         useState<boolean>(false);
-    const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState<CashtabState>(
         new CashtabState(),
     );
@@ -134,7 +137,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const locale = getUserLocale();
 
     const refreshTransactionHistory = async () => {
-        if (!currentCashtabStateRef.current.activeWallet) {
+        if (!ecashWalletRef.current) {
             setTransactionHistory(null);
             return;
         }
@@ -143,7 +146,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // NB this gives us page 0 as we call without specifying page number
             const result = await getTransactionHistory(
                 chronik,
-                currentCashtabStateRef.current.activeWallet.address,
+                ecashWalletRef.current.address,
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
@@ -208,12 +211,12 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
     // Refresh transaction history when active wallet changes
     useEffect(() => {
-        if (cashtabLoaded && cashtabState.activeWallet) {
+        if (cashtabLoaded && ecashWallet) {
             refreshTransactionHistory();
         } else {
             setTransactionHistory(null);
         }
-    }, [cashtabState.activeWallet?.address, cashtabLoaded]);
+    }, [ecashWallet?.address, cashtabLoaded]);
 
     // Queue for processing messages in order
     const messageQueue = useRef<Array<WsMsgClient>>([]);
@@ -318,9 +321,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 }
 
                 // parse tx for notification
-                const parsedTx = parseTx(incomingTxDetails, [
-                    cashtabState.activeWallet!.hash,
-                ]);
+                // Get hash from ecashWallet address
+                const walletHash = ecashWalletRef.current
+                    ? toHex(ecashWalletRef.current.pkh)
+                    : '';
+                const parsedTx = parseTx(incomingTxDetails, [walletHash]);
 
                 // Add the new transaction to the beginning of the first page history
                 setTransactionHistory(prev => {
@@ -497,15 +502,26 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     /**
-     * Initialize Wallet from ecash-wallet when activeWallet changes
+     * Initialize Wallet from ecash-wallet when active wallet changes
+     * Uses activeWalletAddress from cashtabState to find the active wallet
+     * Adds name property to make ecashWallet the sole source of truth for all wallet info
      */
     const initializeWallet = async () => {
-        if (currentCashtabStateRef.current.activeWallet === undefined) {
+        const addressToUse = currentCashtabStateRef.current.activeWalletAddress;
+        if (!addressToUse) {
             setEcashWallet(null);
             return;
         }
 
-        const activeWallet = currentCashtabStateRef.current.activeWallet;
+        // Find the active wallet from wallets array
+        const activeWallet = currentCashtabStateRef.current.wallets.find(
+            wallet => wallet.address === addressToUse,
+        );
+        if (!activeWallet) {
+            setEcashWallet(null);
+            return;
+        }
+
         const sk = fromHex(activeWallet.sk);
         const newWallet = Wallet.fromSk(sk, chronik);
         ecashWalletRef.current = newWallet;
@@ -517,12 +533,26 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             await newWallet.sync();
             // Update state after sync so components re-render with updated wallet
             setEcashWallet(newWallet);
-        } catch (error) {
-            console.error(
-                `Error in update(cashtabState) from cashtabState`,
-                cashtabState,
+
+            // Generate tokens map from ecashWallet.utxos
+            // This ensures tokens are available before cashtabLoaded is set to true
+            // Note: generateTokensFromWalletUtxos may mutate cashtabCache.tokens (via getTokenBalances)
+            const walletUtxos = newWallet.utxos;
+            const tokens = await generateTokensFromWalletUtxos(
+                chronik,
+                walletUtxos,
+                currentCashtabStateRef.current.cashtabCache.tokens,
             );
-            console.error(error);
+
+            // Update tokens in cashtabState
+            // cashtabCache.tokens may have been mutated by generateTokensFromWalletUtxos,
+            // so we need to update the cache in state to persist those changes
+            await updateCashtabState({
+                tokens: tokens as Map<string, string>,
+                cashtabCache: currentCashtabStateRef.current.cashtabCache,
+            } as Parameters<UpdateCashtabState>[0]);
+        } catch (error) {
+            console.error(`Error in initializeWallet()`, error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
             // Set loading false, as we may not have set it to false by updating the wallet
@@ -542,66 +572,22 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
      * Then we lazy load everything else
      */
     const startupUtxoSync = async () => {
-        if (currentCashtabStateRef.current.activeWallet === undefined) {
-            // Should never happen, we only call this in a useEffect when activeWallet is defined
-            return;
-        }
-        // Get the active wallet
-        const activeWallet = currentCashtabStateRef.current.activeWallet;
-
-        // Initialize Wallet from ecash-wallet (this syncs the wallet)
-        await initializeWallet();
-
+        // Wallet is already initialized in loadCashtabState(), so we just need to sync and update
         if (ecashWalletRef.current === null) {
-            // Should never happen if activeWallet is defined
             return;
-        }
-
-        try {
-            // Get UTXOs from the synced wallet
-            const walletUtxos = ecashWalletRef.current.utxos;
-
-            // TODO deprecate in-Cashtab utxo org and use ecash-wallet's org
-            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(walletUtxos);
-
-            const newState = {
-                ...activeWallet.state,
-                balanceSats: getBalanceSats(nonSlpUtxos),
-                slpUtxos,
-                nonSlpUtxos,
-            };
-
-            // Set wallet with new state field
-            activeWallet.state = newState;
-
-            // Update only the active wallet, wallets[0], in state
-            await updateCashtabState({ activeWallet: activeWallet });
-
-            // Update chaintipBlockheight from wallet
-            setChaintipBlockheight(ecashWalletRef.current.tipHeight);
-        } catch (error) {
-            // We only log errors, leaving API Error handling to update()
-            console.error(`Error in utxoSync() `, cashtabState);
-            console.error(error);
         }
 
         // We clear this flag even if we fail to get the latest utxo set
         // as we anticipate update() will catch the same API error
         setInitialUtxoSyncComplete(true);
 
-        // Call the full update
+        // Call the full update (this will sync the wallet and update tokens)
         update();
     };
 
     const update = async () => {
         if (!currentCashtabLoadedRef.current) {
             // Wait for cashtab to get state from storage before updating
-            return;
-        }
-
-        // Get the active wallet
-        const activeWallet = currentCashtabStateRef.current.activeWallet;
-        if (activeWallet === undefined) {
             return;
         }
 
@@ -612,7 +598,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         if (ecashWalletRef.current === null) {
-            // Should never happen if activeWallet is defined
             return;
         }
 
@@ -624,48 +609,28 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
             // Get UTXOs from the synced wallet
             const walletUtxos = ecashWalletRef.current.utxos;
-            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(walletUtxos);
 
-            // Get map of all tokenIds held by this wallet and their balances
-            // Note: this function will also update cashtabCache.tokens if any tokens in slpUtxos are not in cache
-            const tokens = await getTokenBalances(
+            // Generate tokens map from ecashWallet.utxos
+            // Note: this function will also update cashtabCache.tokens if any tokens are not in cache
+            const tokens = await generateTokensFromWalletUtxos(
                 chronik,
-                slpUtxos,
+                walletUtxos,
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
-            // Update cashtabCache.tokens in state and storage
+            // Update cashtabCache.tokens in state and storage (getTokenBalances may have updated it)
             updateCashtabState({
                 cashtabCache: {
                     ...currentCashtabStateRef.current.cashtabCache,
                     tokens: currentCashtabStateRef.current.cashtabCache.tokens,
                 },
-            });
-
-            const newState = {
-                balanceSats: getBalanceSats(nonSlpUtxos),
-                slpUtxos,
-                nonSlpUtxos,
                 tokens,
-            };
-
-            // Set wallet with new state field
-            activeWallet.state = newState;
-
-            // We do not update the wallets in state, only the activeWallet
-            await updateCashtabState({ activeWallet: activeWallet });
-
-            // Update chaintipBlockheight from wallet
-            setChaintipBlockheight(ecashWalletRef.current.tipHeight);
+            });
 
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.error(
-                `Error in update(cashtabState) from cashtabState`,
-                cashtabState,
-            );
-            console.error(error);
+            console.error(`Error in update()`, error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
             // Set loading false, as we may not have set it to false by updating the wallet
@@ -680,13 +645,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
      */
     const updateCashtabState = async (updates: {
         [key: string]:
-            | ActiveCashtabWallet
             | CashtabCache
             | CashtabContact[]
             | CashtabSettings
             | CashtabCacheJson
             | StoredCashtabWallet[]
-            | string;
+            | Map<string, string>
+            | string
+            | null;
     }) => {
         // Update all keys in state atomically
         setCashtabState(prevState => ({ ...prevState, ...updates }));
@@ -700,20 +666,11 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             let storageKey = key;
             let storageValue = value;
 
-            // We do not store the full activeWallet, only the address
-            // We choose the address because it is not changeable, like a name, and it is also not secret
-            if (key === 'activeWallet') {
-                /**
-                 * Special handling for the activeWallet
-                 * - We update the activeWalletAddress key with the address of the active wallet
-                 * - In the future, we will update cache with its utxos or other things that would be useful to cache
-                 *
-                 * Potential confusion that we are calling updateCashtabState with the 'activeWallet' key, which actually does not exist
-                 * But on balance, I think it's better to make sure the key we actually use matches what it actually stores, and to optimize
-                 * Cashtab storage and caching, we need to move beyond "everything is key value"
-                 */
-                storageKey = 'activeWalletAddress';
-                storageValue = (value as ActiveCashtabWallet).address;
+            // Handle tokens map - convert to array for storage
+            if (key === 'tokens') {
+                storageKey = 'tokens';
+                // Convert Map to array of [key, value] pairs for JSON storage
+                storageValue = Array.from(value as Map<string, string>);
             }
 
             // Handle any items that must be converted to JSON before storage
@@ -838,6 +795,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         const wallets: null | StoredCashtabWallet[] =
             await storage.get<StoredCashtabWallet[]>('wallets');
 
+        // Load tokens from storage (if exists)
+        const storedTokens: null | [string, string][] =
+            await storage.get<[string, string][]>('tokens');
+        if (storedTokens !== null) {
+            cashtabState.tokens = new Map(storedTokens);
+        }
+        // Otherwise it will populate on update
+
         if (activeWalletAddress !== null && wallets !== null) {
             // Normal startup
             // We do not validate wallets as, if we have these keys in place, we know structure is the latest
@@ -850,13 +815,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     'Corrupted storage: Active wallet not found in wallets',
                 );
             }
-            const activeWallet = await createActiveCashtabWallet(
-                chronik,
-                storedActiveWallet,
-                cashtabState.cashtabCache,
-            );
-            cashtabState.activeWallet = activeWallet;
             cashtabState.wallets = wallets;
+            cashtabState.activeWalletAddress = activeWalletAddress;
         } else if (wallets !== null) {
             // Legacy user
             console.info('Legacy user found in storage, migrating wallets');
@@ -869,14 +829,20 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 );
             }
             cashtabState.wallets = migratedLegacyWallets;
-            cashtabState.activeWallet = await createActiveCashtabWallet(
-                chronik,
-                migratedLegacyWallets[0],
-                cashtabState.cashtabCache,
+            // Set activeWalletAddress in cashtabState so it's available immediately
+            cashtabState.activeWalletAddress = migratedLegacyWallets[0].address;
+
+            // Set first wallet as active
+            await storage.set(
+                'activeWalletAddress',
+                migratedLegacyWallets[0].address,
             );
 
-            // For migrating users, we must update the wallets key
-            await updateCashtabState({ wallets: migratedLegacyWallets });
+            // For migrating users, we must update the wallets key and activeWalletAddress
+            await updateCashtabState({
+                wallets: migratedLegacyWallets,
+                activeWalletAddress: migratedLegacyWallets[0].address,
+            });
         } else {
             // Test for superLegacy user
             const wallet: null | StoredCashtabWallet =
@@ -913,16 +879,19 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     );
                 }
                 cashtabState.wallets = migratedSuperLegacyWallets;
+                // Set activeWalletAddress in cashtabState so it's available immediately
+                cashtabState.activeWalletAddress = migratedActiveWallet.address;
 
-                cashtabState.activeWallet = await createActiveCashtabWallet(
-                    chronik,
-                    migratedActiveWallet,
-                    cashtabState.cashtabCache,
+                // Set migrated active wallet as active
+                await storage.set(
+                    'activeWalletAddress',
+                    migratedActiveWallet.address,
                 );
 
-                // For migrating users, we must update the wallets key
+                // For migrating users, we must update the wallets key and activeWalletAddress
                 await updateCashtabState({
                     wallets: migratedSuperLegacyWallets,
+                    activeWalletAddress: migratedActiveWallet.address,
                 });
             } else {
                 // Corrupt storage
@@ -935,6 +904,18 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         setCashtabState(cashtabState);
+        // Update ref immediately so initializeWallet() can use the latest state
+        currentCashtabStateRef.current = cashtabState;
+
+        // Initialize wallet if we have an activeWalletAddress, then mark as loaded
+        if (cashtabState.activeWalletAddress) {
+            // Existing user - initialize wallet before marking as loaded
+            await initializeWallet();
+        } else {
+            // New user - no wallet to initialize
+            setEcashWallet(null);
+        }
+
         setCashtabLoaded(true);
 
         // Initialize the websocket connection
@@ -961,12 +942,10 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // We always subscribe to blocks
         ws.subscribeToBlocks();
 
-        if (
-            cashtabState.wallets.length > 0 &&
-            cashtabState.activeWallet !== undefined
-        ) {
-            // Subscribe to address of current wallet, if you have one
-            ws.subscribeToAddress(cashtabState.activeWallet.address);
+        // Subscribe to wallet address if wallet was initialized above
+        if (cashtabState.activeWalletAddress && ecashWalletRef.current) {
+            // Subscribe to its address for websocket updates
+            ws.subscribeToAddress(ecashWalletRef.current.address);
         } else {
             // Set loading to false if we have no wallet
             // as we will not get to the update() until the user creates a wallet
@@ -987,8 +966,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // Should never happen, we only call this in a useEffect when ws is not null
             return;
         }
-        if (cashtabState.activeWallet === undefined) {
-            // Should never happen, we only call this in a useEffect when activeWallet is defined
+        if (!ecashWalletRef.current) {
+            // Should never happen, we only call this in a useEffect when ecashWallet is defined
             return;
         }
         // Set or update the onMessage handler
@@ -1008,9 +987,12 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             subscribedPayloads.push(script.payload);
         }
 
+        // Get hash from ecashWallet address
+        const walletHash = toHex(ecashWalletRef.current.pkh);
+
         if (
             subscribedPayloads.length !== 1 ||
-            subscribedPayloads[0] !== cashtabState.activeWallet.hash
+            subscribedPayloads[0] !== walletHash
         ) {
             // If we are subscribed to no addresses, more than 1 address, or the wrong address, we need to update subscriptions
 
@@ -1019,8 +1001,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 ws.unsubscribeFromScript('p2pkh', payload);
             }
 
-            // Subscribe to active wallet appConfig.derivationPath address
-            ws.subscribeToAddress(cashtabState.activeWallet.address);
+            // Subscribe to active wallet address
+            ws.subscribeToAddress(ecashWalletRef.current.address);
         }
 
         // Update ws in state
@@ -1154,15 +1136,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     useEffect(() => {
         cashtabBootup();
     }, []);
-
-    // Initialize Wallet when activeWallet changes
+    // Initialize Wallet when activeWalletAddress in cashtabState changes or wallets are added
+    // (only after initial load - initial load is handled in loadCashtabState)
+    // Note: cashtabLoaded is NOT in the dependency array to avoid redundant initialization during startup
     useEffect(() => {
-        if (cashtabLoaded && cashtabState.activeWallet) {
+        if (cashtabLoaded) {
             initializeWallet();
-        } else {
-            setEcashWallet(null);
         }
-    }, [cashtabLoaded, cashtabState.activeWallet?.address]);
+    }, [cashtabState.wallets.length, cashtabState.activeWalletAddress]);
 
     // Call the update loop every time the user changes the active wallet
     // and immediately after cashtab is loaded
@@ -1327,19 +1308,30 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     }, []);
 
     /**
-     * Handle activating a copied wallet by only updating the activeWalletAddress in storage
+     * Handle activating a copied wallet by updating activeWalletAddress in CashtabState
      * This is used for address sharing scenarios where we don't need to fully initialize the wallet
      * @param walletAddress The address of the wallet to activate
      */
-    const handleActivatingCopiedWallet = async (walletAddress: string) => {
-        await storage.set('activeWalletAddress', walletAddress);
+
+    /**
+     * Get a StoredCashtabWallet by its address
+     * @param address The wallet address to look up
+     * @returns The StoredCashtabWallet if found, null otherwise
+     */
+    const getWalletByAddress = (
+        address: string,
+    ): StoredCashtabWallet | null => {
+        return (
+            currentCashtabStateRef.current.wallets.find(
+                wallet => wallet.address === address,
+            ) || null
+        );
     };
 
     return {
         chronik,
         agora,
         ecc,
-        chaintipBlockheight,
         fiatPrice,
         firmaPrice,
         cashtabLoaded,
@@ -1348,7 +1340,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         initialUtxoSyncComplete,
         apiError,
         updateCashtabState,
-        handleActivatingCopiedWallet,
         processChronikWsMsg: async (msg: WsMsgClient) => {
             await wsMessageHandler(msg);
             return true;
@@ -1359,6 +1350,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         update,
         setCashtabState,
         ecashWallet,
+        getWalletByAddress,
     } as UseWalletReturnType;
 };
 

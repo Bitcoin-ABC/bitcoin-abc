@@ -16,18 +16,11 @@ import {
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
     TokenUtxo,
-    NonTokenUtxo,
     SlpDecimals,
     CashtabTx,
     toXec,
 } from 'wallet';
-import {
-    ChronikClient,
-    ScriptUtxo,
-    Tx,
-    TokenTxType,
-    GenesisInfo,
-} from 'chronik-client';
+import { ChronikClient, Tx, TokenTxType, GenesisInfo } from 'chronik-client';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
@@ -56,32 +49,6 @@ export const isAliasRegistered = (
         }
     }
     return false;
-};
-
-interface OrganizedUtxos {
-    slpUtxos: TokenUtxo[];
-    nonSlpUtxos: NonTokenUtxo[];
-}
-/**
- * Organize utxos by token and non-token
- * TODO deprecate this and use better coinselect methods
- * @param chronikUtxos
- */
-export const organizeUtxosByType = (
-    chronikUtxos: ScriptUtxo[],
-): OrganizedUtxos => {
-    const nonSlpUtxos = [];
-    const slpUtxos = [];
-    for (const utxo of chronikUtxos) {
-        // Construct nonSlpUtxos and slpUtxos arrays
-        if (typeof utxo.token !== 'undefined') {
-            slpUtxos.push(utxo as TokenUtxo);
-        } else {
-            nonSlpUtxos.push(utxo as NonTokenUtxo);
-        }
-    }
-
-    return { slpUtxos, nonSlpUtxos };
 };
 
 export enum XecTxType {

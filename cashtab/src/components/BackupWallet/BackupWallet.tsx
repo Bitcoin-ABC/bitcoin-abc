@@ -52,17 +52,18 @@ const BackupWallet = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState } = ContextValue;
-    const { activeWallet } = cashtabState;
-
-    if (!activeWallet) {
+    const { ecashWallet, getWalletByAddress } = ContextValue;
+    if (!ecashWallet) {
         return null;
     }
 
     const userLocale = getUserLocale(navigator);
     const [showSeed, setShowSeed] = useState(false);
 
-    const wallet = activeWallet;
+    const storedActiveWallet = getWalletByAddress(ecashWallet.address);
+    if (!storedActiveWallet) {
+        return null;
+    }
 
     return (
         <BackupFlex>
@@ -99,11 +100,11 @@ const BackupWallet = () => {
             {showSeed && (
                 <FlexRow>
                     <CopyToClipboard
-                        data={wallet.mnemonic}
+                        data={storedActiveWallet.mnemonic}
                         showToast
                         customMsg={'Copied seed phrase'}
                     >
-                        <Seed mnemonic={wallet.mnemonic} />
+                        <Seed mnemonic={storedActiveWallet.mnemonic} />
                     </CopyToClipboard>
                 </FlexRow>
             )}

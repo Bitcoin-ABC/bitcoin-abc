@@ -7,6 +7,7 @@ import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { SwitchLabel, Alert, PageHeader } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { AgoraOffer } from 'ecash-agora';
+import { toHex } from 'ecash-lib';
 import { NftsCtn, SubHeader, NftListCtn } from './styled';
 import { SwitchHolder, NftOfferWrapper } from 'components/Etokens/Token/styled';
 import { getUserLocale } from 'helpers';
@@ -23,19 +24,12 @@ const Nfts: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const {
-        fiatPrice,
-        chronik,
-        agora,
-        cashtabState,
-        chaintipBlockheight,
-        ecashWallet,
-    } = ContextValue;
-    const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (!activeWallet || !ecashWallet) {
+    const { fiatPrice, chronik, agora, cashtabState, ecashWallet } =
+        ContextValue;
+    const { settings, cashtabCache } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
 
     const userLocale = getUserLocale(navigator);
 
@@ -55,7 +49,9 @@ const Nfts: React.FC = () => {
         let activeOffersByPubKey: AgoraOffer[];
         let activeOneshotOffersByPubKey: OneshotOffer[];
         try {
-            activeOffersByPubKey = await agora.activeOffersByPubKey(wallet.pk);
+            activeOffersByPubKey = await agora.activeOffersByPubKey(
+                toHex(ecashWallet.pk),
+            );
             // Filter for ONESHOT offers
             activeOneshotOffersByPubKey = activeOffersByPubKey.filter(
                 offer => offer.variant.type === 'ONESHOT',
@@ -93,7 +89,7 @@ const Nfts: React.FC = () => {
 
     useEffect(() => {
         getMyNfts();
-    }, [wallet.name]);
+    }, [ecashWallet.address]);
 
     return (
         <NftsCtn>
@@ -130,11 +126,7 @@ const Nfts: React.FC = () => {
                                     {offeredNftsThisWallet.length > 0 ? (
                                         <OneshotSwiper
                                             offers={offeredNftsThisWallet}
-                                            chronik={chronik}
-                                            chaintipBlockheight={
-                                                chaintipBlockheight
-                                            }
-                                            wallet={wallet}
+                                            ecashWallet={ecashWallet}
                                             cashtabCache={cashtabCache}
                                             userLocale={userLocale}
                                             fiatPrice={fiatPrice}

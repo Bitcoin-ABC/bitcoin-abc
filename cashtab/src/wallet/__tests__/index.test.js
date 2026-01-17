@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    getBalanceSats,
     toXec,
     toSatoshis,
     nanoSatoshisToXec,
@@ -14,32 +13,14 @@ import {
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
     removeLeadingZeros,
-    getHashes,
     sciToDecimal,
     toBigInt,
     sortWalletsForDisplay,
 } from 'wallet';
 import { isValidStoredCashtabWallet } from 'validation';
-import { walletWithXecAndTokens_pre_2_9_0 } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
 
 describe('Cashtab wallet methods', () => {
-    describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getBalanceSatsVectors;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, nonSlpUtxos, balanceSats } = expectedReturn;
-            it(`getBalanceSats: ${description}`, () => {
-                expect(getBalanceSats(nonSlpUtxos)).toBe(balanceSats);
-            });
-        });
-        expectedErrors.forEach(expectedError => {
-            const { description, nonSlpUtxos, errorMsg } = expectedError;
-            it(`getBalanceSats throws error for: ${description}`, () => {
-                expect(() => getBalanceSats(nonSlpUtxos)).toThrow(errorMsg);
-            });
-        });
-    });
     describe('Converts satoshis to XEC and XEC to satoshis', () => {
         const { expectedReturns, expectedErrors } = vectors.toXec;
         expectedReturns.forEach(expectedReturn => {
@@ -200,13 +181,6 @@ describe('Cashtab wallet methods', () => {
                 expect(removeLeadingZeros(givenString)).toBe(returned);
             });
         });
-    });
-    it(`Successfully extracts a hash160 array from valid cashtab wallet`, () => {
-        expect(getHashes(walletWithXecAndTokens_pre_2_9_0)).toStrictEqual([
-            '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-            'a28f8852f868f88e71ec666c632d6f86e978f046',
-            '600efb12a6f813eccf13171a8bc62055212d8d6c',
-        ]);
     });
     describe('Converts nanosatoshis to XEC and XEC to nanosatoshis', () => {
         const { expectedReturns, expectedErrors } = vectors.nanoSatoshisToXec;

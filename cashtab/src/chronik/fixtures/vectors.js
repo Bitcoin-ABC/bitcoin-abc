@@ -71,8 +71,6 @@ import {
     firmaYieldTx,
     firmaRedeemTx,
 } from './mocks';
-import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
-import { getHashes } from 'wallet';
 
 export default {
     getTxNotificationMsg: {
@@ -619,61 +617,80 @@ export default {
             {
                 description: 'Staking rewards coinbase tx',
                 tx: stakingRwd.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: stakingRwd.parsed,
             },
             {
                 description: 'Incoming XEC tx',
                 tx: incomingXec.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: incomingXec.parsed,
             },
             {
                 description: 'Outgoing XEC tx',
                 tx: outgoingXec.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: outgoingXec.parsed,
             },
             {
                 description: 'Alias registration',
                 tx: aliasRegistration.tx,
-                hashes: getHashes(mockAliasWallet),
+                hashes: [mockAliasWallet.paths.find(p => p.path === 1899).hash],
                 parsed: aliasRegistration.parsed,
             },
             {
                 description: 'Invalid alias registration',
                 tx: invalidAliasRegistration.tx,
-                hashes: getHashes(mockAliasWallet),
+                hashes: [mockAliasWallet.paths.find(p => p.path === 1899).hash],
                 parsed: invalidAliasRegistration.parsed,
             },
             {
                 description: 'Incoming eToken',
                 tx: incomingEtoken.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: incomingEtoken.parsed,
             },
             {
                 description: 'Outgoing eToken',
                 tx: outgoingEtoken.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: outgoingEtoken.parsed,
             },
             {
                 description: 'Genesis tx',
                 tx: genesisTx.tx,
-                hashes: getHashes(mockParseTxWalletAirdrop),
+                hashes: [
+                    mockParseTxWalletAirdrop.paths.find(p => p.path === 1899)
+                        .hash,
+                ],
                 parsed: genesisTx.parsed,
             },
             {
                 description: 'Incoming eToken tx with 9 decimals',
                 tx: incomingEtokenNineDecimals.tx,
-                hashes: getHashes(mockParseTxWalletAirdrop),
+                hashes: [
+                    mockParseTxWalletAirdrop.paths.find(p => p.path === 1899)
+                        .hash,
+                ],
                 parsed: incomingEtokenNineDecimals.parsed,
             },
             {
                 description: 'Legacy airdrop tx',
                 tx: legacyAirdropTx.tx,
-                hashes: getHashes(mockParseTxWalletAirdrop),
+                hashes: [
+                    mockParseTxWalletAirdrop.paths.find(p => p.path === 1899)
+                        .hash,
+                ],
                 parsed: legacyAirdropTx.parsed,
             },
             {
@@ -691,31 +708,45 @@ export default {
             {
                 description: 'Outgoing encrypted msg (deprecated)',
                 tx: outgoingEncryptedMsg.tx,
-                hashes: getHashes(mockParseTxWalletEncryptedMsg),
+                hashes: [
+                    mockParseTxWalletEncryptedMsg.paths.find(
+                        p => p.path === 1899,
+                    ).hash,
+                ],
                 parsed: outgoingEncryptedMsg.parsed,
             },
             {
                 description: 'Incoming encrypted msg (deprecated)',
                 tx: incomingEncryptedMsg.tx,
-                hashes: getHashes(mockParseTxWalletEncryptedMsg),
+                hashes: [
+                    mockParseTxWalletEncryptedMsg.paths.find(
+                        p => p.path === 1899,
+                    ).hash,
+                ],
                 parsed: incomingEncryptedMsg.parsed,
             },
             {
                 description: 'Token burn tx',
                 tx: tokenBurn.tx,
-                hashes: getHashes(mockParseTxWalletAirdrop),
+                hashes: [
+                    mockParseTxWalletAirdrop.paths.find(p => p.path === 1899)
+                        .hash,
+                ],
                 parsed: tokenBurn.parsed,
             },
             {
                 description: 'Token burn tx with decimals',
                 tx: tokenBurnDecimals.tx,
-                hashes: getHashes(mockParseTxWalletAirdrop),
+                hashes: [
+                    mockParseTxWalletAirdrop.paths.find(p => p.path === 1899)
+                        .hash,
+                ],
                 parsed: tokenBurnDecimals.parsed,
             },
             {
                 description: 'SWaP tx',
                 tx: swapTx.tx,
-                hashes: getHashes(mockSwapWallet),
+                hashes: [mockSwapWallet.paths.find(p => p.path === 1899).hash],
                 parsed: swapTx.parsed,
             },
             {
@@ -918,25 +949,33 @@ export default {
             {
                 description: 'eCashChat Article Reply',
                 tx: eCashChatArticleReplyTx.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: eCashChatArticleReplyTx.parsed,
             },
             {
                 description: 'Off spec eCashChat Aricle Reply',
                 tx: offSpecEcashChatArticleReplyTx.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: offSpecEcashChatArticleReplyTx.parsed,
             },
             {
                 description: 'eCashChat Article',
                 tx: eCashChatArticleTx.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: eCashChatArticleTx.parsed,
             },
             {
                 description: 'off-spec eCashChat Article',
                 tx: offSpecEcashChatArticleTx.tx,
-                hashes: getHashes(mockParseTxWallet),
+                hashes: [
+                    mockParseTxWallet.paths.find(p => p.path === 1899).hash,
+                ],
                 parsed: offSpecEcashChatArticleTx.parsed,
             },
             {
@@ -980,42 +1019,6 @@ export default {
                 tx: firmaRedeemTx.tx,
                 hashes: [firmaRedeemTx.sendingHash],
                 parsed: firmaRedeemTx.parsedSend,
-            },
-        ],
-    },
-    organizeUtxosByType: {
-        expectedReturns: [
-            {
-                description:
-                    'Splits token utxos and non-token utxos using real in-node utxos',
-                chronikUtxos: mockChronikUtxos,
-                returned: mockOrganizedUtxosByType,
-            },
-            {
-                description: 'Splits token utxos and non-token utxos',
-                chronikUtxos: [{ token: 'true' }, { atoms: 500 }],
-                returned: {
-                    slpUtxos: [{ token: 'true' }],
-                    nonSlpUtxos: [{ atoms: 500 }],
-                },
-            },
-            {
-                description:
-                    'Returns empty array for nonSlpUtxos if all utxos are token utxos',
-                chronikUtxos: [{ token: 'true' }, { token: 'true' }],
-                returned: {
-                    slpUtxos: [{ token: 'true' }, { token: 'true' }],
-                    nonSlpUtxos: [],
-                },
-            },
-            {
-                description:
-                    'Returns empty array for preliminarySlpUtxos if no token utxos found',
-                chronikUtxos: [{ atoms: 500 }, { atoms: 500 }],
-                returned: {
-                    slpUtxos: [],
-                    nonSlpUtxos: [{ atoms: 500 }, { atoms: 500 }],
-                },
             },
         ],
     },

@@ -10,7 +10,7 @@ import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
 import { fromHex, HdNode, shaRmd160, toHex } from 'ecash-lib';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
-import { organizeUtxosByType, ParsedTx, getTokenBalances } from 'chronik';
+import { ParsedTx, getTokenBalances } from 'chronik';
 import {
     CashtabWallet_Pre_2_1_0,
     CashtabWallet_Pre_2_9_0,
@@ -18,7 +18,6 @@ import {
     PathInfo_Pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import { previewAddress, TxJson, TokenJson } from 'helpers';
-import CashtabCache from 'config/CashtabCache';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -175,23 +174,6 @@ export const DUMMY_KEYPAIR = {
     ),
 };
 /**
- * Get total value of satoshis associated with an array of chronik utxos
- * @param nonSlpUtxos array of chronik utxos
- * (each is an object with an integer as a string
- * stored at 'value' key representing associated satoshis)
- * e.g. {value: '12345'}
- * @throws if nonSlpUtxos does not have a .reduce method
- * @returns integer, total balance of input utxos in satoshis
- * or NaN if any utxo is invalid
- */
-export const getBalanceSats = (nonSlpUtxos: NonTokenUtxo[]): number => {
-    return nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance + Number(utxo.sats),
-        0,
-    );
-};
-
-/**
  * Convert an amount in XEC to satoshis
  * @param xecAmount a number with no more than 2 decimal places
  */
@@ -313,49 +295,26 @@ export const createCashtabWallet = (
     };
 };
 
-export const createActiveCashtabWallet = async (
+/**
+ * Generate tokens map from ecash-wallet UTXOs
+ * Filters token UTXOs from the wallet's UTXO set and calculates balances
+ * @param chronik ChronikClient instance
+ * @param walletUtxos UTXOs from ecash-wallet (ScriptUtxo[])
+ * @param tokenCache Cashtab's token cache
+ * @returns Map of tokenId => decimalized balance string
+ */
+export const generateTokensFromWalletUtxos = async (
     chronik: ChronikClient,
-    storedWallet: StoredCashtabWallet,
-    cashtabCache: CashtabCache,
-): Promise<ActiveCashtabWallet> => {
-    let utxos: ScriptUtxo[];
-    try {
-        utxos = (await chronik.address(storedWallet.address).utxos()).utxos;
-    } catch (error) {
-        console.error(
-            `Error getting utxos in createActiveCashtabWallet`,
-            error,
-        );
-        // API errors mean we fail to populate, not fail to create
-        utxos = [];
-    }
-
-    const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(utxos);
-
-    // Get map of all tokenIds held by this wallet and their balances
-    // Note: this function will also update cashtabCache.tokens if any tokens in slpUtxos are not in cache
-    let tokens: Map<string, string> = new Map();
-    try {
-        tokens = await getTokenBalances(chronik, slpUtxos, cashtabCache.tokens);
-    } catch (error) {
-        console.error(
-            `Error getting token balances in createActiveCashtabWallet`,
-            error,
-        );
-        // API errors mean we fail to populate, not fail to create
-        // Note we would still expect the update() routine to catch this and set apiError to true when the wallet updates
-        tokens = new Map();
-    }
-
-    return {
-        ...storedWallet,
-        state: {
-            balanceSats: getBalanceSats(nonSlpUtxos),
-            slpUtxos,
-            nonSlpUtxos,
-            tokens,
-        },
-    };
+    walletUtxos: ScriptUtxo[],
+    tokenCache: Map<string, CashtabCachedTokenInfo>,
+): Promise<Map<string, string>> => {
+    // Filter for token UTXOs (those with a token property)
+    const tokenUtxos = walletUtxos.filter(
+        (utxo): utxo is TokenUtxo => utxo.token !== undefined,
+    );
+    // Use existing getTokenBalances function to calculate balances
+    const result = await getTokenBalances(chronik, tokenUtxos, tokenCache);
+    return result;
 };
 
 /**
@@ -609,19 +568,6 @@ export const removeLeadingZeros = (givenString: string): string => {
         }
     }
     return givenString.slice(leadingZeroCount, givenString.length);
-};
-
-/**
- * Get hash values to use for chronik calls and parsing tx history
- * @param wallet valid cashtab wallet
- * @returns array of hashes of all addresses in wallet
- */
-export const getHashes = (wallet: CashtabWallet_Pre_3_41_0): string[] => {
-    const hashArray: string[] = [];
-    wallet.paths.forEach(pathInfo => {
-        hashArray.push(pathInfo.hash);
-    });
-    return hashArray;
 };
 
 /**

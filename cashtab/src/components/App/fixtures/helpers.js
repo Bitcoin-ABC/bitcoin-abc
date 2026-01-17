@@ -130,6 +130,15 @@ export const initializeCashtabStateForTests = async (
     // The first one is active
     await localforage.setItem('activeWalletAddress', wallets[0].address);
 
+    // Set tokens map in storage if the wallet has state.tokens (for test fixtures)
+    // This ensures cashtabState.tokens is populated on load, matching the old behavior
+    // where activeWallet.state.tokens was copied to cashtabState.tokens
+    if (wallets[0].state && wallets[0].state.tokens) {
+        // Convert Map to array of [key, value] pairs for JSON storage
+        const tokensArray = Array.from(wallets[0].state.tokens);
+        await localforage.setItem('tokens', tokensArray);
+    }
+
     // Mock returns for chronik calls expected in useWallet's update routine for all wallets
     for (const wallet of wallets) {
         prepareMockedChronikCallsForWallet(
@@ -243,27 +252,27 @@ export const prepareMockedChronikCallsForLegacyWallet = (
     apiError = false,
 ) => {
     // mock chronik endpoint returns
-    const CASHTAB_TESTS_TIPHEIGHT = 800000;
+    const walletAddress = wallet.address || wallet.Path1899?.cashAddress;
+    if (!walletAddress) {
+        throw new Error(`Wallet fixture missing address.`);
+    }
     if (apiError) {
         chronikClient.setBlockchainInfo(
             new Error('Error fetching blockchainInfo'),
         );
         chronikClient.setUtxosByAddress(
-            wallet.Path1899.cashAddress,
+            walletAddress,
             new Error('Error fetching utxos'),
         );
         chronikClient.setTxHistoryByAddress(
-            wallet.Path1899.cashAddress,
+            walletAddress,
             new Error('Error fetching history'),
         );
     } else {
-        chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
-        chronikClient.setUtxosByAddress(
-            wallet.Path1899.cashAddress,
-            wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-        );
+        const allUtxos = wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos);
+        chronikClient.setUtxosByAddress(walletAddress, allUtxos);
         chronikClient.setTxHistoryByAddress(
-            wallet.Path1899.cashAddress,
+            walletAddress,
             wallet.state.parsedTxHistory,
         );
     }
@@ -509,6 +518,9 @@ export const prepareMockedChronikCallsForWallet = (
     if ('paths' in wallet && wallet.paths instanceof Map) {
         // 1899 only
         const pathInfo = wallet.paths.get(1899);
+        if (!pathInfo) {
+            throw new Error(`Wallet fixture missing path 1899 in paths Map`);
+        }
 
         // Mock scriptutxos to match context
         if (apiError) {
@@ -527,24 +539,33 @@ export const prepareMockedChronikCallsForWallet = (
             );
             chronikClient.setTxHistoryByAddress(pathInfo.address, history);
         }
+        return;
+    }
+
+    // Modern wallet - determine wallet address
+    const walletAddress = wallet.address || wallet.Path1899?.cashAddress;
+    if (!walletAddress) {
+        throw new Error(
+            `Wallet fixture missing address. Has address: ${!!wallet.address}, Has Path1899: ${!!wallet.Path1899}`,
+        );
     }
 
     // Current
     if (apiError) {
         chronikClient.setUtxosByAddress(
-            wallet.address,
+            walletAddress,
             new Error('Error fetching utxos'),
         );
         chronikClient.setTxHistoryByAddress(
-            wallet.address,
+            walletAddress,
             new Error('Error fetching history'),
         );
     } else {
         chronikClient.setUtxosByAddress(
-            wallet.address,
+            walletAddress,
             wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
         );
-        chronikClient.setTxHistoryByAddress(wallet.address, history);
+        chronikClient.setTxHistoryByAddress(walletAddress, history);
     }
 };
 

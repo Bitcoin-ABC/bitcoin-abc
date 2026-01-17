@@ -4,6 +4,7 @@
 
 import React, { useRef, useState, useEffect, useContext } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
+import { toHex } from 'ecash-lib';
 import { Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
 import { getTokenGenesisInfo } from 'chronik';
@@ -72,15 +73,15 @@ const Agora: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { chronik, agora, cashtabState, updateCashtabState } = ContextValue;
-    const { cashtabCache, activeWallet } = cashtabState;
-    if (typeof activeWallet === 'undefined') {
+    const { chronik, agora, cashtabState, updateCashtabState, ecashWallet } =
+        ContextValue;
+    const { cashtabCache } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
     // Note that wallets must be a non-empty array of CashtabWallet[] here, because
     // context is loaded, and App component only renders Onboarding screen if user has no wallet
-    const wallet = activeWallet;
-    const pk = wallet.pk;
+    const pk = toHex(ecashWallet.pk);
 
     // Use a state param to keep track of how many orderbooks we load at once
     const [loadedOrderBooksCount, setLoadedOrderBooksCount] =

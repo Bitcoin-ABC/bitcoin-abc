@@ -191,16 +191,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
     }
     const { fiatPrice, chronik, agora, cashtabState, ecashWallet } =
         ContextValue;
-    const { settings, cashtabCache, activeWallet } = cashtabState;
-    if (typeof activeWallet === 'undefined' || !ecashWallet) {
-        // Note that, in the app, we will never render this component without an activeWallet
+    const { settings, cashtabCache } = cashtabState;
+    if (!ecashWallet) {
+        // Note that, in the app, we will never render this component without an ecashWallet
         // Because the App component will only show OnBoarding in this case
         // But because we directly test this component with context, we must handle this case
         return null;
     }
 
-    const wallet = activeWallet;
-    const { balanceSats } = wallet.state;
+    const balanceSats = Number(ecashWallet.balanceSats);
 
     const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
 
@@ -648,10 +647,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
         tokenSatoshisStep = tokenSatoshisMax! / truncAtoms;
 
         try {
-            isMaker = wallet.pk === toHex(makerPk);
+            isMaker = toHex(ecashWallet.pk) === toHex(makerPk);
         } catch {
-            console.error(`Error comparing wallet.pk with makerPk`);
-            console.error(`wallet.pk`, wallet.pk);
+            console.error(`Error comparing ecashWallet.pk with makerPk`);
+            console.error(`ecashWallet.pk`, toHex(ecashWallet.pk));
             console.error(`makerPk`, makerPk);
         }
 
@@ -724,7 +723,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 // If the active pk made this offer, flag is as unacceptable
                 // Otherwise exclude it entirely
                 const isMakerThisOffer =
-                    wallet.pk === toHex(activeOffer.variant.params.makerPk);
+                    toHex(ecashWallet.pk) ===
+                    toHex(activeOffer.variant.params.makerPk);
                 const isUnacceptable = minOfferTokens > maxOfferTokens;
                 if (isUnacceptable) {
                     if (isMakerThisOffer) {
@@ -1317,7 +1317,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     const { makerPk } =
                                         activeOffer.variant.params;
                                     const isMakerThisOffer =
-                                        wallet.pk === toHex(makerPk);
+                                        toHex(ecashWallet.pk) ===
+                                        toHex(makerPk);
 
                                     const makerHash = shaRmd160(makerPk);
                                     const makerOutputScript =

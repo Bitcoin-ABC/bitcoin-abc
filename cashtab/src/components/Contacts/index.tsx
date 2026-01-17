@@ -37,13 +37,11 @@ const Contacts = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState, updateCashtabState } = ContextValue;
-    const { contactList, activeWallet } = cashtabState;
-    if (activeWallet === undefined) {
+    const { cashtabState, updateCashtabState, ecashWallet } = ContextValue;
+    const { contactList } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
-
-    const wallet = activeWallet;
 
     interface ContactsFormData {
         renamedContactName: string;

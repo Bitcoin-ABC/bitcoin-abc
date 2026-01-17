@@ -93,15 +93,7 @@ const Configure: React.FC = () => {
         return null;
     }
     const { updateCashtabState, cashtabState } = ContextValue;
-    const { settings, activeWallet } = cashtabState;
-
-    if (!activeWallet) {
-        return null;
-    }
-
-    const wallet = activeWallet;
-
-    const { tokens } = wallet.state;
+    const { settings, tokens } = cashtabState;
 
     const handleSendModalToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateCashtabState({

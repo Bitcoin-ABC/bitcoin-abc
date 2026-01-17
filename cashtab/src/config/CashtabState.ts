@@ -10,7 +10,7 @@
 
 import CashtabSettings from 'config/CashtabSettings';
 import CashtabCache from 'config/CashtabCache';
-import { ActiveCashtabWallet, StoredCashtabWallet } from 'wallet';
+import { StoredCashtabWallet } from 'wallet';
 
 export interface CashtabContact {
     name: string;
@@ -22,7 +22,16 @@ interface CashtabStateInterface {
     cashtabCache: CashtabCache;
     settings: CashtabSettings;
     wallets: StoredCashtabWallet[];
-    activeWallet?: ActiveCashtabWallet;
+    /**
+     * Address of the currently active wallet
+     * When this changes, ecashWallet is automatically reinitialized with the sk from the wallet with this address
+     */
+    activeWalletAddress: string | null;
+    /**
+     * Map of tokenId => decimalized balance string for the active wallet
+     * Generated from ecashWallet.utxos and cached token info
+     */
+    tokens: Map<string, string>;
 }
 
 class CashtabState implements CashtabStateInterface {
@@ -30,21 +39,22 @@ class CashtabState implements CashtabStateInterface {
     cashtabCache: CashtabCache;
     settings: CashtabSettings;
     wallets: StoredCashtabWallet[];
-    activeWallet?: ActiveCashtabWallet;
+    activeWalletAddress: string | null;
+    tokens: Map<string, string>;
     constructor(
         contactList: CashtabContact[] = [],
         cashtabCache = new CashtabCache(),
         settings = new CashtabSettings(),
         wallets = [],
-        activeWallet?: ActiveCashtabWallet,
+        activeWalletAddress: string | null = null,
+        tokens: Map<string, string> = new Map(),
     ) {
         this.contactList = contactList;
         this.cashtabCache = cashtabCache;
         this.settings = settings;
         this.wallets = wallets;
-        if (typeof activeWallet !== 'undefined') {
-            this.activeWallet = activeWallet;
-        }
+        this.activeWalletAddress = activeWalletAddress;
+        this.tokens = tokens;
     }
 }
 

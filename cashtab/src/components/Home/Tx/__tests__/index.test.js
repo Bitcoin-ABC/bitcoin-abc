@@ -80,7 +80,6 @@ import {
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router';
-import { getHashes } from 'wallet';
 import userEvent from '@testing-library/user-event';
 
 describe('<Tx />', () => {
@@ -133,7 +132,10 @@ describe('<Tx />', () => {
                             parsed: incomingXec.parsed,
                             isFinal: false,
                         }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
@@ -220,7 +222,10 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...outgoingXec.tx, parsed: outgoingXec.parsed }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
@@ -251,7 +256,10 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...stakingRwd.tx, parsed: stakingRwd.parsed }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
@@ -286,7 +294,10 @@ describe('<Tx />', () => {
                             ...aliasRegistration.tx,
                             parsed: aliasRegistration.parsed,
                         }}
-                        hashes={getHashes(mockAliasWallet)}
+                        hashes={[
+                            mockAliasWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
@@ -326,7 +337,10 @@ describe('<Tx />', () => {
                             ...invalidAliasRegistration.tx,
                             parsed: invalidAliasRegistration.parsed,
                         }}
-                        hashes={getHashes(mockAliasWallet)}
+                        hashes={[
+                            mockAliasWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
@@ -369,7 +383,10 @@ describe('<Tx />', () => {
                             ...incomingEtoken.tx,
                             parsed: incomingEtoken.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -424,7 +441,10 @@ describe('<Tx />', () => {
                             ...incomingEtoken.tx,
                             parsed: incomingEtoken.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -478,7 +498,10 @@ describe('<Tx />', () => {
                             ...outgoingEtoken.tx,
                             parsed: outgoingEtoken.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -533,7 +556,10 @@ describe('<Tx />', () => {
                             ...outgoingEtoken.tx,
                             parsed: outgoingEtoken.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWallet)}
+                        hashes={[
+                            mockParseTxWallet.paths.find(p => p.path === 1899)
+                                .hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -584,7 +610,11 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...genesisTx.tx, parsed: genesisTx.parsed }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -637,7 +667,11 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...genesisTx.tx, parsed: genesisTx.parsed }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -692,7 +726,11 @@ describe('<Tx />', () => {
                             ...incomingEtokenNineDecimals.tx,
                             parsed: incomingEtokenNineDecimals.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -745,7 +783,11 @@ describe('<Tx />', () => {
                             ...incomingEtokenNineDecimals.tx,
                             parsed: incomingEtokenNineDecimals.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -797,7 +839,11 @@ describe('<Tx />', () => {
                             ...legacyAirdropTx.tx,
                             parsed: legacyAirdropTx.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -974,7 +1020,11 @@ describe('<Tx />', () => {
                             ...outgoingEncryptedMsg.tx,
                             parsed: outgoingEncryptedMsg.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletEncryptedMsg)}
+                        hashes={[
+                            mockParseTxWalletEncryptedMsg.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -1019,7 +1069,11 @@ describe('<Tx />', () => {
                             ...incomingEncryptedMsg.tx,
                             parsed: incomingEncryptedMsg.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletEncryptedMsg)}
+                        hashes={[
+                            mockParseTxWalletEncryptedMsg.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -1061,7 +1115,11 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...tokenBurn.tx, parsed: tokenBurn.parsed }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -1114,7 +1172,11 @@ describe('<Tx />', () => {
                 <ThemeProvider theme={theme}>
                     <Tx
                         tx={{ ...tokenBurn.tx, parsed: tokenBurn.parsed }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
@@ -1171,7 +1233,11 @@ describe('<Tx />', () => {
                             ...tokenBurnDecimals.tx,
                             parsed: tokenBurnDecimals.parsed,
                         }}
-                        hashes={getHashes(mockParseTxWalletAirdrop)}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{

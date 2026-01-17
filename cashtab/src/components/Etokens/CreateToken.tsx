@@ -17,13 +17,12 @@ const CreateToken: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { apiError, fiatPrice, cashtabState } = ContextValue;
-    const { settings, activeWallet } = cashtabState;
-    if (activeWallet === undefined) {
+    const { apiError, fiatPrice, cashtabState, ecashWallet } = ContextValue;
+    const { settings } = cashtabState;
+    if (!ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
-    const { balanceSats } = wallet.state;
+    const balanceSats = Number(ecashWallet.balanceSats);
 
     const minTokenCreationFiatPriceString =
         fiatPrice !== null

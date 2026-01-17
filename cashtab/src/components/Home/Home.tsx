@@ -73,12 +73,15 @@ const Home: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { apiError, cashtabState, transactionHistory } = ContextValue;
-    const { wallets, activeWallet } = cashtabState;
-    if (!activeWallet) {
+    const { apiError, cashtabState, transactionHistory, ecashWallet } =
+        ContextValue;
+    // Show ApiError even if wallet isn't loaded yet
+    if (apiError && !ecashWallet) {
+        return <ApiError />;
+    }
+    if (!ecashWallet) {
         return null;
     }
-    const wallet = activeWallet;
     const hasHistory =
         transactionHistory && transactionHistory.firstPageTxs.length > 0;
 
@@ -88,7 +91,7 @@ const Home: React.FC = () => {
         hasHistory &&
         transactionHistory &&
         transactionHistory.firstPageTxs.length < 3 &&
-        wallet.state.balanceSats > 0;
+        Number(ecashWallet.balanceSats) > 0;
 
     const [airdropPending, setAirdropPending] = useState(false);
     const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
@@ -114,7 +117,7 @@ const Home: React.FC = () => {
         try {
             claimResponse = await (
                 await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${wallet.address}`,
+                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${ecashWallet.address}`,
                     {
                         method: 'POST',
                         headers: {
@@ -162,7 +165,7 @@ const Home: React.FC = () => {
         try {
             claimResponse = await (
                 await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${wallet.address}`,
+                    `${tokenConfig.rewardsServerBaseUrl}/claim/${ecashWallet.address}`,
                 )
             ).json();
             // Could help in debugging from user reports
@@ -261,7 +264,8 @@ const Home: React.FC = () => {
                                                     }
                                                 />
                                             </div>
-                                            {wallets.length === 1 ? (
+                                            {cashtabState.wallets.length ===
+                                            1 ? (
                                                 <AirdropButton
                                                     onClick={
                                                         claimAirdropForNewWallet

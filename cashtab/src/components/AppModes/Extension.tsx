@@ -5,11 +5,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Modal from 'components/Common/Modal';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import {
-    ActiveCashtabWallet,
-    StoredCashtabWallet,
-    sortWalletsForDisplay,
-} from 'wallet';
+import { StoredCashtabWallet, sortWalletsForDisplay } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { previewAddress } from 'helpers';
 import {
@@ -38,31 +34,41 @@ const Extension: React.FC = () => {
         // If wallet context is not loaded, show loading or return null
         return null;
     }
-    const { cashtabState, handleActivatingCopiedWallet } = ContextValue;
-    const { wallets, activeWallet } = cashtabState;
+    const {
+        cashtabState,
+        updateCashtabState,
+        ecashWallet,
+        getWalletByAddress,
+    } = ContextValue;
+    const { wallets } = cashtabState;
 
-    if (!activeWallet) {
+    if (!ecashWallet) {
         return null;
     }
 
-    const sortedWallets = sortWalletsForDisplay(activeWallet, wallets);
+    const walletForSorting = getWalletByAddress(ecashWallet.address);
+    if (!walletForSorting) {
+        return null;
+    }
+
+    const sortedWallets = sortWalletsForDisplay(walletForSorting, wallets);
 
     /**
      * Handle wallet connection - activate wallet and share address
      */
     const handleWalletConnect = async (
-        wallet: ActiveCashtabWallet | StoredCashtabWallet,
+        wallet: StoredCashtabWallet,
     ): Promise<void> => {
         if (addressRequestTabId === null) return;
 
         // If the selected wallet is not the active wallet, activate it first
-        if (activeWallet.address !== wallet.address) {
+        if (ecashWallet.address !== wallet.address) {
             // Event("Category", "Action", "Label")
             // Track number of times a different wallet is activated
             Event('Extension.js', 'Activate', '');
 
-            // Only update the activeWalletAddress in storage for address sharing
-            await handleActivatingCopiedWallet(wallet.address);
+            // Update activeWalletAddress in state (which also persists to storage)
+            await updateCashtabState({ activeWalletAddress: wallet.address });
         }
 
         // Send the address approval to the service worker
@@ -172,7 +178,7 @@ const Extension: React.FC = () => {
                                 <WalletInfo>
                                     <WalletNameText>
                                         {wallet.name}
-                                        {activeWallet.address ===
+                                        {ecashWallet.address ===
                                             wallet.address && (
                                             <ActiveIndicator>
                                                 [active]
