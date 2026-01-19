@@ -9124,3 +9124,446 @@ describe('isWalletAddress and isWalletScript', () => {
         });
     });
 });
+
+describe('getTxAmounts', () => {
+    const testMnemonic =
+        'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+    const OTHER_SK = fromHex('33'.repeat(32));
+    const OTHER_PK = testEcc.derivePubkey(OTHER_SK);
+    const OTHER_HASH = shaRmd160(OTHER_PK);
+    const OTHER_SCRIPT = Script.p2pkh(OTHER_HASH);
+
+    describe('Non-HD wallet', () => {
+        let mockChronik: MockChronikClient;
+        let wallet: Wallet;
+
+        beforeEach(() => {
+            mockChronik = new MockChronikClient();
+            wallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+        });
+
+        it('Returns correct amounts for self-send transaction', () => {
+            const tx: ChronikTx = {
+                txid: 'aa'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 9000n,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(true);
+            expect(result.balanceSatsDelta).to.equal(-1000n); // 9000 - 10000
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Returns correct amounts for transaction sending to external address', () => {
+            const tx: ChronikTx = {
+                txid: 'bb'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 5000n,
+                        outputScript: OTHER_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(false);
+            expect(result.balanceSatsDelta).to.equal(-10000n); // Only input counted
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Returns correct amounts for transaction receiving from external', () => {
+            const tx: ChronikTx = {
+                txid: 'cc'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: OTHER_SCRIPT.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 5000n,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(false);
+            expect(result.balanceSatsDelta).to.equal(5000n); // Only output counted
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Returns correct amounts for transaction with tokens', () => {
+            const tokenId = 'dd'.repeat(32);
+            const tx: ChronikTx = {
+                txid: 'ee'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 5000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 546n,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 3000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(true);
+            expect(result.balanceSatsDelta).to.equal(-9454n); // 546 - 10000
+            expect(result.tokenDeltas.size).to.equal(1);
+            expect(result.tokenDeltas.get(tokenId)).to.equal(-2000n); // 3000 - 5000
+        });
+
+        it('Returns correct amounts for transaction with no wallet involvement', () => {
+            const tx: ChronikTx = {
+                txid: 'ff'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: OTHER_SCRIPT.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 5000n,
+                        outputScript: OTHER_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(false);
+            expect(result.balanceSatsDelta).to.equal(0n);
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Skips coinbase inputs', () => {
+            const tx: ChronikTx = {
+                txid: 'gg'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '00'.repeat(32),
+                            outIdx: 0xffffffff,
+                        },
+                        inputScript: '',
+                        outputScript: undefined, // Coinbase input
+                        value: 0n,
+                        sequenceNo: 0xffffffff,
+                        sats: 0n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 5000n,
+                        outputScript: DUMMY_SCRIPT.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(true);
+            expect(result.balanceSatsDelta).to.equal(5000n); // Only output counted
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+    });
+
+    describe('HD wallet', () => {
+        let mockChronik: MockChronikClient;
+        let wallet: Wallet;
+
+        beforeEach(() => {
+            mockChronik = new MockChronikClient();
+            wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+        });
+
+        it('Returns correct amounts for self-send across HD addresses', () => {
+            const receiveAddress0 = wallet.getReceiveAddress(0);
+            const receiveScript0 = Script.fromAddress(receiveAddress0);
+            const receiveAddress1 = wallet.getReceiveAddress(1);
+            const receiveScript1 = Script.fromAddress(receiveAddress1);
+
+            const tx: ChronikTx = {
+                txid: 'hh'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: receiveScript0.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 9000n,
+                        outputScript: receiveScript1.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(true);
+            expect(result.balanceSatsDelta).to.equal(-1000n); // 9000 - 10000
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Returns correct amounts for transaction with change address', () => {
+            const receiveAddress0 = wallet.getReceiveAddress(0);
+            const receiveScript0 = Script.fromAddress(receiveAddress0);
+            const changeAddress0 = wallet.getChangeAddress(0);
+            const changeScript0 = Script.fromAddress(changeAddress0);
+
+            const tx: ChronikTx = {
+                txid: 'ii'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: receiveScript0.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 5000n,
+                        outputScript: OTHER_SCRIPT.toHex(),
+                    },
+                    {
+                        sats: 4000n,
+                        outputScript: changeScript0.toHex(),
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(false); // External output
+            expect(result.balanceSatsDelta).to.equal(-6000n); // 4000 - 10000
+            expect(result.tokenDeltas.size).to.equal(0);
+        });
+
+        it('Returns correct amounts for transaction with tokens across HD addresses', () => {
+            const tokenId = 'jj'.repeat(32);
+            const receiveAddress0 = wallet.getReceiveAddress(0);
+            const receiveScript0 = Script.fromAddress(receiveAddress0);
+            const receiveAddress1 = wallet.getReceiveAddress(1);
+            const receiveScript1 = Script.fromAddress(receiveAddress1);
+
+            const tx: ChronikTx = {
+                txid: 'kk'.repeat(32),
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '11'.repeat(32),
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        outputScript: receiveScript0.toHex(),
+                        value: 10000n,
+                        sequenceNo: 0xffffffff,
+                        sats: 10000n,
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 5000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                outputs: [
+                    {
+                        sats: 546n,
+                        outputScript: receiveScript1.toHex(),
+                        token: {
+                            tokenId,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 3000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: 1234567890,
+                size: 200,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as TokenStatus,
+                isFinal: true,
+            };
+
+            const result = wallet.getTxAmounts(tx);
+
+            expect(result.selfSend).to.equal(true);
+            expect(result.balanceSatsDelta).to.equal(-9454n); // 546 - 10000
+            expect(result.tokenDeltas.size).to.equal(1);
+            expect(result.tokenDeltas.get(tokenId)).to.equal(-2000n); // 3000 - 5000
+        });
+    });
+});

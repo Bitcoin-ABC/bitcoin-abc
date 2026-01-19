@@ -267,3 +267,11 @@ See tests for detailed methods.
 - Add a `WalletAction.inspect()` method that can't be broadcasted and won't update the utxos. This can be used to inspect the tx and compute the fees without impacting the wallet.
 
 [D19390](https://reviews.bitcoinabc.org/D19390)
+
+# 3.8.0
+
+- Add a `Wallet.isWalletAddress()` method to check if an address belongs to the wallet.
+- Add a `Wallet.getTxAmounts()` to get all the balance changes introduced by a transaction from the wallet history.
+
+[D19390](https://reviews.bitcoinabc.org/D19390)
+[D19403](https://reviews.bitcoinabc.org/D19403)

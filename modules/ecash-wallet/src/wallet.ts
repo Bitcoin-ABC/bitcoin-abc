@@ -702,6 +702,77 @@ export class Wallet {
         return { balanceSatsDelta, tokenDeltas };
     }
 
+    public getTxAmounts(tx: ChronikTx): {
+        selfSend: boolean;
+        balanceSatsDelta: bigint;
+        tokenDeltas: Map<string, bigint>;
+    } {
+        let selfSend = true;
+        let balanceSatsDelta = 0n;
+        let tokenDeltas = new Map<string, bigint>();
+
+        // Process inputs: account for sats and tokens spent from the wallet
+        for (const input of tx.inputs) {
+            if (typeof input.outputScript !== 'string') {
+                // Skip coinbase inputs
+                continue;
+            }
+
+            // FIXME this adds an unnecessary hex conversion roundtrip
+            if (!this.isWalletScript(new Script(fromHex(input.outputScript)))) {
+                // Not from this wallet
+                selfSend = false;
+                continue;
+            }
+
+            balanceSatsDelta -= input.sats;
+
+            if (typeof input.token !== 'undefined' && input.token.atoms > 0n) {
+                // Equivalent to tokenDeltas[tokenId] -= atoms but it first
+                // creates the entry if it doesn't exist
+                tokenDeltas.set(
+                    input.token.tokenId,
+                    (tokenDeltas.get(input.token.tokenId) ?? 0n) -
+                        input.token.atoms,
+                );
+            }
+        }
+
+        // Process outputs: account for sats and tokens received into the wallet
+        for (const output of tx.outputs) {
+            // FIXME this adds an unnecessary hex conversion roundtrip
+            if (
+                !this.isWalletScript(new Script(fromHex(output.outputScript)))
+            ) {
+                // Not for this wallet
+                selfSend = false;
+                continue;
+            }
+
+            balanceSatsDelta += output.sats;
+
+            if (
+                typeof output.token !== 'undefined' &&
+                output.token.atoms > 0n
+            ) {
+                // Equivalent to tokenDeltas[tokenId] += atoms but it first
+                // creates the entry if it doesn't exist
+                tokenDeltas.set(
+                    output.token.tokenId,
+                    (tokenDeltas.get(output.token.tokenId) ?? 0n) +
+                        output.token.atoms,
+                );
+            }
+        }
+
+        // Remove token deltas with 0 atoms
+        tokenDeltas = new Map(
+            [...tokenDeltas.entries()].filter(([_, atoms]) => atoms !== 0n),
+        );
+
+        return { selfSend, balanceSatsDelta, tokenDeltas };
+    }
+
     /**
      * Update balanceSats based on current utxos
      * Called during sync() after utxos are updated
