@@ -9042,3 +9042,85 @@ describe('HD Wallet', () => {
         });
     });
 });
+
+describe('isWalletAddress and isWalletScript', () => {
+    const testMnemonic =
+        'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+
+    describe('Non-HD wallet', () => {
+        it('isWalletAddress and isWalletScript return true for wallet address/script and false for others', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            // Wallet's own address should be recognized
+            expect(
+                wallet.isWalletAddress(Address.fromCashAddress(wallet.address)),
+            ).to.equal(true);
+
+            // Wallet's own script should be recognized
+            expect(wallet.isWalletScript(wallet.script)).to.equal(true);
+
+            // Create a completely different address and script
+            const otherScript = Script.p2pkh(
+                shaRmd160(testEcc.derivePubkey(fromHex('33'.repeat(32)))),
+            );
+            const otherAddress = Address.fromScript(otherScript);
+            expect(wallet.isWalletScript(otherScript)).to.equal(false);
+            expect(wallet.isWalletAddress(otherAddress)).to.equal(false);
+        });
+    });
+
+    describe('HD wallet', () => {
+        it('isWalletAddress and isWalletScript return true for wallet addresses/scripts and false for others', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+
+            // Wallet's base address should be recognized
+            expect(
+                wallet.isWalletAddress(Address.fromCashAddress(wallet.address)),
+            ).to.equal(true);
+
+            // Wallet's base script should be recognized
+            expect(wallet.isWalletScript(wallet.script)).to.equal(true);
+
+            // Additional receive address should be recognized
+            const receiveAddress1 = wallet.getReceiveAddress(1);
+            expect(
+                wallet.isWalletAddress(
+                    Address.fromCashAddress(receiveAddress1),
+                ),
+            ).to.equal(true);
+
+            // Additional receive address script should be recognized
+            expect(
+                wallet.isWalletScript(Script.fromAddress(receiveAddress1)),
+            ).to.equal(true);
+
+            // Change address should be recognized
+            const changeAddress0 = wallet.getChangeAddress(0);
+            expect(
+                wallet.isWalletAddress(Address.fromCashAddress(changeAddress0)),
+            ).to.equal(true);
+
+            // Change address script should be recognized
+            expect(
+                wallet.isWalletScript(Script.fromAddress(changeAddress0)),
+            ).to.equal(true);
+
+            // Create a completely different address and script
+            const otherScript = Script.p2pkh(
+                shaRmd160(testEcc.derivePubkey(fromHex('33'.repeat(32)))),
+            );
+            const otherAddress = Address.fromScript(otherScript);
+            expect(wallet.isWalletScript(otherScript)).to.equal(false);
+            expect(wallet.isWalletAddress(otherAddress)).to.equal(false);
+        });
+    });
+});

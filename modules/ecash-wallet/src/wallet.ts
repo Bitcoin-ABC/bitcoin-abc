@@ -630,24 +630,16 @@ export class Wallet {
             }
 
             // Derive address from outputScript early
-            let address: string;
+            let address: Address;
             try {
-                address = Address.fromScriptHex(output.outputScript).toString();
+                address = Address.fromScriptHex(output.outputScript);
             } catch {
                 // Skip unsupported output script types
                 continue;
             }
 
             // Check if this address belongs to the wallet
-            let belongsToWallet = false;
-            if (this.isHD) {
-                // For HD wallets, check if address is in keypairs
-                belongsToWallet = this.keypairs.has(address);
-            } else {
-                // For non-HD wallets, check if it matches the single address
-                belongsToWallet = address === this.address;
-            }
-            if (!belongsToWallet) {
+            if (!this.isWalletAddress(address)) {
                 continue;
             }
 
@@ -673,7 +665,7 @@ export class Wallet {
                 isCoinbase: tx.isCoinbase ?? false,
                 sats: output.sats,
                 isFinal: tx.isFinal ?? false,
-                address,
+                address: address.toString(),
             };
 
             // Add token information if present
@@ -800,9 +792,9 @@ export class Wallet {
     }
 
     /**
-     * Check if a script belongs to this wallet
-     * For non-HD wallets, checks against the single address script
-     * For HD wallets, checks against all addresses in keypairs map
+     * Check if a script belongs to this wallet.
+     * For non-HD wallets, checks against the single address script.
+     * For HD wallets, checks against all addresses in keypairs map.
      *
      * @param script - The script to check
      * @returns True if the script belongs to this wallet
@@ -815,6 +807,21 @@ export class Wallet {
             }
         }
         return false;
+    }
+
+    /**
+     * Check if the address belongs to the wallet.
+     * For non-HD wallets, checks against the single address.
+     * For HD wallets, checks against all addresses in keypairs map.
+     *
+     * @param address - The address to check
+     * @returns True if the address belongs to the wallet, false otherwise
+     */
+    public isWalletAddress(address: Address): boolean {
+        if (this.isHD) {
+            return this.keypairs.has(address.toString());
+        }
+        return address.toString() === this.address;
     }
 
     /**
