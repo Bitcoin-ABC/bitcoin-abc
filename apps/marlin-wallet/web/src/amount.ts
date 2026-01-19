@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { webViewError } from './common';
-import { Ecc, shaRmd160 } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { buildAction } from './wallet';
@@ -27,114 +26,7 @@ export async function calculateTransactionAmountSats(
             return 0;
         }
 
-        // Get our address hash160 for comparison
-        const ecc = new Ecc();
-        const pk = ecc.derivePubkey(wallet.sk);
-        const pkh = shaRmd160(pk);
-        const ourHash160 = Array.from(pkh)
-            .map(byte => byte.toString(16).padStart(2, '0'))
-            .join('');
-
-        let totalAmount = 0;
-
-        // Check outputs (receives) - amounts sent TO our address
-        for (let i = 0; i < tx.outputs.length; i++) {
-            const output = tx.outputs[i];
-
-            if (output.outputScript && output.sats) {
-                try {
-                    // Handle both hex string and Uint8Array formats
-                    let outputScript: Uint8Array;
-                    if (typeof output.outputScript === 'string') {
-                        // Convert hex string to Uint8Array
-                        const hex = output.outputScript;
-                        outputScript = new Uint8Array(hex.length / 2);
-                        for (let j = 0; j < hex.length; j += 2) {
-                            outputScript[j / 2] = parseInt(
-                                hex.substr(j, 2),
-                                16,
-                            );
-                        }
-                    } else {
-                        outputScript = output.outputScript as Uint8Array;
-                    }
-
-                    // We only support P2PKH scripts
-                    if (
-                        outputScript &&
-                        outputScript.length === 25 &&
-                        outputScript[0] === 0x76 &&
-                        outputScript[1] === 0xa9 &&
-                        outputScript[2] === 0x14
-                    ) {
-                        // Extract hash160 from P2PKH script
-                        const scriptHash160 = outputScript.slice(3, 23);
-                        const scriptHash160Hex = Array.from(scriptHash160)
-                            .map(byte => byte.toString(16).padStart(2, '0'))
-                            .join('');
-
-                        if (scriptHash160Hex === ourHash160) {
-                            const amountSats = Number(output.sats);
-                            totalAmount += amountSats;
-                        }
-                    }
-                } catch (error) {
-                    webViewError(
-                        `Could not parse output script from txid ${txid} index ${i}:`,
-                        error,
-                    );
-                }
-            }
-        }
-
-        // Check inputs (spends) - amounts sent FROM our address
-        for (let i = 0; i < tx.inputs.length; i++) {
-            const input = tx.inputs[i];
-
-            if (input.outputScript && input.sats) {
-                try {
-                    // Handle both hex string and Uint8Array formats
-                    let inputScript: Uint8Array;
-                    if (typeof input.outputScript === 'string') {
-                        // Convert hex string to Uint8Array
-                        const hex = input.outputScript;
-                        inputScript = new Uint8Array(hex.length / 2);
-                        for (let j = 0; j < hex.length; j += 2) {
-                            inputScript[j / 2] = parseInt(hex.substr(j, 2), 16);
-                        }
-                    } else {
-                        inputScript = input.outputScript as Uint8Array;
-                    }
-
-                    // We only support P2PKH scripts
-                    if (
-                        inputScript &&
-                        inputScript.length === 25 &&
-                        inputScript[0] === 0x76 &&
-                        inputScript[1] === 0xa9 &&
-                        inputScript[2] === 0x14
-                    ) {
-                        // Extract hash160 from P2PKH script
-                        const scriptHash160 = inputScript.slice(3, 23);
-                        const scriptHash160Hex = Array.from(scriptHash160)
-                            .map(byte => byte.toString(16).padStart(2, '0'))
-                            .join('');
-
-                        if (scriptHash160Hex === ourHash160) {
-                            const amountSats = Number(input.sats);
-                            totalAmount -= amountSats;
-                        }
-                    }
-                } catch (error) {
-                    webViewError(
-                        `Could not parse input script from txid ${txid} index ${i}:`,
-                        error,
-                    );
-                }
-            }
-        }
-
-        return totalAmount;
+        return Number(wallet.getTxAmounts(tx).balanceSatsDelta);
     } catch (error) {
         webViewError('Failed calculating transaction amount:', error);
         return 0;
