@@ -33,3 +33,9 @@ export const REGISTRATION_REWARD_SATS = 1000_00n; // 1,000.00 XEC
  * See README.md for EMPP spec
  */
 export const LOKAD_ID = 'XOVM';
+
+/**
+ * Target XEC balance for all users (1000 XEC = 100,000 sats)
+ * Used by the daily topup cron job to maintain user balances
+ */
+export const TARGET_XEC_SATS = 1000_00n; // 1,000.00 XEC

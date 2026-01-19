@@ -8,7 +8,9 @@ import { Bot } from 'grammy';
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { HdNode, mnemonicToSeed } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
+import { CronJob } from 'cron';
 import { initDb, initSchema } from './src/db';
+import { topupUserAddresses } from './src/topup';
 import {
     register,
     health,
@@ -208,6 +210,28 @@ const startup = async () => {
         ],
     });
     console.info('Bot started and polling for updates');
+
+    // Initialize cron job for daily user address topup (runs at midnight UTC)
+    const topupJob = new CronJob(
+        // Every day at midnight UTC
+        // see https://www.npmjs.com/package/cron
+        // seconds[0-59] minutes[0-59] hours[0-23] day-of-month[1-31] month[1-12] day-of-week[0-7]
+        '0 0 0 * * *',
+        async () => {
+            try {
+                await topupUserAddresses(wallet, chronik, pool, false);
+            } catch (err) {
+                console.error('Topup cron job failed:', err);
+            }
+        },
+        null, // onComplete
+        false, // start
+        'UTC', // timeZone
+    );
+    topupJob.start();
+    console.info(
+        'Daily user address topup cron job started (runs at UTC midnight)',
+    );
 
     console.info('🎉 The Overmind startup completed successfully!');
 
