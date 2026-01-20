@@ -3,18 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { SlpDecimals } from 'wallet';
-import {
-    ALP_STANDARD,
-    emppScript,
-    alpSend,
-    alpBurn,
-} from 'ecash-lib';
 import { GenesisInfo } from 'chronik-client';
-import {
-    TokenInputInfo,
-    TokenTargetOutput,
-    TOKEN_DUST_CHANGE_OUTPUT,
-} from 'token-protocols';
 
 /**
  * Cashtab methods to support ALP tx construction
@@ -51,35 +40,4 @@ export const getMaxDecimalizedAlpQty = (decimals: SlpDecimals): string => {
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
-};
-
-/**
- * Get targetOutput(s) for an ALP v1 BURN tx
- * Note: ALP supports intentional burns by adding another EMPP output
- */
-export const getAlpBurnTargetOutputs = (
-    tokenInputInfo: TokenInputInfo,
-): TokenTargetOutput[] => {
-    const { tokenId, sendAmounts } = tokenInputInfo;
-
-    // If we have change from the getSendTokenInputs call, we want to SEND it to ourselves
-    // If we have no change, we want to SEND ourselves 0
-
-    const hasChange = sendAmounts.length > 1;
-    const tokenChange = hasChange ? sendAmounts[1] : 0n;
-
-    // Build EMPP script
-    // Initialize with burn
-    const burnEmpp = [alpBurn(tokenId as string, ALP_STANDARD, sendAmounts[0])];
-    if (hasChange) {
-        // Unburned token change is a send output
-        burnEmpp.push(alpSend(tokenId as string, ALP_STANDARD, [tokenChange]));
-    }
-    const script = emppScript(burnEmpp);
-
-    // We always include 1 change output
-    // If we are burning a full utxo and we do not need a token change output,
-    // We still need to ensure the tx has at least one output of dust satoshis to be valid
-    // Using the token dust utxo is a convenient way of doing this
-    return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };

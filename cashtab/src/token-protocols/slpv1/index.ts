@@ -2,22 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import appConfig from 'config/app';
 import {
     Script,
-    slpSend,
-    slpMint,
     TxBuilder,
     EccDummy,
     Signatory,
     TxBuilderOutput,
 } from 'ecash-lib';
 import { TokenUtxo, CashtabUtxo, SlpDecimals } from 'wallet';
-import {
-    TOKEN_DUST_CHANGE_OUTPUT,
-    TokenInputInfo,
-    TokenTargetOutput,
-} from 'token-protocols';
 // Constants for SLP 1 token types as returned by chronik-client
 export const SLP_1_PROTOCOL_NUMBER = 1;
 export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
@@ -27,46 +19,6 @@ export const MAX_OUTPUT_AMOUNT_SLP_ATOMS = 0xffffffffffffffffn;
 
 const DUMMY_TXID =
     '1111111111111111111111111111111111111111111111111111111111111111';
-
-// For SLPv1 Mint txs, Cashtab always puts the mint baton at mintBatonVout 2
-const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
-
-/**
- * Get targetOutput(s) for a SLP v1 BURN tx
- * Note: a burn tx is a special case of a send tx where you have no destination output
- * You always have a change output as an eCash tx must have at least dust output
- *
- * @param tokenInputInfo
- * @throws if invalid input params are passed to TokenType1.send
- * @returns targetOutputs with a change output, even if all utxos are consumed
- * [{sats: 0n, script: <encoded slp burn script>}, {sats: 546n}]
- */
-export const getSlpBurnTargetOutputs = (
-    tokenInputInfo: TokenInputInfo,
-    tokenType: number,
-): TokenTargetOutput[] => {
-    const { tokenId, sendAmounts } = tokenInputInfo;
-
-    // If we have change from the getSendTokenInputs call, we want to SEND it to ourselves
-    // If we have no change, we want to SEND ourselves 0
-
-    const hasChange = sendAmounts.length > 1;
-    const tokenChange = hasChange ? sendAmounts[1] : 0n;
-
-    // This step is what makes the tx a burn and not a send (no destination output)
-    const script = slpSend(tokenId, tokenType, [tokenChange]);
-
-    // Build targetOutputs per slpv1 spec
-    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
-    // Script must be at index 0
-    // We need a token utxo even if change is 0
-    // We will probably always have an XEC change output, but always including a token output
-    // that is either change or a "send" qty of 0 is a simple standard that allows us to keep
-    // burn tx logic separate from ecash tx creation logic
-    // But lets just add the min output
-
-    return [{ sats: 0n, script }, TOKEN_DUST_CHANGE_OUTPUT];
-};
 
 /**
  * Get mint baton(s) for a given token
@@ -109,57 +61,6 @@ export const getMaxDecimalizedSlpQty = (decimals: SlpDecimals): string => {
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
-};
-
-/**
- * TODO note this function is still not implemented
- * Get targetOutput(s) for a SLPv1 NFT Parent MINT tx
- * Note: Cashtab only supports slpv1 mints that preserve the baton at the wallet's address
- * Note: Cashtab only supports NFT1 parents with decimals of 0
- * @param tokenId
- * @param mintQty
- * @throws if invalid input params are passed to TokenType1.mint
- * @returns targetOutput(s), e.g. [{sats: 0n, script: <encoded slp send script>}, {sats: 546n}, {sats: 546n}]
- * Note: we always return minted qty at index 1
- * Note we always return a mint baton at index 2
- */
-export const getNftParentMintTargetOutputs = (
-    tokenId: string,
-    mintQty: bigint,
-): TokenTargetOutput[] => {
-    const script = slpMint(
-        tokenId,
-        SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
-        mintQty,
-        CASHTAB_SLP1_MINT_MINTBATON_VOUT,
-    );
-
-    return [
-        // SLP Script
-        { sats: 0n, script },
-        // Dust output to hold mint qty
-        TOKEN_DUST_CHANGE_OUTPUT,
-        // Dust output to hold mint baton
-        TOKEN_DUST_CHANGE_OUTPUT,
-    ];
-};
-
-/**
- * Test if a given targetOutput is TOKEN_DUST_CHANGE_OUTPUT
- * Such an output needs 'script' added for the sending wallet's address
- * @param targetOutput
- */
-export const isTokenDustChangeOutput = (
-    targetOutput: TokenTargetOutput,
-): boolean => {
-    return (
-        // We have only one key
-        Object.keys(targetOutput).length === 1 &&
-        // It's "value"
-        'sats' in targetOutput &&
-        // it's equal to 546n
-        targetOutput.sats === BigInt(appConfig.dustSats)
-    );
 };
 
 /**

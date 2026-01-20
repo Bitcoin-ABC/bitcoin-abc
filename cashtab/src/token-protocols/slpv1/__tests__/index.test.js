@@ -3,11 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    getSlpBurnTargetOutputs,
     getMintBatons,
     getMaxDecimalizedSlpQty,
-    getNftParentMintTargetOutputs,
-    isTokenDustChangeOutput,
     getAgoraAdFuelSats,
 } from 'token-protocols/slpv1';
 import { getSendTokenInputs } from 'token-protocols';
@@ -99,43 +96,6 @@ describe('slpv1 methods', () => {
             });
         });
     });
-    describe('Generating etoken burn tx target outputs', () => {
-        const { expectedReturns } = vectors.burnTxs;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                tokenUtxos,
-                burnQty,
-                tokenId,
-                decimals,
-                tokenInputInfo,
-                targetOutputs,
-            } = expectedReturn;
-
-            it(`getSlpBurnTargetOutputs: ${description}`, () => {
-                // We get the same tokenInputInfo object for token burns that we do for token sends
-                const calculatedTokenInputInfo = getSendTokenInputs(
-                    tokenUtxos,
-                    tokenId,
-                    burnQty,
-                    decimals,
-                );
-
-                expect(calculatedTokenInputInfo.sendAmounts).toStrictEqual(
-                    tokenInputInfo.sendAmounts,
-                );
-
-                expect(
-                    getSlpBurnTargetOutputs(
-                        calculatedTokenInputInfo,
-                        SLP_FUNGIBLE,
-                    ),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-    });
     describe('Get slpv1 mint baton(s)', () => {
         const { expectedReturns } = vectors.getMintBatons;
         expectedReturns.forEach(vector => {
@@ -151,42 +111,6 @@ describe('slpv1 methods', () => {
             const { description, decimals, returned } = vector;
             it(`getMaxDecimalizedSlpQty: ${description}`, () => {
                 expect(getMaxDecimalizedSlpQty(decimals)).toBe(returned);
-            });
-        });
-    });
-    describe('Generate target outputs for an slpv1 nft parent mint tx', () => {
-        const { expectedReturns, expectedErrors } =
-            vectors.getNftParentMintTargetOutputs;
-
-        // Successfully created targetOutputs
-        expectedReturns.forEach(expectedReturn => {
-            const { description, tokenId, mintQty, targetOutputs } =
-                expectedReturn;
-            it(`getNftParentMintTargetOutputs: ${description}`, () => {
-                expect(
-                    getNftParentMintTargetOutputs(tokenId, mintQty),
-                ).toStrictEqual(targetOutputs);
-            });
-        });
-
-        // Error cases
-        expectedErrors.forEach(expectedError => {
-            const { description, tokenId, mintQty, errorMsg } = expectedError;
-            it(`getNftParentMintTargetOutputs throws error for: ${description}`, () => {
-                expect(() =>
-                    getNftParentMintTargetOutputs(tokenId, mintQty),
-                ).toThrow(errorMsg);
-            });
-        });
-    });
-    describe('isTokenDustChangeOutput correctly identifies a token dust change output', () => {
-        const { expectedReturns } = vectors.isTokenDustChangeOutput;
-        expectedReturns.forEach(expectedReturn => {
-            const { description, targetOutput, returned } = expectedReturn;
-            it(`isTokenDustChangeOutput: ${description}`, () => {
-                expect(isTokenDustChangeOutput(targetOutput)).toStrictEqual(
-                    returned,
-                );
             });
         });
     });
