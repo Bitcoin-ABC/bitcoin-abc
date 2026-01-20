@@ -275,3 +275,9 @@ See tests for detailed methods.
 
 [D19390](https://reviews.bitcoinabc.org/D19390)
 [D19403](https://reviews.bitcoinabc.org/D19403)
+
+# 3.9.0
+
+- Add a new class `WatchOnlyWallet` to support watch only wallets (both HD and single-address)
+
+[D19406](https://reviews.bitcoinabc.org/D19406)

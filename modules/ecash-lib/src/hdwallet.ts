@@ -4,10 +4,17 @@
 
 import { Ecc } from './ecc.js';
 import { hmacSha512 } from './hmac.js';
-import { shaRmd160 } from './hash.js';
+import { shaRmd160, sha256d } from './hash.js';
 import { Bytes } from './io/bytes.js';
 import { strToBytes } from './io/str.js';
 import { WriterBytes } from './io/writerbytes.js';
+import { encodeBase58 } from 'b58-ts';
+import { decodeBase58Check } from './address/legacyaddr.js';
+
+// BIP32 extended public key version bytes
+// These match the values defined in Electrum ABC's networks.py
+const XPUB_VERSION_MAINNET = 0x0488b21e;
+const XPUB_VERSION_TESTNET = 0x043587cf;
 
 const HIGHEST_BIT = 0x80000000;
 
@@ -67,6 +74,48 @@ export class HdNode {
 
     public chainCode(): Uint8Array {
         return this._chainCode;
+    }
+
+    /**
+     * Encode this HdNode as an xpub (extended public key) string
+     *
+     * An xpub is a base58check-encoded string containing:
+     * - 4 bytes: version (0x0488B21E for mainnet xpub, 0x043587CF for testnet xpub)
+     * - 1 byte: depth
+     * - 4 bytes: parent fingerprint
+     * - 4 bytes: child index
+     * - 32 bytes: chain code (needed to derive child keys)
+     * - 33 bytes: public key (compressed)
+     *
+     * @param version - Version bytes (defaults to XPUB_VERSION_MAINNET)
+     * @returns Base58check-encoded xpub string
+     */
+    public xpub(version: number = XPUB_VERSION_MAINNET): string {
+        // Validate public key is compressed
+        if (
+            this._pubkey.length !== 33 ||
+            (this._pubkey[0] !== 0x02 && this._pubkey[0] !== 0x03)
+        ) {
+            throw new Error(
+                'Public key must be compressed (33 bytes, starts with 0x02 or 0x03)',
+            );
+        }
+
+        // Write xpub data (78 bytes total)
+        const writer = new WriterBytes(78);
+        writer.putU32(version, 'BE');
+        writer.putU8(this._depth);
+        writer.putU32(this._parentFingerprint, 'BE');
+        writer.putU32(this._index, 'BE');
+        writer.putBytes(this._chainCode);
+        writer.putBytes(this._pubkey);
+
+        // Encode with base58check
+        const checksum = sha256d(writer.data);
+        const dataWithChecksum = new Uint8Array(78 + 4);
+        dataWithChecksum.set(writer.data, 0);
+        dataWithChecksum.set(checksum.subarray(0, 4), 78);
+        return encodeBase58(dataWithChecksum);
     }
 
     public derive(index: number): HdNode {
@@ -174,5 +223,77 @@ export class HdNode {
         const hashedLeft = hashed.slice(0, 32);
         const hashedRight = hashed.slice(32);
         return HdNode.fromPrivateKey(hashedLeft, hashedRight);
+    }
+
+    /**
+     * Create an HdNode from an xpub (extended public key) string
+     *
+     * An xpub is a base58check-encoded string containing:
+     * - 4 bytes: version (0x0488B21E for mainnet xpub, 0x043587CF for testnet xpub)
+     * - 1 byte: depth
+     * - 4 bytes: parent fingerprint
+     * - 4 bytes: child index
+     * - 32 bytes: chain code
+     * - 33 bytes: public key (compressed)
+     *
+     * The resulting HdNode will not have a private key (watch-only).
+     *
+     * @param xpub - The extended public key string
+     * @returns HdNode created from the xpub (without private key)
+     */
+    public static fromXpub(xpub: string): HdNode {
+        const payload = decodeBase58Check(xpub);
+
+        if (payload.length !== 78) {
+            throw new Error(
+                `Invalid xpub: expected 78 bytes, got ${payload.length}`,
+            );
+        }
+
+        const bytes = new Bytes(payload);
+
+        // Read version (4 bytes, big-endian)
+        const version = bytes.readU32('BE');
+        // Validate version (mainnet or testnet xpub)
+        if (
+            version !== XPUB_VERSION_MAINNET &&
+            version !== XPUB_VERSION_TESTNET
+        ) {
+            throw new Error(
+                `Invalid xpub version: expected 0x${XPUB_VERSION_MAINNET.toString(16).toUpperCase()} (mainnet) or 0x${XPUB_VERSION_TESTNET.toString(16).toUpperCase()} (testnet), got 0x${version.toString(16)}`,
+            );
+        }
+
+        // Read depth (1 byte)
+        const depth = bytes.readU8();
+
+        // Read parent fingerprint (4 bytes, big-endian)
+        const parentFingerprint = bytes.readU32('BE');
+
+        // Read child index (4 bytes, big-endian)
+        const index = bytes.readU32('BE');
+
+        // Read chain code (32 bytes)
+        const chainCode = bytes.readBytes(32);
+
+        // Read public key (33 bytes, compressed)
+        const pubkey = bytes.readBytes(33);
+
+        // Validate public key format (should start with 0x02 or 0x03 for compressed)
+        if (pubkey[0] !== 0x02 && pubkey[0] !== 0x03) {
+            throw new Error(
+                `Invalid xpub: public key must be compressed (start with 0x02 or 0x03), got 0x${pubkey[0].toString(16)}`,
+            );
+        }
+
+        // Create HdNode without private key (watch-only)
+        return new HdNode({
+            seckey: undefined,
+            pubkey,
+            chainCode,
+            depth,
+            index,
+            parentFingerprint,
+        });
     }
 }

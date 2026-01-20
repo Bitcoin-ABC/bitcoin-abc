@@ -229,4 +229,42 @@ describe('hdwallet', () => {
         expect(child4.index()).to.equal(2);
         expect(child4.depth()).to.equal(5);
     });
+
+    it('HdNode.xpub() and HdNode.fromXpub() round-trip correctly', () => {
+        const seed = fromHex('000102030405060708090a0b0c0d0e0f');
+        const master = HdNode.fromSeed(seed);
+        const accountNode = master.derivePath("m/44'/1899'/0'");
+
+        // Encode to xpub
+        const xpub = accountNode.xpub();
+
+        // Decode from xpub
+        const decodedNode = HdNode.fromXpub(xpub);
+
+        // Verify all properties match
+        expect(toHex(decodedNode.pubkey())).to.equal(
+            toHex(accountNode.pubkey()),
+        );
+        expect(toHex(decodedNode.chainCode())).to.equal(
+            toHex(accountNode.chainCode()),
+        );
+        expect(decodedNode.depth()).to.equal(accountNode.depth());
+        expect(decodedNode.index()).to.equal(accountNode.index());
+        expect(decodedNode.parentFingerprint()).to.equal(
+            accountNode.parentFingerprint(),
+        );
+        expect(decodedNode.seckey()).to.equal(undefined); // Watch-only, no private key
+
+        // Verify we can derive addresses from the decoded node
+        const receive0FromOriginal = accountNode.derive(0).derive(0);
+        const receive0FromDecoded = decodedNode.derive(0).derive(0);
+        expect(toHex(receive0FromOriginal.pubkey())).to.equal(
+            toHex(receive0FromDecoded.pubkey()),
+        );
+    });
+
+    it('HdNode.fromXpub() throws error for invalid xpub', () => {
+        expect(() => HdNode.fromXpub('invalid-xpub')).to.throw();
+        expect(() => HdNode.fromXpub('xpub123')).to.throw();
+    });
 });

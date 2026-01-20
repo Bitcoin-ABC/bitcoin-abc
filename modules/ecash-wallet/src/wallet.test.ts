@@ -60,6 +60,7 @@ import {
     checkTokenSendExceedsMaxOutputs,
     RequiredTokenInputs,
 } from './wallet';
+import { WalletBase } from './walletBase';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
 const expect = chai.expect;
@@ -7150,10 +7151,10 @@ describe('checkTokenSendExceedsMaxOutputs', () => {
 describe('static methods', () => {
     context('Can sum value of utxos', () => {
         it('Returns 0 if called with no utxos', () => {
-            expect(Wallet.sumUtxosSats([])).to.equal(0n);
+            expect(WalletBase.sumUtxosSats([])).to.equal(0n);
         });
         it('Can get total eCash satoshis held by all kinds of utxos', () => {
-            expect(Wallet.sumUtxosSats(ALL_SUPPORTED_UTXOS)).to.equal(
+            expect(WalletBase.sumUtxosSats(ALL_SUPPORTED_UTXOS)).to.equal(
                 93754368n,
             );
         });

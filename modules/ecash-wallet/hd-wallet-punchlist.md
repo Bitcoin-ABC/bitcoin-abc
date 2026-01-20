@@ -16,7 +16,7 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ## Status
 
-**Completed**: Foundation, Address Generation, Enhanced Sync, Transaction Building, and Signing (sections 1-8)
+**Completed**: Foundation, Address Generation, Enhanced Sync, Transaction Building, Signing, and Watch-Only Wallet Support (sections 1-9)
 
 - ✅ HD wallet type detection
 - ✅ HD wallet constructor via `fromMnemonic` with options
@@ -51,6 +51,15 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - HD wallet transaction building and broadcasting tests
     - Change address verification in tests
     - Chained transaction support for HD wallets
+- ✅ Watch-Only Wallet Support
+    - `WatchOnlyWallet` class for read-only wallet functionality
+    - Non-HD watch-only wallets via `fromAddress()`
+    - HD watch-only wallets via `fromXpub()` with xpub support
+    - All address generation methods (getReceiveAddress, getChangeAddress, getNextReceiveAddress, getNextChangeAddress, getAllAddresses)
+    - Sync functionality for both HD and non-HD watch-only wallets
+    - UTXO tracking and balance calculation
+    - Comprehensive unit tests and e2e tests
+    - `HdNode.xpub()` and `HdNode.fromXpub()` methods in ecash-lib
 
 **Remaining**: See "Remaining Tasks" section at the end of this document
 
@@ -225,16 +234,72 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
     - Tests verify chained transactions work with HD wallets
     - Tests verify UTXO set updates correctly after transactions
 
+### 9. Watch-Only Wallet Support
+
+- [x] Created `WatchOnlyWallet` class
+    - Separate class from `Wallet` for read-only wallet functionality
+    - Supports both non-HD (single address) and HD (xpub) wallets
+    - Cannot sign transactions (watch-only mode)
+    - Exposes `utxos` and `balanceSats` properties
+
+- [x] Non-HD watch-only wallet support
+    - `WatchOnlyWallet.fromAddress(address: string, chronik: ChronikClient)` static constructor
+    - Single-address watch-only wallet
+    - Supports UTXO syncing and balance calculation
+    - E2e tests verify it tracks the same address as a regular Wallet
+
+- [x] HD watch-only wallet support
+    - `WatchOnlyWallet.fromXpub(xpub: string, chronik: ChronikClient, options?)` static constructor
+    - Accepts same options shape as `Wallet` (accountNumber, receiveIndex, changeIndex)
+    - Stores xpub instead of private keys
+    - All address generation methods work (getReceiveAddress, getChangeAddress, getNextReceiveAddress, getNextChangeAddress, getAllAddresses)
+    - Sync functionality queries UTXOs for all addresses from 0 to receiveIndex and 0 to changeIndex
+    - Always derives all addresses from 0 to indices during sync (ensures consistency even if wallet cached additional addresses)
+
+- [x] Xpub support in ecash-lib
+    - Added `HdNode.xpub(version?: number): string` method
+        - Serializes HdNode's public key, chain code, depth, index, and parent fingerprint
+        - Base58check encodes the 78-byte payload
+        - Default version is 0x0488b21e (mainnet xpub)
+    - Added `HdNode.fromXpub(xpub: string): HdNode` static method
+        - Decodes base58check xpub string
+        - Parses components and constructs HdNode (without private key)
+        - Validates xpub format and depth
+
+- [x] Comprehensive test coverage
+    - Unit tests in `src/watchonly.test.ts`
+        - Tests for both non-HD and HD watch-only wallets
+        - Tests for address generation methods
+        - Tests for sync functionality
+        - Tests for xpub encoding/decoding
+    - E2e tests in `test/watchOnly.test.ts` (non-HD)
+        - Creates Wallet, sends XEC, mints token, sends transactions
+        - Creates WatchOnlyWallet from address, syncs, verifies same balance and UTXOs
+    - E2e tests in `test/hdWatchOnly.test.ts` (HD)
+        - Creates HD Wallet from mnemonic, performs ALP genesis, sends XEC
+        - Creates HD WatchOnlyWallet from xpub with discovered indices
+        - Syncs both and verifies same balance, UTXOs, and addresses
+
 ## Remaining Tasks
 
 ### Watch-Only HD Wallet Support
 
-- [ ] Add `Wallet.fromHDXpub(xpub: string, chronik: ChronikClient)` for watch-only HD wallets
-    - Store xpub instead of private keys
+- [x] Add `WatchOnlyWallet.fromXpub(xpub: string, chronik: ChronikClient, options?)` for watch-only HD wallets
+    - Separate `WatchOnlyWallet` class (not part of `Wallet` class)
+    - Stores xpub instead of private keys
     - Cannot sign transactions (watch-only mode)
-    - Requires separate `isWatchOnly: boolean` flag
-    - Should still support address generation and UTXO syncing
-    - Methods that require private keys should throw appropriate errors
+    - Supports address generation and UTXO syncing
+    - Accepts same options shape as `Wallet` (accountNumber, receiveIndex, changeIndex)
+    - Exposes `utxos` and `balanceSats` properties
+    - Provides `next change address` and `next receive address` methods
+    - Added `HdNode.xpub()` method to ecash-lib for xpub encoding
+    - Added `HdNode.fromXpub()` static method to ecash-lib for xpub decoding
+    - Comprehensive unit tests and e2e tests
+
+- [x] Add `WatchOnlyWallet.fromAddress(address: string, chronik: ChronikClient)` for non-HD watch-only wallets
+    - Single-address watch-only wallet support
+    - Supports UTXO syncing and balance calculation
+    - E2e tests verify it tracks the same address as a regular Wallet
 
 ### Address Discovery with Gap Limit
 
