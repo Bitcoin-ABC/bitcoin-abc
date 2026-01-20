@@ -104,6 +104,7 @@ let transactionHistory: TransactionHistoryManager | null = null;
 
 // Settings state
 let requireHoldToSend = true;
+let primaryBalanceType: 'XEC' | 'Fiat' = 'XEC';
 
 // OP_RETURN data for the current send transaction (for PayButton support)
 let sendOpReturnRaw: string | undefined = undefined;
@@ -117,6 +118,7 @@ const SETTINGS_STORAGE_KEY = 'ecashwallet.settings.1';
 
 interface AppSettings {
     requireHoldToSend: boolean;
+    primaryBalanceType: 'XEC' | 'Fiat';
 }
 
 // Load settings from localStorage
@@ -134,6 +136,7 @@ function loadSettings(): AppSettings {
     // Return defaults if no settings found
     return {
         requireHoldToSend: true,
+        primaryBalanceType: 'XEC',
     };
 }
 
@@ -1057,6 +1060,64 @@ async function validateAndSend() {
 // SETTINGS SCREEN FUNCTIONS
 // ============================================================================
 
+// Initialize settings UI and event listeners
+function initializeSettings() {
+    // Setup hold-to-send toggle and apply saved setting
+    const holdToSendToggle = document.getElementById(
+        'hold-to-send-toggle',
+    ) as HTMLInputElement;
+    if (holdToSendToggle) {
+        // Apply saved setting to toggle UI
+        holdToSendToggle.checked = requireHoldToSend;
+
+        // Add change listener
+        holdToSendToggle.addEventListener('change', () => {
+            requireHoldToSend = holdToSendToggle.checked;
+            webViewLog(
+                `Hold to send ${requireHoldToSend ? 'enabled' : 'disabled'}`,
+            );
+
+            // Save settings to localStorage
+            saveSettings({
+                requireHoldToSend: requireHoldToSend,
+                primaryBalanceType: primaryBalanceType,
+            });
+        });
+    }
+
+    // Setup primary balance toggle and apply saved setting
+    const primaryBalanceToggle = document.getElementById(
+        'primary-balance-toggle',
+    ) as HTMLInputElement;
+    if (primaryBalanceToggle) {
+        // Apply saved setting to toggle UI
+        // Toggle is checked when primary balance is Fiat
+        primaryBalanceToggle.checked = primaryBalanceType === 'Fiat';
+
+        // Add change listener
+        primaryBalanceToggle.addEventListener('change', async () => {
+            primaryBalanceType = primaryBalanceToggle.checked ? 'Fiat' : 'XEC';
+            webViewLog(`Primary balance set to ${primaryBalanceType}`);
+
+            // Save settings to localStorage
+            saveSettings({
+                requireHoldToSend: requireHoldToSend,
+                primaryBalanceType: primaryBalanceType,
+            });
+
+            // Refresh balance display with new primary/secondary order
+            if (ecashWallet) {
+                const currentXec = satsToXec(availableBalanceSats);
+                await updateAvailableBalanceDisplay(
+                    currentXec,
+                    currentXec,
+                    false,
+                );
+            }
+        });
+    }
+}
+
 // Mnemonic management functions
 function updateMnemonicDisplay() {
     const mnemonicText = document.getElementById(
@@ -1471,19 +1532,22 @@ async function updateAvailableBalanceDisplay(
         ? await priceFetcher.current(Fiat.USD)
         : null;
 
-    // Update primary (XEC) and secondary (Fiat) balance displays
     updateBalanceElement({
         elementId: 'primary-balance',
         fromXec,
         toXec,
-        pricePerXec: null,
+        // If primary balance type is XEC or price is not available, show as
+        // XEC, otherwise show as Fiat
+        pricePerXec: primaryBalanceType === 'XEC' ? null : pricePerXec,
         animate,
     });
     updateBalanceElement({
         elementId: 'secondary-balance',
         fromXec,
+        // If price is not available, hide the secondary balance element
         toXec: pricePerXec === null ? null : toXec,
-        pricePerXec,
+        // If primary balance type is XEC show as Fiat, otherwise show as XEC
+        pricePerXec: primaryBalanceType === 'XEC' ? pricePerXec : null,
         animate,
     });
 }
@@ -1915,6 +1979,7 @@ async function initializeApp() {
     // Load saved settings
     const settings = loadSettings();
     requireHoldToSend = settings.requireHoldToSend;
+    primaryBalanceType = settings.primaryBalanceType;
 
     // Initialize ticker symbols in HTML
     const tickerElements = [
@@ -2087,27 +2152,8 @@ async function initializeApp() {
         settingsBackBtn.addEventListener('click', showMainScreen);
     }
 
-    // Setup hold-to-send toggle and apply saved setting
-    const holdToSendToggle = document.getElementById(
-        'hold-to-send-toggle',
-    ) as HTMLInputElement;
-    if (holdToSendToggle) {
-        // Apply saved setting to toggle UI
-        holdToSendToggle.checked = requireHoldToSend;
-
-        // Add change listener
-        holdToSendToggle.addEventListener('change', () => {
-            requireHoldToSend = holdToSendToggle.checked;
-            webViewLog(
-                `Hold to send ${requireHoldToSend ? 'enabled' : 'disabled'}`,
-            );
-
-            // Save settings to localStorage
-            saveSettings({
-                requireHoldToSend: requireHoldToSend,
-            });
-        });
-    }
+    // Initialize settings UI
+    initializeSettings();
 
     if (editMnemonicBtn) {
         editMnemonicBtn.addEventListener('click', showMnemonicEditModal);
