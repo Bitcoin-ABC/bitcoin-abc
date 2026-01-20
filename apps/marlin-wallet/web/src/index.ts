@@ -9,6 +9,13 @@
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { DEFAULT_DUST_SATS } from 'ecash-lib';
+import {
+    XECPrice,
+    CoinGeckoProvider,
+    Fiat,
+    formatPrice,
+    ProviderStrategy,
+} from 'ecash-price';
 import PullToRefresh from 'pulltorefreshjs';
 import { TransactionHistoryManager } from './transaction-history';
 import {
@@ -85,6 +92,9 @@ let chronik: ChronikClient;
 // balances (in satoshis)
 let availableBalanceSats = 0; // Only finalized amounts in satoshis
 let transitionalBalanceSats = 0; // Only non finalized amounts in satoshis
+
+// Price API instance for fetching real-time XEC prices
+let priceFetcher: XECPrice | null = null;
 
 // Pending transactions - transactions that are not yet finalized
 let pendingAmounts: { [txid: string]: PendingTransaction } = {};
@@ -1210,7 +1220,7 @@ async function loadWalletFromMnemonic(mnemonic: string) {
     };
 
     // Update displays
-    updateWalletDisplay();
+    await updateWalletDisplay();
     updateTransitionalBalance();
     generateQRCode(address);
 
@@ -1277,7 +1287,7 @@ async function loadWallet(forceReload: boolean = false) {
 }
 
 // Update wallet display (address and balance)
-function updateWalletDisplay() {
+async function updateWalletDisplay() {
     if (!wallet) {
         webViewError('No wallet data, cannnot update the display');
         return;
@@ -1297,7 +1307,11 @@ function updateWalletDisplay() {
     }
 
     // Update balance display, no animation
-    updateAvailableBalanceDisplay(false);
+    await updateAvailableBalanceDisplay(
+        0,
+        satsToXec(availableBalanceSats),
+        false,
+    );
 }
 
 // ============================================================================
@@ -1339,11 +1353,13 @@ async function addPendingAmount(
     return pendingAmounts[txid];
 }
 
-function finalizeTransaction(amountSats: number) {
+async function finalizeTransaction(amountSats: number) {
+    const fromXec = satsToXec(availableBalanceSats);
     availableBalanceSats += amountSats;
+    const toXec = satsToXec(availableBalanceSats);
 
     updateTransitionalBalance();
-    updateAvailableBalanceDisplay(true); // Animate when finalizing transactions
+    await updateAvailableBalanceDisplay(fromXec, toXec, true); // Animate when finalizing transactions
     triggerShakeAnimation();
 
     // Trigger haptic feedback for transaction finalization
@@ -1442,36 +1458,90 @@ function updateTransitionalBalance() {
 }
 
 // Update available balance display with optional animation
-function updateAvailableBalanceDisplay(animate: boolean = true) {
-    const balanceEl = document.getElementById('balance') as HTMLElement;
+async function updateAvailableBalanceDisplay(
+    fromXec: number,
+    toXec: number,
+    animate: boolean = true,
+) {
+    webViewLog(
+        `Available balance updated from ${fromXec} ${config.ticker} to ${toXec} ${config.ticker}`,
+    );
+
+    const pricePerXec = priceFetcher
+        ? await priceFetcher.current(Fiat.USD)
+        : null;
+
+    // Update primary (XEC) and secondary (Fiat) balance displays
+    updateBalanceElement({
+        elementId: 'primary-balance',
+        fromXec,
+        toXec,
+        pricePerXec: null,
+        animate,
+    });
+    updateBalanceElement({
+        elementId: 'secondary-balance',
+        fromXec,
+        toXec: pricePerXec === null ? null : toXec,
+        pricePerXec,
+        animate,
+    });
+}
+
+interface UpdateBalanceElementParams {
+    elementId: string;
+    fromXec: number;
+    // null means hide the balance element
+    toXec: number | null;
+    // null means show as XEC, otherwise show as Fiat
+    pricePerXec: number | null;
+    animate: boolean;
+}
+
+function updateBalanceElement(params: UpdateBalanceElementParams) {
+    const { elementId, fromXec, toXec, pricePerXec, animate } = params;
+    const balanceEl = document.getElementById(elementId) as HTMLElement;
+
     if (balanceEl) {
-        const balanceXec = satsToXec(availableBalanceSats);
-        if (animate) {
-            animateBalanceChange(balanceEl, balanceXec);
-        } else {
-            balanceEl.textContent = `${balanceXec.toFixed(2)} ${config.ticker}`;
+        // If toXec is null, hide the balance element
+        if (toXec === null) {
+            balanceEl.textContent = '';
+            return;
         }
-        webViewLog(
-            'Available balance updated:',
-            balanceXec,
-            config.ticker,
-            '(',
-            availableBalanceSats,
-            'sats)',
-        );
+
+        // If pricePerXec is null show as XEC, otherwise show as Fiat
+        const fromValue =
+            pricePerXec === null ? fromXec : fromXec * pricePerXec;
+        const toValue = pricePerXec === null ? toXec : toXec * pricePerXec;
+        const formatValue =
+            pricePerXec === null
+                ? (value: number) => {
+                      return `${value.toFixed(2)} ${config.ticker}`;
+                  }
+                : (value: number) => {
+                      return formatPrice(value, Fiat.USD);
+                  };
+
+        if (animate) {
+            animateBalanceChange(balanceEl, fromValue, toValue, formatValue);
+        } else {
+            balanceEl.textContent = formatValue(toValue);
+        }
     } else {
-        webViewError(
-            'balanceEl not found, cannot update available balance display',
-        );
+        webViewError(`${elementId} not found, cannot update balance display`);
     }
 }
 
 // Animate balance change with counting effect
-function animateBalanceChange(balanceEl: HTMLElement, targetBalance: number) {
-    const startBalance = parseFloat(
-        balanceEl.textContent?.replace(` ${config.ticker}`, '') || '0',
-    );
-    const difference = targetBalance - startBalance;
+// formatValue: function to format the numeric value for display
+// startValue: starting value for the animation
+function animateBalanceChange(
+    balanceEl: HTMLElement,
+    startValue: number,
+    targetBalance: number,
+    formatValue: (value: number) => string,
+) {
+    const difference = targetBalance - startValue;
     const duration = 1000; // 1 second animation
     const startTime = Date.now();
 
@@ -1494,9 +1564,9 @@ function animateBalanceChange(balanceEl: HTMLElement, targetBalance: number) {
 
         // Use easing function for smooth animation
         const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-        const currentBalance = startBalance + difference * easeOutCubic;
+        const currentBalance = startValue + difference * easeOutCubic;
 
-        balanceEl.textContent = `${currentBalance.toFixed(2)} ${config.ticker}`;
+        balanceEl.textContent = formatValue(currentBalance);
 
         if (progress < 1) {
             requestAnimationFrame(updateBalance);
@@ -1788,7 +1858,11 @@ async function syncWallet() {
         transitionalBalanceSats = 0;
 
         // Update the display
-        updateAvailableBalanceDisplay(false);
+        await updateAvailableBalanceDisplay(
+            0,
+            satsToXec(availableBalanceSats),
+            false,
+        );
     } catch (error) {
         webViewError('Failed to sync wallet:', error);
 
@@ -1922,6 +1996,14 @@ async function initializeApp() {
     chronik = await ChronikClient.useStrategy(
         ConnectionStrategy.ClosestFirst,
         config.chronikUrls,
+    );
+
+    // Initialize price API with CoinGecko provider
+    // Cache prices for 60 seconds to reduce API calls
+    priceFetcher = new XECPrice(
+        [new CoinGeckoProvider()],
+        ProviderStrategy.FALLBACK,
+        60 * 1000,
     );
 
     try {

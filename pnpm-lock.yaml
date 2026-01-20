@@ -318,6 +318,9 @@ importers:
       ecash-lib:
         specifier: file:../../../modules/ecash-lib
         version: link:../../../modules/ecash-lib
+      ecash-price:
+        specifier: file:../../../modules/ecash-price
+        version: link:../../../modules/ecash-price
       ecash-wallet:
         specifier: file:../../../modules/ecash-wallet
         version: link:../../../modules/ecash-wallet

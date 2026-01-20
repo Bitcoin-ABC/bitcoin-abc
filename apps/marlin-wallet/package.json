@@ -15,7 +15,8 @@
         "copy-web-ios": "cp -r web/dist/* ios/MarlinWallet/web/",
         "ios": "pnpm run build-web && pnpm run copy-web-ios && react-native run-ios",
         "wearos": "cd android && ./gradlew :wear:installDebug",
-        "watchos": "./scripts/run-watchos.sh"
+        "watchos": "./scripts/run-watchos.sh",
+        "web": "pnpm run build-web && cd web && pnpm run start"
     },
     "dependencies": {
         "react": "19.2.3",
