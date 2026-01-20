@@ -91,7 +91,7 @@ export default function LiveCard() {
 
   const isLoading = isLoadingMempool;
   return (
-    <div className="flex w-full min-w-[250px] flex-col items-center self-stretch overflow-hidden rounded-lg border-t-2 border-t-white/10 bg-white/3 p-4 transition-all hover:bg-linear-to-tr hover:from-white/2 hover:to-[#21173B] xl:p-8">
+    <div className="flex w-full min-w-[250px] flex-col items-center justify-between self-stretch overflow-hidden rounded-lg border-t-2 border-t-white/10 bg-white/3 p-4 transition-all hover:bg-linear-to-tr hover:from-white/2 hover:to-[#21173B] xl:p-8">
       <div className="relative mb-10 w-full overflow-y-auto">
         {!isLoading && transactions.length > 0 ? (
           <div className="h-full w-full overflow-hidden">
