@@ -7,6 +7,7 @@ RUN apt-get update
 # dkpg-dev: to make pkg-config work in cross-builds
 # llvm: for llvm-symbolizer, which is used by clang's UBSan for symbolized stack traces
 RUN apt-get install --no-install-recommends --no-upgrade -y \
+        git ca-certificates \
         automake cmake default-jdk dpkg-dev libssl-dev libtool make ninja-build pkg-config python3 qemu-user valgrind \
         gcc clang llvm libclang-rt-dev libc6-dbg \
         g++ \
