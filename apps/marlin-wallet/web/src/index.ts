@@ -31,13 +31,7 @@ import {
     estimateTransactionFee,
 } from './amount';
 import { getAddress, WalletData, buildAction } from './wallet';
-import {
-    getMnemonic,
-    storeMnemonic,
-    loadMnemonic,
-    generateMnemonic,
-    validateMnemonic,
-} from './mnemonic';
+import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
 import { copyAddress, isValidECashAddress } from './address';
 import {
     generateQRCode,
@@ -48,8 +42,9 @@ import {
 import { config } from './config';
 import { parseBip21Uri, createBip21Uri } from './bip21';
 import { isPayButtonTransaction } from './paybutton';
-import { AppSettings, loadSettings, saveSettings } from './settings';
+import { AppSettings, loadSettings } from './settings';
 import { Navigation, Screen } from './navigation';
+import { SettingsScreen } from './screen/settings';
 
 // Styles
 import './main.css';
@@ -98,6 +93,9 @@ let pendingAmounts: { [txid: string]: PendingTransaction } = {};
 
 // Create global instance of TransactionHistoryManager
 let transactionHistory: TransactionHistoryManager | null = null;
+
+// Create global instance of SettingsScreen
+let settingsScreen: SettingsScreen | null = null;
 
 // Settings state
 let appSettings: AppSettings = {
@@ -337,17 +335,9 @@ function showHistoryScreen() {
     }, 100); // Small delay to ensure DOM is ready
 }
 
-// Settings screen functions
-function showSettingsScreen() {
-    navigation.showScreen(Screen.Settings);
-
-    // Always update the mnemonic display when showing settings
-    updateMnemonicDisplay();
-}
-
 // These are required for the webview html button bindings
 (window as any).openHistory = showHistoryScreen;
-(window as any).openSettings = showSettingsScreen;
+(window as any).openSettings = () => navigation.showScreen(Screen.Settings);
 
 // ============================================================================
 // SEND SCREEN FUNCTIONS
@@ -967,196 +957,6 @@ async function validateAndSend() {
 }
 
 // ============================================================================
-// SETTINGS SCREEN FUNCTIONS
-// ============================================================================
-
-// Initialize settings UI and event listeners
-function initializeSettings() {
-    // Setup hold-to-send toggle and apply saved setting
-    const holdToSendToggle = document.getElementById(
-        'hold-to-send-toggle',
-    ) as HTMLInputElement;
-    if (holdToSendToggle) {
-        // Apply saved setting to toggle UI
-        holdToSendToggle.checked = appSettings.requireHoldToSend;
-
-        // Add change listener
-        holdToSendToggle.addEventListener('change', () => {
-            appSettings.requireHoldToSend = holdToSendToggle.checked;
-            webViewLog(
-                `Hold to send ${appSettings.requireHoldToSend ? 'enabled' : 'disabled'}`,
-            );
-
-            // Save settings to localStorage
-            saveSettings(appSettings);
-        });
-    }
-
-    // Setup primary balance toggle and apply saved setting
-    const primaryBalanceToggle = document.getElementById(
-        'primary-balance-toggle',
-    ) as HTMLInputElement;
-    if (primaryBalanceToggle) {
-        // Apply saved setting to toggle UI
-        // Toggle is checked when primary balance is Fiat
-        primaryBalanceToggle.checked =
-            appSettings.primaryBalanceType === 'Fiat';
-
-        // Add change listener
-        primaryBalanceToggle.addEventListener('change', async () => {
-            appSettings.primaryBalanceType = primaryBalanceToggle.checked
-                ? 'Fiat'
-                : 'XEC';
-            webViewLog(
-                `Primary balance set to ${appSettings.primaryBalanceType}`,
-            );
-
-            // Save settings to localStorage
-            saveSettings(appSettings);
-
-            // Refresh balance display with new primary/secondary order
-            if (ecashWallet) {
-                const currentXec = satsToXec(availableBalanceSats);
-                updateAvailableBalanceDisplay(
-                    currentXec,
-                    currentXec,
-                    await priceFetcher?.current(Fiat.USD),
-                    false,
-                );
-            }
-
-            // Recreate transaction history instance with new settings
-            transactionHistory = new TransactionHistoryManager(
-                ecashWallet,
-                chronik,
-                appSettings,
-                priceFetcher,
-            );
-        });
-    }
-}
-
-// Mnemonic management functions
-function updateMnemonicDisplay() {
-    const mnemonicText = document.getElementById(
-        'mnemonic-text',
-    ) as HTMLTextAreaElement;
-    const walletMnemonic = getMnemonic(wallet);
-    if (mnemonicText && walletMnemonic) {
-        // mnemonicText.value = wallet.mnemonic;
-        mnemonicText.value = walletMnemonic;
-    }
-}
-
-function showMnemonicEditModal() {
-    const modal = document.getElementById('mnemonic-edit-modal');
-    if (modal) {
-        const editText = document.getElementById(
-            'mnemonic-edit-text',
-        ) as HTMLTextAreaElement;
-        const validation = document.getElementById('mnemonic-validation');
-
-        if (editText) {
-            const walletMnemonic = getMnemonic(wallet);
-            editText.value = walletMnemonic ? walletMnemonic : '';
-        }
-
-        if (validation) {
-            validation.style.display = 'none';
-        }
-
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    }
-}
-
-function hideMnemonicEditModal() {
-    const modal = document.getElementById('mnemonic-edit-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
-}
-
-function showValidationMessage(message: string, isError: boolean = true) {
-    const validation = document.getElementById('mnemonic-validation');
-    if (validation) {
-        validation.textContent = message;
-        validation.className = `validation-message ${
-            isError ? 'error' : 'success'
-        }`;
-        validation.style.display = 'block';
-    }
-}
-
-function hideValidationMessage() {
-    const validation = document.getElementById('mnemonic-validation');
-    if (validation) {
-        validation.style.display = 'none';
-    }
-}
-
-async function saveMnemonic(newMnemonic: string) {
-    try {
-        // Validate the mnemonic
-        if (!validateMnemonic(newMnemonic)) {
-            showValidationMessage(
-                'Invalid mnemonic. Please enter a valid 12-word recovery phrase.',
-            );
-            return false;
-        }
-
-        // Store the new mnemonic
-        await storeMnemonic(newMnemonic.trim());
-
-        // Update the wallet with the new mnemonic
-        if (wallet) {
-            wallet.mnemonic = newMnemonic.trim();
-        }
-
-        // Reload the wallet with the new mnemonic
-        webViewLog('Reloading wallet with new mnemonic...');
-        await loadWalletFromMnemonic(wallet.mnemonic);
-
-        // Ensure main screen is visible and wallet is displayed
-        navigation.showScreen(Screen.Main);
-
-        // Update the display
-        updateMnemonicDisplay();
-
-        // Show success message
-        showValidationMessage(
-            'Mnemonic updated successfully! Wallet reloaded.',
-            false,
-        );
-
-        // Disable the save button
-        const saveMnemonicEditBtn = document.getElementById(
-            'save-mnemonic-edit',
-        ) as HTMLButtonElement;
-        if (saveMnemonicEditBtn) {
-            saveMnemonicEditBtn.disabled = true;
-        }
-
-        // Hide modal after a short delay
-        setTimeout(() => {
-            hideMnemonicEditModal();
-            hideValidationMessage();
-            // Re-enable the save button
-            if (saveMnemonicEditBtn) {
-                saveMnemonicEditBtn.disabled = false;
-            }
-        }, 2000);
-
-        return true;
-    } catch (error) {
-        webViewError('Error saving mnemonic:', error);
-        showValidationMessage('Failed to save mnemonic. Please try again.');
-        return false;
-    }
-}
-
-// ============================================================================
 // WALLET MANAGEMENT FUNCTIONS
 // ============================================================================
 
@@ -1193,10 +993,15 @@ async function loadWalletFromMnemonic(mnemonic: string) {
 
     await syncWallet();
 
-    // Create wallet data object - balance in satoshis
-    wallet = {
-        mnemonic: mnemonic,
-    };
+    // Create or update the wallet data object. This is passed by reference
+    // around so it should not be recreated.
+    if (!wallet) {
+        wallet = {
+            mnemonic: mnemonic,
+        };
+    } else {
+        wallet.mnemonic = mnemonic;
+    }
 
     const pricePerXec = await priceFetcher?.current(Fiat.USD);
 
@@ -2007,6 +1812,34 @@ async function initializeApp() {
         return;
     }
 
+    // At this point the wallet is loaded
+
+    settingsScreen = new SettingsScreen({
+        appSettings,
+        wallet,
+        navigation,
+    });
+
+    // Register callbacks
+    settingsScreen.onPrimaryBalanceChange(async () => {
+        // Refresh balance display with new primary/secondary order
+        if (ecashWallet) {
+            const currentXec = satsToXec(availableBalanceSats);
+            await updateAvailableBalanceDisplay(
+                currentXec,
+                currentXec,
+                await priceFetcher?.current(Fiat.USD),
+                false,
+            );
+        }
+    });
+
+    settingsScreen.onMnemonicSaved(async (mnemonic: string) => {
+        // Reload the wallet with the new mnemonic
+        webViewLog('Reloading wallet with new mnemonic...');
+        await loadWalletFromMnemonic(mnemonic);
+    });
+
     // Hide loading screen on success
     hideLoadingScreen();
 
@@ -2068,55 +1901,6 @@ async function initializeApp() {
     if (historyBackBtn) {
         historyBackBtn.addEventListener('click', () => {
             navigation.showScreen(Screen.Main);
-        });
-    }
-
-    // Add click listeners for Settings screen
-    const settingsBackBtn = document.getElementById('settings-back-btn');
-    const editMnemonicBtn = document.getElementById('edit-mnemonic-btn');
-    const cancelMnemonicEditBtn = document.getElementById(
-        'cancel-mnemonic-edit',
-    );
-    const saveMnemonicEditBtn = document.getElementById('save-mnemonic-edit');
-    const closeMnemonicModalBtn = document.getElementById(
-        'close-mnemonic-modal',
-    );
-
-    if (settingsBackBtn) {
-        settingsBackBtn.addEventListener('click', () => {
-            navigation.showScreen(Screen.Main);
-        });
-    }
-
-    // Initialize settings UI
-    initializeSettings();
-
-    if (editMnemonicBtn) {
-        editMnemonicBtn.addEventListener('click', showMnemonicEditModal);
-    }
-
-    if (cancelMnemonicEditBtn) {
-        cancelMnemonicEditBtn.addEventListener('click', () => {
-            hideMnemonicEditModal();
-            hideValidationMessage();
-        });
-    }
-
-    if (closeMnemonicModalBtn) {
-        closeMnemonicModalBtn.addEventListener('click', () => {
-            hideMnemonicEditModal();
-            hideValidationMessage();
-        });
-    }
-
-    if (saveMnemonicEditBtn) {
-        saveMnemonicEditBtn.addEventListener('click', async () => {
-            const editText = document.getElementById(
-                'mnemonic-edit-text',
-            ) as HTMLTextAreaElement;
-            if (editText) {
-                await saveMnemonic(editText.value);
-            }
         });
     }
 
