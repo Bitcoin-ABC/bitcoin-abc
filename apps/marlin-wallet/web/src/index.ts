@@ -48,6 +48,7 @@ import {
 import { config } from './config';
 import { parseBip21Uri, createBip21Uri } from './bip21';
 import { isPayButtonTransaction } from './paybutton';
+import { AppSettings, loadSettings, saveSettings } from './settings';
 
 // Styles
 import './main.css';
@@ -110,47 +111,6 @@ let appSettings: AppSettings = {
 
 // OP_RETURN data for the current send transaction (for PayButton support)
 let sendOpReturnRaw: string | undefined = undefined;
-
-// ============================================================================
-// SETTINGS PERSISTENCE
-// ============================================================================
-
-// Only used for settings that don't require any security or encryption
-const SETTINGS_STORAGE_KEY = 'ecashwallet.settings.1';
-
-interface AppSettings {
-    requireHoldToSend: boolean;
-    primaryBalanceType: 'XEC' | 'Fiat';
-}
-
-// Load settings from localStorage
-function loadSettings(): AppSettings {
-    try {
-        const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
-        if (stored) {
-            const settings = JSON.parse(stored) as AppSettings;
-            return settings;
-        }
-    } catch (error) {
-        webViewError('Failed to load settings from localStorage:', error);
-    }
-
-    // Return defaults if no settings found
-    return {
-        requireHoldToSend: true,
-        primaryBalanceType: 'XEC',
-    };
-}
-
-// Save settings to localStorage
-function saveSettings(): void {
-    try {
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(appSettings));
-        webViewLog('Settings saved to localStorage');
-    } catch (error) {
-        webViewError('Failed to save settings to localStorage:', error);
-    }
-}
 
 // ============================================================================
 // GENERAL UTILITY FUNCTIONS
@@ -1082,7 +1042,7 @@ function initializeSettings() {
             );
 
             // Save settings to localStorage
-            saveSettings();
+            saveSettings(appSettings);
         });
     }
 
@@ -1106,7 +1066,7 @@ function initializeSettings() {
             );
 
             // Save settings to localStorage
-            saveSettings();
+            saveSettings(appSettings);
 
             // Refresh balance display with new primary/secondary order
             if (ecashWallet) {
