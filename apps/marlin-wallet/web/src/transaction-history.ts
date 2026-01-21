@@ -22,7 +22,7 @@ export class TransactionHistoryManager {
     private hasMoreTransactions = true;
     private isLoadingTransactions = false;
     private allTransactions: any[] = [];
-    private wallet: Wallet;
+    private ecashWallet: Wallet;
     private chronik: ChronikClient;
     private address: string;
     private appSettings: AppSettings;
@@ -34,12 +34,18 @@ export class TransactionHistoryManager {
         appSettings: AppSettings,
         priceFetcher: XECPrice | null,
     ) {
-        this.wallet = wallet;
+        this.ecashWallet = wallet;
         this.chronik = chronik;
         this.appSettings = appSettings;
         this.priceFetcher = priceFetcher;
 
-        this.address = getAddress(this.wallet);
+        this.address = getAddress(this.ecashWallet);
+    }
+
+    // Update wallet reference (called when wallet is reloaded)
+    updateWallet(wallet: Wallet): void {
+        this.ecashWallet = wallet;
+        this.address = getAddress(this.ecashWallet);
     }
 
     // Getters
@@ -53,6 +59,10 @@ export class TransactionHistoryManager {
 
     get transactions(): any[] {
         return this.allTransactions;
+    }
+
+    get wallet(): Wallet {
+        return this.ecashWallet;
     }
 
     // Reset state for new history load
@@ -185,7 +195,7 @@ export class TransactionHistoryManager {
 
                 // Calculate real transaction amount
                 const amountSats = await calculateTransactionAmountSats(
-                    this.wallet,
+                    this.ecashWallet,
                     this.chronik,
                     txid,
                 );

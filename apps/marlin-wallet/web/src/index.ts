@@ -45,6 +45,7 @@ import { isPayButtonTransaction } from './paybutton';
 import { AppSettings, loadSettings } from './settings';
 import { Navigation, Screen } from './navigation';
 import { SettingsScreen } from './screen/settings';
+import { HistoryScreen } from './screen/history';
 
 // Styles
 import './main.css';
@@ -96,6 +97,9 @@ let transactionHistory: TransactionHistoryManager | null = null;
 
 // Create global instance of SettingsScreen
 let settingsScreen: SettingsScreen | null = null;
+
+// Create global instance of HistoryScreen
+let historyScreen: HistoryScreen | null = null;
 
 // Settings state
 let appSettings: AppSettings = {
@@ -292,51 +296,12 @@ async function openSendScreenForManualEntry() {
     // The address field is already cleared and editable
 }
 
-// Open transaction in block explorer
-function openTransactionInExplorer(txid: string) {
-    const explorerUrl = config.explorerUrl + txid;
-
-    // On mobile (iOS/Android WebView), send message to native layer to open in system browser
-    // On web, use window.open
-    if (!sendMessageToBackend('OPEN_URL', explorerUrl)) {
-        window.open(explorerUrl, '_blank');
-    }
-}
-
-// History screen functions
-function showHistoryScreen() {
-    navigation.showScreen(Screen.History);
-
-    // Load transaction history when showing the screen (reset to first page)
-    const address = getAddress(ecashWallet);
-    if (address) {
-        transactionHistory.loadTransactionHistory(true);
-    }
-
-    // Setup scroll detection for infinite loading and click handlers for transaction IDs
-    setTimeout(() => {
-        const transactionList = document.getElementById('transaction-list');
-        if (transactionList) {
-            transactionList.addEventListener('scroll', () =>
-                transactionHistory.handleScroll(),
-            );
-
-            // Event delegation for transaction ID clicks
-            transactionList.addEventListener('click', (e: Event) => {
-                const target = e.target as HTMLElement;
-                if (target.classList.contains('transaction-txid')) {
-                    const txid = target.getAttribute('data-txid');
-                    if (txid) {
-                        openTransactionInExplorer(txid);
-                    }
-                }
-            });
-        }
-    }, 100); // Small delay to ensure DOM is ready
-}
-
 // These are required for the webview html button bindings
-(window as any).openHistory = showHistoryScreen;
+(window as any).openHistory = () => {
+    if (historyScreen) {
+        historyScreen.show();
+    }
+};
 (window as any).openSettings = () => navigation.showScreen(Screen.Settings);
 
 // ============================================================================
@@ -1003,21 +968,27 @@ async function loadWalletFromMnemonic(mnemonic: string) {
         wallet.mnemonic = mnemonic;
     }
 
-    const pricePerXec = await priceFetcher?.current(Fiat.USD);
+    // Create or update the transaction history instance with new wallet. This
+    // is passed by reference to the HistoryScreen so it can be updated when the
+    // wallet is changed.
+    if (transactionHistory) {
+        transactionHistory.updateWallet(ecashWallet);
+    } else {
+        transactionHistory = new TransactionHistoryManager(
+            ecashWallet,
+            chronik,
+            appSettings,
+            priceFetcher,
+        );
+    }
 
     // Update displays
+    const pricePerXec = await priceFetcher?.current(Fiat.USD);
     updateWalletDisplay(pricePerXec);
     updateTransitionalBalance(pricePerXec);
     generateQRCode(address);
 
     subscribeToAddress(address);
-
-    transactionHistory = new TransactionHistoryManager(
-        ecashWallet,
-        chronik,
-        appSettings,
-        priceFetcher,
-    );
 
     // Update NFC address for tag emulation
     updateNfcAddress();
@@ -1814,6 +1785,11 @@ async function initializeApp() {
 
     // At this point the wallet is loaded
 
+    historyScreen = new HistoryScreen({
+        transactionHistory,
+        navigation,
+    });
+
     settingsScreen = new SettingsScreen({
         appSettings,
         wallet,
@@ -1894,14 +1870,6 @@ async function initializeApp() {
 
     if (confirmSendBtn) {
         setupHoldToSend(confirmSendBtn);
-    }
-
-    // Add click listeners for History screen
-    const historyBackBtn = document.getElementById('history-back-btn');
-    if (historyBackBtn) {
-        historyBackBtn.addEventListener('click', () => {
-            navigation.showScreen(Screen.Main);
-        });
     }
 
     // Add validation to amount input
