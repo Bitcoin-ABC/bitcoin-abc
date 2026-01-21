@@ -1111,9 +1111,10 @@ function initializeSettings() {
             // Refresh balance display with new primary/secondary order
             if (ecashWallet) {
                 const currentXec = satsToXec(availableBalanceSats);
-                await updateAvailableBalanceDisplay(
+                updateAvailableBalanceDisplay(
                     currentXec,
                     currentXec,
+                    await priceFetcher?.current(Fiat.USD),
                     false,
                 );
             }
@@ -1283,9 +1284,11 @@ async function loadWalletFromMnemonic(mnemonic: string) {
         mnemonic: mnemonic,
     };
 
+    const pricePerXec = await priceFetcher?.current(Fiat.USD);
+
     // Update displays
-    await updateWalletDisplay();
-    updateTransitionalBalance();
+    updateWalletDisplay(pricePerXec);
+    updateTransitionalBalance(pricePerXec);
     generateQRCode(address);
 
     subscribeToAddress(address);
@@ -1351,7 +1354,7 @@ async function loadWallet(forceReload: boolean = false) {
 }
 
 // Update wallet display (address and balance)
-async function updateWalletDisplay() {
+function updateWalletDisplay(pricePerXec: number | null) {
     if (!wallet) {
         webViewError('No wallet data, cannnot update the display');
         return;
@@ -1371,9 +1374,10 @@ async function updateWalletDisplay() {
     }
 
     // Update balance display, no animation
-    await updateAvailableBalanceDisplay(
+    updateAvailableBalanceDisplay(
         0,
         satsToXec(availableBalanceSats),
+        pricePerXec,
         false,
     );
 }
@@ -1422,8 +1426,10 @@ async function finalizeTransaction(amountSats: number) {
     availableBalanceSats += amountSats;
     const toXec = satsToXec(availableBalanceSats);
 
-    updateTransitionalBalance();
-    await updateAvailableBalanceDisplay(fromXec, toXec, true); // Animate when finalizing transactions
+    const pricePerXec = await priceFetcher?.current(Fiat.USD);
+
+    updateTransitionalBalance(pricePerXec);
+    updateAvailableBalanceDisplay(fromXec, toXec, pricePerXec, true); // Animate when finalizing transactions
     triggerShakeAnimation();
 
     // Trigger haptic feedback for transaction finalization
@@ -1477,7 +1483,7 @@ async function finalizePostConsensus(txid: string) {
 }
 
 // Update transitional balance display
-function updateTransitionalBalance() {
+function updateTransitionalBalance(pricePerXec: number | null) {
     // Calculate total pending amounts
     transitionalBalanceSats = 0;
 
@@ -1505,9 +1511,14 @@ function updateTransitionalBalance() {
         if (transitionalBalanceSats !== 0) {
             const sign = transitionalBalanceSats > 0 ? '+' : '';
             const type = transitionalBalanceSats > 0 ? 'receive' : 'spend';
-            const displayText = `${sign}${satsToXec(
-                transitionalBalanceSats,
-            ).toFixed(2)} ${config.ticker}`;
+            const transitionalXec = satsToXec(transitionalBalanceSats);
+
+            const displayText =
+                appSettings.primaryBalanceType === 'Fiat' &&
+                pricePerXec !== null
+                    ? `${sign}${formatPrice(transitionalXec * pricePerXec, Fiat.USD)}`
+                    : `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`;
+
             transitionalBalanceEl.textContent = displayText;
             transitionalBalanceEl.className = `transitional-balance ${type}`;
             transitionalBalanceEl.classList.remove('hidden');
@@ -1522,18 +1533,15 @@ function updateTransitionalBalance() {
 }
 
 // Update available balance display with optional animation
-async function updateAvailableBalanceDisplay(
+function updateAvailableBalanceDisplay(
     fromXec: number,
     toXec: number,
+    pricePerXec: number | null,
     animate: boolean = true,
 ) {
     webViewLog(
         `Available balance updated from ${fromXec} ${config.ticker} to ${toXec} ${config.ticker}`,
     );
-
-    const pricePerXec = priceFetcher
-        ? await priceFetcher.current(Fiat.USD)
-        : null;
 
     updateBalanceElement({
         elementId: 'primary-balance',
@@ -1788,7 +1796,9 @@ async function subscribeToAddress(address: string) {
                                 );
                                 break;
                             }
-                            updateTransitionalBalance();
+                            updateTransitionalBalance(
+                                await priceFetcher?.current(Fiat.USD),
+                            );
                             triggerShakeAnimation();
                             webViewLog(
                                 `Added pending transaction: ${satsToXec(
@@ -1825,7 +1835,9 @@ async function subscribeToAddress(address: string) {
                                         );
                                         break;
                                     }
-                                    updateTransitionalBalance();
+                                    updateTransitionalBalance(
+                                        await priceFetcher?.current(Fiat.USD),
+                                    );
                                     triggerShakeAnimation();
                                     webViewLog(
                                         `Added pending confirmed transaction: ${satsToXec(
@@ -1855,7 +1867,9 @@ async function subscribeToAddress(address: string) {
                         case 'TX_REMOVED_FROM_MEMPOOL':
                         case 'TX_INVALIDATED':
                             delete pendingAmounts[txid];
-                            updateTransitionalBalance();
+                            updateTransitionalBalance(
+                                await priceFetcher?.current(Fiat.USD),
+                            );
                             triggerShakeAnimation();
                             webViewLog(
                                 `Removed pending transaction: ${txid}, reason: ${msg.msgType}`,
@@ -1927,9 +1941,10 @@ async function syncWallet() {
         transitionalBalanceSats = 0;
 
         // Update the display
-        await updateAvailableBalanceDisplay(
+        updateAvailableBalanceDisplay(
             0,
             satsToXec(availableBalanceSats),
+            await priceFetcher?.current(Fiat.USD),
             false,
         );
     } catch (error) {
