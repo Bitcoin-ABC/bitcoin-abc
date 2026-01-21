@@ -151,18 +151,6 @@ function hideLoadingScreen() {
 // NAVIGATION FUNCTIONS
 // ============================================================================
 
-function showMainScreen() {
-    navigation.showScreen(Screen.Main);
-
-    // Reset the recipient address field to readonly for QR scans
-    const recipientAddressInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    if (recipientAddressInput) {
-        recipientAddressInput.setAttribute('readonly', 'readonly');
-    }
-}
-
 async function showSendScreen() {
     // Always refresh the available utxos before showing the send screen
     await syncWallet();
@@ -974,7 +962,7 @@ async function validateAndSend() {
         webViewError('Failed to send transaction:', error);
     } finally {
         // Return to main screen
-        showMainScreen();
+        navigation.showScreen(Screen.Main);
     }
 }
 
@@ -1131,7 +1119,7 @@ async function saveMnemonic(newMnemonic: string) {
         await loadWalletFromMnemonic(wallet.mnemonic);
 
         // Ensure main screen is visible and wallet is displayed
-        showMainScreen();
+        navigation.showScreen(Screen.Main);
 
         // Update the display
         updateMnemonicDisplay();
@@ -2060,11 +2048,15 @@ async function initializeApp() {
     ) as HTMLButtonElement;
 
     if (backBtn) {
-        backBtn.addEventListener('click', showMainScreen);
+        backBtn.addEventListener('click', () => {
+            navigation.showScreen(Screen.Main);
+        });
     }
 
     if (cancelSendBtn) {
-        cancelSendBtn.addEventListener('click', showMainScreen);
+        cancelSendBtn.addEventListener('click', () => {
+            navigation.showScreen(Screen.Main);
+        });
     }
 
     if (confirmSendBtn) {
@@ -2074,7 +2066,9 @@ async function initializeApp() {
     // Add click listeners for History screen
     const historyBackBtn = document.getElementById('history-back-btn');
     if (historyBackBtn) {
-        historyBackBtn.addEventListener('click', showMainScreen);
+        historyBackBtn.addEventListener('click', () => {
+            navigation.showScreen(Screen.Main);
+        });
     }
 
     // Add click listeners for Settings screen
@@ -2089,7 +2083,9 @@ async function initializeApp() {
     );
 
     if (settingsBackBtn) {
-        settingsBackBtn.addEventListener('click', showMainScreen);
+        settingsBackBtn.addEventListener('click', () => {
+            navigation.showScreen(Screen.Main);
+        });
     }
 
     // Initialize settings UI
