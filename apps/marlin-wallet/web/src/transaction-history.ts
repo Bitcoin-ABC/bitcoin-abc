@@ -8,6 +8,8 @@ import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import { getAddress } from './wallet';
 import { config } from './config';
+import { AppSettings } from './settings';
+import { XECPrice, Fiat, formatPrice } from 'ecash-price';
 
 // ============================================================================
 // TRANSACTION HISTORY MANAGER
@@ -23,10 +25,19 @@ export class TransactionHistoryManager {
     private wallet: Wallet;
     private chronik: ChronikClient;
     private address: string;
+    private appSettings: AppSettings;
+    private priceFetcher: XECPrice | null;
 
-    constructor(wallet: Wallet, chronik: ChronikClient) {
+    constructor(
+        wallet: Wallet,
+        chronik: ChronikClient,
+        appSettings: AppSettings,
+        priceFetcher: XECPrice | null,
+    ) {
         this.wallet = wallet;
         this.chronik = chronik;
+        this.appSettings = appSettings;
+        this.priceFetcher = priceFetcher;
 
         this.address = getAddress(this.wallet);
     }
@@ -149,6 +160,9 @@ export class TransactionHistoryManager {
             return;
         }
 
+        // Fetch price once for fiat conversion
+        const pricePerXec = await this.priceFetcher?.current(Fiat.USD);
+
         // Process transactions in parallel for better performance
         const transactionHTML = await Promise.all(
             transactions.map(async tx => {
@@ -177,10 +191,27 @@ export class TransactionHistoryManager {
                 );
                 const amountXEC = satsToXec(amountSats);
 
-                const isReceived = amountXEC > 0;
+                const isReceived = amountXEC >= 0;
                 const amountClass = isReceived ? 'received' : 'sent';
-                const amountPrefix = isReceived ? '+' : '-';
-                const amountValue = Math.abs(amountXEC).toFixed(2);
+                const sign = isReceived ? '+' : '-';
+                const absAmountXEC = Math.abs(amountXEC);
+
+                // Format primary amount according to primary balance type.
+                // If the price is not available, always show as XEC.
+                const primaryAmount =
+                    this.appSettings.primaryBalanceType === 'XEC' ||
+                    pricePerXec === null
+                        ? `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`
+                        : `${sign}${formatPrice(absAmountXEC * pricePerXec, Fiat.USD)}`;
+
+                // Format secondary amount if we have a price
+                let secondaryAmount: string = '';
+                if (pricePerXec !== null) {
+                    secondaryAmount =
+                        this.appSettings.primaryBalanceType === 'XEC'
+                            ? `${sign}${formatPrice(absAmountXEC * pricePerXec, Fiat.USD)}`
+                            : `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`;
+                }
 
                 return `
                 <div class="transaction-item">
@@ -191,9 +222,10 @@ export class TransactionHistoryManager {
                         )}">${String(shortTxid)}</div>
                     </div>
                     <div class="transaction-amount ${String(amountClass)}">
-                        ${String(amountPrefix)}${String(amountValue)} ${
-                            config.ticker
-                        }
+                        <div class="transaction-amount-primary">
+                           ${primaryAmount}
+                        </div>
+                        ${secondaryAmount ? `<div class="transaction-amount-secondary">${secondaryAmount}</div>` : ''}
                     </div>
                 </div>
             `;

@@ -1078,6 +1078,14 @@ function initializeSettings() {
                     false,
                 );
             }
+
+            // Recreate transaction history instance with new settings
+            transactionHistory = new TransactionHistoryManager(
+                ecashWallet,
+                chronik,
+                appSettings,
+                priceFetcher,
+            );
         });
     }
 }
@@ -1253,7 +1261,12 @@ async function loadWalletFromMnemonic(mnemonic: string) {
 
     subscribeToAddress(address);
 
-    transactionHistory = new TransactionHistoryManager(ecashWallet, chronik);
+    transactionHistory = new TransactionHistoryManager(
+        ecashWallet,
+        chronik,
+        appSettings,
+        priceFetcher,
+    );
 
     // Update NFC address for tag emulation
     updateNfcAddress();

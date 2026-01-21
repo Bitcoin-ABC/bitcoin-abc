@@ -524,6 +524,11 @@ body.standalone-web {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+.transaction-amount-secondary {
+    font-size: 0.85em;
+    margin-top: 4px;
+}
+
 .transaction-amount.received {
     color: #4ade80;
 }
