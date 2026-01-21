@@ -49,6 +49,7 @@ import { config } from './config';
 import { parseBip21Uri, createBip21Uri } from './bip21';
 import { isPayButtonTransaction } from './paybutton';
 import { AppSettings, loadSettings, saveSettings } from './settings';
+import { Navigation, Screen } from './navigation';
 
 // Styles
 import './main.css';
@@ -74,13 +75,8 @@ interface PendingTransaction {
     state: 'pending_finalization' | 'finalized';
 }
 
-// Get DOM elements
-const mainScreen = document.getElementById('main-screen') as HTMLElement;
-const sendScreen = document.getElementById('send-screen') as HTMLElement;
-const settingsScreen = document.getElementById(
-    'settings-screen',
-) as HTMLElement;
-const historyScreen = document.getElementById('history-screen') as HTMLElement;
+// Navigation instance
+let navigation: Navigation;
 
 // Wallet state
 let wallet: WalletData | null = null;
@@ -156,18 +152,7 @@ function hideLoadingScreen() {
 // ============================================================================
 
 function showMainScreen() {
-    if (mainScreen) {
-        mainScreen.classList.remove('hidden');
-    }
-    if (sendScreen) {
-        sendScreen.classList.add('hidden');
-    }
-    if (settingsScreen) {
-        settingsScreen.classList.add('hidden');
-    }
-    if (historyScreen) {
-        historyScreen.classList.add('hidden');
-    }
+    navigation.showScreen(Screen.Main);
 
     // Reset the recipient address field to readonly for QR scans
     const recipientAddressInput = document.getElementById(
@@ -182,12 +167,7 @@ async function showSendScreen() {
     // Always refresh the available utxos before showing the send screen
     await syncWallet();
 
-    if (mainScreen) {
-        mainScreen.classList.add('hidden');
-    }
-    if (sendScreen) {
-        sendScreen.classList.remove('hidden');
-    }
+    navigation.showScreen(Screen.Send);
 
     // Reset all form fields and validation states
     const recipientInput = document.getElementById(
@@ -339,18 +319,7 @@ function openTransactionInExplorer(txid: string) {
 
 // History screen functions
 function showHistoryScreen() {
-    if (mainScreen) {
-        mainScreen.classList.add('hidden');
-    }
-    if (sendScreen) {
-        sendScreen.classList.add('hidden');
-    }
-    if (settingsScreen) {
-        settingsScreen.classList.add('hidden');
-    }
-    if (historyScreen) {
-        historyScreen.classList.remove('hidden');
-    }
+    navigation.showScreen(Screen.History);
 
     // Load transaction history when showing the screen (reset to first page)
     const address = getAddress(ecashWallet);
@@ -382,18 +351,7 @@ function showHistoryScreen() {
 
 // Settings screen functions
 function showSettingsScreen() {
-    if (mainScreen) {
-        mainScreen.classList.add('hidden');
-    }
-    if (sendScreen) {
-        sendScreen.classList.add('hidden');
-    }
-    if (settingsScreen) {
-        settingsScreen.classList.remove('hidden');
-    }
-    if (historyScreen) {
-        historyScreen.classList.add('hidden');
-    }
+    navigation.showScreen(Screen.Settings);
 
     // Always update the mnemonic display when showing settings
     updateMnemonicDisplay();
@@ -1648,18 +1606,6 @@ function triggerShakeAnimation() {
     }
 }
 
-// Helper function to check if main screen is visible
-function isMainScreenVisible(): boolean {
-    const sendScreen = document.getElementById('send-screen');
-    const settingsScreen = document.getElementById('settings-screen');
-
-    // Main screen is visible if both send and settings screens are hidden
-    return (
-        (!sendScreen || sendScreen.classList.contains('hidden')) &&
-        (!settingsScreen || settingsScreen.classList.contains('hidden'))
-    );
-}
-
 // ============================================================================
 // PULL-TO-REFRESH FUNCTIONS
 // ============================================================================
@@ -1678,7 +1624,7 @@ function initPullToRefresh() {
         },
         shouldPullToRefresh: () => {
             // Only allow pull-to-refresh on the main screen
-            return isMainScreenVisible();
+            return navigation.getCurrentScreen() === Screen.Main;
         },
     });
 }
@@ -1968,6 +1914,9 @@ async function initializeApp() {
     if (!isReactNativeWebView()) {
         document.body.classList.add('standalone-web');
     }
+
+    // Initialize navigation
+    navigation = new Navigation();
 
     // Load saved settings
     appSettings = loadSettings();
