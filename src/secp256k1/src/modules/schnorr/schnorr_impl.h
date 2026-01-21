@@ -10,11 +10,11 @@
 #include <string.h>
 
 #include "schnorr.h"
-#include "field.h"
-#include "group.h"
-#include "hash.h"
-#include "ecmult.h"
-#include "ecmult_gen.h"
+#include "../../field.h"
+#include "../../group.h"
+#include "../../hash.h"
+#include "../../ecmult.h"
+#include "../../ecmult_gen.h"
 
 /**
  * Custom Schnorr-based signature scheme.

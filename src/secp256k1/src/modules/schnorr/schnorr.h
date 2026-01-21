@@ -7,8 +7,8 @@
 #ifndef SECP256K1_MODULE_SCHNORR_H
 #define SECP256K1_MODULE_SCHNORR_H
 
-#include "scalar.h"
-#include "group.h"
+#include "../../scalar.h"
+#include "../../group.h"
 
 static int secp256k1_schnorr_sig_verify(
     const unsigned char *sig64,

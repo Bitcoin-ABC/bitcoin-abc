@@ -8,7 +8,7 @@
 #define SECP256K1_MODULE_SCHNORR_MAIN_H
 
 #include "../../../include/secp256k1_schnorr.h"
-#include "modules/schnorr/schnorr_impl.h"
+#include "./schnorr_impl.h"
 
 int secp256k1_schnorr_verify(
     const secp256k1_context* ctx,
