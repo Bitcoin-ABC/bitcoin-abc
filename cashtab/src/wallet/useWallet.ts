@@ -401,8 +401,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 // NB we use BLK_FINALIZED msgs to set tipHeight, which is used for determining maturity
                 // of Coinbase utxos (necessary to avoid errors trying to spend staking rewards with
                 // less than 100 confirmations)
-                // Set chaintip height
-                setChaintipBlockheight(msg.blockHeight);
                 return;
             }
             case 'TX_FINALIZED': {
