@@ -45,7 +45,7 @@ import {
     MsgTxClient,
 } from 'chronik-client';
 import { Agora } from 'ecash-agora';
-import { Ecc, toHex } from 'ecash-lib';
+import { Address, Ecc, toHex } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { fromHex } from 'ecash-lib';
 
@@ -1321,10 +1321,20 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const getWalletByAddress = (
         address: string,
     ): StoredCashtabWallet | null => {
+        // We might have existing storage for another prefix, so make sure to
+        // convert properly
         return (
-            currentCashtabStateRef.current.wallets.find(
-                wallet => wallet.address === address,
-            ) || null
+            currentCashtabStateRef.current.wallets.find(wallet => {
+                try {
+                    return (
+                        Address.parse(wallet.address)
+                            .withPrefix(appConfig.prefix)
+                            .toString() === address
+                    );
+                } catch {
+                    return false;
+                }
+            }) || null
         );
     };
 
