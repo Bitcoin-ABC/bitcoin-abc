@@ -131,13 +131,14 @@ export class Wallet extends WalletBase<KeypairData> {
         chronik: ChronikClient,
         baseHdNode?: HdNode,
         accountNumber: number = 0,
+        prefix: string = 'ecash',
     ) {
         // For non-HD wallets, derive address from sk first
         const ecc = new Ecc();
         const pk = ecc.derivePubkey(sk);
         const pkh = shaRmd160(pk);
         const script = Script.p2pkh(pkh);
-        const address = Address.p2pkh(pkh).toString();
+        const address = Address.p2pkh(pkh, prefix).toString();
 
         super(chronik, address, baseHdNode, accountNumber);
 
@@ -194,7 +195,7 @@ export class Wallet extends WalletBase<KeypairData> {
         const pk = this.ecc.derivePubkey(sk);
         const pkh = shaRmd160(pk);
         const script = Script.p2pkh(pkh);
-        const address = Address.p2pkh(pkh).toString();
+        const address = Address.p2pkh(pkh, this.prefix).toString();
 
         return {
             sk,
@@ -409,8 +410,18 @@ export class Wallet extends WalletBase<KeypairData> {
     /**
      * static constructor for sk as Uint8Array
      */
-    static fromSk(sk: Uint8Array, chronik: ChronikClient) {
-        return new Wallet(sk, chronik);
+    static fromSk(
+        sk: Uint8Array,
+        chronik: ChronikClient,
+        options?: { prefix?: string },
+    ) {
+        return new Wallet(
+            sk,
+            chronik,
+            undefined,
+            0,
+            options?.prefix ?? 'ecash',
+        );
     }
 
     /**
@@ -435,8 +446,11 @@ export class Wallet extends WalletBase<KeypairData> {
             accountNumber?: number;
             receiveIndex?: number;
             changeIndex?: number;
+            prefix?: string;
         },
     ) {
+        const prefix = options?.prefix ?? 'ecash';
+
         const seed = mnemonicToSeed(mnemonic);
         const master = HdNode.fromSeed(seed);
 
@@ -450,6 +464,7 @@ export class Wallet extends WalletBase<KeypairData> {
                 chronik,
                 baseHdNode,
                 accountNumber,
+                prefix,
             );
 
             // Set initial indices (default to 0 if not provided)
@@ -464,7 +479,7 @@ export class Wallet extends WalletBase<KeypairData> {
         const xecMaster = master.derivePath(XEC_TOKEN_AWARE_DERIVATION_PATH);
         const sk = xecMaster.seckey()!;
 
-        return Wallet.fromSk(sk, chronik);
+        return Wallet.fromSk(sk, chronik, { prefix });
     }
 
     /**
@@ -479,6 +494,7 @@ export class Wallet extends WalletBase<KeypairData> {
             this.chronik,
             this.baseHdNode,
             this.accountNumber,
+            this.prefix,
         );
 
         // Copy the mutable state
@@ -1225,6 +1241,7 @@ class WalletAction {
                 // Get the keypair for the chained output address
                 const chainedOutputAddress = Address.fromScriptHex(
                     chainedOutput.script.toHex(),
+                    this._wallet.prefix,
                 ).toString();
                 const keypair =
                     this._wallet.getKeypairForAddress(chainedOutputAddress);
@@ -2025,6 +2042,7 @@ class WalletAction {
                     i,
                     outputScript,
                     tokenType,
+                    this._wallet.prefix,
                 );
                 this._wallet.utxos.push(walletUtxo);
             }
@@ -2051,6 +2069,8 @@ class WalletAction {
                     txid,
                     changeOutIdx,
                     outputScript,
+                    undefined,
+                    this._wallet.prefix,
                 );
                 this._wallet.utxos.push(walletUtxo);
             }
@@ -5339,6 +5359,7 @@ export const finalizeOutputs = (
  * @param outIdx - Output index
  * @param outputScript - The output script as a hex string (used to derive address)
  * @param tokenType - Optional token type for token UTXOs
+ * @param prefix - The prefix of the address
  * @returns WalletUtxo with address field derived from outputScript
  */
 export const getWalletUtxoFromOutput = (
@@ -5347,6 +5368,7 @@ export const getWalletUtxoFromOutput = (
     outIdx: number,
     outputScript: string,
     tokenType?: TokenType,
+    prefix: string = 'ecash',
 ): WalletUtxo => {
     // Create the outpoint
     const outpoint = { txid, outIdx };
@@ -5359,7 +5381,7 @@ export const getWalletUtxoFromOutput = (
     }
 
     // Derive address from outputScript
-    const address = Address.fromScriptHex(outputScript).toString();
+    const address = Address.fromScriptHex(outputScript, prefix).toString();
 
     if ('tokenId' in output) {
         if (typeof tokenType === 'undefined') {

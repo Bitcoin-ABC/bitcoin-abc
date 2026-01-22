@@ -35,10 +35,12 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
         address?: string,
         baseHdNode?: HdNode,
         accountNumber: number = 0,
+        prefix: string = 'ecash',
     ) {
         super(chronik, address, baseHdNode, accountNumber);
 
         if (this.isHD && this.baseHdNode) {
+            this.prefix = prefix;
             // HD wallet: derive and cache the first receive address (index 0)
             const firstKeypair = this._deriveKeypair(false, 0);
             this.keypairs.set(firstKeypair.address, firstKeypair);
@@ -54,6 +56,7 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
             // Address.hash is a hex string, convert to Uint8Array
             this.pkh = fromHex(addrObj.hash);
             this.script = Script.p2pkh(this.pkh);
+            this.prefix = addrObj.prefix ?? prefix;
             // For watch-only, we don't have the public key, so pk remains undefined
         } else {
             throw new Error(
@@ -87,7 +90,7 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
         const pk = addressNode.pubkey();
         const pkh = shaRmd160(pk);
         const script = Script.p2pkh(pkh);
-        const address = Address.p2pkh(pkh).toString();
+        const address = Address.p2pkh(pkh, this.prefix).toString();
 
         return {
             pk,
@@ -143,6 +146,7 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
      *
      * @param xpub - The extended public key string
      * @param chronik - Initialized ChronikClient instance
+     * @param prefix - The prefix of the address (defaults to 'ecash')
      * @param options - Optional configuration
      * @param options.accountNumber - Account number for HD wallets (BIP44 account index). Defaults to 0.
      * @param options.receiveIndex - Initial receive address index (only used for HD wallets). Defaults to 0.
@@ -155,6 +159,7 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
             accountNumber?: number;
             receiveIndex?: number;
             changeIndex?: number;
+            prefix?: string;
         },
     ): WatchOnlyWallet {
         // Decode xpub to get the base node using HdNode.fromXpub
@@ -176,6 +181,7 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
             undefined,
             baseHdNode,
             accountNumber,
+            options?.prefix ?? 'ecash',
         );
 
         // Set initial indices (default to 0 if not provided)

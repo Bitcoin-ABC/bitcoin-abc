@@ -161,28 +161,33 @@ export class Address implements AddressInterface {
 
     /**
      * Create a new p2pkh Address from hash
-     * cashaddr encoding, ecash: prefix
+     * cashaddr encoding
      */
-    static p2pkh = (hash: string | Uint8Array) =>
+    static p2pkh = (
+        hash: string | Uint8Array,
+        prefix: string = DEFAULT_PREFIX,
+    ) =>
         new Address({
             type: 'p2pkh',
             hash: hash instanceof Uint8Array ? toHex(hash) : hash,
-            prefix: DEFAULT_PREFIX,
-            address: encodeCashAddress(DEFAULT_PREFIX, 'p2pkh', hash),
+            prefix: prefix,
+            address: encodeCashAddress(prefix, 'p2pkh', hash),
             encoding: 'cashaddr',
         });
 
     /**
      * Create a new p2sh Address from hash
      * cashaddr encoding
-     * ecash: prefix
      */
-    static p2sh = (hash: string | Uint8Array) =>
+    static p2sh = (
+        hash: string | Uint8Array,
+        prefix: string = DEFAULT_PREFIX,
+    ) =>
         new Address({
             type: 'p2sh',
             hash: hash instanceof Uint8Array ? toHex(hash) : hash,
-            prefix: DEFAULT_PREFIX,
-            address: encodeCashAddress(DEFAULT_PREFIX, 'p2sh', hash),
+            prefix: prefix,
+            address: encodeCashAddress(prefix, 'p2sh', hash),
             encoding: 'cashaddr',
         });
 
@@ -231,17 +236,20 @@ export class Address implements AddressInterface {
 
     /**
      * Create a new Address from legacy address
-     * No prefix for Address created from legacy address
-     * type and hash from legacy address
+     * prefix, type and hash from legacy address
      */
     static fromLegacyAddress = (legacy: string) => {
         // Determine addr params from legacy address
-        const { type, hash } = decodeLegacyAddress(legacy);
+        const { type, hash, network } = decodeLegacyAddress(legacy);
         return new Address({
             type,
             hash,
             address: legacy,
             encoding: 'legacy',
+            prefix:
+                network === 'testnet'
+                    ? ECASH_PREFIXES_TESTNET[0]
+                    : DEFAULT_PREFIX,
         });
     };
 
@@ -249,25 +257,25 @@ export class Address implements AddressInterface {
      * Create a new Address from an outputScript as Script
      * type and hash from outputScript
      * cashaddr encoding
-     * ecash: prefix
      */
-    static fromScript = (script: Script) => {
+    static fromScript = (script: Script, prefix: string = DEFAULT_PREFIX) => {
         const scriptHex = toHex(script.bytecode);
-        return Address.fromScriptHex(scriptHex);
+        return Address.fromScriptHex(scriptHex, prefix);
     };
 
     /**
      * Create a new Address from an outputScript as hex string
      * type and hash from outputScript
      * cashaddr encoding
-     * ecash: prefix
      */
-    static fromScriptHex = (scriptHex: string) => {
+    static fromScriptHex = (
+        scriptHex: string,
+        prefix: string = DEFAULT_PREFIX,
+    ) => {
         const { type, hash } = getTypeAndHashFromOutputScript(scriptHex);
 
-        // Default cashaddr encoding with default prefix
-        const address = encodeCashAddress(DEFAULT_PREFIX, type, hash);
-        const prefix = DEFAULT_PREFIX;
+        // Default cashaddr encoding
+        const address = encodeCashAddress(prefix, type, hash);
 
         return new Address({
             type,

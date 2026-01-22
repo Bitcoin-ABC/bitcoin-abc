@@ -281,3 +281,9 @@ See tests for detailed methods.
 - Add a new class `WatchOnlyWallet` to support watch only wallets (both HD and single-address)
 
 [D19406](https://reviews.bitcoinabc.org/D19406)
+
+# 3.10.0
+
+- Add support for wallets using a custom prefix
+
+[D19441](https://reviews.bitcoinabc.org/D19441)

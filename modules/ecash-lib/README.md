@@ -106,3 +106,4 @@ console.log(toHex(rawTx));
 - 4.5.1 - Add updated `testRunner` to support CI builds of monorepo apps that rely on this from the published version, e.g. `ecash-agora` [D18844](https://reviews.bitcoinabc.org/D18844)
 - 4.5.2 - Export constants used in `ecash-wallet` to calculate chained XEC-only txs for txs that would otherwise exceed `MAX_TX_SERSIZE`. There is no change in behavior. [D18918](https://reviews.bitcoinabc.org/D18918)
 - 4.6.0 - Support for `xpub` in `hdwallet.ts` [D19406](https://reviews.bitcoinabc.org/D19406)
+- 4.7.0 - Support for custom prefix in all static Address constructors [D19441](https://reviews.bitcoinabc.org/D19441)

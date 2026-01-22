@@ -9568,3 +9568,129 @@ describe('getTxAmounts', () => {
         });
     });
 });
+
+describe('Testnet (ectest prefix) support', () => {
+    const testMnemonic =
+        'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+    const ectestPrefix = 'ectest';
+
+    describe('Wallet', () => {
+        it('Wallet.fromMnemonic creates HD wallet with ectest prefix', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true, prefix: ectestPrefix },
+            );
+
+            expect(wallet.isHD).to.equal(true);
+            expect(wallet.baseHdNode).to.not.equal(undefined);
+            expect(wallet.accountNumber).to.equal(0);
+            expect(wallet.prefix).to.equal(ectestPrefix);
+            expect(wallet.address).to.include(ectestPrefix);
+        });
+
+        it('Wallet.fromMnemonic generates testnet addresses for receive and change addresses', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true, prefix: ectestPrefix },
+            );
+
+            const receiveAddr0 = wallet.getReceiveAddress(0);
+            const receiveAddr1 = wallet.getReceiveAddress(1);
+            const changeAddr0 = wallet.getChangeAddress(0);
+
+            expect(receiveAddr0).to.include(ectestPrefix);
+            expect(receiveAddr1).to.include(ectestPrefix);
+            expect(changeAddr0).to.include(ectestPrefix);
+            expect(wallet.prefix).to.equal(ectestPrefix);
+        });
+
+        it('Wallet.fromMnemonic with testnet prefix generates different addresses than mainnet', () => {
+            const mockChronik = new MockChronikClient();
+
+            const mainnetWallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true, accountNumber: 0, prefix: 'ecash' },
+            );
+
+            const testnetWallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true, accountNumber: 0, prefix: ectestPrefix },
+            );
+
+            // Same derivation path, different prefix
+            expect(mainnetWallet.address).to.include('ecash:');
+            expect(testnetWallet.address).to.include(ectestPrefix);
+            expect(mainnetWallet.address).to.not.equal(testnetWallet.address);
+
+            // But the addresses should have the same hash (just different prefix)
+            const mainnetAddrObj = Address.fromCashAddress(
+                mainnetWallet.address,
+            );
+            const testnetAddrObj = Address.fromCashAddress(
+                testnetWallet.address,
+            );
+            expect(mainnetAddrObj.hash).to.equal(testnetAddrObj.hash);
+        });
+
+        it('Wallet.fromSk creates wallet with ectest prefix', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+                { prefix: ectestPrefix },
+            );
+
+            expect(wallet.isHD).to.equal(false);
+            expect(wallet.prefix).to.equal(ectestPrefix);
+            expect(wallet.address).to.include(ectestPrefix);
+        });
+
+        it('Wallet.fromSk with testnet prefix generates different address than mainnet', () => {
+            const mockChronik = new MockChronikClient();
+
+            const mainnetWallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+                { prefix: 'ecash' },
+            );
+
+            const testnetWallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+                { prefix: ectestPrefix },
+            );
+
+            // Same secret key, different prefix
+            expect(mainnetWallet.address).to.include('ecash:');
+            expect(testnetWallet.address).to.include(ectestPrefix);
+            expect(mainnetWallet.address).to.not.equal(testnetWallet.address);
+
+            // But the addresses should have the same hash (just different prefix)
+            const mainnetAddrObj = Address.fromCashAddress(
+                mainnetWallet.address,
+            );
+            const testnetAddrObj = Address.fromCashAddress(
+                testnetWallet.address,
+            );
+            expect(mainnetAddrObj.hash).to.equal(testnetAddrObj.hash);
+        });
+
+        it('Wallet uses ecash prefix by default when prefix not specified', () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+
+            expect(wallet.prefix).to.equal('ecash');
+            expect(wallet.address).to.include('ecash:');
+        });
+    });
+});

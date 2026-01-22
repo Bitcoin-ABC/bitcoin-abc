@@ -30,6 +30,8 @@ export abstract class WalletBase<
     script: Script;
     /** p2pkh cashaddress of this wallet */
     address: string;
+    /** Prefix of the address */
+    prefix: string;
     /** The utxo set of this wallet */
     utxos: WalletUtxo[];
     /**
@@ -77,6 +79,9 @@ export abstract class WalletBase<
         // They are typed as required because subclasses always set them before constructor completes
         // Using type assertions here - subclasses will set proper values
         this.address = (address ?? '') as string;
+        this.prefix = address
+            ? (Address.fromCashAddress(this.address).prefix ?? 'ecash')
+            : 'ecash';
         this.pkh = new Uint8Array(20) as Uint8Array;
         this.script = Script.p2pkh(new Uint8Array(20)) as Script;
     }
@@ -213,7 +218,10 @@ export abstract class WalletBase<
         outputScript: string,
     ): WalletUtxo[] {
         // Derive address from outputScript hex string once
-        const address = Address.fromScriptHex(outputScript).toString();
+        const address = Address.fromScriptHex(
+            outputScript,
+            this.prefix,
+        ).toString();
 
         // Add address to all UTXOs
         return utxos.map(utxo => ({
@@ -445,7 +453,10 @@ export abstract class WalletBase<
             // Derive address from outputScript early
             let address: Address;
             try {
-                address = Address.fromScriptHex(output.outputScript);
+                address = Address.fromScriptHex(
+                    output.outputScript,
+                    this.prefix,
+                );
             } catch {
                 // Skip unsupported output script types
                 continue;

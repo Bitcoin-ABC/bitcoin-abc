@@ -97,6 +97,8 @@ const validCashaddrP2sh = EXPECTED_P2SH_OUTPUTS[0];
 const validPrefixlessCashaddrP2sh = validCashaddrP2sh.split(':')[1];
 const validLegacyAddressP2pkh = EXPECTED_P2PKH_OUTPUTS_LEGACY[0];
 const validLegacyAddressP2sh = EXPECTED_P2SH_OUTPUTS_LEGACY[0];
+const validLegacyAddressP2pkhTestnet = EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY[0];
+const validLegacyAddressP2shTestnet = EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY[0];
 const validP2pkhOutputScriptHex = TEST_P2PKH_OUTPUTSCRIPTS[0];
 const validP2pkhOutputScript = new Script(fromHex(validP2pkhOutputScriptHex));
 const validP2shOutputScriptHex = TEST_P2SH_OUTPUTSCRIPTS[0];
@@ -157,6 +159,27 @@ describe('Address', () => {
                 `Invalid hash size: 4.`,
             );
         });
+        it('Can instantiate with valid hash as Uint8Array and prefix', () => {
+            const thisAddress = Address.p2pkh(
+                validTestHashUint8Array,
+                'ectest',
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2pkh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2pkh', validTestHashString),
+            );
+        });
+        it('Can instantiate with valid hash as string and prefix', () => {
+            const thisAddress = Address.p2pkh(validTestHashString, 'ectest');
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2pkh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2pkh', validTestHashString),
+            );
+        });
     });
     context('p2sh constructor', () => {
         it('Can instantiate with valid hash as Uint8Array', () => {
@@ -188,6 +211,24 @@ describe('Address', () => {
             const invalidHash = 'deadbeef';
             expect(() => Address.p2sh(invalidHash)).to.throw(
                 `Invalid hash size: 4.`,
+            );
+        });
+        it('Can instantiate with valid hash as Uint8Array and prefix', () => {
+            const thisAddress = Address.p2sh(validTestHashUint8Array, 'ectest');
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2sh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2sh', validTestHashString),
+            );
+        });
+        it('Can instantiate with valid hash as string and prefix', () => {
+            const thisAddress = Address.p2sh(validTestHashString, 'ectest');
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2sh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2sh', validTestHashString),
             );
         });
     });
@@ -364,6 +405,26 @@ describe('Address', () => {
                 Address.fromLegacyAddress(invalidLegacyAddress),
             ).to.throw(`Invalid legacy address`);
         });
+        it('valid p2pkh legacy address on testnet', () => {
+            const thisAddress = Address.fromLegacyAddress(
+                validLegacyAddressP2pkhTestnet,
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.type).to.equal('p2pkh');
+            expect(thisAddress.address).to.equal(
+                validLegacyAddressP2pkhTestnet,
+            );
+            expect(thisAddress.encoding).to.equal('legacy');
+        });
+        it('valid p2sh legacy address on testnet', () => {
+            const thisAddress = Address.fromLegacyAddress(
+                validLegacyAddressP2shTestnet,
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.type).to.equal('p2sh');
+            expect(thisAddress.address).to.equal(validLegacyAddressP2shTestnet);
+            expect(thisAddress.encoding).to.equal('legacy');
+        });
     });
     context('fromScript constructor', () => {
         it('p2pkh fromScript', () => {
@@ -394,6 +455,32 @@ describe('Address', () => {
                 `Unsupported outputScript: 76a91476a04053bda0a88bda5177b86a15c3b29f55987388ac01`,
             );
         });
+        it('p2pkh fromScript with prefix', () => {
+            const thisAddress = Address.fromScript(
+                validP2pkhOutputScript,
+                'ectest',
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2pkh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2pkh', validTestHashString),
+            );
+            expect(thisAddress.encoding).to.equal('cashaddr');
+        });
+        it('p2sh fromScript with prefix', () => {
+            const thisAddress = Address.fromScript(
+                validP2shOutputScript,
+                'ectest',
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2sh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2sh', validTestHashString),
+            );
+            expect(thisAddress.encoding).to.equal('cashaddr');
+        });
     });
     context('fromScriptHex constructor', () => {
         it('p2pkh fromScriptHex', () => {
@@ -423,6 +510,32 @@ describe('Address', () => {
             expect(() => Address.fromScriptHex(invalidOutputScript)).to.throw(
                 `Unsupported outputScript: 76a91476a04053bda0a88bda5177b86a15c3b29f55987388ac1`,
             );
+        });
+        it('p2pkh fromScriptHex with prefix', () => {
+            const thisAddress = Address.fromScriptHex(
+                validP2pkhOutputScriptHex,
+                'ectest',
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2pkh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2pkh', validTestHashString),
+            );
+            expect(thisAddress.encoding).to.equal('cashaddr');
+        });
+        it('p2sh fromScriptHex with prefix', () => {
+            const thisAddress = Address.fromScriptHex(
+                validP2shOutputScriptHex,
+                'ectest',
+            );
+            expect(thisAddress.hash).to.equal(validTestHashString);
+            expect(thisAddress.prefix).to.equal('ectest');
+            expect(thisAddress.type).to.equal('p2sh');
+            expect(thisAddress.address).to.equal(
+                encodeCashAddress('ectest', 'p2sh', validTestHashString),
+            );
+            expect(thisAddress.encoding).to.equal('cashaddr');
         });
     });
     context('legacy() public method', () => {

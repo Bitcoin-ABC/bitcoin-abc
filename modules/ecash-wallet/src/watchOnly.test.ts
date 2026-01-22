@@ -541,4 +541,103 @@ describe('WatchOnlyWallet', () => {
             expect(wallet.keypairs.size).to.equal(4); // 2 receive + 2 change
         });
     });
+
+    describe('Testnet (ectest prefix) support', () => {
+        it('WatchOnlyWallet.fromAddress extracts prefix from testnet address', () => {
+            const mockChronik = new MockChronikClient();
+            // Create a testnet address
+            const testnetAddress = Address.p2pkh(
+                shaRmd160(DUMMY_PK),
+                'ectest',
+            ).toString();
+
+            const wallet = WatchOnlyWallet.fromAddress(
+                testnetAddress,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            expect(wallet.isHD).to.equal(false);
+            expect(wallet.address).to.equal(testnetAddress);
+            expect(wallet.prefix).to.equal('ectest');
+        });
+
+        it('WatchOnlyWallet.fromXpub creates HD wallet with ectest prefix', () => {
+            const mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(testMnemonic);
+            const master = HdNode.fromSeed(seed);
+            const baseNode = master.derivePath("m/44'/1899'/0'");
+            const xpub = baseNode.xpub();
+
+            const wallet = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+                { prefix: 'ectest' },
+            );
+
+            expect(wallet.isHD).to.equal(true);
+            expect(wallet.baseHdNode).to.not.equal(undefined);
+            expect(wallet.accountNumber).to.equal(0);
+            expect(wallet.prefix).to.equal('ectest');
+            expect(wallet.address).to.equal(
+                'ectest:qq86jv6h0y97q8l63ndynvk3fn9aq8fqruhjcef2tw',
+            );
+        });
+
+        it('WatchOnlyWallet.fromXpub generates testnet addresses for receive addresses', () => {
+            const mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(testMnemonic);
+            const master = HdNode.fromSeed(seed);
+            const baseNode = master.derivePath("m/44'/1899'/0'");
+            const xpub = baseNode.xpub();
+
+            const wallet = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+                { prefix: 'ectest' },
+            );
+
+            const receiveAddr0 = wallet.getReceiveAddress(0);
+            const receiveAddr1 = wallet.getReceiveAddress(1);
+            const changeAddr0 = wallet.getChangeAddress(0);
+
+            expect(receiveAddr0).to.include('ectest');
+            expect(receiveAddr1).to.include('ectest');
+            expect(changeAddr0).to.include('ectest');
+            expect(wallet.prefix).to.equal('ectest');
+        });
+
+        it('WatchOnlyWallet.fromXpub with testnet prefix generates different addresses than mainnet', () => {
+            const mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(testMnemonic);
+            const master = HdNode.fromSeed(seed);
+            const baseNode = master.derivePath("m/44'/1899'/0'");
+            const xpub = baseNode.xpub();
+
+            const mainnetWallet = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+                { prefix: 'ecash' },
+            );
+
+            const testnetWallet = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+                { prefix: 'ectest' },
+            );
+
+            // Same derivation path, different prefix
+            expect(mainnetWallet.address).to.include('ecash:');
+            expect(testnetWallet.address).to.include('ectest');
+            expect(mainnetWallet.address).to.not.equal(testnetWallet.address);
+
+            // But the addresses should have the same hash (just different prefix)
+            const mainnetAddrObj = Address.fromCashAddress(
+                mainnetWallet.address,
+            );
+            const testnetAddrObj = Address.fromCashAddress(
+                testnetWallet.address,
+            );
+            expect(mainnetAddrObj.hash).to.equal(testnetAddrObj.hash);
+        });
+    });
 });
