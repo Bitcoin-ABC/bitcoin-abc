@@ -2,7 +2,7 @@
     font-family: 'Poppins';
     src:
         local('Poppins'),
-        url(assets/fonts/Poppins-Regular.ttf) format('truetype');
+        url(/assets/fonts/Poppins-Regular.ttf) format('truetype');
     font-weight: normal;
 }
 
@@ -10,7 +10,7 @@
     font-family: 'Poppins';
     src:
         local('Poppins'),
-        url(assets/fonts/Poppins-Bold.ttf) format('truetype');
+        url(/assets/fonts/Poppins-Bold.ttf) format('truetype');
     font-weight: 700;
 }
 

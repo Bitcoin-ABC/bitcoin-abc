@@ -24,8 +24,21 @@ import {
     validSavedWallets,
 } from 'components/App/fixtures/mocks';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import * as bip39 from 'bip39';
+import { generateMnemonic } from 'wallet';
 import { Ecc } from 'ecash-lib';
+
+// Mock wallet.generateMnemonic() only for this test file
+// This ensures we have a consistent test for wallet name generation
+jest.mock('wallet', () => {
+    const actual = jest.requireActual('wallet');
+    return {
+        ...actual,
+        generateMnemonic: jest.fn(
+            () =>
+                'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
+        ),
+    };
+});
 
 describe('<Wallets />', () => {
     const ecc = new Ecc();
@@ -154,8 +167,8 @@ describe('<Wallets />', () => {
             ).toBeInTheDocument();
         });
     });
-    it('Confirm mocked bip39.generateMnemonic() returns the expected seed', () => {
-        expect(bip39.generateMnemonic()).toBe(
+    it('Confirm mocked generateMnemonic() returns the expected seed', () => {
+        expect(generateMnemonic()).toBe(
             'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
         );
     });

@@ -25,8 +25,14 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
     const [chronik, setChronik] = useState<null | ChronikClient>(null);
     const [agora, setAgora] = useState<null | Agora>(null);
     const [error, setError] = useState<null | string>(null);
+    const [gaEnabled, setGaEnabled] = useState(false);
 
     useEffect(() => {
+        // Initialize Google Analytics
+        GA.init().then(enabled => {
+            setGaEnabled(enabled);
+        });
+
         // Detect if we're in transaction mode (URL has parameters)
         const hasUrlParameters = window.location.hash.includes('?');
         const strategy = hasUrlParameters
@@ -58,7 +64,7 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
         <>
             {chronik === null || agora === null ? (
                 <SplashScreen>
-                    {process.env.REACT_APP_BUILD_ENV === 'extension' && (
+                    {import.meta.env.VITE_BUILD_ENV === 'extension' && (
                         <ExtensionFrame />
                     )}
                     <SplashLogo src={Cashtab} alt="cashtab" />
@@ -66,7 +72,7 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
             ) : (
                 <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
                     <Router>
-                        {GA.init() && <GA.RouteTracker />}
+                        {gaEnabled && <GA.RouteTracker />}
                         <App />
                     </Router>
                 </WalletProvider>

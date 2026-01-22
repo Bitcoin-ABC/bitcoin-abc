@@ -5,7 +5,8 @@
 import BigNumber from 'bignumber.js';
 import { toXec, toSatoshis, xecToNanoSatoshis, SlpDecimals } from 'wallet';
 import { isValidCashAddress } from 'ecashaddrjs';
-import * as bip39 from 'bip39';
+import { mnemonicToEntropy } from 'ecash-lib';
+import * as englishWordlist from 'ecash-lib/wordlists/english.json';
 import CashtabSettings, {
     cashtabSettingsValidation,
     CashtabSettingsValidation,
@@ -49,7 +50,7 @@ export const getContactAddressError = (
 
 export const validateMnemonic = (
     mnemonic: string,
-    wordlist = bip39.wordlists.english,
+    wordlist = englishWordlist.words,
 ): boolean => {
     try {
         if (!mnemonic || !wordlist) return false;
@@ -59,8 +60,10 @@ export const validateMnemonic = (
         // Detect blank phrase
         if (words.length === 0) return false;
 
-        // Check the words are valid
-        return bip39.validateMnemonic(mnemonic, wordlist);
+        // Validate mnemonic by attempting to convert to entropy
+        // mnemonicToEntropy throws if invalid
+        mnemonicToEntropy(mnemonic, wordlist);
+        return true;
     } catch (err) {
         console.error(err);
         return false;

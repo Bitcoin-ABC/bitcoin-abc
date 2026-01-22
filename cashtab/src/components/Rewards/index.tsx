@@ -60,7 +60,7 @@ const Rewards = () => {
         }
     };
     const handleClaim = async () => {
-        if (typeof process.env.REACT_APP_RECAPTCHA_SITE_KEY === 'undefined') {
+        if (typeof import.meta.env.VITE_RECAPTCHA_SITE_KEY === 'undefined') {
             // We do not support claims if we do not have a defined key
             return;
         }
@@ -208,7 +208,7 @@ const Rewards = () => {
             <PageHeader>
                 Rewards <RewardIcon />
             </PageHeader>
-            {process.env.REACT_APP_TESTNET !== 'true' ? (
+            {import.meta.env.VITE_TESTNET !== 'true' ? (
                 <>
                     {isEligible && (
                         <div
@@ -221,7 +221,7 @@ const Rewards = () => {
                             <ReCAPTCHA
                                 ref={recaptchaRef}
                                 sitekey={
-                                    process.env.REACT_APP_RECAPTCHA_SITE_KEY ||
+                                    import.meta.env.VITE_RECAPTCHA_SITE_KEY ||
                                     ''
                                 }
                                 onChange={handleRecaptchaChange}

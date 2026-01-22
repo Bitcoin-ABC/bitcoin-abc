@@ -1012,7 +1012,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     // With different currency selections possible, need unique intervals for price checks
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async (selectedFiatCurrency: string) => {
-        if (process.env.REACT_APP_TESTNET === 'true') {
+        if (import.meta.env.VITE_TESTNET === 'true') {
             setFiatPrice(0);
             setFirmaPrice(0);
             return;

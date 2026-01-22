@@ -46,10 +46,10 @@ interface AppConfig {
 // App settings not adjustable by the user
 const appConfig: AppConfig = {
     name: 'eCash',
-    ticker: process.env.REACT_APP_TESTNET === 'true' ? 'tXEC' : 'XEC',
+    ticker: import.meta.env.VITE_TESTNET === 'true' ? 'tXEC' : 'XEC',
     derivationPath: 1899,
     logo: mainLogo,
-    prefix: process.env.REACT_APP_TESTNET === 'true' ? 'ectest' : 'ecash',
+    prefix: import.meta.env.VITE_TESTNET === 'true' ? 'ectest' : 'ecash',
     coingeckoId: 'ecash',
     fiatUpdateIntervalMs: 90000,
     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,

@@ -209,11 +209,11 @@ const Configure: React.FC = () => {
                 </SocialLink>
             </SocialContainer>
 
-            {typeof process.env.REACT_APP_VERSION === 'string' && (
+            {typeof import.meta.env.VITE_VERSION === 'string' && (
                 <>
                     <StyledSpacer />
                     <VersionContainer>
-                        v{process.env.REACT_APP_VERSION}
+                        v{import.meta.env.VITE_VERSION}
                     </VersionContainer>
                 </>
             )}

@@ -3,12 +3,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import BigNumber from 'bignumber.js';
-import * as bip39 from 'bip39';
 import randomBytes from 'randombytes';
 import { ChronikClient } from 'chronik-client';
 import { encodeCashAddress, decodeCashAddress } from 'ecashaddrjs';
 import appConfig from 'config/app';
-import { fromHex, HdNode, shaRmd160, toHex } from 'ecash-lib';
+import {
+    fromHex,
+    HdNode,
+    shaRmd160,
+    toHex,
+    entropyToMnemonic,
+    mnemonicToSeed,
+} from 'ecash-lib';
+import * as englishWordlist from 'ecash-lib/wordlists/english.json';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
 import { ParsedTx, getTokenBalances } from 'chronik';
 import {
@@ -260,10 +267,10 @@ export interface ActiveCashtabWallet extends StoredCashtabWallet {
     state: CashtabWalletState;
 }
 /**
- * Create a Cashtab wallet object from a valid bip39 mnemonic
+ * Create a Cashtab wallet object from a valid BIP39 mnemonic
  * We only store wallet name and mnemonic, and we keep a CashtabWallet in state for processing
  * This will be replaced by Wallet from the ecash-wallet lib when feature parity is reached there
- * @param mnemonic a valid bip39 mnemonic
+ * @param mnemonic a valid BIP39 mnemonic
  * @param ecc
  * Default to 1899-only for all new wallets
  * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
@@ -272,7 +279,7 @@ export const createCashtabWallet = (
     mnemonic: string,
     name?: string,
 ): StoredCashtabWallet => {
-    const rootSeedBuffer = bip39.mnemonicToSeedSync(mnemonic, '');
+    const rootSeedBuffer = mnemonicToSeed(mnemonic, '');
     const masterHDNode = HdNode.fromSeed(rootSeedBuffer);
     const fullDerivationPath = `m/44'/${appConfig.derivationPath}'/0'/0/0`;
     const node = masterHDNode.derivePath(fullDerivationPath);
@@ -318,15 +325,14 @@ export const generateTokensFromWalletUtxos = async (
 };
 
 /**
- * Generate a mnemonic using the bip39 library
- * This function is a conenvience wrapper for a long lib method
+ * Generate a mnemonic using ecash-lib (replaces bip39)
+ * This function generates a 12-word mnemonic (128 bits of entropy)
  */
 export const generateMnemonic = (): string => {
-    const mnemonic = bip39.generateMnemonic(
-        128,
-        randomBytes,
-        bip39.wordlists['english'],
-    );
+    // Generate 16 bytes (128 bits) of entropy
+    const entropy = randomBytes(16);
+    // Convert entropy to mnemonic using ecash-lib
+    const mnemonic = entropyToMnemonic(entropy, englishWordlist);
     return mnemonic;
 };
 

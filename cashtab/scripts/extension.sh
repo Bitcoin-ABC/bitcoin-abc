@@ -38,8 +38,8 @@ mkdir extension/dist/
 echo 'Building Extension...'
 
 # Required for extension build rules
-export INLINE_RUNTIME_CHUNK=false
 export GENERATE_SOURCEMAP=false
+export VITE_BUILD_ENV=extension
 
 pnpm run build
 

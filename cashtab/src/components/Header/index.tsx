@@ -233,7 +233,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                     </div>
                 )}
                 <WalletSelectCtn>
-                    {process.env.REACT_APP_BUILD_ENV === 'extension' && (
+                    {import.meta.env.VITE_BUILD_ENV === 'extension' && (
                         <ExtenstionButton
                             data-tip="Open in tab"
                             onClick={() => window.open(`index.html#${path}`)}

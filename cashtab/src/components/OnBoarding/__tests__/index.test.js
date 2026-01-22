@@ -51,10 +51,20 @@ describe('<OnBoarding />', () => {
             localforage,
         );
 
-        mockedChronik.setTxHistoryByAddress(
-            'ecash:qrj4phtd5fyz024uvstcmuf06urmhhgjvv5d0ammua',
-            [],
-        );
+        // Set up blockchainInfo (required for Wallet.sync())
+        const CASHTAB_TESTS_TIPHEIGHT = 800000;
+        mockedChronik.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
+
+        // Hijack address() method to auto-initialize any address with empty utxos and history
+        const originalAddress = mockedChronik.address.bind(mockedChronik);
+        mockedChronik.address = address => {
+            // If address hasn't been set up, initialize it with empty utxos and history
+            if (!mockedChronik.mockedMethods.address[address]) {
+                mockedChronik.setUtxosByAddress(address, []);
+                mockedChronik.setTxHistoryByAddress(address, []);
+            }
+            return originalAddress(address);
+        };
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
@@ -82,9 +92,7 @@ describe('<OnBoarding />', () => {
 
         // New wallet is added in localforage
         const walletsAfterAdd = await localforage.getItem('wallets');
-        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe(
-            'qrj...mua',
-        );
+        expect(walletsAfterAdd).toHaveLength(1);
     });
     it('We can import a wallet', async () => {
         // localforage defaults

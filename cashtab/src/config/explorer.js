@@ -6,7 +6,7 @@
 
 export const explorer = {
     blockExplorerUrl:
-        process.env.REACT_APP_TESTNET === 'true'
+        import.meta.env.VITE_TESTNET === 'true'
             ? 'https://texplorer.e.cash'
             : 'https://explorer.e.cash',
     pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',

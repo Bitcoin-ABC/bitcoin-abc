@@ -105,7 +105,7 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
-            {process.env.REACT_APP_BUILD_ENV === 'extension' ? (
+            {import.meta.env.VITE_BUILD_ENV === 'extension' ? (
                 <>
                     <ExtensionFrame />
                     {/** We can only render the address sharing modal if we have a wallet */}
@@ -168,7 +168,7 @@ const App = () => {
                                             path={location.pathname}
                                         ></Header>
                                         <ScreenWrapper>
-                                            {process.env.REACT_APP_BUILD_ENV !==
+                                            {import.meta.env.VITE_BUILD_ENV !==
                                                 'extension' && (
                                                 <>
                                                     {hasTab && (
@@ -256,11 +256,11 @@ const App = () => {
                                                     path="/configure"
                                                     element={<Configure />}
                                                 />
-                                                {process.env
-                                                    .REACT_APP_BUILD_ENV !==
+                                                {import.meta.env
+                                                    .VITE_BUILD_ENV !==
                                                     'extension' &&
-                                                    process.env
-                                                        .REACT_APP_TESTNET !==
+                                                    import.meta.env
+                                                        .VITE_TESTNET !==
                                                         'true' && (
                                                         <>
                                                             <Route
@@ -392,9 +392,9 @@ const App = () => {
                                         <p>Airdrop</p>
                                         <AirdropIcon />
                                     </NavItem>
-                                    {process.env.REACT_APP_BUILD_ENV !==
+                                    {import.meta.env.VITE_BUILD_ENV !==
                                         'extension' &&
-                                        process.env.REACT_APP_TESTNET !==
+                                        import.meta.env.VITE_TESTNET !==
                                             'true' && (
                                             <>
                                                 <NavItem

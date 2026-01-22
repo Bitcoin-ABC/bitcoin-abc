@@ -6,7 +6,7 @@
 
 export const chronik = {
     urls:
-        process.env.REACT_APP_TESTNET === 'true'
+        import.meta.env.VITE_TESTNET === 'true'
             ? ['https://chronik-testnet.fabien.cash']
             : /**
                * chronik servers must be indexed with agora.py plugin

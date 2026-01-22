@@ -99,7 +99,7 @@ const Home: React.FC = () => {
     const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
     const claimAirdropForNewWallet = async () => {
-        if (typeof process.env.REACT_APP_RECAPTCHA_SITE_KEY === 'undefined') {
+        if (typeof import.meta.env.VITE_RECAPTCHA_SITE_KEY === 'undefined') {
             // Recaptcha env var must be set to claimAirdropForNewWallet
             return;
         }
@@ -240,10 +240,9 @@ const Home: React.FC = () => {
                                         </em>
                                     </p>
                                 </Alert>
-                                {process.env.REACT_APP_BUILD_ENV !==
+                                {import.meta.env.VITE_BUILD_ENV !==
                                     'extension' &&
-                                    process.env.REACT_APP_TESTNET !==
-                                        'true' && (
+                                    import.meta.env.VITE_TESTNET !== 'true' && (
                                         <>
                                             <div
                                                 style={{
@@ -255,8 +254,8 @@ const Home: React.FC = () => {
                                                 <ReCAPTCHA
                                                     ref={recaptchaRef}
                                                     sitekey={
-                                                        process.env
-                                                            .REACT_APP_RECAPTCHA_SITE_KEY ||
+                                                        import.meta.env
+                                                            .VITE_RECAPTCHA_SITE_KEY ||
                                                         ''
                                                     }
                                                     onChange={

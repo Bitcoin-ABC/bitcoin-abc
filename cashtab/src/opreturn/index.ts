@@ -16,9 +16,11 @@ import {
     TxOutput,
     Bytes,
 } from 'ecash-lib';
-
 import { AddressType } from 'ecashaddrjs/dist/types';
 import { AppAction, XecxAction, UnknownAction } from 'chronik';
+import { Buffer } from 'buffer';
+
+// FIXME we should never use Buffer, it creates polyfill nightmares in prod builds, you can use other methods
 
 /**
  * Get targetOutput for a Cashtab Msg from user input string

@@ -1,24 +1,25 @@
 {
     "compilerOptions": {
-        "target": "es2020",
-        "module": "commonjs",
-        "outDir": "./dist",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true,
-        "alwaysStrict": true,
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "ESNext",
         "skipLibCheck": true,
-        "declaration": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "strict": true,
+        "noFallthroughCasesInSwitch": true,
+        "esModuleInterop": false,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
         "baseUrl": "src",
         "allowJs": true,
-        "jsx": "react-jsx"
+        "types": ["vite/client", "react", "react-dom"]
     },
-    "include": [
-        "src",
-        ".eslintrc.js",
-        "babel.config.js",
-        "jest.config.js",
-        "config",
-        "jest.setup.js"
-    ]
+    "include": ["src"],
+    "exclude": ["vite.config.ts"]
 }

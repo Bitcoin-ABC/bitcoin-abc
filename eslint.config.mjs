@@ -186,7 +186,7 @@ export default tseslint.config(
     // jest test files
     {
         files: [
-            'cashtab/jest.setup.js',
+            'cashtab/jest.setup.{js,cjs}',
             'cashtab/**/__tests__/**/*.{js,jsx,ts,tsx}',
             'cashtab/**/*.test.{js,ts,jsx,tsx}',
             'web/**/*.test.{js,ts,jsx,tsx}',
