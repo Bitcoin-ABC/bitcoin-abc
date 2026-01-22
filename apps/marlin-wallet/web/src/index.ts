@@ -8,7 +8,6 @@
 
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
-import { DEFAULT_DUST_SATS } from 'ecash-lib';
 import {
     XECPrice,
     CoinGeckoProvider,
@@ -24,13 +23,8 @@ import {
     webViewError,
     isReactNativeWebView,
 } from './common';
-import {
-    calculateTransactionAmountSats,
-    satsToXec,
-    calculateMaxSpendableAmount,
-    estimateTransactionFee,
-} from './amount';
-import { getAddress, WalletData, buildAction } from './wallet';
+import { calculateTransactionAmountSats, satsToXec } from './amount';
+import { getAddress, WalletData } from './wallet';
 import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
 import { copyAddress, isValidECashAddress } from './address';
 import {
@@ -41,11 +35,11 @@ import {
 } from './qrcode';
 import { config } from './config';
 import { parseBip21Uri, createBip21Uri } from './bip21';
-import { isPayButtonTransaction } from './paybutton';
 import { AppSettings, loadSettings } from './settings';
 import { Navigation, Screen } from './navigation';
 import { SettingsScreen } from './screen/settings';
 import { HistoryScreen } from './screen/history';
+import { SendScreen } from './screen/send';
 
 // Styles
 import './main.css';
@@ -101,14 +95,14 @@ let settingsScreen: SettingsScreen | null = null;
 // Create global instance of HistoryScreen
 let historyScreen: HistoryScreen | null = null;
 
+// Create global instance of SendScreen
+let sendScreen: SendScreen | null = null;
+
 // Settings state
 let appSettings: AppSettings = {
     requireHoldToSend: true,
     primaryBalanceType: 'XEC',
 };
-
-// OP_RETURN data for the current send transaction (for PayButton support)
-let sendOpReturnRaw: string | undefined = undefined;
 
 // ============================================================================
 // GENERAL UTILITY FUNCTIONS
@@ -153,149 +147,6 @@ function hideLoadingScreen() {
 // NAVIGATION FUNCTIONS
 // ============================================================================
 
-async function showSendScreen() {
-    // Always refresh the available utxos before showing the send screen
-    await syncWallet();
-
-    navigation.showScreen(Screen.Send);
-
-    // Reset all form fields and validation states
-    const recipientInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const amountSlider = document.getElementById(
-        'amount-slider',
-    ) as HTMLInputElement;
-    const feeDisplay = document.getElementById('fee-display');
-
-    // Clear recipient address field and validation states
-    if (recipientInput) {
-        recipientInput.value = '';
-        recipientInput.classList.remove('valid', 'invalid');
-        recipientInput.removeAttribute('readonly'); // Allow editing for manual entry
-    }
-
-    // Reset amount field and validation states
-    if (sendAmountInput) {
-        sendAmountInput.value = '5.46'; // Prefill with minimum valid amount
-        sendAmountInput.classList.remove('valid', 'invalid');
-        sendAmountInput.removeAttribute('readonly'); // Allow editing for manual entry
-    }
-
-    // Reset slider
-    if (amountSlider) {
-        amountSlider.value = '5.46';
-        amountSlider.disabled = false; // Enable slider for manual entry
-    }
-
-    // Clear opReturnRaw when resetting the screen
-    sendOpReturnRaw = undefined;
-
-    // Hide PayButton logo
-    updatePayButtonLogoVisibility();
-
-    // Hide fee display
-    if (feeDisplay) {
-        feeDisplay.style.display = 'none';
-    }
-
-    // Re-setup send button behavior based on current setting
-    const confirmSendBtn = document.getElementById(
-        'confirm-send',
-    ) as HTMLButtonElement;
-    if (confirmSendBtn) {
-        // Remove all existing event listeners by cloning and replacing
-        const newButton = confirmSendBtn.cloneNode(true) as HTMLButtonElement;
-        confirmSendBtn.parentNode?.replaceChild(newButton, confirmSendBtn);
-
-        // Setup with current behavior
-        setupHoldToSend(newButton);
-    }
-
-    // Update send screen limits based on current wallet state
-    updateSendScreenLimits();
-
-    // Validate amount field after reset
-    validateAmountField();
-
-    // Initialize slider and marks
-    updateSliderFromInput();
-    const maxSpendable = calculateMaxSpendableAmount(ecashWallet);
-    updateSliderMarks(5.46, maxSpendable);
-}
-
-async function openSendScreenWithAddress(
-    address: string,
-    sats?: number,
-    opReturnRaw?: string,
-) {
-    // First show the send screen (this will reset everything)
-    await showSendScreen();
-
-    // Store opReturnRaw for use when sending transaction, only for paybutton transactions
-    sendOpReturnRaw =
-        opReturnRaw && isPayButtonTransaction(opReturnRaw)
-            ? opReturnRaw
-            : undefined;
-    updatePayButtonLogoVisibility();
-
-    // Then set the address and make it readonly
-    const recipientAddressInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    if (recipientAddressInput) {
-        // Set readonly BEFORE setting value to prevent input event from triggering BIP21 parsing
-        recipientAddressInput.setAttribute('readonly', 'readonly');
-        recipientAddressInput.value = address;
-        // Mark as valid (we already validated it before calling this function)
-        recipientAddressInput.classList.add('valid');
-    }
-
-    // If an amount was provided (in satoshis), convert to XEC and set it
-    if (sats !== undefined && sats > 0) {
-        const sendAmountInput = document.getElementById(
-            'send-amount',
-        ) as HTMLInputElement;
-        const amountSlider = document.getElementById(
-            'amount-slider',
-        ) as HTMLInputElement;
-
-        // Convert satoshis to XEC for display
-        const amountXec = satsToXec(sats);
-
-        if (sendAmountInput) {
-            // Format to 2 decimal places
-            sendAmountInput.value = amountXec.toFixed(2);
-            // Make amount field readonly when amount is provided from BIP21 URI
-            sendAmountInput.setAttribute('readonly', 'readonly');
-            // Validate the amount
-            validateAmountField();
-        }
-
-        if (amountSlider) {
-            amountSlider.value = amountXec.toString();
-            // Disable slider when amount is provided from BIP21 URI
-            amountSlider.disabled = true;
-        }
-    }
-
-    // Trigger fee calculation since address is now valid
-    updateFeeDisplay();
-}
-
-async function openSendScreenForManualEntry() {
-    stopQRScanner(true); // Force close the modal
-    hideNoCameraFallback();
-    // First show the send screen (this will reset everything)
-    await showSendScreen();
-
-    // The form is already reset by showSendScreen(), no additional action needed
-    // The address field is already cleared and editable
-}
-
 // These are required for the webview html button bindings
 (window as any).openHistory = () => {
     if (historyScreen) {
@@ -303,623 +154,6 @@ async function openSendScreenForManualEntry() {
     }
 };
 (window as any).openSettings = () => navigation.showScreen(Screen.Settings);
-
-// ============================================================================
-// SEND SCREEN FUNCTIONS
-// ============================================================================
-
-// Validate address field and update UI
-function validateAddressField() {
-    const recipientInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    if (!recipientInput) {
-        return;
-    }
-
-    const input = recipientInput.value.trim();
-
-    // Clear previous validation states
-    recipientInput.classList.remove('invalid');
-    recipientInput.classList.remove('valid');
-
-    if (input === '') {
-        // Empty field - no validation state
-        return;
-    }
-
-    // Try to parse as BIP21 URI first (this also handles plain addresses)
-    const bip21Result = parseBip21Uri(input);
-    if (bip21Result) {
-        // Valid BIP21 URI or plain address
-        // If field is readonly (set programmatically from QR/NFC), only validate the address
-        // If field is editable (user paste), populate all fields from the URI
-        if (recipientInput.hasAttribute('readonly')) {
-            // Just mark as valid, don't populate (already set by QR/NFC scan)
-            recipientInput.classList.add('valid');
-            return;
-        }
-
-        // User pasted a BIP21 URI - populate all fields
-        handleBip21Paste(bip21Result);
-        return;
-    }
-
-    // Otherwise validate as a plain address.
-    // This is only used for testnet where then BIP21 prefix differs from the address prefix.
-    // This implies that a valid address is also a valid BIP21 URI.
-    if (isValidECashAddress(input)) {
-        recipientInput.classList.add('valid');
-        return;
-    }
-
-    recipientInput.classList.add('invalid');
-}
-
-function handleBip21Paste(bip21Result: ReturnType<typeof parseBip21Uri>) {
-    if (!bip21Result) {
-        return;
-    }
-
-    const recipientInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const amountSlider = document.getElementById(
-        'amount-slider',
-    ) as HTMLInputElement;
-
-    // Set the address (plain address, not the full URI)
-    if (recipientInput) {
-        recipientInput.value = bip21Result.address;
-        recipientInput.setAttribute('readonly', 'readonly');
-        recipientInput.classList.add('valid');
-    }
-
-    // Store opReturnRaw for use when sending transaction, only for paybutton transactions
-    sendOpReturnRaw =
-        bip21Result.opReturnRaw &&
-        isPayButtonTransaction(bip21Result.opReturnRaw)
-            ? bip21Result.opReturnRaw
-            : undefined;
-    updatePayButtonLogoVisibility();
-
-    // Set amount if provided
-    if (
-        bip21Result.sats !== undefined &&
-        bip21Result.sats >= DEFAULT_DUST_SATS
-    ) {
-        const amountXec = satsToXec(bip21Result.sats);
-
-        if (sendAmountInput) {
-            sendAmountInput.value = amountXec.toFixed(2);
-            sendAmountInput.setAttribute('readonly', 'readonly');
-            validateAmountField();
-        }
-
-        if (amountSlider) {
-            amountSlider.value = amountXec.toString();
-            amountSlider.disabled = true;
-        }
-    }
-
-    // Trigger fee calculation
-    updateFeeDisplay();
-}
-
-// Update send screen with maximum spendable amount
-function updateSendScreenLimits() {
-    const maxSpendable = calculateMaxSpendableAmount(ecashWallet);
-
-    // Update amount input max attribute
-    const amountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    if (amountInput) {
-        amountInput.max = maxSpendable.toString();
-    }
-
-    // Update slider max value and label
-    const amountSlider = document.getElementById(
-        'amount-slider',
-    ) as HTMLInputElement;
-    if (amountSlider) {
-        amountSlider.max = maxSpendable.toString();
-    }
-
-    // Update slider max label
-    const sliderMaxLabel = document.getElementById('slider-max-label');
-    if (sliderMaxLabel) {
-        sliderMaxLabel.textContent = `${maxSpendable.toFixed(2)} ${
-            config.ticker
-        }`;
-    }
-}
-
-// Update fee display
-function updatePayButtonLogoVisibility() {
-    const logoContainer = document.getElementById('paybutton-logo-container');
-    if (logoContainer) {
-        if (sendOpReturnRaw && isPayButtonTransaction(sendOpReturnRaw)) {
-            logoContainer.style.display = 'flex';
-        } else {
-            logoContainer.style.display = 'none';
-        }
-    }
-}
-
-function updateFeeDisplay() {
-    const recipientInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    const amountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const feeDisplay = document.getElementById('fee-display');
-
-    if (!recipientInput || !amountInput || !feeDisplay) {
-        return;
-    }
-
-    const recipientAddress = recipientInput.value.trim();
-    let amount = parseFloat(amountInput.value);
-
-    // Hide if address or amount is invalid
-    if (
-        !recipientAddress ||
-        !isValidECashAddress(recipientAddress) ||
-        isNaN(amount) ||
-        amount <= 0
-    ) {
-        feeDisplay.style.display = 'none';
-        return;
-    }
-
-    let errorMessage: string | null = null;
-
-    // Check for dust threshold
-    const dustXEC = satsToXec(Number(DEFAULT_DUST_SATS));
-    if (amount < dustXEC) {
-        errorMessage = `Amount is too small`;
-    }
-
-    // Try to estimate fee for the requested amount (include OP_RETURN if present)
-    let feeEstimate = estimateTransactionFee(
-        ecashWallet,
-        recipientAddress,
-        amount,
-        sendOpReturnRaw,
-    );
-
-    // Insufficient balance - calculate for max spendable amount
-    if (!feeEstimate) {
-        amount = calculateMaxSpendableAmount(ecashWallet);
-        feeEstimate = estimateTransactionFee(
-            ecashWallet,
-            recipientAddress,
-            amount,
-            sendOpReturnRaw,
-        );
-        errorMessage = `Insufficient balance`;
-    }
-
-    // Build the html fee block heading depending on the error condition
-    let feeBlockHeading = 'Transaction Details';
-    let feeBlockHeadingClasses = 'title';
-    if (errorMessage) {
-        feeDisplay.classList.add('error');
-        feeBlockHeading = errorMessage;
-        feeBlockHeadingClasses += ' error';
-    } else {
-        feeDisplay.classList.remove('error');
-    }
-
-    // Build the HTML with conditional styling
-    const html = `<div class="fee-info">
-            <div class="fee-item ${feeBlockHeadingClasses}">
-                ${feeBlockHeading}
-            </div>
-            <div class="fee-item">
-                <span class="fee-label">Amount:</span>
-                <span class="fee-value">${amount.toFixed(2)} ${
-                    config.ticker
-                }</span>
-            </div>
-            <div class="fee-item">
-                <span class="fee-label">Network Fee:</span>
-                <span class="fee-value">${feeEstimate?.feeXEC.toFixed(2)} ${
-                    config.ticker
-                }</span>
-            </div>
-            <div class="fee-item total">
-                <span class="fee-label">Total:</span>
-                <span class="fee-value">${feeEstimate?.totalXEC.toFixed(2)} ${
-                    config.ticker
-                }</span>
-            </div>
-        </div>
-    `;
-
-    feeDisplay.innerHTML = html;
-    feeDisplay.style.display = 'block';
-}
-
-// Amount input handling to prevent more than 2 decimals
-function handleAmountInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-
-    // Allow only numbers and one decimal point
-    const cleanValue = value.replace(/[^0-9.]/g, '');
-
-    // Prevent multiple decimal points
-    const parts = cleanValue.split('.');
-    if (parts.length > 2) {
-        input.value = parts[0] + '.' + parts.slice(1).join('');
-        return;
-    }
-
-    // If there's a decimal point, limit to 2 decimal places
-    if (parts.length === 2 && parts[1].length > 2) {
-        input.value = parts[0] + '.' + parts[1].substring(0, 2);
-        return;
-    }
-
-    // Update the input value if it was cleaned
-    if (cleanValue !== value) {
-        input.value = cleanValue;
-    }
-
-    // Update slider to match input value
-    updateSliderFromInput();
-
-    // Run validation after input is processed
-    validateAmountField();
-}
-
-// Handle slider input
-function handleSliderInput(event: Event) {
-    const slider = event.target as HTMLInputElement;
-    const value = parseFloat(slider.value);
-
-    // Update the amount input field immediately for visual feedback
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    if (sendAmountInput) {
-        sendAmountInput.value = value.toFixed(2);
-    }
-
-    // Validate immediately without throttling
-    validateAmountField();
-}
-
-// Update slider from input field
-function updateSliderFromInput() {
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const amountSlider = document.getElementById(
-        'amount-slider',
-    ) as HTMLInputElement;
-
-    if (!sendAmountInput || !amountSlider) {
-        return;
-    }
-
-    const value = parseFloat(sendAmountInput.value);
-    const minAmount = 5.46;
-    const maxAmount = calculateMaxSpendableAmount(ecashWallet);
-
-    // Clamp value to slider range
-    const clampedValue = Math.max(minAmount, Math.min(value, maxAmount));
-
-    // Update slider value
-    amountSlider.value = clampedValue.toString();
-
-    // Update slider max if balance changed
-    if (maxAmount !== parseFloat(amountSlider.max)) {
-        amountSlider.max = maxAmount.toString();
-        const sliderMaxLabel = document.getElementById('slider-max-label');
-        if (sliderMaxLabel) {
-            sliderMaxLabel.textContent = `${maxAmount.toFixed(2)} ${
-                config.ticker
-            }`;
-        }
-
-        // Update slider marks for new range
-        updateSliderMarks(minAmount, maxAmount);
-    }
-}
-
-// Update slider marks based on current range
-function updateSliderMarks(minAmount: number, maxAmount: number) {
-    const marks = document.querySelectorAll('.mark');
-    const range = maxAmount - minAmount;
-
-    marks.forEach((mark, index) => {
-        const percentage = (index + 1) * 10; // 10%, 20%, 30%, etc. (skipping 0% and 100%)
-        const actualValue = minAmount + (range * percentage) / 100;
-        const displayValue = actualValue.toFixed(2);
-
-        // Update the mark's data attribute for reference
-        mark.setAttribute('data-value', displayValue);
-
-        // Add a subtle tooltip effect on hover
-        (mark as HTMLElement).title = `${displayValue} ${config.ticker}`;
-    });
-}
-
-// Amount validation functions
-function validateAmountField() {
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const confirmSendBtn = document.getElementById(
-        'confirm-send',
-    ) as HTMLButtonElement;
-
-    if (!sendAmountInput || !confirmSendBtn) {
-        return;
-    }
-
-    const amount = parseFloat(sendAmountInput.value);
-    const minAmount = satsToXec(Number(DEFAULT_DUST_SATS));
-    const maxAmount = calculateMaxSpendableAmount(ecashWallet);
-
-    // Clear previous validation states
-    sendAmountInput.classList.remove('invalid');
-    sendAmountInput.classList.remove('valid');
-
-    // Check if amount is valid
-    if (isNaN(amount) || amount <= 0) {
-        sendAmountInput.classList.add('invalid');
-        confirmSendBtn.disabled = true;
-        const btnSpan = confirmSendBtn.querySelector('span');
-        if (btnSpan) {
-            btnSpan.textContent = 'Enter Amount';
-        }
-        return;
-    }
-
-    if (amount < minAmount) {
-        sendAmountInput.classList.add('invalid');
-        confirmSendBtn.disabled = true;
-        const btnSpan = confirmSendBtn.querySelector('span');
-        if (btnSpan) {
-            btnSpan.textContent = `Min: ${minAmount} ${config.ticker}`;
-        }
-        return;
-    }
-
-    if (amount > maxAmount) {
-        sendAmountInput.classList.add('invalid');
-        confirmSendBtn.disabled = true;
-        const btnSpan = confirmSendBtn.querySelector('span');
-        if (btnSpan) {
-            btnSpan.textContent = `Max: ${maxAmount.toFixed(2)} ${
-                config.ticker
-            }`;
-        }
-        return;
-    }
-
-    // Amount is valid
-    sendAmountInput.classList.add('valid');
-    confirmSendBtn.disabled = false;
-    const btnSpan = confirmSendBtn.querySelector('span');
-    if (btnSpan) {
-        btnSpan.textContent = appSettings.requireHoldToSend
-            ? 'Hold to send'
-            : 'Send';
-    }
-}
-
-// Send button setup - either hold-to-send or simple click based on settings
-function setupHoldToSend(button: HTMLButtonElement) {
-    // If hold-to-send is disabled, use simple click behavior
-    if (!appSettings.requireHoldToSend) {
-        button.addEventListener('click', async () => {
-            await validateAndSend();
-        });
-        return;
-    }
-
-    // Hold-to-send behavior with progressive haptic feedback
-    let holdTimer: number | null = null;
-    let hapticInterval: number | null = null;
-    let startTime = 0;
-    const HOLD_DURATION = 1000; // 1 second
-    const HAPTIC_INTERVAL = 50; // Haptic every 50ms for smoother continuous feel
-
-    // Progressive haptic feedback based on elapsed time
-    const triggerProgressiveHaptic = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / HOLD_DURATION, 1);
-
-        // Use selection haptic for smoother rapid feedback, transitioning to impacts
-        let hapticType:
-            | 'selection'
-            | 'impactLight'
-            | 'impactMedium'
-            | 'impactHeavy' = 'selection';
-
-        if (progress > 0.8) {
-            hapticType = 'impactHeavy';
-        } else if (progress > 0.5) {
-            hapticType = 'impactMedium';
-        } else if (progress > 0.2) {
-            hapticType = 'impactLight';
-        }
-
-        sendMessageToBackend('HAPTIC_FEEDBACK', hapticType);
-    };
-
-    const startHold = (e: Event) => {
-        e.preventDefault();
-
-        // Check if button is disabled
-        if (button.disabled) {
-            return;
-        }
-
-        // Validate before starting the hold animation
-        const sendAmountInput = document.getElementById(
-            'send-amount',
-        ) as HTMLInputElement;
-        const recipientAddressInput = document.getElementById(
-            'recipient-address',
-        ) as HTMLInputElement;
-
-        if (!sendAmountInput || !recipientAddressInput) {
-            return;
-        }
-
-        const amount = parseFloat(sendAmountInput.value);
-        const address = recipientAddressInput.value.trim();
-
-        // Validate address
-        if (!address || !isValidECashAddress(address)) {
-            // Play warning haptic immediately
-            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationWarning');
-            recipientAddressInput.focus();
-            return;
-        }
-
-        // Validate amount
-        if (isNaN(amount) || amount <= 0) {
-            // Play warning haptic immediately
-            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationWarning');
-            return;
-        }
-
-        startTime = Date.now();
-        button.classList.add('holding');
-
-        // Trigger initial haptic
-        triggerProgressiveHaptic();
-
-        // Set up continuous haptic feedback during hold
-        hapticInterval = window.setInterval(() => {
-            triggerProgressiveHaptic();
-        }, HAPTIC_INTERVAL);
-
-        // Set timer for successful hold
-        holdTimer = window.setTimeout(async () => {
-            // Success haptic
-            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationSuccess');
-            await validateAndSend();
-            cleanup();
-        }, HOLD_DURATION);
-    };
-
-    const cancelHold = () => {
-        if (holdTimer === null) {
-            return;
-        }
-
-        cleanup();
-
-        // Give feedback that hold was cancelled
-        const holdDuration = Date.now() - startTime;
-        if (holdDuration > 300) {
-            // User held for a bit but released early - give warning haptic
-            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationWarning');
-        }
-    };
-
-    const cleanup = () => {
-        if (holdTimer !== null) {
-            clearTimeout(holdTimer);
-            holdTimer = null;
-        }
-
-        // Clear haptic interval
-        if (hapticInterval !== null) {
-            clearInterval(hapticInterval);
-            hapticInterval = null;
-        }
-
-        button.classList.remove('holding');
-    };
-
-    // Mouse events
-    button.addEventListener('mousedown', startHold);
-    button.addEventListener('mouseup', cancelHold);
-    button.addEventListener('mouseleave', cancelHold);
-
-    // Touch events for mobile
-    button.addEventListener('touchstart', startHold, { passive: false });
-    button.addEventListener('touchend', cancelHold);
-    button.addEventListener('touchcancel', cancelHold);
-}
-
-async function validateAndSend() {
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    const recipientAddressInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-
-    if (!sendAmountInput || !recipientAddressInput) {
-        return;
-    }
-
-    const amount = parseFloat(sendAmountInput.value);
-    const address = recipientAddressInput.value.trim();
-
-    // Validate address
-    if (!address || !isValidECashAddress(address)) {
-        recipientAddressInput.focus();
-        return;
-    }
-
-    // Validate amount
-    validateAmountField();
-    const confirmSendBtn = document.getElementById(
-        'confirm-send',
-    ) as HTMLButtonElement;
-    if (confirmSendBtn.disabled) {
-        return; // Amount validation failed
-    }
-
-    // All validations passed, proceed with sending
-    try {
-        // Convert XEC to satoshis (1 XEC = 100 satoshis)
-        const sats = Math.round(amount * 100);
-        const action = buildAction(ecashWallet, address, sats, sendOpReturnRaw);
-        const builtAction = action.build();
-
-        if (sendOpReturnRaw && isPayButtonTransaction(sendOpReturnRaw)) {
-            // For PayButton transactions, we broadcast to the PayButton node first
-            // to reduce the latency. Then we attempt to broadcast to the main node
-            // as well which may fail because the tx might have been relayed already.
-            try {
-                const paybuttonChronik = new ChronikClient([
-                    'https://xec.paybutton.io',
-                ]);
-                const txsToBroadcast = builtAction.txs.map(tx => tx.toHex());
-                await paybuttonChronik.broadcastTxs(txsToBroadcast);
-                webViewLog(
-                    `Sent ${amount} ${config.ticker} to ${address} via PayButton`,
-                );
-            } catch (error) {
-                webViewError('PayButton broadcast failed,:', error);
-            }
-        }
-
-        await builtAction.broadcast();
-        webViewLog(`Sent ${amount} ${config.ticker} to ${address}`);
-    } catch (error) {
-        webViewError('Failed to send transaction:', error);
-    } finally {
-        // Return to main screen
-        navigation.showScreen(Screen.Main);
-    }
-}
 
 // ============================================================================
 // WALLET MANAGEMENT FUNCTIONS
@@ -980,6 +214,18 @@ async function loadWalletFromMnemonic(mnemonic: string) {
             appSettings,
             priceFetcher,
         );
+    }
+
+    // Update send screen with new wallet
+    if (sendScreen) {
+        sendScreen.updateWallet(ecashWallet);
+    } else {
+        sendScreen = new SendScreen({
+            ecashWallet,
+            navigation,
+            appSettings,
+            syncWallet,
+        });
     }
 
     // Update displays
@@ -1408,17 +654,18 @@ function handleCloseCamera() {
 }
 
 async function handleQRScanResult(result: string) {
+    if (!sendScreen) {
+        webViewError('Send screen not initialized');
+        return;
+    }
+
     // First, try to parse as BIP21 URI
     const bip21Result = parseBip21Uri(result);
 
     if (bip21Result) {
         webViewLog('BIP21 URI scanned:', result);
         stopQRScanner();
-        await openSendScreenWithAddress(
-            bip21Result.address,
-            bip21Result.sats,
-            bip21Result.opReturnRaw,
-        );
+        await sendScreen.show(bip21Result);
         return;
     }
 
@@ -1426,7 +673,9 @@ async function handleQRScanResult(result: string) {
     if (isValidECashAddress(result)) {
         webViewLog('eCash address scanned:', result);
         stopQRScanner();
-        await openSendScreenWithAddress(result);
+        await sendScreen.show({
+            address: result,
+        });
     }
 }
 
@@ -1816,6 +1065,13 @@ async function initializeApp() {
         await loadWalletFromMnemonic(mnemonic);
     });
 
+    sendScreen = new SendScreen({
+        ecashWallet,
+        navigation,
+        appSettings,
+        syncWallet,
+    });
+
     // Hide loading screen on success
     hideLoadingScreen();
 
@@ -1845,16 +1101,17 @@ async function initializeApp() {
     const manualEntryBtn = document.getElementById('manual-entry-btn');
     if (manualEntryBtn) {
         manualEntryBtn.addEventListener('click', async () => {
-            await openSendScreenForManualEntry();
+            if (sendScreen) {
+                stopQRScanner(true); // Force close the modal
+                hideNoCameraFallback();
+                await sendScreen.show();
+            }
         });
     }
 
     // Add click listeners for Send screen
     const backBtn = document.getElementById('back-btn');
     const cancelSendBtn = document.getElementById('cancel-send');
-    const confirmSendBtn = document.getElementById(
-        'confirm-send',
-    ) as HTMLButtonElement;
 
     if (backBtn) {
         backBtn.addEventListener('click', () => {
@@ -1865,44 +1122,6 @@ async function initializeApp() {
     if (cancelSendBtn) {
         cancelSendBtn.addEventListener('click', () => {
             navigation.showScreen(Screen.Main);
-        });
-    }
-
-    if (confirmSendBtn) {
-        setupHoldToSend(confirmSendBtn);
-    }
-
-    // Add validation to amount input
-    const sendAmountInput = document.getElementById(
-        'send-amount',
-    ) as HTMLInputElement;
-    if (sendAmountInput) {
-        sendAmountInput.addEventListener('input', event => {
-            handleAmountInput(event);
-            updateFeeDisplay();
-        });
-        sendAmountInput.addEventListener('blur', validateAmountField);
-    }
-
-    // Add slider functionality
-    const amountSlider = document.getElementById(
-        'amount-slider',
-    ) as HTMLInputElement;
-    if (amountSlider) {
-        amountSlider.addEventListener('input', event => {
-            handleSliderInput(event);
-            updateFeeDisplay();
-        });
-    }
-
-    // Add recipient address input listener for fee updates and validation
-    const recipientAddressInput = document.getElementById(
-        'recipient-address',
-    ) as HTMLInputElement;
-    if (recipientAddressInput) {
-        recipientAddressInput.addEventListener('input', () => {
-            validateAddressField();
-            updateFeeDisplay();
         });
     }
 
@@ -1924,13 +1143,9 @@ async function handlePaymentRequest(event: any) {
 
             // Parse the BIP21 URI
             const parsed = parseBip21Uri(bip21Uri);
-            if (parsed) {
+            if (parsed && sendScreen) {
                 // Open send screen with prefilled address and amount
-                openSendScreenWithAddress(
-                    parsed.address,
-                    parsed.sats,
-                    parsed.opReturnRaw,
-                );
+                await sendScreen.show(parsed);
             } else {
                 webViewError('Invalid BIP21 URI:', bip21Uri);
             }
