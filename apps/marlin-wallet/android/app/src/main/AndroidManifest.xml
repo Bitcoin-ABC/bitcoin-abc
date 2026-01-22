@@ -32,20 +32,35 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
         
-        <!-- NFC NDEF Discovery for background reading -->
+        <!-- NFC NDEF Discovery for ecash scheme -->
         <intent-filter android:priority="1000">
             <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <data android:scheme="ecash"/>
         </intent-filter>
         
-        <!-- Deep link for BIP21 URIs (camera QR scanner, web links, etc.) -->
+        <!-- NFC NDEF Discovery for PayButton URLs -->
+        <intent-filter android:priority="1000">
+            <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+            <category android:name="android.intent.category.DEFAULT"/>
+            <data android:scheme="https" android:host="paybutton.org" android:pathPrefix="/app"/>
+        </intent-filter>
+        
+        <!-- Deep link for BIP21 URIs (camera QR scanner, etc.) -->
         <!-- Note: scheme must match config.bip21Prefix in web/src/config.ts -->
         <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="ecash"/>
+        </intent-filter>
+        
+        <!-- Deep link for PayButton transactions (web links) -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.DEFAULT"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https" android:host="paybutton.org" android:pathPrefix="/app"/>
         </intent-filter>
         
         <!-- Intent filter for watch to open phone app -->

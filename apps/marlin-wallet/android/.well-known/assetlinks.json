@@ -1,0 +1,13 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.marlinwallet.app",
+            "sha256_cert_fingerprints": [
+                "C9:10:87:B7:D7:34:B1:0E:03:A7:FC:12:C1:84:07:0E:9F:3B:E0:87:3E:A1:CC:B5:AA:B5:48:39:0A:7C:66:D7",
+                "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
+            ]
+        }
+    }
+]

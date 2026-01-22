@@ -27,3 +27,43 @@ const PAYBUTTON_PROTOCOL_ID = '0450415900';
 export function isPayButtonTransaction(opReturnRaw: string): boolean {
     return opReturnRaw.startsWith(PAYBUTTON_PROTOCOL_ID);
 }
+
+export interface PaybuttonDeepLinkToBip21UriResult {
+    bip21Uri: string;
+    returnToBrowser: boolean;
+}
+
+export function paybuttonDeepLinkToBip21Uri(
+    deepLink: string,
+): PaybuttonDeepLinkToBip21UriResult {
+    try {
+        const url = new URL(deepLink);
+
+        if (
+            url.protocol !== 'https:' ||
+            url.hostname !== 'paybutton.org' ||
+            url.pathname !== '/app'
+        ) {
+            return { bip21Uri: deepLink, returnToBrowser: false };
+        }
+
+        const address = url.searchParams.get('address');
+        if (!address) {
+            return { bip21Uri: deepLink, returnToBrowser: false };
+        }
+        url.searchParams.delete('address');
+
+        // b=1 means return to browser
+        const b = url.searchParams.get('b');
+        if (b !== null) {
+            url.searchParams.delete('b');
+        }
+
+        return {
+            bip21Uri: address + '?' + url.searchParams.toString(),
+            returnToBrowser: b === '1',
+        };
+    } catch {
+        return { bip21Uri: deepLink, returnToBrowser: false };
+    }
+}

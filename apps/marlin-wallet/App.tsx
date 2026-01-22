@@ -21,6 +21,8 @@ import {
     Linking,
     DeviceEventEmitter,
     AppState,
+    Modal,
+    Text,
 } from 'react-native';
 import {
     SafeAreaProvider,
@@ -41,10 +43,10 @@ function AppContent(): React.JSX.Element {
     const insets = useSafeAreaInsets();
     const webViewRef = useRef<WebView>(null);
     const [webViewSource, setWebViewSource] = useState<any>(null);
-    const [pendingPaymentRequest, setPendingPaymentRequest] = useState<
-        string | null
-    >(null);
+    const pendingPaymentRequestRef = useRef<string | null>(null);
     const walletReadyRef = useRef<boolean>(false);
+    const [showPaymentSuccessModal, setShowPaymentSuccessModal] =
+        useState<boolean>(false);
 
     // Get the bundle path on mount for iOS
     useEffect(() => {
@@ -64,7 +66,6 @@ function AppContent(): React.JSX.Element {
         }
     }, []);
 
-
     // Background payment request listener (Android)
     useEffect(() => {
         if (Platform.OS !== 'android') {
@@ -82,7 +83,7 @@ function AppContent(): React.JSX.Element {
                 );
             } else {
                 // Store as pending - will be sent when WALLET_READY is received
-                setPendingPaymentRequest(bip21Uri);
+                pendingPaymentRequestRef.current = bip21Uri;
             }
         };
 
@@ -122,7 +123,7 @@ function AppContent(): React.JSX.Element {
                 );
             } else {
                 // Store as pending - will be sent when WALLET_READY is received
-                setPendingPaymentRequest(uri);
+                pendingPaymentRequestRef.current = uri;
             }
         };
 
@@ -326,14 +327,17 @@ function AppContent(): React.JSX.Element {
                     walletReadyRef.current = true;
 
                     // Send pending payment request if any
-                    if (pendingPaymentRequest && webViewRef.current) {
+                    if (
+                        pendingPaymentRequestRef.current &&
+                        webViewRef.current
+                    ) {
                         webViewRef.current.postMessage(
                             JSON.stringify({
                                 type: 'PAYMENT_REQUEST',
-                                data: pendingPaymentRequest,
+                                data: pendingPaymentRequestRef.current,
                             }),
                         );
-                        setPendingPaymentRequest(null);
+                        pendingPaymentRequestRef.current = null;
                     }
                     break;
 
@@ -359,6 +363,22 @@ function AppContent(): React.JSX.Element {
                             }
                         }
                     }
+                    break;
+
+                case 'RETURN_TO_PREVIOUS_APP':
+                    // Return to the previous app (browser) after payment is sent
+                    // This is used when the app was opened via a deep link from a browser
+                    console.log(
+                        'Showing payment success modal before returning to browser',
+                    );
+                    // Clear pending payment request synchronously (ref updates are immediate)
+                    pendingPaymentRequestRef.current = null;
+                    // Show success modal for 2 seconds
+                    setShowPaymentSuccessModal(true);
+                    setTimeout(() => {
+                        setShowPaymentSuccessModal(false);
+                        killApp();
+                    }, 2000);
                     break;
 
                 default:
@@ -440,6 +460,23 @@ function AppContent(): React.JSX.Element {
                     }}
                 />
             </View>
+            <Modal
+                visible={showPaymentSuccessModal}
+                transparent={true}
+                animationType="fade"
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.checkIconContainer}>
+                            <Text style={styles.checkIcon}>✓</Text>
+                        </View>
+                        <Text style={styles.modalText}>
+                            Payment sent!{'\n'}
+                            Returning to the payment site...
+                        </Text>
+                    </View>
+                </View>
+            </Modal>
         </LinearGradient>
     );
 }
@@ -479,6 +516,47 @@ const styles = StyleSheet.create({
     loadingText: {
         color: '#fff',
         fontSize: 18,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#1a1a1a',
+        borderRadius: 12,
+        padding: 24,
+        margin: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    checkIconContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#4ade80',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    checkIcon: {
+        fontSize: 36,
+        color: '#ffffff',
+        fontWeight: 'bold',
+    },
+    modalText: {
+        fontSize: 16,
+        color: '#ffffff',
+        textAlign: 'center',
+        fontWeight: '500',
     },
 });
 

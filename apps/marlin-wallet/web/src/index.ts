@@ -37,6 +37,7 @@ import { SettingsScreen } from './screen/settings';
 import { HistoryScreen } from './screen/history';
 import { SendScreen } from './screen/send';
 import { MainScreen } from './screen/main';
+import { paybuttonDeepLinkToBip21Uri } from './paybutton';
 
 // Styles
 import './main.css';
@@ -791,13 +792,15 @@ async function handlePaymentRequest(event: any) {
         const message = JSON.parse(event.data);
 
         if (message.type === 'PAYMENT_REQUEST') {
-            const bip21Uri = message.data;
+            const { bip21Uri, returnToBrowser } = paybuttonDeepLinkToBip21Uri(
+                message.data,
+            );
 
             // Parse the BIP21 URI
             const parsed = parseBip21Uri(bip21Uri);
             if (parsed && sendScreen) {
                 // Open send screen with prefilled address and amount
-                await sendScreen.show(parsed);
+                await sendScreen.show(parsed, returnToBrowser);
             } else {
                 webViewError('Invalid BIP21 URI:', bip21Uri);
             }

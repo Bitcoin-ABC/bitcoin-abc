@@ -114,8 +114,51 @@ class MainActivity : ReactActivity() {
               val payload = record.payload
               if (payload.isNotEmpty()) {
                 // First byte is the URI identifier code
+                val uriIdentifier = payload[0].toInt() and 0xFF
                 val uriBytes = payload.copyOfRange(1, payload.size)
-                val uri = String(uriBytes, Charsets.UTF_8)
+                val uriSuffix = String(uriBytes, Charsets.UTF_8)
+                
+                // Reconstruct full URI based on identifier code
+                // See NFC Forum URI Record Type Definition specification
+                val uri = when (uriIdentifier) {
+                  0x00 -> uriSuffix // No abbreviation
+                  0x01 -> "http://www.$uriSuffix"
+                  0x02 -> "https://www.$uriSuffix"
+                  0x03 -> "http://$uriSuffix"
+                  0x04 -> "https://$uriSuffix"
+                  0x05 -> "tel:$uriSuffix"
+                  0x06 -> "mailto:$uriSuffix"
+                  0x07 -> "ftp://anonymous:anonymous@$uriSuffix"
+                  0x08 -> "ftp://ftp.$uriSuffix"
+                  0x09 -> "ftps://$uriSuffix"
+                  0x0A -> "sftp://$uriSuffix"
+                  0x0B -> "smb://$uriSuffix"
+                  0x0C -> "nfs://$uriSuffix"
+                  0x0D -> "ftp://$uriSuffix"
+                  0x0E -> "dav://$uriSuffix"
+                  0x0F -> "news:$uriSuffix"
+                  0x10 -> "telnet://$uriSuffix"
+                  0x11 -> "imap:$uriSuffix"
+                  0x12 -> "rtsp://$uriSuffix"
+                  0x13 -> "urn:$uriSuffix"
+                  0x14 -> "pop:$uriSuffix"
+                  0x15 -> "sip:$uriSuffix"
+                  0x16 -> "sips:$uriSuffix"
+                  0x17 -> "tftp://$uriSuffix"
+                  0x18 -> "btspp://$uriSuffix"
+                  0x19 -> "btl2cap://$uriSuffix"
+                  0x1A -> "btgoep://$uriSuffix"
+                  0x1B -> "tcpobex://$uriSuffix"
+                  0x1C -> "irdaobex://$uriSuffix"
+                  0x1D -> "file://$uriSuffix"
+                  0x1E -> "urn:epc:id:$uriSuffix"
+                  0x1F -> "urn:epc:tag:$uriSuffix"
+                  0x20 -> "urn:epc:pat:$uriSuffix"
+                  0x21 -> "urn:epc:raw:$uriSuffix"
+                  0x22 -> "urn:epc:$uriSuffix"
+                  else -> uriSuffix // Unknown identifier, use as-is
+                }
+                
                 sendPaymentRequest(uri)
               }
             }

@@ -32,6 +32,7 @@ export interface SendScreenParams {
 
 export class SendScreen {
     private params: SendScreenParams;
+    private returnToBrowser: boolean = false;
     private sendOpReturnRaw: string | undefined = undefined;
     private currentPricePerXec: number | null = null;
     private useXecPrimary: boolean = true;
@@ -63,8 +64,13 @@ export class SendScreen {
     }
 
     // Show the send screen
-    async show(prefillOptions?: Bip21ParseResult): Promise<void> {
+    async show(
+        prefillOptions?: Bip21ParseResult,
+        returnToBrowser: boolean = false,
+    ): Promise<void> {
         webViewLog('Showing send screen');
+
+        this.returnToBrowser = returnToBrowser;
 
         // Always refresh the available utxos before showing the send screen
         await this.params.syncWallet();
@@ -806,8 +812,12 @@ export class SendScreen {
         } catch (error) {
             webViewError('Failed to send transaction:', error);
         } finally {
-            // Return to main screen
             this.params.navigation.showScreen(Screen.Main);
+
+            if (this.returnToBrowser) {
+                // Send message to native app to return to the previous app (browser)
+                sendMessageToBackend('RETURN_TO_PREVIOUS_APP', null);
+            }
         }
     }
 }
