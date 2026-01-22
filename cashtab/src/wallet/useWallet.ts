@@ -521,7 +521,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         const sk = fromHex(activeWallet.sk);
-        const newWallet = Wallet.fromSk(sk, chronik);
+        const newWallet = Wallet.fromSk(sk, chronik, {
+            prefix: appConfig.prefix,
+        });
         ecashWalletRef.current = newWallet;
         // Sync on init (so we sync on app startup and on wallet switch)
         // NB we do not sync before sending txs, as ecash-wallet auto updates utxo sets on sending txs,

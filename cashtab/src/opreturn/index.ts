@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import appConfig from 'config/app';
 import { encodeCashAddress } from 'ecashaddrjs';
 import { encodeBase58 } from 'b58-ts';
 import { opReturn } from 'config/opreturn';
@@ -158,7 +159,7 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
                 parsed.data = `${Buffer.from(stackArray[2], 'hex').toString(
                     'utf8',
                 )} to ${encodeCashAddress(
-                    'ecash',
+                    appConfig.prefix,
                     addressType as AddressType,
                     stackArray[3].slice(1),
                 )}`;

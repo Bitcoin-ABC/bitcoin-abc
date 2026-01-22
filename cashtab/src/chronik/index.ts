@@ -330,7 +330,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         break;
                     }
                     const aliasAddress = encodeCashAddress(
-                        'ecash',
+                        appConfig.prefix,
                         addressType,
                         stackArray[3].slice(1),
                     );

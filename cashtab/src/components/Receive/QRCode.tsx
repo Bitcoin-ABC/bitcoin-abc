@@ -206,7 +206,7 @@ export const QRCode: React.FC<QrCodeProps> = ({
                                 spellCheck="false"
                                 type="text"
                             />
-                            <PrefixLabel>ecash:</PrefixLabel>
+                            <PrefixLabel>{appConfig.prefix}:</PrefixLabel>
                             <AddressHighlightTrim>
                                 {(() => {
                                     const preview = previewAddress(addressOnly);

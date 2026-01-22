@@ -45,7 +45,7 @@ export const getAgoraHolders = async (
                 ? offerInfo.makerPk
                 : offerInfo.cancelPk;
         const hash = shaRmd160(pk);
-        const addr = encodeCashAddress('ecash', 'p2pkh', hash);
+        const addr = encodeCashAddress(appConfig.prefix, 'p2pkh', hash);
         const outputScript = getOutputScriptFromAddress(addr);
 
         // Have we already added this holder to the map?

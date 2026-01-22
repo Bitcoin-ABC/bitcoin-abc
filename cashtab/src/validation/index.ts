@@ -31,8 +31,8 @@ export const getContactAddressError = (
         appConfig.prefix,
     );
     // We do not accept prefixless input
-    if (!address.startsWith('ecash:')) {
-        return `Addresses in Contacts must start with "ecash:" prefix`;
+    if (!address.startsWith(`${appConfig.prefix}:`)) {
+        return `Addresses in Contacts must start with "${appConfig.prefix}:" prefix`;
     }
     if (!thisIsValidCashAddress) {
         return `Invalid address`;
