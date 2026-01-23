@@ -23,9 +23,24 @@ export class SettingsScreen {
     private onMnemonicSavedCallback:
         | ((mnemonic: string) => Promise<void>)
         | null = null;
+    private ui: {
+        holdToSendToggle: HTMLInputElement;
+        primaryBalanceToggle: HTMLInputElement;
+        fiatCurrencySelect: HTMLSelectElement;
+        settingsBackBtn: HTMLButtonElement;
+        editMnemonicBtn: HTMLButtonElement;
+        cancelMnemonicEditBtn: HTMLButtonElement;
+        closeMnemonicModalBtn: HTMLButtonElement;
+        saveMnemonicEditBtn: HTMLButtonElement;
+        mnemonicText: HTMLTextAreaElement;
+        mnemonicEditModal: HTMLElement;
+        mnemonicEditText: HTMLTextAreaElement;
+        mnemonicValidation: HTMLElement;
+    };
 
     constructor(params: SettingsScreenParams) {
         this.params = params;
+        this.assertUIElements();
         this.initializeEventListeners();
     }
 
@@ -49,234 +64,231 @@ export class SettingsScreen {
         this.onMnemonicSavedCallback = callback;
     }
 
+    private assertUIElements(): void {
+        this.ui = {
+            holdToSendToggle: document.getElementById(
+                'hold-to-send-toggle',
+            ) as HTMLInputElement,
+            primaryBalanceToggle: document.getElementById(
+                'primary-balance-toggle',
+            ) as HTMLInputElement,
+            fiatCurrencySelect: document.getElementById(
+                'fiat-currency-select',
+            ) as HTMLSelectElement,
+            settingsBackBtn: document.getElementById(
+                'settings-back-btn',
+            ) as HTMLButtonElement,
+            editMnemonicBtn: document.getElementById(
+                'edit-mnemonic-btn',
+            ) as HTMLButtonElement,
+            cancelMnemonicEditBtn: document.getElementById(
+                'cancel-mnemonic-edit',
+            ) as HTMLButtonElement,
+            closeMnemonicModalBtn: document.getElementById(
+                'close-mnemonic-modal',
+            ) as HTMLButtonElement,
+            saveMnemonicEditBtn: document.getElementById(
+                'save-mnemonic-edit',
+            ) as HTMLButtonElement,
+            mnemonicText: document.getElementById(
+                'mnemonic-text',
+            ) as HTMLTextAreaElement,
+            mnemonicEditModal: document.getElementById(
+                'mnemonic-edit-modal',
+            ) as HTMLElement,
+            mnemonicEditText: document.getElementById(
+                'mnemonic-edit-text',
+            ) as HTMLTextAreaElement,
+            mnemonicValidation: document.getElementById(
+                'mnemonic-validation',
+            ) as HTMLElement,
+        };
+
+        if (
+            !this.ui.holdToSendToggle ||
+            !this.ui.primaryBalanceToggle ||
+            !this.ui.fiatCurrencySelect ||
+            !this.ui.settingsBackBtn ||
+            !this.ui.editMnemonicBtn ||
+            !this.ui.cancelMnemonicEditBtn ||
+            !this.ui.closeMnemonicModalBtn ||
+            !this.ui.saveMnemonicEditBtn ||
+            !this.ui.mnemonicText ||
+            !this.ui.mnemonicEditModal ||
+            !this.ui.mnemonicEditText ||
+            !this.ui.mnemonicValidation
+        ) {
+            webViewError('Missing required UI elements for settings screen');
+            throw new Error('Missing required UI elements for settings screen');
+        }
+    }
+
     // Initialize settings UI and event listeners
     private initializeEventListeners(): void {
         // Setup hold-to-send toggle and apply saved setting
-        const holdToSendToggle = document.getElementById(
-            'hold-to-send-toggle',
-        ) as HTMLInputElement;
-        if (holdToSendToggle) {
-            // Apply saved setting to toggle UI
-            holdToSendToggle.checked =
-                this.params.appSettings.requireHoldToSend;
+        // Apply saved setting to toggle UI
+        this.ui.holdToSendToggle.checked =
+            this.params.appSettings.requireHoldToSend;
 
-            // Add change listener
-            holdToSendToggle.addEventListener('change', () => {
-                this.params.appSettings.requireHoldToSend =
-                    holdToSendToggle.checked;
-                webViewLog(
-                    `Hold to send ${this.params.appSettings.requireHoldToSend ? 'enabled' : 'disabled'}`,
-                );
+        // Add change listener
+        this.ui.holdToSendToggle.addEventListener('change', () => {
+            this.params.appSettings.requireHoldToSend =
+                this.ui.holdToSendToggle.checked;
+            webViewLog(
+                `Hold to send ${this.params.appSettings.requireHoldToSend ? 'enabled' : 'disabled'}`,
+            );
 
-                // Save settings to localStorage
-                saveSettings(this.params.appSettings);
+            // Save settings to localStorage
+            saveSettings(this.params.appSettings);
 
-                // Call registered callback
-                if (this.onHoldToSendChangeCallback) {
-                    this.onHoldToSendChangeCallback();
-                }
-            });
-        }
+            // Call registered callback
+            if (this.onHoldToSendChangeCallback) {
+                this.onHoldToSendChangeCallback();
+            }
+        });
 
         // Setup primary balance toggle and apply saved setting
-        const primaryBalanceToggle = document.getElementById(
-            'primary-balance-toggle',
-        ) as HTMLInputElement;
-        if (primaryBalanceToggle) {
-            // Apply saved setting to toggle UI
-            // Toggle is checked when primary balance is Fiat
-            primaryBalanceToggle.checked =
-                this.params.appSettings.primaryBalanceType !== 'XEC';
+        // Apply saved setting to toggle UI
+        // Toggle is checked when primary balance is Fiat
+        this.ui.primaryBalanceToggle.checked =
+            this.params.appSettings.primaryBalanceType !== 'XEC';
 
-            // Add change listener
-            primaryBalanceToggle.addEventListener('change', async () => {
-                this.params.appSettings.primaryBalanceType =
-                    primaryBalanceToggle.checked ? 'Fiat' : 'XEC';
-                webViewLog(
-                    `Primary balance set to ${this.params.appSettings.primaryBalanceType}`,
-                );
+        // Add change listener
+        this.ui.primaryBalanceToggle.addEventListener('change', async () => {
+            this.params.appSettings.primaryBalanceType = this.ui
+                .primaryBalanceToggle.checked
+                ? 'Fiat'
+                : 'XEC';
+            webViewLog(
+                `Primary balance set to ${this.params.appSettings.primaryBalanceType}`,
+            );
 
-                // Save settings to localStorage
-                saveSettings(this.params.appSettings);
+            // Save settings to localStorage
+            saveSettings(this.params.appSettings);
 
-                // Call registered callback
-                if (this.onPrimaryBalanceChangeCallback) {
-                    await this.onPrimaryBalanceChangeCallback();
-                }
-            });
-        }
+            // Call registered callback
+            if (this.onPrimaryBalanceChangeCallback) {
+                await this.onPrimaryBalanceChangeCallback();
+            }
+        });
 
         // Setup fiat currency dropdown
-        const fiatCurrencySelect = document.getElementById(
-            'fiat-currency-select',
-        ) as HTMLSelectElement;
-        if (fiatCurrencySelect) {
-            // Populate dropdown with all available fiat currencies.
-            // Move the USD and EUR to the top, keep the others in alphabetical
-            // order.
-            let allFiats = Fiat.listAll();
-            allFiats = allFiats.filter(
-                fiat => fiat.toString() !== 'USD' && fiat.toString() !== 'EUR',
+        // Populate dropdown with all available fiat currencies.
+        // Move the USD and EUR to the top, keep the others in alphabetical
+        // order.
+        let allFiats = Fiat.listAll();
+        allFiats = allFiats.filter(
+            fiat => fiat.toString() !== 'USD' && fiat.toString() !== 'EUR',
+        );
+        allFiats.unshift(Fiat.USD, Fiat.EUR);
+
+        allFiats.forEach(fiat => {
+            const option = document.createElement('option');
+            option.value = fiat.toString();
+            option.textContent =
+                fiat.toString().toUpperCase() +
+                ' - ' +
+                fiat.symbol('en-US') +
+                ' - ' +
+                fiat.name('en-US');
+            this.ui.fiatCurrencySelect.appendChild(option);
+        });
+
+        // Add a separator after the USD and EUR
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.value = 'separator';
+        separator.textContent = '--------------------------------';
+        this.ui.fiatCurrencySelect.insertBefore(
+            separator,
+            this.ui.fiatCurrencySelect.options[2],
+        );
+
+        // Set current selection
+        this.ui.fiatCurrencySelect.value =
+            this.params.appSettings.fiatCurrency.toString();
+
+        // Add change listener
+        this.ui.fiatCurrencySelect.addEventListener('change', async () => {
+            this.params.appSettings.fiatCurrency = new Fiat(
+                this.ui.fiatCurrencySelect.value,
             );
-            allFiats.unshift(Fiat.USD, Fiat.EUR);
-
-            allFiats.forEach(fiat => {
-                const option = document.createElement('option');
-                option.value = fiat.toString();
-                option.textContent =
-                    fiat.toString().toUpperCase() +
-                    ' - ' +
-                    fiat.symbol('en-US') +
-                    ' - ' +
-                    fiat.name('en-US');
-                fiatCurrencySelect.appendChild(option);
-            });
-
-            // Add a separator after the USD and EUR
-            const separator = document.createElement('option');
-            separator.disabled = true;
-            separator.value = 'separator';
-            separator.textContent = '--------------------------------';
-            fiatCurrencySelect.insertBefore(
-                separator,
-                fiatCurrencySelect.options[2],
+            webViewLog(
+                `Fiat currency set to ${this.params.appSettings.fiatCurrency.toString().toUpperCase()}`,
             );
 
-            // Set current selection
-            fiatCurrencySelect.value =
-                this.params.appSettings.fiatCurrency.toString();
+            // Save settings to localStorage
+            saveSettings(this.params.appSettings);
 
-            // Add change listener
-            fiatCurrencySelect.addEventListener('change', async () => {
-                this.params.appSettings.fiatCurrency = new Fiat(
-                    fiatCurrencySelect.value,
-                );
-                webViewLog(
-                    `Fiat currency set to ${this.params.appSettings.fiatCurrency.toString().toUpperCase()}`,
-                );
-
-                // Save settings to localStorage
-                saveSettings(this.params.appSettings);
-
-                // Call registered callback
-                if (this.onFiatCurrencyChangeCallback) {
-                    await this.onFiatCurrencyChangeCallback();
-                }
-            });
-        }
+            // Call registered callback
+            if (this.onFiatCurrencyChangeCallback) {
+                await this.onFiatCurrencyChangeCallback();
+            }
+        });
 
         // Setup settings back button
-        const settingsBackBtn = document.getElementById('settings-back-btn');
-        if (settingsBackBtn) {
-            settingsBackBtn.addEventListener('click', () => {
-                this.params.navigation.showScreen(Screen.Main);
-            });
-        }
+        this.ui.settingsBackBtn.addEventListener('click', () => {
+            this.params.navigation.showScreen(Screen.Main);
+        });
 
         // Setup mnemonic edit buttons
-        const editMnemonicBtn = document.getElementById('edit-mnemonic-btn');
-        if (editMnemonicBtn) {
-            editMnemonicBtn.addEventListener('click', () => {
-                this.showMnemonicEditModal();
-            });
-        }
+        this.ui.editMnemonicBtn.addEventListener('click', () => {
+            this.showMnemonicEditModal();
+        });
 
-        const cancelMnemonicEditBtn = document.getElementById(
-            'cancel-mnemonic-edit',
-        );
-        if (cancelMnemonicEditBtn) {
-            cancelMnemonicEditBtn.addEventListener('click', () => {
-                this.hideMnemonicEditModal();
-                this.hideValidationMessage();
-            });
-        }
+        this.ui.cancelMnemonicEditBtn.addEventListener('click', () => {
+            this.hideMnemonicEditModal();
+            this.hideValidationMessage();
+        });
 
-        const closeMnemonicModalBtn = document.getElementById(
-            'close-mnemonic-modal',
-        );
-        if (closeMnemonicModalBtn) {
-            closeMnemonicModalBtn.addEventListener('click', () => {
-                this.hideMnemonicEditModal();
-                this.hideValidationMessage();
-            });
-        }
+        this.ui.closeMnemonicModalBtn.addEventListener('click', () => {
+            this.hideMnemonicEditModal();
+            this.hideValidationMessage();
+        });
 
-        const saveMnemonicEditBtn =
-            document.getElementById('save-mnemonic-edit');
-        if (saveMnemonicEditBtn) {
-            saveMnemonicEditBtn.addEventListener('click', async () => {
-                const editText = document.getElementById(
-                    'mnemonic-edit-text',
-                ) as HTMLTextAreaElement;
-                if (editText) {
-                    await this.saveMnemonic(editText.value.trim());
-                }
-            });
-        }
+        this.ui.saveMnemonicEditBtn.addEventListener('click', async () => {
+            await this.saveMnemonic(this.ui.mnemonicEditText.value.trim());
+        });
 
         this.updateMnemonicDisplay();
     }
 
     // Mnemonic management functions
     private updateMnemonicDisplay(): void {
-        const mnemonicText = document.getElementById(
-            'mnemonic-text',
-        ) as HTMLTextAreaElement;
         const walletMnemonic = getMnemonic(this.params.wallet);
-        if (mnemonicText && walletMnemonic) {
-            mnemonicText.value = walletMnemonic;
+        if (walletMnemonic) {
+            this.ui.mnemonicText.value = walletMnemonic;
         }
     }
 
     private showMnemonicEditModal(): void {
-        const modal = document.getElementById('mnemonic-edit-modal');
-        if (modal) {
-            const editText = document.getElementById(
-                'mnemonic-edit-text',
-            ) as HTMLTextAreaElement;
-            const validation = document.getElementById('mnemonic-validation');
+        const walletMnemonic = getMnemonic(this.params.wallet);
+        this.ui.mnemonicEditText.value = walletMnemonic ? walletMnemonic : '';
 
-            if (editText) {
-                const walletMnemonic = getMnemonic(this.params.wallet);
-                editText.value = walletMnemonic ? walletMnemonic : '';
-            }
+        this.ui.mnemonicValidation.style.display = 'none';
 
-            if (validation) {
-                validation.style.display = 'none';
-            }
-
-            modal.style.display = 'flex';
-            modal.classList.remove('hidden');
-        }
+        this.ui.mnemonicEditModal.style.display = 'flex';
+        this.ui.mnemonicEditModal.classList.remove('hidden');
     }
 
     private hideMnemonicEditModal(): void {
-        const modal = document.getElementById('mnemonic-edit-modal');
-        if (modal) {
-            modal.style.display = 'none';
-            modal.classList.add('hidden');
-        }
+        this.ui.mnemonicEditModal.style.display = 'none';
+        this.ui.mnemonicEditModal.classList.add('hidden');
     }
 
     private showValidationMessage(
         message: string,
         isError: boolean = true,
     ): void {
-        const validation = document.getElementById('mnemonic-validation');
-        if (validation) {
-            validation.textContent = message;
-            validation.className = `validation-message ${
-                isError ? 'error' : 'success'
-            }`;
-            validation.style.display = 'block';
-        }
+        this.ui.mnemonicValidation.textContent = message;
+        this.ui.mnemonicValidation.className = `validation-message ${
+            isError ? 'error' : 'success'
+        }`;
+        this.ui.mnemonicValidation.style.display = 'block';
     }
 
     private hideValidationMessage(): void {
-        const validation = document.getElementById('mnemonic-validation');
-        if (validation) {
-            validation.style.display = 'none';
-        }
+        this.ui.mnemonicValidation.style.display = 'none';
     }
 
     private async saveMnemonic(newMnemonic: string): Promise<boolean> {
@@ -315,21 +327,14 @@ export class SettingsScreen {
             );
 
             // Disable the save button
-            const saveMnemonicEditBtn = document.getElementById(
-                'save-mnemonic-edit',
-            ) as HTMLButtonElement;
-            if (saveMnemonicEditBtn) {
-                saveMnemonicEditBtn.disabled = true;
-            }
+            this.ui.saveMnemonicEditBtn.disabled = true;
 
             // Hide modal after a short delay
             setTimeout(() => {
                 this.hideMnemonicEditModal();
                 this.hideValidationMessage();
                 // Re-enable the save button
-                if (saveMnemonicEditBtn) {
-                    saveMnemonicEditBtn.disabled = false;
-                }
+                this.ui.saveMnemonicEditBtn.disabled = false;
             }, 2000);
 
             return true;

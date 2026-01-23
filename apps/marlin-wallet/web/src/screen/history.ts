@@ -6,7 +6,7 @@ import { Navigation, Screen } from '../navigation';
 import { TransactionHistoryManager } from '../transaction-history';
 import { getAddress } from '../wallet';
 import { config } from '../config';
-import { sendMessageToBackend } from '../common';
+import { sendMessageToBackend, webViewError } from '../common';
 
 export interface HistoryScreenParams {
     transactionHistory: TransactionHistoryManager;
@@ -17,10 +17,31 @@ export class HistoryScreen {
     private params: HistoryScreenParams;
     private scrollHandlerAttached = false;
     private clickHandlerAttached = false;
+    private ui: {
+        historyBackBtn: HTMLButtonElement;
+        transactionList: HTMLElement;
+    };
 
     constructor(params: HistoryScreenParams) {
         this.params = params;
+        this.assertUIElements();
         this.initializeEventListeners();
+    }
+
+    private assertUIElements(): void {
+        this.ui = {
+            historyBackBtn: document.getElementById(
+                'history-back-btn',
+            ) as HTMLButtonElement,
+            transactionList: document.getElementById(
+                'transaction-list',
+            ) as HTMLElement,
+        };
+
+        if (!this.ui.historyBackBtn || !this.ui.transactionList) {
+            webViewError('Missing required UI elements for history screen');
+            throw new Error('Missing required UI elements for history screen');
+        }
     }
 
     // Show the history screen
@@ -33,42 +54,35 @@ export class HistoryScreen {
             this.params.transactionHistory.loadTransactionHistory(true);
         }
 
-        // Setup scroll detection for infinite loading and click handlers for transaction IDs
-        const transactionList = document.getElementById('transaction-list');
-        if (transactionList && this.params.transactionHistory) {
-            // Only attach scroll handler once
-            if (!this.scrollHandlerAttached) {
-                transactionList.addEventListener('scroll', () =>
-                    this.params.transactionHistory.handleScroll(),
-                );
-                this.scrollHandlerAttached = true;
-            }
+        // Only attach scroll handler once
+        if (!this.scrollHandlerAttached) {
+            this.ui.transactionList.addEventListener('scroll', () =>
+                this.params.transactionHistory.handleScroll(),
+            );
+            this.scrollHandlerAttached = true;
+        }
 
-            // Only attach click handler once (event delegation)
-            if (!this.clickHandlerAttached) {
-                transactionList.addEventListener('click', (e: Event) => {
-                    const target = e.target as HTMLElement;
-                    if (target.classList.contains('transaction-txid')) {
-                        const txid = target.getAttribute('data-txid');
-                        if (txid) {
-                            this.openTransactionInExplorer(txid);
-                        }
+        // Only attach click handler once (event delegation)
+        if (!this.clickHandlerAttached) {
+            this.ui.transactionList.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                if (target.classList.contains('transaction-txid')) {
+                    const txid = target.getAttribute('data-txid');
+                    if (txid) {
+                        this.openTransactionInExplorer(txid);
                     }
-                });
-                this.clickHandlerAttached = true;
-            }
+                }
+            });
+            this.clickHandlerAttached = true;
         }
     }
 
     // Initialize event listeners
     private initializeEventListeners(): void {
         // Setup history back button
-        const historyBackBtn = document.getElementById('history-back-btn');
-        if (historyBackBtn) {
-            historyBackBtn.addEventListener('click', () => {
-                this.params.navigation.showScreen(Screen.Main);
-            });
-        }
+        this.ui.historyBackBtn.addEventListener('click', () => {
+            this.params.navigation.showScreen(Screen.Main);
+        });
     }
 
     // Open transaction in block explorer
