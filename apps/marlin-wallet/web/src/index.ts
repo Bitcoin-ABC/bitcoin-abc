@@ -220,6 +220,7 @@ async function loadWalletFromMnemonic(mnemonic: string) {
             ecashWallet,
             navigation,
             appSettings,
+            priceFetcher,
             syncWallet,
         });
     }
@@ -859,6 +860,7 @@ async function initializeApp() {
         ecashWallet,
         navigation,
         appSettings,
+        priceFetcher,
         syncWallet,
     });
 

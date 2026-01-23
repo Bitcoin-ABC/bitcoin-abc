@@ -7,6 +7,7 @@ import { AppSettings } from '../settings';
 import { DEFAULT_DUST_SATS } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
+import { XECPrice, Fiat, formatPrice } from 'ecash-price';
 import {
     calculateMaxSpendableAmount,
     estimateTransactionFee,
@@ -25,12 +26,18 @@ export interface SendScreenParams {
     ecashWallet: Wallet;
     navigation: Navigation;
     appSettings: AppSettings;
+    priceFetcher: XECPrice | null;
     syncWallet: () => Promise<void>;
 }
 
 export class SendScreen {
     private params: SendScreenParams;
     private sendOpReturnRaw: string | undefined = undefined;
+    private currentPricePerXec: number | null = null;
+    private useXecPrimary: boolean = true;
+    private amountDigits: number = 2;
+    private minSpendablePrimary: number = MIN_AMOUNT_XEC;
+    private maxSpendablePrimary: number = MIN_AMOUNT_XEC;
     private ui: {
         recipientInput: HTMLInputElement;
         sendAmountInput: HTMLInputElement;
@@ -38,15 +45,16 @@ export class SendScreen {
         feeDisplay: HTMLElement;
         confirmSendBtn: HTMLButtonElement;
         cancelSendBtn: HTMLButtonElement;
+        sliderMinLabel: HTMLElement;
         sliderMaxLabel: HTMLElement;
         logoContainer: HTMLElement;
+        tickerLabel: HTMLElement;
+        buttonSpan: HTMLElement;
     };
 
     constructor(params: SendScreenParams) {
         this.assertUIElements();
-
         this.params = params;
-        this.initializeEventListeners();
     }
 
     // Update wallet reference (called when wallet is reloaded)
@@ -60,6 +68,57 @@ export class SendScreen {
 
         // Always refresh the available utxos before showing the send screen
         await this.params.syncWallet();
+
+        // Fetch current price once upon screen opening
+        this.currentPricePerXec =
+            (await this.params.priceFetcher?.current(Fiat.USD)) ?? null;
+        // Since the price and the settings won't change during the lifetime of
+        // the screen, we can cache some parameters for simplicity.
+        this.useXecPrimary =
+            this.params.appSettings.primaryBalanceType === 'XEC' ||
+            this.currentPricePerXec === null;
+        this.ui.sendAmountInput.step = this.useXecPrimary
+            ? '0.01'
+            : '0.00000001';
+        this.ui.amountSlider.step = this.ui.sendAmountInput.step;
+        this.amountDigits = this.useXecPrimary ? 2 : 8;
+
+        this.ui.tickerLabel.textContent = this.useXecPrimary
+            ? config.ticker
+            : Fiat.USD.toString().toUpperCase();
+
+        // Compute the min and max spendable amounts, update the ui accordingly
+        this.minSpendablePrimary =
+            Math.ceil(
+                this.xecToPrimary(MIN_AMOUNT_XEC) *
+                    Math.pow(10, this.amountDigits),
+            ) / Math.pow(10, this.amountDigits);
+        this.maxSpendablePrimary =
+            Math.floor(
+                this.xecToPrimary(
+                    calculateMaxSpendableAmount(this.params.ecashWallet),
+                ) * Math.pow(10, this.amountDigits),
+            ) / Math.pow(10, this.amountDigits);
+
+        // Update amount and slider input min and max attributes (in primary currency)
+        this.ui.sendAmountInput.min = this.minSpendablePrimary.toFixed(
+            this.amountDigits,
+        );
+        this.ui.sendAmountInput.max = this.maxSpendablePrimary.toFixed(
+            this.amountDigits,
+        );
+        this.ui.amountSlider.min = this.minSpendablePrimary.toFixed(
+            this.amountDigits,
+        );
+        this.ui.amountSlider.max = this.maxSpendablePrimary.toFixed(
+            this.amountDigits,
+        );
+        this.ui.sliderMinLabel.textContent = this.formatPrimary(
+            this.minSpendablePrimary,
+        );
+        this.ui.sliderMaxLabel.textContent = this.formatPrimary(
+            this.maxSpendablePrimary,
+        );
 
         // Initialize recipient address field
         if (prefillOptions) {
@@ -76,22 +135,25 @@ export class SendScreen {
 
         // Initialize amount field
         if (prefillOptions?.sats !== undefined && prefillOptions.sats > 0) {
-            // Convert satoshis to XEC for display and disable the amount inputs
-            const amountXec = satsToXec(prefillOptions.sats);
-            this.ui.sendAmountInput.value = amountXec.toFixed(2);
+            const amountPrimary = this.xecToPrimary(
+                satsToXec(prefillOptions.sats),
+            );
+            this.ui.sendAmountInput.value = amountPrimary.toFixed(
+                this.amountDigits,
+            );
+            this.ui.amountSlider.value = amountPrimary.toFixed(
+                this.amountDigits,
+            );
             this.ui.sendAmountInput.setAttribute('readonly', 'readonly');
-            this.ui.sendAmountInput.classList.remove('invalid');
-
-            this.ui.amountSlider.value = amountXec.toString();
             this.ui.amountSlider.disabled = true;
         } else {
-            // Prefill with minimum valid amount and make the inputs editable
-            const amountXec = MIN_AMOUNT_XEC;
-            this.ui.sendAmountInput.value = amountXec.toFixed(2);
-            this.ui.sendAmountInput.classList.remove('valid', 'invalid');
+            this.ui.sendAmountInput.value = this.minSpendablePrimary.toFixed(
+                this.amountDigits,
+            );
+            this.ui.amountSlider.value = this.minSpendablePrimary.toFixed(
+                this.amountDigits,
+            );
             this.ui.sendAmountInput.removeAttribute('readonly');
-
-            this.ui.amountSlider.value = amountXec.toString();
             this.ui.amountSlider.disabled = false;
         }
 
@@ -107,14 +169,11 @@ export class SendScreen {
 
         // Update the UI elements
         this.updatePayButtonLogoVisibility();
-        this.updateSendScreenLimits();
         this.validateAmountField();
-        this.updateSliderFromInput();
-        this.updateSliderMarks(
-            MIN_AMOUNT_XEC,
-            calculateMaxSpendableAmount(this.params.ecashWallet),
-        );
         this.updateFeeDisplay();
+
+        // Re/Initialize event listeners
+        this.initializeEventListeners();
 
         this.params.navigation.showScreen(Screen.Send);
     }
@@ -137,8 +196,13 @@ export class SendScreen {
             cancelSendBtn: document.getElementById(
                 'cancel-send',
             ) as HTMLButtonElement,
+            sliderMinLabel: document.getElementById('slider-min-label'),
             sliderMaxLabel: document.getElementById('slider-max-label'),
             logoContainer: document.getElementById('paybutton-logo-container'),
+            tickerLabel: document.getElementById('ticker-label'),
+            buttonSpan: document
+                .getElementById('confirm-send')
+                .querySelector('span'),
         };
 
         if (
@@ -148,8 +212,11 @@ export class SendScreen {
             !this.ui.feeDisplay ||
             !this.ui.confirmSendBtn ||
             !this.ui.cancelSendBtn ||
+            !this.ui.sliderMinLabel ||
             !this.ui.sliderMaxLabel ||
-            !this.ui.logoContainer
+            !this.ui.logoContainer ||
+            !this.ui.tickerLabel ||
+            !this.ui.buttonSpan
         ) {
             webViewError('Missing required UI elements for send screen');
             throw new Error('Missing required UI elements for send screen');
@@ -158,10 +225,26 @@ export class SendScreen {
 
     // Initialize event listeners
     private initializeEventListeners(): void {
-        // Setup amount input listener
-        this.ui.sendAmountInput.addEventListener('input', (e: Event) =>
-            this.handleAmountInput(e),
+        // Delete existing event listeners first so we use an up-to-date this
+        // and can use the cached values in the event handlers.
+        this.ui.sendAmountInput.removeEventListener(
+            'input',
+            this.handleAmountInput,
         );
+        this.ui.amountSlider.removeEventListener(
+            'input',
+            this.handleSliderInput,
+        );
+        this.ui.recipientInput.removeEventListener(
+            'input',
+            this.validateAddressField,
+        );
+
+        // Setup amount input listener
+        this.ui.sendAmountInput.addEventListener('input', (e: Event) => {
+            this.handleAmountInput(e);
+            this.updateFeeDisplay();
+        });
 
         // Setup slider listener
         this.ui.amountSlider.addEventListener('input', (e: Event) => {
@@ -243,12 +326,17 @@ export class SendScreen {
             bip21Result.sats >= DEFAULT_DUST_SATS
         ) {
             const amountXec = satsToXec(bip21Result.sats);
+            const amountPrimary = this.xecToPrimary(amountXec);
 
-            this.ui.sendAmountInput.value = amountXec.toFixed(2);
+            this.ui.sendAmountInput.value = amountPrimary.toFixed(
+                this.amountDigits,
+            );
             this.ui.sendAmountInput.setAttribute('readonly', 'readonly');
             this.validateAmountField();
 
-            this.ui.amountSlider.value = amountXec.toString();
+            this.ui.amountSlider.value = amountPrimary.toFixed(
+                this.amountDigits,
+            );
             this.ui.amountSlider.disabled = true;
         }
 
@@ -256,22 +344,29 @@ export class SendScreen {
         this.updateFeeDisplay();
     }
 
-    // Update send screen with maximum spendable amount
-    private updateSendScreenLimits(): void {
-        const maxSpendable = calculateMaxSpendableAmount(
-            this.params.ecashWallet,
-        );
+    // Helper methods for primary/secondary balance conversion
+    private xecToPrimary(xec: number): number {
+        return this.useXecPrimary ? xec : xec * this.currentPricePerXec;
+    }
 
-        // Update amount input max attribute
-        this.ui.sendAmountInput.max = maxSpendable.toString();
+    private primaryToXec(primary: number): number {
+        return this.useXecPrimary ? primary : primary / this.currentPricePerXec;
+    }
 
-        // Update slider max value and label
-        this.ui.amountSlider.max = maxSpendable.toString();
+    private formatPrimary(primary: number): string {
+        return this.useXecPrimary
+            ? `${primary.toFixed(2)} ${config.ticker}`
+            : formatPrice(primary, Fiat.USD);
+    }
 
-        // Update slider max label
-        this.ui.sliderMaxLabel.textContent = `${maxSpendable.toFixed(2)} ${
-            config.ticker
-        }`;
+    private formatSecondary(xec: number): string | null {
+        if (this.currentPricePerXec === null) {
+            return null;
+        }
+
+        return this.useXecPrimary
+            ? formatPrice(xec * this.currentPricePerXec, Fiat.USD)
+            : `${xec.toFixed(2)} ${config.ticker}`;
     }
 
     // Update fee display
@@ -288,42 +383,44 @@ export class SendScreen {
 
     private updateFeeDisplay(): void {
         const recipientAddress = this.ui.recipientInput.value.trim();
-        let amount = parseFloat(this.ui.sendAmountInput.value);
+        let amountPrimary = parseFloat(this.ui.sendAmountInput.value);
 
         // Hide if address or amount is invalid
         if (
-            !recipientAddress ||
             !isValidECashAddress(recipientAddress) ||
-            isNaN(amount) ||
-            amount <= 0
+            isNaN(amountPrimary) ||
+            amountPrimary <= 0
         ) {
             this.ui.feeDisplay.style.display = 'none';
             return;
         }
 
+        // Convert from primary currency to XEC for fee estimation
+        let amountXec = this.primaryToXec(amountPrimary);
+
         let errorMessage: string | null = null;
 
         // Check for dust threshold
-        const dustXEC = satsToXec(Number(DEFAULT_DUST_SATS));
-        if (amount < dustXEC) {
+        if (amountXec < MIN_AMOUNT_XEC) {
             errorMessage = `Amount is too small`;
         }
 
         // Try to estimate fee for the requested amount (include OP_RETURN if present)
-        let feeEstimate = estimateTransactionFee(
+        let feeEstimateXec = estimateTransactionFee(
             this.params.ecashWallet,
             recipientAddress,
-            amount,
+            amountXec,
             this.sendOpReturnRaw,
         );
 
         // Insufficient balance - calculate for max spendable amount
-        if (!feeEstimate) {
-            amount = calculateMaxSpendableAmount(this.params.ecashWallet);
-            feeEstimate = estimateTransactionFee(
+        if (!feeEstimateXec) {
+            amountPrimary = this.maxSpendablePrimary;
+            amountXec = this.primaryToXec(this.maxSpendablePrimary);
+            feeEstimateXec = estimateTransactionFee(
                 this.params.ecashWallet,
                 recipientAddress,
-                amount,
+                amountXec,
                 this.sendOpReturnRaw,
             );
             errorMessage = `Insufficient balance`;
@@ -340,28 +437,56 @@ export class SendScreen {
             this.ui.feeDisplay.classList.remove('error');
         }
 
-        // Build the HTML with conditional styling
+        // Format amounts for display
+        const amountPrimaryFormatted = this.formatPrimary(amountPrimary);
+        const amountSecondaryFormatted = this.formatSecondary(amountXec);
+        const feePrimaryFormatted = this.formatPrimary(
+            this.xecToPrimary(feeEstimateXec?.feeXEC ?? 0),
+        );
+        const feeSecondaryFormatted = this.formatSecondary(
+            feeEstimateXec?.feeXEC ?? 0,
+        );
+        const totalPrimaryFormatted = this.formatPrimary(
+            this.xecToPrimary(feeEstimateXec?.totalXEC ?? 0),
+        );
+        const totalSecondaryFormatted = this.formatSecondary(
+            feeEstimateXec?.totalXEC ?? 0,
+        );
+
+        // Build the HTML with primary and secondary values in separate rows
         const html = `<div class="fee-info">
             <div class="fee-item ${feeBlockHeadingClasses}">
                 ${feeBlockHeading}
             </div>
             <div class="fee-item">
                 <span class="fee-label">Amount:</span>
-                <span class="fee-value">${amount.toFixed(2)} ${
-                    config.ticker
-                }</span>
+                <div class="fee-value">
+                    <span class="fee-value-primary">${amountPrimaryFormatted}</span>${
+                        amountSecondaryFormatted
+                            ? `<span class="fee-value-secondary">${amountSecondaryFormatted}</span>`
+                            : ''
+                    }
+                </div>
             </div>
             <div class="fee-item">
                 <span class="fee-label">Network Fee:</span>
-                <span class="fee-value">${feeEstimate?.feeXEC.toFixed(2)} ${
-                    config.ticker
-                }</span>
+                <div class="fee-value">
+                    <span class="fee-value-primary">${feePrimaryFormatted}</span>${
+                        feeSecondaryFormatted
+                            ? `<span class="fee-value-secondary">${feeSecondaryFormatted}</span>`
+                            : ''
+                    }
+                </div>
             </div>
             <div class="fee-item total">
                 <span class="fee-label">Total:</span>
-                <span class="fee-value">${feeEstimate?.totalXEC.toFixed(2)} ${
-                    config.ticker
-                }</span>
+                <div class="fee-value">
+                    <span class="fee-value-primary">${totalPrimaryFormatted}</span>${
+                        totalSecondaryFormatted
+                            ? `<span class="fee-value-secondary">${totalSecondaryFormatted}</span>`
+                            : ''
+                    }
+                </div>
             </div>
         </div>
     `;
@@ -373,27 +498,26 @@ export class SendScreen {
     // Amount input handling to prevent more than 2 decimals
     private handleAmountInput(event: Event): void {
         const input = event.target as HTMLInputElement;
-        const value = input.value;
+        let sanitizedValue = input.value;
 
         // Allow only numbers and one decimal point
-        const cleanValue = value.replace(/[^0-9.]/g, '');
+        sanitizedValue = sanitizedValue.replace(/[^0-9.]/g, '');
 
         // Prevent multiple decimal points
-        const parts = cleanValue.split('.');
+        const parts = sanitizedValue.split('.');
         if (parts.length > 2) {
-            input.value = parts[0] + '.' + parts.slice(1).join('');
-            return;
+            sanitizedValue = parts[0] + '.' + parts.slice(1).join('');
         }
 
-        // If there's a decimal point, limit to 2 decimal places
-        if (parts.length === 2 && parts[1].length > 2) {
-            input.value = parts[0] + '.' + parts[1].substring(0, 2);
-            return;
+        // If there's a decimal point, limit to this.amountDigits decimal places
+        if (parts.length === 2 && parts[1].length > this.amountDigits) {
+            sanitizedValue =
+                parts[0] + '.' + parts[1].substring(0, this.amountDigits);
         }
 
-        // Update the input value if it was cleaned
-        if (cleanValue !== value) {
-            input.value = cleanValue;
+        // Update the input value if it was sanitized
+        if (input.value !== sanitizedValue) {
+            input.value = sanitizedValue;
         }
 
         // Update slider to match input value
@@ -406,10 +530,9 @@ export class SendScreen {
     // Handle slider input
     private handleSliderInput(event: Event): void {
         const slider = event.target as HTMLInputElement;
-        const value = parseFloat(slider.value);
+        const valuePrimary = parseFloat(slider.value);
 
-        // Update the amount input field immediately for visual feedback
-        this.ui.sendAmountInput.value = value.toFixed(2);
+        this.ui.sendAmountInput.value = valuePrimary.toFixed(this.amountDigits);
 
         // Validate immediately without throttling
         this.validateAmountField();
@@ -417,98 +540,58 @@ export class SendScreen {
 
     // Update slider from input field
     private updateSliderFromInput(): void {
-        const value = parseFloat(this.ui.sendAmountInput.value);
-        const minAmount = MIN_AMOUNT_XEC;
-        const maxAmount = calculateMaxSpendableAmount(this.params.ecashWallet);
+        // Input is in primary currency, convert to XEC for slider
+        let valuePrimary = parseFloat(this.ui.sendAmountInput.value);
 
-        // Clamp value to slider range
-        const clampedValue = Math.max(minAmount, Math.min(value, maxAmount));
+        // Clamp value to min and max spendable amounts se we don't overflow the
+        // slider
+        valuePrimary = Math.max(
+            this.minSpendablePrimary,
+            Math.min(valuePrimary, this.maxSpendablePrimary),
+        );
 
         // Update slider value
-        this.ui.amountSlider.value = clampedValue.toString();
-
-        // Update slider max if balance changed
-        if (maxAmount !== parseFloat(this.ui.amountSlider.max)) {
-            this.ui.amountSlider.max = maxAmount.toString();
-            this.ui.sliderMaxLabel.textContent = `${maxAmount.toFixed(2)} ${
-                config.ticker
-            }`;
-
-            // Update slider marks for new range
-            this.updateSliderMarks(minAmount, maxAmount);
-        }
-    }
-
-    // Update slider marks based on current range
-    private updateSliderMarks(minAmount: number, maxAmount: number): void {
-        const marks = document.querySelectorAll('.mark');
-        const range = maxAmount - minAmount;
-
-        marks.forEach((mark, index) => {
-            const percentage = (index + 1) * 10; // 10%, 20%, 30%, etc. (skipping 0% and 100%)
-            const actualValue = minAmount + (range * percentage) / 100;
-            const displayValue = actualValue.toFixed(2);
-
-            // Update the mark's data attribute for reference
-            mark.setAttribute('data-value', displayValue);
-
-            // Add a subtle tooltip effect on hover
-            (mark as HTMLElement).title = `${displayValue} ${config.ticker}`;
-        });
+        this.ui.amountSlider.value = valuePrimary.toString();
     }
 
     // Amount validation functions
     private validateAmountField(): void {
-        const amount = parseFloat(this.ui.sendAmountInput.value);
-        const minAmount = satsToXec(Number(DEFAULT_DUST_SATS));
-        const maxAmount = calculateMaxSpendableAmount(this.params.ecashWallet);
+        // Input is in primary currency, convert to XEC for validation
+        const amountPrimary = parseFloat(this.ui.sendAmountInput.value);
 
         // Clear previous validation states
         this.ui.sendAmountInput.classList.remove('invalid');
         this.ui.sendAmountInput.classList.remove('valid');
 
         // Check if amount is valid
-        if (isNaN(amount) || amount <= 0) {
+        if (isNaN(amountPrimary) || amountPrimary <= 0) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            const btnSpan = this.ui.confirmSendBtn.querySelector('span');
-            if (btnSpan) {
-                btnSpan.textContent = 'Enter Amount';
-            }
+            this.ui.buttonSpan.textContent = 'Enter Amount';
             return;
         }
 
-        if (amount < minAmount) {
+        if (amountPrimary < this.minSpendablePrimary) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            const btnSpan = this.ui.confirmSendBtn.querySelector('span');
-            if (btnSpan) {
-                btnSpan.textContent = `Min: ${minAmount} ${config.ticker}`;
-            }
+            this.ui.buttonSpan.textContent = `Min: ${this.formatPrimary(this.minSpendablePrimary)}`;
             return;
         }
 
-        if (amount > maxAmount) {
+        if (amountPrimary > this.maxSpendablePrimary) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            const btnSpan = this.ui.confirmSendBtn.querySelector('span');
-            if (btnSpan) {
-                btnSpan.textContent = `Max: ${maxAmount.toFixed(2)} ${
-                    config.ticker
-                }`;
-            }
+            this.ui.buttonSpan.textContent = `Max: ${this.formatPrimary(this.maxSpendablePrimary)}`;
             return;
         }
 
         // Amount is valid
         this.ui.sendAmountInput.classList.add('valid');
         this.ui.confirmSendBtn.disabled = false;
-        const btnSpan = this.ui.confirmSendBtn.querySelector('span');
-        if (btnSpan) {
-            btnSpan.textContent = this.params.appSettings.requireHoldToSend
-                ? 'Hold to send'
-                : 'Send';
-        }
+        this.ui.buttonSpan.textContent = this.params.appSettings
+            .requireHoldToSend
+            ? 'Hold to send'
+            : 'Send';
     }
 
     // Send button setup - either hold-to-send or simple click based on settings
@@ -526,6 +609,9 @@ export class SendScreen {
         this.ui.confirmSendBtn = document.getElementById(
             'confirm-send',
         ) as HTMLButtonElement;
+        this.ui.buttonSpan = document
+            .getElementById('confirm-send')
+            .querySelector('span');
 
         // If hold-to-send is disabled, use simple click behavior
         if (!this.params.appSettings.requireHoldToSend) {
@@ -654,7 +740,6 @@ export class SendScreen {
     }
 
     private async validateAndSend(): Promise<void> {
-        const amount = parseFloat(this.ui.sendAmountInput.value);
         const address = this.ui.recipientInput.value.trim();
 
         // Validate address
@@ -671,8 +756,11 @@ export class SendScreen {
 
         // All validations passed, proceed with sending
         try {
+            // Input is in primary currency, convert to XEC for sending
+            const amountPrimary = parseFloat(this.ui.sendAmountInput.value);
+            const amountXec = this.primaryToXec(amountPrimary);
             // Convert XEC to satoshis (1 XEC = 100 satoshis)
-            const sats = Math.round(amount * 100);
+            const sats = Math.round(amountXec * 100);
             const action = buildAction(
                 this.params.ecashWallet,
                 address,
@@ -697,7 +785,7 @@ export class SendScreen {
                     );
                     await paybuttonChronik.broadcastTxs(txsToBroadcast);
                     webViewLog(
-                        `Sent ${amount} ${config.ticker} to ${address} via PayButton`,
+                        `Sent ${amountXec} ${config.ticker} to ${address} via PayButton`,
                     );
                 } catch (error) {
                     webViewError('PayButton broadcast failed,:', error);
@@ -705,7 +793,7 @@ export class SendScreen {
             }
 
             await builtAction.broadcast();
-            webViewLog(`Sent ${amount} ${config.ticker} to ${address}`);
+            webViewLog(`Sent ${amountXec} ${config.ticker} to ${address}`);
         } catch (error) {
             webViewError('Failed to send transaction:', error);
         } finally {

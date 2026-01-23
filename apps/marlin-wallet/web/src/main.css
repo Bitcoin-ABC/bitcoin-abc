@@ -827,6 +827,23 @@ body.standalone-web {
     font-size: 1.1em;
 }
 
+.fee-value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.fee-value-primary {
+    font-weight: bold;
+}
+
+.fee-value-secondary {
+    font-size: 0.85em;
+    opacity: 0.7;
+    font-weight: 500;
+}
+
 .fee-label {
     font-size: 0.9em;
     opacity: 0.8;
