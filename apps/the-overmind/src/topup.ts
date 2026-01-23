@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { Script, payment, toHex } from 'ecash-lib';
+import { Bot } from 'grammy';
 import { TARGET_XEC_SATS } from './constants';
 
 /**
@@ -16,12 +17,16 @@ import { TARGET_XEC_SATS } from './constants';
  * @param chronik - Chronik client for checking balances
  * @param pool - Database connection pool
  * @param dryRun - If true, inspect the transaction without broadcasting (default: true)
+ * @param bot - Optional Telegram bot instance for sending admin notifications
+ * @param adminChatId - Optional admin chat ID for sending notifications
  */
 export const topupUserAddresses = async (
     wallet: Wallet,
     chronik: ChronikClient,
     pool: Pool,
     dryRun = true,
+    bot?: Bot,
+    adminChatId?: string,
 ): Promise<void> => {
     console.info('Starting user address topup...');
 
@@ -176,6 +181,26 @@ export const topupUserAddresses = async (
             console.info(
                 `   Topped up ${usersNeedingTopup} users with ${Number(totalTopupSats) / 100} XEC total`,
             );
+
+            // Send notification to admin chat if bot and adminChatId are provided
+            if (bot && adminChatId) {
+                try {
+                    const totalXec = Number(totalTopupSats) / 100;
+                    await bot.api.sendMessage(
+                        adminChatId,
+                        `✅ 1000 XEC top-up transaction sent to ${usersNeedingTopup} users (total: ${totalXec.toFixed(2)} XEC)\n\n[View on explorer](https://explorer.e.cash/tx/${txid})`,
+                        {
+                            parse_mode: 'Markdown',
+                            link_preview_options: { is_disabled: true },
+                        },
+                    );
+                } catch (err) {
+                    console.error(
+                        'Error sending topup notification to admin channel:',
+                        err,
+                    );
+                }
+            }
         }
     } catch (err) {
         const errorMsg = `Error in topupUserAddresses: ${err instanceof Error ? err.message : String(err)}`;

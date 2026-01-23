@@ -219,7 +219,14 @@ const startup = async () => {
         '0 0 0 * * *',
         async () => {
             try {
-                await topupUserAddresses(wallet, chronik, pool, false);
+                await topupUserAddresses(
+                    wallet,
+                    chronik,
+                    pool,
+                    false,
+                    bot,
+                    adminGroupChatId,
+                );
             } catch (err) {
                 console.error('Topup cron job failed:', err);
             }
