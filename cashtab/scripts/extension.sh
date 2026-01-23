@@ -14,8 +14,10 @@ function cleanup {
     # Replace original web files
     echo 'Replacing original web files'
     rm public/manifest.json
+    rm index.html
 
     mv ${WORKDIR}/manifest.json public/
+    mv ${WORKDIR}/index.html index.html
 
     echo 'Web files replaced'
 
@@ -26,9 +28,11 @@ trap cleanup EXIT
 
 # Stash web files that require extension changes in workdir
 mv public/manifest.json ${WORKDIR}
+mv index.html ${WORKDIR}
 
 # Move extension src files into place for npm build
 cp extension/public/manifest.json public/
+cp extension/public/index.html index.html
 
 # Delete the last extension build
 if [ -d "extension/dist/" ]; then rm -Rf extension/dist/; fi
