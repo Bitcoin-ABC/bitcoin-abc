@@ -199,7 +199,7 @@ task:
     # We hack around this by passing CC=g++ only to make.
     CC: gcc
     MAKEFLAGS: -j2 CC=g++
-    AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-fpermissive\ -g
+    CFLAGS: "-fpermissive -g"
     WERROR_CFLAGS:
     EXPERIMENTAL: yes
     ECDH: yes
@@ -237,7 +237,7 @@ task:
   container:
     dockerfile: ci/linux-debian.Dockerfile
     cpu: 1
-    memory: 1Gq
+    memory: 1G
   env:
     WRAPPER_CMD: qemu-aarch64
     TEST_ITERS: 16
@@ -254,26 +254,20 @@ task:
   << : *CAT_LOGS
 
 task:
+  name: "x86_64 (mingw32-w64): Windows (Debian stable, Wine)"
   container:
     dockerfile: ci/linux-debian.Dockerfile
     cpu: 1
     memory: 1G
   env:
     WRAPPER_CMD: wine
+    HOST: x86_64-w64-mingw32
     WITH_VALGRIND: no
     ECDH: yes
     RECOVERY: yes
     EXPERIMENTAL: yes
     SCHNORRSIG: yes
     CTIMETEST: no
-  matrix:
-    - name: "x86_64 (mingw32-w64): Windows (Debian stable, Wine)"
-      env:
-        HOST: x86_64-w64-mingw32
-    - name: "i686 (mingw32-w64): Windows (Debian stable, Wine)"
-      env:
-        HOST: i686-w64-mingw32
-        BENCH: no
   test_script:
     - ./ci/build_autotools.sh
     - ./ci/build_cmake.sh
