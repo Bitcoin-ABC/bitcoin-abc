@@ -79,7 +79,7 @@ export class SettingsScreen {
             // Apply saved setting to toggle UI
             // Toggle is checked when primary balance is Fiat
             primaryBalanceToggle.checked =
-                this.params.appSettings.primaryBalanceType === 'Fiat';
+                this.params.appSettings.primaryBalanceType !== 'XEC';
 
             // Add change listener
             primaryBalanceToggle.addEventListener('change', async () => {

@@ -144,10 +144,10 @@ export class MainScreen {
         const transitionalXec = satsToXec(transitionalBalanceSats);
 
         const displayText =
-            this.params.appSettings.primaryBalanceType === 'Fiat' &&
-            pricePerXec !== null
-                ? `${sign}${formatPrice(transitionalXec * pricePerXec, Fiat.USD)}`
-                : `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`;
+            this.params.appSettings.primaryBalanceType === 'XEC' ||
+            pricePerXec === null
+                ? `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`
+                : `${sign}${formatPrice(transitionalXec * pricePerXec, Fiat.USD)}`;
 
         this.ui.transitionalBalance.textContent = displayText;
         this.ui.transitionalBalance.className = `transitional-balance ${type}`;
