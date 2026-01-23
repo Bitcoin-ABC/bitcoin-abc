@@ -589,6 +589,33 @@ body.standalone-web {
     border-bottom: none;
 }
 
+.fiat-currency-select {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.fiat-currency-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fiat-currency-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.fiat-currency-select option {
+    background: #1a1a2e;
+    color: white;
+}
+
 .setting-info {
     text-align: left;
     margin-right: 10px;

@@ -98,6 +98,7 @@ let mainScreen: MainScreen | null = null;
 let appSettings: AppSettings = {
     requireHoldToSend: true,
     primaryBalanceType: 'XEC',
+    fiatCurrency: Fiat.USD,
 };
 
 // ============================================================================
@@ -338,7 +339,7 @@ async function finalizeTransaction(amountSats: number) {
     availableBalanceSats += amountSats;
     const toXec = satsToXec(availableBalanceSats);
 
-    const pricePerXec = await priceFetcher?.current(Fiat.USD);
+    const pricePerXec = await priceFetcher?.current(appSettings.fiatCurrency);
 
     // Calculate transitional balance
     transitionalBalanceSats = calculateTransitionalBalance();
@@ -494,7 +495,9 @@ async function subscribeToAddress(address: string) {
                             if (mainScreen) {
                                 mainScreen.updateTransitionalBalance(
                                     transitionalBalanceSats,
-                                    await priceFetcher?.current(Fiat.USD),
+                                    await priceFetcher?.current(
+                                        appSettings.fiatCurrency,
+                                    ),
                                 );
                             }
                             webViewLog(
@@ -538,7 +541,7 @@ async function subscribeToAddress(address: string) {
                                         mainScreen.updateTransitionalBalance(
                                             transitionalBalanceSats,
                                             await priceFetcher?.current(
-                                                Fiat.USD,
+                                                appSettings.fiatCurrency,
                                             ),
                                         );
                                     }
@@ -575,7 +578,9 @@ async function subscribeToAddress(address: string) {
                             if (mainScreen) {
                                 mainScreen.updateTransitionalBalance(
                                     transitionalBalanceSats,
-                                    await priceFetcher?.current(Fiat.USD),
+                                    await priceFetcher?.current(
+                                        appSettings.fiatCurrency,
+                                    ),
                                 );
                             }
                             webViewLog(
@@ -648,7 +653,9 @@ async function syncWallet() {
         transitionalBalanceSats = 0;
 
         // Update the display
-        const pricePerXec = await priceFetcher?.current(Fiat.USD);
+        const pricePerXec = await priceFetcher?.current(
+            appSettings.fiatCurrency,
+        );
         if (mainScreen) {
             mainScreen.updateAvailableBalanceDisplay(
                 0,
@@ -844,7 +851,20 @@ async function initializeApp() {
             mainScreen.updateAvailableBalanceDisplay(
                 currentXec,
                 currentXec,
-                await priceFetcher?.current(Fiat.USD),
+                await priceFetcher?.current(appSettings.fiatCurrency),
+                false,
+            );
+        }
+    });
+
+    settingsScreen.onFiatCurrencyChange(async () => {
+        // Refresh balance display with new fiat currency
+        if (ecashWallet && mainScreen) {
+            const currentXec = satsToXec(availableBalanceSats);
+            mainScreen.updateAvailableBalanceDisplay(
+                currentXec,
+                currentXec,
+                await priceFetcher?.current(appSettings.fiatCurrency),
                 false,
             );
         }

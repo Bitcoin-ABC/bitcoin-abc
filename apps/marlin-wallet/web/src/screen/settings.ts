@@ -6,6 +6,7 @@ import { Navigation, Screen } from '../navigation';
 import { AppSettings, saveSettings } from '../settings';
 import { getMnemonic, storeMnemonic, validateMnemonic } from '../mnemonic';
 import { WalletData } from '../wallet';
+import { Fiat } from 'ecash-price';
 import { webViewLog, webViewError } from '../common';
 
 export interface SettingsScreenParams {
@@ -18,6 +19,7 @@ export class SettingsScreen {
     private params: SettingsScreenParams;
     private onHoldToSendChangeCallback: (() => void) | null = null;
     private onPrimaryBalanceChangeCallback: (() => Promise<void>) | null = null;
+    private onFiatCurrencyChangeCallback: (() => Promise<void>) | null = null;
     private onMnemonicSavedCallback:
         | ((mnemonic: string) => Promise<void>)
         | null = null;
@@ -35,6 +37,11 @@ export class SettingsScreen {
     // Register callback for when primary balance type changes
     onPrimaryBalanceChange(callback: () => Promise<void>): void {
         this.onPrimaryBalanceChangeCallback = callback;
+    }
+
+    // Register callback for when fiat currency changes
+    onFiatCurrencyChange(callback: () => Promise<void>): void {
+        this.onFiatCurrencyChangeCallback = callback;
     }
 
     // Register callback for when mnemonic is saved
@@ -98,6 +105,66 @@ export class SettingsScreen {
                 }
             });
         }
+
+        // Setup fiat currency dropdown
+        const fiatCurrencySelect = document.getElementById(
+            'fiat-currency-select',
+        ) as HTMLSelectElement;
+        if (fiatCurrencySelect) {
+            // Populate dropdown with all available fiat currencies.
+            // Move the USD and EUR to the top, keep the others in alphabetical
+            // order.
+            let allFiats = Fiat.listAll();
+            allFiats = allFiats.filter(
+                fiat => fiat.toString() !== 'USD' && fiat.toString() !== 'EUR',
+            );
+            allFiats.unshift(Fiat.USD, Fiat.EUR);
+
+            allFiats.forEach(fiat => {
+                const option = document.createElement('option');
+                option.value = fiat.toString();
+                option.textContent =
+                    fiat.toString().toUpperCase() +
+                    ' - ' +
+                    fiat.symbol('en-US') +
+                    ' - ' +
+                    fiat.name('en-US');
+                fiatCurrencySelect.appendChild(option);
+            });
+
+            // Add a separator after the USD and EUR
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.value = 'separator';
+            separator.textContent = '--------------------------------';
+            fiatCurrencySelect.insertBefore(
+                separator,
+                fiatCurrencySelect.options[2],
+            );
+
+            // Set current selection
+            fiatCurrencySelect.value =
+                this.params.appSettings.fiatCurrency.toString();
+
+            // Add change listener
+            fiatCurrencySelect.addEventListener('change', async () => {
+                this.params.appSettings.fiatCurrency = new Fiat(
+                    fiatCurrencySelect.value,
+                );
+                webViewLog(
+                    `Fiat currency set to ${this.params.appSettings.fiatCurrency.toString().toUpperCase()}`,
+                );
+
+                // Save settings to localStorage
+                saveSettings(this.params.appSettings);
+
+                // Call registered callback
+                if (this.onFiatCurrencyChangeCallback) {
+                    await this.onFiatCurrencyChangeCallback();
+                }
+            });
+        }
+
         // Setup settings back button
         const settingsBackBtn = document.getElementById('settings-back-btn');
         if (settingsBackBtn) {

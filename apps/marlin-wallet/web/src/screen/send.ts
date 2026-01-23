@@ -7,7 +7,7 @@ import { AppSettings } from '../settings';
 import { DEFAULT_DUST_SATS } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
-import { XECPrice, Fiat, formatPrice } from 'ecash-price';
+import { XECPrice, formatPrice } from 'ecash-price';
 import {
     calculateMaxSpendableAmount,
     estimateTransactionFee,
@@ -71,7 +71,9 @@ export class SendScreen {
 
         // Fetch current price once upon screen opening
         this.currentPricePerXec =
-            (await this.params.priceFetcher?.current(Fiat.USD)) ?? null;
+            (await this.params.priceFetcher?.current(
+                this.params.appSettings.fiatCurrency,
+            )) ?? null;
         // Since the price and the settings won't change during the lifetime of
         // the screen, we can cache some parameters for simplicity.
         this.useXecPrimary =
@@ -85,7 +87,7 @@ export class SendScreen {
 
         this.ui.tickerLabel.textContent = this.useXecPrimary
             ? config.ticker
-            : Fiat.USD.toString().toUpperCase();
+            : this.params.appSettings.fiatCurrency.toString().toUpperCase();
 
         // Compute the min and max spendable amounts, update the ui accordingly
         this.minSpendablePrimary =
@@ -356,7 +358,7 @@ export class SendScreen {
     private formatPrimary(primary: number): string {
         return this.useXecPrimary
             ? `${primary.toFixed(2)} ${config.ticker}`
-            : formatPrice(primary, Fiat.USD);
+            : formatPrice(primary, this.params.appSettings.fiatCurrency);
     }
 
     private formatSecondary(xec: number): string | null {
@@ -365,7 +367,10 @@ export class SendScreen {
         }
 
         return this.useXecPrimary
-            ? formatPrice(xec * this.currentPricePerXec, Fiat.USD)
+            ? formatPrice(
+                  xec * this.currentPricePerXec,
+                  this.params.appSettings.fiatCurrency,
+              )
             : `${xec.toFixed(2)} ${config.ticker}`;
     }
 

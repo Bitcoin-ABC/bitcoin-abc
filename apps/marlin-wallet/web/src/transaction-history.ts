@@ -9,7 +9,7 @@ import { ChronikClient } from 'chronik-client';
 import { getAddress } from './wallet';
 import { config } from './config';
 import { AppSettings } from './settings';
-import { XECPrice, Fiat, formatPrice } from 'ecash-price';
+import { XECPrice, formatPrice } from 'ecash-price';
 
 // ============================================================================
 // TRANSACTION HISTORY MANAGER
@@ -171,7 +171,9 @@ export class TransactionHistoryManager {
         }
 
         // Fetch price once for fiat conversion
-        const pricePerXec = await this.priceFetcher?.current(Fiat.USD);
+        const pricePerXec = await this.priceFetcher?.current(
+            this.appSettings.fiatCurrency,
+        );
 
         // Process transactions in parallel for better performance
         const transactionHTML = await Promise.all(
@@ -212,14 +214,20 @@ export class TransactionHistoryManager {
                     this.appSettings.primaryBalanceType === 'XEC' ||
                     pricePerXec === null
                         ? `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`
-                        : `${sign}${formatPrice(absAmountXEC * pricePerXec, Fiat.USD)}`;
+                        : `${sign}${formatPrice(
+                              absAmountXEC * pricePerXec,
+                              this.appSettings.fiatCurrency,
+                          )}`;
 
                 // Format secondary amount if we have a price
                 let secondaryAmount: string = '';
                 if (pricePerXec !== null) {
                     secondaryAmount =
                         this.appSettings.primaryBalanceType === 'XEC'
-                            ? `${sign}${formatPrice(absAmountXEC * pricePerXec, Fiat.USD)}`
+                            ? `${sign}${formatPrice(
+                                  absAmountXEC * pricePerXec,
+                                  this.appSettings.fiatCurrency,
+                              )}`
                             : `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`;
                 }
 

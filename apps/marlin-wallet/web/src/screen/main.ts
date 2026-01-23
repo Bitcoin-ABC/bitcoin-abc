@@ -5,7 +5,7 @@
 import { Navigation } from '../navigation';
 import { AppSettings } from '../settings';
 import { Wallet } from 'ecash-wallet';
-import { XECPrice, Fiat, formatPrice } from 'ecash-price';
+import { XECPrice, formatPrice } from 'ecash-price';
 import { config } from '../config';
 import { satsToXec } from '../amount';
 import { copyAddress, isValidECashAddress } from '../address';
@@ -77,7 +77,9 @@ export class MainScreen {
             return;
         }
 
-        const pricePerXec = await this.params.priceFetcher?.current(Fiat.USD);
+        const pricePerXec = await this.params.priceFetcher?.current(
+            this.params.appSettings.fiatCurrency,
+        );
 
         // Update address display and generate QR code
         this.ui.address.textContent = address;
@@ -147,7 +149,10 @@ export class MainScreen {
             this.params.appSettings.primaryBalanceType === 'XEC' ||
             pricePerXec === null
                 ? `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`
-                : `${sign}${formatPrice(transitionalXec * pricePerXec, Fiat.USD)}`;
+                : `${sign}${formatPrice(
+                      transitionalXec * pricePerXec,
+                      this.params.appSettings.fiatCurrency,
+                  )}`;
 
         this.ui.transitionalBalance.textContent = displayText;
         this.ui.transitionalBalance.className = `transitional-balance ${type}`;
@@ -297,7 +302,10 @@ export class MainScreen {
                       return `${value.toFixed(2)} ${config.ticker}`;
                   }
                 : (value: number) => {
-                      return formatPrice(value, Fiat.USD);
+                      return formatPrice(
+                          value,
+                          this.params.appSettings.fiatCurrency,
+                      );
                   };
 
         if (animate) {
