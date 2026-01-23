@@ -3,21 +3,51 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { resolve, dirname } from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+// Resolve shim paths once at config load time
+const pluginPath = dirname(
+    dirname(require.resolve('vite-plugin-node-polyfills')),
+);
+const bufferShimPath = resolve(pluginPath, 'shims/buffer/dist/index.js');
+const processShimPath = resolve(pluginPath, 'shims/process/dist/index.js');
+
+// Custom plugin to resolve shim imports for CommonJS resolver
+function shimResolver(): Plugin {
+    return {
+        name: 'shim-resolver',
+        resolveId(id) {
+            if (id === 'vite-plugin-node-polyfills/shims/buffer') {
+                return bufferShimPath;
+            }
+            if (id === 'vite-plugin-node-polyfills/shims/process') {
+                return processShimPath;
+            }
+            return null;
+        },
+    };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
+        // Resolve shims before other plugins (must be first)
+        shimResolver(),
         nodePolyfills({
-            // Globally inject Buffer polyfill - this makes Buffer available everywhere
+            // Globally inject Buffer and process polyfills
             globals: {
                 Buffer: true,
+                process: true, // Required for react-router v7 which imports the process shim
             },
-            // Include buffer module for polyfill
-            include: ['buffer'],
+            // Include buffer and process modules for polyfill
+            include: ['buffer', 'process'],
         }),
         tsconfigPaths({
             ignoreConfigErrors: true,
@@ -41,8 +71,16 @@ export default defineConfig({
     resolve: {
         alias: {
             // Mock assets in tests (matching Jest's moduleNameMapper)
-            // Ensure polyfill shims are resolved during dev server pre-bundling
-            'vite-plugin-node-polyfills/shims/buffer': 'buffer',
+            // Explicitly resolve shims - needed for Docker builds where Rollup can't resolve package.json exports
+            // Resolve the shim paths by finding the plugin's main entry (dist/index.cjs) and going up to package root
+            'vite-plugin-node-polyfills/shims/buffer': resolve(
+                dirname(dirname(require.resolve('vite-plugin-node-polyfills'))),
+                'shims/buffer/dist/index.js',
+            ),
+            'vite-plugin-node-polyfills/shims/process': resolve(
+                dirname(dirname(require.resolve('vite-plugin-node-polyfills'))),
+                'shims/process/dist/index.js',
+            ),
         },
     },
     // Force optimizeDeps to pre-bundle local file: dependencies
@@ -55,8 +93,9 @@ export default defineConfig({
             'b58-ts',
             'chronik-client',
             'ecashaddrjs',
-            // Include buffer so the polyfill shim can resolve
+            // Include buffer and process so the polyfill shims can resolve
             'buffer',
+            'process',
         ],
         esbuildOptions: {
             // Ensure proper CommonJS interop
