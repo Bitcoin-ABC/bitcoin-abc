@@ -144,13 +144,20 @@ function hideLoadingScreen() {
 // NAVIGATION FUNCTIONS
 // ============================================================================
 
+declare global {
+    interface Window {
+        openHistory: () => void;
+        openSettings: () => void;
+    }
+}
+
 // These are required for the webview html button bindings
-(window as any).openHistory = () => {
+window.openHistory = () => {
     if (historyScreen) {
         historyScreen.show();
     }
 };
-(window as any).openSettings = () => navigation.showScreen(Screen.Settings);
+window.openSettings = () => navigation.showScreen(Screen.Settings);
 
 // ============================================================================
 // WALLET MANAGEMENT FUNCTIONS
