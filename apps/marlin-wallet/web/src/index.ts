@@ -12,7 +12,6 @@ import {
     XECPrice,
     CoinGeckoProvider,
     Fiat,
-    formatPrice,
     ProviderStrategy,
 } from 'ecash-price';
 import PullToRefresh from 'pulltorefreshjs';
@@ -26,13 +25,6 @@ import {
 import { calculateTransactionAmountSats, satsToXec } from './amount';
 import { getAddress, WalletData } from './wallet';
 import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
-import { copyAddress, isValidECashAddress } from './address';
-import {
-    generateQRCode,
-    hideNoCameraFallback,
-    stopQRScanner,
-    startQRScanner,
-} from './qrcode';
 import { config } from './config';
 import { parseBip21Uri, createBip21Uri } from './bip21';
 import { AppSettings, loadSettings } from './settings';
@@ -40,6 +32,7 @@ import { Navigation, Screen } from './navigation';
 import { SettingsScreen } from './screen/settings';
 import { HistoryScreen } from './screen/history';
 import { SendScreen } from './screen/send';
+import { MainScreen } from './screen/main';
 
 // Styles
 import './main.css';
@@ -97,6 +90,9 @@ let historyScreen: HistoryScreen | null = null;
 
 // Create global instance of SendScreen
 let sendScreen: SendScreen | null = null;
+
+// Create global instance of MainScreen
+let mainScreen: MainScreen | null = null;
 
 // Settings state
 let appSettings: AppSettings = {
@@ -228,11 +224,14 @@ async function loadWalletFromMnemonic(mnemonic: string) {
         });
     }
 
-    // Update displays
-    const pricePerXec = await priceFetcher?.current(Fiat.USD);
-    updateWalletDisplay(pricePerXec);
-    updateTransitionalBalance(pricePerXec);
-    generateQRCode(address);
+    // Update main screen with new wallet
+    if (mainScreen) {
+        await mainScreen.updateWallet(
+            ecashWallet,
+            availableBalanceSats,
+            transitionalBalanceSats,
+        );
+    }
 
     subscribeToAddress(address);
 
@@ -294,35 +293,6 @@ async function loadWallet(forceReload: boolean = false) {
     await loadWalletFromMnemonic(mnemonic);
 }
 
-// Update wallet display (address and balance)
-function updateWalletDisplay(pricePerXec: number | null) {
-    if (!wallet) {
-        webViewError('No wallet data, cannnot update the display');
-        return;
-    }
-
-    const address = getAddress(ecashWallet);
-    if (!address) {
-        webViewError('No address, cannot update the display');
-        return;
-    }
-
-    const addressEl = document.getElementById('address') as HTMLElement;
-    if (addressEl) {
-        addressEl.textContent = address;
-    } else {
-        webViewError('addressEl not found, cannot update address display');
-    }
-
-    // Update balance display, no animation
-    updateAvailableBalanceDisplay(
-        0,
-        satsToXec(availableBalanceSats),
-        pricePerXec,
-        false,
-    );
-}
-
 // ============================================================================
 // BALANCE AND TRANSACTION MANAGEMENT FUNCTIONS
 // ============================================================================
@@ -369,9 +339,21 @@ async function finalizeTransaction(amountSats: number) {
 
     const pricePerXec = await priceFetcher?.current(Fiat.USD);
 
-    updateTransitionalBalance(pricePerXec);
-    updateAvailableBalanceDisplay(fromXec, toXec, pricePerXec, true); // Animate when finalizing transactions
-    triggerShakeAnimation();
+    // Calculate transitional balance
+    transitionalBalanceSats = calculateTransitionalBalance();
+
+    if (mainScreen) {
+        mainScreen.updateTransitionalBalance(
+            transitionalBalanceSats,
+            pricePerXec,
+        );
+        mainScreen.updateAvailableBalanceDisplay(
+            fromXec,
+            toXec,
+            pricePerXec,
+            true,
+        ); // Animate when finalizing transactions
+    }
 
     // Trigger haptic feedback for transaction finalization
     sendMessageToBackend('TX_FINALIZED', undefined);
@@ -423,197 +405,15 @@ async function finalizePostConsensus(txid: string) {
     delete pendingAmounts[txid];
 }
 
-// Update transitional balance display
-function updateTransitionalBalance(pricePerXec: number | null) {
-    // Calculate total pending amounts
-    transitionalBalanceSats = 0;
-
+// Calculate transitional balance (helper function)
+function calculateTransitionalBalance(): number {
+    let balance = 0;
     for (const tx of Object.values(pendingAmounts).filter(
         tx => tx.state === 'pending_finalization',
     )) {
-        // Amount sign determines type: positive = receive, negative = send, 0 = receive
-        transitionalBalanceSats += tx.amountSats;
+        balance += tx.amountSats;
     }
-
-    webViewLog(
-        'Updated transitional balance:',
-        satsToXec(transitionalBalanceSats),
-        config.ticker,
-        '(',
-        transitionalBalanceSats,
-        'sats)',
-    );
-
-    // Update transitional balance display
-    const transitionalBalanceEl = document.getElementById(
-        'transitional-balance',
-    ) as HTMLElement;
-    if (transitionalBalanceEl) {
-        if (transitionalBalanceSats !== 0) {
-            const sign = transitionalBalanceSats > 0 ? '+' : '';
-            const type = transitionalBalanceSats > 0 ? 'receive' : 'spend';
-            const transitionalXec = satsToXec(transitionalBalanceSats);
-
-            const displayText =
-                appSettings.primaryBalanceType === 'Fiat' &&
-                pricePerXec !== null
-                    ? `${sign}${formatPrice(transitionalXec * pricePerXec, Fiat.USD)}`
-                    : `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`;
-
-            transitionalBalanceEl.textContent = displayText;
-            transitionalBalanceEl.className = `transitional-balance ${type}`;
-            transitionalBalanceEl.classList.remove('hidden');
-        } else {
-            transitionalBalanceEl.classList.add('hidden');
-        }
-    } else {
-        webViewError(
-            'transitionalBalanceEl not found, cannot update transitional balance display',
-        );
-    }
-}
-
-// Update available balance display with optional animation
-function updateAvailableBalanceDisplay(
-    fromXec: number,
-    toXec: number,
-    pricePerXec: number | null,
-    animate: boolean = true,
-) {
-    webViewLog(
-        `Available balance updated from ${fromXec} ${config.ticker} to ${toXec} ${config.ticker}`,
-    );
-
-    updateBalanceElement({
-        elementId: 'primary-balance',
-        fromXec,
-        toXec,
-        // If primary balance type is XEC or price is not available, show as
-        // XEC, otherwise show as Fiat
-        pricePerXec:
-            appSettings.primaryBalanceType === 'XEC' ? null : pricePerXec,
-        animate,
-    });
-    updateBalanceElement({
-        elementId: 'secondary-balance',
-        fromXec,
-        // If price is not available, hide the secondary balance element
-        toXec: pricePerXec === null ? null : toXec,
-        // If primary balance type is XEC show as Fiat, otherwise show as XEC
-        pricePerXec:
-            appSettings.primaryBalanceType === 'XEC' ? pricePerXec : null,
-        animate,
-    });
-}
-
-interface UpdateBalanceElementParams {
-    elementId: string;
-    fromXec: number;
-    // null means hide the balance element
-    toXec: number | null;
-    // null means show as XEC, otherwise show as Fiat
-    pricePerXec: number | null;
-    animate: boolean;
-}
-
-function updateBalanceElement(params: UpdateBalanceElementParams) {
-    const { elementId, fromXec, toXec, pricePerXec, animate } = params;
-    const balanceEl = document.getElementById(elementId) as HTMLElement;
-
-    if (balanceEl) {
-        // If toXec is null, hide the balance element
-        if (toXec === null) {
-            balanceEl.textContent = '';
-            return;
-        }
-
-        // If pricePerXec is null show as XEC, otherwise show as Fiat
-        const fromValue =
-            pricePerXec === null ? fromXec : fromXec * pricePerXec;
-        const toValue = pricePerXec === null ? toXec : toXec * pricePerXec;
-        const formatValue =
-            pricePerXec === null
-                ? (value: number) => {
-                      return `${value.toFixed(2)} ${config.ticker}`;
-                  }
-                : (value: number) => {
-                      return formatPrice(value, Fiat.USD);
-                  };
-
-        if (animate) {
-            animateBalanceChange(balanceEl, fromValue, toValue, formatValue);
-        } else {
-            balanceEl.textContent = formatValue(toValue);
-        }
-    } else {
-        webViewError(`${elementId} not found, cannot update balance display`);
-    }
-}
-
-// Animate balance change with counting effect
-// formatValue: function to format the numeric value for display
-// startValue: starting value for the animation
-function animateBalanceChange(
-    balanceEl: HTMLElement,
-    startValue: number,
-    targetBalance: number,
-    formatValue: (value: number) => string,
-) {
-    const difference = targetBalance - startValue;
-    const duration = 1000; // 1 second animation
-    const startTime = Date.now();
-
-    // Add highlight effect for balance changes
-    if (Math.abs(difference) > 0.01) {
-        // Only highlight if there's a meaningful change
-        balanceEl.style.transition = 'all 0.3s ease';
-        balanceEl.style.transform = 'scale(1.05)';
-        balanceEl.style.color = difference > 0 ? '#4ade80' : '#f87171'; // Green for increase, red for decrease
-
-        setTimeout(() => {
-            balanceEl.style.transform = 'scale(1)';
-            balanceEl.style.color = '';
-        }, 300);
-    }
-
-    function updateBalance() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        // Use easing function for smooth animation
-        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-        const currentBalance = startValue + difference * easeOutCubic;
-
-        balanceEl.textContent = formatValue(currentBalance);
-
-        if (progress < 1) {
-            requestAnimationFrame(updateBalance);
-        } else {
-            // Reset color after animation completes
-            setTimeout(() => {
-                balanceEl.style.color = '';
-            }, 200);
-        }
-    }
-
-    requestAnimationFrame(updateBalance);
-}
-
-// Trigger shake animation
-function triggerShakeAnimation() {
-    const transitionalBalanceEl = document.getElementById(
-        'transitional-balance',
-    ) as HTMLElement;
-    if (transitionalBalanceEl) {
-        transitionalBalanceEl.classList.add('shake');
-        setTimeout(() => {
-            transitionalBalanceEl.classList.remove('shake');
-        }, 500);
-    } else {
-        webViewError(
-            'transitionalBalanceEl not found, cannot trigger shake animation',
-        );
-    }
+    return balance;
 }
 
 // ============================================================================
@@ -637,46 +437,6 @@ function initPullToRefresh() {
             return navigation.getCurrentScreen() === Screen.Main;
         },
     });
-}
-
-// ============================================================================
-// QR SCANNER FUNCTIONS
-// ============================================================================
-
-function handleScanButtonClick() {
-    stopQRScanner();
-    startQRScanner(handleQRScanResult);
-}
-
-function handleCloseCamera() {
-    stopQRScanner(true); // Force close the modal
-    hideNoCameraFallback();
-}
-
-async function handleQRScanResult(result: string) {
-    if (!sendScreen) {
-        webViewError('Send screen not initialized');
-        return;
-    }
-
-    // First, try to parse as BIP21 URI
-    const bip21Result = parseBip21Uri(result);
-
-    if (bip21Result) {
-        webViewLog('BIP21 URI scanned:', result);
-        stopQRScanner();
-        await sendScreen.show(bip21Result);
-        return;
-    }
-
-    // Fallback: validate if the scanned data is a plain valid eCash address
-    if (isValidECashAddress(result)) {
-        webViewLog('eCash address scanned:', result);
-        stopQRScanner();
-        await sendScreen.show({
-            address: result,
-        });
-    }
 }
 
 // ============================================================================
@@ -728,10 +488,14 @@ async function subscribeToAddress(address: string) {
                                 );
                                 break;
                             }
-                            updateTransitionalBalance(
-                                await priceFetcher?.current(Fiat.USD),
-                            );
-                            triggerShakeAnimation();
+                            transitionalBalanceSats =
+                                calculateTransitionalBalance();
+                            if (mainScreen) {
+                                mainScreen.updateTransitionalBalance(
+                                    transitionalBalanceSats,
+                                    await priceFetcher?.current(Fiat.USD),
+                                );
+                            }
                             webViewLog(
                                 `Added pending transaction: ${satsToXec(
                                     tx.amountSats,
@@ -767,10 +531,16 @@ async function subscribeToAddress(address: string) {
                                         );
                                         break;
                                     }
-                                    updateTransitionalBalance(
-                                        await priceFetcher?.current(Fiat.USD),
-                                    );
-                                    triggerShakeAnimation();
+                                    transitionalBalanceSats =
+                                        calculateTransitionalBalance();
+                                    if (mainScreen) {
+                                        mainScreen.updateTransitionalBalance(
+                                            transitionalBalanceSats,
+                                            await priceFetcher?.current(
+                                                Fiat.USD,
+                                            ),
+                                        );
+                                    }
                                     webViewLog(
                                         `Added pending confirmed transaction: ${satsToXec(
                                             tx.amountSats,
@@ -799,10 +569,14 @@ async function subscribeToAddress(address: string) {
                         case 'TX_REMOVED_FROM_MEMPOOL':
                         case 'TX_INVALIDATED':
                             delete pendingAmounts[txid];
-                            updateTransitionalBalance(
-                                await priceFetcher?.current(Fiat.USD),
-                            );
-                            triggerShakeAnimation();
+                            transitionalBalanceSats =
+                                calculateTransitionalBalance();
+                            if (mainScreen) {
+                                mainScreen.updateTransitionalBalance(
+                                    transitionalBalanceSats,
+                                    await priceFetcher?.current(Fiat.USD),
+                                );
+                            }
                             webViewLog(
                                 `Removed pending transaction: ${txid}, reason: ${msg.msgType}`,
                             );
@@ -873,12 +647,16 @@ async function syncWallet() {
         transitionalBalanceSats = 0;
 
         // Update the display
-        updateAvailableBalanceDisplay(
-            0,
-            satsToXec(availableBalanceSats),
-            await priceFetcher?.current(Fiat.USD),
-            false,
-        );
+        const pricePerXec = await priceFetcher?.current(Fiat.USD);
+        if (mainScreen) {
+            mainScreen.updateAvailableBalanceDisplay(
+                0,
+                satsToXec(availableBalanceSats),
+                pricePerXec,
+                false,
+            );
+            mainScreen.updateTransitionalBalance(0, pricePerXec);
+        }
     } catch (error) {
         webViewError('Failed to sync wallet:', error);
 
@@ -1034,6 +812,18 @@ async function initializeApp() {
 
     // At this point the wallet is loaded
 
+    mainScreen = new MainScreen({
+        ecashWallet,
+        navigation,
+        appSettings,
+        priceFetcher,
+        onQRScanResult: async result => {
+            if (sendScreen) {
+                await sendScreen.show(result);
+            }
+        },
+    });
+
     historyScreen = new HistoryScreen({
         transactionHistory,
         navigation,
@@ -1048,9 +838,9 @@ async function initializeApp() {
     // Register callbacks
     settingsScreen.onPrimaryBalanceChange(async () => {
         // Refresh balance display with new primary/secondary order
-        if (ecashWallet) {
+        if (ecashWallet && mainScreen) {
             const currentXec = satsToXec(availableBalanceSats);
-            await updateAvailableBalanceDisplay(
+            mainScreen.updateAvailableBalanceDisplay(
                 currentXec,
                 currentXec,
                 await priceFetcher?.current(Fiat.USD),
@@ -1072,41 +862,13 @@ async function initializeApp() {
         syncWallet,
     });
 
-    // Hide loading screen on success
-    hideLoadingScreen();
-
-    // Add click listener to address element for copying
-    const addressEl = document.getElementById('address') as HTMLElement;
-    if (addressEl) {
-        addressEl.addEventListener('click', () => copyAddress(ecashWallet));
-    } else {
-        webViewLog(
-            'Error: addressEl not found, cannot add click listener for copying address',
+    // Update main screen display if wallet is already loaded
+    if (ecashWallet && mainScreen) {
+        await mainScreen.updateWallet(
+            ecashWallet,
+            availableBalanceSats,
+            transitionalBalanceSats,
         );
-    }
-
-    // Add click listeners for QR scanner
-    const scanBtn = document.getElementById('scan-btn');
-    const closeCameraBtn = document.getElementById('close-camera');
-
-    if (scanBtn) {
-        scanBtn.addEventListener('click', handleScanButtonClick);
-    }
-
-    if (closeCameraBtn) {
-        closeCameraBtn.addEventListener('click', handleCloseCamera);
-    }
-
-    // Add click listener for manual entry button
-    const manualEntryBtn = document.getElementById('manual-entry-btn');
-    if (manualEntryBtn) {
-        manualEntryBtn.addEventListener('click', async () => {
-            if (sendScreen) {
-                stopQRScanner(true); // Force close the modal
-                hideNoCameraFallback();
-                await sendScreen.show();
-            }
-        });
     }
 
     // Add click listeners for Send screen
@@ -1125,12 +887,8 @@ async function initializeApp() {
         });
     }
 
-    // Ensure camera modal starts hidden
-    const cameraModal = document.getElementById('camera-modal');
-    if (cameraModal) {
-        cameraModal.classList.add('hidden');
-        webViewLog('Camera modal initialized as hidden');
-    }
+    // Hide loading screen on success
+    hideLoadingScreen();
 }
 
 // Listen for payment requests from React Native
