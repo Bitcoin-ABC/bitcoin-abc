@@ -34,32 +34,30 @@ export class HistoryScreen {
         }
 
         // Setup scroll detection for infinite loading and click handlers for transaction IDs
-        setTimeout(() => {
-            const transactionList = document.getElementById('transaction-list');
-            if (transactionList && this.params.transactionHistory) {
-                // Only attach scroll handler once
-                if (!this.scrollHandlerAttached) {
-                    transactionList.addEventListener('scroll', () =>
-                        this.params.transactionHistory.handleScroll(),
-                    );
-                    this.scrollHandlerAttached = true;
-                }
-
-                // Only attach click handler once (event delegation)
-                if (!this.clickHandlerAttached) {
-                    transactionList.addEventListener('click', (e: Event) => {
-                        const target = e.target as HTMLElement;
-                        if (target.classList.contains('transaction-txid')) {
-                            const txid = target.getAttribute('data-txid');
-                            if (txid) {
-                                this.openTransactionInExplorer(txid);
-                            }
-                        }
-                    });
-                    this.clickHandlerAttached = true;
-                }
+        const transactionList = document.getElementById('transaction-list');
+        if (transactionList && this.params.transactionHistory) {
+            // Only attach scroll handler once
+            if (!this.scrollHandlerAttached) {
+                transactionList.addEventListener('scroll', () =>
+                    this.params.transactionHistory.handleScroll(),
+                );
+                this.scrollHandlerAttached = true;
             }
-        }, 100); // Small delay to ensure DOM is ready
+
+            // Only attach click handler once (event delegation)
+            if (!this.clickHandlerAttached) {
+                transactionList.addEventListener('click', (e: Event) => {
+                    const target = e.target as HTMLElement;
+                    if (target.classList.contains('transaction-txid')) {
+                        const txid = target.getAttribute('data-txid');
+                        if (txid) {
+                            this.openTransactionInExplorer(txid);
+                        }
+                    }
+                });
+                this.clickHandlerAttached = true;
+            }
+        }
     }
 
     // Initialize event listeners
