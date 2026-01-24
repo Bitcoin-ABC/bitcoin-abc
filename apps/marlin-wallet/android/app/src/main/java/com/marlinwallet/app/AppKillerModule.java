@@ -24,8 +24,9 @@ public class AppKillerModule extends ReactContextBaseJavaModule {
     public void killApp() {
         Activity activity = getCurrentActivity();
         if (activity != null) {
-            // Finish all activities in the task and exit
-            activity.finishAffinity();
+            // Finish all activities in the task and exit, don't keep the app in
+            // the background.
+            activity.finishAndRemoveTask();
         }
     }
 }
