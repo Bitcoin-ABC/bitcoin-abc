@@ -48,7 +48,7 @@ export const topupUserAddresses = async (
         // Check each user's balance and calculate topup amounts
         const topupOutputs: Array<{ script: Script; sats: bigint }> = [];
         const topupInfo: Array<{
-            user_id: number;
+            user_id: string;
             address: string;
             balance_sats: bigint;
             top_up_sats: bigint;
@@ -58,10 +58,8 @@ export const topupUserAddresses = async (
 
         for (const row of usersResult.rows) {
             const address = row.address as string;
-            const userId =
-                typeof row.user_tg_id === 'bigint'
-                    ? Number(row.user_tg_id)
-                    : row.user_tg_id;
+            // Convert to string (pg returns string, pg-mem returns number)
+            const userId = String(row.user_tg_id);
 
             try {
                 // Get UTXOs for this address

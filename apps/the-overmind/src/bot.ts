@@ -31,10 +31,11 @@ import { hasWithdrawnInLast24Hours } from './chronik';
 import { createUserActionTable } from './db';
 
 /**
- * In-memory map of user ID to username
+ * In-memory map of user ID (string) to username
  * Populated on startup and updated when users register
+ * Keys are strings because pg returns BIGINT as string
  */
-const usernameMap = new Map<number, string>();
+const usernameMap = new Map<string, string>();
 
 /**
  * Load all usernames from database into memory
@@ -48,11 +49,9 @@ export const loadUsernames = async (pool: Pool): Promise<void> => {
         );
         usernameMap.clear();
         for (const row of result.rows) {
-            const userId =
-                typeof row.user_tg_id === 'bigint'
-                    ? Number(row.user_tg_id)
-                    : row.user_tg_id;
-            const username = row.username || userId.toString();
+            // Convert to string (pg returns string, pg-mem returns number)
+            const userId = String(row.user_tg_id);
+            const username = row.username || userId;
             usernameMap.set(userId, username);
         }
         console.info(`Loaded ${usernameMap.size} usernames into memory`);
@@ -107,8 +106,9 @@ const getUsernamesOrId = (userIds: number[]): Map<number, string> => {
     const resultMap = new Map<number, string>();
 
     for (const userId of userIds) {
-        // Get username from in-memory map, fallback to userId as string
-        const username = usernameMap.get(userId) || userId.toString();
+        // Convert number to string for map lookup
+        const username =
+            usernameMap.get(userId.toString()) || userId.toString();
         resultMap.set(userId, username);
     }
 
@@ -187,7 +187,7 @@ export const register = async (
         // Update username in map in case it changed
         const username = ctx.from?.username || null;
         const displayUsername = username || userId.toString();
-        usernameMap.set(userId, displayUsername);
+        usernameMap.set(userId.toString(), displayUsername);
         await ctx.reply(
             `✅ You are already registered!\n\n` + `Address: \`${address}\``,
             { parse_mode: 'Markdown' },
@@ -220,7 +220,7 @@ export const register = async (
 
     // Update in-memory username map
     const displayUsername = username || userId.toString();
-    usernameMap.set(userId, displayUsername);
+    usernameMap.set(userId.toString(), displayUsername);
 
     // Create user action table for this user
     await createUserActionTable(pool, userId);

@@ -57,13 +57,8 @@ const registrationFill = async (address: string): Promise<void> => {
         }
 
         const user = userResult.rows[0];
-        // Convert user_tg_id to number (it comes from DB as BigInt or string)
-        const userId =
-            typeof user.user_tg_id === 'bigint'
-                ? Number(user.user_tg_id)
-                : typeof user.user_tg_id === 'string'
-                  ? parseInt(user.user_tg_id, 10)
-                  : user.user_tg_id;
+        // Convert to string (pg returns string, pg-mem returns number)
+        const userId = String(user.user_tg_id);
         const username = user.username || 'unknown';
         console.info(`Found user: ${userId} (@${username})`);
 
@@ -172,7 +167,7 @@ const registrationFill = async (address: string): Promise<void> => {
             );
 
             // Ensure user action table exists
-            await createUserActionTable(pool, userId);
+            await createUserActionTable(pool, parseInt(userId, 10));
 
             // Insert action into user's action table
             const tableName = `user_actions_${userId}`;
