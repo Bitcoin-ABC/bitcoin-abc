@@ -7,6 +7,7 @@
 #include <consensus/consensus.h>
 #include <logging.h>
 #include <random.h>
+#include <uint256.h>
 #include <util/trace.h>
 
 std::optional<Coin> CCoinsView::GetCoin(const COutPoint &outpoint) const {
@@ -294,7 +295,7 @@ void CCoinsViewCache::BatchWrite(CoinsViewCacheCursor &cursor,
             }
         }
     }
-    hashBlock = hashBlockIn;
+    SetBestBlock(hashBlockIn);
 }
 
 void CCoinsViewCache::Flush(bool reallocate_cache) {
@@ -316,6 +317,12 @@ void CCoinsViewCache::Sync() {
         /* BatchWrite must clear flags of all entries */
         throw std::logic_error("Not all unspent flagged entries were cleared");
     }
+}
+
+void CCoinsViewCache::Reset() noexcept {
+    cacheCoins.clear();
+    cachedCoinsUsage = 0;
+    SetBestBlock(BlockHash{uint256::ZERO});
 }
 
 void CCoinsViewCache::Uncache(const COutPoint &outpoint) {

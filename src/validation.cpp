@@ -1506,6 +1506,7 @@ CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
 void CoinsViews::InitCache() {
     AssertLockHeld(::cs_main);
     m_cacheview = std::make_unique<CCoinsViewCache>(&m_catcherview);
+    m_connect_block_view = std::make_unique<CCoinsViewCache>(&*m_cacheview);
 }
 
 Chainstate::Chainstate(CTxMemPool *mempool, BlockManager &blockman,
@@ -3018,7 +3019,8 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
                  num_blocks_total);
     {
         Amount blockFees{Amount::zero()};
-        CCoinsViewCache view(&CoinsTip());
+        CCoinsViewCache &view{*m_coins_views->m_connect_block_view};
+        const auto reset_guard{view.CreateResetGuard()};
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
                                BlockValidationOptions(m_chainman.GetConfig()),
                                &blockFees);
@@ -3116,7 +3118,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
             Ticks<MillisecondsDouble>(time_3 - time_2),
             Ticks<SecondsDouble>(time_connect_total),
             Ticks<MillisecondsDouble>(time_connect_total) / num_blocks_total);
-        // local CCoinsViewCache goes out of scope
+        // No need to reallocate since it only has capacity for 1 block
         view.Flush(/*reallocate_cache=*/false);
     }
 

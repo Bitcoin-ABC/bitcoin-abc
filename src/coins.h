@@ -6,6 +6,7 @@
 #ifndef BITCOIN_COINS_H
 #define BITCOIN_COINS_H
 
+#include <attributes.h>
 #include <compressor.h>
 #include <memusage.h>
 #include <primitives/blockhash.h>
@@ -374,6 +375,13 @@ protected:
     /* Cached dynamic memory usage for the inner Coin objects. */
     mutable size_t cachedCoinsUsage;
 
+    /**
+     * Discard all modifications made to this cache without flushing to the
+     * base view. This can be used to efficiently reuse a cache instance
+     * across multiple operations.
+     */
+    void Reset() noexcept;
+
 public:
     CCoinsViewCache(CCoinsView *baseIn, bool deterministic = false);
 
@@ -481,6 +489,28 @@ public:
 
     //! Run an internal sanity check on the cache data structure.
     void SanityCheck() const;
+
+    class ResetGuard {
+    private:
+        friend CCoinsViewCache;
+        CCoinsViewCache &m_cache;
+        explicit ResetGuard(CCoinsViewCache &cache LIFETIMEBOUND) noexcept
+            : m_cache{cache} {}
+
+    public:
+        ResetGuard(const ResetGuard &) = delete;
+        ResetGuard &operator=(const ResetGuard &) = delete;
+        ResetGuard(ResetGuard &&) = delete;
+        ResetGuard &operator=(ResetGuard &&) = delete;
+
+        ~ResetGuard() { m_cache.Reset(); }
+    };
+
+    //! Create a scoped guard that will call `Reset()` on this cache when it
+    //! goes out of scope.
+    [[nodiscard]] ResetGuard CreateResetGuard() noexcept {
+        return ResetGuard{*this};
+    }
 
 private:
     /**
