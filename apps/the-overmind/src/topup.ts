@@ -5,7 +5,7 @@
 import { Pool } from 'pg';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
-import { Script, payment, toHex } from 'ecash-lib';
+import { Script, payment, toHex, DEFAULT_DUST_SATS } from 'ecash-lib';
 import { Bot } from 'grammy';
 import { TARGET_XEC_SATS } from './constants';
 
@@ -80,18 +80,22 @@ export const topupUserAddresses = async (
                 // Calculate how much is needed to reach target
                 if (currentBalanceSats < TARGET_XEC_SATS) {
                     const topupAmount = TARGET_XEC_SATS - currentBalanceSats;
-                    topupOutputs.push({
-                        script: Script.fromAddress(address),
-                        sats: topupAmount,
-                    });
-                    topupInfo.push({
-                        user_id: userId,
-                        address,
-                        balance_sats: currentBalanceSats,
-                        top_up_sats: topupAmount,
-                    });
-                    usersNeedingTopup++;
-                    totalTopupSats += topupAmount;
+                    // Skip if topup amount is below dust limit (546 sats)
+                    // as the transaction would be rejected by the mempool
+                    if (topupAmount >= DEFAULT_DUST_SATS) {
+                        topupOutputs.push({
+                            script: Script.fromAddress(address),
+                            sats: topupAmount,
+                        });
+                        topupInfo.push({
+                            user_id: userId,
+                            address,
+                            balance_sats: currentBalanceSats,
+                            top_up_sats: topupAmount,
+                        });
+                        usersNeedingTopup++;
+                        totalTopupSats += topupAmount;
+                    }
                 }
             } catch (err) {
                 console.error(
