@@ -172,7 +172,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Step 5: Build a postage transaction
         // This creates a transaction that's structurally valid but financially insufficient
         const postageTx = tokenWallet
-            .action(postageAction, SatsSelectionStrategy.NO_SATS)
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
             .buildPostage();
 
         // The postage tx has only 1 input
@@ -187,7 +189,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Verify that calling .build() instead of .buildPostage() would throw an error
         expect(() => {
             tokenWallet
-                .action(postageAction, SatsSelectionStrategy.NO_SATS)
+                .action(postageAction, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                })
                 .build();
         }).to.throw(
             'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
@@ -335,7 +339,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Step 5: Build a postage transaction
         // This creates a transaction that's structurally valid but financially insufficient
         const postageTx = tokenWallet
-            .action(postageAction, SatsSelectionStrategy.NO_SATS)
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
             .buildPostage();
 
         // The postage tx has only 1 input
@@ -350,7 +356,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Verify that calling .build() instead of .buildPostage() would throw an error
         expect(() =>
             tokenWallet
-                .action(postageAction, SatsSelectionStrategy.NO_SATS)
+                .action(postageAction, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                })
                 .build(),
         ).to.throw(
             'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
@@ -548,7 +556,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Step 5: Build a postage transaction
         // This creates a transaction that's structurally valid but financially insufficient
         const postageTx = tokenWallet
-            .action(postageAction, SatsSelectionStrategy.NO_SATS)
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
             .buildPostage();
 
         // The postage tx has only 1 input
@@ -563,7 +573,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Verify that calling .build() instead of .buildPostage() would throw an error
         expect(() =>
             tokenWallet
-                .action(postageAction, SatsSelectionStrategy.NO_SATS)
+                .action(postageAction, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                })
                 .build(),
         ).to.throw(
             'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
@@ -735,7 +747,9 @@ describe('Postage mechanism for eCash transactions', () => {
         expect(() =>
             tokenWallet
                 .clone()
-                .action(postageAction, SatsSelectionStrategy.NO_SATS)
+                .action(postageAction, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                })
                 .build(),
         ).to.throw(
             'You must call buildPostage() for inputs selected with SatsSelectionStrategy.NO_SATS',
@@ -747,7 +761,9 @@ describe('Postage mechanism for eCash transactions', () => {
         // Step 5: Build a postage transaction
         // This creates a transaction that's structurally valid but financially insufficient
         const postageTx = tokenWallet
-            .action(postageAction, SatsSelectionStrategy.NO_SATS)
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
             .buildPostage();
 
         // The postage tx has 5 inputs, as we need all the qty-1 minted token inputs to cover the qty-5 token output

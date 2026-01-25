@@ -1320,7 +1320,7 @@ describe('Support functions', () => {
                 errors: [
                     'Insufficient sats to complete tx. Need 1000 additional satoshis to complete this Action.',
                 ],
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Return success true for a non-token tx with insufficient sats if NO_SATS strategy', () => {
@@ -1329,17 +1329,15 @@ describe('Support functions', () => {
             };
             const spendableUtxos: ScriptUtxo[] = [];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.NO_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 1000n,
                 utxos: [],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.NO_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.NO_SATS },
             });
         });
         it('Return success true for a non-token tx with insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1351,11 +1349,9 @@ describe('Support functions', () => {
                 { ...DUMMY_UTXO, sats: 300n },
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.ATTEMPT_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 200n,
@@ -1364,7 +1360,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 300n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS },
             });
         });
         it('Return success true for a non-token tx with sufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1376,11 +1372,9 @@ describe('Support functions', () => {
                 { ...DUMMY_UTXO, sats: 600n },
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.ATTEMPT_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 0n,
@@ -1389,7 +1383,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 600n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS },
             });
         });
         it('Return success true for a token tx with sufficient tokens but insufficient sats if ATTEMPT_SATS strategy', () => {
@@ -1416,17 +1410,15 @@ describe('Support functions', () => {
                 getDummySlpUtxo(2n),
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.ATTEMPT_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 500n,
                 utxos: [{ ...DUMMY_UTXO, sats: 500n }, getDummySlpUtxo(2n)],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS },
             });
         });
         it('Return failure for a token tx with missing tokens even if ATTEMPT_SATS strategy', () => {
@@ -1453,11 +1445,9 @@ describe('Support functions', () => {
                 getDummySlpUtxo(1n),
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.ATTEMPT_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                }),
             ).to.deep.equal({
                 success: false,
                 missingSats: 0n,
@@ -1473,7 +1463,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS },
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1503,17 +1493,15 @@ describe('Support functions', () => {
                 getDummySlpUtxo(2n),
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.ATTEMPT_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_500n }, getDummySlpUtxo(2n)],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.ATTEMPT_SATS },
             });
         });
         it('For an XEC-only tx, returns non-token utxos with sufficient sats', () => {
@@ -1533,7 +1521,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 750n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('For an XEC-only tx with more than enough sats in requiredUtxos, returns all requiredUtxos', () => {
@@ -1561,7 +1549,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: spendableUtxos,
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
@@ -1577,7 +1565,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 1_000n }],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns expected object if we have insufficient token utxos', () => {
@@ -1618,7 +1606,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     `Missing required token utxos: ${DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE} => Missing 1 atom`,
                 ],
@@ -1719,7 +1707,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1820,7 +1808,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     `Missing required token utxos: ${tokenIdToMint} => Missing mint baton, ${tokenToSendAlpha} => Missing 10 atoms, ${tokenToSendBeta} => Missing 10 atoms`,
                 ],
@@ -1855,7 +1843,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [{ ...DUMMY_UTXO, sats: 10_000n }, getDummySlpUtxo(1n)],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns sufficient token utxos for a complicated token tx', () => {
@@ -1931,7 +1919,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: spendableUtxos,
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns sufficient token utxos for a complicated token tx if gasless', () => {
@@ -2002,17 +1990,15 @@ describe('Support functions', () => {
                 getDummyAlpUtxo(2000n, tokenToSendBeta),
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.NO_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 utxos: spendableUtxos,
                 missingSats: 546n,
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.NO_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.NO_SATS },
             });
         });
         it('Returns detailed summary of missing token inputs for a gasless tx', () => {
@@ -2076,11 +2062,9 @@ describe('Support functions', () => {
                 getDummyAlpUtxo(20n, tokenToSendBeta),
             ];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.NO_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                }),
             ).to.deep.equal({
                 success: false,
                 missingSats: 1092n,
@@ -2114,7 +2098,7 @@ describe('Support functions', () => {
                     ],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.NO_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.NO_SATS },
                 errors: [
                     `Missing required token utxos: 1111111111111111111111111111111111111111111111111111111111111111 => Missing mint baton,` +
                         ` 2222222222222222222222222222222222222222222222222222222222222222 => Missing 10 atoms,` +
@@ -2150,7 +2134,7 @@ describe('Support functions', () => {
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -2191,7 +2175,7 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [mockNftParentInput],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns expected utxos for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty-1 SLP_TOKEN_TYPE_NFT1_GROUP input that is exactly specified by the requiredUtxos param', () => {
@@ -2237,7 +2221,7 @@ describe('Support functions', () => {
                 // NB the parent input is at index 0
                 utxos: [mockNftParentInput],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns utxos with chainedTxType: NFT_MINT_FANOUT for an SLP_TOKEN_TYPE_NFT1_CHILD GENESIS tx if we have a qty >1 SLP_TOKEN_TYPE_NFT1_GROUP input', () => {
@@ -2274,7 +2258,7 @@ describe('Support functions', () => {
                 success: true,
                 missingSats: 0n,
                 chainedTxType: ChainedTxType.NFT_MINT_FANOUT,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 utxos: [mockNftParentBigInput],
             });
         });
@@ -2307,7 +2291,7 @@ describe('Support functions', () => {
                     ['11'.repeat(32), { atoms: 1n, needsMintBaton: false }],
                 ]),
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId 1111111111111111111111111111111111111111111111111111111111111111`,
                 ],
@@ -2348,7 +2332,7 @@ describe('Support functions', () => {
                 success: false,
                 missingSats: 99999454n,
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
                 errors: [
                     'Insufficient sats to complete tx. Need 99999454 additional satoshis to complete this Action.',
                 ],
@@ -2386,17 +2370,15 @@ describe('Support functions', () => {
             };
             const spendableUtxos = [DUMMY_UTXO, mockNftParentInput];
             expect(
-                selectUtxos(
-                    action,
-                    spendableUtxos,
-                    SatsSelectionStrategy.NO_SATS,
-                ),
+                selectUtxos(action, spendableUtxos, {
+                    satsStrategy: SatsSelectionStrategy.NO_SATS,
+                }),
             ).to.deep.equal({
                 success: true,
                 missingSats: 100000000n,
                 utxos: [mockNftParentInput],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.NO_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.NO_SATS },
             });
         });
         it('Throws if we specify requiredUtxos for an SLP_TOKEN_TYPE_FUNGIBLE burn tx', () => {
@@ -2464,7 +2446,7 @@ describe('Support functions', () => {
                     { ...DUMMY_UTXO, sats: 10_000n },
                 ],
                 chainedTxType: ChainedTxType.NONE,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
         it('Returns utxos with chainedTxType: INTENTIONAL_BURN for an SLP_TOKEN_TYPE_FUNGIBLE burn tx if we have enough atoms but not exact atoms', () => {
@@ -2496,7 +2478,187 @@ describe('Support functions', () => {
                 missingSats: 0n,
                 utxos: [getDummySlpUtxo(45n), { ...DUMMY_UTXO, sats: 10_000n }],
                 chainedTxType: ChainedTxType.INTENTIONAL_BURN,
-                satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
+            });
+        });
+        it('With ignoredTokenIds, does not select UTXOs for the ignored tokens even if the action requires them', () => {
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 100n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                ] as payment.TokenAction[],
+            };
+            // We have both sats and token UTXOs available
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 2_000n },
+                getDummyAlpUtxo(100n),
+            ];
+            // With ignoredTokenIds, we should only select the sats UTXO
+            // and not report any error for missing tokens
+            expect(
+                selectUtxos(action, spendableUtxos, {
+                    ignoredTokenIds: [DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD],
+                }),
+            ).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: [{ ...DUMMY_UTXO, sats: 2_000n }],
+                chainedTxType: ChainedTxType.NONE,
+                config: {
+                    satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                    ignoredTokenIds: [DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD],
+                },
+            });
+        });
+        it('With ignoredTokenIds, still selects UTXOs for other tokens not being ignored', () => {
+            const OTHER_TOKEN_ID = toHex(strToBytes('OTHR')).repeat(8);
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    // Output requiring the ignored token
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                    },
+                    // Output requiring a different token
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: OTHER_TOKEN_ID,
+                        atoms: 25n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: OTHER_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                ] as payment.TokenAction[],
+            };
+            // We have sats and both token UTXOs
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 3_000n },
+                getDummyAlpUtxo(50n), // The ignored token
+                getDummyAlpUtxo(25n, OTHER_TOKEN_ID), // The other token
+            ];
+            // Should select sats and the other token, but not the ignored token
+            // Note: the order depends on when utxos are selected
+            // The OTHER_TOKEN_ID utxo is not matched until iterating through clonedSpendableUtxos
+            // where the sats utxo comes first
+            expect(
+                selectUtxos(action, spendableUtxos, {
+                    ignoredTokenIds: [DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD],
+                }),
+            ).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: [
+                    { ...DUMMY_UTXO, sats: 3_000n },
+                    getDummyAlpUtxo(25n, OTHER_TOKEN_ID),
+                ],
+                chainedTxType: ChainedTxType.NONE,
+                config: {
+                    satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                    ignoredTokenIds: [DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD],
+                },
+            });
+        });
+        it('With ignoredTokenIds, can ignore multiple tokenIds at once', () => {
+            const OTHER_TOKEN_ID = toHex(strToBytes('OTHR')).repeat(8);
+            const THIRD_TOKEN_ID = toHex(strToBytes('THRD')).repeat(8);
+            const action = {
+                outputs: [
+                    { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                    // Output requiring the first ignored token
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        atoms: 50n,
+                    },
+                    // Output requiring the second ignored token
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: OTHER_TOKEN_ID,
+                        atoms: 25n,
+                    },
+                    // Output requiring a non-ignored token
+                    {
+                        sats: 546n,
+                        script: MOCK_DESTINATION_SCRIPT,
+                        tokenId: THIRD_TOKEN_ID,
+                        atoms: 10n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: OTHER_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: THIRD_TOKEN_ID,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                ] as payment.TokenAction[],
+            };
+            // We have sats and all three token UTXOs
+            const spendableUtxos = [
+                { ...DUMMY_UTXO, sats: 3_000n },
+                getDummyAlpUtxo(50n), // First ignored token
+                getDummyAlpUtxo(25n, OTHER_TOKEN_ID), // Second ignored token
+                getDummyAlpUtxo(10n, THIRD_TOKEN_ID), // Non-ignored token
+            ];
+            // Should select sats and the non-ignored token, but not the two ignored tokens
+            expect(
+                selectUtxos(action, spendableUtxos, {
+                    ignoredTokenIds: [
+                        DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        OTHER_TOKEN_ID,
+                    ],
+                }),
+            ).to.deep.equal({
+                success: true,
+                missingSats: 0n,
+                utxos: [
+                    { ...DUMMY_UTXO, sats: 3_000n },
+                    getDummyAlpUtxo(10n, THIRD_TOKEN_ID),
+                ],
+                chainedTxType: ChainedTxType.NONE,
+                config: {
+                    satsStrategy: SatsSelectionStrategy.REQUIRE_SATS,
+                    ignoredTokenIds: [
+                        DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                        OTHER_TOKEN_ID,
+                    ],
+                },
             });
         });
     });

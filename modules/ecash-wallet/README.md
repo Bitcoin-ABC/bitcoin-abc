@@ -287,3 +287,10 @@ See tests for detailed methods.
 - Add support for wallets using a custom prefix
 
 [D19441](https://reviews.bitcoinabc.org/D19441)
+
+# 4.0.0 **BREAKING CHANGE**
+
+- Add support for building token postage aka "swap" txs (partially signed txs with token outputs that require added token inputs)
+- Changes the API as `satsStrategy` is no longer its own param, now part of `SelectUtxosConfig`
+
+[D19476](https://reviews.bitcoinabc.org/D19476)

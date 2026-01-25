@@ -356,12 +356,11 @@ export class Wallet extends WalletBase<KeypairData> {
          */
         action: payment.Action,
         /**
-         * Strategy for selecting satoshis in UTXO selection
-         * @default SatsSelectionStrategy.REQUIRE_SATS
+         * Configuration for UTXO selection
          */
-        satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
+        config: SelectUtxosConfig = {},
     ): WalletAction {
-        return WalletAction.fromAction(this, action, satsStrategy);
+        return WalletAction.fromAction(this, action, config);
     }
 
     /**
@@ -621,7 +620,7 @@ class WalletAction {
     static fromAction(
         wallet: Wallet,
         action: payment.Action,
-        satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
+        config: SelectUtxosConfig = {},
     ): WalletAction {
         // Preprocess action: infer SEND actions for ALP-only-burn cases
         const preprocessedAction = inferAlpBurnSendActions(
@@ -632,7 +631,7 @@ class WalletAction {
         const selectUtxosResult = selectUtxos(
             preprocessedAction,
             wallet.spendableUtxos(),
-            satsStrategy,
+            config,
         );
 
         // NB actionTotal is an intermediate value calculated in selectUtxos
@@ -1782,7 +1781,7 @@ class WalletAction {
     private _build(config: BuildConfig): BuiltAction {
         const { sighash, updateUtxos } = config;
         if (
-            this.selectUtxosResult.satsStrategy ===
+            this.selectUtxosResult.config.satsStrategy ===
             SatsSelectionStrategy.NO_SATS
         ) {
             // Potentially we want to just call this.buildPostage here, but then the build method
@@ -2120,6 +2119,7 @@ class WalletAction {
             selectedUtxos,
             () => this._wallet.getChangeScript(),
             dustSats,
+            this.selectUtxosResult.config.ignoredTokenIds,
         );
 
         /**
@@ -2417,7 +2417,7 @@ export class BuiltAction {
                         // Create a new WalletAction to re-select UTXOs with the synced wallet state
                         const rebuiltWalletAction = this._wallet.action(
                             this._walletAction.action,
-                            this._walletAction.selectUtxosResult.satsStrategy,
+                            this._walletAction.selectUtxosResult.config,
                         );
                         const rebuiltAction = rebuiltWalletAction.build();
                         const rebuiltTxs = rebuiltAction.txs.map(tx =>
@@ -2507,6 +2507,20 @@ export class PostageTx {
          * for many app use cases)
          */
         prePostageInputSats: bigint,
+        /**
+         * Optional required UTXOs to add before fuel inputs
+         * Used for swaps where the completing party must add specific token inputs
+         * NB that addFuelAndSign has no logic for selecting required token utxos of the fuel wallet
+         * This must be handled by the app dev
+         *
+         * Rationale: the seller may have any number of strategies to manage their token inputs. Like
+         * postage, it is often more convenient to keep "pre-sized" utxos so that no change output
+         * is necessary, simplifying the communication between buyer and seller
+         *
+         * If this support is added, it would probably also require a strategy param, something like
+         * "noTokenChange"
+         */
+        requiredUtxos: WalletUtxo[] = [],
         sighash = ALL_BIP143,
         // feePerKb and dustSats may be set by the user completing the tx
         // after all, they're paying for it
@@ -2518,6 +2532,15 @@ export class PostageTx {
         // Start with postage inputs (token UTXOs with insufficient sats)
         const allInputs = [...this.txBuilder.inputs];
 
+        // Add required UTXOs first (e.g., token inputs for swaps)
+        let inputSats = prePostageInputSats;
+        for (const requiredUtxo of requiredUtxos) {
+            allInputs.push(
+                fuelWallet.p2pkhUtxoToBuilderInput(requiredUtxo, sighash),
+            );
+            inputSats += requiredUtxo.sats;
+        }
+
         // NB we do not expect to have inputSats, as signatory will be undefined after ser/deser
         const outputSats = this.txBuilder.outputs.reduce((sum, output) => {
             if ('sats' in output) {
@@ -2528,7 +2551,6 @@ export class PostageTx {
         }, 0n);
 
         let thisTxNeededFee = 0n;
-        let inputSats = prePostageInputSats;
 
         if (inputSats > outputSats) {
             // If inputSats > outputSats, we may not need postage at all
@@ -3214,7 +3236,7 @@ interface SelectUtxosResult {
      */
     errors?: string[];
     /**
-     * We need to return the satsStrategy used to select the utxos, because
+     * We need to return the config used to select the utxos, because
      * it is not always possible to infer
      *
      * For example, we may wish to send a token tx with 1 input and one output
@@ -3224,7 +3246,7 @@ interface SelectUtxosResult {
      * were passed to build(), it would just add fuel utxos up to the point of
      * the fee being covered
      */
-    satsStrategy: SatsSelectionStrategy;
+    config: SelectUtxosConfig;
 }
 
 /**
@@ -3359,6 +3381,22 @@ export const checkTokenSendExceedsMaxOutputs = (
     return totalSendOutputs + 1 > maxOutputs;
 };
 
+export interface SelectUtxosConfig {
+    /**
+     * Strategy for selecting satoshis
+     * @default SatsSelectionStrategy.REQUIRE_SATS
+     */
+    satsStrategy?: SatsSelectionStrategy;
+    /**
+     * If specified, we will ignore these tokenIds for the purpose of selecting atoms
+     * of these tokens to fulfill outputs of the Action
+     *
+     * This could be used for a postage-adjacent tx, where the user is expecting
+     * token atoms to be provided by the final signer
+     */
+    ignoredTokenIds?: string[];
+}
+
 export const selectUtxos = (
     action: payment.Action,
     /**
@@ -3368,12 +3406,19 @@ export const selectUtxos = (
      * - Coinbase utxos with at least COINBASE_MATURITY confirmations
      */
     spendableUtxos: WalletUtxo[],
-    /**
-     * Strategy for selecting satoshis
-     * @default SatsSelectionStrategy.REQUIRE_SATS
-     */
-    satsStrategy: SatsSelectionStrategy = SatsSelectionStrategy.REQUIRE_SATS,
+    config: SelectUtxosConfig = {},
 ): SelectUtxosResult => {
+    const {
+        satsStrategy = SatsSelectionStrategy.REQUIRE_SATS,
+        ignoredTokenIds,
+    } = config;
+
+    // Normalize config to always include satsStrategy (with default if not provided)
+    const normalizedConfig: SelectUtxosConfig = {
+        satsStrategy,
+        ...(ignoredTokenIds ? { ignoredTokenIds } : {}),
+    };
+
     const actionTotals = getActionTotals(action);
     const { sats, tokens, groupTokenId } = actionTotals;
 
@@ -3406,6 +3451,21 @@ export const selectUtxos = (
 
     if (typeof tokens !== 'undefined') {
         tokenIdsWithRequiredUtxos = Array.from(tokens.keys());
+
+        // If ignoredTokenIds is specified, remove them from the list of tokens we need to find UTXOs for
+        // This allows for postage-style txs where the user expects another signer to provide token inputs
+        if (
+            typeof ignoredTokenIds !== 'undefined' &&
+            ignoredTokenIds.length > 0
+        ) {
+            tokenIdsWithRequiredUtxos = tokenIdsWithRequiredUtxos.filter(
+                tokenId => !ignoredTokenIds.includes(tokenId),
+            );
+            // Also remove from tokens map so we don't report errors for missing atoms of these tokens
+            for (const ignoredTokenId of ignoredTokenIds) {
+                tokens.delete(ignoredTokenId);
+            }
+        }
 
         for (const tokenId of tokenIdsWithRequiredUtxos) {
             const requiredTokenInputs = tokens.get(
@@ -3565,7 +3625,7 @@ export const selectUtxos = (
                 missingSats:
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
                 chainedTxType,
-                satsStrategy,
+                config: normalizedConfig,
             };
         }
     }
@@ -3611,7 +3671,7 @@ export const selectUtxos = (
                             ? 0n
                             : sats - selectedUtxosSats,
                     chainedTxType,
-                    satsStrategy,
+                    config: normalizedConfig,
                 };
             }
         }
@@ -3686,7 +3746,7 @@ export const selectUtxos = (
                 missingSats:
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
                 chainedTxType,
-                satsStrategy,
+                config: normalizedConfig,
             };
         }
     }
@@ -3740,7 +3800,7 @@ export const selectUtxos = (
                                     ? 0n
                                     : sats - selectedUtxosSats,
                             chainedTxType,
-                            satsStrategy,
+                            config: normalizedConfig,
                         };
                     }
                 } else if (
@@ -3790,7 +3850,7 @@ export const selectUtxos = (
                                     ? 0n
                                     : sats - selectedUtxosSats,
                             chainedTxType,
-                            satsStrategy,
+                            config: normalizedConfig,
                         };
                     }
                 }
@@ -3826,7 +3886,7 @@ export const selectUtxos = (
                 // Always 0 here, determined by condition of this if block
                 missingSats: 0n,
                 chainedTxType,
-                satsStrategy,
+                config: normalizedConfig,
             };
         }
     }
@@ -3862,7 +3922,7 @@ export const selectUtxos = (
                 selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
             chainedTxType,
             errors,
-            satsStrategy,
+            config: normalizedConfig,
         };
 
         if (typeof tokens !== 'undefined') {
@@ -3889,7 +3949,7 @@ export const selectUtxos = (
             errors: [
                 `Missing SLP_TOKEN_TYPE_NFT1_GROUP input for groupTokenId ${groupTokenId}`,
             ],
-            satsStrategy,
+            config: normalizedConfig,
         };
     }
 
@@ -3913,7 +3973,7 @@ export const selectUtxos = (
             missingSats,
             chainedTxType,
             errors,
-            satsStrategy,
+            config: normalizedConfig,
         };
     }
 
@@ -3925,7 +3985,7 @@ export const selectUtxos = (
         missingSats,
         // NB we do not have errors for missingSats with these strategies
         chainedTxType,
-        satsStrategy,
+        config: normalizedConfig,
     };
 };
 
@@ -4100,6 +4160,12 @@ export const finalizeOutputs = (
     requiredUtxos: ScriptUtxo[],
     getChangeScript: () => Script,
     dustSats = DEFAULT_DUST_SATS,
+    /**
+     * If specified, skip validation and change output generation for these tokenIds.
+     * Used for swap-style txs where another party will provide inputs for these tokens in
+     * order to match outputs specified in a PostageTx
+     */
+    ignoredTokenIds?: string[],
 ): { paymentOutputs: payment.PaymentOutput[]; txOutputs: TxOutput[] } => {
     // Make a deep copy of outputs to avoid mutating the action object
     const outputs = action.outputs.map(output => ({ ...output }));
@@ -4383,8 +4449,8 @@ export const finalizeOutputs = (
      */
 
     // Get all tokenIds that are SENT and BURNED
-    const sendAndBurnActionTokenIds = new Set();
-    sendActionTokenIds.forEach(tokenId => {
+    const sendAndBurnActionTokenIds: Set<string> = new Set();
+    sendActionTokenIds.forEach((tokenId: string) => {
         if (burnActionTokenIds.has(tokenId)) {
             sendAndBurnActionTokenIds.add(tokenId);
         }
@@ -4407,7 +4473,12 @@ export const finalizeOutputs = (
             ...sendAndBurnActionTokenIds,
         ]);
 
-        sendOrSendAndBurnTokens.forEach(tokenId => {
+        sendOrSendAndBurnTokens.forEach((tokenId: string) => {
+            // Skip validation and change for ignored tokenIds (used in swaps)
+            if (ignoredTokenIds && ignoredTokenIds.includes(tokenId)) {
+                return;
+            }
+
             const availableUtxosThisToken = requiredUtxos.filter(
                 utxo => 'token' in utxo && utxo.token?.tokenId === tokenId,
             );

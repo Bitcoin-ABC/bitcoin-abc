@@ -287,3 +287,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.15
 
 - Publish to catch updated `ecash-lib` and `ecash-wallet` after support for arbitrary prefixes [D19451](https://reviews.bitcoinabc.org/D19451)
+
+### 2.6.16
+
+- Publish to catch updead `ecash-wallet` breaking change `4.0.0` [D19476](https://reviews.bitcoinabc.org/D19476)
