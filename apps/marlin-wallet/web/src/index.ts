@@ -17,12 +17,16 @@ import {
 import PullToRefresh from 'pulltorefreshjs';
 import { TransactionHistoryManager } from './transaction-history';
 import {
+    PostConsensusFinalizationResult,
+    TransactionManager,
+} from './transaction-manager';
+import {
     sendMessageToBackend,
     webViewLog,
     webViewError,
     isReactNativeWebView,
 } from './common';
-import { calculateTransactionAmountSats, satsToXec } from './amount';
+import { satsToXec } from './amount';
 import { getAddress, WalletData } from './wallet';
 import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
 import { config } from './config';
@@ -51,13 +55,6 @@ import paybuttonLogo from './assets/paybutton.svg';
 // GLOBALS
 // ============================================================================
 
-// Transaction state interface
-interface PendingTransaction {
-    // Positive = receive, negative = send, 0 = receive (in satoshis)
-    amountSats: number;
-    state: 'pending_finalization' | 'finalized';
-}
-
 // Navigation instance
 let navigation: Navigation;
 
@@ -68,19 +65,14 @@ let wsEndpoint: any = null;
 
 let chronik: ChronikClient;
 
-// Balance state - separate available and transitional (not finalized yet)
-// balances (in satoshis)
-let availableBalanceSats = 0; // Only finalized amounts in satoshis
-let transitionalBalanceSats = 0; // Only non finalized amounts in satoshis
-
 // Price API instance for fetching real-time XEC prices
 let priceFetcher: XECPrice | null = null;
 
-// Pending transactions - transactions that are not yet finalized
-let pendingAmounts: { [txid: string]: PendingTransaction } = {};
-
 // Create global instance of TransactionHistoryManager
 let transactionHistory: TransactionHistoryManager | null = null;
+
+// Create global instance of TransactionManager
+let transactionManager: TransactionManager | null = null;
 
 // Create global instance of SettingsScreen
 let settingsScreen: SettingsScreen | null = null;
@@ -214,12 +206,17 @@ async function loadWalletFromMnemonic(mnemonic: string) {
         });
     }
 
+    // Update transaction manager with new wallet
+    if (transactionManager) {
+        transactionManager.updateWallet(ecashWallet);
+    }
+
     // Update main screen with new wallet
-    if (mainScreen) {
+    if (mainScreen && transactionManager) {
         await mainScreen.updateWallet(
             ecashWallet,
-            availableBalanceSats,
-            transitionalBalanceSats,
+            transactionManager.getAvailableBalanceSats(),
+            transactionManager.getTransitionalBalanceSats(),
         );
     }
 
@@ -281,129 +278,6 @@ async function loadWallet(forceReload: boolean = false) {
 }
 
 // ============================================================================
-// BALANCE AND TRANSACTION MANAGEMENT FUNCTIONS
-// ============================================================================
-
-// Add pending transaction amount
-async function addPendingAmount(
-    txid: string,
-    state: 'pending_finalization' | 'finalized',
-) {
-    if (pendingAmounts[txid]) {
-        webViewLog(
-            `Transaction ${txid} already exists in pending amounts, ignoring duplicate`,
-        );
-        return false;
-    }
-
-    const txAmountSats = await calculateTransactionAmountSats(
-        ecashWallet,
-        chronik,
-        txid,
-    );
-    if (txAmountSats == 0) {
-        webViewLog(`Transaction ${txid} has no amount, ignoring`);
-        return false;
-    }
-
-    pendingAmounts[txid] = {
-        amountSats: txAmountSats,
-        state,
-    };
-    webViewLog(
-        `Added pending transaction ${txid}: ${satsToXec(txAmountSats)} ${
-            config.ticker
-        } (${txAmountSats} sats, state: ${state})`,
-    );
-
-    return pendingAmounts[txid];
-}
-
-async function finalizeTransaction(amountSats: number) {
-    const fromXec = satsToXec(availableBalanceSats);
-    availableBalanceSats += amountSats;
-    const toXec = satsToXec(availableBalanceSats);
-
-    const pricePerXec = await priceFetcher?.current(appSettings.fiatCurrency);
-
-    // Calculate transitional balance
-    transitionalBalanceSats = calculateTransitionalBalance();
-
-    if (mainScreen) {
-        mainScreen.updateTransitionalBalance(
-            transitionalBalanceSats,
-            pricePerXec,
-        );
-        mainScreen.updateAvailableBalanceDisplay(
-            fromXec,
-            toXec,
-            pricePerXec,
-            true,
-        ); // Animate when finalizing transactions
-    }
-
-    // Trigger haptic feedback for transaction finalization
-    sendMessageToBackend('TX_FINALIZED', undefined);
-}
-
-async function finalizePreConsensus(txid: string) {
-    let tx;
-    if (pendingAmounts[txid]) {
-        // We already have the transaction in our pending amounts, so we can
-        // just update the state
-        tx = pendingAmounts[txid];
-        tx.state = 'finalized';
-    } else {
-        const pending_tx = await addPendingAmount(txid, 'finalized');
-        if (!pending_tx) {
-            return;
-        }
-        tx = pending_tx;
-    }
-
-    finalizeTransaction(tx.amountSats);
-    webViewLog(
-        `Pre-consensus finalized transaction ${txid}: ${satsToXec(
-            tx.amountSats,
-        )} ${config.ticker} moved to available balance, state set to finalized`,
-    );
-}
-
-async function finalizePostConsensus(txid: string) {
-    if (!pendingAmounts[txid]) {
-        // We're lost, just resync
-        webViewLog(
-            `Post-consensus finalized transaction ${txid} but it's not pending, resyncing`,
-        );
-        await syncWallet();
-        return;
-    }
-
-    const tx = pendingAmounts[txid];
-
-    if (tx.state === 'pending_finalization') {
-        finalizeTransaction(tx.amountSats);
-        webViewLog(
-            `Post-consensus finalized transaction ${txid} which is pending finalization, moving to available balance`,
-        );
-    }
-
-    // We won't get any message for this transaction anymore
-    delete pendingAmounts[txid];
-}
-
-// Calculate transitional balance (helper function)
-function calculateTransitionalBalance(): number {
-    let balance = 0;
-    for (const tx of Object.values(pendingAmounts).filter(
-        tx => tx.state === 'pending_finalization',
-    )) {
-        balance += tx.amountSats;
-    }
-    return balance;
-}
-
-// ============================================================================
 // PULL-TO-REFRESH FUNCTIONS
 // ============================================================================
 
@@ -458,6 +332,10 @@ async function subscribeToAddress(address: string) {
                     return;
                 }
 
+                if (!transactionManager) {
+                    return;
+                }
+
                 const txid = msg.txid;
 
                 try {
@@ -465,25 +343,15 @@ async function subscribeToAddress(address: string) {
                         case 'TX_ADDED_TO_MEMPOOL': {
                             // The transaction is not finalized yet, show it
                             // in the transitional balance
-                            const tx = await addPendingAmount(
-                                txid,
-                                'pending_finalization',
-                            );
+                            const tx =
+                                await transactionManager.addNonFinalTransaction(
+                                    txid,
+                                );
                             if (!tx) {
                                 webViewError(
                                     `Failed to add pending mempool transaction: ${txid}`,
                                 );
                                 break;
-                            }
-                            transitionalBalanceSats =
-                                calculateTransitionalBalance();
-                            if (mainScreen) {
-                                mainScreen.updateTransitionalBalance(
-                                    transitionalBalanceSats,
-                                    await priceFetcher?.current(
-                                        appSettings.fiatCurrency,
-                                    ),
-                                );
                             }
                             webViewLog(
                                 `Added pending transaction: ${satsToXec(
@@ -493,12 +361,9 @@ async function subscribeToAddress(address: string) {
                             break;
                         }
                         case 'TX_CONFIRMED':
-                            if (pendingAmounts[txid]) {
-                                // This is the most common scenario
-                                webViewLog(
-                                    `Confirmed transaction ${txid} is already pending with state ${pendingAmounts[txid].state}, skipping`,
-                                );
-                            } else {
+                            if (
+                                !transactionManager.isPendingTransaction(txid)
+                            ) {
                                 // If the pending transaction doesn't exist, we
                                 // need to figure out if it's been finalized by
                                 // pre-consensus or not.
@@ -510,25 +375,15 @@ async function subscribeToAddress(address: string) {
                                 // wallet.
                                 const chronik_tx = await chronik.tx(txid);
                                 if (!chronik_tx.isFinal) {
-                                    const tx = await addPendingAmount(
-                                        txid,
-                                        'pending_finalization',
-                                    );
+                                    const tx =
+                                        await transactionManager.addNonFinalTransaction(
+                                            txid,
+                                        );
                                     if (!tx) {
                                         webViewError(
                                             `Failed to add pending confirmed transaction: ${txid}`,
                                         );
                                         break;
-                                    }
-                                    transitionalBalanceSats =
-                                        calculateTransitionalBalance();
-                                    if (mainScreen) {
-                                        mainScreen.updateTransitionalBalance(
-                                            transitionalBalanceSats,
-                                            await priceFetcher?.current(
-                                                appSettings.fiatCurrency,
-                                            ),
-                                        );
                                     }
                                     webViewLog(
                                         `Added pending confirmed transaction: ${satsToXec(
@@ -541,11 +396,43 @@ async function subscribeToAddress(address: string) {
                         case 'TX_FINALIZED':
                             switch (msg.finalizationReasonType) {
                                 case 'TX_FINALIZATION_REASON_PRE_CONSENSUS':
-                                    finalizePreConsensus(txid);
+                                    await transactionManager.finalizePreConsensus(
+                                        txid,
+                                    );
+                                    // Always trigger haptic feedback for
+                                    // pre-consensus finalization
+                                    sendMessageToBackend(
+                                        'TX_FINALIZED',
+                                        undefined,
+                                    );
                                     break;
-                                case 'TX_FINALIZATION_REASON_POST_CONSENSUS':
-                                    finalizePostConsensus(txid);
+                                case 'TX_FINALIZATION_REASON_POST_CONSENSUS': {
+                                    const status =
+                                        await transactionManager.finalizePostConsensus(
+                                            txid,
+                                        );
+                                    switch (status) {
+                                        case PostConsensusFinalizationResult.NEWLY_FINALIZED:
+                                            // Trigger haptic feedback only if the
+                                            // transaction was pending
+                                            sendMessageToBackend(
+                                                'TX_FINALIZED',
+                                                undefined,
+                                            );
+                                            break;
+                                        case PostConsensusFinalizationResult.ALREADY_FINALIZED:
+                                            // Nothing to do
+                                            break;
+                                        case PostConsensusFinalizationResult.NOT_PENDING:
+                                            // We're lost, resync the wallet
+                                            webViewLog(
+                                                `Post-consensus finalized transaction ${txid} which is not pending, resyncing the wallet`,
+                                            );
+                                            await syncWallet();
+                                            break;
+                                    }
                                     break;
+                                }
                                 default:
                                     webViewError(
                                         `Unknown finalization reason for ${txid}: `,
@@ -557,17 +444,9 @@ async function subscribeToAddress(address: string) {
 
                         case 'TX_REMOVED_FROM_MEMPOOL':
                         case 'TX_INVALIDATED':
-                            delete pendingAmounts[txid];
-                            transitionalBalanceSats =
-                                calculateTransitionalBalance();
-                            if (mainScreen) {
-                                mainScreen.updateTransitionalBalance(
-                                    transitionalBalanceSats,
-                                    await priceFetcher?.current(
-                                        appSettings.fiatCurrency,
-                                    ),
-                                );
-                            }
+                            await transactionManager.invalidateTransaction(
+                                txid,
+                            );
                             webViewLog(
                                 `Removed pending transaction: ${txid}, reason: ${msg.msgType}`,
                             );
@@ -625,30 +504,8 @@ async function syncWallet() {
 
         await Promise.race([syncPromise, timeoutPromise]);
 
-        const spendableUtxos = ecashWallet.spendableSatsOnlyUtxos();
-        const finalUtxos = spendableUtxos.filter(utxo => utxo.isFinal);
-
-        availableBalanceSats = Number(
-            finalUtxos.reduce((sum, utxo) => sum + utxo.sats, 0n),
-        );
-
-        // Clear all pending transactions. They will be re-added as needed if we
-        // get a message for them.
-        pendingAmounts = {};
-        transitionalBalanceSats = 0;
-
-        // Update the display
-        const pricePerXec = await priceFetcher?.current(
-            appSettings.fiatCurrency,
-        );
-        if (mainScreen) {
-            mainScreen.updateAvailableBalanceDisplay(
-                0,
-                satsToXec(availableBalanceSats),
-                pricePerXec,
-                false,
-            );
-            mainScreen.updateTransitionalBalance(0, pricePerXec);
+        if (transactionManager) {
+            transactionManager.sync();
         }
     } catch (error) {
         webViewError('Failed to sync wallet:', error);
@@ -817,6 +674,39 @@ async function initializeApp() {
         },
     });
 
+    // Initialize TransactionManager
+    transactionManager = new TransactionManager({
+        ecashWallet,
+        chronik,
+        onBalanceChange: async (
+            fromAvailableBalanceSats: number,
+            toAvailableBalanceSats: number,
+            transitionalBalanceSats: number,
+        ) => {
+            if (!mainScreen) {
+                return;
+            }
+
+            const pricePerXec = await priceFetcher?.current(
+                appSettings.fiatCurrency,
+            );
+
+            mainScreen.updateTransitionalBalance(
+                transitionalBalanceSats,
+                pricePerXec,
+            );
+
+            const fromXec = satsToXec(fromAvailableBalanceSats);
+            const toXec = satsToXec(toAvailableBalanceSats);
+            mainScreen.updateAvailableBalanceDisplay(
+                fromXec,
+                toXec,
+                pricePerXec,
+                fromXec !== toXec,
+            );
+        },
+    });
+
     historyScreen = new HistoryScreen({
         transactionHistory,
         navigation,
@@ -831,8 +721,10 @@ async function initializeApp() {
     // Register callbacks
     settingsScreen.onPrimaryBalanceChange(async () => {
         // Refresh balance display with new primary/secondary order
-        if (ecashWallet && mainScreen) {
-            const currentXec = satsToXec(availableBalanceSats);
+        if (ecashWallet && mainScreen && transactionManager) {
+            const currentXec = satsToXec(
+                transactionManager.getAvailableBalanceSats(),
+            );
             mainScreen.updateAvailableBalanceDisplay(
                 currentXec,
                 currentXec,
@@ -844,8 +736,10 @@ async function initializeApp() {
 
     settingsScreen.onFiatCurrencyChange(async () => {
         // Refresh balance display with new fiat currency
-        if (ecashWallet && mainScreen) {
-            const currentXec = satsToXec(availableBalanceSats);
+        if (ecashWallet && mainScreen && transactionManager) {
+            const currentXec = satsToXec(
+                transactionManager.getAvailableBalanceSats(),
+            );
             mainScreen.updateAvailableBalanceDisplay(
                 currentXec,
                 currentXec,
@@ -870,11 +764,11 @@ async function initializeApp() {
     });
 
     // Update main screen display if wallet is already loaded
-    if (ecashWallet && mainScreen) {
+    if (ecashWallet && mainScreen && transactionManager) {
         await mainScreen.updateWallet(
             ecashWallet,
-            availableBalanceSats,
-            transitionalBalanceSats,
+            transactionManager.getAvailableBalanceSats(),
+            transactionManager.getTransitionalBalanceSats(),
         );
     }
 
