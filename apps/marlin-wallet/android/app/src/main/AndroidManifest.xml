@@ -13,7 +13,6 @@
     
     <!-- NFC features -->
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
-    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
 
     <application
       android:name=".MainApplication"
@@ -57,19 +56,6 @@
             <data android:scheme="ecashwallet" android:host="open"/>
         </intent-filter>
       </activity>
-      
-      <!-- NFC HCE Service -->
-      <service
-        android:name=".NfcHceService"
-        android:exported="true"
-        android:permission="android.permission.BIND_NFC_SERVICE">
-        <intent-filter>
-            <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
-        </intent-filter>
-        <meta-data
-            android:name="android.nfc.cardemulation.host_apdu_service"
-            android:resource="@xml/apdu_service"/>
-      </service>
       
       <!-- Wearable Data Layer Service -->
       <service 

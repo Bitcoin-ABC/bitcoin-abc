@@ -26,7 +26,7 @@ import { calculateTransactionAmountSats, satsToXec } from './amount';
 import { getAddress, WalletData } from './wallet';
 import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
 import { config } from './config';
-import { parseBip21Uri, createBip21Uri } from './bip21';
+import { parseBip21Uri } from './bip21';
 import { AppSettings, loadSettings } from './settings';
 import { Navigation, Screen } from './navigation';
 import { SettingsScreen } from './screen/settings';
@@ -163,25 +163,6 @@ window.openSettings = () => navigation.showScreen(Screen.Settings);
 // WALLET MANAGEMENT FUNCTIONS
 // ============================================================================
 
-// Update NFC address for tag emulation (BIP21 URI)
-// amountSats is optional - if provided, it will be included in the BIP21 URI
-function updateNfcAddress(amountSats?: number) {
-    if (!ecashWallet) {
-        return;
-    }
-
-    const address = getAddress(ecashWallet);
-    if (!address) {
-        return;
-    }
-
-    // Create BIP21 URI using the bip21 module
-    const bip21Uri = createBip21Uri(address, amountSats);
-
-    // Send the complete BIP21 URI to native app for NFC HCE
-    sendMessageToBackend('SET_NFC_URI', bip21Uri);
-}
-
 // Load existing wallet from stored mnemonic
 async function loadWalletFromMnemonic(mnemonic: string) {
     // Create wallet using ecash-wallet library
@@ -243,9 +224,6 @@ async function loadWalletFromMnemonic(mnemonic: string) {
     }
 
     subscribeToAddress(address);
-
-    // Update NFC address for tag emulation
-    updateNfcAddress();
 
     // Send address and BIP21 prefix to watch
     sendMessageToBackend('SEND_ADDRESS_TO_WATCH', {

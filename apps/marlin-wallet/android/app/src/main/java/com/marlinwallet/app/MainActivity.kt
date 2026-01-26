@@ -70,7 +70,7 @@ class MainActivity : ReactActivity() {
     
     // Reset listener state on app launch
     PaymentRequestModule.reset()
-    handleNfcIntent(intent)
+    handleIntent(intent)
   }
   
   override fun onResume() {
@@ -85,26 +85,15 @@ class MainActivity : ReactActivity() {
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     
-    // Ignore NFC intents when app is already running (foreground)
-    // But allow ACTION_VIEW (camera QR, web links) since those are intentional user actions
-    if (intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
-      return
-    }
-    
-    // Handle ACTION_VIEW even in foreground
-    if (intent.action == Intent.ACTION_VIEW) {
-      val uri = intent.data?.toString()
-      if (uri != null) {
-        // App is already running, send payment request immediately
-        sendPaymentRequestImmediately(uri)
-      }
-    }
+    // Handle NFC and deep link intents when app is already running (foreground)
+    handleIntent(intent)
   }
   
   /**
-   * Handle payment request intents (NFC, deep links, etc.) when app is launched from background
+   * Handle payment request intents (NFC, deep links, etc.)
+   * @param intent The intent to handle
    */
-  private fun handleNfcIntent(intent: Intent?) {
+  private fun handleIntent(intent: Intent?) {
     if (intent == null) {
       return
     }
@@ -138,7 +127,6 @@ class MainActivity : ReactActivity() {
       Intent.ACTION_VIEW -> {
         val uri = intent.data?.toString()
         if (uri != null) {
-          // Send to React Native - validation happens in TypeScript using config.ts
           sendPaymentRequest(uri)
         }
       }
@@ -148,7 +136,7 @@ class MainActivity : ReactActivity() {
   /**
    * Store a payment request URI and schedule sending to React Native (for app launch)
    */
-  private fun sendPaymentRequest(uri: String) {
+  private fun setPendingPaymentRequest(uri: String) {
     pendingPaymentUri = uri
     tryToSendPendingPaymentRequest()
   }
@@ -165,9 +153,9 @@ class MainActivity : ReactActivity() {
   }
   
   /**
-   * Send payment request immediately when app is already running
+   * Send payment request to React Native, falling back to pending if app is not ready
    */
-  private fun sendPaymentRequestImmediately(uri: String) {
+  private fun sendPaymentRequest(uri: String) {
     val reactContext = getReactContext()
     if (reactContext != null) {
       try {
@@ -177,19 +165,19 @@ class MainActivity : ReactActivity() {
       } catch (e: Exception) {
         Log.e(TAG, "Error sending payment request", e)
         // Fallback: store for later
-        sendPaymentRequest(uri)
+        setPendingPaymentRequest(uri)
       }
     } else {
       // ReactContext not available yet, store for later
-      sendPaymentRequest(uri)
+      setPendingPaymentRequest(uri)
     }
   }
   
   
   /**
-   * Retry sending payment request after a delay
+   * Retry sending pending payment request after a delay
    */
-  private fun retryPaymentRequest(attempt: Int) {
+  private fun retryPendingPaymentRequest(attempt: Int) {
     if (attempt < 30) {
       Handler(Looper.getMainLooper()).postDelayed({
         tryToSendPendingPaymentRequest(attempt + 1)
@@ -210,13 +198,13 @@ class MainActivity : ReactActivity() {
     
     // Check if listener is ready
     if (!PaymentRequestModule.isListenerReady()) {
-      retryPaymentRequest(attempt)
+      retryPendingPaymentRequest(attempt)
       return
     }
     
     val reactContext = getReactContext()
     if (reactContext == null) {
-      retryPaymentRequest(attempt)
+      retryPendingPaymentRequest(attempt)
       return
     }
     
@@ -227,7 +215,7 @@ class MainActivity : ReactActivity() {
       pendingPaymentUri = null
     } catch (e: Exception) {
       Log.e(TAG, "Error sending payment request", e)
-      retryPaymentRequest(attempt)
+      retryPendingPaymentRequest(attempt)
     }
   }
 }

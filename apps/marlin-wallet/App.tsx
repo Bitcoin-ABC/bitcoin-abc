@@ -41,8 +41,6 @@ function AppContent(): React.JSX.Element {
     const insets = useSafeAreaInsets();
     const webViewRef = useRef<WebView>(null);
     const [webViewSource, setWebViewSource] = useState<any>(null);
-    const [nfcUri, setNfcUri] = useState<string | null>(null);
-    const [isNfcSupported, setIsNfcSupported] = useState<boolean>(false);
     const [pendingPaymentRequest, setPendingPaymentRequest] = useState<
         string | null
     >(null);
@@ -66,71 +64,6 @@ function AppContent(): React.JSX.Element {
         }
     }, []);
 
-    // Initialize NFC HCE on mount (Android only)
-    useEffect(() => {
-        if (Platform.OS !== 'android') {
-            return;
-        }
-
-        const initNfc = async () => {
-            try {
-                const NfcHce = NativeModules.NfcHce;
-                if (!NfcHce) {
-                    return;
-                }
-
-                const isAvailable = await NfcHce.isNfcAvailable();
-                const hceSupported = await NfcHce.isHceSupported();
-
-                setIsNfcSupported(isAvailable && hceSupported);
-            } catch (error) {
-                console.error('Error initializing NFC HCE:', error);
-            }
-        };
-
-        initNfc();
-
-        // Cleanup on unmount
-        return () => {
-            if (Platform.OS === 'android' && isNfcSupported) {
-                const NfcHce = NativeModules.NfcHce;
-                if (NfcHce) {
-                    NfcHce.clearBip21Uri().catch(() => {});
-                }
-            }
-        };
-    }, []);
-
-    // NFC Tag Emulation - update BIP21 URI whenever it changes
-    useEffect(() => {
-        if (Platform.OS !== 'android' || !isNfcSupported) {
-            return;
-        }
-
-        const NfcHce = NativeModules.NfcHce;
-        if (!NfcHce) {
-            return;
-        }
-
-        if (nfcUri) {
-            // Set the BIP21 URI for NFC sharing
-            NfcHce.setBip21Uri(nfcUri).catch((error: any) => {
-                console.error('Error setting BIP21 URI:', error);
-            });
-        } else {
-            // Clear the URI when no URI is available
-            NfcHce.clearBip21Uri().catch((error: any) => {
-                console.error('Error clearing BIP21 URI:', error);
-            });
-        }
-
-        return () => {
-            // Clear on cleanup
-            if (NfcHce) {
-                NfcHce.clearBip21Uri().catch(() => {});
-            }
-        };
-    }, [isNfcSupported, nfcUri]);
 
     // Background payment request listener (Android)
     useEffect(() => {
@@ -385,13 +318,6 @@ function AppContent(): React.JSX.Element {
                         Linking.openURL(message.data).catch(err => {
                             console.error('Failed to open URL:', err);
                         });
-                    }
-                    break;
-
-                case 'SET_NFC_URI':
-                    // WebView sends the complete BIP21 URI for NFC sharing
-                    if (message.data && Platform.OS === 'android') {
-                        setNfcUri(message.data);
                     }
                     break;
 
