@@ -774,16 +774,9 @@ async function initializeApp() {
 
     // Add click listeners for Send screen
     const backBtn = document.getElementById('back-btn');
-    const cancelSendBtn = document.getElementById('cancel-send');
 
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            navigation.showScreen(Screen.Main);
-        });
-    }
-
-    if (cancelSendBtn) {
-        cancelSendBtn.addEventListener('click', () => {
             navigation.showScreen(Screen.Main);
         });
     }

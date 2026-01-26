@@ -227,6 +227,10 @@ export class SendScreen {
 
     // Initialize event listeners
     private initializeEventListeners(): void {
+        // Cancel button - navigate back to main screen
+        this.ui.cancelSendBtn.addEventListener('click', () => {
+            this.params.navigation.showScreen(Screen.Main);
+        });
         // Delete existing event listeners first so we use an up-to-date this
         // and can use the cached values in the event handlers.
         this.ui.sendAmountInput.removeEventListener(
