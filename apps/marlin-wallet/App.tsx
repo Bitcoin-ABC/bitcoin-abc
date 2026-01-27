@@ -14,7 +14,6 @@ import {
     StyleSheet,
     View,
     Alert,
-    Dimensions,
     BackHandler,
     NativeModules,
     Platform,
@@ -529,7 +528,6 @@ function App(): React.JSX.Element {
     );
 }
 
-const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -550,8 +548,6 @@ const styles = StyleSheet.create({
     },
     webView: {
         flex: 1,
-        width: width,
-        height: height,
         backgroundColor: 'transparent',
     },
     loadingContainer: {
