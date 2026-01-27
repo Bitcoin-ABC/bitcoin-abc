@@ -111,6 +111,12 @@ describe('empp', () => {
             expect(() => getOvermindEmpp(EmppAction.DISLIKED)).to.throw(
                 'msgId is required for action',
             );
+            expect(() => getOvermindEmpp(EmppAction.BOTTLE_REPLY)).to.throw(
+                'msgId is required for action',
+            );
+            expect(() => getOvermindEmpp(EmppAction.BOTTLE_REPLIED)).to.throw(
+                'msgId is required for action',
+            );
         });
 
         it('should ignore msgId for CLAIM action even if provided', () => {
@@ -181,6 +187,47 @@ describe('empp', () => {
             expect(data1).to.deep.equal(data2);
             expect(data1.length).to.equal(6);
         });
+
+        it('should generate BOTTLE_REPLY action EMPP data with msgId', () => {
+            const msgId = 12345;
+            const data = getOvermindEmpp(EmppAction.BOTTLE_REPLY, msgId);
+
+            expect(data.length).to.equal(10);
+
+            // First 4 bytes should be 'XOVM'
+            expect(data[0]).to.equal(0x58);
+            expect(data[1]).to.equal(0x4f);
+            expect(data[2]).to.equal(0x56);
+            expect(data[3]).to.equal(0x4d);
+
+            // Version byte
+            expect(data[4]).to.equal(0x00);
+
+            // Action byte - BOTTLE_REPLY = 0x06
+            expect(data[5]).to.equal(0x06);
+
+            // msgId should be 12345 in little-endian (0x00003039)
+            expect(data[6]).to.equal(0x39);
+            expect(data[7]).to.equal(0x30);
+            expect(data[8]).to.equal(0x00);
+            expect(data[9]).to.equal(0x00);
+        });
+
+        it('should generate BOTTLE_REPLIED action EMPP data with msgId', () => {
+            const msgId = 67890;
+            const data = getOvermindEmpp(EmppAction.BOTTLE_REPLIED, msgId);
+
+            expect(data.length).to.equal(10);
+
+            // Action byte - BOTTLE_REPLIED = 0x07
+            expect(data[5]).to.equal(0x07);
+
+            // msgId should be 67890 in little-endian (0x00010932)
+            expect(data[6]).to.equal(0x32);
+            expect(data[7]).to.equal(0x09);
+            expect(data[8]).to.equal(0x01);
+            expect(data[9]).to.equal(0x00);
+        });
     });
 
     describe('parseEmppActionCode', () => {
@@ -224,6 +271,20 @@ describe('empp', () => {
             const actionCode = parseEmppActionCode(data);
 
             expect(actionCode).to.equal(EmppAction.WITHDRAW);
+        });
+
+        it('should parse BOTTLE_REPLY action code from valid EMPP data', () => {
+            const data = getOvermindEmpp(EmppAction.BOTTLE_REPLY, 12345);
+            const actionCode = parseEmppActionCode(data);
+
+            expect(actionCode).to.equal(EmppAction.BOTTLE_REPLY);
+        });
+
+        it('should parse BOTTLE_REPLIED action code from valid EMPP data', () => {
+            const data = getOvermindEmpp(EmppAction.BOTTLE_REPLIED, 67890);
+            const actionCode = parseEmppActionCode(data);
+
+            expect(actionCode).to.equal(EmppAction.BOTTLE_REPLIED);
         });
 
         it('should return null for data that is too short', () => {
@@ -292,6 +353,8 @@ describe('empp', () => {
                 EmppAction.DISLIKED,
                 EmppAction.RESPAWN,
                 EmppAction.WITHDRAW,
+                EmppAction.BOTTLE_REPLY,
+                EmppAction.BOTTLE_REPLIED,
             ];
 
             for (const action of actions) {

@@ -148,7 +148,16 @@ const startup = async () => {
                 ctx.message.text || ctx.message.caption || '[Non-text message]';
             console.log(`DM from ${username} (${userId}): ${messageText}`);
         }
-        await handleMessage(ctx, pool, monitoredGroupChatId);
+        await handleMessage(
+            ctx,
+            pool,
+            monitoredGroupChatId,
+            master,
+            chronik,
+            bot,
+            adminGroupChatId,
+            wallet.address,
+        );
     });
     console.info('Message handler registered for monitored group chat');
 

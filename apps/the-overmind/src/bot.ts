@@ -25,6 +25,8 @@ import {
     REWARDS_TOKEN_ID,
     REGISTRATION_REWARD_ATOMS,
     REGISTRATION_REWARD_SATS,
+    BOTTLE_REPLY_AUTHOR_HP_LOSS_PER_BOTTLE,
+    BOTTLE_REPLY_SENDER_HP_LOSS_PER_BOTTLE,
 } from './constants';
 import { getOvermindEmpp, EmppAction } from './empp';
 import { hasWithdrawnInLast24Hours } from './chronik';
@@ -1347,14 +1349,25 @@ export const stats = async (
 /**
  * Handle messages in the monitored group chat
  * Stores messages in the database for reaction tracking
+ * Also handles message replies with 🍼 emoji for HP deductions
  * @param ctx - Grammy context from the message
  * @param pool - Database connection pool
  * @param monitoredGroupChatId - The monitored group chat ID
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param chronik - Chronik client for blockchain operations
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ * @param botWalletAddress - The bot wallet address to receive HP tokens
  */
 export const handleMessage = async (
     ctx: Context,
     pool: Pool,
     monitoredGroupChatId: string,
+    masterNode: HdNode,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+    botWalletAddress: string,
 ): Promise<void> => {
     const chatId = ctx.chat?.id?.toString();
     if (chatId === monitoredGroupChatId && ctx.message?.message_id) {
@@ -1393,6 +1406,99 @@ export const handleMessage = async (
             );
         } catch (err) {
             console.error(`Error storing message ${msgId} in database:`, err);
+        }
+
+        // Check if this is a reply and contains 🍼 emoji
+        const replyToMessage = ctx.message.reply_to_message;
+        if (replyToMessage && replyToMessage.message_id && senderId) {
+            // Count 🍼 emojis in the message text (up to 5)
+            const bottleEmoji = '🍼';
+            const bottleMatches = messageText.match(
+                new RegExp(
+                    bottleEmoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+                    'g',
+                ),
+            );
+            const bottleCount = bottleMatches
+                ? Math.min(bottleMatches.length, 5)
+                : 0;
+
+            if (bottleCount <= 0) {
+                return;
+            }
+
+            // Get the original message author
+            let originalMessageAuthorId: number | null = null;
+            try {
+                const messageResult = await pool.query(
+                    'SELECT user_tg_id FROM messages WHERE msg_id = $1',
+                    [replyToMessage.message_id],
+                );
+                if (
+                    messageResult.rows.length > 0 &&
+                    messageResult.rows[0].user_tg_id
+                ) {
+                    const dbValue = messageResult.rows[0].user_tg_id;
+                    originalMessageAuthorId =
+                        typeof dbValue === 'number'
+                            ? dbValue
+                            : typeof dbValue === 'bigint'
+                              ? Number(dbValue)
+                              : parseInt(String(dbValue), 10);
+                }
+            } catch (err) {
+                console.error(
+                    `Error fetching original message author for ${replyToMessage.message_id}:`,
+                    err,
+                );
+            }
+
+            // Check if both users are registered
+            if (originalMessageAuthorId !== null) {
+                try {
+                    const replySenderResult = await pool.query(
+                        'SELECT user_tg_id FROM users WHERE user_tg_id = $1',
+                        [senderId],
+                    );
+                    const authorResult = await pool.query(
+                        'SELECT user_tg_id FROM users WHERE user_tg_id = $1',
+                        [originalMessageAuthorId],
+                    );
+
+                    if (
+                        replySenderResult.rows.length > 0 &&
+                        authorResult.rows.length > 0
+                    ) {
+                        // Both users are registered, process the bottle reply
+                        await handleBottleReply(
+                            pool,
+                            masterNode,
+                            chronik,
+                            bot,
+                            adminChatId,
+                            botWalletAddress,
+                            senderId,
+                            originalMessageAuthorId,
+                            msgId,
+                            replyToMessage.message_id,
+                            bottleCount,
+                        );
+                    } else {
+                        console.log(
+                            `User ${senderId} or ${originalMessageAuthorId} is not registered, skipping bottle reply processing`,
+                        );
+                    }
+                } catch (err) {
+                    console.error(
+                        'Error checking user registration for bottle reply:',
+                        err,
+                    );
+                }
+            } else {
+                console.log(
+                    `Original message ${replyToMessage.message_id} not found in database, skipping bottle reply processing`,
+                );
+            }
         }
     }
 };
@@ -1826,6 +1932,374 @@ export const handleDislike = async (
             adminChatId,
             'handleDislike (author sending 2HP)',
             messageAuthorUserId,
+            err,
+        );
+    }
+};
+
+/**
+ * Handle sending HP tokens when a message reply contains the 🍼 emoji
+ * The sender of the message being replied to loses 10HP per 🍼 (up to 5) to the bot wallet
+ * The user who typed the 🍼 emoji loses 3HP per 🍼 (up to 5) to the bot wallet
+ * Assumes both users are registered (caller should verify this)
+ * @param pool - Database connection pool
+ * @param masterNode - Master HD node for deriving user wallets
+ * @param chronik - Chronik client for blockchain operations
+ * @param bot - Bot instance for sending admin notifications
+ * @param adminChatId - Admin group chat ID for error notifications
+ * @param botWalletAddress - The bot wallet address to receive HP tokens
+ * @param replySenderUserId - Telegram user ID of the person who sent the reply
+ * @param originalMessageAuthorUserId - Telegram user ID of the original message author
+ * @param replyMsgId - Telegram message ID of the reply for EMPP data push
+ * @param originalMsgId - Telegram message ID of the original message being replied to
+ * @param bottleCount - Number of 🍼 emojis in the reply (capped at 5)
+ */
+export const handleBottleReply = async (
+    pool: Pool,
+    masterNode: HdNode,
+    chronik: ChronikClient,
+    bot: Bot,
+    adminChatId: string,
+    botWalletAddress: string,
+    replySenderUserId: number,
+    originalMessageAuthorUserId: number,
+    replyMsgId: number,
+    originalMsgId: number,
+    bottleCount: number,
+): Promise<void> => {
+    // Cap bottle count at 5
+    const cappedBottleCount = Math.min(bottleCount, 5);
+
+    // Get users' HD indices
+    const replySenderResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [replySenderUserId],
+    );
+    const authorResult = await pool.query(
+        'SELECT hd_index FROM users WHERE user_tg_id = $1',
+        [originalMessageAuthorUserId],
+    );
+
+    if (replySenderResult.rows.length === 0 || authorResult.rows.length === 0) {
+        console.log(
+            `User ${replySenderUserId} or ${originalMessageAuthorUserId} is not registered`,
+        );
+        return;
+    }
+
+    const replySenderHdIndex = replySenderResult.rows[0].hd_index;
+    const authorHdIndex = authorResult.rows[0].hd_index;
+
+    // Don't process if user is replying to their own message
+    if (replySenderUserId === originalMessageAuthorUserId) {
+        return;
+    }
+
+    // Initialize reply sender's wallet
+    const replySenderNode = masterNode.derivePath(
+        `m/44'/1899'/${replySenderHdIndex}'/0/0`,
+    );
+    const replySenderSk = replySenderNode.seckey();
+    if (!replySenderSk) {
+        console.error(
+            `Failed to derive secret key for user ${replySenderUserId}`,
+        );
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleBottleReply (deriving reply sender wallet)',
+            replySenderUserId,
+            new Error('Failed to derive secret key from HD index'),
+        );
+        return;
+    }
+    const replySenderWallet = Wallet.fromSk(replySenderSk, chronik);
+
+    // Initialize original message author's wallet
+    const authorNode = masterNode.derivePath(
+        `m/44'/1899'/${authorHdIndex}'/0/0`,
+    );
+    const authorSk = authorNode.seckey();
+    if (!authorSk) {
+        console.error(
+            `Failed to derive secret key for user ${originalMessageAuthorUserId}`,
+        );
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleBottleReply (deriving author wallet)',
+            originalMessageAuthorUserId,
+            new Error('Failed to derive secret key from HD index'),
+        );
+        return;
+    }
+    const authorWallet = Wallet.fromSk(authorSk, chronik);
+
+    // Sync both wallets to get latest UTXOs
+    try {
+        await replySenderWallet.sync();
+        await authorWallet.sync();
+    } catch (err) {
+        console.error('Error syncing wallets for bottle reply:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleBottleReply (syncing wallets)',
+            replySenderUserId,
+            err,
+        );
+        return;
+    }
+
+    // Get HP balances from wallet UTXOs
+    let replySenderBalance = 0n;
+    let authorBalance = 0n;
+    for (const utxo of replySenderWallet.utxos) {
+        if (
+            typeof utxo.token !== 'undefined' &&
+            utxo.token.tokenId === REWARDS_TOKEN_ID
+        ) {
+            replySenderBalance += utxo.token.atoms;
+        }
+    }
+    for (const utxo of authorWallet.utxos) {
+        if (
+            typeof utxo.token !== 'undefined' &&
+            utxo.token.tokenId === REWARDS_TOKEN_ID
+        ) {
+            authorBalance += utxo.token.atoms;
+        }
+    }
+
+    // Cap bottle count based on reply sender's balance
+    // If they only have enough HP for 1 bottle, they can only do a 1-bottle reply
+    const maxBottlesByReplySenderBalance = Math.floor(
+        Number(replySenderBalance) / BOTTLE_REPLY_SENDER_HP_LOSS_PER_BOTTLE,
+    );
+    const effectiveBottleCount = Math.min(
+        cappedBottleCount,
+        maxBottlesByReplySenderBalance,
+    );
+
+    // If reply sender doesn't have enough HP for even 1 bottle, skip
+    if (effectiveBottleCount === 0) {
+        console.log(
+            `Reply sender ${replySenderUserId} has insufficient HP (${replySenderBalance}) for bottle reply`,
+        );
+        return;
+    }
+
+    // Calculate HP amounts (scaled by effective bottle count)
+    // Author loses HP per bottle, but cap at their current balance
+    const authorHpLossRequested = BigInt(
+        effectiveBottleCount * BOTTLE_REPLY_AUTHOR_HP_LOSS_PER_BOTTLE,
+    );
+    const authorHpLoss =
+        authorHpLossRequested > authorBalance
+            ? authorBalance
+            : authorHpLossRequested;
+
+    // Reply sender loses HP per bottle (already capped by effectiveBottleCount)
+    const replySenderHpLoss = BigInt(
+        effectiveBottleCount * BOTTLE_REPLY_SENDER_HP_LOSS_PER_BOTTLE,
+    );
+
+    // Skip if author has no HP to send
+    if (authorHpLoss === 0n) {
+        console.log(
+            `Original message author ${originalMessageAuthorUserId} has no HP to lose`,
+        );
+        return;
+    }
+
+    // Original message author sends HP to bot wallet
+    try {
+        // Construct EMPP data push for BOTTLE_REPLIED
+        const bottleRepliedEmppData = getOvermindEmpp(
+            EmppAction.BOTTLE_REPLIED,
+            originalMsgId,
+        );
+
+        const authorTokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** HP tokens at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(botWalletAddress),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: authorHpLoss,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: bottleRepliedEmppData,
+                },
+            ],
+        };
+
+        const authorResp = await authorWallet
+            .action(authorTokenSendAction)
+            .build()
+            .broadcast();
+
+        if (!authorResp.success || authorResp.broadcasted.length === 0) {
+            const errorMsg = `Failed to send ${authorHpLoss}HP from original message author to bot. Response: ${JSON.stringify(authorResp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'handleBottleReply (author sending HP)',
+                originalMessageAuthorUserId,
+                new Error(errorMsg),
+            );
+        } else {
+            const txid = authorResp.broadcasted[0];
+            console.log(
+                `Original message author ${originalMessageAuthorUserId} sent ${authorHpLoss}HP to bot wallet. TX: ${txid}`,
+            );
+            // Send notification to admin channel
+            try {
+                const usernames = getUsernamesOrId([
+                    originalMessageAuthorUserId,
+                    replySenderUserId,
+                ]);
+                const authorUsername =
+                    usernames.get(originalMessageAuthorUserId) ||
+                    originalMessageAuthorUserId.toString();
+                const replySenderUsername =
+                    usernames.get(replySenderUserId) ||
+                    replySenderUserId.toString();
+                await bot.api.sendMessage(
+                    adminChatId,
+                    `${authorUsername} [lost ${authorHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply by ${replySenderUsername}`,
+                    {
+                        parse_mode: 'Markdown',
+                        link_preview_options: { is_disabled: true },
+                    },
+                );
+            } catch (err) {
+                console.error(
+                    'Error sending bottle reply notification to admin channel:',
+                    err,
+                );
+            }
+        }
+    } catch (err) {
+        console.error(
+            'Error sending HP from original message author to bot:',
+            err,
+        );
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleBottleReply (author sending HP)',
+            originalMessageAuthorUserId,
+            err,
+        );
+    }
+
+    // Reply sender sends HP to bot wallet
+    try {
+        // Construct EMPP data push for BOTTLE_REPLY
+        const bottleReplyEmppData = getOvermindEmpp(
+            EmppAction.BOTTLE_REPLY,
+            replyMsgId,
+        );
+
+        const replySenderTokenSendAction: payment.Action = {
+            outputs: [
+                /** Blank OP_RETURN at outIdx 0 */
+                { sats: 0n },
+                /** HP tokens at outIdx 1 */
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.fromAddress(botWalletAddress),
+                    tokenId: REWARDS_TOKEN_ID,
+                    atoms: replySenderHpLoss,
+                },
+            ],
+            tokenActions: [
+                /** ALP send action */
+                {
+                    type: 'SEND',
+                    tokenId: REWARDS_TOKEN_ID,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                /** EMPP Data push */
+                {
+                    type: 'DATA',
+                    data: bottleReplyEmppData,
+                },
+            ],
+        };
+
+        const replySenderResp = await replySenderWallet
+            .action(replySenderTokenSendAction)
+            .build()
+            .broadcast();
+
+        if (
+            !replySenderResp.success ||
+            replySenderResp.broadcasted.length === 0
+        ) {
+            const errorMsg = `Failed to send ${replySenderHpLoss}HP from reply sender to bot. Response: ${JSON.stringify(replySenderResp)}`;
+            console.error(errorMsg);
+            await sendErrorToAdmin(
+                bot,
+                adminChatId,
+                'handleBottleReply (reply sender sending HP)',
+                replySenderUserId,
+                new Error(errorMsg),
+            );
+        } else {
+            const txid = replySenderResp.broadcasted[0];
+            console.log(
+                `Reply sender ${replySenderUserId} sent ${replySenderHpLoss}HP to bot wallet. TX: ${txid}`,
+            );
+            // Send notification to admin channel
+            try {
+                const usernames = getUsernamesOrId([
+                    replySenderUserId,
+                    originalMessageAuthorUserId,
+                ]);
+                const replySenderUsername =
+                    usernames.get(replySenderUserId) ||
+                    replySenderUserId.toString();
+                const authorUsername =
+                    usernames.get(originalMessageAuthorUserId) ||
+                    originalMessageAuthorUserId.toString();
+                await bot.api.sendMessage(
+                    adminChatId,
+                    `${replySenderUsername} [lost ${replySenderHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply to ${authorUsername}`,
+                    {
+                        parse_mode: 'Markdown',
+                        link_preview_options: { is_disabled: true },
+                    },
+                );
+            } catch (err) {
+                console.error(
+                    'Error sending bottle reply notification to admin channel:',
+                    err,
+                );
+            }
+        }
+    } catch (err) {
+        console.error('Error sending HP from reply sender to bot:', err);
+        await sendErrorToAdmin(
+            bot,
+            adminChatId,
+            'handleBottleReply (reply sender sending HP)',
+            replySenderUserId,
             err,
         );
     }

@@ -43,6 +43,7 @@ import {
     handleMessageReaction,
     handleLike,
     handleDislike,
+    handleBottleReply,
     loadUsernames,
 } from './bot';
 import { REWARDS_TOKEN_ID } from './constants';
@@ -3893,18 +3894,52 @@ describe('bot', () => {
 
     describe('handleMessage', () => {
         let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let mockBot: Bot;
+        let masterNode: HdNode;
+        let sandbox: sinon.SinonSandbox;
+        let botWalletAddress: string;
         const MONITORED_CHAT_ID = '-1001234567890';
         const OTHER_CHAT_ID = '-1009876543210';
+        const ADMIN_CHAT_ID = '-1001111111111';
         const USER_ID = 12345;
         const USERNAME = 'testuser';
         const MSG_ID = 100;
+        const TEST_MNEMONIC =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
         beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+            mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(TEST_MNEMONIC);
+            masterNode = HdNode.fromSeed(seed);
+
+            // Derive bot wallet address from master node at m/44'/1899'/0'/0/0
+            const botNode = masterNode.derivePath("m/44'/1899'/0'/0/0");
+            const botPubkey = botNode.pubkey();
+            const botPkh = shaRmd160(botPubkey);
+            botWalletAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(botPkh),
+            );
+
             pool = await createTestDb();
         });
 
         afterEach(async () => {
             await pool.end();
+            sandbox.restore();
         });
 
         it('should store text message from monitored chat', async () => {
@@ -3927,7 +3962,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -3960,7 +4004,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -3989,7 +4042,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4019,7 +4081,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4048,7 +4119,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4078,7 +4158,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4107,7 +4196,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4138,7 +4236,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4167,7 +4274,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4196,7 +4312,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4225,7 +4350,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4249,7 +4383,16 @@ describe('bot', () => {
                 from: undefined,
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4279,7 +4422,16 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4311,8 +4463,26 @@ describe('bot', () => {
             } as unknown as Context;
 
             // Insert message twice
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query(
                 'SELECT * FROM messages WHERE msg_id = $1',
@@ -4339,10 +4509,473 @@ describe('bot', () => {
                 },
             } as unknown as Context;
 
-            await handleMessage(mockCtx, pool, MONITORED_CHAT_ID);
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
 
             const result = await pool.query('SELECT * FROM messages');
             expect(result.rows).to.have.length(0);
+        });
+    });
+
+    describe('handleMessage - bottle reply', () => {
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let mockBot: Bot;
+        let masterNode: HdNode;
+        let sandbox: sinon.SinonSandbox;
+        let botWalletAddress: string;
+        const MONITORED_CHAT_ID = '-1001234567890';
+        const ADMIN_CHAT_ID = '-1001111111111';
+        const REPLY_SENDER_USER_ID = 11111;
+        const ORIGINAL_AUTHOR_USER_ID = 22222;
+        const ORIGINAL_MSG_ID = 100;
+        const REPLY_MSG_ID = 101;
+        const TEST_MNEMONIC =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+            mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(TEST_MNEMONIC);
+            masterNode = HdNode.fromSeed(seed);
+
+            // Derive bot wallet address from master node at m/44'/1899'/0'/0/0
+            const botNode = masterNode.derivePath("m/44'/1899'/0'/0/0");
+            const botPubkey = botNode.pubkey();
+            const botPkh = shaRmd160(botPubkey);
+            botWalletAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(botPkh),
+            );
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
+
+            pool = await createTestDb();
+
+            // Create original message in database
+            await pool.query(
+                'INSERT INTO messages (msg_id, message_text, user_tg_id, username) VALUES ($1, $2, $3, $4)',
+                [
+                    ORIGINAL_MSG_ID,
+                    'Original message',
+                    ORIGINAL_AUTHOR_USER_ID,
+                    'author',
+                ],
+            );
+        });
+
+        afterEach(async () => {
+            await pool.end();
+            sandbox.restore();
+        });
+
+        it('should process bottle reply when both users are registered', async () => {
+            // Set up registered users
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await loadUsernames(pool);
+
+            // Set up UTXOs for both users (they need tokens to send)
+            const replySenderSk = replySenderNode.seckey();
+            const authorSk = authorNode.seckey();
+
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n, // Enough tokens
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n, // Enough tokens
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Stub broadcastTx to return success for any transaction
+            const expectedTxid1 =
+                '0000000000000000000000000000000000000000000000000000000000000001';
+            const expectedTxid2 =
+                '0000000000000000000000000000000000000000000000000000000000000002';
+            let callCount = 0;
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                return {
+                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
+                };
+            });
+
+            // Create reply message with 1 bottle emoji
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: '🍼',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            // Check that admin notifications were sent (2 transactions: author loses 10HP, reply sender loses 3HP)
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+            const callArgs1 = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            const callArgs2 = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+
+            // Check that both notifications mention the correct users and HP amounts
+            const messages = [callArgs1[1], callArgs2[1]];
+            const hasAuthorMessage = messages.some(
+                msg => msg.includes('author') && msg.includes('lost 10HP'),
+            );
+            const hasReplySenderMessage = messages.some(
+                msg => msg.includes('replySender') && msg.includes('lost 3HP'),
+            );
+            expect(hasAuthorMessage).to.equal(true);
+            expect(hasReplySenderMessage).to.equal(true);
+        });
+
+        it('should not process bottle reply when only 1 user is registered', async () => {
+            // Set up only reply sender as registered
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+
+            await loadUsernames(pool);
+
+            // Create reply message with 1 bottle emoji
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: '🍼',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            // Should not send any admin notifications (no transactions processed)
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should process bottle reply with 3 bottles when both users are registered', async () => {
+            // Set up registered users
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await loadUsernames(pool);
+
+            // Set up UTXOs for both users
+            const replySenderSk = replySenderNode.seckey();
+            const authorSk = authorNode.seckey();
+
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Stub broadcastTx to return success for any transaction
+            const expectedTxid1 =
+                '0000000000000000000000000000000000000000000000000000000000000001';
+            const expectedTxid2 =
+                '0000000000000000000000000000000000000000000000000000000000000002';
+            let callCount = 0;
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                return {
+                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
+                };
+            });
+
+            // Create reply message with 3 bottle emojis
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: '🍼🍼🍼',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            // Check that admin notifications were sent with correct HP amounts
+            // Author should lose 30HP (10 * 3), reply sender should lose 9HP (3 * 3)
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+            const callArgs1 = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            const callArgs2 = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+
+            const messages = [callArgs1[1], callArgs2[1]];
+            const hasAuthorMessage = messages.some(
+                msg => msg.includes('author') && msg.includes('lost 30HP'),
+            );
+            const hasReplySenderMessage = messages.some(
+                msg => msg.includes('replySender') && msg.includes('lost 9HP'),
+            );
+            expect(hasAuthorMessage).to.equal(true);
+            expect(hasReplySenderMessage).to.equal(true);
         });
     });
 
@@ -5088,6 +5721,672 @@ describe('bot', () => {
                 parse_mode: 'Markdown',
                 link_preview_options: { is_disabled: true },
             });
+        });
+    });
+
+    describe('handleBottleReply', () => {
+        let pool: Pool;
+        let mockChronik: MockChronikClient;
+        let mockBot: Bot;
+        let masterNode: HdNode;
+        let sandbox: sinon.SinonSandbox;
+        let botWalletAddress: string;
+        let replySenderNode: HdNode;
+        let replySenderAddress: string;
+        let authorNode: HdNode;
+        let authorAddress: string;
+        const ADMIN_CHAT_ID = '-1001234567890';
+        const REPLY_SENDER_USER_ID = 55555;
+        const ORIGINAL_AUTHOR_USER_ID = 66666;
+        // Test mnemonic for deriving HD wallets
+        const TEST_MNEMONIC =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+        beforeEach(async () => {
+            sandbox = sinon.createSandbox();
+
+            // Create mock bot
+            mockBot = {
+                api: {
+                    sendMessage: sandbox.stub().resolves({
+                        message_id: 1,
+                        date: Date.now(),
+                        chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                        text: 'test',
+                    }),
+                },
+            } as unknown as Bot;
+
+            // Create mock chronik client
+            mockChronik = new MockChronikClient();
+
+            // Initialize master node from test mnemonic
+            const seed = mnemonicToSeed(TEST_MNEMONIC);
+            masterNode = HdNode.fromSeed(seed);
+
+            // Derive bot wallet address from master node at m/44'/1899'/0'/0/0
+            const botNode = masterNode.derivePath("m/44'/1899'/0'/0/0");
+            const botPubkey = botNode.pubkey();
+            const botPkh = shaRmd160(botPubkey);
+            botWalletAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(botPkh),
+            );
+
+            // Mock blockchain info
+            if (!mockChronik.blockchainInfo) {
+                mockChronik.blockchainInfo = () =>
+                    Promise.resolve({ tipHash: 'mock_tip', tipHeight: 800000 });
+            }
+
+            // Create in-memory database
+            pool = await createTestDb();
+
+            // Create registered users with HD indices
+            // Derive addresses from master node
+            replySenderNode = masterNode.derivePath("m/44'/1899'/5'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            authorNode = masterNode.derivePath("m/44'/1899'/6'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 5, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 6, 'author'],
+            );
+
+            // Load usernames into memory
+            await loadUsernames(pool);
+
+            // Set up UTXOs for reply sender's wallet (they need tokens to send)
+            const replySenderSk = replySenderNode.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000007',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n, // Enough tokens to send bottle replies
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000008',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n, // XEC for fees
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Set up UTXOs for author's wallet (they need tokens to send)
+            const authorSk = authorNode.seckey();
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000009',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n, // Enough tokens to send 10HP per bottle
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '000000000000000000000000000000000000000000000000000000000000000a',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n, // XEC for fees
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Stub broadcastTx to return success for any transaction
+            const expectedTxid1 =
+                '0000000000000000000000000000000000000000000000000000000000000001';
+            const expectedTxid2 =
+                '0000000000000000000000000000000000000000000000000000000000000002';
+            let callCount = 0;
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                return {
+                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
+                };
+            });
+        });
+
+        afterEach(async () => {
+            sandbox.restore();
+            if (pool) {
+                await pool.end();
+            }
+        });
+
+        it('should send 10HP from author to bot and 3HP from reply sender to bot for 1 bottle', async () => {
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should send two admin notifications on success (one for author, one for reply sender)
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check author notification (first call)
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(authorCallArgs[0]).to.equal(ADMIN_CHAT_ID);
+            // Verify usernames are used (set in beforeEach: 'author' and 'replySender')
+            expect(authorCallArgs[1]).to.include('author');
+            expect(authorCallArgs[1]).to.include('replySender');
+            expect(authorCallArgs[1]).to.include('lost 10HP');
+            expect(authorCallArgs[1]).to.include('bottle reply');
+            expect(authorCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
+
+            // Check reply sender notification (second call)
+            const replySenderCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(replySenderCallArgs[0]).to.equal(ADMIN_CHAT_ID);
+            expect(replySenderCallArgs[1]).to.include('replySender');
+            expect(replySenderCallArgs[1]).to.include('author');
+            expect(replySenderCallArgs[1]).to.include('lost 3HP');
+            expect(replySenderCallArgs[1]).to.include('bottle reply');
+            expect(replySenderCallArgs[2]).to.deep.equal({
+                parse_mode: 'Markdown',
+                link_preview_options: { is_disabled: true },
+            });
+        });
+
+        it('should send correct HP amounts for 3 bottles (30HP from author, 9HP from reply sender)', async () => {
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                3, // bottleCount
+            );
+
+            // Should send two admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check author notification
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(authorCallArgs[1]).to.include('lost 30HP');
+
+            // Check reply sender notification
+            const replySenderCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(replySenderCallArgs[1]).to.include('lost 9HP');
+        });
+
+        it('should cap bottle count at 5', async () => {
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                10, // bottleCount (should be capped at 5)
+            );
+
+            // Should send two admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check author notification - should be 50HP (10 * 5), not 100HP (10 * 10)
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(authorCallArgs[1]).to.include('lost 50HP');
+            expect(authorCallArgs[1]).to.not.include('lost 100HP');
+
+            // Check reply sender notification - should be 15HP (3 * 5), not 30HP (3 * 10)
+            const replySenderCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(replySenderCallArgs[1]).to.include('lost 15HP');
+            expect(replySenderCallArgs[1]).to.not.include('lost 30HP');
+        });
+
+        it('should use usernames instead of user IDs in admin notifications', async () => {
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should send two admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check author notification
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            const authorMessage = authorCallArgs[1];
+
+            // Verify usernames are used instead of user IDs
+            expect(authorMessage).to.include('author');
+            expect(authorMessage).to.include('replySender');
+            expect(authorMessage).to.not.include(
+                ORIGINAL_AUTHOR_USER_ID.toString(),
+            );
+            expect(authorMessage).to.not.include(
+                REPLY_SENDER_USER_ID.toString(),
+            );
+
+            // Check reply sender notification
+            const replySenderCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            const replySenderMessage = replySenderCallArgs[1];
+
+            // Verify usernames are used instead of user IDs
+            expect(replySenderMessage).to.include('replySender');
+            expect(replySenderMessage).to.include('author');
+            expect(replySenderMessage).to.not.include(
+                REPLY_SENDER_USER_ID.toString(),
+            );
+            expect(replySenderMessage).to.not.include(
+                ORIGINAL_AUTHOR_USER_ID.toString(),
+            );
+        });
+
+        it('should skip if reply sender is not registered', async () => {
+            // Remove reply sender from database
+            await pool.query('DELETE FROM users WHERE user_tg_id = $1', [
+                REPLY_SENDER_USER_ID,
+            ]);
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should not send admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should skip if original author is not registered', async () => {
+            // Remove author from database
+            await pool.query('DELETE FROM users WHERE user_tg_id = $1', [
+                ORIGINAL_AUTHOR_USER_ID,
+            ]);
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should not send admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should skip if user is replying to their own message', async () => {
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                REPLY_SENDER_USER_ID, // Same user
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should not send tokens or admin notification
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should send admin notification on author transaction failure', async () => {
+            // Make broadcastTx fail for author's transaction
+            let callCount = 0;
+            sandbox.restore();
+            sandbox = sinon.createSandbox();
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                if (callCount === 1) {
+                    // First call (author) fails
+                    throw new Error('Broadcast failed');
+                }
+                // Second call (reply sender) succeeds
+                return {
+                    txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                };
+            });
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should send error notification for author transaction failure
+            // Plus reply sender success notification
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check that error notification was sent
+            const errorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(errorCallArgs[1]).to.include('🚨 **Bot Action Error**');
+            expect(errorCallArgs[1]).to.include(
+                'handleBottleReply (author sending HP)',
+            );
+        });
+
+        it('should send admin notification on reply sender transaction failure', async () => {
+            // Make broadcastTx fail for reply sender's transaction
+            let callCount = 0;
+            sandbox.restore();
+            sandbox = sinon.createSandbox();
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                if (callCount === 1) {
+                    // First call (author) succeeds
+                    return {
+                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                    };
+                }
+                // Second call (reply sender) fails
+                throw new Error('Broadcast failed');
+            });
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should send author success notification plus error notification for reply sender
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check that error notification was sent
+            const errorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(errorCallArgs[1]).to.include('🚨 **Bot Action Error**');
+            expect(errorCallArgs[1]).to.include(
+                'handleBottleReply (reply sender sending HP)',
+            );
+        });
+
+        it('should skip if reply sender has no HP', async () => {
+            // Set up UTXOs for reply sender with no tokens (only XEC)
+            const replySenderSk = replySenderNode!.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress!, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000007',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n, // Only XEC, no tokens
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Author still has tokens
+            const authorSk = authorNode!.seckey();
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress!, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000009',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '000000000000000000000000000000000000000000000000000000000000000a',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should not send any admin notifications (no transactions processed)
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should send all author HP if they have less than required (9 HP instead of 10)', async () => {
+            // Set up UTXOs for reply sender with enough tokens
+            const replySenderSk = replySenderNode!.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress!, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000007',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n, // Enough tokens
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000008',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            // Set up UTXOs for author with only 9 HP (less than 10 required for 1 bottle)
+            const authorSk = authorNode!.seckey();
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress!, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000009',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 9n, // Only 9 HP (less than 10 required)
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '000000000000000000000000000000000000000000000000000000000000000a',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            await handleBottleReply(
+                pool,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+                REPLY_SENDER_USER_ID,
+                ORIGINAL_AUTHOR_USER_ID,
+                300, // replyMsgId
+                200, // originalMsgId
+                1, // bottleCount
+            );
+
+            // Should send two admin notifications
+            expect(mockBot.api.sendMessage).to.have.callCount(2);
+
+            // Check author notification - should say they lost 9HP (all they have), not 10HP
+            const authorCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(authorCallArgs[1]).to.include('author');
+            expect(authorCallArgs[1]).to.include('lost 9HP');
+            expect(authorCallArgs[1]).to.not.include('lost 10HP');
+
+            // Check reply sender notification - should still say 3HP
+            const replySenderCallArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(1).args;
+            expect(replySenderCallArgs[1]).to.include('lost 3HP');
         });
     });
 });

@@ -15,6 +15,8 @@ export enum EmppAction {
     DISLIKED = 0x03,
     RESPAWN = 0x04,
     WITHDRAW = 0x05,
+    BOTTLE_REPLY = 0x06,
+    BOTTLE_REPLIED = 0x07,
 }
 
 /**
@@ -63,7 +65,7 @@ export const parseEmppActionCode = (emppData: Uint8Array): number | null => {
     try {
         // Minimum length: 4 (lokadId) + 1 (version) + 1 (action) = 6 bytes
         // Actions without msgId (CLAIM, RESPAWN, WITHDRAW) are 6 bytes
-        // Actions with msgId (LIKE, DISLIKE, DISLIKED) are 10 bytes
+        // Actions with msgId (LIKE, DISLIKE, DISLIKED, BOTTLE_REPLY, BOTTLE_REPLIED) are 10 bytes
         if (emppData.length < 6) {
             return null;
         }

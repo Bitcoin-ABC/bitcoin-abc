@@ -39,3 +39,15 @@ export const LOKAD_ID = 'XOVM';
  * Used by the daily topup cron job to maintain user balances
  */
 export const TARGET_XEC_SATS = 1000_00n; // 1,000.00 XEC
+
+/**
+ * HP loss per bottle emoji for the original message author in bottle replies
+ * The author loses this amount per 🍼 emoji (up to 5)
+ */
+export const BOTTLE_REPLY_AUTHOR_HP_LOSS_PER_BOTTLE = 10;
+
+/**
+ * HP loss per bottle emoji for the reply sender in bottle replies
+ * The reply sender loses this amount per 🍼 emoji (up to 5)
+ */
+export const BOTTLE_REPLY_SENDER_HP_LOSS_PER_BOTTLE = 3;
