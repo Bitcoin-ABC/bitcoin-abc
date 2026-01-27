@@ -6,6 +6,8 @@
 // NAVIGATION MANAGER
 // ============================================================================
 
+import { sendMessageToBackend } from './common';
+
 export enum Screen {
     Main = 'main',
     Send = 'send',
@@ -71,6 +73,9 @@ export class Navigation {
         }
 
         this.currentScreen = screen;
+
+        // Notify React Native of screen change
+        sendMessageToBackend('SCREEN_CHANGE', screen);
     }
 
     // Get current screen

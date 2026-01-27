@@ -23,6 +23,8 @@ import {
     AppState,
     Modal,
     Text,
+    ScrollView,
+    RefreshControl,
 } from 'react-native';
 import {
     SafeAreaProvider,
@@ -47,6 +49,8 @@ function AppContent(): React.JSX.Element {
     const walletReadyRef = useRef<boolean>(false);
     const [showPaymentSuccessModal, setShowPaymentSuccessModal] =
         useState<boolean>(false);
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [currentScreen, setCurrentScreen] = useState<string>('main');
 
     // Get the bundle path on mount for iOS
     useEffect(() => {
@@ -189,6 +193,17 @@ function AppContent(): React.JSX.Element {
         } else {
             console.error('WebView ref is null, cannot send message');
         }
+    };
+
+    // Handle pull-to-refresh
+    const onRefresh = async () => {
+        setRefreshing(true);
+        // Send sync message to WebView
+        sendMessageToWebView({
+            type: 'SYNC_WALLET',
+        });
+        // The WebView will send back a SYNC_COMPLETE message when done
+        // We'll reset refreshing state in the message handler
     };
 
     // Trigger haptic feedback with variable intensity
@@ -341,6 +356,18 @@ function AppContent(): React.JSX.Element {
                     }
                     break;
 
+                case 'SYNC_COMPLETE':
+                    // Wallet sync completed, stop refresh indicator
+                    setRefreshing(false);
+                    break;
+
+                case 'SCREEN_CHANGE':
+                    // Screen changed in WebView, update current screen state
+                    if (message.data) {
+                        setCurrentScreen(message.data);
+                    }
+                    break;
+
                 case 'SEND_ADDRESS_TO_WATCH':
                     // Send wallet address and BIP21 prefix to watch (Wear OS / Apple Watch)
                     if (message.data) {
@@ -420,14 +447,27 @@ function AppContent(): React.JSX.Element {
                 backgroundColor="transparent"
                 hidden={false}
             />
-            <View
+            <ScrollView
                 style={[
-                    styles.webViewContainer,
+                    styles.scrollView,
                     {
                         paddingTop: insets.top,
                         paddingBottom: insets.bottom,
                     },
                 ]}
+                contentContainerStyle={styles.scrollViewContent}
+                scrollEnabled={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        enabled={currentScreen === 'main'}
+                        tintColor="#ffffff"
+                        colors={['#ffffff']}
+                        size="large"
+                        progressBackgroundColor="#1a1a1a40"
+                    />
+                }
             >
                 <WebView
                     ref={webViewRef}
@@ -459,7 +499,7 @@ function AppContent(): React.JSX.Element {
                         console.error('WebView HTTP error:', nativeEvent);
                     }}
                 />
-            </View>
+            </ScrollView>
             <Modal
                 visible={showPaymentSuccessModal}
                 transparent={true}
@@ -497,6 +537,12 @@ const styles = StyleSheet.create({
     loadingScreen: {
         flex: 1,
         backgroundColor: '#000000',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollViewContent: {
+        flexGrow: 1,
     },
     webViewContainer: {
         flex: 1,

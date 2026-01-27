@@ -14,7 +14,6 @@ import {
     Fiat,
     ProviderStrategy,
 } from 'ecash-price';
-import PullToRefresh from 'pulltorefreshjs';
 import { TransactionHistoryManager } from './transaction-history';
 import {
     PostConsensusFinalizationResult,
@@ -276,29 +275,6 @@ async function loadWallet(forceReload: boolean = false) {
     }
 
     await loadWalletFromMnemonic(mnemonic);
-}
-
-// ============================================================================
-// PULL-TO-REFRESH FUNCTIONS
-// ============================================================================
-
-// Pull-to-refresh functions using PullToRefresh.js library
-function initPullToRefresh() {
-    PullToRefresh.init({
-        mainElement: '.container',
-        onRefresh: async () => {
-            try {
-                await syncWallet();
-            } catch (error) {
-                webViewError('Failed pull-to-refresh sync:', error);
-                throw error;
-            }
-        },
-        shouldPullToRefresh: () => {
-            // Only allow pull-to-refresh on the main screen
-            return navigation.getCurrentScreen() === Screen.Main;
-        },
-    });
 }
 
 // ============================================================================
@@ -631,9 +607,6 @@ async function initializeApp() {
         settingsIconEl.src = settingsIcon;
     }
 
-    // Initialize pull-to-refresh
-    initPullToRefresh();
-
     // Always require authentication on app launch (for security)
     // Show loading screen with an opaque background for better privacy: we want
     // to avoid anybody seeing the content of the wallet before the
@@ -805,16 +778,22 @@ async function handlePaymentRequest(event: any) {
                 webViewError('Invalid BIP21 URI:', bip21Uri);
             }
         } else if (message.type === 'SYNC_WALLET') {
-            // Sync wallet and reconnect WebSocket when app comes to foreground
-            webViewLog('Received sync request from app foreground');
-            if (ecashWallet) {
-                // Sync wallet first to update balance
-                await syncWallet();
-                // Then reconnect WebSocket and resubscribe to address
-                const address = getAddress(ecashWallet);
-                if (address) {
-                    await subscribeToAddress(address);
+            // Sync wallet and reconnect WebSocket
+            try {
+                if (ecashWallet) {
+                    // Sync wallet first to update balance
+                    await syncWallet();
+                    // Then reconnect WebSocket and resubscribe to address
+                    const address = getAddress(ecashWallet);
+                    if (address) {
+                        await subscribeToAddress(address);
+                    }
                 }
+            } catch (error) {
+                webViewError('Failed to sync wallet:', error);
+            } finally {
+                // Notify native app that sync is complete
+                sendMessageToBackend('SYNC_COMPLETE', null);
             }
         }
     } catch {
