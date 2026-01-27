@@ -49,6 +49,7 @@ export class TransactionManager {
     // Update wallet reference
     updateWallet(wallet: Wallet | null): void {
         this.params.ecashWallet = wallet;
+        this.sync();
     }
 
     // Get current balance state

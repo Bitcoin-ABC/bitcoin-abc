@@ -484,6 +484,23 @@ async function syncWallet() {
         if (transactionManager) {
             transactionManager.sync();
         }
+
+        // Update the display
+        const pricePerXec = await priceFetcher?.current(
+            appSettings.fiatCurrency,
+        );
+        if (mainScreen) {
+            mainScreen.updateTransitionalBalance(
+                transactionManager.getTransitionalBalanceSats(),
+                pricePerXec,
+            );
+            mainScreen.updateAvailableBalanceDisplay(
+                0,
+                satsToXec(transactionManager.getAvailableBalanceSats()),
+                pricePerXec,
+                false,
+            );
+        }
     } catch (error) {
         webViewError('Failed to sync wallet:', error);
 
