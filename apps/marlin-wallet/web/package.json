@@ -1,6 +1,6 @@
 {
     "name": "marlin-wallet-web",
-    "version": "1.5.0",
+    "version": "1.7.0",
     "description": "Marlin Wallet Web Application",
     "main": "index.html",
     "scripts": {
