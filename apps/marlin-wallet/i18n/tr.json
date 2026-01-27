@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Geri",
+        "cancel": "İptal",
+        "close": "Kapat",
+        "edit": "Düzenle",
+        "error": "Hata",
+        "loading": "Yükleniyor...",
+        "save": "Kaydet",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Manuel Giriş",
+        "noCameraAvailable": "Kamera Mevcut Değil",
+        "noCameraDescription": "Bu cihazda kamera erişimi mevcut değil. Bir adres girmek için aşağıdaki \"Manuel Giriş\" düğmesini kullanın.",
+        "title": "Kamera"
+    },
+    "errors": {
+        "anErrorOccurred": "Bir hata oluştu",
+        "failedToLoadWallet": "Cüzdan yüklenemedi",
+        "failedToSendTransaction": "İşlem gönderilemedi",
+        "insufficientFunds": "Yetersiz bakiye",
+        "invalidAddress": "Geçersiz adres",
+        "transactionFailed": "İşlem başarısız oldu"
+    },
+    "history": {
+        "loadingTransactions": "İşlemler yükleniyor...",
+        "noTransactions": "Henüz işlem yok",
+        "title": "İşlem Geçmişi",
+        "viewInExplorer": "Gezginde Görüntüle"
+    },
+    "loading": {
+        "authenticationRequired": "Kimlik doğrulama gerekli"
+    },
+    "main": {
+        "generatingWallet": "Cüzdan oluşturuluyor...",
+        "history": "Geçmiş",
+        "scanQRCode": "QR Kod Tara",
+        "settings": "Ayarlar",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Alıcı Adresiniz"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Anımsatıcıyı Düzenle",
+        "enterMnemonic": "12 kelimelik kurtarma ifadenizi girin",
+        "failedToSave": "Anımsatıcı kaydedilemedi. Lütfen tekrar deneyin.",
+        "invalidMnemonic": "Geçersiz anımsatıcı. Lütfen geçerli bir 12 kelimelik kurtarma ifadesi girin.",
+        "mnemonicSaved": "Anımsatıcı başarıyla kaydedildi",
+        "thisWillReplaceWallet": "Bu, mevcut cüzdanınızın yerini alacaktır."
+    },
+    "native": {
+        "closeWallet": "Cüzdanı kapat",
+        "authenticateToStore": "Cüzdan özel anahtarınızı depolamak için kimlik doğrulaması yapın",
+        "authenticateToStoreDescription": "Özel anahtarınızı cihazın güvenli depolama alanına kaydetmek için bu gereklidir",
+        "authenticateToAccess": "Cüzdanınıza erişmek için kimlik doğrulaması yapın",
+        "authenticateToAccessDescription": "Özel anahtarınızı güvenli depolama alanından yüklemek için bu gereklidir",
+        "paymentSent": "Ödeme gönderildi!",
+        "returningToPaymentSite": "Ödeme sitesine dönülüyor..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Tutar",
+        "cancel": "İptal",
+        "enterAmount": "Tutar Girin",
+        "holdToSend": "Göndermek İçin Basılı Tutun",
+        "max": "Maks",
+        "min": "Min",
+        "networkFee": "Ağ Ücreti",
+        "recipientAddress": "Alıcı Adresi",
+        "recipientAddressPlaceholder": "eCash adresi girin",
+        "send": "Gönder",
+        "sending": "Gönderiliyor...",
+        "title": "Gönder",
+        "total": "Toplam"
+    },
+    "settings": {
+        "editMnemonic": "Anımsatıcıyı Düzenle",
+        "fiatCurrency": "Fiat Para Birimi",
+        "fiatCurrencyDescription": "Fiyat görüntüleme ve dönüşümler için kullanılacak fiat para birimini seçin.",
+        "language": "Dil",
+        "languageDescription": "Uygulama arayüzü için dili seçin.",
+        "requireHoldToSend": "Göndermek İçin Basılı Tutmayı Gerektir",
+        "requireHoldToSendDescription": "Etkinleştirildiğinde, işlemi onaylamak için gönder düğmesini 1 saniye basılı tutmanız gerekir.",
+        "title": "Ayarlar",
+        "useFiatAsPrimary": "Fiat'ı Ana Bakiye Olarak Kullan",
+        "useFiatAsPrimaryDescription": "Etkinleştirildiğinde, Fiat'ı ana bakiye ve XEC'i ikincil olarak gösterir.",
+        "walletMnemonic": "Cüzdan Anımsatıcısı",
+        "walletMnemonicDescription": "12 kelimelik kurtarma ifadeniz. Güvenli bir şekilde yedeklediğinizden emin olun!"
+    }
+}

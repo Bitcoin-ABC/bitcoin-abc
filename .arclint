@@ -95,7 +95,8 @@
                 "(^web/e.cash/public/animations/)",
                 "(pnpm-lock.yaml)",
                 "(^electrum/electrumabc/wordlist/)",
-                "(^doc/standards/)"
+                "(^doc/standards/)",
+                "(^apps/marlin-wallet/i18n/.*\\.json$)"
             ],
             "spelling.dictionaries": [
                 "test/lint/dictionary/english.json"

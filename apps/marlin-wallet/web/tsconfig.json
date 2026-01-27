@@ -5,7 +5,6 @@
         "moduleResolution": "node",
         "lib": ["ES2020", "DOM", "DOM.Iterable"],
         "outDir": "./dist",
-        "rootDir": "./src",
         "strict": false,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -13,6 +12,6 @@
         "allowSyntheticDefaultImports": true,
         "resolveJsonModule": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "../i18n/**/*"],
     "exclude": ["node_modules", "dist"]
 }

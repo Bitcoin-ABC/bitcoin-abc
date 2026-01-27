@@ -8,14 +8,16 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Marlin Wallet</title>
+        <title data-i18n="app.title">Marlin Wallet</title>
     </head>
     <body>
         <!-- Loading Screen -->
         <div id="loading" class="loading-screen" style="display: none">
             <div class="loading-content">
                 <div class="loading-spinner"></div>
-                <div class="loading-text">Loading...</div>
+                <div class="loading-text" data-i18n="app.loading">
+                    Loading...
+                </div>
             </div>
         </div>
 
@@ -26,9 +28,18 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
             style="display: none"
         >
             <div class="error-modal-content">
-                <h3 class="error-modal-title">Error</h3>
-                <p class="error-modal-message">An error occurred</p>
-                <button id="error-modal-close" class="btn btn-primary">
+                <h3 class="error-modal-title" data-i18n="app.error">Error</h3>
+                <p
+                    class="error-modal-message"
+                    data-i18n="errors.anErrorOccurred"
+                >
+                    An error occurred
+                </p>
+                <button
+                    id="error-modal-close"
+                    class="btn btn-primary"
+                    data-i18n="app.close"
+                >
                     Close
                 </button>
             </div>
@@ -39,8 +50,12 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
             <!-- Header -->
             <div class="header">
                 <div class="title">
-                    <img id="marlin-logo" alt="Marlin Wallet" />
-                    <h1>Marlin Wallet</h1>
+                    <img
+                        id="marlin-logo"
+                        alt="Marlin Wallet"
+                        data-i18n="[alt]main.title"
+                    />
+                    <h1 data-i18n="main.title">Marlin Wallet</h1>
                 </div>
                 <div class="header-buttons">
                     <div class="history-btn">
@@ -50,6 +65,7 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                                 alt="History"
                                 width="24"
                                 height="24"
+                                data-i18n="[alt]main.history"
                             />
                         </button>
                     </div>
@@ -63,6 +79,7 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                                 alt="Settings"
                                 width="24"
                                 height="24"
+                                data-i18n="[alt]main.settings"
                             />
                         </button>
                     </div>
@@ -89,8 +106,17 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
                     <!-- Address Section -->
                     <div class="address-section">
-                        <div class="card-label">Your Receiving Address</div>
-                        <div class="address" id="address">
+                        <div
+                            class="card-label"
+                            data-i18n="main.yourReceivingAddress"
+                        >
+                            Your Receiving Address
+                        </div>
+                        <div
+                            class="address"
+                            id="address"
+                            data-i18n="main.generatingWallet"
+                        >
                             Generating wallet...
                         </div>
 
@@ -103,8 +129,17 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
                 <!-- Scan Button -->
                 <div class="scan-section">
-                    <button class="scan-btn" id="scan-btn" title="Scan QR Code">
-                        <img id="qr-icon" alt="Scan QR Code" />
+                    <button
+                        class="scan-btn"
+                        id="scan-btn"
+                        title="Scan QR Code"
+                        data-i18n="[title]main.scanQRCode"
+                    >
+                        <img
+                            id="qr-icon"
+                            alt="Scan QR Code"
+                            data-i18n="[alt]main.scanQRCode"
+                        />
                     </button>
                 </div>
             </div>
@@ -114,9 +149,13 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
         <div id="send-screen" class="screen hidden">
             <div class="screen-header">
                 <button class="back-btn" id="back-btn">
-                    <img alt="Back" class="back-arrow-icon" />
+                    <img
+                        alt="Back"
+                        class="back-arrow-icon"
+                        data-i18n="[alt]app.back"
+                    />
                 </button>
-                <h2>Send eCash</h2>
+                <h2 data-i18n="send.title">Send eCash</h2>
             </div>
 
             <div class="container">
@@ -130,22 +169,31 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                         id="paybutton-logo"
                         alt="PayButton"
                         class="paybutton-logo"
+                        data-i18n="[alt]paybutton.title"
                     />
                 </div>
                 <div class="card">
                     <div class="form-group">
-                        <label for="recipient-address">Recipient Address</label>
+                        <label
+                            for="recipient-address"
+                            data-i18n="send.recipientAddress"
+                            >Recipient Address</label
+                        >
                         <input
                             type="text"
                             id="recipient-address"
                             placeholder="Enter eCash address"
+                            data-i18n="[placeholder]send.recipientAddressPlaceholder"
                             readonly
                         />
                     </div>
 
                     <div class="form-group">
                         <label for="send-amount"
-                            >Amount (<span id="ticker-label"></span>)</label
+                            ><span data-i18n="send.amount">Amount</span> (<span
+                                id="ticker-label"
+                            ></span
+                            >)</label
                         >
                         <input
                             type="number"
@@ -180,11 +228,15 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                 <div id="fee-display" class="card" style="display: none"></div>
 
                 <div class="send-actions">
-                    <button class="btn btn-secondary" id="cancel-send">
+                    <button
+                        class="btn btn-secondary"
+                        id="cancel-send"
+                        data-i18n="send.cancel"
+                    >
                         Cancel
                     </button>
                     <button class="btn btn-primary" id="confirm-send">
-                        <span>Send</span>
+                        <span data-i18n="send.send">Send</span>
                     </button>
                 </div>
             </div>
@@ -194,9 +246,13 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
         <div id="history-screen" class="screen hidden">
             <div class="screen-header">
                 <button class="back-btn" id="history-back-btn">
-                    <img alt="Back" class="back-arrow-icon" />
+                    <img
+                        alt="Back"
+                        class="back-arrow-icon"
+                        data-i18n="[alt]app.back"
+                    />
                 </button>
-                <h2>Transaction History</h2>
+                <h2 data-i18n="history.title">Transaction History</h2>
             </div>
 
             <div class="container">
@@ -204,7 +260,9 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                     <div class="transaction-list" id="transaction-list">
                         <div class="loading-transactions">
                             <div class="loading-spinner"></div>
-                            <p>Loading transactions...</p>
+                            <p data-i18n="history.loadingTransactions">
+                                Loading transactions...
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -215,17 +273,25 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
         <div id="settings-screen" class="screen hidden">
             <div class="screen-header">
                 <button class="back-btn" id="settings-back-btn">
-                    <img alt="Back" class="back-arrow-icon" />
+                    <img
+                        alt="Back"
+                        class="back-arrow-icon"
+                        data-i18n="[alt]app.back"
+                    />
                 </button>
-                <h2>Settings</h2>
+                <h2 data-i18n="settings.title">Settings</h2>
             </div>
 
             <div class="container">
                 <div class="card">
                     <div class="setting-item">
                         <div class="setting-info">
-                            <h3>Require Hold to Send</h3>
-                            <p>
+                            <h3 data-i18n="settings.requireHoldToSend">
+                                Require Hold to Send
+                            </h3>
+                            <p
+                                data-i18n="settings.requireHoldToSendDescription"
+                            >
                                 When enabled, you must hold the send button for
                                 1 second to confirm the transaction.
                             </p>
@@ -241,8 +307,10 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                     </div>
                     <div class="setting-item">
                         <div class="setting-info">
-                            <h3>Use Fiat as Primary Balance</h3>
-                            <p>
+                            <h3 data-i18n="settings.useFiatAsPrimary">
+                                Use Fiat as Primary Balance
+                            </h3>
+                            <p data-i18n="settings.useFiatAsPrimaryDescription">
                                 When enabled, displays Fiat as the primary
                                 balance and XEC as secondary. When disabled,
                                 displays XEC as primary and Fiat as secondary.
@@ -258,8 +326,10 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                     </div>
                     <div class="setting-item">
                         <div class="setting-info">
-                            <h3>Fiat Currency</h3>
-                            <p>
+                            <h3 data-i18n="settings.fiatCurrency">
+                                Fiat Currency
+                            </h3>
+                            <p data-i18n="settings.fiatCurrencyDescription">
                                 Select the fiat currency to use for price
                                 display and conversions.
                             </p>
@@ -273,13 +343,34 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                     </div>
                     <div class="setting-item">
                         <div class="setting-info">
-                            <h3>Wallet Mnemonic</h3>
-                            <p>
+                            <h3 data-i18n="settings.language">Language</h3>
+                            <p data-i18n="settings.languageDescription">
+                                Select the language for the application
+                                interface.
+                            </p>
+                        </div>
+                        <select
+                            id="language-select"
+                            class="fiat-currency-select"
+                        >
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 data-i18n="settings.walletMnemonic">
+                                Wallet Mnemonic
+                            </h3>
+                            <p data-i18n="settings.walletMnemonicDescription">
                                 Your 12-word recovery phrase. Make sure to back
                                 it up securely!
                             </p>
                         </div>
-                        <button class="btn btn-primary" id="edit-mnemonic-btn">
+                        <button
+                            class="btn btn-primary"
+                            id="edit-mnemonic-btn"
+                            data-i18n="settings.editMnemonic"
+                        >
                             Edit
                         </button>
                     </div>
@@ -298,22 +389,28 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
         >
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Edit Mnemonic</h3>
+                    <h3 data-i18n="mnemonic.editMnemonicText">Edit Mnemonic</h3>
                     <button class="close-btn" id="close-mnemonic-modal">
                         ×
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p class="modal-description">
+                    <p
+                        class="modal-description"
+                        data-i18n="mnemonic.enterMnemonic"
+                    >
                         Enter your 12-word recovery phrase.
                     </p>
                     <p class="modal-warning">
                         <span class="warning-icon">⚠️</span>
-                        <strong>This will replace your current wallet.</strong>
+                        <strong data-i18n="mnemonic.thisWillReplaceWallet"
+                            >This will replace your current wallet.</strong
+                        >
                     </p>
                     <textarea
                         id="mnemonic-edit-text"
                         placeholder="Enter 12 words separated by spaces"
+                        data-i18n="[placeholder]mnemonic.enterMnemonicPlaceholder"
                     ></textarea>
                     <div
                         class="validation-message"
@@ -322,10 +419,18 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                     ></div>
                 </div>
                 <div class="modal-actions">
-                    <button class="btn btn-secondary" id="cancel-mnemonic-edit">
+                    <button
+                        class="btn btn-secondary"
+                        id="cancel-mnemonic-edit"
+                        data-i18n="app.cancel"
+                    >
                         Cancel
                     </button>
-                    <button class="btn btn-primary" id="save-mnemonic-edit">
+                    <button
+                        class="btn btn-primary"
+                        id="save-mnemonic-edit"
+                        data-i18n="app.save"
+                    >
                         Save
                     </button>
                 </div>
@@ -336,7 +441,7 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
         <div class="camera-modal hidden" id="camera-modal">
             <div class="camera-container">
                 <div class="camera-header">
-                    <h3>Scan QR Code</h3>
+                    <h3 data-i18n="main.scanQRCode">Scan QR Code</h3>
                     <button class="close-btn" id="close-camera">×</button>
                 </div>
                 <div class="camera-content">
@@ -348,10 +453,15 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                         id="no-camera-fallback"
                         class="no-camera-fallback hidden"
                     >
-                        <img id="no-camera-icon" alt="Camera" />
-                        <!-- <div class="no-camera-icon">📷</div> -->
-                        <h3>No Camera Available</h3>
-                        <p>
+                        <img
+                            id="no-camera-icon"
+                            alt="Camera"
+                            data-i18n="[alt]camera.title"
+                        />
+                        <h3 data-i18n="camera.noCameraAvailable">
+                            No Camera Available
+                        </h3>
+                        <p data-i18n="camera.noCameraDescription">
                             Camera access is not available on this device. Use
                             the "Manual Entry" button below to enter an address.
                         </p>
@@ -362,8 +472,12 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                         class="btn btn-secondary manual-entry-btn"
                         id="manual-entry-btn"
                     >
-                        <img id="edit-icon" alt="Edit" />
-                        Manual Entry
+                        <img
+                            id="edit-icon"
+                            alt="Edit"
+                            data-i18n="[alt]app.edit"
+                        />
+                        <span data-i18n="camera.manualEntry">Manual Entry</span>
                     </button>
                 </div>
             </div>

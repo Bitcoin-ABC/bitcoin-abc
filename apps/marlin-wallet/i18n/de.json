@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Zurück",
+        "cancel": "Abbrechen",
+        "close": "Schließen",
+        "edit": "Bearbeiten",
+        "error": "Fehler",
+        "loading": "Lädt...",
+        "save": "Speichern",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Manuelle Eingabe",
+        "noCameraAvailable": "Keine Kamera verfügbar",
+        "noCameraDescription": "Der Kamerazugriff ist auf diesem Gerät nicht verfügbar. Verwenden Sie die Schaltfläche \"Manuelle Eingabe\" unten, um eine Adresse einzugeben.",
+        "title": "Kamera"
+    },
+    "errors": {
+        "anErrorOccurred": "Ein Fehler ist aufgetreten",
+        "failedToLoadWallet": "Wallet konnte nicht geladen werden",
+        "failedToSendTransaction": "Transaktion konnte nicht gesendet werden",
+        "insufficientFunds": "Unzureichende Mittel",
+        "invalidAddress": "Ungültige Adresse",
+        "transactionFailed": "Transaktion fehlgeschlagen"
+    },
+    "history": {
+        "loadingTransactions": "Transaktionen werden geladen...",
+        "noTransactions": "Noch keine Transaktionen",
+        "title": "Transaktionsverlauf",
+        "viewInExplorer": "Im Explorer anzeigen"
+    },
+    "loading": {
+        "authenticationRequired": "Authentifizierung erforderlich"
+    },
+    "main": {
+        "generatingWallet": "Wallet wird generiert...",
+        "history": "Verlauf",
+        "scanQRCode": "QR-Code scannen",
+        "settings": "Einstellungen",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Ihre Empfangsadresse"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Mnemonic bearbeiten",
+        "enterMnemonic": "Geben Sie Ihren 12-Wörter-Wiederherstellungssatz ein",
+        "failedToSave": "Mnemonic konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+        "invalidMnemonic": "Ungültiger Mnemonic. Bitte geben Sie einen gültigen 12-Wörter-Wiederherstellungssatz ein.",
+        "mnemonicSaved": "Mnemonic erfolgreich gespeichert",
+        "thisWillReplaceWallet": "Dies ersetzt Ihr aktuelles Wallet."
+    },
+    "native": {
+        "closeWallet": "Wallet schließen",
+        "authenticateToStore": "Authentifizieren Sie sich, um Ihren Wallet-Private-Key zu speichern",
+        "authenticateToStoreDescription": "Dies ist erforderlich, um Ihren Private-Key im sicheren Speicher des Geräts zu speichern",
+        "authenticateToAccess": "Authentifizieren Sie sich, um auf Ihr Wallet zuzugreifen",
+        "authenticateToAccessDescription": "Dies ist erforderlich, um Ihren Private-Key aus dem sicheren Speicher zu laden",
+        "paymentSent": "Zahlung gesendet!",
+        "returningToPaymentSite": "Zurück zur Zahlungsseite..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Betrag",
+        "cancel": "Abbrechen",
+        "enterAmount": "Betrag eingeben",
+        "holdToSend": "Gedrückt halten zum Senden",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Netzwerkgebühr",
+        "recipientAddress": "Empfängeradresse",
+        "recipientAddressPlaceholder": "eCash-Adresse eingeben",
+        "send": "Senden",
+        "sending": "Wird gesendet...",
+        "title": "Senden",
+        "total": "Gesamt"
+    },
+    "settings": {
+        "editMnemonic": "Mnemonic bearbeiten",
+        "fiatCurrency": "Fiat-Währung",
+        "fiatCurrencyDescription": "Wählen Sie die Fiat-Währung für die Preisanzeige und Umrechnungen.",
+        "language": "Sprache",
+        "languageDescription": "Wählen Sie die Sprache für die Anwendungsoberfläche.",
+        "requireHoldToSend": "Gedrückt halten zum Senden erforderlich",
+        "requireHoldToSendDescription": "Wenn aktiviert, müssen Sie die Senden-Schaltfläche 1 Sekunde lang gedrückt halten, um die Transaktion zu bestätigen.",
+        "title": "Einstellungen",
+        "useFiatAsPrimary": "Fiat als Hauptsaldo verwenden",
+        "useFiatAsPrimaryDescription": "Wenn aktiviert, wird Fiat als Hauptsaldo und XEC als sekundär angezeigt.",
+        "walletMnemonic": "Wallet-Mnemonic",
+        "walletMnemonicDescription": "Ihr 12-Wörter-Wiederherstellungssatz. Stellen Sie sicher, dass Sie ihn sicher sichern!"
+    }
+}

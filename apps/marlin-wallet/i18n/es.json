@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Atrás",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "edit": "Editar",
+        "error": "Error",
+        "loading": "Cargando...",
+        "save": "Guardar",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Entrada Manual",
+        "noCameraAvailable": "Cámara No Disponible",
+        "noCameraDescription": "El acceso a la cámara no está disponible en este dispositivo. Use el botón \"Entrada Manual\" a continuación para ingresar una dirección.",
+        "title": "Cámara"
+    },
+    "errors": {
+        "anErrorOccurred": "Ocurrió un error",
+        "failedToLoadWallet": "Error al cargar la billetera",
+        "failedToSendTransaction": "Error al enviar la transacción",
+        "insufficientFunds": "Fondos insuficientes",
+        "invalidAddress": "Dirección inválida",
+        "transactionFailed": "La transacción falló"
+    },
+    "history": {
+        "loadingTransactions": "Cargando transacciones...",
+        "noTransactions": "Aún no hay transacciones",
+        "title": "Historial de Transacciones",
+        "viewInExplorer": "Ver en Explorador"
+    },
+    "loading": {
+        "authenticationRequired": "Autenticación requerida"
+    },
+    "main": {
+        "generatingWallet": "Generando billetera...",
+        "history": "Historial",
+        "scanQRCode": "Escanear Código QR",
+        "settings": "Configuración",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Tu Dirección de Recepción"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Editar Frase de Recuperación",
+        "enterMnemonic": "Ingrese su frase de recuperación de 12 palabras",
+        "failedToSave": "Error al guardar la frase de recuperación. Por favor, intente nuevamente.",
+        "invalidMnemonic": "Frase de recuperación inválida. Por favor ingrese una frase de recuperación válida de 12 palabras.",
+        "mnemonicSaved": "Frase de recuperación guardada exitosamente",
+        "thisWillReplaceWallet": "Esto reemplazará su billetera actual."
+    },
+    "native": {
+        "closeWallet": "Cerrar la billetera",
+        "authenticateToStore": "Autentíquese para almacenar su clave privada de la billetera",
+        "authenticateToStoreDescription": "Esto es necesario para almacenar su clave privada en el almacenamiento seguro del dispositivo",
+        "authenticateToAccess": "Autentíquese para acceder a su billetera",
+        "authenticateToAccessDescription": "Esto es necesario para cargar su clave privada desde el almacenamiento seguro",
+        "paymentSent": "¡Pago enviado!",
+        "returningToPaymentSite": "Volviendo al sitio de pago..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Cantidad",
+        "cancel": "Cancelar",
+        "enterAmount": "Ingrese Cantidad",
+        "holdToSend": "Mantener para Enviar",
+        "max": "Máx",
+        "min": "Mín",
+        "networkFee": "Tarifa de Red",
+        "recipientAddress": "Dirección del Destinatario",
+        "recipientAddressPlaceholder": "Ingrese dirección eCash",
+        "send": "Enviar",
+        "sending": "Enviando...",
+        "title": "Enviar",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Editar Frase de Recuperación",
+        "fiatCurrency": "Moneda Fiat",
+        "fiatCurrencyDescription": "Seleccione la moneda fiat para usar en la visualización de precios y conversiones.",
+        "language": "Idioma",
+        "languageDescription": "Seleccione el idioma para la interfaz de la aplicación.",
+        "requireHoldToSend": "Requerir Mantener para Enviar",
+        "requireHoldToSendDescription": "Cuando está habilitado, debes mantener presionado el botón de envío durante 1 segundo para confirmar la transacción.",
+        "title": "Configuración",
+        "useFiatAsPrimary": "Usar Fiat como Balance Principal",
+        "useFiatAsPrimaryDescription": "Cuando está habilitado, muestra Fiat como balance principal y XEC como secundario.",
+        "walletMnemonic": "Frase de Recuperación de la Billetera",
+        "walletMnemonicDescription": "Su frase de recuperación de 12 palabras. ¡Asegúrese de respaldarla de forma segura!"
+    }
+}

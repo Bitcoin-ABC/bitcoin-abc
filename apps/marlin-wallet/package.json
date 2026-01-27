@@ -19,7 +19,9 @@
         "web": "pnpm run build-web && cd web && pnpm run start"
     },
     "dependencies": {
+        "i18next": "^25.8.0",
         "react": "19.2.3",
+        "react-i18next": "^16.5.4",
         "react-native": "^0.83.1",
         "react-native-haptic-feedback": "^2.3.3",
         "react-native-keychain": "^10.0.0",

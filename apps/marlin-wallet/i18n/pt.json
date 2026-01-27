@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Voltar",
+        "cancel": "Cancelar",
+        "close": "Fechar",
+        "edit": "Editar",
+        "error": "Erro",
+        "loading": "Carregando...",
+        "save": "Salvar",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Entrada Manual",
+        "noCameraAvailable": "Câmera Não Disponível",
+        "noCameraDescription": "O acesso à câmera não está disponível neste dispositivo. Use o botão \"Entrada Manual\" abaixo para inserir um endereço.",
+        "title": "Câmera"
+    },
+    "errors": {
+        "anErrorOccurred": "Ocorreu um erro",
+        "failedToLoadWallet": "Falha ao carregar a carteira",
+        "failedToSendTransaction": "Falha ao enviar a transação",
+        "insufficientFunds": "Fundos insuficientes",
+        "invalidAddress": "Endereço inválido",
+        "transactionFailed": "Transação falhou"
+    },
+    "history": {
+        "loadingTransactions": "Carregando transações...",
+        "noTransactions": "Ainda não há transações",
+        "title": "Histórico de Transações",
+        "viewInExplorer": "Ver no Explorador"
+    },
+    "loading": {
+        "authenticationRequired": "Autenticação necessária"
+    },
+    "main": {
+        "generatingWallet": "Gerando carteira...",
+        "history": "Histórico",
+        "scanQRCode": "Escanear Código QR",
+        "settings": "Configurações",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Seu Endereço de Recebimento"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Editar Mnemônico",
+        "enterMnemonic": "Digite sua frase de recuperação de 12 palavras",
+        "failedToSave": "Falha ao salvar o mnemônico. Tente novamente.",
+        "invalidMnemonic": "Mnemônico inválido. Digite uma frase de recuperação válida de 12 palavras.",
+        "mnemonicSaved": "Mnemônico salvo com sucesso",
+        "thisWillReplaceWallet": "Isso substituirá sua carteira atual."
+    },
+    "native": {
+        "closeWallet": "Fechar a carteira",
+        "authenticateToStore": "Autentique-se para armazenar sua chave privada da carteira",
+        "authenticateToStoreDescription": "Isso é necessário para armazenar sua chave privada no armazenamento seguro do dispositivo",
+        "authenticateToAccess": "Autentique-se para acessar sua carteira",
+        "authenticateToAccessDescription": "Isso é necessário para carregar sua chave privada do armazenamento seguro",
+        "paymentSent": "Pagamento enviado!",
+        "returningToPaymentSite": "Retornando ao site de pagamento..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Valor",
+        "cancel": "Cancelar",
+        "enterAmount": "Digite o Valor",
+        "holdToSend": "Segure para Enviar",
+        "max": "Máx",
+        "min": "Mín",
+        "networkFee": "Taxa de Rede",
+        "recipientAddress": "Endereço do Destinatário",
+        "recipientAddressPlaceholder": "Digite o endereço eCash",
+        "send": "Enviar",
+        "sending": "Enviando...",
+        "title": "Enviar",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Editar Mnemônico",
+        "fiatCurrency": "Moeda Fiat",
+        "fiatCurrencyDescription": "Selecione a moeda fiat para usar na exibição de preços e conversões.",
+        "language": "Idioma",
+        "languageDescription": "Selecione o idioma para a interface do aplicativo.",
+        "requireHoldToSend": "Exigir Segurar para Enviar",
+        "requireHoldToSendDescription": "Quando habilitado, você deve segurar o botão de envio por 1 segundo para confirmar a transação.",
+        "title": "Configurações",
+        "useFiatAsPrimary": "Usar Fiat como Saldo Principal",
+        "useFiatAsPrimaryDescription": "Quando habilitado, exibe Fiat como saldo principal e XEC como secundário.",
+        "walletMnemonic": "Mnemônico da Carteira",
+        "walletMnemonicDescription": "Sua frase de recuperação de 12 palavras. Certifique-se de fazer backup com segurança!"
+    }
+}

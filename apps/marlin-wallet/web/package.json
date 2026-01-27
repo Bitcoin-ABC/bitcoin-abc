@@ -19,6 +19,7 @@
         "ecash-lib": "file:../../../modules/ecash-lib",
         "ecash-price": "file:../../../modules/ecash-price",
         "ecash-wallet": "file:../../../modules/ecash-wallet",
+        "i18next": "^25.8.0",
         "qr-scanner": "^1.4.2",
         "qrcode": "^1.5.4",
         "randombytes": "^2.1.0"

@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Назад",
+        "cancel": "Отмена",
+        "close": "Закрыть",
+        "edit": "Редактировать",
+        "error": "Ошибка",
+        "loading": "Загрузка...",
+        "save": "Сохранить",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Ручной ввод",
+        "noCameraAvailable": "Камера недоступна",
+        "noCameraDescription": "Доступ к камере недоступен на этом устройстве. Используйте кнопку \"Ручной ввод\" ниже для ввода адреса.",
+        "title": "Камера"
+    },
+    "errors": {
+        "anErrorOccurred": "Произошла ошибка",
+        "failedToLoadWallet": "Не удалось загрузить кошелек",
+        "failedToSendTransaction": "Не удалось отправить транзакцию",
+        "insufficientFunds": "Недостаточно средств",
+        "invalidAddress": "Неверный адрес",
+        "transactionFailed": "Транзакция не удалась"
+    },
+    "history": {
+        "loadingTransactions": "Загрузка транзакций...",
+        "noTransactions": "Транзакций пока нет",
+        "title": "История транзакций",
+        "viewInExplorer": "Просмотр в обозревателе"
+    },
+    "loading": {
+        "authenticationRequired": "Требуется аутентификация"
+    },
+    "main": {
+        "generatingWallet": "Создание кошелька...",
+        "history": "История",
+        "scanQRCode": "Сканировать QR-код",
+        "settings": "Настройки",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Ваш адрес для получения"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Редактировать мнемоническую фразу",
+        "enterMnemonic": "Введите вашу 12-словную фразу восстановления",
+        "failedToSave": "Не удалось сохранить мнемоническую фразу. Пожалуйста, попробуйте снова.",
+        "invalidMnemonic": "Неверная мнемоническая фраза. Пожалуйста, введите действительную 12-словную фразу восстановления.",
+        "mnemonicSaved": "Мнемоническая фраза успешно сохранена",
+        "thisWillReplaceWallet": "Это заменит ваш текущий кошелек."
+    },
+    "native": {
+        "closeWallet": "Закрыть кошелек",
+        "authenticateToStore": "Пройдите аутентификацию для сохранения вашего приватного ключа кошелька",
+        "authenticateToStoreDescription": "Это необходимо для сохранения вашего приватного ключа в безопасном хранилище устройства",
+        "authenticateToAccess": "Пройдите аутентификацию для доступа к вашему кошельку",
+        "authenticateToAccessDescription": "Это необходимо для загрузки вашего приватного ключа из безопасного хранилища",
+        "paymentSent": "Платеж отправлен!",
+        "returningToPaymentSite": "Возврат на сайт платежа..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Сумма",
+        "cancel": "Отмена",
+        "enterAmount": "Введите сумму",
+        "holdToSend": "Удерживайте для отправки",
+        "max": "Макс",
+        "min": "Мин",
+        "networkFee": "Комиссия сети",
+        "recipientAddress": "Адрес получателя",
+        "recipientAddressPlaceholder": "Введите адрес eCash",
+        "send": "Отправить",
+        "sending": "Отправка...",
+        "title": "Отправить",
+        "total": "Итого"
+    },
+    "settings": {
+        "editMnemonic": "Редактировать мнемоническую фразу",
+        "fiatCurrency": "Фиатная валюта",
+        "fiatCurrencyDescription": "Выберите фиатную валюту для отображения цен и конвертации.",
+        "language": "Язык",
+        "languageDescription": "Выберите язык для интерфейса приложения.",
+        "requireHoldToSend": "Требовать удержание для отправки",
+        "requireHoldToSendDescription": "При включении необходимо удерживать кнопку отправки в течение 1 секунды для подтверждения транзакции.",
+        "title": "Настройки",
+        "useFiatAsPrimary": "Использовать фиатную валюту как основной баланс",
+        "useFiatAsPrimaryDescription": "При включении отображает фиатную валюту как основной баланс и XEC как вторичный.",
+        "walletMnemonic": "Мнемоническая фраза кошелька",
+        "walletMnemonicDescription": "Ваша 12-словная фраза восстановления. Обязательно сделайте безопасную резервную копию!"
+    }
+}

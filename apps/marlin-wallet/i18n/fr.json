@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Retour",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "edit": "Modifier",
+        "error": "Erreur",
+        "loading": "Chargement...",
+        "save": "Enregistrer",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Saisie manuelle",
+        "noCameraAvailable": "Aucune caméra disponible",
+        "noCameraDescription": "L'accès à la caméra n'est pas disponible sur cet appareil. Utilisez le bouton \"Saisie manuelle\" ci-dessous pour entrer une adresse.",
+        "title": "Caméra"
+    },
+    "errors": {
+        "anErrorOccurred": "Une erreur s'est produite",
+        "failedToLoadWallet": "Échec du chargement du portefeuille",
+        "failedToSendTransaction": "Échec de l'envoi de la transaction",
+        "insufficientFunds": "Fonds insuffisants",
+        "invalidAddress": "Adresse invalide",
+        "transactionFailed": "La transaction a échoué"
+    },
+    "history": {
+        "loadingTransactions": "Chargement des transactions...",
+        "noTransactions": "Aucune transaction pour le moment",
+        "title": "Historique des transactions",
+        "viewInExplorer": "Voir dans l'explorateur"
+    },
+    "loading": {
+        "authenticationRequired": "Authentification requise"
+    },
+    "main": {
+        "generatingWallet": "Génération du portefeuille...",
+        "history": "Historique",
+        "scanQRCode": "Scanner le QR code",
+        "settings": "Paramètres",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Votre adresse de réception"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Modifier la phrase de récupération",
+        "enterMnemonic": "Entrez votre phrase de récupération de 12 mots",
+        "failedToSave": "Échec de l'enregistrement de la phrase de récupération. Veuillez réessayer.",
+        "invalidMnemonic": "Phrase de récupération invalide. Veuillez entrer une phrase de récupération valide de 12 mots. Attention: les mots sont en anglais.",
+        "mnemonicSaved": "Phrase de récupération enregistrée avec succès",
+        "thisWillReplaceWallet": "Cela remplacera votre portefeuille actuel."
+    },
+    "native": {
+        "closeWallet": "Fermer le portefeuille",
+        "authenticateToStore": "Authentifiez-vous pour stocker votre clé privée",
+        "authenticateToStoreDescription": "Ceci est requis pour stocker votre clé privée dans le stockage sécurisé de l'appareil",
+        "authenticateToAccess": "Authentifiez-vous pour accéder à votre portefeuille",
+        "authenticateToAccessDescription": "Ceci est requis pour charger votre clé privée depuis le stockage sécurisé",
+        "paymentSent": "Paiement envoyé !",
+        "returningToPaymentSite": "Retour au site de paiement..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Montant",
+        "cancel": "Annuler",
+        "enterAmount": "Entrez le montant",
+        "holdToSend": "Maintenir pour envoyer",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Frais de réseau",
+        "recipientAddress": "Adresse du destinataire",
+        "recipientAddressPlaceholder": "Entrez une adresse eCash",
+        "send": "Envoyer",
+        "sending": "Envoi en cours...",
+        "title": "Envoyer",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Modifier",
+        "fiatCurrency": "Devise fiduciale",
+        "fiatCurrencyDescription": "Sélectionnez la devise fiduciale à utiliser pour l'affichage des montants.",
+        "language": "Langue",
+        "languageDescription": "Sélectionnez la langue pour l'interface de l'application.",
+        "requireHoldToSend": "Maintenir pour envoyer",
+        "requireHoldToSendDescription": "Lorsqu'activé, vous devez maintenir le bouton d'envoi pendant 1 seconde pour confirmer l'envoi de la transaction.",
+        "title": "Paramètres",
+        "useFiatAsPrimary": "Utiliser la monnaie fiduciale comme unité principale",
+        "useFiatAsPrimaryDescription": "Lorsqu'activé, utilise la monnaie fiduciale comme unité principale et XEC comme unité secondaire.",
+        "walletMnemonic": "Phrase de récupération du portefeuille",
+        "walletMnemonicDescription": "Votre phrase de récupération de 12 mots (en anglais). Assurez-vous de la sauvegarder dans un endroit sécurisé !"
+    }
+}

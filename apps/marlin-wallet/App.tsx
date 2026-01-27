@@ -33,6 +33,8 @@ import { WebView } from 'react-native-webview';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import * as Keychain from 'react-native-keychain';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import './src/i18n';
 
 // Interface for messages to and from the WebView
 interface WebViewMessage {
@@ -41,6 +43,7 @@ interface WebViewMessage {
 }
 
 function AppContent(): React.JSX.Element {
+    const { t, i18n } = useTranslation();
     const insets = useSafeAreaInsets();
     const webViewRef = useRef<WebView>(null);
     const [webViewSource, setWebViewSource] = useState<any>(null);
@@ -219,15 +222,14 @@ function AppContent(): React.JSX.Element {
 
     // Store mnemonic in secure keychain storage
     const storeMnemonic = async (mnemonic: string): Promise<void> => {
-        const closeWalletMessage = 'Close the wallet';
+        const closeWalletMessage = t('native.closeWallet');
         try {
             await Keychain.setGenericPassword('MarlinWallet', mnemonic, {
                 accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
                 accessGroup: undefined,
                 authenticationPrompt: {
-                    title: 'Authenticate to store your wallet private key',
-                    description:
-                        'This is required to store your private key to the device secure storage',
+                    title: t('native.authenticateToStore'),
+                    description: t('native.authenticateToStoreDescription'),
                     cancel: closeWalletMessage,
                 },
                 service: 'MarlinWallet',
@@ -246,13 +248,12 @@ function AppContent(): React.JSX.Element {
     const loadMnemonic = async (): Promise<string | null> => {
         // TODO Fallback to watch-only mode if the user cancels the authentication
         // const watchOnlyMessage = 'Open in watch-only mode';
-        const watchOnlyMessage = 'Close the wallet';
+        const watchOnlyMessage = t('native.closeWallet');
         try {
             const credentials = await Keychain.getGenericPassword({
                 authenticationPrompt: {
-                    title: 'Authenticate to access your wallet',
-                    description:
-                        'This is required to load your private key from the secure storage',
+                    title: t('native.authenticateToAccess'),
+                    description: t('native.authenticateToAccessDescription'),
                     cancel: watchOnlyMessage,
                 },
                 service: 'MarlinWallet',
@@ -364,6 +365,13 @@ function AppContent(): React.JSX.Element {
                     // Screen changed in WebView, update current screen state
                     if (message.data) {
                         setCurrentScreen(message.data);
+                    }
+                    break;
+
+                case 'LOCALE_CHANGED':
+                    // Locale changed in WebView, sync to React Native
+                    if (message.data) {
+                        i18n.changeLanguage(message.data);
                     }
                     break;
 
@@ -510,8 +518,9 @@ function AppContent(): React.JSX.Element {
                             <Text style={styles.checkIcon}>✓</Text>
                         </View>
                         <Text style={styles.modalText}>
-                            Payment sent!{'\n'}
-                            Returning to the payment site...
+                            {t('native.paymentSent')}
+                            {'\n'}
+                            {t('native.returningToPaymentSite')}
                         </Text>
                     </View>
                 </View>

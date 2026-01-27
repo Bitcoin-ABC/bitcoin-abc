@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "वापस",
+        "cancel": "रद्द करें",
+        "close": "बंद करें",
+        "edit": "बदलें",
+        "error": "गड़बड़",
+        "loading": "लोड हो रहा है…",
+        "save": "सेव करें",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "खुद डालें",
+        "noCameraAvailable": "कैमरा नहीं है",
+        "noCameraDescription": "इस फोन में कैमरा नहीं है। पता डालने के लिए नीचे \"खुद डालें\" दबाएं।",
+        "title": "कैमरा"
+    },
+    "errors": {
+        "anErrorOccurred": "कुछ गलत हुआ",
+        "failedToLoadWallet": "वॉलेट नहीं खुला",
+        "failedToSendTransaction": "लेनदेन नहीं हुआ",
+        "insufficientFunds": "बैलेंस कम है",
+        "invalidAddress": "गलत पता",
+        "transactionFailed": "लेनदेन फेल"
+    },
+    "history": {
+        "loadingTransactions": "लेनदेन लोड हो रहे हैं…",
+        "noTransactions": "कोई लेनदेन नहीं",
+        "title": "लेनदेन",
+        "viewInExplorer": "एक्सप्लोरर में देखें"
+    },
+    "loading": {
+        "authenticationRequired": "वेरिफिकेशन चाहिए"
+    },
+    "main": {
+        "generatingWallet": "वॉलेट बन रहा है…",
+        "history": "लेनदेन",
+        "scanQRCode": "QR स्कैन",
+        "settings": "सेटिंग्स",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "आपका पता"
+    },
+    "mnemonic": {
+        "editMnemonicText": "रिकवरी बदलें",
+        "enterMnemonic": "12 शब्द डालें",
+        "failedToSave": "सेव नहीं हुआ",
+        "invalidMnemonic": "रिकवरी गलत",
+        "mnemonicSaved": "रिकवरी सेव हो गई",
+        "thisWillReplaceWallet": "वॉलेट बदल जाएगा"
+    },
+    "native": {
+        "closeWallet": "वॉलेट बंद करें",
+        "authenticateToStore": "वॉलेट सुरक्षित करें",
+        "authenticateToStoreDescription": "सुरक्षा के लिए वेरिफिकेशन चाहिए",
+        "authenticateToAccess": "वॉलेट खोलें",
+        "authenticateToAccessDescription": "वेरिफिकेशन चाहिए",
+        "paymentSent": "लेनदेन हो गया!",
+        "returningToPaymentSite": "पेमेंट पेज पर जा रहे हैं…"
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "रकम",
+        "cancel": "रद्द करें",
+        "enterAmount": "रकम डालें",
+        "holdToSend": "दबाकर रखें",
+        "max": "मैक्स",
+        "min": "मिन",
+        "networkFee": "चार्ज",
+        "recipientAddress": "पता",
+        "recipientAddressPlaceholder": "eCash पता",
+        "send": "भेजें",
+        "sending": "भेजा जा रहा है…",
+        "title": "भेजें",
+        "total": "कुल"
+    },
+    "settings": {
+        "editMnemonic": "रिकवरी बदलें",
+        "fiatCurrency": "करेंसी",
+        "fiatCurrencyDescription": "कीमत दिखाने की करेंसी",
+        "language": "भाषा",
+        "languageDescription": "ऐप की भाषा",
+        "requireHoldToSend": "दबाकर रखें",
+        "requireHoldToSendDescription": "कन्फर्म के लिए 1 सेकंड दबाएं",
+        "title": "सेटिंग्स",
+        "useFiatAsPrimary": "₹ में दिखाएं",
+        "useFiatAsPrimaryDescription": "पहले ₹, फिर XEC",
+        "walletMnemonic": "रिकवरी",
+        "walletMnemonicDescription": "12 शब्दों की रिकवरी। सुरक्षित रखें!"
+    }
+}

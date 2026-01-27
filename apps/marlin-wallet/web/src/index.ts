@@ -37,6 +37,7 @@ import { HistoryScreen } from './screen/history';
 import { SendScreen } from './screen/send';
 import { MainScreen } from './screen/main';
 import { paybuttonDeepLinkToBip21Uri } from './paybutton';
+import { changeLocale, initI18n, t } from './i18n';
 
 // Styles
 import './main.css';
@@ -91,6 +92,7 @@ let appSettings: AppSettings = {
     requireHoldToSend: true,
     primaryBalanceType: 'XEC',
     fiatCurrency: Fiat.USD,
+    locale: 'en',
 };
 
 // ============================================================================
@@ -543,6 +545,12 @@ async function syncWallet() {
 async function initializeApp() {
     webViewLog('Initializing app...');
 
+    // Load saved settings first to get locale preference
+    appSettings = loadSettings();
+
+    // Initialize i18n with locale from settings
+    await initI18n(appSettings.locale);
+
     // Detect if running in standalone web browser (not in mobile WebView)
     // In mobile app, the WebView has transparent background and shows React Native gradient
     // In standalone web, we need to apply a CSS gradient background
@@ -552,9 +560,6 @@ async function initializeApp() {
 
     // Initialize navigation
     navigation = new Navigation();
-
-    // Load saved settings
-    appSettings = loadSettings();
 
     // Initialize ticker symbols in HTML
     const tickerElements = [
@@ -628,7 +633,7 @@ async function initializeApp() {
     // Show loading screen with an opaque background for better privacy: we want
     // to avoid anybody seeing the content of the wallet before the
     // authentication is complete.
-    showLoadingScreen('Authentication required');
+    showLoadingScreen(t('loading.authenticationRequired'));
 
     chronik = await ChronikClient.useStrategy(
         ConnectionStrategy.ClosestFirst,
@@ -738,6 +743,16 @@ async function initializeApp() {
                 false,
             );
         }
+    });
+
+    settingsScreen.onLocaleChange(async (newLocale: string) => {
+        // Change locale and reload translations
+        changeLocale(newLocale);
+        // Refresh the address display to override the "generating..." message
+        if (mainScreen) {
+            mainScreen.updateAddressDisplay();
+        }
+        webViewLog(`Locale changed to ${newLocale}`);
     });
 
     settingsScreen.onMnemonicSaved(async (mnemonic: string) => {

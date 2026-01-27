@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "戻る",
+        "cancel": "キャンセル",
+        "close": "閉じる",
+        "edit": "編集",
+        "error": "エラー",
+        "loading": "読み込み中...",
+        "save": "保存",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "手動入力",
+        "noCameraAvailable": "カメラが利用できません",
+        "noCameraDescription": "このデバイスはカメラへのアクセスが利用できません。下の「手動入力」ボタンを使用してアドレスを入力してください。",
+        "title": "カメラ"
+    },
+    "errors": {
+        "anErrorOccurred": "エラーが発生しました",
+        "failedToLoadWallet": "ウォレットの読み込みが失敗しました",
+        "failedToSendTransaction": "トランザクションの送信が失敗しました",
+        "insufficientFunds": "残高不足",
+        "invalidAddress": "無効なアドレス",
+        "transactionFailed": "トランザクションが失敗しました"
+    },
+    "history": {
+        "loadingTransactions": "トランザクションを読み込み中...",
+        "noTransactions": "まだトランザクションがありません",
+        "title": "トランザクション履歴",
+        "viewInExplorer": "エクスプローラーで表示"
+    },
+    "loading": {
+        "authenticationRequired": "認証が必要です"
+    },
+    "main": {
+        "generatingWallet": "ウォレットを生成中...",
+        "history": "履歴",
+        "scanQRCode": "QRコードをスキャン",
+        "settings": "設定",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "受取アドレス"
+    },
+    "mnemonic": {
+        "editMnemonicText": "ニーモニックを編集",
+        "enterMnemonic": "12単語のリカバリーフレーズを入力してください",
+        "failedToSave": "ニーモニックの保存が失敗しました。もう一度お試しください。",
+        "invalidMnemonic": "無効なニーモニックです。有効な12単語のリカバリーフレーズを入力してください。",
+        "mnemonicSaved": "ニーモニックが正常に保存されました",
+        "thisWillReplaceWallet": "これにより現在のウォレットが置き換えられます。"
+    },
+    "native": {
+        "closeWallet": "ウォレットを閉じる",
+        "authenticateToStore": "ウォレットの秘密鍵を保存するために認証してください",
+        "authenticateToStoreDescription": "デバイスの安全なストレージに秘密鍵を保存するために必要です",
+        "authenticateToAccess": "ウォレットにアクセスするために認証してください",
+        "authenticateToAccessDescription": "安全なストレージから秘密鍵を読み込むために必要です",
+        "paymentSent": "支払いが送信されました！",
+        "returningToPaymentSite": "支払いサイトに戻っています..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "金額",
+        "cancel": "キャンセル",
+        "enterAmount": "金額を入力",
+        "holdToSend": "長押しして送信",
+        "max": "最大",
+        "min": "最小",
+        "networkFee": "ネットワーク手数料",
+        "recipientAddress": "送金先アドレス",
+        "recipientAddressPlaceholder": "eCashアドレスを入力",
+        "send": "送信",
+        "sending": "送信中...",
+        "title": "送信",
+        "total": "合計"
+    },
+    "settings": {
+        "editMnemonic": "ニーモニックを編集",
+        "fiatCurrency": "法定通貨",
+        "fiatCurrencyDescription": "価格表示と換算に使用する法定通貨を選択してください。",
+        "language": "言語",
+        "languageDescription": "アプリケーションインターフェースの言語を選択してください。",
+        "requireHoldToSend": "長押し送信を必須にする",
+        "requireHoldToSendDescription": "有効にすると、トランザクションを確認するために送信ボタンを1秒間長押しする必要があります。",
+        "title": "設定",
+        "useFiatAsPrimary": "法定通貨を主要残高として使用",
+        "useFiatAsPrimaryDescription": "有効にすると、法定通貨を主要残高として表示し、XECを二次残高として表示します。",
+        "walletMnemonic": "ウォレットニーモニック",
+        "walletMnemonicDescription": "12単語のリカバリーフレーズ。安全にバックアップしてください！"
+    }
+}

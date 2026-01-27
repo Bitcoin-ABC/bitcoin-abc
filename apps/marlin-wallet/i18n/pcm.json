@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Go back",
+        "cancel": "Cancel",
+        "close": "Close",
+        "edit": "Edit",
+        "error": "Error",
+        "loading": "E dey load...",
+        "save": "Save",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Type am manually",
+        "noCameraAvailable": "Camera no dey available here",
+        "noCameraDescription": "Camera no dey available, type am manually.",
+        "title": "Camera"
+    },
+    "errors": {
+        "anErrorOccurred": "Error don occur",
+        "failedToLoadWallet": "E no gree load wallet",
+        "failedToSendTransaction": "E no gree send transaction",
+        "insufficientFunds": "Ur money no reach",
+        "invalidAddress": "Address no correct",
+        "transactionFailed": "Transaction fail"
+    },
+    "history": {
+        "loadingTransactions": "E dey load transactions...",
+        "noTransactions": "Transactions no dey here",
+        "title": "Transaction History",
+        "viewInExplorer": "Check am for Explorer"
+    },
+    "loading": {
+        "authenticationRequired": "U go need authenticate am"
+    },
+    "main": {
+        "generatingWallet": "Wallet dey generate",
+        "history": "Tory",
+        "scanQRCode": "Scan QR Code",
+        "settings": "Settings",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Your Address Wey You Go Receive Money"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Edit Mnemonic",
+        "enterMnemonic": "Enter your 12-word recovery phrase",
+        "failedToSave": "E no fit save mnemonic. Try again.",
+        "invalidMnemonic": "Mnemonic no correct. Enter correct 12-word recovery phrase.",
+        "mnemonicSaved": "Mnemonic don save well well",
+        "thisWillReplaceWallet": "Dis one go replace your current wallet."
+    },
+    "native": {
+        "closeWallet": "Close d wallet",
+        "authenticateToStore": "Authenticate to save your wallet private key",
+        "authenticateToStoreDescription": "Dis one dey required to save your private key for device secure storage",
+        "authenticateToAccess": "Authenticate to access your wallet",
+        "authenticateToAccessDescription": "Dis one dey required to load your private key from secure storage",
+        "paymentSent": "Payment don send!",
+        "returningToPaymentSite": "E don dey carry you go payment site"
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Amount",
+        "cancel": "Cancel",
+        "enterAmount": "Enter Amount",
+        "holdToSend": "Hold to Send",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Network Fee",
+        "recipientAddress": "Address wey go receive",
+        "recipientAddressPlaceholder": "Enter eCash address",
+        "send": "Send",
+        "sending": "Dey send...",
+        "title": "Send",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Edit Mnemonic",
+        "fiatCurrency": "Fiat Currency",
+        "fiatCurrencyDescription": "Choose di fiat currency wey you go use for price display and conversions.",
+        "language": "Language",
+        "languageDescription": "Choose di language for application interface.",
+        "requireHoldToSend": "Hold am to send",
+        "requireHoldToSendDescription": "When you enable am, you must hold send button for 1 second to confirm transaction.",
+        "title": "Settings",
+        "useFiatAsPrimary": "Use Fiat as Primary Balance",
+        "useFiatAsPrimaryDescription": "When you enable am, e go show Fiat as primary balance and XEC as secondary.",
+        "walletMnemonic": "Wallet Mnemonic",
+        "walletMnemonicDescription": "Your 12-word recovery phrase. Make sure say you back am up well well!"
+    }
+}

@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Regredi",
+        "cancel": "Cancellare",
+        "close": "Claudere",
+        "edit": "Emendare",
+        "error": "Error",
+        "loading": "Onerans...",
+        "save": "Servare",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Manus Inscriptio",
+        "noCameraAvailable": "Camera Non Praesto",
+        "noCameraDescription": "Camera accessus in hoc instrumento non praesto est. Utere \"Manus Inscriptio\" puga infra ad inscribendum inscriptionem.",
+        "title": "Camera"
+    },
+    "errors": {
+        "anErrorOccurred": "Error accidit",
+        "failedToLoadWallet": "Crumenam onerare non potuit",
+        "failedToSendTransaction": "Transactionem mittere non potuit",
+        "insufficientFunds": "Pecunia non sufficit",
+        "invalidAddress": "Inscriptio invalida",
+        "transactionFailed": "Transactio defecit"
+    },
+    "history": {
+        "loadingTransactions": "Transactiones onerans...",
+        "noTransactions": "Nondum transactiones",
+        "title": "Transactio Historia",
+        "viewInExplorer": "Videre in Exploratore"
+    },
+    "loading": {
+        "authenticationRequired": "Authenticatio requiritur"
+    },
+    "main": {
+        "generatingWallet": "Crumenam generans...",
+        "history": "Historia",
+        "scanQRCode": "QR Codice Scannare",
+        "settings": "Optiones",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Tua Inscriptio Recipiendi"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Mnemonicum Emendare",
+        "enterMnemonic": "Inscribe tuam 12-verborum recuperationis phrasim",
+        "failedToSave": "Mnemonicum servare non potuit. Quaeso iterum tenta.",
+        "invalidMnemonic": "Mnemonicum invalidum. Quaeso inscribe validam 12-verborum recuperationis phrasim.",
+        "mnemonicSaved": "Mnemonicum feliciter servatum est",
+        "thisWillReplaceWallet": "Hoc tuam praesentem crumena substituet."
+    },
+    "native": {
+        "closeWallet": "Crumenam claudere",
+        "authenticateToStore": "Authenticare ad servandum tuam crumena clavis privata",
+        "authenticateToStoreDescription": "Hoc requiritur ad servandum tuam clavis privata ad instrumenti securum repositum",
+        "authenticateToAccess": "Authenticare ad accedendum tuam crumena",
+        "authenticateToAccessDescription": "Hoc requiritur ad onerandum tuam clavis privata ex securi repositio",
+        "paymentSent": "Solutio missa est!",
+        "returningToPaymentSite": "Revertens ad solutio situm..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Summa",
+        "cancel": "Cancellare",
+        "enterAmount": "Summam Inscribe",
+        "holdToSend": "Tenere ad Mittendum",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Rete Merces",
+        "recipientAddress": "Recipientis Inscriptio",
+        "recipientAddressPlaceholder": "Inscribe eCash inscriptionem",
+        "send": "Mittere",
+        "sending": "Mittens...",
+        "title": "Mittere",
+        "total": "Summa"
+    },
+    "settings": {
+        "editMnemonic": "Mnemonicum Emendare",
+        "fiatCurrency": "Fiat Moneta",
+        "fiatCurrencyDescription": "Elige fiat monetam ad utendum pro pretio ostendendo et conversionibus.",
+        "language": "Lingua",
+        "languageDescription": "Elige linguam pro applicationis interfacie.",
+        "requireHoldToSend": "Requirere Tenere ad Mittendum",
+        "requireHoldToSendDescription": "Cum activatum est, debes tenere mittere puga per 1 secundum ad confirmandum transactionem.",
+        "title": "Optiones",
+        "useFiatAsPrimary": "Utere Fiat ut Primarium Aequilibrium",
+        "useFiatAsPrimaryDescription": "Cum activatum est, ostendit Fiat ut primarium aequilibrium et XEC ut secundarium.",
+        "walletMnemonic": "Crumena Mnemonicum",
+        "walletMnemonicDescription": "Tua 12-verborum recuperationis phrasis. Certus esto ut eam secure subservas!"
+    }
+}

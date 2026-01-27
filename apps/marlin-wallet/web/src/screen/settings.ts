@@ -8,6 +8,7 @@ import { getMnemonic, storeMnemonic, validateMnemonic } from '../mnemonic';
 import { WalletData } from '../wallet';
 import { Fiat } from 'ecash-price';
 import { webViewLog, webViewError } from '../common';
+import { DEFAULT_LOCALE, getAvailableLocales } from '../i18n';
 
 export interface SettingsScreenParams {
     appSettings: AppSettings;
@@ -20,6 +21,8 @@ export class SettingsScreen {
     private onHoldToSendChangeCallback: (() => void) | null = null;
     private onPrimaryBalanceChangeCallback: (() => Promise<void>) | null = null;
     private onFiatCurrencyChangeCallback: (() => Promise<void>) | null = null;
+    private onLocaleChangeCallback: ((locale: string) => Promise<void>) | null =
+        null;
     private onMnemonicSavedCallback:
         | ((mnemonic: string) => Promise<void>)
         | null = null;
@@ -27,6 +30,7 @@ export class SettingsScreen {
         holdToSendToggle: HTMLInputElement;
         primaryBalanceToggle: HTMLInputElement;
         fiatCurrencySelect: HTMLSelectElement;
+        languageSelect: HTMLSelectElement;
         settingsBackBtn: HTMLButtonElement;
         editMnemonicBtn: HTMLButtonElement;
         cancelMnemonicEditBtn: HTMLButtonElement;
@@ -59,6 +63,11 @@ export class SettingsScreen {
         this.onFiatCurrencyChangeCallback = callback;
     }
 
+    // Register callback for when locale changes
+    onLocaleChange(callback: (locale: string) => Promise<void>): void {
+        this.onLocaleChangeCallback = callback;
+    }
+
     // Register callback for when mnemonic is saved
     onMnemonicSaved(callback: (mnemonic: string) => Promise<void>): void {
         this.onMnemonicSavedCallback = callback;
@@ -74,6 +83,9 @@ export class SettingsScreen {
             ) as HTMLInputElement,
             fiatCurrencySelect: document.getElementById(
                 'fiat-currency-select',
+            ) as HTMLSelectElement,
+            languageSelect: document.getElementById(
+                'language-select',
             ) as HTMLSelectElement,
             settingsBackBtn: document.getElementById(
                 'settings-back-btn',
@@ -108,6 +120,7 @@ export class SettingsScreen {
             !this.ui.holdToSendToggle ||
             !this.ui.primaryBalanceToggle ||
             !this.ui.fiatCurrencySelect ||
+            !this.ui.languageSelect ||
             !this.ui.settingsBackBtn ||
             !this.ui.editMnemonicBtn ||
             !this.ui.cancelMnemonicEditBtn ||
@@ -188,9 +201,9 @@ export class SettingsScreen {
             option.textContent =
                 fiat.toString().toUpperCase() +
                 ' - ' +
-                fiat.symbol('en-US') +
+                fiat.symbol(this.params.appSettings.locale) +
                 ' - ' +
-                fiat.name('en-US');
+                fiat.name(this.params.appSettings.locale);
             this.ui.fiatCurrencySelect.appendChild(option);
         });
 
@@ -223,6 +236,32 @@ export class SettingsScreen {
             // Call registered callback
             if (this.onFiatCurrencyChangeCallback) {
                 await this.onFiatCurrencyChangeCallback();
+            }
+        });
+
+        getAvailableLocales().forEach(lang => {
+            const option = document.createElement('option');
+            option.value = lang.code;
+            option.textContent = lang.name;
+            this.ui.languageSelect.appendChild(option);
+        });
+
+        // Set current selection
+        this.ui.languageSelect.value =
+            this.params.appSettings.locale || DEFAULT_LOCALE;
+
+        // Add change listener
+        this.ui.languageSelect.addEventListener('change', async () => {
+            const newLocale = this.ui.languageSelect.value;
+            this.params.appSettings.locale = newLocale;
+            webViewLog(`Locale set to ${newLocale}`);
+
+            // Save settings to localStorage
+            saveSettings(this.params.appSettings);
+
+            // Call registered callback
+            if (this.onLocaleChangeCallback) {
+                await this.onLocaleChangeCallback(newLocale);
             }
         });
 

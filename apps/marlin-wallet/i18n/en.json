@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "close": "Close",
+        "edit": "Edit",
+        "error": "Error",
+        "loading": "Loading...",
+        "save": "Save",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Manual Entry",
+        "noCameraAvailable": "No Camera Available",
+        "noCameraDescription": "Camera access is not available on this device. Use the \"Manual Entry\" button below to enter an address.",
+        "title": "Camera"
+    },
+    "errors": {
+        "anErrorOccurred": "An error occurred",
+        "failedToLoadWallet": "Failed to load the wallet",
+        "failedToSendTransaction": "Failed to send transaction",
+        "insufficientFunds": "Insufficient funds",
+        "invalidAddress": "Invalid address",
+        "transactionFailed": "Transaction failed"
+    },
+    "history": {
+        "loadingTransactions": "Loading transactions...",
+        "noTransactions": "No transactions yet",
+        "title": "Transaction History",
+        "viewInExplorer": "View in Explorer"
+    },
+    "loading": {
+        "authenticationRequired": "Authentication required"
+    },
+    "main": {
+        "generatingWallet": "Generating wallet...",
+        "history": "History",
+        "scanQRCode": "Scan QR Code",
+        "settings": "Settings",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Your Receiving Address"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Edit Mnemonic",
+        "enterMnemonic": "Enter your 12-word recovery phrase",
+        "failedToSave": "Failed to save mnemonic. Please try again.",
+        "invalidMnemonic": "Invalid mnemonic. Please enter a valid 12-word recovery phrase.",
+        "mnemonicSaved": "Mnemonic saved successfully",
+        "thisWillReplaceWallet": "This will replace your current wallet."
+    },
+    "native": {
+        "closeWallet": "Close the wallet",
+        "authenticateToStore": "Authenticate to store your wallet private key",
+        "authenticateToStoreDescription": "This is required to store your private key to the device secure storage",
+        "authenticateToAccess": "Authenticate to access your wallet",
+        "authenticateToAccessDescription": "This is required to load your private key from the secure storage",
+        "paymentSent": "Payment sent!",
+        "returningToPaymentSite": "Returning to the payment site..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Amount",
+        "cancel": "Cancel",
+        "enterAmount": "Enter Amount",
+        "holdToSend": "Hold to Send",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Network Fee",
+        "recipientAddress": "Recipient Address",
+        "recipientAddressPlaceholder": "Enter eCash address",
+        "send": "Send",
+        "sending": "Sending...",
+        "title": "Send",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Edit Mnemonic",
+        "fiatCurrency": "Fiat Currency",
+        "fiatCurrencyDescription": "Select the fiat currency to use for price display and conversions.",
+        "language": "Language",
+        "languageDescription": "Select the language for the application interface.",
+        "requireHoldToSend": "Require Hold to Send",
+        "requireHoldToSendDescription": "When enabled, you must hold the send button for 1 second to confirm the transaction.",
+        "title": "Settings",
+        "useFiatAsPrimary": "Use Fiat as Primary Balance",
+        "useFiatAsPrimaryDescription": "When enabled, displays Fiat as the primary balance and XEC as secondary.",
+        "walletMnemonic": "Wallet Mnemonic",
+        "walletMnemonicDescription": "Your 12-word recovery phrase. Make sure to back it up securely!"
+    }
+}

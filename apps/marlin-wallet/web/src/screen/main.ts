@@ -71,19 +71,11 @@ export class MainScreen {
             return;
         }
 
-        const address = getAddress(newWallet);
-        if (!address) {
-            webViewError('Cannot get address from wallet');
-            return;
-        }
+        this.updateAddressDisplay();
 
         const pricePerXec = await this.params.priceFetcher?.current(
             this.params.appSettings.fiatCurrency,
         );
-
-        // Update address display and generate QR code
-        this.ui.address.textContent = address;
-        generateQRCode(address);
 
         this.updateAvailableBalanceDisplay(
             0,
@@ -92,6 +84,17 @@ export class MainScreen {
             false,
         );
         this.updateTransitionalBalance(transitionalBalanceSats, pricePerXec);
+    }
+
+    updateAddressDisplay(): void {
+        const address = getAddress(this.params.ecashWallet);
+        if (!address) {
+            webViewError('Cannot get address from wallet');
+            return;
+        }
+
+        this.ui.address.textContent = address;
+        generateQRCode(address);
     }
 
     // Update available balance display with optional animation

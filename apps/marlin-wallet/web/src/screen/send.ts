@@ -19,6 +19,7 @@ import { parseBip21Uri, Bip21ParseResult } from '../bip21';
 import { isPayButtonTransaction } from '../paybutton';
 import { config } from '../config';
 import { sendMessageToBackend, webViewLog, webViewError } from '../common';
+import { t } from '../i18n';
 
 const MIN_AMOUNT_XEC = satsToXec(Number(DEFAULT_DUST_SATS));
 
@@ -582,7 +583,7 @@ export class SendScreen {
         if (isNaN(amountPrimary) || amountPrimary <= 0) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            this.ui.buttonSpan.textContent = 'Enter Amount';
+            this.ui.buttonSpan.textContent = t('send.enterAmount');
             return;
         }
 
@@ -605,8 +606,8 @@ export class SendScreen {
         this.ui.confirmSendBtn.disabled = false;
         this.ui.buttonSpan.textContent = this.params.appSettings
             .requireHoldToSend
-            ? 'Hold to send'
-            : 'Send';
+            ? t('send.holdToSend')
+            : t('send.send');
     }
 
     // Send button setup - either hold-to-send or simple click based on settings

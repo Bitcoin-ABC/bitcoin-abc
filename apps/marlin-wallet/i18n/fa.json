@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "بازگشت",
+        "cancel": "لغو",
+        "close": "بستن",
+        "edit": "ویرایش",
+        "error": "خطا",
+        "loading": "در حال بارگذاری...",
+        "save": "ذخیره",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "ورود دستی",
+        "noCameraAvailable": "دوربین در دسترس نیست",
+        "noCameraDescription": "دسترسی به دوربین در این دستگاه در دسترس نیست. از دکمه \"ورود دستی\" زیر برای وارد کردن آدرس استفاده کنید.",
+        "title": "دوربین"
+    },
+    "errors": {
+        "anErrorOccurred": "خطایی رخ داد",
+        "failedToLoadWallet": "بارگذاری کیف پول ناموفق بود",
+        "failedToSendTransaction": "ارسال تراکنش ناموفق بود",
+        "insufficientFunds": "موجودی ناکافی",
+        "invalidAddress": "آدرس نامعتبر",
+        "transactionFailed": "تراکنش ناموفق بود"
+    },
+    "history": {
+        "loadingTransactions": "در حال بارگذاری تراکنش‌ها...",
+        "noTransactions": "هنوز تراکنشی وجود ندارد",
+        "title": "تاریخچه تراکنش",
+        "viewInExplorer": "مشاهده در اکسپلورر"
+    },
+    "loading": {
+        "authenticationRequired": "احراز هویت مورد نیاز است"
+    },
+    "main": {
+        "generatingWallet": "در حال ایجاد کیف پول...",
+        "history": "تاریخچه",
+        "scanQRCode": "اسکن کد QR",
+        "settings": "تنظیمات",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "آدرس دریافت شما"
+    },
+    "mnemonic": {
+        "editMnemonicText": "ویرایش یادگاری",
+        "enterMnemonic": "عبارت بازیابی 12 کلمه‌ای خود را وارد کنید",
+        "failedToSave": "ذخیره یادگاری ناموفق بود. لطفاً دوباره تلاش کنید.",
+        "invalidMnemonic": "یادگاری نامعتبر. لطفاً یک عبارت بازیابی معتبر 12 کلمه‌ای وارد کنید.",
+        "mnemonicSaved": "یادگاری با موفقیت ذخیره شد",
+        "thisWillReplaceWallet": "این کیف پول فعلی شما را جایگزین خواهد کرد."
+    },
+    "native": {
+        "closeWallet": "بستن کیف پول",
+        "authenticateToStore": "برای ذخیره کلید خصوصی کیف پول خود احراز هویت کنید",
+        "authenticateToStoreDescription": "این برای ذخیره کلید خصوصی شما در ذخیره‌سازی امن دستگاه لازم است",
+        "authenticateToAccess": "برای دسترسی به کیف پول خود احراز هویت کنید",
+        "authenticateToAccessDescription": "این برای بارگذاری کلید خصوصی شما از ذخیره‌سازی امن لازم است",
+        "paymentSent": "پرداخت ارسال شد!",
+        "returningToPaymentSite": "در حال بازگشت به سایت پرداخت..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "مبلغ",
+        "cancel": "لغو",
+        "enterAmount": "مبلغ را وارد کنید",
+        "holdToSend": "برای ارسال نگه دارید",
+        "max": "حداکثر",
+        "min": "حداقل",
+        "networkFee": "کارمزد شبکه",
+        "recipientAddress": "آدرس گیرنده",
+        "recipientAddressPlaceholder": "آدرس eCash را وارد کنید",
+        "send": "ارسال",
+        "sending": "در حال ارسال...",
+        "title": "ارسال",
+        "total": "مجموع"
+    },
+    "settings": {
+        "editMnemonic": "ویرایش یادگاری",
+        "fiatCurrency": "ارز فیات",
+        "fiatCurrencyDescription": "ارز فیات را برای نمایش قیمت و تبدیل انتخاب کنید.",
+        "language": "زبان",
+        "languageDescription": "زبان رابط برنامه را انتخاب کنید.",
+        "requireHoldToSend": "نیاز به نگه داشتن برای ارسال",
+        "requireHoldToSendDescription": "وقتی فعال باشد، باید دکمه ارسال را به مدت 1 ثانیه نگه دارید تا تراکنش تأیید شود.",
+        "title": "تنظیمات",
+        "useFiatAsPrimary": "استفاده از فیات به عنوان موجودی اصلی",
+        "useFiatAsPrimaryDescription": "وقتی فعال باشد، فیات را به عنوان موجودی اصلی و XEC را به عنوان ثانویه نمایش می‌دهد.",
+        "walletMnemonic": "یادگاری کیف پول",
+        "walletMnemonicDescription": "عبارت بازیابی 12 کلمه‌ای شما. مطمئن شوید که آن را به صورت امن پشتیبان‌گیری کنید!"
+    }
+}

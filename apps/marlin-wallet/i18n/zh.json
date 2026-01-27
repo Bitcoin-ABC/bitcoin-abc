@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "返回",
+        "cancel": "取消",
+        "close": "关闭",
+        "edit": "编辑",
+        "error": "错误",
+        "loading": "加载中...",
+        "save": "保存",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "手动输入",
+        "noCameraAvailable": "无可用摄像头",
+        "noCameraDescription": "此设备上无法使用摄像头。请使用下面的\"手动输入\"按钮输入地址。",
+        "title": "摄像头"
+    },
+    "errors": {
+        "anErrorOccurred": "发生错误",
+        "failedToLoadWallet": "加载钱包失败",
+        "failedToSendTransaction": "发送交易失败",
+        "insufficientFunds": "资金不足",
+        "invalidAddress": "无效地址",
+        "transactionFailed": "交易失败"
+    },
+    "history": {
+        "loadingTransactions": "加载交易中...",
+        "noTransactions": "暂无交易",
+        "title": "交易历史",
+        "viewInExplorer": "在浏览器中查看"
+    },
+    "loading": {
+        "authenticationRequired": "需要身份验证"
+    },
+    "main": {
+        "generatingWallet": "生成钱包中...",
+        "history": "历史",
+        "scanQRCode": "扫描二维码",
+        "settings": "设置",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "您的收款地址"
+    },
+    "mnemonic": {
+        "editMnemonicText": "编辑助记词",
+        "enterMnemonic": "输入您的12个单词的恢复短语",
+        "failedToSave": "保存助记词失败。请重试。",
+        "invalidMnemonic": "无效的助记词。请输入有效的12个单词的恢复短语。",
+        "mnemonicSaved": "助记词保存成功",
+        "thisWillReplaceWallet": "这将替换您当前的钱包。"
+    },
+    "native": {
+        "closeWallet": "关闭钱包",
+        "authenticateToStore": "验证身份以存储您的钱包私钥",
+        "authenticateToStoreDescription": "需要将您的私钥存储到设备的安全存储中",
+        "authenticateToAccess": "验证身份以访问您的钱包",
+        "authenticateToAccessDescription": "需要从安全存储中加载您的私钥",
+        "paymentSent": "支付已发送！",
+        "returningToPaymentSite": "正在返回支付网站..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "金额",
+        "cancel": "取消",
+        "enterAmount": "输入金额",
+        "holdToSend": "按住发送",
+        "max": "最大",
+        "min": "最小",
+        "networkFee": "网络费用",
+        "recipientAddress": "收款地址",
+        "recipientAddressPlaceholder": "输入eCash地址",
+        "send": "发送",
+        "sending": "发送中...",
+        "title": "发送",
+        "total": "总计"
+    },
+    "settings": {
+        "editMnemonic": "编辑助记词",
+        "fiatCurrency": "法币",
+        "fiatCurrencyDescription": "选择用于价格显示和转换的法币。",
+        "language": "语言",
+        "languageDescription": "选择应用程序界面的语言。",
+        "requireHoldToSend": "需要按住发送",
+        "requireHoldToSendDescription": "启用后，您必须按住发送按钮1秒以确认交易。",
+        "title": "设置",
+        "useFiatAsPrimary": "使用法币作为主要余额",
+        "useFiatAsPrimaryDescription": "启用后，将法币显示为主要余额，XEC显示为次要余额。",
+        "walletMnemonic": "钱包助记词",
+        "walletMnemonicDescription": "您的12个单词的恢复短语。请确保安全备份！"
+    }
+}

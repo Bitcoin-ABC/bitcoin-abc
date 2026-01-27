@@ -4,6 +4,7 @@
 
 import { webViewLog, webViewError } from './common';
 import { Fiat } from 'ecash-price';
+import { DEFAULT_LOCALE } from './i18n';
 
 // ============================================================================
 // SETTINGS INTERFACE AND PERSISTENCE
@@ -17,6 +18,7 @@ interface StoredSettings {
     requireHoldToSend: boolean;
     primaryBalanceType: 'XEC' | 'Fiat';
     fiatCurrency: string;
+    locale?: string;
 }
 
 // Public interface with Fiat object
@@ -24,6 +26,7 @@ export interface AppSettings {
     requireHoldToSend: boolean;
     primaryBalanceType: 'XEC' | 'Fiat';
     fiatCurrency: Fiat;
+    locale: string;
 }
 
 // Load settings from localStorage
@@ -36,6 +39,7 @@ export function loadSettings(): AppSettings {
                 requireHoldToSend: storedSettings.requireHoldToSend,
                 primaryBalanceType: storedSettings.primaryBalanceType,
                 fiatCurrency: new Fiat(storedSettings.fiatCurrency),
+                locale: storedSettings.locale || DEFAULT_LOCALE,
             };
         }
     } catch (error) {
@@ -47,6 +51,7 @@ export function loadSettings(): AppSettings {
         requireHoldToSend: true,
         primaryBalanceType: 'XEC',
         fiatCurrency: Fiat.USD,
+        locale: DEFAULT_LOCALE,
     };
 }
 
@@ -57,6 +62,7 @@ export function saveSettings(appSettings: AppSettings): void {
             requireHoldToSend: appSettings.requireHoldToSend,
             primaryBalanceType: appSettings.primaryBalanceType,
             fiatCurrency: appSettings.fiatCurrency.toString(),
+            locale: appSettings.locale,
         };
         localStorage.setItem(
             SETTINGS_STORAGE_KEY,

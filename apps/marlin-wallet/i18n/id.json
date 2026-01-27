@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Kembali",
+        "cancel": "Batal",
+        "close": "Tutup",
+        "edit": "Edit",
+        "error": "Eror",
+        "loading": "Memuat...",
+        "save": "Simpan",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Entri Manual",
+        "noCameraAvailable": "Kamera Tidak Tersedia",
+        "noCameraDescription": "Akses kamera tidak tersedia di perangkat ini. Gunakan tombol \"Entri Manual\" di bawah untuk memasukkan alamat.",
+        "title": "Kamera"
+    },
+    "errors": {
+        "anErrorOccurred": "Terjadi eror",
+        "failedToLoadWallet": "Gagal memuat dompet",
+        "failedToSendTransaction": "Gagal mengirim transaksi",
+        "insufficientFunds": "Dana tidak mencukupi",
+        "invalidAddress": "Alamat tidak valid",
+        "transactionFailed": "Transaksi gagal"
+    },
+    "history": {
+        "loadingTransactions": "Memuat transaksi...",
+        "noTransactions": "Belum ada transaksi",
+        "title": "Riwayat Transaksi",
+        "viewInExplorer": "Lihat di Eksplorer"
+    },
+    "loading": {
+        "authenticationRequired": "Autentikasi diperlukan"
+    },
+    "main": {
+        "generatingWallet": "Membuat dompet...",
+        "history": "Riwayat",
+        "scanQRCode": "Pindai Kode QR",
+        "settings": "Pengaturan",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Alamat Penerima anda"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Edit Mnemonik",
+        "enterMnemonic": "Masukkan frase pemulihan 12 kata anda",
+        "failedToSave": "Gagal menyimpan mnemonik. Silakan coba lagi.",
+        "invalidMnemonic": "Mnemonik tidak valid. Masukkan frase pemulihan 12 kata yang valid.",
+        "mnemonicSaved": "Mnemonik berhasil disimpan",
+        "thisWillReplaceWallet": "Ini akan mengganti dompet anda saat ini."
+    },
+    "native": {
+        "closeWallet": "Tutup dompet",
+        "authenticateToStore": "Autentikasi untuk menyimpan kunci privat dompet anda",
+        "authenticateToStoreDescription": "Ini diperlukan untuk menyimpan kunci privat anda ke penyimpanan aman perangkat",
+        "authenticateToAccess": "Autentikasi untuk mengakses dompet anda",
+        "authenticateToAccessDescription": "Ini diperlukan untuk memuat kunci privat anda dari penyimpanan aman",
+        "paymentSent": "Pembayaran terkirim!",
+        "returningToPaymentSite": "Kembali ke situs pembayaran..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Jumlah",
+        "cancel": "Batal",
+        "enterAmount": "Masukkan Jumlah",
+        "holdToSend": "Tahan untuk Mengirim",
+        "max": "Maks",
+        "min": "Min",
+        "networkFee": "Biaya Jaringan",
+        "recipientAddress": "Alamat Penerima",
+        "recipientAddressPlaceholder": "Masukkan alamat eCash",
+        "send": "Kirim",
+        "sending": "Mengirim...",
+        "title": "Kirim",
+        "total": "Total"
+    },
+    "settings": {
+        "editMnemonic": "Edit Mnemonik",
+        "fiatCurrency": "Mata Uang Fiat",
+        "fiatCurrencyDescription": "Pilih mata uang fiat yang akan digunakan untuk tampilan harga dan konversi.",
+        "language": "Bahasa",
+        "languageDescription": "Pilih bahasa untuk antarmuka aplikasi.",
+        "requireHoldToSend": "Wajib Tahan untuk Mengirim",
+        "requireHoldToSendDescription": "Saat diaktifkan, Anda harus menahan tombol kirim selama 1 detik untuk mengonfirmasi transaksi.",
+        "title": "Pengaturan",
+        "useFiatAsPrimary": "Gunakan Fiat sebagai Saldo Utama",
+        "useFiatAsPrimaryDescription": "Saat diaktifkan, menampilkan Fiat sebagai saldo utama dan XEC sebagai sekunder.",
+        "walletMnemonic": "Mnemonik Dompet",
+        "walletMnemonicDescription": "Frase pemulihan 12 kata anda. Pastikan untuk mencadangkannya dengan aman!"
+    }
+}

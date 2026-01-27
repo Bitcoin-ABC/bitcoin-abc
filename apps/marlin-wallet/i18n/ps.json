@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "بیرته ګرځیدل",
+        "cancel": "لغوه کړئ",
+        "close": "تړل",
+        "edit": "سمول",
+        "error": "تېروتنه",
+        "loading": "چمتو کېږي...",
+        "save": "خوندي کړئ",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "لاسي ننوتل",
+        "noCameraAvailable": "کامره شتون نلري",
+        "noCameraDescription": "په دې وسیله کې د کامري لاسرسي شتون نلري. د پته د داخلولو لپاره لاندې \"لاسي ننوتل\" تڼۍ وکاروئ.",
+        "title": "کامره"
+    },
+    "errors": {
+        "anErrorOccurred": "یوه تېروتنه رامنځته شوه",
+        "failedToLoadWallet": "د بټوی د راخلاصولو په وخت کی ستونزه رامنځته شوه",
+        "failedToSendTransaction": "د پیسو لیږدول بریالی نشول",
+        "insufficientFunds": "په کافی اندازه پیسی شتون نلری",
+        "invalidAddress": "د بټوی ناسمه پته",
+        "transactionFailed": "د پیسو لیږد ناکام شو"
+    },
+    "history": {
+        "loadingTransactions": "د پیسو د معاملاتو تاریخچه چمتو کېږي...",
+        "noTransactions": "تر اوسه هیڅ معامله نشته",
+        "title": "د معاملاتو تاریخچه",
+        "viewInExplorer": "په اکسپلورر کې کتل"
+    },
+    "loading": {
+        "authenticationRequired": "د تصدیق اړتیا ده"
+    },
+    "main": {
+        "generatingWallet": "د پیسو بټوه جوړېږي...",
+        "history": "تاریخچه",
+        "scanQRCode": "QR کوډ سکین کړئ",
+        "settings": "تنظیمات",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "ستاسو د پیسو ترلاسه کولو پته"
+    },
+    "mnemonic": {
+        "editMnemonicText": "د بټوی د کوډ سمول",
+        "enterMnemonic": "د خپل بټوی ۱۲ کلیمی کوډ ولیکئ",
+        "failedToSave": "د بټوی د کوډ د خوندي کولو ناکام شول. بیا هڅه وکړئ.",
+        "invalidMnemonic": "ناسم د بټوی کوډ. د خپل بټوی ۱۲ کلیمی کوډ ولیکئ.",
+        "mnemonicSaved": "د بټوی کوډ په بریالیتوب سره خوندي شو",
+        "thisWillReplaceWallet": "دا به ستاسو اوسنی د پیسو بټوه بدله کړي."
+    },
+    "native": {
+        "closeWallet": "د پیسو د بټوې تړل",
+        "authenticateToStore": "د خپل د پیسو بټوې د خصوصي کیلي د خوندي کولو لپاره تصدیق وکړئ",
+        "authenticateToStoreDescription": "دا ستاسو د خصوصي کیلي ستاسو د وسیلې په خوندي ذخیرې کې د خوندي کولو لپاره اړین دی",
+        "authenticateToAccess": "خپل د پیسو بټوې ته د لاسرسي لپاره تصدیق وکړئ",
+        "authenticateToAccessDescription": "دا د خوندي ذخیرې څخه د ستاسو د خصوصي کیلي د چمتو کولو لپاره اړین دی",
+        "paymentSent": "پیسی ولیږل شوې!",
+        "returningToPaymentSite": "د تادیې سایټ ته بیرته ګرځیدل..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "مقدار",
+        "cancel": "لغوه کړئ",
+        "enterAmount": "مقدار ولیکئ",
+        "holdToSend": "د لیږلو لپاره تڼی کیکاږی",
+        "max": "اعظمي",
+        "min": "کمترین",
+        "networkFee": "د شبکې فیس",
+        "recipientAddress": "د ترلاسه کوونکي د بټوې پته",
+        "recipientAddressPlaceholder": "د eCash پته ولیکئ",
+        "send": "لیږل",
+        "sending": "لیږل کېږي...",
+        "title": "د پیسو لیږل",
+        "total": "ټول"
+    },
+    "settings": {
+        "editMnemonic": "د بټوی د کوډ سمول",
+        "fiatCurrency": "اسعار",
+        "fiatCurrencyDescription": "د نرخ ښودلو او بدلونونو لپاره اسعار وټاکئ.",
+        "language": "ژبه",
+        "languageDescription": "د بټوې د پروګرام لپاره ژبه وټاکئ.",
+        "requireHoldToSend": "د پیسو لیږلو لپاره د بټن کیکاږل اړین دي",
+        "requireHoldToSendDescription": "کله چې فعال وي، تاسو باید د پیسو د لیږد د تصدیق لپاره د لیږلو تڼۍ یوه ثانیه ونیسئ.",
+        "title": "تنظیمات",
+        "useFiatAsPrimary": "اسعار د لومړني بیلانس په توګه وکاروئ",
+        "useFiatAsPrimaryDescription": "کله چې فعال وي، اسعار د لومړني بیلانس په توګه ښيي او XEC د دویم بیلانس په توګه.",
+        "walletMnemonic": "د بټوې کوډ",
+        "walletMnemonicDescription": "دا ستاسې د بټوې ۱۲ کلیمې کوډ دی. مهربانی وکړی په خوندی ځای کی یی وساتی!"
+    }
+}

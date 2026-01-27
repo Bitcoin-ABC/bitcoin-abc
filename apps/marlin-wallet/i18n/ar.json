@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "رجوع",
+        "cancel": "إلغاء",
+        "close": "إغلاق",
+        "edit": "تعديل",
+        "error": "خطأ",
+        "loading": "جاري التحميل...",
+        "save": "حفظ",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "إدخال يدوي",
+        "noCameraAvailable": "الكاميرا غير متاحة",
+        "noCameraDescription": "الوصول إلى الكاميرا غير متاح على هذا الجهاز. استخدم زر \"الإدخال اليدوي\" أدناه لإدخال عنوان.",
+        "title": "الكاميرا"
+    },
+    "errors": {
+        "anErrorOccurred": "حدث خطأ",
+        "failedToLoadWallet": "فشل تحميل المحفظة",
+        "failedToSendTransaction": "فشل إرسال المعاملة",
+        "insufficientFunds": "رصيد غير كافٍ",
+        "invalidAddress": "عنوان غير صالح",
+        "transactionFailed": "فشلت المعاملة"
+    },
+    "history": {
+        "loadingTransactions": "جاري تحميل المعاملات...",
+        "noTransactions": "لا توجد معاملات بعد",
+        "title": "سجل المعاملات",
+        "viewInExplorer": "عرض في المستكشف"
+    },
+    "loading": {
+        "authenticationRequired": "مطلوب المصادقة"
+    },
+    "main": {
+        "generatingWallet": "جاري إنشاء المحفظة...",
+        "history": "السجل",
+        "scanQRCode": "مسح رمز QR",
+        "settings": "الإعدادات",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "عنوان الاستلام الخاص بك"
+    },
+    "mnemonic": {
+        "editMnemonicText": "تعديل العبارة الاستردادية",
+        "enterMnemonic": "أدخل عبارة الاسترداد المكونة من 12 كلمة",
+        "failedToSave": "فشل حفظ العبارة الاستردادية. يرجى المحاولة مرة أخرى.",
+        "invalidMnemonic": "عبارة استرداد غير صالحة. يرجى إدخال عبارة استرداد صالحة مكونة من 12 كلمة.",
+        "mnemonicSaved": "تم حفظ العبارة الاستردادية بنجاح",
+        "thisWillReplaceWallet": "سيستبدل هذا محفظتك الحالية."
+    },
+    "native": {
+        "closeWallet": "إغلاق المحفظة",
+        "authenticateToStore": "قم بالمصادقة لتخزين المفتاح الخاص لمحفظتك",
+        "authenticateToStoreDescription": "هذا مطلوب لتخزين المفتاح الخاص في التخزين الآمن للجهاز",
+        "authenticateToAccess": "قم بالمصادقة للوصول إلى محفظتك",
+        "authenticateToAccessDescription": "هذا مطلوب لتحميل المفتاح الخاص من التخزين الآمن",
+        "paymentSent": "تم إرسال الدفع!",
+        "returningToPaymentSite": "العودة إلى موقع الدفع..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "المبلغ",
+        "cancel": "إلغاء",
+        "enterAmount": "أدخل المبلغ",
+        "holdToSend": "اضغط مع الاستمرار للإرسال",
+        "max": "الحد الأقصى",
+        "min": "الحد الأدنى",
+        "networkFee": "رسوم الشبكة",
+        "recipientAddress": "عنوان المستلم",
+        "recipientAddressPlaceholder": "أدخل عنوان eCash",
+        "send": "إرسال",
+        "sending": "جاري الإرسال...",
+        "title": "إرسال",
+        "total": "الإجمالي"
+    },
+    "settings": {
+        "editMnemonic": "تعديل العبارة الاستردادية",
+        "fiatCurrency": "العملة الورقية",
+        "fiatCurrencyDescription": "اختر العملة الورقية لاستخدامها في عرض الأسعار والتحويلات.",
+        "language": "اللغة",
+        "languageDescription": "اختر لغة واجهة التطبيق.",
+        "requireHoldToSend": "يتطلب الضغط مع الاستمرار للإرسال",
+        "requireHoldToSendDescription": "عند التمكين، يجب الضغط على زر الإرسال لمدة ثانية واحدة لتأكيد المعاملة.",
+        "title": "الإعدادات",
+        "useFiatAsPrimary": "استخدام العملة الورقية كرصيد أساسي",
+        "useFiatAsPrimaryDescription": "عند التمكين، يعرض العملة الورقية كرصيد أساسي و XEC كرصيد ثانوي.",
+        "walletMnemonic": "عبارة الاسترداد للمحفظة",
+        "walletMnemonicDescription": "عبارة الاسترداد المكونة من 12 كلمة. تأكد من عمل نسخة احتياطية آمنة!"
+    }
+}

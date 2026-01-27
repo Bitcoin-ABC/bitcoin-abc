@@ -1,0 +1,92 @@
+{
+    "app": {
+        "back": "Indietro",
+        "cancel": "Annulla",
+        "close": "Chiudi",
+        "edit": "Modifica",
+        "error": "Errore",
+        "loading": "Caricamento...",
+        "save": "Salva",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Inserimento Manuale",
+        "noCameraAvailable": "Nessuna Fotocamera Disponibile",
+        "noCameraDescription": "L'accesso alla fotocamera non è disponibile su questo dispositivo. Usa il pulsante \"Inserimento Manuale\" qui sotto per inserire un indirizzo.",
+        "title": "Fotocamera"
+    },
+    "errors": {
+        "anErrorOccurred": "Si è verificato un errore",
+        "failedToLoadWallet": "Impossibile caricare il portafoglio",
+        "failedToSendTransaction": "Impossibile inviare la transazione",
+        "insufficientFunds": "Fondi insufficienti",
+        "invalidAddress": "Indirizzo non valido",
+        "transactionFailed": "Transazione fallita"
+    },
+    "history": {
+        "loadingTransactions": "Caricamento transazioni...",
+        "noTransactions": "Ancora nessuna transazione",
+        "title": "Cronologia Transazioni",
+        "viewInExplorer": "Visualizza nell'Explorer"
+    },
+    "loading": {
+        "authenticationRequired": "Autenticazione richiesta"
+    },
+    "main": {
+        "generatingWallet": "Generazione portafoglio...",
+        "history": "Cronologia",
+        "scanQRCode": "Scansiona Codice QR",
+        "settings": "Impostazioni",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Il Tuo Indirizzo di Ricezione"
+    },
+    "mnemonic": {
+        "editMnemonicText": "Modifica Mnemonica",
+        "enterMnemonic": "Inserisci la tua frase di recupero di 12 parole",
+        "failedToSave": "Impossibile salvare la mnemonica. Riprova.",
+        "invalidMnemonic": "Mnemonica non valida. Inserisci una frase di recupero valida di 12 parole.",
+        "mnemonicSaved": "Mnemonica salvata con successo",
+        "thisWillReplaceWallet": "Questo sostituirà il tuo portafoglio attuale."
+    },
+    "native": {
+        "closeWallet": "Chiudi il portafoglio",
+        "authenticateToStore": "Autenticati per memorizzare la tua chiave privata del portafoglio",
+        "authenticateToStoreDescription": "Questo è necessario per memorizzare la tua chiave privata nello storage sicuro del dispositivo",
+        "authenticateToAccess": "Autenticati per accedere al tuo portafoglio",
+        "authenticateToAccessDescription": "Questo è necessario per caricare la tua chiave privata dallo storage sicuro",
+        "paymentSent": "Pagamento inviato!",
+        "returningToPaymentSite": "Ritorno al sito di pagamento..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Importo",
+        "cancel": "Annulla",
+        "enterAmount": "Inserisci Importo",
+        "holdToSend": "Tieni Premuto per Inviare",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Commissione di Rete",
+        "recipientAddress": "Indirizzo Destinatario",
+        "recipientAddressPlaceholder": "Inserisci indirizzo eCash",
+        "send": "Invia",
+        "sending": "Invio in corso...",
+        "title": "Invia",
+        "total": "Totale"
+    },
+    "settings": {
+        "editMnemonic": "Modifica Mnemonica",
+        "fiatCurrency": "Valuta Fiat",
+        "fiatCurrencyDescription": "Seleziona la valuta fiat da utilizzare per la visualizzazione dei prezzi e le conversioni.",
+        "language": "Lingua",
+        "languageDescription": "Seleziona la lingua per l'interfaccia dell'applicazione.",
+        "requireHoldToSend": "Richiedi Tenere Premuto per Inviare",
+        "requireHoldToSendDescription": "Quando abilitato, devi tenere premuto il pulsante di invio per 1 secondo per confermare la transazione.",
+        "title": "Impostazioni",
+        "useFiatAsPrimary": "Usa Fiat come Saldo Principale",
+        "useFiatAsPrimaryDescription": "Quando abilitato, visualizza Fiat come saldo principale e XEC come secondario.",
+        "walletMnemonic": "Mnemonica del Portafoglio",
+        "walletMnemonicDescription": "La tua frase di recupero di 12 parole. Assicurati di salvarla in modo sicuro!"
+    }
+}
