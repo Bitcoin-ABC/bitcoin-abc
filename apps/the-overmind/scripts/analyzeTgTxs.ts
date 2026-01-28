@@ -5,6 +5,7 @@
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { toHex, strToBytes, Script, parseEmppScript, fromHex } from 'ecash-lib';
 import { LOKAD_ID } from '../src/constants';
+import { parseEmppActionCode, EmppAction } from '../src/empp';
 
 /**
  * Get all transaction history for a LOKAD_ID (handles pagination)
@@ -35,22 +36,28 @@ const getAllLokadHistory = async (
 };
 
 /**
- * Parse EMPP data push to extract action code
- * Format: <lokadId><versionByte><actionCode><msgId>
- * Returns action code or null if parsing fails
+ * Get action name from action code
  */
-const parseActionCode = (emppData: Uint8Array): number | null => {
-    try {
-        // Check minimum length: 4 (lokadId) + 1 (version) + 1 (action) + 4 (msgId) = 10 bytes
-        if (emppData.length < 10) {
-            return null;
-        }
-
-        // Skip lokadId (4 bytes) and versionByte (1 byte)
-        // Action code is at index 5
-        return emppData[5];
-    } catch {
-        return null;
+const getActionName = (actionCode: number): string => {
+    switch (actionCode) {
+        case EmppAction.CLAIM:
+            return 'CLAIM';
+        case EmppAction.LIKE:
+            return 'LIKE';
+        case EmppAction.DISLIKE:
+            return 'DISLIKE';
+        case EmppAction.DISLIKED:
+            return 'DISLIKED';
+        case EmppAction.RESPAWN:
+            return 'RESPAWN';
+        case EmppAction.WITHDRAW:
+            return 'WITHDRAW';
+        case EmppAction.BOTTLE_REPLY:
+            return 'BOTTLE_REPLY';
+        case EmppAction.BOTTLE_REPLIED:
+            return 'BOTTLE_REPLIED';
+        default:
+            return `UNKNOWN (0x${actionCode.toString(16).padStart(2, '0')})`;
     }
 };
 
@@ -83,17 +90,17 @@ const analyzeTgTxs = async () => {
 
         console.log(`Found ${txs.length} total transactions\n`);
 
-        // Counters
-        let claimCount = 0;
-        let likeCount = 0;
-        let dislikeCount = 0;
-        let dislikedCount = 0;
+        // Counters for all action types
+        const actionCounts = new Map<number, number>();
         let unknownCount = 0;
+        let noEmppDataCount = 0;
+        let noOpReturnCount = 0;
 
         // Process each transaction
         for (const tx of txs) {
             // Find OP_RETURN output (should be at index 0 for EMPP transactions)
             if (!tx.outputs || tx.outputs.length === 0) {
+                noOpReturnCount++;
                 continue;
             }
 
@@ -110,6 +117,7 @@ const analyzeTgTxs = async () => {
             }
 
             if (!opReturnOutput || !opReturnOutput.outputScript) {
+                noOpReturnCount++;
                 continue;
             }
 
@@ -120,11 +128,12 @@ const analyzeTgTxs = async () => {
             const emppPushes = parseEmppScript(script);
 
             if (!emppPushes || emppPushes.length === 0) {
+                noEmppDataCount++;
                 continue;
             }
 
             // Look for our LOKAD_ID in the EMPP pushes
-            // The first push should be our data: <lokadId><versionByte><actionCode><msgId>
+            let foundOurEmpp = false;
             for (const push of emppPushes) {
                 // Check if this push starts with our LOKAD_ID
                 const lokadIdBytes = strToBytes(LOKAD_ID);
@@ -142,50 +151,68 @@ const analyzeTgTxs = async () => {
                 }
 
                 if (matches) {
-                    // This is our EMPP data push, parse the action code
-                    const actionCode = parseActionCode(push);
+                    // This is our EMPP data push, parse the action code using the proper function
+                    const actionCode = parseEmppActionCode(push);
                     if (actionCode === null) {
                         unknownCount++;
-                        continue;
+                        foundOurEmpp = true;
+                        break;
                     }
 
-                    switch (actionCode) {
-                        case 0x00:
-                            claimCount++;
-                            break;
-                        case 0x01:
-                            likeCount++;
-                            break;
-                        case 0x02:
-                            dislikeCount++;
-                            break;
-                        case 0x03:
-                            dislikedCount++;
-                            break;
-                        default:
-                            unknownCount++;
-                    }
+                    // Increment counter for this action code
+                    const currentCount = actionCounts.get(actionCode) || 0;
+                    actionCounts.set(actionCode, currentCount + 1);
+                    foundOurEmpp = true;
+
                     // Only count the first matching push per transaction
                     break;
                 }
+            }
+
+            // If we didn't find any matching EMPP data, count it
+            if (!foundOurEmpp) {
+                noEmppDataCount++;
             }
         }
 
         // Print results
         console.log('📈 Transaction Analysis Results:');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log(`CLAIM transactions:        ${claimCount}`);
-        console.log(`LIKE transactions:         ${likeCount}`);
-        console.log(`DISLIKE transactions:      ${dislikeCount}`);
-        console.log(`DISLIKED transactions:     ${dislikedCount}`);
-        if (unknownCount > 0) {
-            console.log(`Unknown/Invalid:           ${unknownCount}`);
-        }
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log(`Total analyzed:            ${txs.length}`);
-        console.log(
-            `Total counted:             ${claimCount + likeCount + dislikeCount + dislikedCount + unknownCount}`,
+        console.log('Action Breakdown:');
+        console.log('');
+
+        // Sort action codes for consistent output
+        const sortedActions = Array.from(actionCounts.entries()).sort(
+            (a, b) => a[0] - b[0],
         );
+
+        for (const [actionCode, count] of sortedActions) {
+            const actionName = getActionName(actionCode);
+            console.log(
+                `  ${actionName.padEnd(20)} ${count.toString().padStart(8)}`,
+            );
+        }
+
+        if (unknownCount > 0) {
+            console.log(
+                `  ${'Unknown/Invalid'.padEnd(20)} ${unknownCount.toString().padStart(8)}`,
+            );
+        }
+
+        console.log('');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        const totalCounted =
+            Array.from(actionCounts.values()).reduce(
+                (sum, count) => sum + count,
+                0,
+            ) + unknownCount;
+        console.log(`Total transactions:        ${txs.length}`);
+        console.log(`Total with our EMPP:      ${totalCounted}`);
+        console.log(`No OP_RETURN:             ${noOpReturnCount}`);
+        console.log(
+            `Other EMPP data:           ${noEmppDataCount - noOpReturnCount}`,
+        );
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     } catch (err) {
         console.error('❌ Error analyzing transactions:', err);
         process.exit(1);
