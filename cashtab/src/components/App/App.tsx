@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Tooltip } from 'react-tooltip';
 import {
     HomeIcon,
@@ -44,6 +44,8 @@ import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';
@@ -93,6 +95,61 @@ const App = () => {
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     const location = useLocation();
     const navigate = useNavigate();
+
+    // Track navigation history to detect if we can go back
+    const navigationStackRef = useRef<string[]>([location.pathname]);
+    const isNavigatingBackRef = useRef(false);
+
+    // Track navigation history - add to stack on forward navigation
+    useEffect(() => {
+        const currentPath = location.pathname;
+        const stack = navigationStackRef.current;
+        const lastPath = stack[stack.length - 1];
+
+        // Only add to stack if this is a forward navigation (not from our back handler)
+        if (!isNavigatingBackRef.current && currentPath !== lastPath) {
+            navigationStackRef.current = [...stack, currentPath];
+        }
+
+        // Reset the flag after navigation completes
+        isNavigatingBackRef.current = false;
+    }, [location.pathname]);
+
+    // Handle Android back button: if no navigation history, background the app
+    useEffect(() => {
+        // Only set up back button listener on native platforms
+        if (Capacitor.isNativePlatform()) {
+            let backButtonListener: { remove: () => void } | null = null;
+
+            const setupBackButtonListener = async () => {
+                backButtonListener = await CapacitorApp.addListener(
+                    'backButton',
+                    () => {
+                        const stack = navigationStackRef.current;
+                        const canGoBack = stack.length > 1;
+
+                        if (canGoBack) {
+                            // Remove current path from stack and navigate back
+                            navigationStackRef.current = stack.slice(0, -1);
+                            isNavigatingBackRef.current = true;
+                            navigate(-1);
+                        } else {
+                            // No navigation history - background the app
+                            CapacitorApp.minimizeApp();
+                        }
+                    },
+                );
+            };
+
+            setupBackButtonListener();
+
+            return () => {
+                if (backButtonListener) {
+                    backButtonListener.remove();
+                }
+            };
+        }
+    }, [navigate]);
 
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = hasWallet
