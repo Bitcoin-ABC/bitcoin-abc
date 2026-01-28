@@ -8,6 +8,10 @@ import {
     ALL_BIP143,
     fromHex,
     DEFAULT_FEE_SATS_PER_KB,
+    TxBuilder,
+    TxBuilderOutput,
+    EccDummy,
+    Signatory,
 } from 'ecash-lib';
 import { ScriptUtxo } from 'chronik-client';
 
@@ -153,4 +157,45 @@ export const getAgoraCancelFuelInputs = <T extends ScriptUtxo>(
         }
     }
     throw new Error('Insufficient utxos to cancel this offer');
+};
+
+/**
+ * Calculate the fee required for an offer transaction that spends an ad script output.
+ * This is used to determine how much fuel needs to be included in the ad setup transaction.
+ */
+export const getAgoraAdFuelSats = (
+    redeemScript: Script,
+    signatory: Signatory,
+    offerOutputs: TxBuilderOutput[],
+    satsPerKb: bigint,
+): bigint => {
+    // Build a dummy offer tx to measure its size
+    const dummyOfferTx = new TxBuilder({
+        inputs: [
+            {
+                input: {
+                    prevOut: {
+                        // Use a placeholder 32-byte txid
+                        txid: DUMMY_TXID,
+                        // The outIdx will always be 1 in practice
+                        outIdx: 1,
+                    },
+                    signData: {
+                        // Arbitrary value that we know will cover the fee for this tx
+                        sats: 100000n,
+                        redeemScript,
+                    },
+                },
+                signatory,
+            },
+        ],
+        outputs: offerOutputs,
+    });
+    const measureTx = dummyOfferTx.sign({ ecc: new EccDummy() });
+
+    const dummyOfferTxSats = BigInt(
+        Math.ceil((measureTx.serSize() * Number(satsPerKb)) / 1000),
+    );
+
+    return dummyOfferTxSats;
 };

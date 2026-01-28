@@ -291,3 +291,8 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 2.6.16
 
 - Publish to catch updead `ecash-wallet` breaking change `4.0.0` [D19476](https://reviews.bitcoinabc.org/D19476)
+
+### 2.7.0 [D19491](https://reviews.bitcoinabc.org/D19491)
+
+- Add a `list()` method to `AgoraOneShot` for building and broadcasting SLP NFT listings with an `ecash-wallet` `Wallet`
+- Add a `list()` method to `AgoraPartial` for building and broadcasting SLP and ALP listings with an `ecash-wallet` `Wallet`

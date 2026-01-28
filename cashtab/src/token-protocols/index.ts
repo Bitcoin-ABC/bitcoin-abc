@@ -5,7 +5,6 @@
 import { SlpDecimals, CashtabUtxo, TokenUtxo } from 'wallet';
 import { getMaxDecimalizedAlpQty } from 'token-protocols/alp';
 import { getMaxDecimalizedSlpQty } from 'token-protocols/slpv1';
-import { decimalizeTokenAmount, undecimalizeTokenAmount } from 'wallet';
 import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
 import { TokenType } from 'chronik-client';
@@ -15,11 +14,6 @@ import { TokenType } from 'chronik-client';
 // by the wallet broadcasting this transaction.
 export const TOKEN_DUST_CHANGE_OUTPUT = { sats: BigInt(appConfig.dustSats) };
 
-export interface TokenInputInfo {
-    tokenInputs: TokenUtxo[];
-    sendAmounts: bigint[];
-    tokenId: string;
-}
 
 export interface TokenTargetOutput {
     sats: bigint;
@@ -42,83 +36,6 @@ export const getAllSendUtxos = (
             utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
             utxo.token?.isMintBaton === false, // UTXO is not a minting baton.
     ) as TokenUtxo[];
-};
-
-/**
- * Get utxos for a token transaction
- * Supports all types of token as utxos are selected by tokenId
- * @param utxos
- * @param tokenId tokenId of the token you want to send
- * @param sendQty
- * @param decimals 0-9 inclusive, integer. Decimals of this token.
- * Note: you need to get decimals from cache or from chronik.
- */
-export const getSendTokenInputs = (
-    utxos: CashtabUtxo[],
-    tokenId: string,
-    sendQty: string,
-    decimals: -1 | SlpDecimals = -1,
-): TokenInputInfo => {
-    if (sendQty === '') {
-        throw new Error(
-            'Invalid sendQty empty string. sendQty must be a decimalized number as a string.',
-        );
-    }
-
-    // Get all slp send utxos for this tokenId
-    const allSendUtxos = getAllSendUtxos(utxos, tokenId);
-
-    if (allSendUtxos.length === 0) {
-        throw new Error(`No token utxos for tokenId "${tokenId}"`);
-    }
-
-    if (!Number.isInteger(decimals) || decimals > 9 || decimals < 0) {
-        // We get there if we call this function without specifying decimals
-        throw new Error(
-            `Invalid decimals ${decimals} for tokenId ${tokenId}. Decimals must be an integer 0-9.`,
-        );
-    }
-
-    // Convert user input (decimalized string)
-    const sendQtyBigInt = BigInt(
-        undecimalizeTokenAmount(sendQty, decimals as SlpDecimals),
-    );
-
-    // We calculate totalTokenInputUtxoQty with the same basis (token satoshis) -- no adjustment for decimals
-    // as the value of this token utxo is already indexed at this basis
-    let totalTokenInputUtxoQty = 0n;
-
-    const tokenInputs = [];
-    for (const utxo of allSendUtxos) {
-        totalTokenInputUtxoQty = totalTokenInputUtxoQty + utxo.token.atoms;
-
-        tokenInputs.push(utxo);
-        if (totalTokenInputUtxoQty >= sendQtyBigInt) {
-            // If we have enough to send what we want, no more input utxos
-            break;
-        }
-    }
-
-    if (totalTokenInputUtxoQty < sendQtyBigInt) {
-        throw new Error(
-            `tokenUtxos have insufficient balance ${decimalizeTokenAmount(
-                totalTokenInputUtxoQty.toString(),
-                decimals as SlpDecimals,
-            )} to send ${decimalizeTokenAmount(
-                sendQtyBigInt.toString(),
-                decimals as SlpDecimals,
-            )}`,
-        );
-    }
-
-    const sendAmounts = [sendQtyBigInt];
-    const change = totalTokenInputUtxoQty - sendQtyBigInt;
-    if (change > 0n) {
-        sendAmounts.push(change);
-    }
-
-    // NB sendAmounts must be an array of BigNumbers, each one decimalized to the tokens decimal places
-    return { tokenInputs, tokenId, sendAmounts };
 };
 
 export const getMaxDecimalizedQty = (

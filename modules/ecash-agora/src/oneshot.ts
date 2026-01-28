@@ -6,6 +6,8 @@ import {
     ALL_ANYONECANPAY_BIP143,
     ALL_BIP143,
     Bytes,
+    DEFAULT_DUST_SATS,
+    DEFAULT_FEE_SATS_PER_KB,
     Ecc,
     OP_0,
     OP_1,
@@ -31,6 +33,13 @@ import {
     OP_SPLIT,
     OP_SWAP,
     Script,
+    shaRmd160,
+    slpSend,
+    SLP_NFT1_CHILD,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
+    Tx,
+    TxBuilder,
+    TxBuilderOutput,
     TxOutput,
     UnsignedTxInput,
     Writer,
@@ -38,13 +47,16 @@ import {
     WriterLength,
     flagSignature,
     isPushOp,
+    payment,
     pushBytesOp,
     readTxOutput,
     sha256d,
     strToBytes,
     writeTxOutput,
 } from 'ecash-lib';
+import { BuiltAction, Wallet } from 'ecash-wallet';
 import { AGORA_LOKAD_ID } from './consts.js';
+import { getAgoraAdFuelSats } from './inputs.js';
 
 /**
  * Agora offer that has to be accepted in "one shot", i.e. all or nothing.
@@ -223,6 +235,188 @@ export class AgoraOneshot {
             (prev, output) => prev + output.sats,
             0n,
         );
+    }
+
+    /**
+     * Build and broadcast a chained transaction to list an SLP NFT token.
+     * This creates an "ad prep" transaction followed by the actual offer transaction.
+     *
+     * @param params - Parameters for listing the NFT
+     * @returns Promise resolving to broadcast result
+     * @throws Error if token type is not SLP NFT
+     */
+    public async list(params: {
+        /**
+         * An initialized Wallet from ecash-wallet.
+         * This wallet must hold the NFT token to be listed.
+         */
+        wallet: Wallet;
+        /**
+         * Token ID of the NFT to list (in big-endian hex).
+         */
+        tokenId: string;
+        /**
+         * Token type - must be SLP_TOKEN_TYPE_NFT1_CHILD.
+         */
+        tokenType: typeof SLP_TOKEN_TYPE_NFT1_CHILD;
+        /**
+         * Dust amount to use for the token output.
+         */
+        dustSats?: bigint;
+        /**
+         * Fee per kB to use when building the tx.
+         */
+        feePerKb?: bigint;
+    }): Promise<{
+        success: boolean;
+        broadcasted: string[];
+        unbroadcasted?: string[];
+        errors?: string[];
+    }> {
+        // Validate token type - only SLP NFT is supported
+        if (params.tokenType.type !== 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+            throw new Error(
+                'AgoraOneshot.list() only supports SLP NFT tokens (SLP_TOKEN_TYPE_NFT1_CHILD)',
+            );
+        }
+
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
+        const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
+
+        // Build the ad script and P2SH address
+        const agoraAdScript = this.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+
+        // Determine the offer tx parameters before building txs, so we can
+        // accurately calculate its fee
+        const agoraScript = this.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        const offerTargetOutputs: TxBuilderOutput[] = [
+            {
+                sats: 0n,
+                script: slpSend(params.tokenId, SLP_NFT1_CHILD, [1n]),
+            },
+            { sats: dustSats, script: agoraP2sh },
+        ];
+
+        const offerTxFuelSats = getAgoraAdFuelSats(
+            agoraAdScript,
+            AgoraOneshotAdSignatory(params.wallet.sk),
+            offerTargetOutputs,
+            feePerKb,
+        );
+
+        // The ad prep tx must include an output with fuel that covers this fee
+        // This will be dust + fee
+        const adFuelOutputSats = dustSats + offerTxFuelSats;
+
+        // Build the ad setup tx using ecash-wallet (without broadcasting)
+        let adSetupTx: Tx;
+        let adSetupTxid: string;
+        try {
+            // Build payment.Action for ad setup transaction
+            // This sends the NFT to the P2SH address with fuel for the offer tx
+            // Output 0: OP_RETURN (ecash-wallet will build the script from tokenActions)
+            // Output 1: P2SH output with NFT (for the offer tx)
+            // ecash-wallet will automatically select the NFT UTXO based on the token send action
+            const adSetupOutputs: payment.PaymentOutput[] = [
+                { sats: 0n }, // OP_RETURN - ecash-wallet will build the script
+                {
+                    sats: adFuelOutputSats,
+                    script: agoraAdP2sh,
+                    tokenId: params.tokenId,
+                    atoms: 1n, // NFT quantity is always 1
+                },
+            ];
+
+            const adSetupAction: payment.Action = {
+                outputs: adSetupOutputs,
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: params.tokenId,
+                        tokenType: params.tokenType,
+                    },
+                ],
+                feePerKb,
+            };
+
+            // Build without broadcasting to get the txid
+            const builtAdSetupAction = params.wallet
+                .action(adSetupAction)
+                .build();
+            adSetupTx = builtAdSetupAction.txs[0];
+            adSetupTxid = builtAdSetupAction.builtTxs[0].txid;
+        } catch (err) {
+            console.error(`Error building NFT listing ad tx`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error building NFT listing ad tx: ${err}`],
+            };
+        }
+
+        // Build the offer transaction
+        // This uses a P2SH input with custom signatory, so we build it manually with TxBuilder
+        let offerTx: Tx;
+        try {
+            const offerInputs = [
+                {
+                    input: {
+                        prevOut: {
+                            // Use the txid from the built (but not yet broadcast) ad tx
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: adFuelOutputSats,
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraOneshotAdSignatory(params.wallet.sk),
+                },
+            ];
+
+            // Build the offer transaction using TxBuilder
+            const offerTxBuilder = new TxBuilder({
+                inputs: offerInputs,
+                outputs: offerTargetOutputs,
+            });
+
+            offerTx = offerTxBuilder.sign({
+                feePerKb,
+                dustSats,
+            });
+        } catch (err) {
+            console.error(`Error building NFT listing offer tx`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error building NFT listing offer tx: ${err}`],
+            };
+        }
+
+        // Broadcast both transactions together
+        try {
+            const builtAction = new BuiltAction(
+                params.wallet,
+                [adSetupTx, offerTx],
+                feePerKb,
+            );
+            const broadcastResult = await builtAction.broadcast();
+            return broadcastResult;
+        } catch (err) {
+            console.error(`Error broadcasting NFT listing txs`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error broadcasting NFT listing txs: ${err}`],
+            };
+        }
     }
 }
 

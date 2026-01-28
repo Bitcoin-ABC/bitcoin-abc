@@ -4,7 +4,6 @@
 
 import {
     getAllSendUtxos,
-    getSendTokenInputs,
     getMaxDecimalizedQty,
     getRenderedTokenType,
 } from 'token-protocols';
@@ -19,50 +18,6 @@ describe('Cashtab supported token protocol methods', () => {
                 expect(getAllSendUtxos(utxos, tokenId)).toStrictEqual(
                     tokenUtxos,
                 );
-            });
-        });
-    });
-    describe('Get slpv1 send token inputs and outputs', () => {
-        const { expectedReturns, expectedErrors } = vectors.getSendTokenInputs;
-        expectedReturns.forEach(expectedReturn => {
-            const {
-                description,
-                allSendUtxos,
-                sendQty,
-                tokenId,
-                decimals,
-                tokenInputs,
-                sendAmounts,
-            } = expectedReturn;
-            it(`getSendTokenInputs: ${description}`, () => {
-                const calcTokenInputs = getSendTokenInputs(
-                    allSendUtxos,
-                    tokenId,
-                    sendQty,
-                    decimals,
-                );
-                expect(calcTokenInputs.tokenInputs).toStrictEqual(tokenInputs);
-                expect(calcTokenInputs.sendAmounts).toStrictEqual(sendAmounts);
-            });
-        });
-        expectedErrors.forEach(expectedError => {
-            const {
-                description,
-                allSendUtxos,
-                sendQty,
-                tokenId,
-                decimals,
-                errorMsg,
-            } = expectedError;
-            it(`getSendTokenInputs with in-node chronik utxos throws error for: ${description}`, () => {
-                expect(() =>
-                    getSendTokenInputs(
-                        allSendUtxos,
-                        tokenId,
-                        sendQty,
-                        decimals,
-                    ),
-                ).toThrow(errorMsg);
             });
         });
     });

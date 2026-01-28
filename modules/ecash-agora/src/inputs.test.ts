@@ -3,7 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import { Script, fromHex } from 'ecash-lib';
+import {
+    Script,
+    fromHex,
+    slpSend,
+    SLP_NFT1_CHILD,
+    SLP_FUNGIBLE,
+    shaRmd160,
+    DEFAULT_DUST_SATS,
+} from 'ecash-lib';
 import { TokenType, ScriptUtxo } from 'chronik-client';
 
 import { AgoraOneshot } from './oneshot';
@@ -14,7 +22,9 @@ import {
     getAgoraPartialAcceptFuelInputs,
     getAgoraOneshotAcceptFuelInputs,
     getAgoraCancelFuelInputs,
+    getAgoraAdFuelSats,
 } from './inputs';
+import { AgoraOneshotAdSignatory, AgoraPartialAdSignatory } from './index';
 
 // Create a mock agora partial offer to use in these tests
 // Modeled on existing Cashtab tests
@@ -454,6 +464,46 @@ const vectors: {
     },
 };
 
+// Mock objects for getAgoraAdFuelSats tests
+const MOCK_TOKEN_ID =
+    '1111111111111111111111111111111111111111111111111111111111111111';
+const MOCK_WALLET_HASH = fromHex('12'.repeat(20));
+const MOCK_WALLET_SK = fromHex('33'.repeat(32));
+
+const MOCK_ONESHOT = new AgoraOneshot({
+    enforcedOutputs: [
+        {
+            sats: 0n,
+            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [0n, 1n]),
+        },
+        {
+            sats: 10000n, // list price satoshis
+            script: Script.p2pkh(MOCK_WALLET_HASH),
+        },
+    ],
+    cancelPk: DUMMY_KEYPAIR.pk,
+});
+const MOCK_AGORA_P2SH = Script.p2sh(shaRmd160(MOCK_ONESHOT.script().bytecode));
+
+const MOCK_PARTIAL = new AgoraPartial({
+    truncAtoms: 1000n,
+    numAtomsTruncBytes: 0,
+    atomsScaleFactor: 1000000n,
+    scaledTruncAtomsPerTruncSat: 1000000n,
+    numSatsTruncBytes: 0,
+    minAcceptedScaledTruncAtoms: 1000000n,
+    makerPk: DUMMY_KEYPAIR.pk,
+    tokenId: MOCK_TOKEN_ID,
+    tokenProtocol: 'SLP',
+    enforcedLockTime: 500000001,
+    dustSats: DEFAULT_DUST_SATS,
+    tokenType: SLP_FUNGIBLE,
+    scriptLen: 0x7f,
+});
+const MOCK_PARTIAL_P2SH = Script.p2sh(
+    shaRmd160(MOCK_PARTIAL.script().bytecode),
+);
+
 describe('Functions used to get inputs required for accept or cancel txs', () => {
     context('getAgoraPartialAcceptFuelInputs', () => {
         const { expectedReturns, expectedErrors } =
@@ -536,5 +586,124 @@ describe('Functions used to get inputs required for accept or cancel txs', () =>
                 ).to.throw(error);
             });
         }
+    });
+    context('getAgoraAdFuelSats', () => {
+        const SATS_PER_KB_MIN = 1000n;
+        const SATS_PER_KB_ALT = 2000n;
+
+        it('getAgoraAdFuelSats for minimum eCash fee NFT listing', () => {
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_ONESHOT.adScript(),
+                    AgoraOneshotAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [
+                                1n,
+                            ]),
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: MOCK_AGORA_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_MIN,
+                ),
+            ).to.equal(314n);
+        });
+        it('getAgoraAdFuelSats for a different fee level NFT listing', () => {
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_ONESHOT.adScript(),
+                    AgoraOneshotAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_NFT1_CHILD, [
+                                1n,
+                            ]),
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: MOCK_AGORA_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_ALT,
+                ),
+            ).to.equal(628n);
+        });
+        it('getAgoraAdFuelSats for minimum eCash fee SLP partial listing and no token change', () => {
+            const tokenSendAmount = 10000n;
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_PARTIAL.adScript(),
+                    AgoraPartialAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
+                                tokenSendAmount,
+                            ]),
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: MOCK_PARTIAL_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_MIN,
+                ),
+            ).to.equal(368n);
+        });
+        it('getAgoraAdFuelSats for minimum eCash fee SLP partial listing and a token change output', () => {
+            const tokenSendAmount = 9900n;
+            const tokenChangeAmount = 100n;
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_PARTIAL.adScript(),
+                    AgoraPartialAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
+                                tokenSendAmount,
+                                tokenChangeAmount,
+                            ]),
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: MOCK_PARTIAL_P2SH,
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: Script.p2pkh(MOCK_WALLET_HASH),
+                        },
+                    ],
+                    SATS_PER_KB_MIN,
+                ),
+            ).to.equal(411n);
+        });
+        it('getAgoraAdFuelSats for alternate eCash fee SLP partial listing and no token change', () => {
+            const tokenSendAmount = 10000n;
+            expect(
+                getAgoraAdFuelSats(
+                    MOCK_PARTIAL.adScript(),
+                    AgoraPartialAdSignatory(MOCK_WALLET_SK),
+                    [
+                        {
+                            sats: 0n,
+                            script: slpSend(MOCK_TOKEN_ID, SLP_FUNGIBLE, [
+                                tokenSendAmount,
+                            ]),
+                        },
+                        {
+                            sats: DEFAULT_DUST_SATS,
+                            script: MOCK_PARTIAL_P2SH,
+                        },
+                    ],
+                    SATS_PER_KB_ALT,
+                ),
+            ).to.equal(736n);
+        });
     });
 });

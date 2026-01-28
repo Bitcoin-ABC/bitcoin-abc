@@ -5,8 +5,11 @@
 import {
     ALL_ANYONECANPAY_BIP143,
     ALL_BIP143,
+    ALP_STANDARD,
+    ALP_TOKEN_TYPE_STANDARD,
     alpSend,
     DEFAULT_DUST_SATS,
+    DEFAULT_FEE_SATS_PER_KB,
     Ecc,
     emppScript,
     flagSignature,
@@ -62,17 +65,33 @@ import {
     pushBytesOp,
     pushNumberOp,
     Script,
+    shaRmd160,
     sha256d,
     Signatory,
+    SLP_FUNGIBLE,
+    SLP_MINT_VAULT,
+    SLP_NFT1_CHILD,
+    SLP_NFT1_GROUP,
+    SLP_TOKEN_TYPE_FUNGIBLE,
+    SLP_TOKEN_TYPE_MINT_VAULT,
+    SLP_TOKEN_TYPE_NFT1_GROUP,
     slpSend,
     strToBytes,
+    TokenType,
+    Tx,
+    TxBuilder,
+    TxBuilderOutput,
     UnsignedTxInput,
     Writer,
     WriterBytes,
     WriterLength,
     writeTxOutput,
+    payment,
 } from 'ecash-lib';
+import { BuiltAction, Wallet } from 'ecash-wallet';
 import { AGORA_LOKAD_ID } from './consts.js';
+import { getAgoraAdFuelSats } from './inputs.js';
+import { getAgoraPaymentAction } from './actions.js';
 
 /**
  * "Human viable" parameters for partial Agora offers, can serve as a basis to
@@ -1324,6 +1343,284 @@ export class AgoraPartial {
             pushBytesOp(AGORA_LOKAD_ID),
             OP_EQUAL,
         ]);
+    }
+
+    /**
+     * Build and broadcast a transaction to list tokens.
+     * For ALP tokens, this creates a single transaction.
+     * For SLP tokens (non-NFT), this creates a chained transaction with an "advertising" tx followed by the offer tx.
+     *
+     * @param params - Parameters for listing the tokens
+     * @returns Promise resolving to broadcast result
+     * @throws Error if token type is SLP NFT
+     */
+    public async list(params: {
+        /**
+         * An initialized Wallet from ecash-wallet.
+         * This wallet must hold the tokens to be listed.
+         */
+        wallet: Wallet;
+        /**
+         * Dust amount to use for the token output.
+         */
+        dustSats?: bigint;
+        /**
+         * Fee per kB to use when building the tx.
+         */
+        feePerKb?: bigint;
+    }): Promise<{
+        success: boolean;
+        broadcasted: string[];
+        unbroadcasted?: string[];
+        errors?: string[];
+    }> {
+        // Construct TokenType from class properties
+        let tokenType: TokenType;
+        if (this.tokenProtocol === 'SLP') {
+            // Validate token type - NFT is not supported
+            if (this.tokenType === SLP_NFT1_CHILD) {
+                throw new Error(
+                    'AgoraPartial.list() does not support SLP NFT tokens (SLP_TOKEN_TYPE_NFT1_CHILD). Use AgoraOneshot.list() instead.',
+                );
+            }
+
+            // Map tokenType number to TokenType object
+            switch (this.tokenType) {
+                case SLP_FUNGIBLE:
+                    tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
+                    break;
+                case SLP_MINT_VAULT:
+                    tokenType = SLP_TOKEN_TYPE_MINT_VAULT;
+                    break;
+                case SLP_NFT1_GROUP:
+                    tokenType = SLP_TOKEN_TYPE_NFT1_GROUP;
+                    break;
+                default:
+                    throw new Error(
+                        `Unsupported SLP token type: ${this.tokenType}`,
+                    );
+            }
+        } else if (this.tokenProtocol === 'ALP') {
+            if (this.tokenType === ALP_STANDARD) {
+                tokenType = ALP_TOKEN_TYPE_STANDARD;
+            } else {
+                throw new Error(
+                    `Unsupported ALP token type: ${this.tokenType}`,
+                );
+            }
+        } else {
+            throw new Error(
+                `Unsupported token protocol: ${this.tokenProtocol}`,
+            );
+        }
+
+        const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
+        const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
+
+        // For ALP tokens, use the existing getAgoraPaymentAction
+        if (this.tokenProtocol === 'ALP') {
+            const action = getAgoraPaymentAction(
+                {
+                    type: 'LIST',
+                    tokenType,
+                    variant: {
+                        type: 'PARTIAL',
+                        params: this,
+                    },
+                },
+                dustSats,
+            );
+
+            const builtAction = params.wallet.action(action).build();
+            const broadcastResult = await builtAction.broadcast();
+            return broadcastResult;
+        }
+
+        // For SLP tokens (non-NFT), create a chained transaction
+        const agoraAdScript = this.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+
+        // Determine the offer tx parameters before building txs, so we can
+        // accurately calculate its fee
+        const agoraScript = this.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        const offeredAtoms = this.offeredAtoms();
+
+        // Get token UTXOs from wallet
+        const tokenUtxos = params.wallet.utxos.filter(
+            utxo =>
+                utxo.token?.tokenId === this.tokenId &&
+                utxo.token?.isMintBaton === false,
+        );
+
+        // Calculate how many tokens we need to send
+        let totalTokenAtoms = 0n;
+        const selectedUtxos: typeof tokenUtxos = [];
+        for (const utxo of tokenUtxos) {
+            selectedUtxos.push(utxo);
+            totalTokenAtoms += utxo.token!.atoms;
+            if (totalTokenAtoms >= offeredAtoms) {
+                break;
+            }
+        }
+
+        if (totalTokenAtoms < offeredAtoms) {
+            throw new Error(
+                `Insufficient token utxos to list ${offeredAtoms} atoms. Only ${totalTokenAtoms} atoms available.`,
+            );
+        }
+
+        // Calculate token change if any
+        const tokenChange = totalTokenAtoms - offeredAtoms;
+        const sendAmounts: bigint[] = [offeredAtoms];
+        if (tokenChange > 0n) {
+            sendAmounts.push(tokenChange);
+        }
+
+        const offerTargetOutputs: TxBuilderOutput[] = [
+            {
+                sats: 0n,
+                // We will not have any token change for the tx that creates the offer
+                // This is bc the ad setup tx sends the exact amount of tokens we need
+                // for the ad tx (the offer)
+                script: slpSend(
+                    this.tokenId,
+                    this.tokenType,
+                    sendAmounts.slice(0, 1),
+                ),
+            },
+            { sats: dustSats, script: agoraP2sh },
+        ];
+
+        const adSetupSatoshis = getAgoraAdFuelSats(
+            agoraAdScript,
+            AgoraPartialAdSignatory(params.wallet.sk),
+            offerTargetOutputs,
+            feePerKb,
+        );
+
+        // The ad setup tx itself is sending tokens to a dust output
+        // So, the fuel input must be adSetupSatoshis more than dust
+        const agoraAdFuelInputSats = dustSats + adSetupSatoshis;
+
+        // Build the ad setup tx using ecash-wallet (without broadcasting)
+        let adSetupTx: Tx;
+        let adSetupTxid: string;
+        try {
+            // Build payment.Action for ad setup transaction
+            // This sends tokens to the P2SH address with fuel for the offer tx
+            // Output 0: OP_RETURN (ecash-wallet will build the script from tokenActions)
+            // Output 1: P2SH output with tokens (for the offer tx)
+            // Output 2 (if change): Token change output
+            const adSetupOutputs: payment.PaymentOutput[] = [
+                { sats: 0n }, // OP_RETURN - ecash-wallet will build the script
+                {
+                    sats: agoraAdFuelInputSats,
+                    script: agoraAdP2sh,
+                    tokenId: this.tokenId,
+                    atoms: sendAmounts[0], // The amount being sent to P2SH
+                },
+            ];
+
+            // Include token change output for the ad setup tx if we have change
+            if (sendAmounts.length > 1) {
+                adSetupOutputs.push({
+                    sats: dustSats,
+                    script: params.wallet.script,
+                    tokenId: this.tokenId,
+                    atoms: sendAmounts[1],
+                });
+            }
+
+            // ecash-wallet will automatically select the required token UTXOs based on the token send action
+            const adSetupAction: payment.Action = {
+                outputs: adSetupOutputs,
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: this.tokenId,
+                        tokenType,
+                    },
+                ],
+                feePerKb,
+            };
+
+            // Build without broadcasting to get the txid
+            const builtAdSetupAction = params.wallet
+                .action(adSetupAction)
+                .build();
+            adSetupTx = builtAdSetupAction.txs[0];
+            adSetupTxid = builtAdSetupAction.builtTxs[0].txid;
+        } catch (err) {
+            console.error(`Error building SLP Partial listing ad tx`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error building SLP Partial listing ad tx: ${err}`],
+            };
+        }
+
+        // Build the offer transaction
+        // This uses a P2SH input with custom signatory, so we build it manually with TxBuilder
+        let offerTx: Tx;
+        try {
+            const offerInputs = [
+                {
+                    input: {
+                        prevOut: {
+                            // Use the txid from the built (but not yet broadcast) ad tx
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            sats: agoraAdFuelInputSats,
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraPartialAdSignatory(params.wallet.sk),
+                },
+            ];
+
+            // Build the offer transaction using TxBuilder
+            const offerTxBuilder = new TxBuilder({
+                inputs: offerInputs,
+                outputs: offerTargetOutputs,
+            });
+
+            offerTx = offerTxBuilder.sign({
+                feePerKb,
+                dustSats,
+            });
+        } catch (err) {
+            console.error(`Error building SLP Partial listing offer tx`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error building SLP Partial listing offer tx: ${err}`],
+            };
+        }
+
+        // Broadcast both transactions together
+        try {
+            const builtAction = new BuiltAction(
+                params.wallet,
+                [adSetupTx, offerTx],
+                feePerKb,
+            );
+            const broadcastResult = await builtAction.broadcast();
+            return broadcastResult;
+        } catch (err) {
+            console.error(`Error broadcasting SLP Partial listing txs`, err);
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: [],
+                errors: [`Error broadcasting SLP Partial listing txs: ${err}`],
+            };
+        }
     }
 }
 

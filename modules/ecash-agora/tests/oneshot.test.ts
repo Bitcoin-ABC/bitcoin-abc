@@ -12,11 +12,14 @@ import {
     P2PKHSignatory,
     SLP_NFT1_CHILD,
     SLP_NFT1_GROUP,
+    SLP_TOKEN_TYPE_NFT1_CHILD,
+    SLP_TOKEN_TYPE_NFT1_GROUP,
     Script,
     TxBuilder,
     TxInput,
     TxOutput,
     fromHex,
+    payment,
     shaRmd160,
     slpGenesis,
     slpSend,
@@ -38,18 +41,6 @@ use(chaiAsPromised);
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000n;
-
-const SLP_TOKEN_TYPE_NFT1_GROUP = {
-    number: 0x81,
-    protocol: 'SLP' as const,
-    type: 'SLP_TOKEN_TYPE_NFT1_GROUP' as const,
-};
-
-const SLP_TOKEN_TYPE_NFT1_CHILD = {
-    number: 0x41,
-    protocol: 'SLP' as const,
-    type: 'SLP_TOKEN_TYPE_NFT1_CHILD' as const,
-};
 
 describe('SLP', () => {
     let runner: TestRunner;
@@ -993,5 +984,262 @@ describe('SLP', () => {
         expect(
             await agora.activeOffersByPubKey(toHex(cancelerPk)),
         ).to.deep.equal([]);
+    });
+
+    it('Can list an NFT offer using list() method and take it with another wallet', async () => {
+        const agora = new Agora(chronik);
+
+        const sellerSk = fromHex('aa'.repeat(32));
+        const sellerWallet = Wallet.fromSk(sellerSk, chronik);
+        const sellerPk = ecc.derivePubkey(sellerSk);
+        const sellerPkh = shaRmd160(sellerPk);
+        const sellerP2pkh = Script.p2pkh(sellerPkh);
+
+        const buyerSk = fromHex('bb'.repeat(32));
+        const buyerWallet = Wallet.fromSk(buyerSk, chronik);
+        const buyerPk = ecc.derivePubkey(buyerSk);
+
+        // Fund seller wallet
+        await runner.sendToScript(50000n, sellerP2pkh);
+        await sellerWallet.sync();
+
+        // Create NFT GROUP token using Wallet
+        const groupGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 10000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    genesisInfo: {
+                        tokenTicker: 'TEST GROUP',
+                        decimals: 0,
+                    },
+                },
+            ],
+        };
+        const groupGenesisResult = await sellerWallet
+            .action(groupGenesisAction)
+            .build()
+            .broadcast();
+
+        const groupTokenId = groupGenesisResult.broadcasted[0];
+
+        // Create NFT CHILD token using Wallet
+        await sellerWallet.sync();
+        const childGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 8000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: {
+                        tokenTicker: 'TEST NFT',
+                        decimals: 0,
+                    },
+                    groupTokenId: groupTokenId,
+                },
+            ],
+        };
+        const childGenesisResult = await sellerWallet
+            .action(childGenesisAction)
+            .build()
+            .broadcast();
+        const childTokenId = childGenesisResult.broadcasted[0];
+
+        // Wait for token to be indexed
+        await sellerWallet.sync();
+
+        // Create AgoraOneshot offer and list it
+        const listPriceSatoshis = 30000n;
+        const agoraOneshot = new AgoraOneshot({
+            enforcedOutputs: [
+                {
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0n, 1n]),
+                },
+                {
+                    sats: listPriceSatoshis,
+                    script: sellerP2pkh,
+                },
+            ],
+            cancelPk: sellerPk,
+        });
+
+        const listResult = await agoraOneshot.list({
+            wallet: sellerWallet,
+            tokenId: childTokenId,
+            tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+        });
+
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(2);
+
+        // Wait for offer to be indexed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Find the offer
+        const offers = await agora.activeOffersByTokenId(childTokenId);
+        expect(offers.length).to.equal(1);
+        const offer = offers[0];
+
+        // Fund buyer wallet
+        await runner.sendToScript(50000n, Script.p2pkh(shaRmd160(buyerPk)));
+        await buyerWallet.sync();
+
+        // Take the offer using take() method
+        const takeResult = await offer.take({
+            wallet: buyerWallet,
+            covenantSk: buyerSk,
+            covenantPk: buyerPk,
+        });
+
+        expect(takeResult.success).to.equal(true);
+        expect(takeResult.broadcasted.length).to.equal(1);
+
+        // Verify offer is no longer active
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const remainingOffers = await agora.activeOffersByTokenId(childTokenId);
+        expect(remainingOffers.length).to.equal(0);
+    });
+
+    it('Can list an NFT offer using list() method and cancel it with the same wallet', async () => {
+        const agora = new Agora(chronik);
+
+        const sellerSk = fromHex('cc'.repeat(32));
+        const sellerWallet = Wallet.fromSk(sellerSk, chronik);
+        const sellerPk = ecc.derivePubkey(sellerSk);
+        const sellerPkh = shaRmd160(sellerPk);
+        const sellerP2pkh = Script.p2pkh(sellerPkh);
+
+        // Fund seller wallet
+        await runner.sendToScript(50000n, sellerP2pkh);
+        await sellerWallet.sync();
+
+        // Create NFT GROUP token using Wallet
+        const groupGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 10000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    genesisInfo: {
+                        tokenTicker: 'TEST GROUP 2',
+                        decimals: 0,
+                    },
+                },
+            ],
+        };
+        const groupGenesisResult = await sellerWallet
+            .action(groupGenesisAction)
+            .build()
+            .broadcast();
+        const groupTokenId = groupGenesisResult.broadcasted[0];
+
+        // Create NFT CHILD token using Wallet
+        await sellerWallet.sync();
+        const childGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 8000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: {
+                        tokenTicker: 'TEST NFT 2',
+                        decimals: 0,
+                    },
+                    groupTokenId: groupTokenId,
+                },
+            ],
+        };
+        const childGenesisResult = await sellerWallet
+            .action(childGenesisAction)
+            .build()
+            .broadcast();
+        const childTokenId = childGenesisResult.broadcasted[0];
+
+        // Wait for token to be indexed
+        await sellerWallet.sync();
+
+        // Create AgoraOneshot offer and list it
+        const listPriceSatoshis = 50000n;
+        const agoraOneshot = new AgoraOneshot({
+            enforcedOutputs: [
+                {
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0n, 1n]),
+                },
+                {
+                    sats: listPriceSatoshis,
+                    script: sellerP2pkh,
+                },
+            ],
+            cancelPk: sellerPk,
+        });
+
+        const listResult = await agoraOneshot.list({
+            wallet: sellerWallet,
+            tokenId: childTokenId,
+            tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+        });
+
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(2);
+
+        // Wait for offer to be indexed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Find the offer
+        const offers = await agora.activeOffersByTokenId(childTokenId);
+        expect(offers.length).to.equal(1);
+        const offer = offers[0];
+
+        // Fund seller wallet for cancel fee
+        await runner.sendToScript(50000n, sellerP2pkh);
+        await sellerWallet.sync();
+
+        // Cancel the offer using cancel() method
+        const cancelResult = await offer.cancel({
+            wallet: sellerWallet,
+        });
+
+        expect(cancelResult.success).to.equal(true);
+        expect(cancelResult.broadcasted.length).to.equal(1);
+
+        // Verify offer is no longer active
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const remainingOffers = await agora.activeOffersByTokenId(childTokenId);
+        expect(remainingOffers.length).to.equal(0);
     });
 });
