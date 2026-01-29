@@ -12,9 +12,40 @@ SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 ANDROID_DIR="${APP_DIR}/android"
 
-echo "[start] Building web app..."
+echo "[start] Building web app with Android environment..."
 cd "${APP_DIR}"
+
+# Backup original .env and use .env.android for build
+if [ -f "${APP_DIR}/.env.android" ]; then
+    echo "[start] Found .env.android file"
+    RECAPTCHA_KEY=$(grep "^VITE_RECAPTCHA_SITE_KEY=" "${APP_DIR}/.env.android" | cut -d'=' -f2- | tr -d ' ')
+    if [ -n "${RECAPTCHA_KEY}" ]; then
+        echo "[start] reCAPTCHA site key from .env.android: ${RECAPTCHA_KEY}"
+    else
+        echo "[start] WARNING: VITE_RECAPTCHA_SITE_KEY not found in .env.android"
+    fi
+
+    # Backup .env if it exists
+    if [ -f "${APP_DIR}/.env" ]; then
+        cp "${APP_DIR}/.env" "${APP_DIR}/.env.backup"
+        echo "[start] Backed up .env to .env.backup"
+    fi
+
+    # Copy .env.android to .env so Vite loads it
+    cp "${APP_DIR}/.env.android" "${APP_DIR}/.env"
+    echo "[start] Copied .env.android to .env for build"
+else
+    echo "[start] WARNING: .env.android not found, will use default .env"
+fi
+
+# Build (no need for --mode since we're using .env directly)
 pnpm run build
+
+# Restore original .env if backup exists
+if [ -f "${APP_DIR}/.env.backup" ]; then
+    mv "${APP_DIR}/.env.backup" "${APP_DIR}/.env"
+    echo "[start] Restored original .env"
+fi
 
 echo "[start] Syncing Capacitor (android)..."
 npx cap sync android

@@ -14,8 +14,18 @@ ANDROID_DIR="${APP_DIR}/android"
 
 echo "[build-prod] App dir: ${APP_DIR}"
 
-# Check if .env.android exists (Node.js build process will load it)
-if [ ! -f "${APP_DIR}/.env.android" ]; then
+# Backup original .env and use .env.android for build
+if [ -f "${APP_DIR}/.env.android" ]; then
+    echo "[build-prod] Found .env.android file"
+    # Backup .env if it exists
+    if [ -f "${APP_DIR}/.env" ]; then
+        cp "${APP_DIR}/.env" "${APP_DIR}/.env.backup"
+        echo "[build-prod] Backed up .env to .env.backup"
+    fi
+    # Copy .env.android to .env so Vite loads it
+    cp "${APP_DIR}/.env.android" "${APP_DIR}/.env"
+    echo "[build-prod] Copied .env.android to .env for build"
+else
     echo "[build-prod] WARNING: .env.android not found. Using default .env file."
 fi
 
@@ -75,6 +85,12 @@ else
   npm ci
   echo "[build-prod] Building web app"
   npm run build
+fi
+
+# Restore original .env if backup exists
+if [ -f "${APP_DIR}/.env.backup" ]; then
+  mv "${APP_DIR}/.env.backup" "${APP_DIR}/.env"
+  echo "[build-prod] Restored original .env"
 fi
 
 # Sync Capacitor Android project

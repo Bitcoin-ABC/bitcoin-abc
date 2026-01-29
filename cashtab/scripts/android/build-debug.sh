@@ -25,6 +25,21 @@ if command -v java >/dev/null 2>&1; then
   echo "[build-debug] Java: $(java -version 2>&1 | head -n1)"
 fi
 
+# Backup original .env and use .env.android for build
+if [ -f "${APP_DIR}/.env.android" ]; then
+    echo "[build-debug] Found .env.android file"
+    # Backup .env if it exists
+    if [ -f "${APP_DIR}/.env" ]; then
+        cp "${APP_DIR}/.env" "${APP_DIR}/.env.backup"
+        echo "[build-debug] Backed up .env to .env.backup"
+    fi
+    # Copy .env.android to .env so Vite loads it
+    cp "${APP_DIR}/.env.android" "${APP_DIR}/.env"
+    echo "[build-debug] Copied .env.android to .env for build"
+else
+    echo "[build-debug] WARNING: .env.android not found. Using default .env file."
+fi
+
 # Install deps and build web assets
 cd "${APP_DIR}"
 if command -v pnpm >/dev/null 2>&1; then
@@ -37,6 +52,12 @@ else
   npm ci
   echo "[build-debug] Building web app"
   npm run build
+fi
+
+# Restore original .env if backup exists
+if [ -f "${APP_DIR}/.env.backup" ]; then
+  mv "${APP_DIR}/.env.backup" "${APP_DIR}/.env"
+  echo "[build-debug] Restored original .env"
 fi
 
 # Sync Capacitor Android project
