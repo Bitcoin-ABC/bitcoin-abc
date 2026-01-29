@@ -20,6 +20,12 @@ export interface PriceFormatterConfig {
      * Defaults to 'en-US' if not provided
      */
     locale?: string;
+
+    /** Number of decimal places to show */
+    decimals?: number;
+
+    /** Always show the sign, even for positive prices */
+    alwaysShowSign?: boolean;
 }
 
 /**
@@ -63,7 +69,14 @@ export function formatPrice(
     // Determine appropriate decimal places based on price magnitude
     let options: Intl.NumberFormatOptions;
 
-    if (absPrice >= 1000) {
+    // If decimals is explicitly set in config, use it to override automatic calculation
+    if (config?.decimals !== undefined) {
+        const decimals = Math.max(0, Math.floor(config.decimals));
+        options = {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        };
+    } else if (absPrice >= 1000) {
         // No decimal places for prices >= 1000
         options = {
             minimumFractionDigits: 0,
@@ -89,6 +102,11 @@ export function formatPrice(
             minimumFractionDigits: 2,
             maximumFractionDigits: Math.min(significantDigits, maxDecimals),
         };
+    }
+
+    // Set signDisplay option if alwaysShowSign is enabled
+    if (config?.alwaysShowSign) {
+        options.signDisplay = 'always';
     }
 
     // Use currency style for fiat, plain number for crypto

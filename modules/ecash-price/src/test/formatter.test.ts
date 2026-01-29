@@ -4,7 +4,7 @@
 
 import { expect } from 'chai';
 import { PriceFetcher } from '../pricefetcher';
-import { PriceFormatter } from '../formatter';
+import { PriceFormatter, formatPrice } from '../formatter';
 import { MockProvider } from './fixture/mockprovider';
 import { Fiat, CryptoTicker } from '../types';
 import type { Statistics } from '../types';
@@ -861,6 +861,474 @@ describe('PriceFormatter', () => {
             const formatted = formatter.formatStatistics(statistics);
 
             expect(formatted.priceChangePercent).to.equal('0.10%');
+        });
+    });
+
+    describe('decimals option', () => {
+        describe('formatPrice function', () => {
+            it('should override automatic decimals for large prices (>= 1000)', () => {
+                const formatted = formatPrice(50000, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 2,
+                });
+                // Without decimals option, this would be "$50,000" (0 decimals)
+                // With decimals: 2, it should be "$50,000.00"
+                expect(formatted).to.equal('$50,000.00');
+            });
+
+            it('should override automatic decimals for medium prices (1-1000)', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 4,
+                });
+                // Without decimals option, this would be "$50.25" (2 decimals)
+                // With decimals: 4, it should be "$50.2500"
+                expect(formatted).to.equal('$50.2500');
+            });
+
+            it('should override automatic decimals for small prices (< 1)', () => {
+                const formatted = formatPrice(0.00001241, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 2,
+                });
+                // Without decimals option, this would show more decimals
+                // With decimals: 2, it should be "$0.00" (rounded)
+                expect(formatted).to.equal('$0.00');
+            });
+
+            it('should work with zero decimals', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 0,
+                });
+                expect(formatted).to.equal('$50');
+            });
+
+            it('should work with high decimal precision', () => {
+                const formatted = formatPrice(1.23456789, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 8,
+                });
+                expect(formatted).to.equal('$1.23456789');
+            });
+
+            it('should work with crypto currencies', () => {
+                const formatted = formatPrice(1.32515, CryptoTicker.BTC, {
+                    locale: 'en-US',
+                    decimals: 4,
+                });
+                expect(formatted).to.equal('1.3252 BTC');
+            });
+
+            it('should work with different locales', () => {
+                const formatted = formatPrice(50.5, Fiat.EUR, {
+                    locale: 'de-DE',
+                    decimals: 2,
+                });
+                // \u00A0 is a non-breaking space
+                expect(formatted).to.equal('50,50\u00A0€');
+            });
+
+            it('should handle negative prices with decimals', () => {
+                const formatted = formatPrice(-50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 2,
+                });
+                expect(formatted).to.equal('-$50.25');
+            });
+
+            it('should handle zero price with decimals', () => {
+                const formatted = formatPrice(0, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 2,
+                });
+                expect(formatted).to.equal('$0.00');
+            });
+
+            it('should round down negative decimals to 0', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: -5,
+                });
+                // Should treat -5 as 0
+                expect(formatted).to.equal('$50');
+            });
+
+            it('should handle non-integer decimals by flooring', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    decimals: 3.7,
+                });
+                // Should floor 3.7 to 3
+                expect(formatted).to.equal('$50.250');
+            });
+        });
+
+        describe('PriceFormatter class with decimals', () => {
+            it('should use decimals option when formatting prices', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                });
+                provider.response = {
+                    prices: [
+                        {
+                            source: CryptoTicker.XEC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50000,
+                            lastUpdated: new Date(),
+                        },
+                    ],
+                };
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    decimals: 2,
+                });
+
+                const formatted = await formatter.current({
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                });
+
+                // Without decimals, this would be "$50,000" (0 decimals)
+                // With decimals: 2, it should be "$50,000.00"
+                expect(formatted).to.equal('$50,000.00');
+            });
+
+            it('should use decimals option for small prices', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                    price: 0.00001241,
+                });
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    decimals: 8,
+                });
+
+                const formatted = await formatter.current({
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                });
+
+                expect(formatted).to.equal('$0.00001241');
+            });
+
+            it('should use decimals option for multiple pairs', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                });
+                provider.response = {
+                    prices: [
+                        {
+                            source: CryptoTicker.XEC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50.25,
+                            lastUpdated: new Date(),
+                        },
+                        {
+                            source: CryptoTicker.BTC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50000,
+                            lastUpdated: new Date(),
+                        },
+                    ],
+                };
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    decimals: 4,
+                });
+
+                const formatted = await formatter.currentPairs([
+                    { source: CryptoTicker.XEC, quote: Fiat.USD },
+                    { source: CryptoTicker.BTC, quote: Fiat.USD },
+                ]);
+
+                expect(formatted).to.have.length(2);
+                expect(formatted[0]).to.equal('$50.2500');
+                expect(formatted[1]).to.equal('$50,000.0000');
+            });
+
+            it('should use decimals option in formatStatistics', () => {
+                const provider = new MockProvider({ shouldSucceed: true });
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    decimals: 4,
+                });
+
+                const statistics: Statistics = {
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    currentPrice: 0.1234,
+                    marketCap: 2000000000,
+                    volume: 50000000,
+                    priceChangeValue: 0.5678,
+                    priceChangePercent: 0.025,
+                };
+
+                const formatted = formatter.formatStatistics(statistics);
+
+                expect(formatted.currentPrice).to.equal('$0.1234');
+                expect(formatted.marketCap).to.equal('$2,000,000,000.0000');
+                expect(formatted.volume).to.equal('$50,000,000.0000');
+                expect(formatted.priceChangeValue).to.equal('$0.5678');
+            });
+        });
+    });
+
+    describe('alwaysShowSign option', () => {
+        describe('formatPrice function', () => {
+            it('should show "+" sign for positive fiat prices when enabled', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('+$50.25');
+            });
+
+            it('should show "+" sign for positive crypto prices when enabled', () => {
+                const formatted = formatPrice(1.5, CryptoTicker.BTC, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('+1.50 BTC');
+            });
+
+            it('should still show "-" sign for negative prices when enabled', () => {
+                const formatted = formatPrice(-50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('-$50.25');
+            });
+
+            it('should show "+" sign for zero price when enabled', () => {
+                const formatted = formatPrice(0, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('+$0.00');
+            });
+
+            it('should not show "+" sign when disabled (default behavior)', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: false,
+                });
+                expect(formatted).to.equal('$50.25');
+            });
+
+            it('should not show "+" sign when not specified (default behavior)', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                });
+                expect(formatted).to.equal('$50.25');
+            });
+
+            it('should work with large prices (>= 1000)', () => {
+                const formatted = formatPrice(50000, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('+$50,000');
+            });
+
+            it('should work with small prices (< 1)', () => {
+                const formatted = formatPrice(0.00001241, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+                expect(formatted).to.equal('+$0.00001241');
+            });
+
+            it('should work with different locales', () => {
+                const formatted = formatPrice(50.5, Fiat.EUR, {
+                    locale: 'de-DE',
+                    alwaysShowSign: true,
+                });
+                // \u00A0 is a non-breaking space
+                expect(formatted).to.equal('+50,50\u00A0€');
+            });
+
+            it('should work with decimals option', () => {
+                const formatted = formatPrice(50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                    decimals: 4,
+                });
+                expect(formatted).to.equal('+$50.2500');
+            });
+
+            it('should work with negative prices and decimals option', () => {
+                const formatted = formatPrice(-50.25, Fiat.USD, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                    decimals: 4,
+                });
+                expect(formatted).to.equal('-$50.2500');
+            });
+
+            it('should work with crypto currencies and decimals', () => {
+                const formatted = formatPrice(1.32515, CryptoTicker.BTC, {
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                    decimals: 4,
+                });
+                expect(formatted).to.equal('+1.3252 BTC');
+            });
+        });
+
+        describe('PriceFormatter class with alwaysShowSign', () => {
+            it('should use alwaysShowSign option when formatting prices', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                });
+                provider.response = {
+                    prices: [
+                        {
+                            source: CryptoTicker.XEC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50.25,
+                            lastUpdated: new Date(),
+                        },
+                    ],
+                };
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+
+                const formatted = await formatter.current({
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                });
+
+                expect(formatted).to.equal('+$50.25');
+            });
+
+            it('should use alwaysShowSign for negative prices', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                });
+                provider.response = {
+                    prices: [
+                        {
+                            source: CryptoTicker.XEC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: -50.25,
+                            lastUpdated: new Date(),
+                        },
+                    ],
+                };
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+
+                const formatted = await formatter.current({
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                });
+
+                expect(formatted).to.equal('-$50.25');
+            });
+
+            it('should use alwaysShowSign for multiple pairs', async () => {
+                const provider = new MockProvider({
+                    shouldSucceed: true,
+                });
+                provider.response = {
+                    prices: [
+                        {
+                            source: CryptoTicker.XEC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50.25,
+                            lastUpdated: new Date(),
+                        },
+                        {
+                            source: CryptoTicker.BTC,
+                            quote: Fiat.USD,
+                            provider: provider,
+                            price: 50000,
+                            lastUpdated: new Date(),
+                        },
+                    ],
+                };
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+
+                const formatted = await formatter.currentPairs([
+                    { source: CryptoTicker.XEC, quote: Fiat.USD },
+                    { source: CryptoTicker.BTC, quote: Fiat.USD },
+                ]);
+
+                expect(formatted).to.have.length(2);
+                expect(formatted[0]).to.equal('+$50.25');
+                expect(formatted[1]).to.equal('+$50,000');
+            });
+
+            it('should use alwaysShowSign in formatStatistics', () => {
+                const provider = new MockProvider({ shouldSucceed: true });
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+
+                const statistics: Statistics = {
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    currentPrice: 0.1234,
+                    marketCap: 2000000000,
+                    volume: 50000000,
+                    priceChangeValue: 0.5678,
+                    priceChangePercent: 0.025,
+                };
+
+                const formatted = formatter.formatStatistics(statistics);
+
+                expect(formatted.currentPrice).to.equal('+$0.1234');
+                expect(formatted.marketCap).to.equal('+$2,000,000,000');
+                expect(formatted.volume).to.equal('+$50,000,000');
+                expect(formatted.priceChangeValue).to.equal('+$0.5678');
+            });
+
+            it('should use alwaysShowSign with negative price change', () => {
+                const provider = new MockProvider({ shouldSucceed: true });
+                const fetcher = new PriceFetcher([provider]);
+                const formatter = fetcher.formatter({
+                    locale: 'en-US',
+                    alwaysShowSign: true,
+                });
+
+                const statistics: Statistics = {
+                    source: CryptoTicker.XEC,
+                    quote: Fiat.USD,
+                    currentPrice: 50.25,
+                    marketCap: 2000000000,
+                    volume: 50000000,
+                    priceChangeValue: -5.25,
+                    priceChangePercent: -0.01,
+                };
+
+                const formatted = formatter.formatStatistics(statistics);
+
+                expect(formatted.currentPrice).to.equal('+$50.25');
+                expect(formatted.priceChangeValue).to.equal('-$5.25');
+            });
         });
     });
 });
