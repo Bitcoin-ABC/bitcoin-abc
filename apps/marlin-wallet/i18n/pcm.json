@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Edit Mnemonic",
         "enterMnemonic": "Enter your 12-word recovery phrase",
+        "enterMnemonicPlaceholder": "Enter 12 English words separated by spaces",
         "failedToSave": "E no fit save mnemonic. Try again.",
         "invalidMnemonic": "Mnemonic no correct. Enter correct 12-word recovery phrase.",
         "mnemonicSaved": "Mnemonic don save well well",

@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Editar Frase de Recuperación",
         "enterMnemonic": "Ingrese su frase de recuperación de 12 palabras",
+        "enterMnemonicPlaceholder": "Ingrese 12 palabras en inglés separadas por espacios",
         "failedToSave": "Error al guardar la frase de recuperación. Por favor, intente nuevamente.",
         "invalidMnemonic": "Frase de recuperación inválida. Por favor ingrese una frase de recuperación válida de 12 palabras.",
         "mnemonicSaved": "Frase de recuperación guardada exitosamente",

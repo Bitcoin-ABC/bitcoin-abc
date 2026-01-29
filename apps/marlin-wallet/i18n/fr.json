@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Modifier la phrase de récupération",
         "enterMnemonic": "Entrez votre phrase de récupération de 12 mots",
+        "enterMnemonicPlaceholder": "Entrez 12 mots anglais séparés par des espaces",
         "failedToSave": "Échec de l'enregistrement de la phrase de récupération. Veuillez réessayer.",
         "invalidMnemonic": "Phrase de récupération invalide. Veuillez entrer une phrase de récupération valide de 12 mots. Attention: les mots sont en anglais.",
         "mnemonicSaved": "Phrase de récupération enregistrée avec succès",

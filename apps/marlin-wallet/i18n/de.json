@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Mnemonic bearbeiten",
         "enterMnemonic": "Geben Sie Ihren 12-Wörter-Wiederherstellungssatz ein",
+        "enterMnemonicPlaceholder": "12 englische Wörter durch Leerzeichen getrennt eingeben",
         "failedToSave": "Mnemonic konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
         "invalidMnemonic": "Ungültiger Mnemonic. Bitte geben Sie einen gültigen 12-Wörter-Wiederherstellungssatz ein.",
         "mnemonicSaved": "Mnemonic erfolgreich gespeichert",

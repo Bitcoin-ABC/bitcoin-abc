@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "د بټوی د کوډ سمول",
         "enterMnemonic": "د خپل بټوی ۱۲ کلیمی کوډ ولیکئ",
+        "enterMnemonicPlaceholder": "۱۲ انګلیسي کلیمې د فاصلو سره جلا کړئ",
         "failedToSave": "د بټوی د کوډ د خوندي کولو ناکام شول. بیا هڅه وکړئ.",
         "invalidMnemonic": "ناسم د بټوی کوډ. د خپل بټوی ۱۲ کلیمی کوډ ولیکئ.",
         "mnemonicSaved": "د بټوی کوډ په بریالیتوب سره خوندي شو",

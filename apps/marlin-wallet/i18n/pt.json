@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Editar Mnemônico",
         "enterMnemonic": "Digite sua frase de recuperação de 12 palavras",
+        "enterMnemonicPlaceholder": "Digite 12 palavras em inglês separadas por espaços",
         "failedToSave": "Falha ao salvar o mnemônico. Tente novamente.",
         "invalidMnemonic": "Mnemônico inválido. Digite uma frase de recuperação válida de 12 palavras.",
         "mnemonicSaved": "Mnemônico salvo com sucesso",

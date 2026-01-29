@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Mnemonicum Emendare",
         "enterMnemonic": "Inscribe tuam 12-verborum recuperationis phrasim",
+        "enterMnemonicPlaceholder": "Inscribe 12 verba Anglica spatiis separata",
         "failedToSave": "Mnemonicum servare non potuit. Quaeso iterum tenta.",
         "invalidMnemonic": "Mnemonicum invalidum. Quaeso inscribe validam 12-verborum recuperationis phrasim.",
         "mnemonicSaved": "Mnemonicum feliciter servatum est",

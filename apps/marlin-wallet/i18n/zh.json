@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "编辑助记词",
         "enterMnemonic": "输入您的12个单词的恢复短语",
+        "enterMnemonicPlaceholder": "输入12个用空格分隔的英文单词",
         "failedToSave": "保存助记词失败。请重试。",
         "invalidMnemonic": "无效的助记词。请输入有效的12个单词的恢复短语。",
         "mnemonicSaved": "助记词保存成功",

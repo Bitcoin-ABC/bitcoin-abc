@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "रिकवरी बदलें",
         "enterMnemonic": "12 शब्द डालें",
+        "enterMnemonicPlaceholder": "12 अंग्रेजी शब्द जगह से अलग करके डालें",
         "failedToSave": "सेव नहीं हुआ",
         "invalidMnemonic": "रिकवरी गलत",
         "mnemonicSaved": "रिकवरी सेव हो गई",

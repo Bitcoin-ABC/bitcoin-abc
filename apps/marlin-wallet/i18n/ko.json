@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "니모닉 편집",
         "enterMnemonic": "12단어 복구 구문을 입력하세요",
+        "enterMnemonicPlaceholder": "공백으로 구분된 12개의 영어 단어 입력",
         "failedToSave": "니모닉을 저장하지 못했습니다. 다시 시도해 주세요.",
         "invalidMnemonic": "유효하지 않은 니모닉입니다. 유효한 12단어 복구 구문을 입력하세요.",
         "mnemonicSaved": "니모닉이 성공적으로 저장되었습니다",

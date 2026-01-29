@@ -43,6 +43,7 @@
     "mnemonic": {
         "editMnemonicText": "Anımsatıcıyı Düzenle",
         "enterMnemonic": "12 kelimelik kurtarma ifadenizi girin",
+        "enterMnemonicPlaceholder": "Boşluklarla ayrılmış 12 İngilizce kelime girin",
         "failedToSave": "Anımsatıcı kaydedilemedi. Lütfen tekrar deneyin.",
         "invalidMnemonic": "Geçersiz anımsatıcı. Lütfen geçerli bir 12 kelimelik kurtarma ifadesi girin.",
         "mnemonicSaved": "Anımsatıcı başarıyla kaydedildi",
