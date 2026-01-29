@@ -751,6 +751,18 @@ async function initializeApp() {
         // Refresh the address display to override the "generating..." message
         if (mainScreen) {
             mainScreen.updateAddressDisplay();
+
+            if (ecashWallet && transactionManager) {
+                const currentXec = satsToXec(
+                    transactionManager.getAvailableBalanceSats(),
+                );
+                mainScreen.updateAvailableBalanceDisplay(
+                    currentXec,
+                    currentXec,
+                    await priceFetcher?.current(appSettings.fiatCurrency),
+                    false,
+                );
+            }
         }
         webViewLog(`Locale changed to ${newLocale}`);
     });

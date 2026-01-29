@@ -7,9 +7,8 @@ import { calculateTransactionAmountSats, satsToXec } from './amount';
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import { getAddress } from './wallet';
-import { config } from './config';
 import { AppSettings } from './settings';
-import { XECPrice, formatPrice } from 'ecash-price';
+import { CryptoTicker, XECPrice, formatPrice } from 'ecash-price';
 
 // ============================================================================
 // TRANSACTION HISTORY MANAGER
@@ -181,9 +180,13 @@ export class TransactionHistoryManager {
                 // Use timeFirstSeen field from Chronik, fallback to block timestamp if zero
                 let time;
                 if (tx.timeFirstSeen && tx.timeFirstSeen > 0) {
-                    time = new Date(tx.timeFirstSeen * 1000).toLocaleString();
+                    time = new Date(tx.timeFirstSeen * 1000).toLocaleString(
+                        this.appSettings.locale,
+                    );
                 } else if (tx.block && tx.block.timestamp) {
-                    time = new Date(tx.block.timestamp * 1000).toLocaleString();
+                    time = new Date(tx.block.timestamp * 1000).toLocaleString(
+                        this.appSettings.locale,
+                    );
                 } else {
                     time = 'Unknown Date';
                 }
@@ -205,30 +208,48 @@ export class TransactionHistoryManager {
 
                 const isReceived = amountXEC >= 0;
                 const amountClass = isReceived ? 'received' : 'sent';
-                const sign = isReceived ? '+' : '-';
-                const absAmountXEC = Math.abs(amountXEC);
+
+                const xecFormatOptions = {
+                    locale: this.appSettings.locale,
+                    decimals: 2,
+                    alwaysShowSign: true,
+                };
+                const fiatFormatOptions = {
+                    locale: this.appSettings.locale,
+                    alwaysShowSign: true,
+                };
 
                 // Format primary amount according to primary balance type.
                 // If the price is not available, always show as XEC.
                 const primaryAmount =
                     this.appSettings.primaryBalanceType === 'XEC' ||
                     pricePerXec === null
-                        ? `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`
-                        : `${sign}${formatPrice(
-                              absAmountXEC * pricePerXec,
+                        ? formatPrice(
+                              amountXEC,
+                              CryptoTicker.XEC,
+                              xecFormatOptions,
+                          )
+                        : formatPrice(
+                              amountXEC * pricePerXec,
                               this.appSettings.fiatCurrency,
-                          )}`;
+                              fiatFormatOptions,
+                          );
 
                 // Format secondary amount if we have a price
                 let secondaryAmount: string = '';
                 if (pricePerXec !== null) {
                     secondaryAmount =
                         this.appSettings.primaryBalanceType === 'XEC'
-                            ? `${sign}${formatPrice(
-                                  absAmountXEC * pricePerXec,
+                            ? formatPrice(
+                                  amountXEC * pricePerXec,
                                   this.appSettings.fiatCurrency,
-                              )}`
-                            : `${sign}${absAmountXEC.toFixed(2)} ${config.ticker}`;
+                                  fiatFormatOptions,
+                              )
+                            : formatPrice(
+                                  amountXEC,
+                                  CryptoTicker.XEC,
+                                  xecFormatOptions,
+                              );
                 }
 
                 return `

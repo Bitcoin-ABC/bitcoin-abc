@@ -7,7 +7,7 @@ import { AppSettings } from '../settings';
 import { DEFAULT_DUST_SATS } from 'ecash-lib';
 import { ChronikClient } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
-import { XECPrice, formatPrice } from 'ecash-price';
+import { CryptoTicker, XECPrice, formatPrice } from 'ecash-price';
 import {
     calculateMaxSpendableAmount,
     estimateTransactionFee,
@@ -368,8 +368,13 @@ export class SendScreen {
 
     private formatPrimary(primary: number): string {
         return this.useXecPrimary
-            ? `${primary.toFixed(2)} ${config.ticker}`
-            : formatPrice(primary, this.params.appSettings.fiatCurrency);
+            ? formatPrice(primary, CryptoTicker.XEC, {
+                  locale: this.params.appSettings.locale,
+                  decimals: 2,
+              })
+            : formatPrice(primary, this.params.appSettings.fiatCurrency, {
+                  locale: this.params.appSettings.locale,
+              });
     }
 
     private formatSecondary(xec: number): string | null {
@@ -381,8 +386,12 @@ export class SendScreen {
             ? formatPrice(
                   xec * this.currentPricePerXec,
                   this.params.appSettings.fiatCurrency,
+                  { locale: this.params.appSettings.locale },
               )
-            : `${xec.toFixed(2)} ${config.ticker}`;
+            : formatPrice(xec, CryptoTicker.XEC, {
+                  locale: this.params.appSettings.locale,
+                  decimals: 2,
+              });
     }
 
     // Update fee display

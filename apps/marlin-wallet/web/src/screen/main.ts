@@ -5,7 +5,7 @@
 import { Navigation } from '../navigation';
 import { AppSettings } from '../settings';
 import { Wallet } from 'ecash-wallet';
-import { XECPrice, formatPrice } from 'ecash-price';
+import { CryptoTicker, XECPrice, formatPrice } from 'ecash-price';
 import { config } from '../config';
 import { satsToXec } from '../amount';
 import { copyAddress, isValidECashAddress } from '../address';
@@ -144,18 +144,32 @@ export class MainScreen {
             return;
         }
 
-        const sign = transitionalBalanceSats > 0 ? '+' : '';
         const type = transitionalBalanceSats > 0 ? 'receive' : 'spend';
         const transitionalXec = satsToXec(transitionalBalanceSats);
+
+        const xecFormatOptions = {
+            locale: this.params.appSettings.locale,
+            decimals: 2,
+            alwaysShowSign: true,
+        };
+        const fiatFormatOptions = {
+            locale: this.params.appSettings.locale,
+            alwaysShowSign: true,
+        };
 
         const displayText =
             this.params.appSettings.primaryBalanceType === 'XEC' ||
             pricePerXec === null
-                ? `${sign}${transitionalXec.toFixed(2)} ${config.ticker}`
-                : `${sign}${formatPrice(
+                ? formatPrice(
+                      transitionalXec,
+                      CryptoTicker.XEC,
+                      xecFormatOptions,
+                  )
+                : formatPrice(
                       transitionalXec * pricePerXec,
                       this.params.appSettings.fiatCurrency,
-                  )}`;
+                      fiatFormatOptions,
+                  );
 
         this.ui.transitionalBalance.textContent = displayText;
         this.ui.transitionalBalance.className = `transitional-balance ${type}`;
@@ -302,12 +316,16 @@ export class MainScreen {
         const formatValue =
             pricePerXec === null
                 ? (value: number) => {
-                      return `${value.toFixed(2)} ${config.ticker}`;
+                      return formatPrice(value, CryptoTicker.XEC, {
+                          locale: this.params.appSettings.locale,
+                          decimals: 2,
+                      });
                   }
                 : (value: number) => {
                       return formatPrice(
                           value,
                           this.params.appSettings.fiatCurrency,
+                          { locale: this.params.appSettings.locale },
                       );
                   };
 

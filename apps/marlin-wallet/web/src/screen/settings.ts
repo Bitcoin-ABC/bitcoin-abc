@@ -186,40 +186,7 @@ export class SettingsScreen {
         });
 
         // Setup fiat currency dropdown
-        // Populate dropdown with all available fiat currencies.
-        // Move the USD and EUR to the top, keep the others in alphabetical
-        // order.
-        let allFiats = Fiat.listAll();
-        allFiats = allFiats.filter(
-            fiat => fiat.toString() !== 'USD' && fiat.toString() !== 'EUR',
-        );
-        allFiats.unshift(Fiat.USD, Fiat.EUR);
-
-        allFiats.forEach(fiat => {
-            const option = document.createElement('option');
-            option.value = fiat.toString();
-            option.textContent =
-                fiat.toString().toUpperCase() +
-                ' - ' +
-                fiat.symbol(this.params.appSettings.locale) +
-                ' - ' +
-                fiat.name(this.params.appSettings.locale);
-            this.ui.fiatCurrencySelect.appendChild(option);
-        });
-
-        // Add a separator after the USD and EUR
-        const separator = document.createElement('option');
-        separator.disabled = true;
-        separator.value = 'separator';
-        separator.textContent = '--------------------------------';
-        this.ui.fiatCurrencySelect.insertBefore(
-            separator,
-            this.ui.fiatCurrencySelect.options[2],
-        );
-
-        // Set current selection
-        this.ui.fiatCurrencySelect.value =
-            this.params.appSettings.fiatCurrency.toString();
+        this.populateFiatCurrencyDropdown();
 
         // Add change listener
         this.ui.fiatCurrencySelect.addEventListener('change', async () => {
@@ -239,16 +206,7 @@ export class SettingsScreen {
             }
         });
 
-        getAvailableLocales().forEach(lang => {
-            const option = document.createElement('option');
-            option.value = lang.code;
-            option.textContent = lang.name;
-            this.ui.languageSelect.appendChild(option);
-        });
-
-        // Set current selection
-        this.ui.languageSelect.value =
-            this.params.appSettings.locale || DEFAULT_LOCALE;
+        this.populateLanguageDropdown();
 
         // Add change listener
         this.ui.languageSelect.addEventListener('change', async () => {
@@ -258,6 +216,8 @@ export class SettingsScreen {
 
             // Save settings to localStorage
             saveSettings(this.params.appSettings);
+
+            this.populateFiatCurrencyDropdown();
 
             // Call registered callback
             if (this.onLocaleChangeCallback) {
@@ -290,6 +250,90 @@ export class SettingsScreen {
         });
 
         this.updateMnemonicDisplay();
+    }
+
+    // Populate fiat currency dropdown with all available currencies
+    private populateFiatCurrencyDropdown(): void {
+        // Clear existing options
+        this.ui.fiatCurrencySelect.innerHTML = '';
+
+        // Get all fiat currencies, move USD and EUR to the top, keep the others in alphabetical order
+        let allFiats = Fiat.listAll();
+        allFiats = allFiats.filter(
+            fiat => fiat.toString() !== 'USD' && fiat.toString() !== 'EUR',
+        );
+        allFiats.unshift(Fiat.USD, Fiat.EUR);
+
+        // Create option elements for each fiat currency
+        allFiats.forEach(fiat => {
+            const option = document.createElement('option');
+            option.value = fiat.toString();
+            option.textContent =
+                fiat.toString().toUpperCase() +
+                ' - ' +
+                fiat.symbol(this.params.appSettings.locale) +
+                ' - ' +
+                fiat.name(this.params.appSettings.locale);
+            this.ui.fiatCurrencySelect.appendChild(option);
+        });
+
+        // Add a separator after the USD and EUR
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.value = 'separator';
+        separator.textContent = '--------------------------------';
+        this.ui.fiatCurrencySelect.insertBefore(
+            separator,
+            this.ui.fiatCurrencySelect.options[2],
+        );
+
+        // Set current selection
+        this.ui.fiatCurrencySelect.value =
+            this.params.appSettings.fiatCurrency.toString();
+    }
+
+    // Populate language dropdown with all available languages
+    private populateLanguageDropdown(): void {
+        // Clear existing options
+        this.ui.languageSelect.innerHTML = '';
+
+        // Get all available locales
+        const allLocales = getAvailableLocales();
+
+        // Find default locale and separate it from the rest
+        const defaultLocale = allLocales.find(
+            lang => lang.code === DEFAULT_LOCALE,
+        );
+        const otherLocales = allLocales.filter(
+            lang => lang.code !== DEFAULT_LOCALE,
+        );
+
+        // Add English first
+        if (defaultLocale) {
+            const option = document.createElement('option');
+            option.value = defaultLocale.code;
+            option.textContent = defaultLocale.name;
+            this.ui.languageSelect.appendChild(option);
+        }
+
+        // Add separator after default locale
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.value = 'separator';
+        separator.textContent = '--------------------------------';
+        this.ui.languageSelect.appendChild(separator);
+
+        // Add all other languages
+        otherLocales.forEach(lang => {
+            const option = document.createElement('option');
+            option.value = lang.code;
+            option.textContent = lang.name;
+            this.ui.languageSelect.appendChild(option);
+        });
+
+        // Set current selection
+        this.ui.languageSelect.value =
+            this.params.appSettings.locale || DEFAULT_LOCALE;
     }
 
     // Mnemonic management functions
