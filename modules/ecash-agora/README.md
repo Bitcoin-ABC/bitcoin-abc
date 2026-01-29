@@ -296,3 +296,9 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 - Add a `list()` method to `AgoraOneShot` for building and broadcasting SLP NFT listings with an `ecash-wallet` `Wallet`
 - Add a `list()` method to `AgoraPartial` for building and broadcasting SLP and ALP listings with an `ecash-wallet` `Wallet`
+
+### 3.0.0 [D19497](https://reviews.bitcoinabc.org/D19497)
+
+**BREAKING CHANGE**
+
+- Default to 64-bit ints for all created offers

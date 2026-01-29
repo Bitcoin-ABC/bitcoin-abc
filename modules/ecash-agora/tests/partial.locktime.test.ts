@@ -84,14 +84,17 @@ describe('AgoraPartial enforcedLockTime', () => {
     it('AgoraPartial enforcedLockTime', async () => {
         const LOCKTIME1 = 500000123;
         const LOCKTIME2 = 500000999;
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000000000000n,
-            minAcceptedAtoms: 1n,
-            makerPk,
-            ...BASE_PARAMS_ALP,
-            enforcedLockTime: LOCKTIME1,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000000000000n,
+                minAcceptedAtoms: 1n,
+                makerPk,
+                ...BASE_PARAMS_ALP,
+                enforcedLockTime: LOCKTIME1,
+            },
+            32n,
+        );
         const askedSats = agoraPartial.askedSats(100n);
         const requiredSats = askedSats + 2000n;
         const [fuelInput, takerInput] = await makeBuilderInputs([

@@ -146,15 +146,18 @@ describe('We can use ecash-wallet to create desired on-spec Agora txs', () => {
         const agora = new Agora(chronik);
 
         // Use selectParams to get an agora partial with the correct params
-        const alpAgoraPartial = await agora.selectParams({
-            offeredAtoms: genesisMintQtyAlpha,
-            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
-            makerPk: alpWallet.pk,
-            minAcceptedAtoms: 546n, // so, min accept is dust
-            tokenId: alpGenesisTokenId,
-            tokenType: ALP_TOKEN_TYPE_STANDARD.number,
-            tokenProtocol: 'ALP',
-        });
+        const alpAgoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: genesisMintQtyAlpha,
+                priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+                makerPk: alpWallet.pk,
+                minAcceptedAtoms: 546n, // so, min accept is dust
+                tokenId: alpGenesisTokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD.number,
+                tokenProtocol: 'ALP',
+            },
+            32n,
+        );
 
         // Get the payment action
         const alpListPaymentAction = getAgoraPaymentAction({
@@ -180,15 +183,18 @@ describe('We can use ecash-wallet to create desired on-spec Agora txs', () => {
         const agora = new Agora(chronik);
 
         // Use selectParams to get an agora partial with the correct params
-        const slpFungibleAgoraPartial = await agora.selectParams({
-            offeredAtoms: 5_000n,
-            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
-            makerPk: fromHex('04' + '13'.repeat(64)),
-            minAcceptedAtoms: 546n, // so, min accept is dust
-            tokenId: '11'.repeat(32),
-            tokenType: SLP_TOKEN_TYPE_FUNGIBLE.number,
-            tokenProtocol: 'SLP',
-        });
+        const slpFungibleAgoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 5_000n,
+                priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+                makerPk: fromHex('04' + '13'.repeat(64)),
+                minAcceptedAtoms: 546n, // so, min accept is dust
+                tokenId: '11'.repeat(32),
+                tokenType: SLP_TOKEN_TYPE_FUNGIBLE.number,
+                tokenProtocol: 'SLP',
+            },
+            32n,
+        );
 
         // We throw expected error if we try to LIST
         expect(() =>
@@ -205,15 +211,18 @@ describe('We can use ecash-wallet to create desired on-spec Agora txs', () => {
         const agora = new Agora(chronik);
 
         // Use selectParams to get an agora partial with the correct params
-        const slpNft1GroupAgoraPartial = await agora.selectParams({
-            offeredAtoms: 1_000n,
-            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
-            makerPk: fromHex('04' + '13'.repeat(64)),
-            minAcceptedAtoms: 546n, // so, min accept is dust
-            tokenId: '11'.repeat(32),
-            tokenType: SLP_TOKEN_TYPE_NFT1_GROUP.number,
-            tokenProtocol: 'SLP',
-        });
+        const slpNft1GroupAgoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 1_000n,
+                priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+                makerPk: fromHex('04' + '13'.repeat(64)),
+                minAcceptedAtoms: 546n, // so, min accept is dust
+                tokenId: '11'.repeat(32),
+                tokenType: SLP_TOKEN_TYPE_NFT1_GROUP.number,
+                tokenProtocol: 'SLP',
+            },
+            32n,
+        );
 
         // Expect error because we do not support minting SLP_TOKEN_TYPE_NFT1_GROUP tokens
         expect(() =>
@@ -258,15 +267,18 @@ describe('We can use ecash-wallet to create desired on-spec Agora txs', () => {
         const agora = new Agora(chronik);
 
         // Use selectParams to get an agora partial with the correct params
-        const slpMintVaultAgoraPartial = await agora.selectParams({
-            offeredAtoms: 1_000n,
-            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
-            makerPk: fromHex('04' + '13'.repeat(64)),
-            minAcceptedAtoms: 546n, // so, min accept is dust
-            tokenId: '11'.repeat(32),
-            tokenType: SLP_TOKEN_TYPE_MINT_VAULT.number,
-            tokenProtocol: 'SLP',
-        });
+        const slpMintVaultAgoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 1_000n,
+                priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+                makerPk: fromHex('04' + '13'.repeat(64)),
+                minAcceptedAtoms: 546n, // so, min accept is dust
+                tokenId: '11'.repeat(32),
+                tokenType: SLP_TOKEN_TYPE_MINT_VAULT.number,
+                tokenProtocol: 'SLP',
+            },
+            32n,
+        );
 
         // Expect error because we do not support MINT for SLP_TOKEN_TYPE_MINT_VAULT tokens
         expect(() =>

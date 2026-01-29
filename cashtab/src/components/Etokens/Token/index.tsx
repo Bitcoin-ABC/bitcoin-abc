@@ -1602,20 +1602,17 @@ const Token: React.FC = () => {
         let agoraPartial;
 
         try {
-            agoraPartial = await agora.selectParams(
-                {
-                    tokenId: tokenId,
-                    // We cannot render the Token screen until tokenType is defined
-                    tokenType: (tokenType as TokenType).number,
-                    // We cannot render the Token screen until protocol is defined
-                    tokenProtocol: protocol as 'ALP' | 'SLP',
-                    offeredAtoms: userSuggestedOfferedTokens,
-                    priceNanoSatsPerAtom: priceNanoSatsPerTokenSatoshi,
-                    makerPk: ecashWallet.pk,
-                    minAcceptedAtoms,
-                },
-                appConfig.scriptIntegerBits,
-            );
+            agoraPartial = await agora.selectParams({
+                tokenId: tokenId,
+                // We cannot render the Token screen until tokenType is defined
+                tokenType: (tokenType as TokenType).number,
+                // We cannot render the Token screen until protocol is defined
+                tokenProtocol: protocol as 'ALP' | 'SLP',
+                offeredAtoms: userSuggestedOfferedTokens,
+                priceNanoSatsPerAtom: priceNanoSatsPerTokenSatoshi,
+                makerPk: ecashWallet.pk,
+                minAcceptedAtoms,
+            });
             return setPreviewedAgoraPartial(agoraPartial);
         } catch (err) {
             // We can run into errors trying to create an agora partial
@@ -1712,10 +1709,7 @@ const Token: React.FC = () => {
                 makerPk: ecashWallet.pk,
                 minAcceptedAtoms: userSuggestedOfferedTokens,
             };
-            firmaPartial = await agora.selectParams(
-                firmaPartialParams,
-                appConfig.scriptIntegerBits,
-            );
+            firmaPartial = await agora.selectParams(firmaPartialParams);
 
             let actualPrice = getFirmaPartialUnitPrice(firmaPartial);
             // Keep making firmaPartials until we have one that is acceptable

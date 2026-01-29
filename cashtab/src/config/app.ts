@@ -24,7 +24,6 @@ interface AppConfig {
     tokenLogo: string; // path to png file
     localStorageMaxCharacters: number;
     monitorExtension: boolean;
-    scriptIntegerBits: bigint;
     vipTokens: {
         grumpy: {
             tokenId: string;
@@ -62,7 +61,6 @@ const appConfig: AppConfig = {
     tokenLogo: tokenLogo,
     localStorageMaxCharacters: 24,
     monitorExtension: true,
-    scriptIntegerBits: 64n,
     vipTokens: {
         grumpy: {
             tokenId:

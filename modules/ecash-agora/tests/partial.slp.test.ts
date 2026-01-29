@@ -484,13 +484,16 @@ describe('AgoraPartial SLP', () => {
     for (const testCase of TEST_CASES) {
         it(`AgoraPartial SLP ${testCase.offeredAtoms} for ${testCase.info}`, async () => {
             const agora = new Agora(chronik);
-            const agoraPartial = await agora.selectParams({
-                offeredAtoms: testCase.offeredAtoms,
-                priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
-                minAcceptedAtoms: testCase.acceptedAtoms,
-                makerPk,
-                ...BASE_PARAMS_SLP,
-            });
+            const agoraPartial = await agora.selectParams(
+                {
+                    offeredAtoms: testCase.offeredAtoms,
+                    priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
+                    minAcceptedAtoms: testCase.acceptedAtoms,
+                    makerPk,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            );
             const askedSats = agoraPartial.askedSats(testCase.acceptedAtoms);
             const requiredSats = askedSats + 2000n;
             const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
@@ -674,13 +677,16 @@ describe('AgoraPartial SLP', () => {
             allowUnspendable: true,
         };
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: thisTestCase.offeredAtoms,
-            priceNanoSatsPerAtom: thisTestCase.priceNanoSatsPerAtom,
-            minAcceptedAtoms: thisTestCase.acceptedAtoms,
-            makerPk,
-            ...BASE_PARAMS_SLP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: thisTestCase.offeredAtoms,
+                priceNanoSatsPerAtom: thisTestCase.priceNanoSatsPerAtom,
+                minAcceptedAtoms: thisTestCase.acceptedAtoms,
+                makerPk,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         const askedSats = agoraPartial.askedSats(thisTestCase.acceptedAtoms);
         const requiredSats = askedSats + 2000n;
         const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);

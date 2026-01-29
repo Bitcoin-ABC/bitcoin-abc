@@ -1184,7 +1184,7 @@ export class Agora {
      */
     public async selectParams(
         params: Omit<AgoraPartialParams, 'enforcedLockTime'> | AgoraPartial,
-        scriptIntegerBits: bigint = 32n,
+        scriptIntegerBits: bigint = 64n,
     ): Promise<AgoraPartial> {
         // Assumes MTP is not more than 14 days in the past
         const maxLockTime = new Date().getTime() / 1000 - 14 * 24 * 3600;

@@ -326,13 +326,12 @@ export class AgoraPartial {
      * @param params Offer params to approximate, see AgoraPartialParams for
      *        details.
      * @param scriptIntegerBits How many bits Script integers have on the
-     *        network. On XEC, this must be 32, but if it is raised in the
-     *        future to e.g. 64-bit integers, this can be set to 64 to greatly
-     *        increase accuracy.
+     *        network. Defaults to 64-bit for better accuracy. Can be set to
+     *        32 for compatibility with older networks.
      **/
     public static approximateParams(
         params: AgoraPartialParams,
-        scriptIntegerBits: bigint = 32n,
+        scriptIntegerBits: bigint = 64n,
     ): AgoraPartial {
         if (params.offeredAtoms < 1n) {
             throw new Error('offeredAtoms must be at least 1');

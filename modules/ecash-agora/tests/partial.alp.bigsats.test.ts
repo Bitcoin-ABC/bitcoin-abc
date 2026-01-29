@@ -90,13 +90,16 @@ describe('AgoraPartial ALP 7450M XEC vs 2p48-1 full accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 0xffffffffffffn,
-            priceNanoSatsPerAtom: 2600000n, // scaled to use the XEC
-            makerPk: makerPk,
-            minAcceptedAtoms: 0xffffffffn,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 0xffffffffffffn,
+                priceNanoSatsPerAtom: 2600000n, // scaled to use the XEC
+                makerPk: makerPk,
+                minAcceptedAtoms: 0xffffffffn,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
 
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
@@ -180,13 +183,16 @@ describe('AgoraPartial 7450M XEC vs 2p48-1 small accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 0xffffffffffffn,
-            priceNanoSatsPerAtom: 30000000000000n, // scaled to use the XEC
-            makerPk,
-            minAcceptedAtoms: 0x1000000n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 0xffffffffffffn,
+                priceNanoSatsPerAtom: 30000000000000n, // scaled to use the XEC
+                makerPk,
+                minAcceptedAtoms: 0x1000000n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0xffffffn,
@@ -280,13 +286,16 @@ describe('AgoraPartial 7450M XEC vs 2p47-1 full accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 0x7fffffffffffn,
-            priceNanoSatsPerAtom: 5000000n, // scaled to use the XEC
-            makerPk: makerPk,
-            minAcceptedAtoms: 0xffffffffn,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 0x7fffffffffffn,
+                priceNanoSatsPerAtom: 5000000n, // scaled to use the XEC
+                makerPk: makerPk,
+                minAcceptedAtoms: 0xffffffffn,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffff38n,
@@ -372,13 +381,16 @@ describe('AgoraPartial ALP 7450M XEC vs 2p47-1 small accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 0x7fffffffffffn,
-            priceNanoSatsPerAtom: 32000000000000n,
-            makerPk,
-            minAcceptedAtoms: 0x1000000n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 0x7fffffffffffn,
+                priceNanoSatsPerAtom: 32000000000000n,
+                makerPk,
+                minAcceptedAtoms: 0x1000000n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffffn,
@@ -472,13 +484,16 @@ describe('AgoraPartial ALP 7450M XEC vs 100 full accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 7123456780n * 1000000000n, // scaled to use the XEC
-            makerPk: makerPk,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 7123456780n * 1000000000n, // scaled to use the XEC
+                makerPk: makerPk,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,
@@ -560,13 +575,16 @@ describe('AgoraPartial ALP 7450M XEC vs 100 small accept', () => {
         const [fuelInput] = await makeBuilderInputs(runner, [10000n, BIGSATS]);
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 712345678000n * 1000000000n, // scaled to use the XEC
-            makerPk: makerPk,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 712345678000n * 1000000000n, // scaled to use the XEC
+                makerPk: makerPk,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,

@@ -428,13 +428,16 @@ describe('AgoraPartial ALP', () => {
     for (const testCase of TEST_CASES) {
         it(`AgoraPartial ALP ${testCase.offeredAtoms} for ${testCase.info}`, async () => {
             const agora = new Agora(chronik);
-            const agoraPartial = await agora.selectParams({
-                offeredAtoms: testCase.offeredAtoms,
-                priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
-                minAcceptedAtoms: testCase.acceptedAtoms,
-                makerPk,
-                ...BASE_PARAMS_ALP,
-            });
+            const agoraPartial = await agora.selectParams(
+                {
+                    offeredAtoms: testCase.offeredAtoms,
+                    priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
+                    minAcceptedAtoms: testCase.acceptedAtoms,
+                    makerPk,
+                    ...BASE_PARAMS_ALP,
+                },
+                32n,
+            );
             const askedSats = agoraPartial.askedSats(testCase.acceptedAtoms);
             const requiredSats = askedSats + 2000n;
             const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
@@ -628,13 +631,16 @@ describe('AgoraPartial ALP', () => {
             allowUnspendable: true,
         };
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: thisTestCase.offeredAtoms,
-            priceNanoSatsPerAtom: thisTestCase.priceNanoSatsPerAtom,
-            minAcceptedAtoms: thisTestCase.acceptedAtoms,
-            makerPk,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: thisTestCase.offeredAtoms,
+                priceNanoSatsPerAtom: thisTestCase.priceNanoSatsPerAtom,
+                minAcceptedAtoms: thisTestCase.acceptedAtoms,
+                makerPk,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         const askedSats = agoraPartial.askedSats(thisTestCase.acceptedAtoms);
         const requiredSats = askedSats + 2000n;
         const [fuelInput] = await makeBuilderInputs([4000n, requiredSats]);
@@ -739,13 +745,16 @@ describe('AgoraPartial ALP', () => {
         // Chosen at random from the above vectors
 
         const agora = new Agora(chronik);
-        const agoraPartial = await agora.selectParams({
-            offeredAtoms: testCase.offeredAtoms,
-            priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
-            minAcceptedAtoms: testCase.acceptedAtoms,
-            makerPk,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: testCase.offeredAtoms,
+                priceNanoSatsPerAtom: testCase.priceNanoSatsPerAtom,
+                minAcceptedAtoms: testCase.acceptedAtoms,
+                makerPk,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         const [fuelInput] = await makeBuilderInputs([
             4000n,
             testCase.askedSats,
@@ -781,15 +790,18 @@ describe('AgoraPartial ALP', () => {
             acceptedAtoms: 799999983716n,
         };
 
-        const relistPartial = await agora.selectParams({
-            offeredAtoms: relistParams.offeredAtoms,
-            priceNanoSatsPerAtom: relistParams.priceNanoSatsPerAtom,
-            // Unchanged
-            minAcceptedAtoms: relistParams.acceptedAtoms,
-            makerPk,
-            ...BASE_PARAMS_ALP,
-            tokenId: createdTokenId,
-        });
+        const relistPartial = await agora.selectParams(
+            {
+                offeredAtoms: relistParams.offeredAtoms,
+                priceNanoSatsPerAtom: relistParams.priceNanoSatsPerAtom,
+                // Unchanged
+                minAcceptedAtoms: relistParams.acceptedAtoms,
+                makerPk,
+                ...BASE_PARAMS_ALP,
+                tokenId: createdTokenId,
+            },
+            32n,
+        );
 
         // Create the relist wallet
         const relistWallet = Wallet.fromSk(makerSk, chronik);

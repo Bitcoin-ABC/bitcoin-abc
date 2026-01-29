@@ -27,12 +27,15 @@ describe('Agora Partial Param Approximation', () => {
     };
 
     it('AgoraPartial.approximateParams 546 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 546n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 546n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 546n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 546n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 546n,
@@ -52,12 +55,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1092 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1092n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 546n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1092n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 546n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1092n,
@@ -79,13 +85,16 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 for 0.001sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000000n,
-            minAcceptedAtoms: 1000n,
-            ...BASE_PARAMS_SLP,
-            dustSats: 1n,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000000n,
+                minAcceptedAtoms: 1000n,
+                ...BASE_PARAMS_SLP,
+                dustSats: 1n,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000n,
@@ -108,12 +117,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 546n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 546n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000n,
@@ -135,12 +147,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 for 1000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000n,
@@ -162,12 +177,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1 BUX', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 10000n,
-            priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token @ $0.00003425 / XEC
-            minAcceptedAtoms: 100n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 10000n,
+                priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token @ $0.00003425 / XEC
+                minAcceptedAtoms: 100n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 10000n,
@@ -189,12 +207,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 50 BUX', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 500000n,
-            priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
-            minAcceptedAtoms: 10000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 500000n,
+                priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
+                minAcceptedAtoms: 10000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1953n,
@@ -216,12 +237,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 BUX', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 10000000n,
-            priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
-            minAcceptedAtoms: 10000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 10000000n,
+                priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
+                minAcceptedAtoms: 10000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 39062n,
@@ -243,12 +267,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 10000 BUX', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 100000000n,
-            priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
-            minAcceptedAtoms: 100000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 100000000n,
+                priceNanoSatsPerAtom: 291970802919n, // $0.0001 / token
+                minAcceptedAtoms: 100000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1525n,
@@ -270,12 +297,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 for 1000000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000000n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000000n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000n,
@@ -297,12 +327,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000 for 1000000000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000n,
-            priceNanoSatsPerAtom: 1000000000n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000n,
+                priceNanoSatsPerAtom: 1000000000n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000n,
@@ -326,13 +359,16 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000 for 0.001sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000n,
-            priceNanoSatsPerAtom: 1000000n,
-            minAcceptedAtoms: 1000n,
-            ...BASE_PARAMS_SLP,
-            dustSats: 1n,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000n,
+                priceNanoSatsPerAtom: 1000000n,
+                minAcceptedAtoms: 1000n,
+                ...BASE_PARAMS_SLP,
+                dustSats: 1n,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000000n,
@@ -357,12 +393,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 5460n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 5460n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 1000000n,
@@ -385,12 +424,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000 for 1000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000n,
-            priceNanoSatsPerAtom: 1000n * 1000000000n,
-            minAcceptedAtoms: 200n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000n,
+                priceNanoSatsPerAtom: 1000n * 1000000000n,
+                minAcceptedAtoms: 200n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 3906n,
@@ -446,12 +488,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000 for 1000000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000n,
-            priceNanoSatsPerAtom: 1000000n * 1000000000n,
-            minAcceptedAtoms: 1000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000n,
+                priceNanoSatsPerAtom: 1000000n * 1000000000n,
+                minAcceptedAtoms: 1000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 3906n,
@@ -509,12 +554,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000 for 1000000000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000n,
-            priceNanoSatsPerAtom: 1000000000n * 1000000000n,
-            minAcceptedAtoms: 1000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000n,
+                priceNanoSatsPerAtom: 1000000000n * 1000000000n,
+                minAcceptedAtoms: 1000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 3906n,
@@ -540,12 +588,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000000 for 0.001sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000000n,
-            priceNanoSatsPerAtom: 1000000n,
-            minAcceptedAtoms: 546000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000000n,
+                priceNanoSatsPerAtom: 1000000n,
+                minAcceptedAtoms: 546000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 // Price can be represented accurately, so no truncation
@@ -571,12 +622,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000000 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000000n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 546n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000000n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 546n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 // Price can be represented accurately, so no truncation
@@ -601,12 +655,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000000 for 1000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000000n,
-            priceNanoSatsPerAtom: 1000n * 1000000000n,
-            minAcceptedAtoms: 100n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000000n,
+                priceNanoSatsPerAtom: 1000n * 1000000000n,
+                minAcceptedAtoms: 100n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 15258n,
@@ -640,12 +697,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 1000000000 for 1000000sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 1000000000n,
-            priceNanoSatsPerAtom: 1000000n * 1000000000n,
-            minAcceptedAtoms: 100n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 1000000000n,
+                priceNanoSatsPerAtom: 1000000n * 1000000000n,
+                minAcceptedAtoms: 100n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 15258n,
@@ -690,12 +750,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 0x100000000 for 1sat/token', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 0x100000000n,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 546n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0x100000000n,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 546n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x1000000n,
@@ -717,12 +780,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('Agora Partial SLP Approximation 2p64-1, small price', () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 0xffffffffffffffffn,
-            priceNanoSatsPerAtom: 40n,
-            minAcceptedAtoms: 0xffffffffffffn,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0xffffffffffffffffn,
+                priceNanoSatsPerAtom: 40n,
+                minAcceptedAtoms: 0xffffffffffffn,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0xffffffn,
@@ -744,12 +810,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 2p64-1, big price', async () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 0xffffffffffffffffn,
-            priceNanoSatsPerAtom: 500000000n,
-            minAcceptedAtoms: 0xffffffffffn,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0xffffffffffffffffn,
+                priceNanoSatsPerAtom: 500000000n,
+                minAcceptedAtoms: 0xffffffffffn,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0xffffffn,
@@ -777,12 +846,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 2p63-1, small price', async () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 0x7fffffffffffffffn,
-            priceNanoSatsPerAtom: 80n,
-            minAcceptedAtoms: 0xffffffffffffn,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0x7fffffffffffffffn,
+                priceNanoSatsPerAtom: 80n,
+                minAcceptedAtoms: 0xffffffffffffn,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffff42n,
@@ -804,12 +876,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 2p63-1, big price', async () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 0x7fffffffffffffffn,
-            priceNanoSatsPerAtom: 1000000000n,
-            minAcceptedAtoms: 0x100000000n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0x7fffffffffffffffn,
+                priceNanoSatsPerAtom: 1000000000n,
+                minAcceptedAtoms: 0x100000000n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffffffn,
@@ -835,12 +910,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 100, big price', async () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 7123456780n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 7123456780n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,
@@ -865,12 +943,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams 100, bigger price', async () => {
-        const params = AgoraPartial.approximateParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 712345678000n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_SLP,
-        });
+        const params = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 712345678000n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_SLP,
+            },
+            32n,
+        );
         expect(params).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,
@@ -891,12 +972,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 2p48-1, small price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 0xffffffffffffn,
-            priceNanoSatsPerAtom: 2600000n,
-            minAcceptedAtoms: 0xffffffffn,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0xffffffffffffn,
+                priceNanoSatsPerAtom: 2600000n,
+                minAcceptedAtoms: 0xffffffffn,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0xffffffn,
@@ -922,12 +1006,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 2p48-1, big price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 0xffffffffffffn,
-            priceNanoSatsPerAtom: 30000000000000n,
-            minAcceptedAtoms: 0x1000000n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0xffffffffffffn,
+                priceNanoSatsPerAtom: 30000000000000n,
+                minAcceptedAtoms: 0x1000000n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0xffffffn,
@@ -955,12 +1042,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 2p47-1, small price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 0x7fffffffffffn,
-            priceNanoSatsPerAtom: 5000000n,
-            minAcceptedAtoms: 0xffffffffn,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0x7fffffffffffn,
+                priceNanoSatsPerAtom: 5000000n,
+                minAcceptedAtoms: 0xffffffffn,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffff38n,
@@ -986,12 +1076,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 2p47-1, big price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 0x7fffffffffffn,
-            priceNanoSatsPerAtom: 32000000000000n,
-            minAcceptedAtoms: 0x1000000n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 0x7fffffffffffn,
+                priceNanoSatsPerAtom: 32000000000000n,
+                minAcceptedAtoms: 0x1000000n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 0x7fffffn,
@@ -1019,12 +1112,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 100, small price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 7123456780n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 7123456780n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,
@@ -1049,12 +1145,15 @@ describe('Agora Partial Param Approximation', () => {
     });
 
     it('AgoraPartial.approximateParams ALP 7450M XEC vs 100, big price', async () => {
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: 100n,
-            priceNanoSatsPerAtom: 712345678000n * 1000000000n,
-            minAcceptedAtoms: 1n,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: 100n,
+                priceNanoSatsPerAtom: 712345678000n * 1000000000n,
+                minAcceptedAtoms: 1n,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
                 truncAtoms: 100n,
@@ -1077,12 +1176,15 @@ describe('Agora Partial Param Approximation', () => {
     it('AgoraPartial.approximateParams ALP 1:1 priced (e.g. XECX), large quantity, minAcceptedAtoms === offeredAtoms', async () => {
         // Use a figure where error of "minAcceptedAtoms exceeds offeredAtoms" was seen in real life
         const attemptedOfferedAtoms = 292_116_503_52n;
-        const agoraPartial = AgoraPartial.approximateParams({
-            offeredAtoms: attemptedOfferedAtoms,
-            priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
-            minAcceptedAtoms: attemptedOfferedAtoms,
-            ...BASE_PARAMS_ALP,
-        });
+        const agoraPartial = AgoraPartial.approximateParams(
+            {
+                offeredAtoms: attemptedOfferedAtoms,
+                priceNanoSatsPerAtom: 1_000_000_000n, // i.e. 1 sat per atom
+                minAcceptedAtoms: attemptedOfferedAtoms,
+                ...BASE_PARAMS_ALP,
+            },
+            32n,
+        );
 
         expect(agoraPartial).to.deep.equal(
             new AgoraPartial({
@@ -1106,88 +1208,118 @@ describe('Agora Partial Param Approximation', () => {
 
     it('AgoraPartial.approximateParams failure', () => {
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 0n,
-                priceNanoSatsPerAtom: 0n,
-                minAcceptedAtoms: 0n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 0n,
+                    priceNanoSatsPerAtom: 0n,
+                    minAcceptedAtoms: 0n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('offeredAtoms must be at least 1');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 1n,
-                priceNanoSatsPerAtom: 0n,
-                minAcceptedAtoms: 0n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 1n,
+                    priceNanoSatsPerAtom: 0n,
+                    minAcceptedAtoms: 0n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('priceNanoSatsPerAtom must be at least 1');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 1n,
-                priceNanoSatsPerAtom: 1n,
-                minAcceptedAtoms: 0n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 1n,
+                    priceNanoSatsPerAtom: 1n,
+                    minAcceptedAtoms: 0n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('minAcceptedAtoms must be at least 1');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 0x10000000000000000n,
-                priceNanoSatsPerAtom: 1n,
-                minAcceptedAtoms: 546000000000n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 0x10000000000000000n,
+                    priceNanoSatsPerAtom: 1n,
+                    minAcceptedAtoms: 546000000000n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('For SLP, offeredAtoms can be at most 0xffffffffffffffff');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 0x1000000000000n,
-                priceNanoSatsPerAtom: 1n,
-                minAcceptedAtoms: 546000000000n,
-                ...BASE_PARAMS_SLP,
-                tokenProtocol: 'ALP',
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 0x1000000000000n,
+                    priceNanoSatsPerAtom: 1n,
+                    minAcceptedAtoms: 546000000000n,
+                    ...BASE_PARAMS_SLP,
+                    tokenProtocol: 'ALP',
+                },
+                32n,
+            ),
         ).to.throw('For ALP, offeredAtoms can be at most 0xffffffffffff');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 100n,
-                priceNanoSatsPerAtom: 10000000000n,
-                minAcceptedAtoms: 101n,
-                ...BASE_PARAMS_SLP,
-                tokenProtocol: 'ALP',
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 100n,
+                    priceNanoSatsPerAtom: 10000000000n,
+                    minAcceptedAtoms: 101n,
+                    ...BASE_PARAMS_SLP,
+                    tokenProtocol: 'ALP',
+                },
+                32n,
+            ),
         ).to.throw(
             'offeredAtoms must be greater than or equal to minAcceptedAtoms',
         );
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 1n,
-                priceNanoSatsPerAtom: 1n,
-                minAcceptedAtoms: 1n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 1n,
+                    priceNanoSatsPerAtom: 1n,
+                    minAcceptedAtoms: 1n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('Parameters cannot be represented in Script');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 0x100000000n,
-                priceNanoSatsPerAtom: 1000000000n,
-                minAcceptedAtoms: 1n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 0x100000000n,
+                    priceNanoSatsPerAtom: 1000000000n,
+                    minAcceptedAtoms: 1n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('minAcceptedAtoms too small, got truncated to 0');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 545n,
-                priceNanoSatsPerAtom: 1000000000n,
-                minAcceptedAtoms: 545n,
-                ...BASE_PARAMS_SLP,
-            }),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 545n,
+                    priceNanoSatsPerAtom: 1000000000n,
+                    minAcceptedAtoms: 545n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ),
         ).to.throw('minAcceptedAtoms would cost less than dust at this price');
         expect(() =>
-            AgoraPartial.approximateParams({
-                offeredAtoms: 0x100000000n,
-                priceNanoSatsPerAtom: 1000000000n,
-                minAcceptedAtoms: 546n,
-                ...BASE_PARAMS_SLP,
-            }).askedSats(1n),
+            AgoraPartial.approximateParams(
+                {
+                    offeredAtoms: 0x100000000n,
+                    priceNanoSatsPerAtom: 1000000000n,
+                    minAcceptedAtoms: 546n,
+                    ...BASE_PARAMS_SLP,
+                },
+                32n,
+            ).askedSats(1n),
         ).to.throw(
             'acceptedAtoms must have the last 8 bits set to zero, use ' +
                 'prepareAcceptedAtoms to get a valid amount',
