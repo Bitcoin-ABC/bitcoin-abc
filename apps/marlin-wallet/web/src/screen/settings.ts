@@ -14,6 +14,7 @@ import { WalletData } from '../wallet';
 import { Fiat } from 'ecash-price';
 import { webViewLog, webViewError } from '../common';
 import { DEFAULT_LOCALE, getAvailableLocales, t } from '../i18n';
+import eyeIcon from '../assets/eye.svg';
 
 export interface SettingsScreenParams {
     appSettings: AppSettings;
@@ -47,6 +48,8 @@ export class SettingsScreen {
         clearMnemonicBtn: HTMLButtonElement;
         mnemonicValidation: HTMLElement;
         modalContent: HTMLElement | null;
+        showMnemonicBtn: HTMLButtonElement;
+        eyeIcon: HTMLImageElement;
     };
 
     constructor(params: SettingsScreenParams) {
@@ -127,6 +130,10 @@ export class SettingsScreen {
             modalContent: document
                 .getElementById('mnemonic-edit-modal')
                 ?.querySelector('.modal-content') as HTMLElement,
+            showMnemonicBtn: document.getElementById(
+                'show-mnemonic-btn',
+            ) as HTMLButtonElement,
+            eyeIcon: document.getElementById('eye-icon') as HTMLImageElement,
         };
 
         if (
@@ -144,7 +151,9 @@ export class SettingsScreen {
             !this.ui.mnemonicWordsContainer ||
             !this.ui.clearMnemonicBtn ||
             !this.ui.mnemonicValidation ||
-            !this.ui.modalContent
+            !this.ui.modalContent ||
+            !this.ui.showMnemonicBtn ||
+            !this.ui.eyeIcon
         ) {
             webViewError('Missing required UI elements for settings screen');
             throw new Error('Missing required UI elements for settings screen');
@@ -267,6 +276,44 @@ export class SettingsScreen {
         // Setup clear button
         this.ui.clearMnemonicBtn.addEventListener('click', () => {
             this.clearAllMnemonicFields();
+        });
+
+        // Set eye icon source
+        this.ui.eyeIcon.src = eyeIcon;
+
+        // Setup show/hide mnemonic button - toggle on click
+        this.ui.showMnemonicBtn.addEventListener('click', () => {
+            const isBlurred =
+                this.ui.mnemonicText.classList.contains('blurred');
+            if (isBlurred) {
+                this.ui.mnemonicText.classList.remove('blurred');
+                this.ui.eyeIcon.style.opacity = '1';
+            } else {
+                this.ui.mnemonicText.classList.add('blurred');
+                this.ui.eyeIcon.style.opacity = '0.6';
+            }
+        });
+
+        // Prevent text selection and copying when blurred. It doesn't prevent
+        // all copy events (and the text is still in the page source code) but
+        // it's better than nothing.
+        this.ui.mnemonicText.addEventListener('selectstart', e => {
+            if (this.ui.mnemonicText.classList.contains('blurred')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        this.ui.mnemonicText.addEventListener('copy', e => {
+            if (this.ui.mnemonicText.classList.contains('blurred')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        this.ui.mnemonicText.addEventListener('cut', e => {
+            if (this.ui.mnemonicText.classList.contains('blurred')) {
+                e.preventDefault();
+                return false;
+            }
         });
 
         this.updateMnemonicDisplay();

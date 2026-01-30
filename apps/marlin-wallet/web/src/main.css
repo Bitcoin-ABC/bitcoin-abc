@@ -690,6 +690,18 @@ body.standalone-web {
     margin-top: 15px;
 }
 
+.mnemonic-display-footer {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.mnemonic-display-footer .eye-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+}
+
 .mnemonic-display textarea {
     width: 100%;
     min-height: 80px;
@@ -703,6 +715,13 @@ body.standalone-web {
     line-height: 1.4;
     resize: none;
     overflow: hidden;
+    transition: filter 0.3s ease;
+}
+
+.mnemonic-display textarea.blurred {
+    filter: blur(6px);
+    user-select: none;
+    pointer-events: none;
 }
 
 .mnemonic-display textarea:focus {

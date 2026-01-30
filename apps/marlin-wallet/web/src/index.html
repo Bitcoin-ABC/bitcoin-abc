@@ -375,7 +375,19 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                         </button>
                     </div>
                     <div class="mnemonic-display" id="mnemonic-display">
-                        <textarea id="mnemonic-text" readonly></textarea>
+                        <textarea
+                            id="mnemonic-text"
+                            readonly
+                            class="blurred"
+                        ></textarea>
+                        <div class="mnemonic-display-footer">
+                            <button
+                                class="btn btn-secondary btn-small"
+                                id="show-mnemonic-btn"
+                            >
+                                <img id="eye-icon" class="eye-icon" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
