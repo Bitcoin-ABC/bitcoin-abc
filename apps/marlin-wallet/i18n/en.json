@@ -41,9 +41,9 @@
         "yourReceivingAddress": "Your Receiving Address"
     },
     "mnemonic": {
+        "clearAll": "Clear All",
         "editMnemonicText": "Edit Mnemonic",
         "enterMnemonic": "Enter your 12-word recovery phrase",
-        "enterMnemonicPlaceholder": "Enter 12 words separated by spaces",
         "failedToSave": "Failed to save mnemonic. Please try again.",
         "invalidMnemonic": "Invalid mnemonic. Please enter a valid 12-word recovery phrase.",
         "mnemonicSaved": "Mnemonic saved successfully",

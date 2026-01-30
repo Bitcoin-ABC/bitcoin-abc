@@ -41,9 +41,9 @@
         "yourReceivingAddress": "آدرس دریافت شما"
     },
     "mnemonic": {
+        "clearAll": "پاک کردن همه",
         "editMnemonicText": "ویرایش یادگاری",
         "enterMnemonic": "عبارت بازیابی 12 کلمه‌ای خود را وارد کنید",
-        "enterMnemonicPlaceholder": "12 کلمه انگلیسی را با فاصله جدا کنید",
         "failedToSave": "ذخیره یادگاری ناموفق بود. لطفاً دوباره تلاش کنید.",
         "invalidMnemonic": "یادگاری نامعتبر. لطفاً یک عبارت بازیابی معتبر 12 کلمه‌ای وارد کنید.",
         "mnemonicSaved": "یادگاری با موفقیت ذخیره شد",

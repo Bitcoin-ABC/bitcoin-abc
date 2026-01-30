@@ -41,9 +41,9 @@
         "yourReceivingAddress": "Alamat Penerima anda"
     },
     "mnemonic": {
+        "clearAll": "Hapus semua",
         "editMnemonicText": "Edit Mnemonik",
         "enterMnemonic": "Masukkan frase pemulihan 12 kata anda",
-        "enterMnemonicPlaceholder": "Masukkan 12 kata bahasa Inggris dipisahkan dengan spasi",
         "failedToSave": "Gagal menyimpan mnemonik. Silakan coba lagi.",
         "invalidMnemonic": "Mnemonik tidak valid. Masukkan frase pemulihan 12 kata yang valid.",
         "mnemonicSaved": "Mnemonik berhasil disimpan",

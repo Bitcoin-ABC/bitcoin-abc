@@ -407,11 +407,23 @@ file COPYING or http://www.opensource.org/licenses/mit-license.php.
                             >This will replace your current wallet.</strong
                         >
                     </p>
-                    <textarea
-                        id="mnemonic-edit-text"
-                        placeholder="Enter 12 words separated by spaces"
-                        data-i18n="[placeholder]mnemonic.enterMnemonicPlaceholder"
-                    ></textarea>
+                    <div class="mnemonic-clear-container">
+                        <button
+                            class="btn btn-secondary btn-small"
+                            id="clear-mnemonic-btn"
+                            data-i18n="mnemonic.clearAll"
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                    <div class="mnemonic-words-container-wrapper">
+                        <div
+                            class="mnemonic-words-container"
+                            id="mnemonic-words-container"
+                        >
+                            <!-- 12 word selectors will be populated by JavaScript -->
+                        </div>
+                    </div>
                     <div
                         class="validation-message"
                         id="mnemonic-validation"

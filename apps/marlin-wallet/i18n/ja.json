@@ -41,9 +41,9 @@
         "yourReceivingAddress": "受取アドレス"
     },
     "mnemonic": {
+        "clearAll": "すべてクリア",
         "editMnemonicText": "ニーモニックを編集",
         "enterMnemonic": "12単語のリカバリーフレーズを入力してください",
-        "enterMnemonicPlaceholder": "スペースで区切った12個の英語単語を入力",
         "failedToSave": "ニーモニックの保存が失敗しました。もう一度お試しください。",
         "invalidMnemonic": "無効なニーモニックです。有効な12単語のリカバリーフレーズを入力してください。",
         "mnemonicSaved": "ニーモニックが正常に保存されました",

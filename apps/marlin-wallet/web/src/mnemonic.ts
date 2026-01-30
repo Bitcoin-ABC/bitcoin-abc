@@ -47,6 +47,14 @@ export function validateMnemonic(mnemonic: string): boolean {
 }
 
 /**
+ * Get the BIP39 English wordlist
+ * @returns Array of all 2048 BIP39 English words
+ */
+export function getBIP39Wordlist(): string[] {
+    return bip39.wordlists['english'];
+}
+
+/**
  * Request to store mnemonic in secure storage, fallback to localStorage for
  * web.
  */

@@ -41,9 +41,9 @@
         "yourReceivingAddress": "Il Tuo Indirizzo di Ricezione"
     },
     "mnemonic": {
+        "clearAll": "Cancella tutto",
         "editMnemonicText": "Modifica Mnemonica",
         "enterMnemonic": "Inserisci la tua frase di recupero di 12 parole",
-        "enterMnemonicPlaceholder": "Inserisci 12 parole inglesi separate da spazi",
         "failedToSave": "Impossibile salvare la mnemonica. Riprova.",
         "invalidMnemonic": "Mnemonica non valida. Inserisci una frase di recupero valida di 12 parole.",
         "mnemonicSaved": "Mnemonica salvata con successo",

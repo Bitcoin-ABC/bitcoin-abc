@@ -4,11 +4,16 @@
 
 import { Navigation, Screen } from '../navigation';
 import { AppSettings, saveSettings } from '../settings';
-import { getMnemonic, storeMnemonic, validateMnemonic } from '../mnemonic';
+import {
+    getMnemonic,
+    storeMnemonic,
+    validateMnemonic,
+    getBIP39Wordlist,
+} from '../mnemonic';
 import { WalletData } from '../wallet';
 import { Fiat } from 'ecash-price';
 import { webViewLog, webViewError } from '../common';
-import { DEFAULT_LOCALE, getAvailableLocales } from '../i18n';
+import { DEFAULT_LOCALE, getAvailableLocales, t } from '../i18n';
 
 export interface SettingsScreenParams {
     appSettings: AppSettings;
@@ -38,8 +43,10 @@ export class SettingsScreen {
         saveMnemonicEditBtn: HTMLButtonElement;
         mnemonicText: HTMLTextAreaElement;
         mnemonicEditModal: HTMLElement;
-        mnemonicEditText: HTMLTextAreaElement;
+        mnemonicWordsContainer: HTMLElement;
+        clearMnemonicBtn: HTMLButtonElement;
         mnemonicValidation: HTMLElement;
+        modalContent: HTMLElement | null;
     };
 
     constructor(params: SettingsScreenParams) {
@@ -108,12 +115,18 @@ export class SettingsScreen {
             mnemonicEditModal: document.getElementById(
                 'mnemonic-edit-modal',
             ) as HTMLElement,
-            mnemonicEditText: document.getElementById(
-                'mnemonic-edit-text',
-            ) as HTMLTextAreaElement,
+            mnemonicWordsContainer: document.getElementById(
+                'mnemonic-words-container',
+            ) as HTMLElement,
+            clearMnemonicBtn: document.getElementById(
+                'clear-mnemonic-btn',
+            ) as HTMLButtonElement,
             mnemonicValidation: document.getElementById(
                 'mnemonic-validation',
             ) as HTMLElement,
+            modalContent: document
+                .getElementById('mnemonic-edit-modal')
+                ?.querySelector('.modal-content') as HTMLElement,
         };
 
         if (
@@ -128,8 +141,10 @@ export class SettingsScreen {
             !this.ui.saveMnemonicEditBtn ||
             !this.ui.mnemonicText ||
             !this.ui.mnemonicEditModal ||
-            !this.ui.mnemonicEditText ||
-            !this.ui.mnemonicValidation
+            !this.ui.mnemonicWordsContainer ||
+            !this.ui.clearMnemonicBtn ||
+            !this.ui.mnemonicValidation ||
+            !this.ui.modalContent
         ) {
             webViewError('Missing required UI elements for settings screen');
             throw new Error('Missing required UI elements for settings screen');
@@ -246,7 +261,12 @@ export class SettingsScreen {
         });
 
         this.ui.saveMnemonicEditBtn.addEventListener('click', async () => {
-            await this.saveMnemonic(this.ui.mnemonicEditText.value.trim());
+            await this.saveMnemonic();
+        });
+
+        // Setup clear button
+        this.ui.clearMnemonicBtn.addEventListener('click', () => {
+            this.clearAllMnemonicFields();
         });
 
         this.updateMnemonicDisplay();
@@ -346,12 +366,154 @@ export class SettingsScreen {
 
     private showMnemonicEditModal(): void {
         const walletMnemonic = getMnemonic(this.params.wallet);
-        this.ui.mnemonicEditText.value = walletMnemonic ? walletMnemonic : '';
+        const words = walletMnemonic ? walletMnemonic.split(' ') : [];
+
+        // Populate word selectors
+        this.populateWordSelectors(words);
 
         this.ui.mnemonicValidation.style.display = 'none';
 
         this.ui.mnemonicEditModal.style.display = 'flex';
         this.ui.mnemonicEditModal.classList.remove('hidden');
+    }
+
+    // Populate 12 filterable dropdown selectors with BIP39 wordlist
+    private populateWordSelectors(initialWords: string[] = []): void {
+        const container = this.ui.mnemonicWordsContainer;
+        container.innerHTML = '';
+
+        const wordlist = getBIP39Wordlist();
+        const NUM_WORDS = 12;
+
+        for (let i = 0; i < NUM_WORDS; i++) {
+            const wordGroup = document.createElement('div');
+            wordGroup.className = 'mnemonic-word-group';
+
+            const label = document.createElement('label');
+            label.textContent = `#${i + 1}`;
+            label.className = 'mnemonic-word-label';
+
+            // Create wrapper for input and dropdown
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'mnemonic-input-wrapper';
+
+            // Create input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'mnemonic-word-input';
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('autocorrect', 'off');
+            input.setAttribute('autocapitalize', 'off');
+            input.setAttribute('spellcheck', 'false');
+            input.setAttribute('data-word-index', i.toString());
+
+            // Create dropdown for filtered results
+            const dropdown = document.createElement('div');
+            dropdown.className = 'mnemonic-word-dropdown';
+            dropdown.style.display = 'none';
+
+            // Set initial value if provided
+            if (initialWords[i]) {
+                input.value = initialWords[i];
+            }
+
+            // Filter and show dropdown
+            const showFilteredOptions = (searchTerm: string) => {
+                dropdown.innerHTML = '';
+                const term = searchTerm.toLowerCase().trim();
+
+                if (term === '') {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                // Filter words that start with the search term
+                const filtered = wordlist.filter(word =>
+                    word.toLowerCase().startsWith(term),
+                );
+
+                if (filtered.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                filtered.forEach(word => {
+                    const option = document.createElement('div');
+                    option.className = 'mnemonic-dropdown-option';
+                    option.textContent = word;
+
+                    const selectWord = () => {
+                        input.value = word;
+                        dropdown.style.display = 'none';
+                        // Move to next input if available
+                        const nextIndex = i + 1;
+                        if (nextIndex < NUM_WORDS) {
+                            const nextInput = container.querySelector(
+                                `input[data-word-index="${nextIndex}"]`,
+                            ) as HTMLInputElement;
+                            if (nextInput) {
+                                nextInput.focus();
+                            }
+                        }
+                    };
+
+                    option.addEventListener('mousedown', e => {
+                        e.preventDefault(); // Prevent input blur
+                        selectWord();
+                    });
+                    option.addEventListener('click', selectWord);
+                    dropdown.appendChild(option);
+                });
+
+                // Position dropdown relative to input using fixed positioning
+                const inputRect = input.getBoundingClientRect();
+                dropdown.style.top = `${inputRect.bottom + 2}px`;
+                dropdown.style.left = `${inputRect.left}px`;
+                dropdown.style.width = `${inputRect.width}px`;
+                dropdown.style.display = 'block';
+            };
+
+            // Handle input changes
+            input.addEventListener('input', () => {
+                if (input.value.trim()) {
+                    showFilteredOptions(input.value);
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', (e: MouseEvent) => {
+                if (
+                    !inputWrapper.contains(e.target as Node) &&
+                    !dropdown.contains(e.target as Node)
+                ) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Validate on blur - ensure it's a valid BIP39 word
+            input.addEventListener('blur', () => {
+                const value = input.value.trim().toLowerCase();
+                if (value) {
+                    // Check if it's a valid BIP39 word
+                    const exactWord = wordlist.find(
+                        word => word.toLowerCase() === value,
+                    );
+                    if (exactWord) {
+                        input.value = exactWord;
+                    } else {
+                        // Clear invalid input
+                        input.value = '';
+                    }
+                }
+            });
+
+            inputWrapper.appendChild(input);
+            // Append dropdown to modal-content to escape scrolling container
+            this.ui.modalContent.appendChild(dropdown);
+            wordGroup.appendChild(label);
+            wordGroup.appendChild(inputWrapper);
+            container.appendChild(wordGroup);
+        }
     }
 
     private hideMnemonicEditModal(): void {
@@ -374,27 +536,40 @@ export class SettingsScreen {
         this.ui.mnemonicValidation.style.display = 'none';
     }
 
-    private async saveMnemonic(newMnemonic: string): Promise<boolean> {
+    private async saveMnemonic(): Promise<boolean> {
         try {
+            // Collect words from inputs
+            const words: string[] = [];
+            const inputs = this.ui.mnemonicWordsContainer.querySelectorAll(
+                '.mnemonic-word-input',
+            ) as NodeListOf<HTMLInputElement>;
+
+            inputs.forEach(input => {
+                const value = input.value.trim();
+                if (value) {
+                    words.push(value);
+                }
+            });
+
+            const mnemonic = words.join(' ');
+
             // Validate the mnemonic
-            if (!validateMnemonic(newMnemonic)) {
-                this.showValidationMessage(
-                    'Invalid mnemonic. Please enter a valid 12-word recovery phrase.',
-                );
+            if (!validateMnemonic(mnemonic)) {
+                this.showValidationMessage(t('mnemonic.invalidMnemonic'));
                 return false;
             }
 
             // Store the new mnemonic
-            await storeMnemonic(newMnemonic);
+            storeMnemonic(mnemonic);
 
             // Update the wallet with the new mnemonic
             if (this.params.wallet) {
-                this.params.wallet.mnemonic = newMnemonic;
+                this.params.wallet.mnemonic = mnemonic;
             }
 
             // Call registered callback to reload wallet with the new mnemonic
             if (this.onMnemonicSavedCallback) {
-                await this.onMnemonicSavedCallback(newMnemonic);
+                await this.onMnemonicSavedCallback(mnemonic);
             }
 
             // Ensure main screen is visible and wallet is displayed
@@ -404,10 +579,7 @@ export class SettingsScreen {
             this.updateMnemonicDisplay();
 
             // Show success message
-            this.showValidationMessage(
-                'Mnemonic updated successfully! Wallet reloaded.',
-                false,
-            );
+            this.showValidationMessage(t('mnemonic.mnemonicSaved'), false);
 
             // Disable the save button
             this.ui.saveMnemonicEditBtn.disabled = true;
@@ -423,10 +595,31 @@ export class SettingsScreen {
             return true;
         } catch (error) {
             webViewError('Error saving mnemonic:', error);
-            this.showValidationMessage(
-                'Failed to save mnemonic. Please try again.',
-            );
+            this.showValidationMessage(t('mnemonic.failedToSave'));
             return false;
         }
+    }
+
+    // Clear all mnemonic word input fields
+    private clearAllMnemonicFields(): void {
+        const inputs = this.ui.mnemonicWordsContainer.querySelectorAll(
+            '.mnemonic-word-input',
+        ) as NodeListOf<HTMLInputElement>;
+
+        inputs.forEach(input => {
+            input.value = '';
+        });
+
+        // Hide any dropdowns that might be open
+        const dropdowns = this.ui.mnemonicWordsContainer.querySelectorAll(
+            '.mnemonic-word-dropdown',
+        ) as NodeListOf<HTMLElement>;
+
+        dropdowns.forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+
+        // Clear validation message
+        this.hideValidationMessage();
     }
 }

@@ -1085,18 +1085,19 @@ body.standalone-web {
 .modal-content {
     background: #1a1a1a;
     border-radius: 12px;
-    margin: 15px;
-    max-width: 600px;
+    margin: 10px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1105,7 +1106,12 @@ body.standalone-web {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 15px;
+    overflow: visible;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .modal-description {
@@ -1146,6 +1152,121 @@ body.standalone-web {
 .modal-body textarea:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.5);
+}
+
+.mnemonic-clear-container {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.mnemonic-words-container-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: visible;
+    min-height: 0;
+}
+
+.mnemonic-words-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 10px;
+}
+
+@media (max-width: 360px) {
+    .mnemonic-words-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+.mnemonic-word-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    overflow: visible;
+}
+
+.mnemonic-word-label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    min-width: 35px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.mnemonic-input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 140px;
+    overflow: visible;
+}
+
+.mnemonic-word-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.mnemonic-word-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.mnemonic-word-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.mnemonic-word-dropdown {
+    position: fixed;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 170px; /* Show ~4,5 options */
+    overflow-y: auto;
+    z-index: 10001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    min-width: 140px;
+}
+
+.mnemonic-dropdown-option {
+    padding: 10px 12px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.mnemonic-dropdown-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mnemonic-dropdown-option:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.mnemonic-dropdown-option:last-child {
+    border-radius: 0 0 8px 8px;
 }
 
 .mnemonic-edit-modal {
