@@ -34,7 +34,7 @@
         "@typescript-eslint/parser": "^6.12.0",
         "chai": "^4.3.10",
         "chai-as-promised": "^7.1.1",
-        "eslint": "^8.54.0",
+        "eslint": "^9.26.0",
         "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
         "nyc": "^17.1.0",
