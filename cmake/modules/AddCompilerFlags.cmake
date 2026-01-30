@@ -178,9 +178,15 @@ function(_internal_custom_check_linker_flag RESULT FLAG)
 	# Append the flag under test to the linker flags
 	string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG} ${ARGN}")
 
-	# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
-	# calls try_compile, so it will check our flag
-	CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
+	# CHECK_C(XX)_COMPILER_FLAG calls cmake_check_source_compiles,
+	# so it will check our flag
+	if(CMAKE_CXX_COMPILER_LOADED)
+		CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
+	elseif(CMAKE_C_COMPILER_LOADED)
+		CHECK_C_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
+	else()
+		message(FATAL_ERROR "Cannot check compiler flags when neither C nor CXX is enabled.")
+	endif()
 
 	# Restore CMAKE_EXE_LINKER_FLAGS
 	set(CMAKE_EXE_LINKER_FLAGS ${SAVED_CMAKE_EXE_LINKER_FLAGS})
