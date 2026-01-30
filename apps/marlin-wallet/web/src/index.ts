@@ -839,6 +839,11 @@ async function handlePaymentRequest(event: any) {
                 // Notify native app that sync is complete
                 sendMessageToBackend('SYNC_COMPLETE', null);
             }
+        } else if (message.type === 'BACK_BUTTON') {
+            // Handle Android back button - navigate to main screen
+            if (navigation) {
+                navigation.showScreen(Screen.Main);
+            }
         }
     } catch {
         // Ignore parse errors from non-JSON messages

@@ -172,6 +172,30 @@ function AppContent(): React.JSX.Element {
         };
     }, []);
 
+    // Handle Android back button
+    useEffect(() => {
+        if (Platform.OS !== 'android') {
+            return;
+        }
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            () => {
+                // If not on main screen, navigate back to main
+                if (currentScreen !== 'main') {
+                    sendMessageToWebView({
+                        type: 'BACK_BUTTON',
+                    });
+                    return true; // Prevent default behavior
+                }
+                // If on main screen, let OS handle it (exit app or go to background)
+                return false;
+            },
+        );
+
+        return () => backHandler.remove();
+    }, [currentScreen]);
+
     // Properly terminate the app if the user cancels the authentication. Without
     // this, the app will stay running in the background and can be resumed in an
     // inconsistent state.
