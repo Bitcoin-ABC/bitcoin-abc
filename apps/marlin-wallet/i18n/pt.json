@@ -11,7 +11,7 @@
     },
     "camera": {
         "manualEntry": "Entrada Manual",
-        "noCameraAvailable": "Câmera Não Disponível",
+        "noCameraAvailable": "Câmera Indisponível",
         "noCameraDescription": "O acesso à câmera não está disponível neste dispositivo. Use o botão \"Entrada Manual\" abaixo para inserir um endereço.",
         "title": "Câmera"
     },
@@ -51,7 +51,7 @@
     },
     "native": {
         "closeWallet": "Fechar a carteira",
-        "authenticateToStore": "Autentique-se para armazenar sua chave privada da carteira",
+        "authenticateToStore": "Autentique-se para armazenar a chave privada da sua carteira",
         "authenticateToStoreDescription": "Isso é necessário para armazenar sua chave privada no armazenamento seguro do dispositivo",
         "authenticateToAccess": "Autentique-se para acessar sua carteira",
         "authenticateToAccessDescription": "Isso é necessário para carregar sua chave privada do armazenamento seguro",
@@ -62,9 +62,9 @@
         "title": "PayButton"
     },
     "send": {
-        "amount": "Valor",
+        "amount": "Quantia",
         "cancel": "Cancelar",
-        "enterAmount": "Digite o Valor",
+        "enterAmount": "Digite a Quantia",
         "holdToSend": "Segure para Enviar",
         "max": "Máx",
         "min": "Mín",
