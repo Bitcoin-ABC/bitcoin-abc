@@ -1,93 +1,93 @@
 {
     "app": {
-        "back": "Regredi",
-        "cancel": "Cancellare",
+        "back": "Regredī",
+        "cancel": "Cancellāre",
         "close": "Claudere",
-        "edit": "Emendare",
+        "edit": "Ēmendāre",
         "error": "Error",
-        "loading": "Onerans...",
-        "save": "Servare",
+        "loading": "Onerāns...",
+        "save": "Servāre",
         "title": "Marlin Wallet"
     },
     "camera": {
-        "manualEntry": "Manus Inscriptio",
-        "noCameraAvailable": "Camera Non Praesto",
-        "noCameraDescription": "Camera accessus in hoc instrumento non praesto est. Utere \"Manus Inscriptio\" puga infra ad inscribendum inscriptionem.",
+        "manualEntry": "Manus Īnscrīptiō",
+        "noCameraAvailable": "Camera Nōn Praestō",
+        "noCameraDescription": "Camera accessus in hōc māchinā nōn praestō est. Ūte \"Manus Īnscrīptiō\" bullam īnfrā ad īnscrībendum īnscrīptiōnem.",
         "title": "Camera"
     },
     "errors": {
         "anErrorOccurred": "Error accidit",
-        "failedToLoadWallet": "Crumenam onerare non potuit",
-        "failedToSendTransaction": "Transactionem mittere non potuit",
-        "insufficientFunds": "Pecunia non sufficit",
-        "invalidAddress": "Inscriptio invalida",
-        "transactionFailed": "Transactio defecit"
+        "failedToLoadWallet": "Crumēna onerāre nōn potuit",
+        "failedToSendTransaction": "Trānsāctiōnem mittere nōn potuit",
+        "insufficientFunds": "Pecūnia nōn sufficit",
+        "invalidAddress": "Īnscrīptiō invalida",
+        "transactionFailed": "Trānsāctiō dēfēcit"
     },
     "history": {
-        "loadingTransactions": "Transactiones onerans...",
-        "noTransactions": "Nondum transactiones",
-        "title": "Transactio Historia",
-        "viewInExplorer": "Videre in Exploratore"
+        "loadingTransactions": "Trānsāctiōnēs onerāns...",
+        "noTransactions": "Nūlla trānsāctiō",
+        "title": "Trānsāctiō Historia",
+        "viewInExplorer": "Vidēre in Explōrātōre"
     },
     "loading": {
-        "authenticationRequired": "Authenticatio requiritur"
+        "authenticationRequired": "Authenticatio requīritur"
     },
     "main": {
-        "generatingWallet": "Crumenam generans...",
+        "generatingWallet": "Crumēnam generāns...",
         "history": "Historia",
-        "scanQRCode": "QR Codice Scannare",
-        "settings": "Optiones",
+        "scanQRCode": "QR Cōdice Scannare",
+        "settings": "Optiōnēs",
         "title": "Marlin Wallet",
-        "yourReceivingAddress": "Tua Inscriptio Recipiendi"
+        "yourReceivingAddress": "Tua Īnscrīptiō Recipiendī"
     },
     "mnemonic": {
-        "clearAll": "Omnia Delere",
-        "editMnemonicText": "Mnemonicum Emendare",
-        "enterMnemonic": "Inscribe tuam 12-verborum recuperationis phrasim",
-        "failedToSave": "Mnemonicum servare non potuit. Quaeso iterum tenta.",
-        "invalidMnemonic": "Mnemonicum invalidum. Quaeso inscribe validam 12-verborum recuperationis phrasim.",
-        "mnemonicSaved": "Mnemonicum feliciter servatum est",
-        "thisWillReplaceWallet": "Hoc tuam praesentem crumena substituet."
+        "clearAll": "Omnia Dēlēre",
+        "editMnemonicText": "Mnemonicum Ēmendāre",
+        "enterMnemonic": "Īnscrībe tuam 12-verbōrum recuperātiōnis phrasim",
+        "failedToSave": "Mnemonicum servāre nōn potuit. Quaesō iterum tentā.",
+        "invalidMnemonic": "Mnemonicum invalidum. Quaesō īnscrībe validam 12-verbōrum recuperātiōnis phrasim.",
+        "mnemonicSaved": "Mnemonicum fēlīciter servātum est",
+        "thisWillReplaceWallet": "Hoc tuam praesentem crumēnam substituet."
     },
     "native": {
-        "closeWallet": "Crumenam claudere",
-        "authenticateToStore": "Authenticare ad servandum tuam crumena clavis privata",
-        "authenticateToStoreDescription": "Hoc requiritur ad servandum tuam clavis privata ad instrumenti securum repositum",
-        "authenticateToAccess": "Authenticare ad accedendum tuam crumena",
-        "authenticateToAccessDescription": "Hoc requiritur ad onerandum tuam clavis privata ex securi repositio",
-        "paymentSent": "Solutio missa est!",
-        "returningToPaymentSite": "Revertens ad solutio situm..."
+        "closeWallet": "Crumēnam claudere",
+        "authenticateToStore": "Authenticare ad servandum tuam crumēnā clāvīs prīvāta",
+        "authenticateToStoreDescription": "Hoc requīritur ad servandum tuam clāvīs prīvāta ad īnstrūmentī sēcūrum repositum",
+        "authenticateToAccess": "Authenticare ad accēdendum tuam crumēnā",
+        "authenticateToAccessDescription": "Hoc requīritur ad onerandum tuam clāvīs prīvāta ex secūrī repositiō",
+        "paymentSent": "Solūtiō missa!",
+        "returningToPaymentSite": "Revertēns ad solūtiōnis pāginam..."
     },
     "paybutton": {
         "title": "PayButton"
     },
     "send": {
         "amount": "Summa",
-        "cancel": "Cancellare",
-        "enterAmount": "Summam Inscribe",
-        "holdToSend": "Tenere ad Mittendum",
+        "cancel": "Cancellāre",
+        "enterAmount": "Summam Īnscrībere",
+        "holdToSend": "Tenē ad Mittendum",
         "max": "Max",
         "min": "Min",
-        "networkFee": "Rete Merces",
-        "recipientAddress": "Recipientis Inscriptio",
-        "recipientAddressPlaceholder": "Inscribe eCash inscriptionem",
+        "networkFee": "Rēte Mercēs",
+        "recipientAddress": "Recipientis Īnscrīptiō",
+        "recipientAddressPlaceholder": "Īnscrībe eCash īnscrīptiōnem",
         "send": "Mittere",
-        "sending": "Mittens...",
+        "sending": "Mittēns...",
         "title": "Mittere",
         "total": "Summa"
     },
     "settings": {
-        "editMnemonic": "Mnemonicum Emendare",
-        "fiatCurrency": "Fiat Moneta",
-        "fiatCurrencyDescription": "Elige fiat monetam ad utendum pro pretio ostendendo et conversionibus.",
+        "editMnemonic": "Mnemonicum Ēmendāre",
+        "fiatCurrency": "Fiat Monēta",
+        "fiatCurrencyDescription": "Ēlige fīat monētam ad ūtendum prō pretiō ostendendō et conversiōnibus.",
         "language": "Lingua",
-        "languageDescription": "Elige linguam pro applicationis interfacie.",
-        "requireHoldToSend": "Requirere Tenere ad Mittendum",
-        "requireHoldToSendDescription": "Cum activatum est, debes tenere mittere puga per 1 secundum ad confirmandum transactionem.",
-        "title": "Optiones",
-        "useFiatAsPrimary": "Utere Fiat ut Primarium Aequilibrium",
-        "useFiatAsPrimaryDescription": "Cum activatum est, ostendit Fiat ut primarium aequilibrium et XEC ut secundarium.",
-        "walletMnemonic": "Crumena Mnemonicum",
-        "walletMnemonicDescription": "Tua 12-verborum recuperationis phrasis. Certus esto ut eam secure subservas!"
+        "languageDescription": "Ēlige linguam prō applicātiōnis interfacie.",
+        "requireHoldToSend": "Requīrere Tenē ad Mittendum",
+        "requireHoldToSendDescription": "Cum activatum est, dēbēs tenēre Mittere bullam per 1 secundum ad cōnfīrmandum trānsāctiōnem.",
+        "title": "Optiōnēs",
+        "useFiatAsPrimary": "Ūtere Fīat ut Prīmārium Crēditum",
+        "useFiatAsPrimaryDescription": "Cum activatum est, ostendit Fīat ut prīmārium crēditum et XEC ut secundārium.",
+        "walletMnemonic": "Crumēna Mnemonicum",
+        "walletMnemonicDescription": "Tua 12-verbōrum recuperātiōnis phrasis. Certus estō ut eam secūre subservas!"
     }
 }
