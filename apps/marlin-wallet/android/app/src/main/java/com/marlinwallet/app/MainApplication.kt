@@ -22,6 +22,7 @@ class MainApplication : Application(), ReactApplication {
               add(AppKillerPackage())
               add(PaymentRequestPackage())
               add(WearableSyncPackage())
+              add(PrivacyModulePackage())
           }
       )
   }

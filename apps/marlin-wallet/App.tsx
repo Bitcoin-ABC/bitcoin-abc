@@ -365,6 +365,23 @@ function AppContent(): React.JSX.Element {
                     // Screen changed in WebView, update current screen state
                     if (message.data) {
                         setCurrentScreen(message.data);
+                        // Prevent screenshots on settings screen (Android only)
+                        if (Platform.OS === 'android') {
+                            try {
+                                const PrivacyModule =
+                                    NativeModules.PrivacyModule;
+                                if (PrivacyModule) {
+                                    PrivacyModule.setPrivacyMode(
+                                        message.data === 'settings',
+                                    );
+                                }
+                            } catch (error) {
+                                console.log(
+                                    'Failed to set privacy mode:',
+                                    error,
+                                );
+                            }
+                        }
                     }
                     break;
 
