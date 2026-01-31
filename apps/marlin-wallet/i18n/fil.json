@@ -1,0 +1,93 @@
+{
+    "app": {
+        "back": "Bumalik",
+        "cancel": "Kanselahin",
+        "close": "Isara",
+        "edit": "I-edit",
+        "error": "Error",
+        "loading": "Naglo-load...",
+        "save": "I-save",
+        "title": "Marlin Wallet"
+    },
+    "camera": {
+        "manualEntry": "Manwal na Pagpasok",
+        "noCameraAvailable": "Walang Available na Camera",
+        "noCameraDescription": "Ang access sa camera ay hindi available sa device na ito. Gamitin ang \"Manwal na Pagpasok\" na button sa ibaba para magpasok ng address.",
+        "title": "Camera"
+    },
+    "errors": {
+        "anErrorOccurred": "May naganap na error",
+        "failedToLoadWallet": "Nabigo na i-load ang wallet",
+        "failedToSendTransaction": "Nabigo na magpadala ng transaction",
+        "insufficientFunds": "Kulang ang pondo",
+        "invalidAddress": "Hindi wasto na address",
+        "transactionFailed": "Nabigo ang transaction"
+    },
+    "history": {
+        "loadingTransactions": "Naglo-load ng mga transaction...",
+        "noTransactions": "Wala pang mga transaction",
+        "title": "Kasaysayan ng Transaction",
+        "viewInExplorer": "Tingnan sa Explorer"
+    },
+    "loading": {
+        "authenticationRequired": "Kailangan ang authentication"
+    },
+    "main": {
+        "generatingWallet": "Gumagawa ng wallet...",
+        "history": "Kasaysayan",
+        "scanQRCode": "I-scan ang QR Code",
+        "settings": "Settings",
+        "title": "Marlin Wallet",
+        "yourReceivingAddress": "Ang Iyong Receiving Address"
+    },
+    "mnemonic": {
+        "clearAll": "Lahat i-clear",
+        "editMnemonicText": "I-edit ang Mnemonic",
+        "enterMnemonic": "Ilagay ang iyong 12-word recovery phrase",
+        "failedToSave": "Nabigo na i-save ang mnemonic. Pakisubukan ulit.",
+        "invalidMnemonic": "Hindi wasto na mnemonic. Pakilagay ang wasto na 12-word recovery phrase.",
+        "mnemonicSaved": "Matagumpay na na-save ang mnemonic",
+        "thisWillReplaceWallet": "Ito ay papalitan ang iyong kasalukuyang wallet."
+    },
+    "native": {
+        "closeWallet": "Isara ang wallet",
+        "authenticateToStore": "Mag-authenticate para i-store ang iyong wallet private key",
+        "authenticateToStoreDescription": "Ito ay kailangan para i-store ang iyong private key sa secure storage ng device",
+        "authenticateToAccess": "Mag-authenticate para ma-access ang iyong wallet",
+        "authenticateToAccessDescription": "Ito ay kailangan para i-load ang iyong private key mula sa secure storage",
+        "paymentSent": "Naipadala ang payment!",
+        "returningToPaymentSite": "Bumabalik sa payment site..."
+    },
+    "paybutton": {
+        "title": "PayButton"
+    },
+    "send": {
+        "amount": "Halaga",
+        "cancel": "Kanselahin",
+        "enterAmount": "Ilagay ang Halaga",
+        "holdToSend": "I-hold para Magpadala",
+        "max": "Max",
+        "min": "Min",
+        "networkFee": "Network Fee",
+        "recipientAddress": "Address ng Tatanggap",
+        "recipientAddressPlaceholder": "Ilagay ang eCash address",
+        "send": "Magpadala",
+        "sending": "Nagpapadala...",
+        "title": "Magpadala",
+        "total": "Kabuuan"
+    },
+    "settings": {
+        "editMnemonic": "I-edit ang Mnemonic",
+        "fiatCurrency": "Fiat Currency",
+        "fiatCurrencyDescription": "Pumili ng fiat currency na gagamitin para sa price display at conversions.",
+        "language": "Wika",
+        "languageDescription": "Pumili ng wika para sa application interface.",
+        "requireHoldToSend": "Kailangan I-hold para Magpadala",
+        "requireHoldToSendDescription": "Kapag naka-enable, kailangan mong i-hold ang send button ng 1 segundo para kumpirmahin ang transaction.",
+        "title": "Settings",
+        "useFiatAsPrimary": "Gamitin ang Fiat bilang Primary Balance",
+        "useFiatAsPrimaryDescription": "Kapag naka-enable, ipinapakita ang Fiat bilang primary balance at XEC bilang secondary.",
+        "walletMnemonic": "Wallet Mnemonic",
+        "walletMnemonicDescription": "Ang iyong 12-word recovery phrase. Siguraduhing i-back up ito nang ligtas!"
+    }
+}

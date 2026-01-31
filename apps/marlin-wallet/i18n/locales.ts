@@ -7,6 +7,7 @@ import de from './de.json';
 import en from './en.json';
 import es from './es.json';
 import fa from './fa.json';
+import fil from './fil.json';
 import fr from './fr.json';
 import hi from './hi.json';
 import id from './id.json';
@@ -29,6 +30,7 @@ export const I18N_RESOURCES = {
     en: { translation: en, name: 'English' },
     es: { translation: es, name: 'Español' },
     fa: { translation: fa, name: 'فارسی' },
+    fil: { translation: fil, name: 'Filipino' },
     fr: { translation: fr, name: 'Français' },
     hi: { translation: hi, name: 'हिन्दी' },
     id: { translation: id, name: 'Indonesia' },
