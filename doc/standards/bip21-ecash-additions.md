@@ -96,6 +96,15 @@ Specifying token satoshis instead of `token_decimalized_qty` was considered and 
 
 Note that more complicated token txs (or this type of simple token tx) may be manually constructed with `op_return_raw` and existing bip21 support for multiple outputs.
 
+8. eCash supports EMPP pushes with `empp_raw`, which may be combined with token sends for token types that support this
+
+- `empp_raw` must be raw hex
+- `empp_raw` must NOT begin with `6a`; it is not the full `OP_RETURN` but a single push
+- A bip21 query may have multiple `empp_raw` params. Each will be added in order.
+- If `empp_raw` is included in a tx already expected to have other `empp` pushes, e.g. an ALP token tx, the pushes specified by `empp_raw` will follow those already used by the tx
+
+Wallets are responsible for validating a support for `empp_raw` and whether or not the specified pushes will fit in available `OP_RETURN` space.
+
 ### Examples
 
 #### Bip-21 URI with no `op_return_raw` and 2 additional outputs
@@ -120,3 +129,7 @@ An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 3 output
 `ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?token_id=aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1&token_decimalized_qty=100.12`
 
 100.12 CACHET tokens will be sent to `ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07` in an output containing 546 satoshis. It is up to the implementing wallet to handle validation and change.
+
+#### Bip-21 URI for an ALP Send tx that includes empp_raw for a Cashtab Msg
+
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?token_id=0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0&token_decimalized_qty=3.50&empp_raw=00746162746869732069732061206d657373616765`

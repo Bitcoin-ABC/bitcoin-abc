@@ -70,6 +70,7 @@ import {
     invalidXecxTx,
     firmaYieldTx,
     firmaRedeemTx,
+    alpSendWithCashtabMsgTx,
 } from './mocks';
 
 export default {
@@ -1019,6 +1020,18 @@ export default {
                 tx: firmaRedeemTx.tx,
                 hashes: [firmaRedeemTx.sendingHash],
                 parsed: firmaRedeemTx.parsedSend,
+            },
+            {
+                description: 'ALP send with cashtab msg',
+                tx: alpSendWithCashtabMsgTx.tx,
+                hashes: [alpSendWithCashtabMsgTx.sendingHash],
+                parsed: alpSendWithCashtabMsgTx.parsedSend,
+            },
+            {
+                description: 'ALP receive with cashtab msg',
+                tx: alpSendWithCashtabMsgTx.tx,
+                hashes: [alpSendWithCashtabMsgTx.receivingHash],
+                parsed: alpSendWithCashtabMsgTx.parsedReceive,
             },
         ],
     },

@@ -15,6 +15,7 @@ import {
     fromHex,
     TxOutput,
     Bytes,
+    bytesToStr,
 } from 'ecash-lib';
 import { AddressType } from 'ecashaddrjs/dist/types';
 import { AppAction, XecxAction, UnknownAction } from 'chronik';
@@ -411,6 +412,20 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
                     solAddr: isValid
                         ? encodeBase58(fromHex(emppStack.remainingHex))
                         : `Invalid SOL pk: ${emppStack.remainingHex}`,
+                },
+            };
+        }
+        case opReturn.appPrefixesHex.cashtab: {
+            // EMPP Cashtab msg: lokad (4 bytes) + UTF-8 encoded message
+            // After consuming lokad, remainingHex is the UTF-8 encoded message
+            const msgBytes = fromHex(emppStack.remainingHex);
+            const isValid = msgBytes.length > 0;
+            return {
+                lokadId,
+                app: 'Cashtab Msg',
+                isValid,
+                action: {
+                    msg: isValid ? bytesToStr(msgBytes) : 'Invalid Cashtab msg',
                 },
             };
         }

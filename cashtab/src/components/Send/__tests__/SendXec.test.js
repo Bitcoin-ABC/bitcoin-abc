@@ -1913,9 +1913,7 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(
-                screen.queryByPlaceholderText('Address'),
-            ).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
         });
     });
     it('SLP1 Fungible: We can send an SLP token using the token mode UI', async () => {
@@ -2039,6 +2037,11 @@ describe('<SendXec />', () => {
         expect(
             screen.queryByTitle('Toggle op_return_raw'),
         ).not.toBeInTheDocument();
+        // EMPP switches should not be visible for SLP tokens
+        expect(
+            screen.queryByTitle('Toggle Cashtab Msg Token'),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Toggle empp_raw')).not.toBeInTheDocument();
 
         // Click Send
         await user.click(sendButton);
@@ -2054,9 +2057,7 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(
-                screen.queryByPlaceholderText('Address'),
-            ).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
         });
     });
     it('SLP1 NFT Parent: We can send an SLP NFT parent token using the token mode UI', async () => {
@@ -2231,9 +2232,7 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(
-                screen.queryByPlaceholderText('Address'),
-            ).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
         });
     });
     it('SLP1 NFT Child: We can send an SLP NFT using the token mode UI', async () => {
@@ -2405,9 +2404,7 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(
-                screen.queryByPlaceholderText('Address'),
-            ).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
         });
     });
     it('SLP2 Mint Vault: We can send a mint vault token using the token mode UI', async () => {
@@ -2579,9 +2576,7 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(
-                screen.queryByPlaceholderText('Address'),
-            ).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
         });
     });
     it('SLP1 NFT Child: Entering a valid bip21 query string for a token send tx will correcty populate the UI, and the tx can be sent', async () => {
@@ -2825,5 +2820,293 @@ describe('<SendXec />', () => {
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),
         );
+    });
+    it('ALP Fungible: EMPP switches are visible and cashtab msg validation works', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+
+        // Token send tx with cashtab msg EMPP push
+        const hex =
+            '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441cf2acd293f51d1c0927b05d3105a5e705d31a4a2a0c00345fadcddc4f566067d36c6386d49186ebfb3459cf8bdadd23d3a28698b788baf58613570c1b023f5444121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff88bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441fa5c099b9721ea21b4e282a34ba877952b68969893a2e7a34fd2d2a990327ab7f1f93c419950f722e579570e8aa1a33f7fde77cf0329ca3ffb334cebbb0af4094121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000a46a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f0000004c68007461626161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac80320f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '7b975fb8d2fb544baf423a3d75856f3cb33e6153bff0686c1b2ae698ad95c931';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation and supply calc
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+
+        const { tokenTicker } = alpMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Verify EMPP switches are visible for ALP tokens
+        await waitFor(() => {
+            expect(
+                screen.getByTitle('Toggle Cashtab Msg Token'),
+            ).toBeInTheDocument();
+            expect(screen.getByTitle('Toggle empp_raw')).toBeInTheDocument();
+        });
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // Enable Cashtab Msg switch
+        const cashtabMsgSwitch = screen.getByTitle('Toggle Cashtab Msg Token');
+        await user.click(cashtabMsgSwitch);
+
+        // Wait for cashtab msg textarea to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    /Include a Cashtab msg EMPP push with this token tx/,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Type 101 characters (exceeds 100 byte limit including lokad)
+        const cashtabMsgInput = screen.getByPlaceholderText(
+            /Include a Cashtab msg EMPP push with this token tx/,
+        );
+        const longMessage = 'a'.repeat(101);
+        await user.type(cashtabMsgInput, longMessage);
+
+        // Verify validation error appears and send button is disabled
+        await waitFor(() => {
+            expect(
+                screen.getByText(/Message can not exceed 100 bytes/),
+            ).toBeInTheDocument();
+        });
+
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeDisabled();
+
+        await user.clear(cashtabMsgInput);
+
+        // Remove a byte so we are at 100 bytes, incl lokad
+        const okMsg = 'a'.repeat(100);
+        await user.type(cashtabMsgInput, okMsg);
+
+        // Verify validation error is gone and send button is enabled
+        await waitFor(() => {
+            expect(
+                screen.queryByText(/Message can not exceed 100 bytes/),
+            ).not.toBeInTheDocument();
+        });
+
+        expect(sendButton).toBeEnabled();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // TokenId should remain selected after send
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+    });
+    it('ALP Fungible: We can send an ALP token with empp_raw', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+
+        // Mock settings to use higher fee rate (2010) for this test
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        // Token send tx with empp_raw EMPP push
+        const hex =
+            '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644189f4931b1f7ecfdaf3990c4aa2e4eb053512af8a9c0610b5520edafdba584d4cfb04db7e8aa882a38dd80b8d94d153d7eac2d0587632a938c100606ff3b1a0cc4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff88bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c2501000000644118f73e87e442ffa404a35a841300f60a4033c8eda06d1622a32d417417f0f4f40003dc89313b82db2c2d5ee4e3172ad497f2c2c9dc21c8a51a1b430e7e454a664121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003f6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000004deadbeef22020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac0e310f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '2968b6307fc36f3c09b421948ab6f90278b2b7f727a6a92c3d95c6b23c40e42c';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        // Set chronik mocks required for cache preparation and supply calc
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+
+        const { tokenTicker } = alpMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Toggle to token mode
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
+        expect(tokenModeSwitch).toBeInTheDocument();
+        await user.click(tokenModeSwitch);
+
+        // Wait for token mode UI to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(
+                    'Start typing a token ticker or name',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Search for the token by ticker
+        const tokenSearchInput = screen.getByPlaceholderText(
+            'Start typing a token ticker or name',
+        );
+        await user.type(tokenSearchInput, tokenTicker);
+
+        // Wait for dropdown to appear with token
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+
+        // Click on the token in the dropdown to select it
+        const tokenTickerElement = screen.getByText(tokenTicker);
+        await user.click(tokenTickerElement.closest('div'));
+
+        // Wait for token to be selected and address/amount inputs to appear
+        await waitFor(() => {
+            const addressInput = screen.queryByPlaceholderText('Address');
+            expect(addressInput).toBeInTheDocument();
+        });
+
+        // Enter address
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, address);
+        expect(addressInputEl).toHaveValue(address);
+
+        // Enter amount
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        const token_decimalized_qty = '1';
+        await user.type(amountInputEl, token_decimalized_qty);
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+
+        // Enable empp_raw switch
+        const emppRawSwitch = screen.getByTitle('Toggle empp_raw');
+        await user.click(emppRawSwitch);
+
+        // Wait for empp_raw textarea to appear
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText(/Enter raw hex EMPP push/),
+            ).toBeInTheDocument();
+        });
+
+        // Type "deadbeef" in empp_raw field
+        const emppRawInput = screen.getByPlaceholderText(
+            /Enter raw hex EMPP push/,
+        );
+        const emppRawValue = 'deadbeef';
+        await user.type(emppRawInput, emppRawValue);
+        expect(emppRawInput).toHaveValue(emppRawValue);
+
+        // The send button should be enabled
+        const sendButton = screen.getByRole('button', { name: 'Send' });
+        expect(sendButton).toBeEnabled();
+
+        // Click Send
+        await user.click(sendButton);
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+
+        // TokenId should remain selected after send
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
     });
 });

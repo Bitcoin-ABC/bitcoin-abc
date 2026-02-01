@@ -24085,3 +24085,209 @@ export const firmaYieldTx = {
         xecTxType: 'Received',
     },
 };
+
+export const alpSendWithCashtabMsgTx = {
+    tx: {
+        txid: '8c484fd8580bc030f05adb778464de576a08ca5bce7e461c70c0cb995ff2495e',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'e94e27fb988ea48d10f796ad273bfa51441586f66e2bf3f674d80c8a8e32e031',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '4182b03fb30b96ce85aec409d15c031d3892680497a5a56a0691c0b50c7183cded761e054895c74c735f3ecac7f633e42faf3a65e44a87fe94b68a387f17281000412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 5000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '8aff0d409782607a9e1b608b418c2ba00c58a690ec53018b5c37a9313b577ffa',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '417b615dcf6287ffa9450305ff26683a57e1df2b5ab4372c17986a9c89fe6e4bee87284152e81c715388474ff93fba3ccabe24aedec7eaf485ed447ce3e67cbcce412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 10000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '6b99fbccc91cc19c2a37e34bff69ac4d9725dc22e52d89554f88af94de00e712',
+                    outIdx: 197,
+                },
+                inputScript:
+                    '41ce421d9ca5baafa8dd6f48c2ec4bc2a9b3953589c20fbc81fd4d06b170291a1128b504c338bde45a2362384371129c58982b11506fe9b7697e619712ef8f5204412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 123311n,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a5037534c5032000453454e4469fdb3d4559c236fcad29505fd53ffb3e1193cf96f7cb0e60aeb59af702295d1021027000000008813000000001e0074616263617368746162206d736720696e20616e20414c502073656e64',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a914110e3b40d115011988a5935c613a58a093b417ab88ac',
+                token: {
+                    tokenId:
+                        'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 10000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 5000n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 122678n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1769896178,
+        size: 633,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 934372,
+            hash: '00000000000000002064856461a73736498a7947b3ce61340585c6f5e40aee5b',
+            timestamp: 1769896202,
+        },
+    },
+    sendingHash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+    receivingHash: '110e3b40d115011988a5935c613a58a093b417ab',
+    parsedSend: {
+        appActions: [
+            {
+                action: {
+                    msg: 'cashtab msg in an ALP send',
+                },
+                app: 'Cashtab Msg',
+                isValid: true,
+                lokadId: '00746162',
+            },
+        ],
+        parsedTokenEntries: [
+            {
+                renderedTokenType: 'ALP',
+                renderedTxType: 'SEND',
+                tokenId:
+                    'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                tokenSatoshis: '10000',
+            },
+        ],
+        recipients: ['ecash:qqgsuw6q6y2szxvg5kf4ccf6tzsf8dqh4vlcd636sl'],
+        satoshisSent: 546,
+        stackArray: [
+            '50',
+            '534c5032000453454e4469fdb3d4559c236fcad29505fd53ffb3e1193cf96f7cb0e60aeb59af702295d102102700000000881300000000',
+            '0074616263617368746162206d736720696e20616e20414c502073656e64',
+        ],
+        xecTxType: 'Sent',
+    },
+    parsedReceive: {
+        appActions: [
+            {
+                action: {
+                    msg: 'cashtab msg in an ALP send',
+                },
+                app: 'Cashtab Msg',
+                isValid: true,
+                lokadId: '00746162',
+            },
+        ],
+        parsedTokenEntries: [
+            {
+                renderedTokenType: 'ALP',
+                renderedTxType: 'SEND',
+                tokenId:
+                    'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                tokenSatoshis: '10000',
+            },
+        ],
+        recipients: ['ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035'],
+        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        satoshisSent: 546,
+        stackArray: [
+            '50',
+            '534c5032000453454e4469fdb3d4559c236fcad29505fd53ffb3e1193cf96f7cb0e60aeb59af702295d102102700000000881300000000',
+            '0074616263617368746162206d736720696e20616e20414c502073656e64',
+        ],
+        xecTxType: 'Received',
+    },
+};

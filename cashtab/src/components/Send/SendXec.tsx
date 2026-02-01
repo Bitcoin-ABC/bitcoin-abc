@@ -65,7 +65,7 @@ import {
 } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
-import { Script, payment, fromHex, TokenType } from 'ecash-lib';
+import { Script, payment, fromHex, TokenType, strToBytes } from 'ecash-lib';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -439,11 +439,15 @@ const SendXec: React.FC = () => {
     interface SendTokenFormData {
         amount: string;
         address: string;
+        tokenCashtabMsg: string;
+        emppRaw: string;
     }
 
     const emptyTokenFormData: SendTokenFormData = {
         amount: '',
         address: '',
+        tokenCashtabMsg: '',
+        emppRaw: '',
     };
 
     const [tokenFormData, setTokenFormData] =
@@ -463,6 +467,13 @@ const SendXec: React.FC = () => {
     const [cashtabMsgError, setCashtabMsgError] = useState<string | false>(
         false,
     );
+    const [sendWithCashtabMsgToken, setSendWithCashtabMsgToken] =
+        useState<boolean>(false);
+    const [sendWithEmppRaw, setSendWithEmppRaw] = useState<boolean>(false);
+    const [emppRawError, setEmppRawError] = useState<false | string>(false);
+    const [tokenCashtabMsgError, setTokenCashtabMsgError] = useState<
+        false | string
+    >(false);
     const [selectedCurrency, setSelectedCurrency] = useState<string>(
         appConfig.ticker,
     );
@@ -760,6 +771,24 @@ const SendXec: React.FC = () => {
         setTokenSearch('');
         setSendTokenAmountError(false);
         setSendAddressError(false);
+        setSendWithCashtabMsgToken(false);
+        setSendWithEmppRaw(false);
+        setTokenCashtabMsgError(false);
+        setEmppRawError(false);
+    };
+
+    const _clearTokenFormFields = () => {
+        // Clear form fields but keep tokenId selected
+        setTokenFormData({
+            ...emptyTokenFormData,
+            // Keep tokenId in state, just clear the form fields
+        });
+        setSendTokenAmountError(false);
+        setSendAddressError(false);
+        setSendWithCashtabMsgToken(false);
+        setSendWithEmppRaw(false);
+        setTokenCashtabMsgError(false);
+        setEmppRawError(false);
     };
 
     const handleTokenSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -938,6 +967,42 @@ const SendXec: React.FC = () => {
                 });
             }
 
+            // Add EMPP data pushes for ALP tokens (cashtab msg or empp_raw)
+            if (type === 'ALP_TOKEN_TYPE_STANDARD' && action.tokenActions) {
+                // Add cashtab msg EMPP push if enabled
+                if (
+                    sendWithCashtabMsgToken &&
+                    tokenFormData.tokenCashtabMsg !== '' &&
+                    tokenCashtabMsgError === false
+                ) {
+                    // Create EMPP push: lokad (4 bytes) + UTF-8 encoded message
+                    const lokadBytes = fromHex(opReturn.appPrefixesHex.cashtab);
+                    const msgBytes = strToBytes(tokenFormData.tokenCashtabMsg);
+                    const emppData = new Uint8Array(
+                        lokadBytes.length + msgBytes.length,
+                    );
+                    emppData.set(lokadBytes, 0);
+                    emppData.set(msgBytes, lokadBytes.length);
+
+                    action.tokenActions.push({
+                        type: 'DATA',
+                        data: emppData,
+                    });
+                }
+
+                // Add empp_raw EMPP push if enabled
+                if (
+                    sendWithEmppRaw &&
+                    tokenFormData.emppRaw !== '' &&
+                    emppRawError === false
+                ) {
+                    action.tokenActions.push({
+                        type: 'DATA',
+                        data: fromHex(tokenFormData.emppRaw),
+                    });
+                }
+            }
+
             // Build and broadcast using ecash-wallet
             const builtAction = ecashWallet.action(action).build();
             const broadcastResult = await builtAction.broadcast();
@@ -974,11 +1039,15 @@ const SendXec: React.FC = () => {
 
             // Clear form - use appropriate clear function based on send type
             if (isBip21Send) {
-                clearInputForms();
+                // For BIP21 token sends, clear the parsed address input but keep tokenId if it was manually selected
+                setParsedAddressInput(parseAddressInput('', 0));
+                // Clear token form fields but keep tokenId selected
+                _clearTokenFormFields();
                 // Hide the confirmation modal if it was showing
                 setShowConfirmSendModal(false);
             } else {
-                _clearTokenInputForms();
+                // Clear form fields but keep tokenId selected
+                _clearTokenFormFields();
             }
             setIsSending(false);
         } catch (e) {
@@ -1936,6 +2005,57 @@ const SendXec: React.FC = () => {
         }));
     };
 
+    const handleTokenCashtabMsgChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
+        const { name, value } = e.target;
+        let tokenCashtabMsgError: false | string = false;
+
+        // For EMPP cashtab msg: user can input up to 100 bytes
+        // Total will be 104 bytes (100 user input + 4 byte lokad)
+        const msgBytes = strToBytes(value).length;
+        const maxBytes = 100;
+
+        if (msgBytes > maxBytes) {
+            tokenCashtabMsgError = `Message can not exceed ${maxBytes} bytes`;
+        }
+
+        setTokenCashtabMsgError(tokenCashtabMsgError);
+        setTokenFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
+    const handleEmppRawInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        let emppRawError: false | string = false;
+
+        // Remove whitespace from hex string
+        const cleanHex = value.replace(/\s/g, '');
+
+        // Validate hex format
+        if (cleanHex !== '' && !/^[0-9a-fA-F]*$/.test(cleanHex)) {
+            emppRawError = 'Invalid hex format';
+        } else {
+            // Validate byte length (each 2 hex chars = 1 byte)
+            const byteLength = cleanHex.length / 2;
+            const maxBytes = 100;
+
+            if (byteLength > maxBytes) {
+                emppRawError = `EMPP raw can not exceed ${maxBytes} bytes`;
+            } else if (cleanHex.length % 2 !== 0) {
+                emppRawError = 'Hex string must have even number of characters';
+            }
+        }
+
+        setEmppRawError(emppRawError);
+        setTokenFormData(p => ({
+            ...p,
+            [name]: cleanHex,
+        }));
+    };
+
     const onMax = () => {
         // Clear amt error
         setSendAmountError(false);
@@ -2062,6 +2182,8 @@ const SendXec: React.FC = () => {
         tokenFormData.amount === '' ||
         sendTokenAmountError !== false ||
         sendAddressError !== false ||
+        tokenCashtabMsgError !== false ||
+        emppRawError !== false ||
         apiError ||
         tokenIdQueryError ||
         isSending;
@@ -2402,6 +2524,123 @@ const SendXec: React.FC = () => {
                                 handleOnMax={onTokenMax}
                             />
                         )}
+                        {/* Show EMPP options for ALP tokens */}
+                        {selectedTokenId &&
+                            typeof cashtabCache.tokens.get(selectedTokenId) !==
+                                'undefined' &&
+                            cashtabCache.tokens.get(selectedTokenId)?.tokenType
+                                .type === 'ALP_TOKEN_TYPE_STANDARD' && (
+                                <>
+                                    <SendXecRow>
+                                        <SwitchAndLabel>
+                                            <Switch
+                                                name="Toggle Cashtab Msg Token"
+                                                on="✉️"
+                                                off="✉️"
+                                                checked={
+                                                    sendWithCashtabMsgToken
+                                                }
+                                                disabled={
+                                                    txInfoFromUrl !== false ||
+                                                    'queryString' in
+                                                        parsedAddressInput
+                                                }
+                                                handleToggle={() => {
+                                                    // If we are sending a Cashtab msg, toggle off empp_raw
+                                                    if (
+                                                        !sendWithCashtabMsgToken &&
+                                                        sendWithEmppRaw
+                                                    ) {
+                                                        setSendWithEmppRaw(
+                                                            false,
+                                                        );
+                                                    }
+                                                    setSendWithCashtabMsgToken(
+                                                        !sendWithCashtabMsgToken,
+                                                    );
+                                                }}
+                                            />
+                                            <SwitchLabel>
+                                                Cashtab Msg
+                                            </SwitchLabel>
+                                        </SwitchAndLabel>
+                                    </SendXecRow>
+                                    {sendWithCashtabMsgToken && (
+                                        <SendXecRow>
+                                            <TextArea
+                                                name="tokenCashtabMsg"
+                                                height={62}
+                                                placeholder={`Include a Cashtab msg EMPP push with this token tx (max 100 bytes)`}
+                                                value={
+                                                    tokenFormData.tokenCashtabMsg
+                                                }
+                                                error={tokenCashtabMsgError}
+                                                showCount
+                                                customCount={
+                                                    strToBytes(
+                                                        tokenFormData.tokenCashtabMsg,
+                                                    ).length
+                                                }
+                                                max={100}
+                                                handleInput={
+                                                    handleTokenCashtabMsgChange
+                                                }
+                                            />
+                                        </SendXecRow>
+                                    )}
+                                    <SendXecRow>
+                                        <SwitchAndLabel>
+                                            <Switch
+                                                name="Toggle empp_raw"
+                                                checked={sendWithEmppRaw}
+                                                disabled={
+                                                    txInfoFromUrl !== false ||
+                                                    'queryString' in
+                                                        parsedAddressInput
+                                                }
+                                                handleToggle={() => {
+                                                    // If we are sending with empp_raw, toggle off CashtabMsg
+                                                    if (
+                                                        !sendWithEmppRaw &&
+                                                        sendWithCashtabMsgToken
+                                                    ) {
+                                                        setSendWithCashtabMsgToken(
+                                                            false,
+                                                        );
+                                                    }
+                                                    setSendWithEmppRaw(
+                                                        !sendWithEmppRaw,
+                                                    );
+                                                }}
+                                            />
+                                            <SwitchLabel>empp_raw</SwitchLabel>
+                                        </SwitchAndLabel>
+                                    </SendXecRow>
+                                    {sendWithEmppRaw && (
+                                        <SendXecRow>
+                                            <TextArea
+                                                name="emppRaw"
+                                                height={62}
+                                                placeholder={`(Advanced) Enter raw hex EMPP push (max 100 bytes)`}
+                                                value={tokenFormData.emppRaw}
+                                                error={emppRawError}
+                                                disabled={
+                                                    txInfoFromUrl !== false ||
+                                                    'queryString' in
+                                                        parsedAddressInput
+                                                }
+                                                showCount
+                                                max={200}
+                                                customCount={
+                                                    tokenFormData.emppRaw
+                                                        .length / 2
+                                                }
+                                                handleInput={handleEmppRawInput}
+                                            />
+                                        </SendXecRow>
+                                    )}
+                                </>
+                            )}
                         {/* Show BIP21 token send info in token mode (only if token_decimalized_qty is present) */}
                         {isBip21TokenSend(parsedAddressInput) &&
                             selectedTokenId !== null &&
