@@ -655,6 +655,114 @@ export const opReturnVectors = {
                 push: '41475230075041525449414c',
                 returned: undefined,
             },
+            {
+                description: 'Parses valid PayButton with data and nonce',
+                push: '50415900000568656c6c6f080000000000000001',
+                returned: {
+                    app: 'PayButton',
+                    isValid: true,
+                    lokadId: '50415900',
+                    action: {
+                        data: 'hello',
+                        nonce: '0000000000000001',
+                    },
+                },
+            },
+            {
+                description: 'Parses valid PayButton with empty data and nonce',
+                push: '50415900000000',
+                returned: {
+                    app: 'PayButton',
+                    isValid: true,
+                    lokadId: '50415900',
+                    action: {
+                        data: '',
+                        nonce: '',
+                    },
+                },
+            },
+            {
+                description: 'Parses valid PayButton with data but empty nonce',
+                push: '50415900000568656c6c6f00',
+                returned: {
+                    app: 'PayButton',
+                    isValid: true,
+                    lokadId: '50415900',
+                    action: {
+                        data: 'hello',
+                        nonce: '',
+                    },
+                },
+            },
+            {
+                description: 'Parses valid PayButton with empty data but nonce',
+                push: '504159000000080000000000000001',
+                returned: {
+                    app: 'PayButton',
+                    isValid: true,
+                    lokadId: '50415900',
+                    action: {
+                        data: '',
+                        nonce: '0000000000000001',
+                    },
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with unsupported version',
+                push: '50415900010568656c6c6f00',
+                returned: {
+                    app: 'PayButton',
+                    isValid: false,
+                    lokadId: '50415900',
+                    action: {
+                        stack: '50415900010568656c6c6f00',
+                        decoded: 'Unsupported PayButton version: 0x01',
+                    },
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with invalid data length',
+                push: '50415900001068656c6c6f00',
+                returned: {
+                    app: 'PayButton',
+                    isValid: false,
+                    lokadId: '50415900',
+                    action: {
+                        stack: '50415900001068656c6c6f00',
+                        decoded: 'Invalid PayButton data length',
+                    },
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with invalid nonce length',
+                push: '50415900000568656c6c6f050000000000000001',
+                returned: {
+                    app: 'PayButton',
+                    isValid: false,
+                    lokadId: '50415900',
+                    action: {
+                        stack: '50415900000568656c6c6f050000000000000001',
+                        decoded: 'Invalid PayButton nonce',
+                    },
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with insufficient bytes for nonce',
+                push: '50415900000008',
+                returned: {
+                    app: 'PayButton',
+                    isValid: false,
+                    lokadId: '50415900',
+                    action: {
+                        stack: '50415900000008',
+                        decoded: 'Invalid PayButton nonce',
+                    },
+                },
+            },
         ],
     },
     getEmppAppActions: {
@@ -745,6 +853,154 @@ export const opReturnVectors = {
                 description: 'Throws if called with non-EMPP stackArray',
                 stackArray: ['04'],
                 error: 'Not an EMPP stackArray',
+            },
+        ],
+    },
+    parseEmppRaw: {
+        expectedReturns: [
+            {
+                description: 'Parses valid Cashtab Msg',
+                emppRaw: '0074616274657374206d657373616765',
+                returned: {
+                    protocol: 'Cashtab Msg',
+                    data: 'test message',
+                },
+            },
+            {
+                description: 'Parses valid Cashtab Msg with empty message',
+                emppRaw: '00746162',
+                returned: {
+                    protocol: 'Invalid Cashtab Msg',
+                    data: '00746162',
+                },
+            },
+            {
+                description: 'Parses valid Firma Withdrawal',
+                emppRaw:
+                    '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+                returned: {
+                    protocol: 'Firma Withdrawal',
+                    data: '6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4',
+                },
+            },
+            {
+                description: 'Parses invalid Firma Withdrawal (wrong length)',
+                emppRaw:
+                    '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                returned: {
+                    protocol: 'Invalid Firma Withdrawal',
+                    data: '534f4c304ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf7',
+                },
+            },
+            {
+                description: 'Parses valid PayButton with data and nonce',
+                emppRaw: '50415900000568656c6c6f080000000000000001',
+                returned: {
+                    protocol: 'PayButton',
+                    data: 'Data: hello, Nonce: 0000000000000001',
+                },
+            },
+            {
+                description: 'Parses valid PayButton with empty data and nonce',
+                emppRaw: '50415900000000',
+                returned: {
+                    protocol: 'PayButton',
+                    data: '',
+                },
+            },
+            {
+                description: 'Parses valid PayButton with data but empty nonce',
+                emppRaw: '50415900000568656c6c6f00',
+                returned: {
+                    protocol: 'PayButton',
+                    data: 'Data: hello',
+                },
+            },
+            {
+                description: 'Parses valid PayButton with empty data but nonce',
+                emppRaw: '504159000000080000000000000001',
+                returned: {
+                    protocol: 'PayButton',
+                    data: 'Nonce: 0000000000000001',
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with unsupported version',
+                emppRaw: '50415900010568656c6c6f00',
+                returned: {
+                    protocol: 'Invalid PayButton',
+                    data: '50415900010568656c6c6f00',
+                },
+            },
+            {
+                description:
+                    'Parses invalid PayButton with invalid data length',
+                emppRaw: '50415900001068656c6c6f00',
+                returned: {
+                    protocol: 'Invalid PayButton',
+                    data: '50415900001068656c6c6f00',
+                },
+            },
+            {
+                description: 'Returns Unknown Protocol for invalid hex',
+                emppRaw: 'invalid',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: 'invalid',
+                },
+            },
+            {
+                description: 'Returns Unknown Protocol for empty string',
+                emppRaw: '',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: '',
+                },
+            },
+            {
+                description: 'Returns Unknown Protocol for odd length hex',
+                emppRaw: 'deadbeef1',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: 'deadbeef1',
+                },
+            },
+            {
+                description: 'Returns Unknown Protocol for unknown lokad',
+                emppRaw: 'deadbeef',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: 'deadbeef',
+                },
+            },
+            {
+                description:
+                    'Returns Unknown Protocol for ALP push (not parsed)',
+                emppRaw:
+                    '534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: '534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                },
+            },
+            {
+                description:
+                    'Returns Unknown Protocol for Agora push (not parsed)',
+                emppRaw: '41475230075041525449414c',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: '41475230075041525449414c',
+                },
+            },
+            {
+                description:
+                    'Handles parsing error gracefully (insufficient bytes)',
+                emppRaw: '0074',
+                returned: {
+                    protocol: 'Unknown Protocol',
+                    data: '0074',
+                },
             },
         ],
     },

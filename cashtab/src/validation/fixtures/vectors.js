@@ -908,7 +908,7 @@ export default {
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&amount=100',
-                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), and firma (optional)`,
+                        error: `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), firma (optional), and empp_raw (optional)`,
                     },
                 },
             },
@@ -1069,6 +1069,36 @@ export default {
                     },
                     queryString: {
                         value: 'token_id=1111111111111111111111111111111111111111111111111111111111111111&token_decimalized_qty=100.123&firma=deadbee',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description:
+                    'bip21 token: valid bip21 token tx with token_id, token_decimalized_qty, and empp_raw',
+                addressInput:
+                    'ecash:qqgsuw6q6y2szxvg5kf4ccf6tzsf8dqh4vlcd636sl?token_id=d1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69&token_decimalized_qty=1&empp_raw=deadbeef',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qqgsuw6q6y2szxvg5kf4ccf6tzsf8dqh4vlcd636sl',
+                        error: false,
+                    },
+                    token_id: {
+                        value: 'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69',
+                        error: false,
+                    },
+                    token_decimalized_qty: {
+                        value: '1',
+                        error: false,
+                    },
+                    empp_raw: {
+                        error: false,
+                        value: 'deadbeef',
+                    },
+                    queryString: {
+                        value: 'token_id=d1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69&token_decimalized_qty=1&empp_raw=deadbeef',
                         error: false,
                     },
                 },
@@ -2213,6 +2243,104 @@ export default {
                 description: 'String of even spaces is rejected',
                 opReturnRaw: '  ',
                 returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+        ],
+    },
+    getEmppRawError: {
+        expectedReturns: [
+            {
+                description:
+                    'Valid lowercase hex of max length (100 bytes) is good',
+                emppRaw: '01'.repeat(100),
+                returned: false,
+            },
+            {
+                description:
+                    'Valid lowercase hex of 1 more than max length (100 bytes) is rejected',
+                emppRaw: '01'.repeat(101),
+                returned: 'empp_raw exceeds 100 bytes',
+            },
+            {
+                description: 'Valid lowercase hex of exactly 100 bytes is good',
+                emppRaw: '01'.repeat(100),
+                returned: false,
+            },
+            {
+                description: 'Valid lowercase hex of 1 byte is good',
+                emppRaw: '01',
+                returned: false,
+            },
+            {
+                description: 'Valid lowercase hex of 2 bytes is good',
+                emppRaw: 'dead',
+                returned: false,
+            },
+            {
+                description: 'Valid lowercase hex with valid EMPP push is good',
+                emppRaw: '0074616274657374206d657373616765',
+                returned: false,
+            },
+            {
+                description: 'Valid hex of odd length is rejected',
+                emppRaw: 'deadbeef1',
+                returned:
+                    'empp_raw input must be in hex bytes. Length of input must be divisible by two.',
+            },
+            {
+                description: 'Uppercase hex is rejected',
+                emppRaw: 'DEADBEEF',
+                returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+            {
+                description: 'Mixed case hex is rejected',
+                emppRaw: 'DeadBeef',
+                returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+            {
+                description:
+                    'Even-length string containing non-hex characters is rejected',
+                emppRaw: 'livebeef',
+                returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+            {
+                description:
+                    'Even-length string containing a space is rejected',
+                emppRaw: 'dead beef',
+                returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+            {
+                description: 'Empty string is rejected',
+                emppRaw: '',
+                returned: 'Cashtab will not send an empty empp_raw',
+            },
+            {
+                description: 'String of even spaces is rejected',
+                emppRaw: '  ',
+                returned: 'Input must be lowercase hex a-f 0-9.',
+            },
+            {
+                description: 'String with numbers only is valid',
+                emppRaw: '0123456789',
+                returned: false,
+            },
+            {
+                description: 'String with letters a-f only is valid',
+                emppRaw: 'abcdef',
+                returned: false,
+            },
+            {
+                description:
+                    'Valid hex with custom maxBytes (50) at limit is good',
+                emppRaw: '01'.repeat(50),
+                maxBytes: 50,
+                returned: false,
+            },
+            {
+                description:
+                    'Valid hex with custom maxBytes (50) exceeding limit is rejected',
+                emppRaw: '01'.repeat(51),
+                maxBytes: 50,
+                returned: 'empp_raw exceeds 50 bytes',
             },
         ],
     },

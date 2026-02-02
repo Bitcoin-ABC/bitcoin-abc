@@ -1157,4 +1157,209 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByText('Parsed firma')).not.toBeInTheDocument();
         expect(screen.queryByText('Solana Address')).not.toBeInTheDocument();
     });
+    it('bip21 - SLP token send with empp_raw shows error', async () => {
+        const destinationAddress =
+            'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
+        const token_id = slp1FixedBear.tokenId;
+        const token_decimalized_qty = '1';
+        const empp_raw = 'deadbeef';
+
+        const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&empp_raw=${empp_raw}`;
+        const hash = `#/send?bip21=${bip21Str}`;
+        Object.defineProperty(window, 'location', {
+            value: {
+                hash,
+            },
+            writable: true,
+        });
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        // Make sure the token is cached
+        mockedChronik.setTx(slp1FixedBear.tx.txid, slp1FixedBear.tx);
+        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
+
+        // Wait for token mode to be activated (toggle should be on "Tokens")
+        // Wait for ecashWallet to be initialized first (component renders after ecashWallet is set)
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
+        await waitFor(() => {
+            expect(tokenModeSwitch).toHaveProperty('checked', true);
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Get the token address input (in token mode)
+        // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
+
+        // The 'Send To' input field has this address as a value
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
+
+        // The address input is disabled for app txs with bip21 strings
+        expect(addressInputEl).toBeDisabled();
+
+        // The token amount input is visible and populated from the BIP21 string
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        expect(amountInputEl).toBeInTheDocument();
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+        expect(amountInputEl).toBeDisabled();
+
+        // We do not see a token ID query error
+        expect(
+            screen.queryByText(`Error querying token info for ${token_id}`),
+        ).not.toBeInTheDocument();
+
+        // Wait for token info to load (check for parsed tx info)
+        const { tokenName, tokenTicker } = slp1FixedBear.token.genesisInfo;
+        const addressPreview = `${destinationAddress.slice(
+            0,
+            'ecash:'.length + 3,
+        )}...${destinationAddress.slice(-3)}`;
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `Sending ${token_decimalized_qty} ${tokenName} (${tokenTicker}) to ${addressPreview}`,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Wait for validation error to appear
+        await waitFor(() => {
+            // We see the error message for empp_raw with non-ALP token
+            expect(
+                screen.getByText(
+                    'empp_raw is only supported for ALP token txs',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // The empp_raw field is NOT visible for SLP tokens (only ALP tokens show it)
+        const emppRawInput = screen.queryByPlaceholderText(
+            `(Advanced) Enter raw hex EMPP push (max 100 bytes)`,
+        );
+        expect(emppRawInput).not.toBeInTheDocument();
+
+        // The send button is disabled because of the error
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
+    });
+    it('bip21 - ALP token send with empp_raw cashtab msg', async () => {
+        const destinationAddress =
+            'ecash:qqgsuw6q6y2szxvg5kf4ccf6tzsf8dqh4vlcd636sl';
+        const token_id = FIRMA.tokenId;
+        const token_decimalized_qty = '1';
+        // empp_raw with cashtab msg: lokad (00746162) + "test message" in UTF-8 hex
+        const empp_raw = '0074616274657374206d657373616765';
+
+        const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&empp_raw=${empp_raw}`;
+        const hash = `#/send?bip21=${bip21Str}`;
+        Object.defineProperty(window, 'location', {
+            value: {
+                hash,
+            },
+            writable: true,
+        });
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+
+        // Make sure FIRMA is cached
+        mockedChronik.setTx(FIRMA.tx.txid, FIRMA.tx);
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,970.81 XEC');
+
+        // Wait for token mode to be activated (toggle should be on "Tokens")
+        const tokenModeSwitch = await screen.findByTitle(
+            'Toggle XEC/Token Mode',
+        );
+        await waitFor(() => {
+            expect(tokenModeSwitch).toHaveProperty('checked', true);
+        });
+
+        // The "Send to Many" switch should not be visible in token mode
+        expect(screen.queryByTitle('Toggle Multisend')).not.toBeInTheDocument();
+
+        // Get the token address input (in token mode)
+        const addressInputEl = await screen.findByPlaceholderText('Address');
+
+        // The 'Send To' input field has this address as a value
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
+
+        // The address input is disabled for app txs with bip21 strings
+        expect(addressInputEl).toBeDisabled();
+
+        // The token amount input is visible and populated from the BIP21 string
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        expect(amountInputEl).toBeInTheDocument();
+        expect(amountInputEl).toHaveValue(token_decimalized_qty);
+        expect(amountInputEl).toBeDisabled();
+
+        // We do not see a token ID query error
+        expect(
+            screen.queryByText(`Error querying token info for ${token_id}`),
+        ).not.toBeInTheDocument();
+
+        // Wait for token info to load (check for parsed tx info)
+        const { tokenName, tokenTicker } = FIRMA.token.genesisInfo;
+        const addressPreview = `${destinationAddress.slice(
+            0,
+            'ecash:'.length + 3,
+        )}...${destinationAddress.slice(-3)}`;
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `Sending ${token_decimalized_qty} ${tokenName} (${tokenTicker}) to ${addressPreview}`,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Wait for parsed empp_raw info to appear
+        await waitFor(() => {
+            expect(screen.getByText('Parsed empp_raw')).toBeInTheDocument();
+        });
+
+        // We see the parsed empp_raw as a cashtab msg (the switch label and the parsed empp raw)
+        expect(screen.getAllByText('Cashtab Msg')).toHaveLength(2);
+        // We parse the empp_raw Cashtab msg
+        expect(screen.getByText('test message')).toBeInTheDocument();
+
+        // The send button is enabled
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toBeEnabled();
+    });
 });

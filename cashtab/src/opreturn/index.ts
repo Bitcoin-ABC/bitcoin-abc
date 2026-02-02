@@ -6,7 +6,11 @@ import appConfig from 'config/app';
 import { encodeCashAddress } from 'ecashaddrjs';
 import { encodeBase58 } from 'b58-ts';
 import { opReturn } from 'config/opreturn';
-import { isValidTokenId, getOpReturnRawError } from 'validation';
+import {
+    isValidTokenId,
+    getOpReturnRawError,
+    getEmppRawError,
+} from 'validation';
 import { getStackArray, consume } from 'ecash-lib';
 import {
     Script,
@@ -429,6 +433,96 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
                 },
             };
         }
+        case opReturn.appPrefixesHex.paybutton: {
+            // PayButton EMPP push: lokad (4 bytes) + version (1 byte) + data + nonce
+            // PayButton v0 spec: https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+            const paybuttonStack = { remainingHex: emppStack.remainingHex };
+
+            // Version byte (should be 00 for v0)
+            const version = consume(paybuttonStack, 1);
+            const SUPPORTED_VERSION = '00';
+
+            if (version !== SUPPORTED_VERSION) {
+                return {
+                    lokadId,
+                    app: 'PayButton',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: `Unsupported PayButton version: 0x${version}`,
+                    },
+                };
+            }
+
+            // Parse data push
+            // First byte is the length of data (or 00 for empty)
+            const dataLengthHex = consume(paybuttonStack, 1);
+            const dataLength = parseInt(dataLengthHex, 16);
+            let dataPush = '';
+
+            if (dataLength === 0) {
+                // Empty data
+                dataPush = '';
+            } else if (
+                dataLength > 0 &&
+                paybuttonStack.remainingHex.length >= dataLength * 2
+            ) {
+                // Read data bytes
+                const dataHex = consume(paybuttonStack, dataLength);
+                dataPush = bytesToStr(fromHex(dataHex));
+            } else {
+                // Invalid data length
+                return {
+                    lokadId,
+                    app: 'PayButton',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: 'Invalid PayButton data length',
+                    },
+                };
+            }
+
+            // Parse nonce (8 bytes or 00 for empty)
+            let noncePush = '';
+            if (paybuttonStack.remainingHex.length >= 2) {
+                const nonceLengthHex = consume(paybuttonStack, 1);
+                const nonceLength = parseInt(nonceLengthHex, 16);
+
+                if (nonceLength === 0) {
+                    // Empty nonce
+                    noncePush = '';
+                } else if (
+                    nonceLength === 8 &&
+                    paybuttonStack.remainingHex.length >= 16
+                ) {
+                    // Read 8-byte nonce
+                    noncePush = consume(paybuttonStack, 8);
+                } else {
+                    // Invalid nonce
+                    return {
+                        lokadId,
+                        app: 'PayButton',
+                        isValid: false,
+                        action: {
+                            stack: push,
+                            decoded: 'Invalid PayButton nonce',
+                        },
+                    };
+                }
+            }
+
+            // Valid PayButton
+            return {
+                lokadId,
+                app: 'PayButton',
+                isValid: true,
+                action: {
+                    data: dataPush,
+                    nonce: noncePush,
+                },
+            };
+        }
         default: {
             // Unknown EMPP action
             return {
@@ -436,11 +530,95 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
                 app: 'unknown',
                 action: {
                     stack: push,
-                    decoded: Buffer.from(push, 'hex').toString('utf8'),
+                    decoded: bytesToStr(fromHex(push)),
                 },
             };
         }
     }
+};
+
+/**
+ * Parse an empp_raw input according to known EMPP specs
+ * The returned output is used to generate a preview of the tx on the SendXec screen
+ * @param emppRaw hex string of EMPP push (without OP_RETURN or OP_RESERVED)
+ * @returns {object} {protocol: <protocolLabel>, data: <parsedData>}
+ */
+export const parseEmppRaw = (emppRaw: string): ParsedOpReturnRaw => {
+    // Initialize return data
+    const parsed = { protocol: 'Unknown Protocol', data: emppRaw };
+
+    // Validate hex format
+    if (getEmppRawError(emppRaw) !== false) {
+        return parsed;
+    }
+
+    // Try to parse using getEmppAppAction
+    // Wrap in try-catch to handle errors gracefully (e.g., invalid hex, insufficient bytes)
+    let emppAction: AppAction | undefined;
+    try {
+        emppAction = getEmppAppAction(emppRaw);
+    } catch {
+        // If parsing fails, return default "Unknown Protocol"
+        return parsed;
+    }
+
+    if (typeof emppAction !== 'undefined' && emppAction.action) {
+        const action = emppAction.action;
+        switch (emppAction.app) {
+            case 'Cashtab Msg': {
+                if (emppAction.isValid && 'msg' in action) {
+                    parsed.protocol = 'Cashtab Msg';
+                    parsed.data = (action as { msg: string }).msg;
+                } else {
+                    parsed.protocol = 'Invalid Cashtab Msg';
+                }
+                return parsed;
+            }
+            case 'Solana Address': {
+                if (emppAction.isValid && 'solAddr' in action) {
+                    parsed.protocol = 'Firma Withdrawal';
+                    parsed.data = (action as { solAddr: string }).solAddr;
+                } else {
+                    parsed.protocol = 'Invalid Firma Withdrawal';
+                }
+                return parsed;
+            }
+            case 'PayButton': {
+                if (
+                    emppAction.isValid &&
+                    'data' in action &&
+                    'nonce' in action
+                ) {
+                    parsed.protocol = 'PayButton';
+                    const paybuttonAction = action as {
+                        data: string;
+                        nonce: string;
+                    };
+                    parsed.data = `${
+                        paybuttonAction.data !== ''
+                            ? `Data: ${paybuttonAction.data}${
+                                  paybuttonAction.nonce !== '' ? ', ' : ''
+                              }`
+                            : ''
+                    }${
+                        paybuttonAction.nonce !== ''
+                            ? `Nonce: ${paybuttonAction.nonce}`
+                            : ''
+                    }`;
+                } else {
+                    parsed.protocol = 'Invalid PayButton';
+                }
+                return parsed;
+            }
+            default: {
+                // Unknown app from getEmppAppAction
+                return parsed;
+            }
+        }
+    }
+
+    // Unknown protocol
+    return parsed;
 };
 
 export const getXecxAppAction = (xecxEmppStack: {

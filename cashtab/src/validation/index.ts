@@ -537,14 +537,14 @@ export const getOpReturnRawError = (opReturnRaw: string): false | string => {
     if (!VALID_LOWERCASE_HEX_REGEX.test(opReturnRaw)) {
         return `Input must be lowercase hex a-f 0-9.`;
     }
-    const BYTE_LENGTH_HEX = 2;
     if (
-        opReturnRaw.length / BYTE_LENGTH_HEX >
+        // Divide hex string length by 2 to get byte count
+        opReturnRaw.length / 2 >
         opReturn.opreturnParamByteLimit
     ) {
         return `op_return_raw exceeds ${opReturn.opreturnParamByteLimit} bytes`;
     }
-    if (opReturnRaw.length % BYTE_LENGTH_HEX !== 0) {
+    if (opReturnRaw.length % 2 !== 0) {
         return `op_return_raw input must be in hex bytes. Length of input must be divisible by two.`;
     }
     if (!nodeWillAcceptOpReturnRaw(opReturnRaw)) {
@@ -590,6 +590,32 @@ export const getFirmaPushError = (firmaPush: string): false | string => {
         return `firma is ${firmaPushBytecount} bytes; exceeds max ${FIRMA_PUSH_MAX_BYTECOUNT} bytes`;
     }
 
+    // No error
+    return false;
+};
+
+/**
+ * Validate bip21 empp_raw input
+ * @param emppRaw user input (or webapp tx input) for bip21 empp_raw
+ * @param maxBytes maximum allowed bytes for the EMPP push (default: 100)
+ */
+export const getEmppRawError = (
+    emppRaw: string,
+    maxBytes = 100,
+): false | string => {
+    if (emppRaw === '') {
+        return 'Cashtab will not send an empty empp_raw';
+    }
+    if (!VALID_LOWERCASE_HEX_REGEX.test(emppRaw)) {
+        return `Input must be lowercase hex a-f 0-9.`;
+    }
+    const BYTE_LENGTH_HEX = 2;
+    if (emppRaw.length / BYTE_LENGTH_HEX > maxBytes) {
+        return `empp_raw exceeds ${maxBytes} bytes`;
+    }
+    if (emppRaw.length % BYTE_LENGTH_HEX !== 0) {
+        return `empp_raw input must be in hex bytes. Length of input must be divisible by two.`;
+    }
     // No error
     return false;
 };
@@ -680,6 +706,7 @@ export interface CashtabParsedAddressInfo {
         error: false | string;
     };
     op_return_raw?: { value: null | string; error: false | string };
+    empp_raw?: { value: null | string; error: false | string };
     token_id?: { value: null | string; error: false | string };
     token_decimalized_qty?: { value: null | string; error: false | string };
     firma?: { value: null | string; error: false | string };
@@ -748,7 +775,7 @@ export function parseAddressInput(
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
         const addrParams = new URLSearchParams(queryString);
 
-        const supportedParams = ['amount', 'op_return_raw', 'addr'];
+        const supportedParams = ['amount', 'op_return_raw', 'empp_raw', 'addr'];
 
         // Iterate over params to check for valid and/or invalid params
         // Set a flag -- the first time we see the 'amount' param, it is for the bip21 starting address
@@ -761,6 +788,7 @@ export function parseAddressInput(
         const additionalXecOutputs: [string, string][] = [];
         // Flag as any duplication of this param is off spec
         let opReturnRawOccurred = false;
+        let emppRawOccurred = false;
 
         if (addrParams.has('token_id')) {
             // Parse bip21 for token send tx
@@ -769,6 +797,7 @@ export function parseAddressInput(
                 'token_decimalized_qty',
             );
             const hasFirma = addrParams.has('firma');
+            const hasEmppRaw = addrParams.has('empp_raw');
 
             // Validate that only allowed params are present
             const allowedParams = ['token_id'];
@@ -778,10 +807,13 @@ export function parseAddressInput(
             if (hasFirma) {
                 allowedParams.push('firma');
             }
+            if (hasEmppRaw) {
+                allowedParams.push('empp_raw');
+            }
 
             if (tokenParams > allowedParams.length) {
                 // Invalid params present
-                parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), and firma (optional)`;
+                parsedAddressInput.queryString.error = `Invalid bip21 token tx: bip21 token txs may only include the params token_id, token_decimalized_qty (optional), firma (optional), and empp_raw (optional)`;
                 return parsedAddressInput;
             }
 
@@ -823,6 +855,16 @@ export function parseAddressInput(
                 parsedAddressInput.firma = {
                     value: passedFirma,
                     error: firmaError,
+                };
+            }
+
+            // Parse empp_raw if present
+            if (hasEmppRaw) {
+                const passedEmppRaw = addrParams.get('empp_raw');
+                const emppRawError = getEmppRawError(passedEmppRaw);
+                parsedAddressInput.empp_raw = {
+                    value: passedEmppRaw,
+                    error: emppRawError,
                 };
             }
         } else if (addrParams.has('token_decimalized_qty')) {
@@ -961,6 +1003,33 @@ export function parseAddressInput(
                     if (opReturnRawError !== false) {
                         // If we have an invalid op_return_raw param, set error
                         parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param: ${opReturnRawError}`;
+                    }
+                }
+                if (key === 'empp_raw') {
+                    if (emppRawOccurred) {
+                        // Set a query string error
+                        parsedAddressInput.queryString.error = `The empp_raw param may not appear more than once`;
+                        if (
+                            typeof parsedAddressInput.empp_raw !== 'undefined'
+                        ) {
+                            // Do not return an empp_raw value, since it is ambiguous
+                            parsedAddressInput.empp_raw.value = null;
+                            parsedAddressInput.empp_raw.error = `Duplicated empp_raw param`;
+                        }
+                        // Stop parsing
+                        return parsedAddressInput;
+                    }
+                    emppRawOccurred = true;
+                    // Handle Cashtab-supported bip21 param 'empp_raw'
+                    const emppRawParam = value;
+                    parsedAddressInput.empp_raw = {
+                        value: emppRawParam,
+                        error: false,
+                    };
+                    const emppRawError = getEmppRawError(emppRawParam);
+                    if (emppRawError !== false) {
+                        // If we have an invalid empp_raw param, set error
+                        parsedAddressInput.empp_raw.error = `Invalid empp_raw param: ${emppRawError}`;
                     }
                 }
             }

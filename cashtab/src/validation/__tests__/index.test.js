@@ -24,6 +24,7 @@ import {
     isValidTokenSendOrBurnAmount,
     isValidTokenMintAmount,
     getOpReturnRawError,
+    getEmppRawError,
     getFirmaPushError,
     nodeWillAcceptOpReturnRaw,
     getContactNameError,
@@ -478,6 +479,19 @@ describe('Cashtab validation functions', () => {
             const { description, opReturnRaw, returned } = expectedReturn;
             it(`getOpReturnRawError: ${description}`, () => {
                 expect(getOpReturnRawError(opReturnRaw)).toBe(returned);
+            });
+        });
+    });
+    describe('Can tell if a string is valid empp_raw input, or why it is not', () => {
+        const { expectedReturns } = vectors.getEmppRawError;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, emppRaw, returned, maxBytes } = expectedReturn;
+            it(`getEmppRawError: ${description}`, () => {
+                if (typeof maxBytes !== 'undefined') {
+                    expect(getEmppRawError(emppRaw, maxBytes)).toBe(returned);
+                } else {
+                    expect(getEmppRawError(emppRaw)).toBe(returned);
+                }
             });
         });
     });

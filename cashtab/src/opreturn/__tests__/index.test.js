@@ -9,6 +9,7 @@ import {
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
     parseFirma,
+    parseEmppRaw,
     getXecxAppAction,
     getEmppAppAction,
     getEmppAppActions,
@@ -215,6 +216,16 @@ describe('Cashtab opreturn methods', () => {
             const { description, stackArray, error } = expectedError;
             it(`getEmppAppActions throws error for: ${description}`, () => {
                 expect(() => getEmppAppActions(stackArray)).toThrow(error);
+            });
+        });
+    });
+    describe('parseEmppRaw', () => {
+        const { expectedReturns } = opReturnVectors.parseEmppRaw;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, emppRaw, returned } = expectedReturn;
+            it(`parseEmppRaw: ${description}`, () => {
+                expect(parseEmppRaw(emppRaw)).toStrictEqual(returned);
             });
         });
     });

@@ -43,6 +43,7 @@ import {
     getOpreturnParamTargetOutput,
     parseOpReturnRaw,
     parseFirma,
+    parseEmppRaw,
     ParsedOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
@@ -410,6 +411,10 @@ const SendXec: React.FC = () => {
             protocol: '',
             data: '',
         });
+    const [parsedEmppRaw, setParsedEmppRaw] = useState<ParsedOpReturnRaw>({
+        protocol: '',
+        data: '',
+    });
     const [parsedFirma, setParsedFirma] = useState<ParsedOpReturnRaw>({
         protocol: '',
         data: '',
@@ -737,13 +742,14 @@ const SendXec: React.FC = () => {
             return;
         }
 
+        const { tokenType } = cachedTokenInfo;
+        const { type } = tokenType;
+
         // Check if firma is present and validate it
         if (
             typeof parsedAddressInput.firma !== 'undefined' &&
             parsedAddressInput.firma.error === false
         ) {
-            const { tokenType } = cachedTokenInfo;
-            const { type } = tokenType;
             if (type !== 'ALP_TOKEN_TYPE_STANDARD') {
                 setSendAddressError(
                     'Cannot include firma for a token type other than ALP_TOKEN_TYPE_STANDARD',
@@ -1662,6 +1668,13 @@ const SendXec: React.FC = () => {
         ) {
             tokenRenderedError = parsedAddressInput.firma.error;
         }
+        if (
+            tokenRenderedError === false &&
+            typeof parsedAddressInput.empp_raw !== 'undefined' &&
+            parsedAddressInput.empp_raw.error !== false
+        ) {
+            tokenRenderedError = parsedAddressInput.empp_raw.error;
+        }
 
         // Parse and set firma if it's in the query string
         if (
@@ -1671,6 +1684,23 @@ const SendXec: React.FC = () => {
         ) {
             // If firma is valid, set it
             setParsedFirma(parseFirma(parsedAddressInput.firma.value));
+        }
+
+        // Parse and set empp_raw if it's in the query string
+        if (
+            typeof parsedAddressInput.empp_raw !== 'undefined' &&
+            typeof parsedAddressInput.empp_raw.value === 'string' &&
+            parsedAddressInput.empp_raw.error === false
+        ) {
+            // Turn on sendWithEmppRaw
+            setSendWithEmppRaw(true);
+            // Update the empp_raw field and trigger its validation
+            handleEmppRawInput({
+                target: {
+                    name: 'emppRaw',
+                    value: parsedAddressInput.empp_raw.value,
+                },
+            } as React.ChangeEvent<HTMLTextAreaElement>);
         }
         if (
             tokenRenderedError === false &&
@@ -1694,19 +1724,23 @@ const SendXec: React.FC = () => {
                 if (typeof cashtabCache.tokens.get(tokenId) === 'undefined') {
                     addTokenToCashtabCache(tokenId);
                 } else {
-                    // Token info is already cached, validate firma parameter
+                    // Token info is already cached, validate firma and empp_raw parameters
                     const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
-                    if (
-                        typeof cachedTokenInfo !== 'undefined' &&
-                        typeof parsedAddressInput.firma !== 'undefined' &&
-                        parsedAddressInput.firma.error === false
-                    ) {
+                    if (typeof cachedTokenInfo !== 'undefined') {
                         const { tokenType } = cachedTokenInfo;
                         const { type } = tokenType;
-                        if (type !== 'ALP_TOKEN_TYPE_STANDARD') {
-                            tokenRenderedError =
-                                'Cannot include firma for a token type other than ALP_TOKEN_TYPE_STANDARD';
+
+                        // Validate firma parameter
+                        if (
+                            typeof parsedAddressInput.firma !== 'undefined' &&
+                            parsedAddressInput.firma.error === false
+                        ) {
+                            if (type !== 'ALP_TOKEN_TYPE_STANDARD') {
+                                tokenRenderedError =
+                                    'Cannot include firma for a token type other than ALP_TOKEN_TYPE_STANDARD';
+                            }
                         }
+                        // Note: empp_raw validation is handled in useEffect when token info becomes available
                     }
                 }
             }
@@ -1790,6 +1824,15 @@ const SendXec: React.FC = () => {
             typeof parsedAddressInput.op_return_raw.error === 'string'
         ) {
             renderedSendToError = parsedAddressInput.op_return_raw.error;
+        }
+
+        // Handle errors in empp_raw as an address error if no other error is set
+        if (
+            renderedSendToError === false &&
+            typeof parsedAddressInput.empp_raw !== 'undefined' &&
+            typeof parsedAddressInput.empp_raw.error === 'string'
+        ) {
+            renderedSendToError = parsedAddressInput.empp_raw.error;
         }
 
         // Handle errors in secondary addr&amount params
@@ -1887,6 +1930,25 @@ const SendXec: React.FC = () => {
                     target: {
                         name: 'opReturnRaw',
                         value: parsedAddressInput.op_return_raw.value,
+                    },
+                } as React.ChangeEvent<HTMLTextAreaElement>);
+            }
+        }
+
+        // Set empp_raw if it's in the query string (for token mode)
+        if (typeof parsedAddressInput.empp_raw !== 'undefined') {
+            // In general, we want to show the empp_raw value even if there is an error,
+            // so the user can see what it is
+            // However in some cases, like duplicate empp_raw, we do not even have a value to show
+            // So, only render if we have a renderable value
+            if (typeof parsedAddressInput.empp_raw.value === 'string') {
+                // Turn on sendWithEmppRaw
+                setSendWithEmppRaw(true);
+                // Update the empp_raw field and trigger its validation
+                handleEmppRawInput({
+                    target: {
+                        name: 'emppRaw',
+                        value: parsedAddressInput.empp_raw.value,
                     },
                 } as React.ChangeEvent<HTMLTextAreaElement>);
             }
@@ -2054,6 +2116,11 @@ const SendXec: React.FC = () => {
             ...p,
             [name]: cleanHex,
         }));
+        // Update parsedEmppRaw if we have no emppRawError
+        if (emppRawError === false && cleanHex !== '') {
+            // Need to gate this for no error as parseEmppRaw expects a validated empp_raw
+            setParsedEmppRaw(parseEmppRaw(cleanHex));
+        }
     };
 
     const onMax = () => {
@@ -2176,6 +2243,15 @@ const SendXec: React.FC = () => {
     );
 
     // Check if token send button should be disabled
+    // Check if empp_raw is present but token is not ALP (same condition as UI visibility)
+    const shouldShowSlpErrorForEmppRaw =
+        typeof parsedAddressInput.empp_raw !== 'undefined' &&
+        parsedAddressInput.empp_raw.error === false &&
+        selectedTokenId &&
+        typeof cashtabCache.tokens.get(selectedTokenId) !== 'undefined' &&
+        cashtabCache.tokens.get(selectedTokenId)?.tokenType.type !==
+            'ALP_TOKEN_TYPE_STANDARD';
+
     const disableTokenSendButton =
         !selectedTokenId ||
         tokenFormData.address === '' ||
@@ -2184,6 +2260,7 @@ const SendXec: React.FC = () => {
         sendAddressError !== false ||
         tokenCashtabMsgError !== false ||
         emppRawError !== false ||
+        shouldShowSlpErrorForEmppRaw ||
         apiError ||
         tokenIdQueryError ||
         isSending;
@@ -2524,6 +2601,17 @@ const SendXec: React.FC = () => {
                                 handleOnMax={onTokenMax}
                             />
                         )}
+                        {/* Show error if empp_raw is present but token is not ALP */}
+                        {shouldShowSlpErrorForEmppRaw && (
+                            <SendXecRow>
+                                <Alert>
+                                    <AlertMsg>
+                                        empp_raw is only supported for ALP token
+                                        txs
+                                    </AlertMsg>
+                                </Alert>
+                            </SendXecRow>
+                        )}
                         {/* Show EMPP options for ALP tokens */}
                         {selectedTokenId &&
                             typeof cashtabCache.tokens.get(selectedTokenId) !==
@@ -2616,28 +2704,61 @@ const SendXec: React.FC = () => {
                                             <SwitchLabel>empp_raw</SwitchLabel>
                                         </SwitchAndLabel>
                                     </SendXecRow>
-                                    {sendWithEmppRaw && (
-                                        <SendXecRow>
-                                            <TextArea
-                                                name="emppRaw"
-                                                height={62}
-                                                placeholder={`(Advanced) Enter raw hex EMPP push (max 100 bytes)`}
-                                                value={tokenFormData.emppRaw}
-                                                error={emppRawError}
-                                                disabled={
-                                                    txInfoFromUrl !== false ||
-                                                    'queryString' in
-                                                        parsedAddressInput
-                                                }
-                                                showCount
-                                                max={200}
-                                                customCount={
-                                                    tokenFormData.emppRaw
-                                                        .length / 2
-                                                }
-                                                handleInput={handleEmppRawInput}
-                                            />
-                                        </SendXecRow>
+                                    {(sendWithEmppRaw ||
+                                        (typeof parsedAddressInput.empp_raw !==
+                                            'undefined' &&
+                                            parsedAddressInput.empp_raw
+                                                .error === false)) && (
+                                        <>
+                                            <SendXecRow>
+                                                <TextArea
+                                                    name="emppRaw"
+                                                    height={62}
+                                                    placeholder={`(Advanced) Enter raw hex EMPP push (max 100 bytes)`}
+                                                    value={
+                                                        tokenFormData.emppRaw
+                                                    }
+                                                    error={emppRawError}
+                                                    disabled={
+                                                        txInfoFromUrl !==
+                                                            false ||
+                                                        'queryString' in
+                                                            parsedAddressInput
+                                                    }
+                                                    showCount
+                                                    max={200}
+                                                    customCount={
+                                                        tokenFormData.emppRaw
+                                                            .length / 2
+                                                    }
+                                                    handleInput={
+                                                        handleEmppRawInput
+                                                    }
+                                                />
+                                            </SendXecRow>
+                                            {emppRawError === false &&
+                                                tokenFormData.emppRaw !==
+                                                    '' && (
+                                                    <SendXecRow>
+                                                        <ParsedBip21InfoRow>
+                                                            <ParsedBip21InfoLabel>
+                                                                Parsed empp_raw
+                                                            </ParsedBip21InfoLabel>
+                                                            <ParsedBip21Info>
+                                                                <b>
+                                                                    {
+                                                                        parsedEmppRaw.protocol
+                                                                    }
+                                                                </b>
+                                                                <br />
+                                                                {
+                                                                    parsedEmppRaw.data
+                                                                }
+                                                            </ParsedBip21Info>
+                                                        </ParsedBip21InfoRow>
+                                                    </SendXecRow>
+                                                )}
+                                        </>
                                     )}
                                 </>
                             )}
@@ -3180,6 +3301,7 @@ const SendXec: React.FC = () => {
                                               parsedAddressInput.token_id.value
                                             ? tokenError !== false ||
                                               tokenIdQueryError ||
+                                              shouldShowSlpErrorForEmppRaw ||
                                               isSending
                                             : disableTokenSendButton
                                         : (!isBip21TokenSend(

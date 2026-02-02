@@ -3088,6 +3088,10 @@ describe('<SendXec />', () => {
         await user.type(emppRawInput, emppRawValue);
         expect(emppRawInput).toHaveValue(emppRawValue);
 
+        // We see the parsed empp_raw
+        expect(screen.getByText('Parsed empp_raw')).toBeInTheDocument();
+        expect(screen.getByText('Unknown Protocol')).toBeInTheDocument();
+
         // The send button should be enabled
         const sendButton = screen.getByRole('button', { name: 'Send' });
         expect(sendButton).toBeEnabled();
