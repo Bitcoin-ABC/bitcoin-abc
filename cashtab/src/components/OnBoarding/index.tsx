@@ -17,13 +17,14 @@ const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
     const { updateCashtabState } = ContextValue;
 
-    const [importedMnemonic, setImportedMnemonic] = useState('');
-    const [showImportWalletModal, setShowImportWalletModal] = useState(false);
-    const [isImportingWallet, setIsImportingWallet] = useState(false);
+    const [importedMnemonic, setImportedMnemonic] = useState<string>('');
+    const [showImportWalletModal, setShowImportWalletModal] =
+        useState<boolean>(false);
+    const [isImportingWallet, setIsImportingWallet] = useState<boolean>(false);
     // Initialize as true so that validation error only renders after user input
-    const [isValidMnemonic, setIsValidMnemonic] = useState(true);
+    const [isValidMnemonic, setIsValidMnemonic] = useState<boolean>(true);
 
-    async function importWallet() {
+    async function importWallet(): Promise<void> {
         if (isImportingWallet) {
             return;
         }
@@ -48,7 +49,7 @@ const OnBoarding = () => {
         }
     }
 
-    async function createNewWallet() {
+    async function createNewWallet(): Promise<void> {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'New');
@@ -61,7 +62,7 @@ const OnBoarding = () => {
         });
     }
 
-    const handleInput = e => {
+    const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const { value } = e.target;
 
         // Validate mnemonic on change

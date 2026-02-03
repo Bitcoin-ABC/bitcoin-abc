@@ -57,7 +57,7 @@ describe('<OnBoarding />', () => {
 
         // Hijack address() method to auto-initialize any address with empty utxos and history
         const originalAddress = mockedChronik.address.bind(mockedChronik);
-        mockedChronik.address = address => {
+        mockedChronik.address = (address: string) => {
             // If address hasn't been set up, initialize it with empty utxos and history
             if (!mockedChronik.mockedMethods.address[address]) {
                 mockedChronik.setUtxosByAddress(address, []);
@@ -171,9 +171,11 @@ describe('<OnBoarding />', () => {
 
         // The wallet is in localforage
         const walletsAfterImport = await localforage.getItem('wallets');
-        expect(walletsAfterImport[walletsAfterImport.length - 1].name).toBe(
-            'qzx...l7c',
-        );
+        expect(
+            (walletsAfterImport as Array<{ name: string }>)[
+                (walletsAfterImport as Array<{ name: string }>).length - 1
+            ].name,
+        ).toBe('qzx...l7c');
 
         // The modal will be closed after a successful import
         await waitFor(() =>
