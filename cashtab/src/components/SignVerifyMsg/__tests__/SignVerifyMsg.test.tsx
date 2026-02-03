@@ -16,9 +16,10 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { UserEvent } from '@testing-library/user-event';
 
 describe('<SignVerifyMsg />', () => {
-    let user;
+    let user: UserEvent;
     beforeEach(() => {
         // Set up userEvent
         user = userEvent.setup();
@@ -180,6 +181,59 @@ describe('<SignVerifyMsg />', () => {
 
         expect(
             screen.getByText('Signature does not match address and message'),
+        ).toBeInTheDocument();
+    });
+    it('Does not show length error for signatureToVerify field when exceeding CASHTAB_MESSAGE_MAX_LENGTH', async () => {
+        // Mock the app with context at the SignVerifyMsg screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/signverifymsg"
+            />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Click the switch to show verify forms
+        await user.click(screen.getByTitle('Toggle Sign Verify'));
+
+        // Insert a valid message
+        await user.type(
+            await screen.findByPlaceholderText('Enter message to verify'),
+            'test message',
+        );
+
+        // Input a valid address
+        await user.type(
+            screen.getByPlaceholderText('Enter address of signature to verify'),
+            'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
+        );
+
+        // Insert a signature that is longer than CASHTAB_MESSAGE_MAX_LENGTH (200 chars)
+        // but not equal to ECASH_SIGNED_MSG_LENGTH (88 chars)
+        const longSignature = 'A'.repeat(250); // 250 characters, exceeds 200 but not 88
+        await user.type(
+            screen.getByPlaceholderText('Enter signature to verify'),
+            longSignature,
+        );
+
+        // We should NOT see the "Cashtab supports msgs up to 200 characters" error
+        expect(
+            screen.queryByText('Cashtab supports msgs up to 200 characters.'),
+        ).not.toBeInTheDocument();
+
+        // Instead, we should see the "Invalid eCash signature length" error
+        expect(
+            screen.getByText('Invalid eCash signature length'),
         ).toBeInTheDocument();
     });
 });

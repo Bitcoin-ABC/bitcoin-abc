@@ -48,6 +48,20 @@ const SignatureHolder = styled.code`
     word-break: break-all;
 `;
 
+interface SignVerifyFormData {
+    msgToSign: string;
+    msgToVerify: string;
+    addressToVerify: string;
+    signatureToVerify: string;
+}
+
+interface SignVerifyFormDataError {
+    msgToSign: string | false;
+    msgToVerify: string | false;
+    addressToVerify: string | false;
+    signatureToVerify: string | false;
+}
+
 const SignVerifyMsg = () => {
     const ContextValue = React.useContext(WalletContext);
     const { ecashWallet } = ContextValue;
@@ -59,22 +73,23 @@ const SignVerifyMsg = () => {
     // However, it is not that important, we do not need to get a bytecount for this component
     const CASHTAB_MESSAGE_MAX_LENGTH = 200;
     const ECASH_SIGNED_MSG_LENGTH = 88;
-    const emptyFormData = {
+    const emptyFormData: SignVerifyFormData = {
         msgToSign: '',
         msgToVerify: '',
         addressToVerify: '',
         signatureToVerify: '',
     };
-    const emptyFormDataError = {
+    const emptyFormDataError: SignVerifyFormDataError = {
         msgToSign: false,
         msgToVerify: false,
         addressToVerify: false,
         signatureToVerify: false,
     };
-    const [formData, setFormData] = useState(emptyFormData);
-    const [formDataError, setFormDataError] = useState(emptyFormDataError);
-    const [signMsgMode, setSignMsgMode] = useState(true);
-    const [messageSignature, setMessageSignature] = useState('');
+    const [formData, setFormData] = useState<SignVerifyFormData>(emptyFormData);
+    const [formDataError, setFormDataError] =
+        useState<SignVerifyFormDataError>(emptyFormDataError);
+    const [signMsgMode, setSignMsgMode] = useState<boolean>(true);
+    const [messageSignature, setMessageSignature] = useState<string>('');
 
     const handleUserSignature = () => {
         // We get the msgToSign from formData in state
@@ -83,45 +98,52 @@ const SignVerifyMsg = () => {
         // Wrap signing in try...catch to handle any errors
         try {
             const signature = signMsg(msgToSign, ecashWallet.sk);
-            console.log('signature', signature);
 
             setMessageSignature(signature);
             toast.success('Message Signed');
         } catch (err) {
-            toast.error(`${err}`);
+            const errorMessage =
+                err instanceof Error ? err.message : String(err);
+            toast.error(errorMessage);
             throw err;
         }
     };
 
     /**
      * Update formData with user input
-     * @param {Event} e js input event
+     * @param e js input event
      * e.target.value will be input value
      * e.target.name will be name of originating input field
      */
-    const handleInput = e => {
+    const handleInput = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
+        const fieldName = name as keyof SignVerifyFormData;
 
         // We arbitrarily cap input length on all formData fields on this page
-        if (name !== 'addressToVerify') {
+        if (
+            fieldName !== 'addressToVerify' &&
+            fieldName !== 'signatureToVerify'
+        ) {
             setFormDataError(previous => ({
                 ...previous,
-                [name]:
+                [fieldName]:
                     value.length > CASHTAB_MESSAGE_MAX_LENGTH
                         ? `Cashtab supports msgs up to ${CASHTAB_MESSAGE_MAX_LENGTH} characters.`
                         : false,
             }));
-        } else if (name === 'addressToVerify') {
+        } else if (fieldName === 'addressToVerify') {
             // Validate addressToVerify
             const isValidAddr = isValidCashAddress(value, appConfig.prefix);
             setFormDataError(previous => ({
                 ...previous,
-                [name]: isValidAddr ? false : 'Invalid cash address',
+                [fieldName]: isValidAddr ? false : 'Invalid cash address',
             }));
-        } else if (name === 'signatureToVerify') {
+        } else if (fieldName === 'signatureToVerify') {
             setFormDataError(previous => ({
                 ...previous,
-                [name]:
+                [fieldName]:
                     value.length !== ECASH_SIGNED_MSG_LENGTH
                         ? `Invalid eCash signature length`
                         : false,
@@ -130,12 +152,12 @@ const SignVerifyMsg = () => {
 
         setFormData(previous => ({
             ...previous,
-            [name]: value,
+            [fieldName]: value,
         }));
     };
 
     const verifyMessage = () => {
-        let verification;
+        let verification: boolean;
         try {
             verification = verifyMsg(
                 formData.msgToVerify,
@@ -143,7 +165,10 @@ const SignVerifyMsg = () => {
                 formData.addressToVerify,
             );
         } catch (err) {
-            toast.error(`${err}`);
+            const errorMessage =
+                err instanceof Error ? err.message : String(err);
+            toast.error(errorMessage);
+            return;
         }
 
         if (verification) {
