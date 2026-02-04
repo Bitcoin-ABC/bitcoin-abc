@@ -100,6 +100,26 @@ export const sendErrorToAdmin = async (
 };
 
 /**
+ * Escape special markdown characters in a username to prevent markdown parsing issues
+ * @param username - Username string that may contain special markdown characters
+ * @returns Escaped username safe for use in markdown messages
+ */
+export const escapeMarkdownUsername = (username: string): string => {
+    // Escape special markdown characters: _ * [ ] ( ) ` ~
+    // These characters can cause markdown parsing issues when usernames are inserted into messages
+    return username
+        .replace(/\\/g, '\\\\') // Escape backslashes first
+        .replace(/_/g, '\\_') // Underscore (italic)
+        .replace(/\*/g, '\\*') // Asterisk (bold/italic)
+        .replace(/\[/g, '\\[') // Opening bracket (link text)
+        .replace(/\]/g, '\\]') // Closing bracket (link text)
+        .replace(/\(/g, '\\(') // Opening parenthesis (link URL)
+        .replace(/\)/g, '\\)') // Closing parenthesis (link URL)
+        .replace(/`/g, '\\`') // Backtick (code)
+        .replace(/~/g, '\\~'); // Tilde (strikethrough)
+};
+
+/**
  * Get usernames from in-memory map or fallback to user IDs
  * @param userIds - Array of Telegram user IDs
  * @returns Map of user ID to username (or user ID as string if username not available)
@@ -359,7 +379,7 @@ export const register = async (
           : '\n\n⚠️ Reward tokens are being processed.';
 
     const botUsername = ctx.me?.username || 'TheOvermind_bot';
-    const botLink = `[@${botUsername}](https://t.me/${botUsername})`;
+    const botLink = `[@${escapeMarkdownUsername(botUsername)}](https://t.me/${botUsername})`;
 
     await ctx.reply(
         `✅ Registration successful!\n\n` +
@@ -1638,7 +1658,7 @@ export const handleLike = async (
                     messageAuthorUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${likerUsername} [liked](https://explorer.e.cash/tx/${txid}) msg by ${authorUsername}`,
+                    `${escapeMarkdownUsername(likerUsername)} [liked](https://explorer.e.cash/tx/${txid}) msg by ${escapeMarkdownUsername(authorUsername)}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -1821,7 +1841,7 @@ export const handleDislike = async (
                     messageAuthorUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${dislikerUsername} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${authorUsername}`,
+                    `${escapeMarkdownUsername(dislikerUsername)} [disliked](https://explorer.e.cash/tx/${txid}) msg by ${escapeMarkdownUsername(authorUsername)}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -1912,7 +1932,7 @@ export const handleDislike = async (
                     usernames.get(dislikerUserId) || dislikerUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${authorUsername} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${dislikerUsername}`,
+                    `${escapeMarkdownUsername(authorUsername)} [penalized](https://explorer.e.cash/tx/${txid}) for msg disliked by ${escapeMarkdownUsername(dislikerUsername)}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -2181,7 +2201,7 @@ export const handleBottleReply = async (
                     replySenderUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${authorUsername} [lost ${authorHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply by ${replySenderUsername}`,
+                    `${escapeMarkdownUsername(authorUsername)} [lost ${authorHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply by ${escapeMarkdownUsername(replySenderUsername)}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },
@@ -2280,7 +2300,7 @@ export const handleBottleReply = async (
                     originalMessageAuthorUserId.toString();
                 await bot.api.sendMessage(
                     adminChatId,
-                    `${replySenderUsername} [lost ${replySenderHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply to ${authorUsername}`,
+                    `${escapeMarkdownUsername(replySenderUsername)} [lost ${replySenderHpLoss}HP](https://explorer.e.cash/tx/${txid}) from bottle reply to ${escapeMarkdownUsername(authorUsername)}`,
                     {
                         parse_mode: 'Markdown',
                         link_preview_options: { is_disabled: true },

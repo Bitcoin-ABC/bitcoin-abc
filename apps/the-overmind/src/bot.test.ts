@@ -45,6 +45,7 @@ import {
     handleDislike,
     handleBottleReply,
     loadUsernames,
+    escapeMarkdownUsername,
 } from './bot';
 import { REWARDS_TOKEN_ID } from './constants';
 import { getOvermindEmpp, EmppAction } from './empp';
@@ -177,6 +178,75 @@ describe('bot', () => {
 
             // Should attempt to send message (will fail but not throw)
             expect(mockBot.api.sendMessage).to.have.callCount(1);
+        });
+    });
+
+    describe('escapeMarkdownUsername', () => {
+        it('should escape underscores in usernames', () => {
+            const username = 'java_developr';
+            const escaped = escapeMarkdownUsername(username);
+            expect(escaped).to.equal('java\\_developr');
+        });
+
+        it('should escape all special markdown characters', () => {
+            const username = 'user_name*with[brackets](parens)`backtick`~tilde';
+            const escaped = escapeMarkdownUsername(username);
+            expect(escaped).to.equal(
+                'user\\_name\\*with\\[brackets\\]\\(parens\\)\\`backtick\\`\\~tilde',
+            );
+        });
+
+        it('should escape backslashes first to prevent double-escaping', () => {
+            const username = 'user\\_name';
+            const escaped = escapeMarkdownUsername(username);
+            expect(escaped).to.equal('user\\\\\\_name');
+        });
+
+        it('should handle usernames without special characters', () => {
+            const username = 'plainusername';
+            const escaped = escapeMarkdownUsername(username);
+            expect(escaped).to.equal('plainusername');
+        });
+
+        it('should correctly escape usernames in the specific reported case', () => {
+            // Test case: javadevelopr [liked](...) msg by ADAMeB
+            // Where javadevelopr is actually java_developr and ADAMeB is actually ADAM_eB
+            const likerUsername = 'java_developr';
+            const authorUsername = 'ADAM_eB';
+            const txid =
+                'f6d69fc7c42c0bcc6c4dfdd0356e2acafedcce0cf0069ba93f9e791a6087284c';
+
+            const escapedLiker = escapeMarkdownUsername(likerUsername);
+            const escapedAuthor = escapeMarkdownUsername(authorUsername);
+
+            expect(escapedLiker).to.equal('java\\_developr');
+            expect(escapedAuthor).to.equal('ADAM\\_eB');
+
+            // Construct the message as it would appear in the code
+            const message = `${escapedLiker} [liked](https://explorer.e.cash/tx/${txid}) msg by ${escapedAuthor}`;
+
+            // Verify the message contains escaped underscores
+            expect(message).to.include('java\\_developr');
+            expect(message).to.include('ADAM\\_eB');
+            expect(message).to.include('[liked]');
+            expect(message).to.include(txid);
+
+            // Verify the message structure matches the expected format
+            // The message should be: "java\_developr [liked](url) msg by ADAM\_eB"
+            expect(message).to.match(
+                /^java\\_developr \[liked\]\(https:\/\/explorer\.e\.cash\/tx\/[a-f0-9]+\) msg by ADAM\\_eB$/,
+            );
+
+            // Verify the message does NOT contain unescaped underscores that would break markdown
+            // The unescaped versions should not appear as substrings (they would cause italic formatting)
+            expect(message).to.not.include('java_developr'); // Unescaped version should not exist
+            expect(message).to.not.include('ADAM_eB'); // Unescaped version should not exist
+
+            // The message should render correctly in Telegram markdown:
+            // - java\_developr will display as "java_developr" (literal underscore, not italic)
+            // - ADAM\_eB will display as "ADAM_eB" (literal underscore, not italic)
+            // - The link [liked](url) will render correctly as a clickable link
+            // - No italic formatting will be incorrectly applied to parts of the usernames
         });
     });
 
