@@ -44,3 +44,5 @@ string(APPEND CMAKE_C_FLAGS_INIT " -nostdlibinc -iwithsysroot/usr/include -ifram
 string(APPEND CMAKE_CXX_FLAGS_INIT " -nostdlibinc -iwithsysroot/usr/include/c++/v1 -iwithsysroot/usr/include -iframeworkwithsysroot/System/Library/Frameworks -mlinker-version=${LLD_VERSION}")
 string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-no_adhoc_codesign -fuse-ld=lld")
 string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-no_adhoc_codesign -fuse-ld=lld")
+
+set(CMAKE_STRIP "llvm-strip")

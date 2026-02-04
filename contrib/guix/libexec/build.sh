@@ -167,7 +167,7 @@ case "$HOST" in
 esac
 
 # Environment variables for determinism
-export TAR_OPTIONS="--owner=0 --group=0 --numeric-owner --mtime='@${SOURCE_DATE_EPOCH}' --sort=name"
+export TAR_OPTIONS="--no-same-owner --owner=0 --group=0 --numeric-owner --mtime='@${SOURCE_DATE_EPOCH}' --sort=name"
 export TZ="UTC"
 
 ####################
@@ -414,9 +414,6 @@ EOF
             popd
             ;;
         *darwin*)
-            # This workaround can be dropped for CMake >= 3.27.
-            # See the upstream commit 689616785f76acd844fd448c51c5b2a0711aafa2.
-            find . -name 'cmake_install.cmake' -exec sed -i 's| -u -r | |g' {} +
             cmake --install . --strip ${V:+--verbose}
 
             export PYTHONPATH="${BASEPREFIX}/${HOST}/native/lib/python3/dist-packages:${PYTHONPATH}"
