@@ -16,7 +16,7 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTUDIST} main restricted universe multiverse 
     dpkg --add-architecture i386 && \
     apt-get update -q && \
     apt-get install -qy \
-        gnupg2=2.2.27-3ubuntu2.4 \
+        gnupg=2.2.27-3ubuntu2.5 \
         ca-certificates=20211016 \
         wget=1.21.2-2ubuntu1 \
         git=1:2.34.1-1ubuntu1.15 \
@@ -29,7 +29,8 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTUDIST} main restricted universe multiverse 
         autopoint=0.21-4ubuntu4 \
         mingw-w64=8.0.0-1 \
         mingw-w64-tools=8.0.0-1 \
-        win-iconv-mingw-w64-dev=0.0.8-4
+        win-iconv-mingw-w64-dev=0.0.8-4 \
+        nsis=3.08-2
 
 # Official WineHQ signing key
 # See https://wiki.winehq.org/Ubuntu
@@ -67,7 +68,6 @@ ARG USER_ID
 ARG GROUP_ID
 
 ENV HOME=/homedir
-ENV WINEARCH=win32
 ENV WINEPREFIX=${HOME}/wine
 ENV WINEDEBUG=-all
 

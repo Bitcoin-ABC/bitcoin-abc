@@ -47,9 +47,6 @@ prepare_wine() {
         here=`pwd`
         # Please update these carefully, some versions won't work under Wine
 
-        NSIS_URL='https://prdownloads.sourceforge.net/nsis/nsis-3.06.1-setup.exe'
-        NSIS_SHA256=f60488a676308079bfdf6845dc7114cfd4bbff47b66be4db827b89bb8d7fdc52
-
         # libusb 1.0.24
         LIBUSB_REPO='https://github.com/libusb/libusb.git'
         LIBUSB_COMMIT="c6a35c56016ea2ab2f19115d2ea1e85e0edae155"
@@ -142,12 +139,6 @@ prepare_wine() {
 
         info "Installing Packages from requirements-binaries ..."
         $PYTHON -m pip install --no-deps --no-warn-script-location -r $here/../deterministic-build/requirements-binaries.txt || fail "Failed to install requirements-binaries"
-
-        info "Installing NSIS ..."
-        # Install NSIS installer
-        wget -O nsis.exe "$NSIS_URL"
-        verify_hash nsis.exe $NSIS_SHA256
-        wine nsis.exe /S || fail "Could not run nsis"
 
         info "Compiling libusb ..."
         mkdir libusb
@@ -252,8 +243,8 @@ build_the_app() {
 
         # build NSIS installer
         info "Running makensis to build setup .exe version ..."
-        # $VERSION could be passed to the electrum-abc.nsi script, but this would require some rewriting in the script iself.
-        wine "$WINEPREFIX/drive_c/Program Files/NSIS/makensis.exe" /DPRODUCT_VERSION=${ELECTRUM_VERSION} electrum-abc.nsi || fail "makensis failed"
+        # $VERSION could be passed to the electrum-abc.nsi script, but this would require some rewriting in the script itself.
+        makensis -DPRODUCT_VERSION=${ELECTRUM_VERSION} electrum-abc.nsi || fail "makensis failed"
 
         cd dist
         mv $NAME_ROOT-setup.exe $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe  || fail "Failed to move $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe to the output dist/ directory"

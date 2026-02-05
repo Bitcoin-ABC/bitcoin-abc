@@ -7,7 +7,7 @@ test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && e
 
 . "$here"/../base.sh # functions we use below (fail, et al)
 
-export DEFAULT_WIN_ARCH="win32"
+export DEFAULT_WIN_ARCH="win64"
 if [ -z "$WIN_ARCH" ] ; then
     export WIN_ARCH="${DEFAULT_WIN_ARCH}"
 fi
@@ -57,6 +57,7 @@ MAPPED_DIR=/homedir/wine/drive_c/electrumabc
     -e ELECTRUM_ROOT=${MAPPED_DIR} \
     -e GIT_COMMIT_HASH=$(git rev-parse HEAD) \
     -e WIN_ARCH="$WIN_ARCH" \
+    -e WINEARCH="$WIN_ARCH" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     -e PYI_SKIP_TAG="$PYI_SKIP_TAG" \
     --name ec-wine-builder-cont \
