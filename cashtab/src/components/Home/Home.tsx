@@ -156,6 +156,14 @@ const Home: React.FC = () => {
     };
 
     const claimTokenRewardsForNewWallet = async () => {
+        if (typeof import.meta.env.VITE_RECAPTCHA_SITE_KEY === 'undefined') {
+            // We do not support claims if we do not have a defined key
+            return;
+        }
+        if (!recaptchaToken) {
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
         // Disable the button to prevent double claims
         setTokenRewardsPending(true);
         // Claim rewards
@@ -166,6 +174,13 @@ const Home: React.FC = () => {
             claimResponse = await (
                 await fetch(
                     `${tokenConfig.rewardsServerBaseUrl}/claim/${ecashWallet.address}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: recaptchaToken }),
+                    },
                 )
             ).json();
             // Could help in debugging from user reports
@@ -179,10 +194,18 @@ const Home: React.FC = () => {
             // Note we do not setTokenRewardsPending(false) on a successful claim
             // The button will disappear when the tx is seen by the wallet
             // We do not want the button to be enabled before this
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         } catch (err) {
             setTokenRewardsPending(false);
             console.error(err);
             toast.error(`${err}`);
+            setRecaptchaToken(null);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset();
+            }
         }
     };
 

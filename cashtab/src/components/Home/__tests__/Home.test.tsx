@@ -226,6 +226,13 @@ describe('<Home />', () => {
             when(fetch)
                 .calledWith(
                     `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: MOCKED_RECAPTCHA_TOKEN }),
+                    },
                 )
                 .mockResolvedValue({
                     json: () =>
@@ -284,7 +291,7 @@ describe('<Home />', () => {
         await user.click(tokenRewardsButton);
 
         // Token rewards button is disabled after clicking for claim
-        expect(tokenRewardsButton).toHaveProperty('disabled', true);
+        expect(tokenRewardsButton).toBeDisabled();
 
         // We see a toast for the successful rewards claim
         expect(
