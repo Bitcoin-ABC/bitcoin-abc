@@ -209,68 +209,9 @@ describe('routes.js', function () {
                 error: 'chronik error determining address eligibility',
             });
     });
-    it('/claim/:address returns 500 and expected msg if there is an error checking the recaptcha', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
-
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(500, new Error('some error'));
-
-        return request(app)
-            .post(`/claim/${USED_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
-            .set('Content-Type', 'application/json') // set the Content-Type header
-            .expect(500)
-            .expect('Content-Type', /json/)
-            .expect({
-                address: USED_ADDRESS,
-                error: `Error validating recaptcha response, please try again later`,
-            });
-    });
-    it('/claim/:address returns 500 and expected msg if the recaptcha is invalid (google returns success: false)', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'badrecaptcha';
-
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, { success: false });
-
-        return request(app)
-            .post(`/claim/${USED_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
-            .set('Content-Type', 'application/json') // set the Content-Type header
-            .expect(500)
-            .expect('Content-Type', /json/)
-            .expect({
-                address: USED_ADDRESS,
-                error: `Recaptcha check failed. Are you a bot?`,
-            });
-    });
     it('/claim/:address returns expected status for an ineligible address', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, {
-            success: true,
-        });
-
         return request(app)
             .post(`/claim/${INELIGIBLE_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
@@ -282,20 +223,8 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected error status if called with invalid address', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, {
-            success: true,
-        });
         return request(app)
             .post(`/claim/${INVALID_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
@@ -305,20 +234,8 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected error status on chronik error', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, {
-            success: true,
-        });
         return request(app)
             .post(`/claim/${ERROR_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(500)
             .expect('Content-Type', /json/)
@@ -328,20 +245,8 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected status for an eligible address', function () {
-        const MOCK_RECAPTCHA_TOKEN = 'goodrecaptcha';
-        // Mock successful recaptcha response
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, {
-            onNoMatch: 'throwException',
-        });
-
-        // Mock a successful API request
-        mock.onPost(config.recaptchaUrl).reply(200, {
-            success: true,
-        });
         return request(app)
             .post(`/claim/${ELIGIBLE_ADDRESS}`)
-            .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
             .expect(200)
             .expect('Content-Type', /json/)

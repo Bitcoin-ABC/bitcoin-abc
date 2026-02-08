@@ -156,45 +156,6 @@ export const startExpressServer = (
 
             logIpInfo(req);
 
-            // No need to bother with the google recaptcha check if we do not have the inputs
-            if (typeof req.body.token !== 'string') {
-                console.error('Request did not include a recaptcha token');
-                return res.status(500).json({
-                    address,
-                    error: `Request did not include Recaptcha token. Are you a bot?`,
-                });
-            }
-
-            // Verify recaptcha before reward
-
-            let recaptchaVerification;
-            try {
-                recaptchaVerification = await axios.post(
-                    config.recaptchaUrl,
-                    null,
-                    {
-                        params: {
-                            secret: recaptchaSecret,
-                            response: req.body.token,
-                        },
-                    },
-                );
-
-                if (recaptchaVerification.data.success !== true) {
-                    console.error('Recaptcha check failed.');
-                    return res.status(500).json({
-                        address,
-                        error: `Recaptcha check failed. Are you a bot?`,
-                    });
-                }
-            } catch (err) {
-                console.error('Error verifying recaptcha-response', err);
-                return res.status(500).json({
-                    address,
-                    error: `Error validating recaptcha response, please try again later`,
-                });
-            }
-
             if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,

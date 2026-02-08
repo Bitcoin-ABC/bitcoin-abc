@@ -231,7 +231,6 @@ describe('<Home />', () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token: MOCKED_RECAPTCHA_TOKEN }),
                     },
                 )
                 .mockResolvedValue({
@@ -371,6 +370,9 @@ describe('<Home />', () => {
             screen.queryByText(/Nice, you have some eCash. What can you do?/),
         ).not.toBeInTheDocument();
 
+        // reCAPTCHA component is rendered for XEC airdrop
+        expect(screen.getByTestId('mock-recaptcha')).toBeInTheDocument();
+
         // Airdrop button is present
         const airdropButton = screen.getByRole('button', {
             name: /Claim Free XEC/,
@@ -385,7 +387,7 @@ describe('<Home />', () => {
             }),
         ).not.toBeInTheDocument();
 
-        // Airdrop button is NOT disabled
+        // Airdrop button is NOT disabled (reCAPTCHA token is present)
         expect(airdropButton).toHaveProperty('disabled', false);
 
         // Receive QR code is rendered

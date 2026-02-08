@@ -9,7 +9,6 @@ import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { PageHeader } from 'components/Common/Atoms';
 import { RewardIcon } from 'components/Common/CustomIcons';
 
@@ -34,8 +33,6 @@ const Rewards = () => {
         useState<null | NodeJS.Timeout>(null);
     // Set to true while we wait on a server response to prevent multiple claims
     const [claimPending, setClaimPending] = useState<boolean>(false);
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
     const getIsEligible = async (address: string) => {
         let serverResponse;
@@ -60,14 +57,6 @@ const Rewards = () => {
         }
     };
     const handleClaim = async () => {
-        if (typeof import.meta.env.VITE_RECAPTCHA_SITE_KEY === 'undefined') {
-            // We do not support claims if we do not have a defined key
-            return;
-        }
-        if (!recaptchaToken) {
-            toast.error('Please complete the reCAPTCHA verification');
-            return;
-        }
         setClaimPending(true);
         // Hit token-server API for rewards
         let claimResponse;
@@ -80,7 +69,6 @@ const Rewards = () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token: recaptchaToken }),
                     },
                 )
             ).json();
@@ -108,25 +96,13 @@ const Rewards = () => {
             }
             toast.success('Rewards claimed!');
 
-            // Reset rewards eligibility and reCAPTCHA
+            // Reset rewards eligibility
             getIsEligible(address);
-            setRecaptchaToken(null);
-            if (recaptchaRef.current) {
-                recaptchaRef.current.reset();
-            }
         } catch (err) {
             console.error(err);
             toast.error(`${err}`);
             setClaimPending(false);
-            setRecaptchaToken(null);
-            if (recaptchaRef.current) {
-                recaptchaRef.current.reset();
-            }
         }
-    };
-
-    const handleRecaptchaChange = (token: string | null) => {
-        setRecaptchaToken(token);
     };
 
     const getParsedTimeRemaining = (timeRemainingMs: number) => {
@@ -210,28 +186,8 @@ const Rewards = () => {
             </PageHeader>
             {import.meta.env.VITE_TESTNET !== 'true' ? (
                 <>
-                    {isEligible && (
-                        <div
-                            style={{
-                                marginBottom: '12px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <ReCAPTCHA
-                                ref={recaptchaRef}
-                                sitekey={
-                                    import.meta.env.VITE_RECAPTCHA_SITE_KEY ||
-                                    ''
-                                }
-                                onChange={handleRecaptchaChange}
-                            />
-                        </div>
-                    )}
                     <PrimaryButton
-                        disabled={
-                            !isEligible || claimPending || !recaptchaToken
-                        }
+                        disabled={!isEligible || claimPending}
                         onClick={handleClaim}
                     >
                         {isEligible === null || claimPending ? (
