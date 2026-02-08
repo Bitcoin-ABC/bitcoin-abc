@@ -523,6 +523,127 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
                 },
             };
         }
+        case opReturn.appPrefixesHex.dice: {
+            // DICE bet EMPP push: lokad (4 bytes) + version (1 byte) + minValue (u32, 4 bytes) + maxValue (u32, 4 bytes)
+            const diceStack = { remainingHex: emppStack.remainingHex };
+
+            // Version byte (should be 00 for v0)
+            const version = consume(diceStack, 1);
+            const SUPPORTED_VERSION = '00';
+
+            if (version !== SUPPORTED_VERSION) {
+                return {
+                    lokadId,
+                    app: 'DICE Bet',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: `Unsupported DICE version: 0x${version}`,
+                    },
+                };
+            }
+
+            // Need at least 8 bytes (4 for minValue + 4 for maxValue)
+            if (diceStack.remainingHex.length < 16) {
+                return {
+                    lokadId,
+                    app: 'DICE Bet',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: 'Invalid DICE bet data length',
+                    },
+                };
+            }
+
+            // Read minValue (u32, 4 bytes, little-endian)
+            const minValueBytes = fromHex(consume(diceStack, 4));
+            const minValue = new Bytes(minValueBytes).readU32();
+
+            // Read maxValue (u32, 4 bytes, little-endian)
+            const maxValueBytes = fromHex(consume(diceStack, 4));
+            const maxValue = new Bytes(maxValueBytes).readU32();
+
+            // Validate values (0 is excluded, range is [1, 100000000])
+            const MAX_ROLL_VALUE = 100_000_000;
+            const isValid =
+                minValue >= 1 &&
+                minValue <= MAX_ROLL_VALUE &&
+                maxValue >= 1 &&
+                maxValue <= MAX_ROLL_VALUE &&
+                maxValue >= minValue;
+
+            return {
+                lokadId,
+                app: 'DICE Bet',
+                isValid,
+                action: {
+                    minValue,
+                    maxValue,
+                },
+            };
+        }
+        case opReturn.appPrefixesHex.roll: {
+            // ROLL payout EMPP push: lokad (4 bytes) + version (1 byte) + betTxid (32 bytes) + roll (u32, 4 bytes) + seedHash (32 bytes) + result (1 byte UTF-8)
+            const rollStack = { remainingHex: emppStack.remainingHex };
+
+            // Version byte (should be 00 for v0)
+            const version = consume(rollStack, 1);
+            const SUPPORTED_VERSION = '00';
+
+            if (version !== SUPPORTED_VERSION) {
+                return {
+                    lokadId,
+                    app: 'ROLL Payout',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: `Unsupported ROLL version: 0x${version}`,
+                    },
+                };
+            }
+
+            // Need at least 73 bytes (32 + 4 + 32 + 1 = 69 bytes after version)
+            if (rollStack.remainingHex.length < 138) {
+                return {
+                    lokadId,
+                    app: 'ROLL Payout',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: 'Invalid ROLL payout data length',
+                    },
+                };
+            }
+
+            // Read betTxid (32 bytes)
+            const betTxid = consume(rollStack, 32);
+
+            // Read roll (u32, 4 bytes, little-endian)
+            const rollBytes = fromHex(consume(rollStack, 4));
+            const roll = new Bytes(rollBytes).readU32();
+
+            // Read seedHash (32 bytes)
+            const seedHash = consume(rollStack, 32);
+
+            // Read result (1 byte, UTF-8)
+            const resultByte = fromHex(consume(rollStack, 1));
+            const result = bytesToStr(resultByte);
+
+            const isValid = ['W', 'L', 'I'].includes(result);
+
+            return {
+                lokadId,
+                app: 'ROLL Payout',
+                isValid,
+                action: {
+                    betTxid,
+                    roll,
+                    seedHash,
+                    result,
+                },
+            };
+        }
         default: {
             // Unknown EMPP action
             return {
@@ -607,6 +728,50 @@ export const parseEmppRaw = (emppRaw: string): ParsedOpReturnRaw => {
                     }`;
                 } else {
                     parsed.protocol = 'Invalid PayButton';
+                }
+                return parsed;
+            }
+            case 'DICE Bet': {
+                if (
+                    emppAction.isValid &&
+                    'minValue' in action &&
+                    'maxValue' in action
+                ) {
+                    parsed.protocol = 'DICE Bet';
+                    const diceAction = action as {
+                        minValue: number;
+                        maxValue: number;
+                    };
+                    parsed.data = `Range: [${diceAction.minValue}, ${diceAction.maxValue}]`;
+                } else {
+                    parsed.protocol = 'Invalid DICE Bet';
+                }
+                return parsed;
+            }
+            case 'ROLL Payout': {
+                if (
+                    emppAction.isValid &&
+                    'betTxid' in action &&
+                    'roll' in action &&
+                    'seedHash' in action &&
+                    'result' in action
+                ) {
+                    parsed.protocol = 'ROLL Payout';
+                    const rollAction = action as {
+                        betTxid: string;
+                        roll: number;
+                        seedHash: string;
+                        result: string;
+                    };
+                    const resultLabel =
+                        rollAction.result === 'W'
+                            ? 'Win'
+                            : rollAction.result === 'L'
+                              ? 'Loss'
+                              : 'Invalid';
+                    parsed.data = `Bet: ${rollAction.betTxid.slice(0, 8)}...${rollAction.betTxid.slice(-8)}, Roll: ${rollAction.roll}, Result: ${resultLabel}`;
+                } else {
+                    parsed.protocol = 'Invalid ROLL Payout';
                 }
                 return parsed;
             }

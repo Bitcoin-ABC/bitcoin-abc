@@ -27,7 +27,7 @@ import { opReturn } from 'config/opreturn';
 import { scriptOps } from 'ecash-agora';
 import { Script, fromHex, OP_0 } from 'ecash-lib';
 import { getRenderedTokenType, RenderedTokenType } from 'token-protocols';
-import { getEmppAppActions } from 'opreturn';
+import { getEmppAppActions, getEmppAppAction } from 'opreturn';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
@@ -302,6 +302,32 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 const emppActions = getEmppAppActions(stackArray);
                 for (const emppAction of emppActions) {
                     appActions.push(emppAction);
+                }
+                break;
+            }
+            case opReturn.appPrefixesHex.alp: {
+                // ALP token transaction - check for embedded EMPP data (DICE/ROLL)
+                // Look through stackArray for DICE or ROLL lokad IDs
+                // DICE/ROLL data may be embedded in any push after the ALP protocol identifier
+                for (let i = 0; i < stackArray.length; i++) {
+                    const push = stackArray[i];
+                    // Check if this push starts with DICE or ROLL lokad ID (8 hex chars = 4 bytes)
+                    if (push.length >= 8) {
+                        const lokadId = push.slice(0, 8);
+                        if (lokadId === opReturn.appPrefixesHex.dice) {
+                            // Found DICE bet in ALP transaction
+                            const emppAction = getEmppAppAction(push);
+                            if (typeof emppAction !== 'undefined') {
+                                appActions.push(emppAction);
+                            }
+                        } else if (lokadId === opReturn.appPrefixesHex.roll) {
+                            // Found ROLL payout in ALP transaction
+                            const emppAction = getEmppAppAction(push);
+                            if (typeof emppAction !== 'undefined') {
+                                appActions.push(emppAction);
+                            }
+                        }
+                    }
                 }
                 break;
             }

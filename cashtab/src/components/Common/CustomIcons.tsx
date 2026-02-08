@@ -58,6 +58,9 @@ import { ReactComponent as CollapseDown } from 'assets/collapse-down.svg';
 import { ReactComponent as TokenSend } from 'assets/tokensend.svg';
 import { ReactComponent as IsMintAddress } from 'assets/is-mint-address.svg';
 import { ReactComponent as NFToa } from 'assets/nftoa.svg';
+import { ReactComponent as Dice } from 'assets/dice.svg';
+import { ReactComponent as PayoutWin } from 'assets/payout-win.svg';
+import { ReactComponent as BlitsPayout } from 'assets/blits-payout.svg';
 
 import appConfig from 'config/app';
 
@@ -265,3 +268,10 @@ export const UnparsedIcon: React.FC = () => <Unparsed />;
 export const HomeIcon: React.FC = () => <Home />;
 export const AliasIcon = styled(User)``;
 export const NFToaIcon: React.FC = () => <NFToa title="tx-nftoa" />;
+export const DiceIcon: React.FC = () => <Dice title="Blitzchips Bet" />;
+export const PayoutWinIcon: React.FC = () => (
+    <PayoutWin title="Blitzchips Payout Win" />
+);
+export const BlitsPayoutIcon: React.FC = () => (
+    <BlitsPayout title="Blitzchips Payout Loss" />
+);

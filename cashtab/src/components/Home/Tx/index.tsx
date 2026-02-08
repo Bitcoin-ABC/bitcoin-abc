@@ -77,6 +77,9 @@ import {
     TetherIcon,
     QuestionIcon,
     NFToaIcon,
+    DiceIcon,
+    PayoutWinIcon,
+    BlitsPayoutIcon,
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -202,6 +205,112 @@ const Tx: React.FC<TxProps> = ({
 
     for (const appAction of appActions) {
         const { lokadId, app, isValid, action } = appAction;
+        // Check app name first for DICE/ROLL (they may be embedded in ALP transactions)
+        if (app === 'DICE Bet') {
+            if (!isValid) {
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <UnknownIcon />
+                        <AppDescLabel>Invalid Blitzchips Bet</AppDescLabel>
+                    </IconAndLabel>,
+                );
+            } else {
+                if (
+                    typeof action !== 'undefined' &&
+                    'minValue' in action &&
+                    'maxValue' in action
+                ) {
+                    const { minValue, maxValue } = action as {
+                        minValue: number;
+                        maxValue: number;
+                    };
+                    // Calculate odds: (maxValue - minValue + 1) / 100_000_000
+                    const totalOutcomes = maxValue - minValue + 1;
+                    const odds = totalOutcomes / 100_000_000;
+                    const multiplier = 1 / odds;
+                    // Format multiplier: use toLocaleString and only show decimals if < 100
+                    const formattedMultiplier =
+                        multiplier >= 100
+                            ? Math.round(multiplier).toLocaleString(userLocale)
+                            : multiplier.toFixed(2);
+
+                    renderedAppActions.push(
+                        <>
+                            <IconAndLabel>
+                                <DiceIcon />
+                                <AppDescLabel>Blitzchips Bet</AppDescLabel>
+                            </IconAndLabel>
+                            <AppDescMsg>
+                                Range: [{minValue.toLocaleString()},{' '}
+                                {maxValue.toLocaleString()}]
+                            </AppDescMsg>
+                            <AppDescMsg>
+                                Odds: 1:{formattedMultiplier}x
+                            </AppDescMsg>
+                        </>,
+                    );
+                }
+            }
+            continue;
+        }
+        if (app === 'ROLL Payout') {
+            if (!isValid) {
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <UnknownIcon />
+                        <AppDescLabel>Invalid Blitzchips Payout</AppDescLabel>
+                    </IconAndLabel>,
+                );
+            } else {
+                if (
+                    typeof action !== 'undefined' &&
+                    'betTxid' in action &&
+                    'roll' in action &&
+                    'result' in action
+                ) {
+                    const { betTxid, roll, result } = action as {
+                        betTxid: string;
+                        roll: number;
+                        result: string;
+                    };
+                    const resultLabel =
+                        result === 'W'
+                            ? 'Win'
+                            : result === 'L'
+                              ? 'Loss'
+                              : 'Invalid';
+                    const resultEmoji =
+                        result === 'W' ? '🏆' : result === 'L' ? '⚡️' : '🚨';
+                    // Use PayoutWinIcon for wins, BlitsPayoutIcon for losses
+                    const PayoutIcon =
+                        result === 'W' ? PayoutWinIcon : BlitsPayoutIcon;
+
+                    renderedAppActions.push(
+                        <>
+                            <IconAndLabel>
+                                <PayoutIcon />
+                                <AppDescLabel>Blitzchips Payout</AppDescLabel>
+                            </IconAndLabel>
+                            <AppDescMsg>
+                                {resultEmoji} {resultLabel} | Roll:{' '}
+                                {roll.toLocaleString()}
+                            </AppDescMsg>
+                            <AppDescMsg>
+                                Bet:{' '}
+                                <ActionLink
+                                    href={`${explorer.blockExplorerUrl}/tx/${betTxid}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    {betTxid.slice(0, 3)}...{betTxid.slice(-3)}
+                                </ActionLink>
+                            </AppDescMsg>
+                        </>,
+                    );
+                }
+            }
+            continue;
+        }
         switch (lokadId) {
             case opReturn.appPrefixesHex.aliasRegistration: {
                 if (!isValid) {
