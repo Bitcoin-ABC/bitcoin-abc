@@ -30,6 +30,7 @@ export interface BlogPostAttributes {
   publish_date?: string;
   publishedAt: string;
   slug: string;
+  featured: boolean;
   image: {
     data: BlogImageData;
   };

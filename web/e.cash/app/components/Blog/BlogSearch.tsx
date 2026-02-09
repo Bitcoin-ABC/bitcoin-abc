@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BlogPost, formatTimestamp, calculateReadTime } from "../../data/blog";
 import Button from "../Atoms/Button";
+import { cn } from "../../utils/cn";
 
 interface BlogSearchProps {
   posts: BlogPost[];
@@ -37,9 +38,18 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
     post.attributes.image.data.attributes.formats.medium?.url ||
     post.attributes.image.data.attributes.url;
 
-  const [latest, ...rest] = filteredPosts;
-  const featured = rest.slice(0, 9);
-  const more = rest.slice(9);
+  const latest = filteredPosts[0];
+  const nextTwo = filteredPosts.slice(1, 3);
+  const featuredTagged = filteredPosts.filter(
+    (p) => p.attributes.featured === true && p.id !== latest?.id,
+  );
+  const featured = [
+    ...nextTwo,
+    ...featuredTagged.filter((p) => !nextTwo.some((n) => n.id === p.id)),
+  ];
+  const more = filteredPosts.filter(
+    (p) => p.id !== latest?.id && !nextTwo.some((f) => f.id === p.id),
+  );
 
   return (
     <>
@@ -137,7 +147,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
             </div>
           </a>
 
-          {/* Next 9 posts as cards */}
+          {/* Next 6 posts as cards */}
           <div className="mb-16 grid grid-cols-1 gap-6 lg:grid-cols-3">
             {featured.map((post, idx) => (
               <a
@@ -189,7 +199,17 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                     href={`/blog/${post.attributes.slug}`}
                     className="group flex flex-col items-start justify-between py-2 lg:flex-row lg:items-center"
                   >
-                    <h3 className="group-hover:text-accentMedium text-xl font-bold transition-all group-hover:underline">
+                    <h3
+                      className={cn(
+                        "group-hover:text-accentMedium flex items-center gap-1 text-xl font-bold transition-all group-hover:underline",
+                        post.attributes.featured && "text-purple-500",
+                      )}
+                    >
+                      {post.attributes.featured && (
+                        <span className="flex items-center leading-none">
+                          *
+                        </span>
+                      )}
                       {post.attributes.title}
                     </h3>
 
