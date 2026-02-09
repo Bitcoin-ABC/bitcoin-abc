@@ -10,8 +10,8 @@ buildscript {
         kotlinVersion = "2.2.21"
         applicationId = "com.marlinwallet.app"
         // Version configuration - update these when bumping version
-        baseVersionCode = 9
-        versionName = "1.8"
+        baseVersionCode = 10
+        versionName = "1.8.1"
     }
     repositories {
         google()

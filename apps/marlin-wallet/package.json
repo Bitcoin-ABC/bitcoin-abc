@@ -1,6 +1,6 @@
 {
     "name": "MarlinWallet",
-    "version": "1.8.0",
+    "version": "1.8.1",
     "private": true,
     "scripts": {
         "android": "pnpm run build-web && pnpm run copy-web-android && react-native run-android",
@@ -10,6 +10,7 @@
         "build-wearos-release-aab": "cd android && ./gradlew :wear:bundleRelease",
         "build-wearos-release-apk": "cd android && ./gradlew :wear:assembleRelease",
         "build-web": "cd web && pnpm run build && cd ..",
+        "bump-version": "./scripts/bump-version.sh -y $1",
         "clean-android": "cd android && ./gradlew clean",
         "copy-web-android": "mkdir -p android/app/src/main/assets/web/ && cp -r web/dist/* android/app/src/main/assets/web/",
         "copy-web-ios": "cp -r web/dist/* ios/MarlinWallet/web/",
