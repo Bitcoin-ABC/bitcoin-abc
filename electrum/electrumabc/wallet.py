@@ -3177,9 +3177,6 @@ class ImportedWalletBase(SimpleWallet):
     def get_master_public_keys(self):
         return []
 
-    def is_beyond_limit(self, address, is_change):
-        return False
-
     def get_fingerprint(self):
         return ""
 
@@ -3500,22 +3497,6 @@ class DeterministicWallet(AbstractWallet):
         with self.lock:
             self.synchronize_sequence(False)
             self.synchronize_sequence(True)
-
-    def is_beyond_limit(self, address, is_change):
-        with self.lock:
-            if is_change:
-                addr_list = self.get_change_addresses()
-                limit = self.gap_limit_for_change
-            else:
-                addr_list = self.get_receiving_addresses()
-                limit = self.gap_limit
-            idx = addr_list.index(address)
-            if idx < limit:
-                return False
-            for addr in addr_list[-limit:]:
-                if addr in self._history:
-                    return False
-            return True
 
     def get_master_public_keys(self):
         return [self.get_master_public_key()]

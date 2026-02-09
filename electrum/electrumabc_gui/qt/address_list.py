@@ -255,8 +255,6 @@ class AddressList(MyTreeWidget):
                     address_item.setToolTip(
                         0, _("Address is frozen, right-click to unfreeze")
                     )
-                if self.wallet.is_beyond_limit(address, is_change):
-                    address_item.setBackground(0, ColorScheme.RED.as_color(True))
                 if is_change and self.wallet.is_retired_change_addr(address):
                     address_item.setForeground(0, ColorScheme.GRAY.as_color())
                     old_tt = address_item.toolTip(0)
