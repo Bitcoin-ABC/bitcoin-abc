@@ -22,7 +22,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",
                 "-avacooldown=0",
-                "-deprecatedrpc=peer_availability_score",
                 "-deprecatedrpc=node_availability_score",
             ],
         ]
@@ -43,18 +42,12 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         get_ava_p2p_interface(self, self.nodes[0])
         get_ava_p2p_interface(self, self.nodes[1])
 
-        peer_info = self.nodes[0].getavalanchepeerinfo()
         node_info = self.nodes[0].getpeerinfo()
-        assert_equal(len(peer_info), 1)
         assert_equal(len(node_info), 1)
-        assert "availability_score" not in peer_info[0]
         assert "availability_score" not in node_info[0]
 
-        peer_info = self.nodes[1].getavalanchepeerinfo()
         node_info = self.nodes[1].getpeerinfo()
-        assert_equal(len(peer_info), 1)
         assert_equal(len(node_info), 1)
-        assert_equal(peer_info[0]["availability_score"], 0)
         assert_equal(node_info[0]["availability_score"], 0)
 
 
