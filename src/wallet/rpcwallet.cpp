@@ -3039,30 +3039,6 @@ static RPCHelpMan listunspent() {
                       "the transaction output amount in " + ticker},
                      {RPCResult::Type::NUM, "confirmations",
                       "The number of confirmations"},
-                     {RPCResult::Type::NUM, "ancestorcount",
-                      /* optional */ true,
-                      "DEPRECATED: The number of in-mempool ancestor "
-                      "transactions, including this one (if transaction is in "
-                      "the mempool). Only displayed if the "
-                      "-deprecatedrpc=mempool_ancestors_descendants option is "
-                      "set"},
-                     {RPCResult::Type::NUM, "ancestorsize", /* optional */ true,
-                      "DEPRECATED: The virtual transaction size of in-mempool "
-                      " ancestors, including this one (if transaction is in "
-                      "the mempool). Only displayed if the "
-                      "-deprecatedrpc=mempool_ancestors_descendants option is "
-                      "set"},
-                     {RPCResult::Type::STR_AMOUNT, "ancestorfees",
-                      /* optional */ true,
-                      "DEPRECATED: The total fees of in-mempool ancestors "
-                      "(including this one) with fee deltas used for mining "
-                      "priority in " +
-                          ticker +
-                          " (if transaction is in the mempool). Only "
-                          "displayed if the "
-                          "-deprecatedrpc=mempool_ancestors_descendants option "
-                          "is "
-                          "set"},
                      {RPCResult::Type::STR_HEX, "redeemScript",
                       "The redeemScript if scriptPubKey is P2SH"},
                      {RPCResult::Type::BOOL, "spendable",
