@@ -5,27 +5,27 @@
         "close": "닫기",
         "edit": "편집",
         "error": "오류",
-        "loading": "로딩 중...",
+        "loading": "로딩",
         "save": "저장",
         "title": "Marlin Wallet"
     },
     "camera": {
-        "manualEntry": "수동 입력",
+        "manualEntry": "직접 입력",
         "noCameraAvailable": "카메라를 사용할 수 없음",
-        "noCameraDescription": "이 기기에서 카메라 액세스를 사용할 수 없습니다. 아래의 \"수동 입력\" 버튼을 사용하여 주소를 입력하세요.",
+        "noCameraDescription": "이 기기에서 카메라에 접근할 수 없습니다. 아래의 \"수동 입력\" 버튼을 사용하여 주소를 입력하세요.",
         "title": "카메라"
     },
     "errors": {
         "anErrorOccurred": "오류가 발생했습니다",
         "failedToLoadWallet": "지갑을 로드하지 못했습니다",
-        "failedToSendTransaction": "거래를 보내지 못했습니다",
+        "failedToSendTransaction": "거래 전송에 실패했습니다",
         "insufficientFunds": "잔액 부족",
         "invalidAddress": "유효하지 않은 주소",
         "transactionFailed": "거래 실패"
     },
     "history": {
-        "loadingTransactions": "거래 로딩 중...",
-        "noTransactions": "아직 거래가 없습니다",
+        "loadingTransactions": "거래 로딩",
+        "noTransactions": "거래가 없습니다",
         "title": "거래 내역",
         "viewInExplorer": "탐색기에서 보기"
     },
@@ -33,7 +33,7 @@
         "authenticationRequired": "인증 필요"
     },
     "main": {
-        "generatingWallet": "지갑 생성 중...",
+        "generatingWallet": "지갑 생성",
         "history": "내역",
         "scanQRCode": "QR 코드 스캔",
         "settings": "설정",
@@ -41,21 +41,20 @@
         "yourReceivingAddress": "받는 주소"
     },
     "mnemonic": {
-        "clearAll": "모두 지우기",
         "editMnemonicText": "니모닉 편집",
-        "enterMnemonic": "12단어 복구 구문을 입력하세요",
-        "failedToSave": "니모닉을 저장하지 못했습니다. 다시 시도해 주세요.",
-        "invalidMnemonic": "유효하지 않은 니모닉입니다. 유효한 12단어 복구 구문을 입력하세요.",
-        "mnemonicSaved": "니모닉이 성공적으로 저장되었습니다",
+        "enterMnemonic": "니모닉(12단어 비밀 복구 구문)을 입력하세요",
+        "failedToSave": "니모닉(12단어 비밀 복구 구문)을 저장하지 못했습니다. 다시 시도해 주세요.",
+        "invalidMnemonic": "유효하지 않은 니모닉입니다. 유효한 12단어 비밀 복구 구문을 입력하세요.",
+        "mnemonicSaved": "니모닉(12단어 비밀 복구 구문)이 성공적으로 저장되었습니다",
         "thisWillReplaceWallet": "이것은 현재 지갑을 대체합니다."
     },
     "native": {
         "closeWallet": "지갑 닫기",
-        "authenticateToStore": "지갑 개인 키를 저장하려면 인증하세요",
-        "authenticateToStoreDescription": "개인 키를 기기의 안전한 저장소에 저장하려면 이것이 필요합니다",
-        "authenticateToAccess": "지갑에 액세스하려면 인증하세요",
-        "authenticateToAccessDescription": "안전한 저장소에서 개인 키를 로드하려면 이것이 필요합니다",
-        "paymentSent": "결제가 전송되었습니다!",
+        "authenticateToStore": "개인 지갑 키를 저장하려면 인증하세요",
+        "authenticateToStoreDescription": "개인 지갑 키를 기기의 안전한 저장소에 저장하려면 이것이 필요합니다",
+        "authenticateToAccess": "지갑에 접근 하려면 인증하세요",
+        "authenticateToAccessDescription": "안전한 저장소에서 개인 지갑 키를 로드하려면 이것이 필요합니다",
+        "paymentSent": "결제가 성공적으로 전송되었습니다!",
         "returningToPaymentSite": "결제 사이트로 돌아가는 중..."
     },
     "paybutton": {
@@ -81,13 +80,13 @@
         "fiatCurrency": "법정화폐",
         "fiatCurrencyDescription": "가격 표시 및 변환에 사용할 법정화폐를 선택하세요.",
         "language": "언어",
-        "languageDescription": "애플리케이션 인터페이스의 언어를 선택하세요.",
-        "requireHoldToSend": "보내려면 길게 누르기 필요",
+        "languageDescription": "앱에서 사용할 언어를 선택하세요.",
+        "requireHoldToSend": "보내려면 길게 누르세요.",
         "requireHoldToSendDescription": "활성화되면 거래를 확인하기 위해 보내기 버튼을 1초 동안 길게 눌러야 합니다.",
         "title": "설정",
         "useFiatAsPrimary": "법정화폐를 주요 잔액으로 사용",
         "useFiatAsPrimaryDescription": "활성화되면 법정화폐를 주요 잔액으로 표시하고 XEC를 보조 잔액으로 표시합니다.",
         "walletMnemonic": "지갑 니모닉",
-        "walletMnemonicDescription": "12단어 복구 구문입니다. 안전하게 백업하세요!"
+        "walletMnemonicDescription": "12단어 비밀 복구 구문입니다. 안전하게 백업하세요!"
     }
 }
