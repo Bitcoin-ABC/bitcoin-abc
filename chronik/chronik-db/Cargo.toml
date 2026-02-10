@@ -25,7 +25,7 @@ chronik-plugin = { path = "../chronik-plugin" }
 bimap = "0.6"
 
 # Efficient byte strings, with ref counted substrings
-bytes = "1.4"
+bytes = "1.11"
 
 # En-/decode byte strings from/to hex
 hex = "0.4"

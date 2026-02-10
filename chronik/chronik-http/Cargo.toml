@@ -35,7 +35,7 @@ async-tungstenite = "0.29.1"
 axum = { version = "0.7", features = ["ws"] }
 
 # Efficient byte strings
-bytes = "1.4"
+bytes = "1.11"
 
 # Async toolkit
 futures = "0.3"
