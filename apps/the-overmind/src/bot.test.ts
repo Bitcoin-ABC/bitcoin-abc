@@ -4774,6 +4774,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Original message',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -4853,6 +4854,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Original message',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5007,6 +5009,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Original message',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5083,11 +5086,6 @@ describe('bot', () => {
                 [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
             );
 
-            await pool.query(
-                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
-                ['Spicy take 🌶', ORIGINAL_MSG_ID],
-            );
-
             await loadUsernames(pool);
 
             const replySenderSk = replySenderNode.seckey();
@@ -5138,6 +5136,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Spicy take 🌶',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5253,6 +5252,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Very spicy 🌶🌶🌶',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5366,6 +5366,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Extra spicy 🌶🌶🌶🌶🌶🌶🌶',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5415,10 +5416,6 @@ describe('bot', () => {
                 'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
                 [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
             );
-            await pool.query(
-                'UPDATE messages SET message_text = $1, user_tg_id = $2 WHERE msg_id = $3',
-                ['My spicy message 🌶', REPLY_SENDER_USER_ID, ORIGINAL_MSG_ID],
-            );
 
             await loadUsernames(pool);
 
@@ -5456,6 +5453,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'My spicy message 🌶',
                         from: {
                             id: REPLY_SENDER_USER_ID,
                             is_bot: false,
@@ -5512,11 +5510,6 @@ describe('bot', () => {
             await pool.query(
                 'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
                 [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
-            );
-
-            await pool.query(
-                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
-                ['Spicy milk 🌶🍼', ORIGINAL_MSG_ID],
             );
 
             await loadUsernames(pool);
@@ -5606,6 +5599,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Spicy milk 🌶🍼',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,
@@ -5679,11 +5673,6 @@ describe('bot', () => {
             await pool.query(
                 'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
                 [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
-            );
-
-            await pool.query(
-                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
-                ['Spicy 🌶', ORIGINAL_MSG_ID],
             );
 
             await loadUsernames(pool);
@@ -5773,6 +5762,7 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        text: 'Spicy 🌶',
                         from: {
                             id: ORIGINAL_AUTHOR_USER_ID,
                             is_bot: false,

@@ -1444,6 +1444,9 @@ export const handleMessage = async (
                 ? Math.min(bottleMatches.length, 5)
                 : 0;
 
+            const originalMessageAuthorId = replyToMessage.from?.id ?? null;
+
+            // Count 🌶 emojis in the reply message (up to 5)
             const chiliEmoji = '🌶';
             const chiliMatches = messageText.match(
                 new RegExp(
@@ -1454,8 +1457,6 @@ export const handleMessage = async (
             const chiliCount = chiliMatches
                 ? Math.min(chiliMatches.length, 5)
                 : 0;
-
-            const originalMessageAuthorId = replyToMessage.from?.id ?? null;
 
             // Check if both users are registered (needed for bottle and/or chili)
             if (originalMessageAuthorId !== null) {
@@ -1517,7 +1518,7 @@ export const handleMessage = async (
             } else {
                 if (bottleCount > 0 || chiliCount > 0) {
                     console.log(
-                        'Original message author unknown (reply_to_message.from missing), skipping reply processing',
+                        `Original message author unknown (reply_to_message.from missing), skipping reply processing`,
                     );
                 }
             }
