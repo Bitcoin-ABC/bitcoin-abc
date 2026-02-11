@@ -4644,17 +4644,6 @@ describe('bot', () => {
             }
 
             pool = await createTestDb();
-
-            // Create original message in database
-            await pool.query(
-                'INSERT INTO messages (msg_id, message_text, user_tg_id, username) VALUES ($1, $2, $3, $4)',
-                [
-                    ORIGINAL_MSG_ID,
-                    'Original message',
-                    ORIGINAL_AUTHOR_USER_ID,
-                    'author',
-                ],
-            );
         });
 
         afterEach(async () => {
@@ -4785,6 +4774,12 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
                     },
                 },
                 from: {
@@ -4858,6 +4853,12 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
                     },
                 },
                 from: {
@@ -5006,6 +5007,12 @@ describe('bot', () => {
                     date: Date.now(),
                     reply_to_message: {
                         message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
                     },
                 },
                 from: {
@@ -5046,6 +5053,771 @@ describe('bot', () => {
             );
             expect(hasAuthorMessage).to.equal(true);
             expect(hasReplySenderMessage).to.equal(true);
+        });
+
+        it('should process chili reply when reply contains 🌶', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await pool.query(
+                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
+                ['Spicy take 🌶', ORIGINAL_MSG_ID],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 100n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            sandbox.stub(mockChronik, 'broadcastTx').resolves({
+                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            });
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: 'Nice one! 🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(callArgs[1]).to.include('sent 10HP');
+            expect(callArgs[1]).to.include('chili reply');
+            expect(callArgs[1]).to.include('replySender');
+            expect(callArgs[1]).to.include('author');
+        });
+
+        it('should process chili reply with 3 chilis when reply contains 🌶🌶🌶', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 500n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            sandbox.stub(mockChronik, 'broadcastTx').resolves({
+                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            });
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: 'Wow! 🌶🌶🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(callArgs[1]).to.include('sent 30HP');
+            expect(callArgs[1]).to.include('chili reply');
+        });
+
+        it('should cap chili count at 5 when reply has many 🌶', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 500n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            sandbox.stub(mockChronik, 'broadcastTx').resolves({
+                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            });
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: 'Wow! 🌶🌶🌶🌶🌶🌶🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(1);
+            const callArgs = (
+                mockBot.api.sendMessage as sinon.SinonStub
+            ).getCall(0).args;
+            expect(callArgs[1]).to.include('sent 50HP');
+            expect(callArgs[1]).to.not.include('sent 70HP');
+        });
+
+        it('should not process chili reply when replying to own message', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'UPDATE messages SET message_text = $1, user_tg_id = $2 WHERE msg_id = $3',
+                ['My spicy message 🌶', REPLY_SENDER_USER_ID, ORIGINAL_MSG_ID],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 100n,
+                            isMintBaton: false,
+                        },
+                    },
+                ]);
+            }
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: 'Replying to myself 🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: REPLY_SENDER_USER_ID,
+                            is_bot: false,
+                            first_name: 'Test',
+                            username: 'replySender',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(0);
+        });
+
+        it('should process both bottle and chili when reply has 🍼 and 🌶', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await pool.query(
+                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
+                ['Spicy milk 🌶🍼', ORIGINAL_MSG_ID],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            const authorSk = authorNode.seckey();
+
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            let callCount = 0;
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                return {
+                    txid: `000000000000000000000000000000000000000000000000000000000000000${callCount}`,
+                };
+            });
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: '🍼🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(3);
+            const messages = [
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(0).args[1],
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(1).args[1],
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(2).args[1],
+            ];
+            const hasBottleAuthorMessage = messages.some(
+                msg => msg.includes('author') && msg.includes('lost 10HP'),
+            );
+            const hasBottleReplySenderMessage = messages.some(
+                msg => msg.includes('replySender') && msg.includes('lost 3HP'),
+            );
+            const hasChiliMessage = messages.some(
+                msg => msg.includes('chili reply') && msg.includes('sent 10HP'),
+            );
+            expect(hasBottleAuthorMessage).to.equal(true);
+            expect(hasBottleReplySenderMessage).to.equal(true);
+            expect(hasChiliMessage).to.equal(true);
+        });
+
+        it('should correctly process reply with 2 milk bottles and 1 chili', async () => {
+            const replySenderNode = masterNode.derivePath("m/44'/1899'/1'/0/0");
+            const replySenderPubkey = replySenderNode.pubkey();
+            const replySenderPkh = shaRmd160(replySenderPubkey);
+            const replySenderAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(replySenderPkh),
+            );
+
+            const authorNode = masterNode.derivePath("m/44'/1899'/2'/0/0");
+            const authorPubkey = authorNode.pubkey();
+            const authorPkh = shaRmd160(authorPubkey);
+            const authorAddress = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                toHex(authorPkh),
+            );
+
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [REPLY_SENDER_USER_ID, replySenderAddress, 1, 'replySender'],
+            );
+            await pool.query(
+                'INSERT INTO users (user_tg_id, address, hd_index, username) VALUES ($1, $2, $3, $4)',
+                [ORIGINAL_AUTHOR_USER_ID, authorAddress, 2, 'author'],
+            );
+
+            await pool.query(
+                'UPDATE messages SET message_text = $1 WHERE msg_id = $2',
+                ['Spicy 🌶', ORIGINAL_MSG_ID],
+            );
+
+            await loadUsernames(pool);
+
+            const replySenderSk = replySenderNode.seckey();
+            const authorSk = authorNode.seckey();
+
+            if (replySenderSk) {
+                mockChronik.setUtxosByAddress(replySenderAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            if (authorSk) {
+                mockChronik.setUtxosByAddress(authorAddress, [
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 10000n,
+                        isFinal: true,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000004',
+                            outIdx: 0,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 100000n,
+                        isFinal: true,
+                    },
+                ]);
+            }
+
+            let callCount = 0;
+            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+                callCount++;
+                return {
+                    txid: `000000000000000000000000000000000000000000000000000000000000000${callCount}`,
+                };
+            });
+
+            const mockCtx = {
+                chat: {
+                    id: parseInt(MONITORED_CHAT_ID),
+                    type: 'group',
+                    title: 'Test Group',
+                },
+                message: {
+                    message_id: REPLY_MSG_ID,
+                    text: '🍼🍼🌶',
+                    date: Date.now(),
+                    reply_to_message: {
+                        message_id: ORIGINAL_MSG_ID,
+                        from: {
+                            id: ORIGINAL_AUTHOR_USER_ID,
+                            is_bot: false,
+                            first_name: 'Author',
+                            username: 'author',
+                        },
+                    },
+                },
+                from: {
+                    id: REPLY_SENDER_USER_ID,
+                    is_bot: false,
+                    first_name: 'Test',
+                    username: 'replySender',
+                },
+            } as unknown as Context;
+
+            await handleMessage(
+                mockCtx,
+                pool,
+                MONITORED_CHAT_ID,
+                masterNode,
+                mockChronik as unknown as ChronikClient,
+                mockBot,
+                ADMIN_CHAT_ID,
+                botWalletAddress,
+            );
+
+            expect(mockBot.api.sendMessage).to.have.callCount(3);
+            const messages = [
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(0).args[1],
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(1).args[1],
+                (mockBot.api.sendMessage as sinon.SinonStub).getCall(2).args[1],
+            ];
+            const hasBottleAuthorMessage = messages.some(
+                msg => msg.includes('author') && msg.includes('lost 20HP'),
+            );
+            const hasBottleReplySenderMessage = messages.some(
+                msg => msg.includes('replySender') && msg.includes('lost 6HP'),
+            );
+            const hasChiliMessage = messages.some(
+                msg => msg.includes('chili reply') && msg.includes('sent 10HP'),
+            );
+            expect(hasBottleAuthorMessage).to.equal(true);
+            expect(hasBottleReplySenderMessage).to.equal(true);
+            expect(hasChiliMessage).to.equal(true);
         });
     });
 

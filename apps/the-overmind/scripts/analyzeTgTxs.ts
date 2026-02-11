@@ -56,6 +56,8 @@ const getActionName = (actionCode: number): string => {
             return 'BOTTLE_REPLY';
         case EmppAction.BOTTLE_REPLIED:
             return 'BOTTLE_REPLIED';
+        case EmppAction.CHILI_REPLY:
+            return 'CHILI_REPLY';
         default:
             return `UNKNOWN (0x${actionCode.toString(16).padStart(2, '0')})`;
     }

@@ -117,6 +117,9 @@ describe('empp', () => {
             expect(() => getOvermindEmpp(EmppAction.BOTTLE_REPLIED)).to.throw(
                 'msgId is required for action',
             );
+            expect(() => getOvermindEmpp(EmppAction.CHILI_REPLY)).to.throw(
+                'msgId is required for action',
+            );
         });
 
         it('should ignore msgId for CLAIM action even if provided', () => {
@@ -228,6 +231,22 @@ describe('empp', () => {
             expect(data[8]).to.equal(0x01);
             expect(data[9]).to.equal(0x00);
         });
+
+        it('should generate CHILI_REPLY action EMPP data with msgId', () => {
+            const msgId = 11111;
+            const data = getOvermindEmpp(EmppAction.CHILI_REPLY, msgId);
+
+            expect(data.length).to.equal(10);
+
+            // Action byte - CHILI_REPLY = 0x08
+            expect(data[5]).to.equal(0x08);
+
+            // msgId should be 11111 in little-endian (0x00002b67)
+            expect(data[6]).to.equal(0x67);
+            expect(data[7]).to.equal(0x2b);
+            expect(data[8]).to.equal(0x00);
+            expect(data[9]).to.equal(0x00);
+        });
     });
 
     describe('parseEmppActionCode', () => {
@@ -285,6 +304,13 @@ describe('empp', () => {
             const actionCode = parseEmppActionCode(data);
 
             expect(actionCode).to.equal(EmppAction.BOTTLE_REPLIED);
+        });
+
+        it('should parse CHILI_REPLY action code from valid EMPP data', () => {
+            const data = getOvermindEmpp(EmppAction.CHILI_REPLY, 99999);
+            const actionCode = parseEmppActionCode(data);
+
+            expect(actionCode).to.equal(EmppAction.CHILI_REPLY);
         });
 
         it('should return null for data that is too short', () => {
@@ -355,6 +381,7 @@ describe('empp', () => {
                 EmppAction.WITHDRAW,
                 EmppAction.BOTTLE_REPLY,
                 EmppAction.BOTTLE_REPLIED,
+                EmppAction.CHILI_REPLY,
             ];
 
             for (const action of actions) {

@@ -51,3 +51,9 @@ export const BOTTLE_REPLY_AUTHOR_HP_LOSS_PER_BOTTLE = 10;
  * The reply sender loses this amount per 🍼 emoji (up to 5)
  */
 export const BOTTLE_REPLY_SENDER_HP_LOSS_PER_BOTTLE = 3;
+
+/**
+ * HP amount per chili emoji for chili pepper replies
+ * When the reply contains 🌶, the reply sender sends this amount per 🌶 (up to 5) to the original message author
+ */
+export const CHILI_REPLY_HP_AMOUNT = 10;

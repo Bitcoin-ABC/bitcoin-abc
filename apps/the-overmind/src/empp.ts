@@ -17,6 +17,7 @@ export enum EmppAction {
     WITHDRAW = 0x05,
     BOTTLE_REPLY = 0x06,
     BOTTLE_REPLIED = 0x07,
+    CHILI_REPLY = 0x08,
 }
 
 /**
