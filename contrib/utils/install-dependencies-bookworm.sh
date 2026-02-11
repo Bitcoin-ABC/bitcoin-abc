@@ -161,7 +161,7 @@ echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
 # Install nodejs v22.x (includes npm v10.x)
 wget https://deb.nodesource.com/setup_22.x -O nodesetup.sh
-echo "02983a54150ea7e5072bbb06b655be7a8c628e4556e85fb0942f719ec50a1d3a nodesetup.sh" | sha256sum -c
+echo "575583bbac2fccc0b5edd0dbc03e222d9f9dc8d724da996d22754d6411104fd1 nodesetup.sh" | sha256sum -c
 chmod +x nodesetup.sh
 ./nodesetup.sh
 apt-get install -y nodejs
