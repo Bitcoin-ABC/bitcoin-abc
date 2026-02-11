@@ -43,10 +43,12 @@ LANDBOT_BUILD_TYPE = "BitcoinAbcLandBot"
 #     )
 BADGE_TC_BASE = RasterBadge(label="TC build", logo="TeamCity")
 
-BADGE_CIRRUS_BASE = RasterBadge(label="Cirrus build", logo="cirrus-ci")
+BADGE_GITHUB_BASE = RasterBadge(label="Github build", logo="github")
 
 
-def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=None):
+def create_server(
+    tc, phab, slackbot, github_actions, db_file_no_ext=None, jsonProvider=None
+):
     # Create Flask app for use as decorator
     app = Flask("abcbot")
     app.logger.setLevel(logging.INFO)
@@ -57,7 +59,6 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
 
     phab.setLogger(app.logger)
     tc.set_logger(app.logger)
-    cirrus.set_logger(app.logger)
 
     # Optionally persistable database
     create_server.db = {
@@ -639,41 +640,46 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
         def add_project_header_to_panel(project_name):
             return panel_content + f"| {project_name} | Status |\n|---|---|\n"
 
-        # secp256k1 is a special case because it has a Cirrus build from a
+        # secp256k1 is a special case because it has a Github Actions build from a
         # Github repo that is not managed by the build-configurations.yml config.
         # The status always need to be fetched.
-        sepc256k1_cirrus_status = cirrus.get_default_branch_status()
-        cirrus_badge_url = BADGE_CIRRUS_BASE.get_badge_url(
-            message=sepc256k1_cirrus_status.value,
+        sepc256k1_github_status = github_actions.get_latest_workflow_status()
+        build_status = sepc256k1_github_status.build_status
+        run_id = sepc256k1_github_status.run_id
+        github_badge_url = BADGE_GITHUB_BASE.get_badge_url(
+            message=build_status.value,
             color=(
                 "brightgreen"
-                if sepc256k1_cirrus_status == BuildStatus.Success
+                if build_status == BuildStatus.Success
                 else (
                     "red"
-                    if sepc256k1_cirrus_status == BuildStatus.Failure
+                    if build_status == BuildStatus.Failure
                     else (
                         "blue"
-                        if sepc256k1_cirrus_status == BuildStatus.Running
+                        if build_status == BuildStatus.Running
                         else (
                             "lightblue"
-                            if sepc256k1_cirrus_status == BuildStatus.Queued
+                            if build_status == BuildStatus.Queued
                             else "inactive"
                         )
                     )
                 )
             ),
         )
+        run_url = "https://github.com/Bitcoin-ABC/secp256k1/actions"
+        if run_id is not None:
+            run_url += f"/runs/{run_id}"
 
-        # Add secp256k1 Cirrus to the status panel.
+        # Add secp256k1 Github Actions to the status panel.
         panel_content = add_project_header_to_panel(
             "secp256k1 ([[https://github.com/Bitcoin-ABC/secp256k1 | Github]])"
         )
         panel_content = add_line_to_panel(
             '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |'.format(
-                "https://cirrus-ci.com/github/Bitcoin-ABC/secp256k1",
+                run_url,
                 "master",
-                cirrus_badge_url,
-                sepc256k1_cirrus_status.value,
+                github_badge_url,
+                build_status.value,
             )
         )
         panel_content = add_line_to_panel("")

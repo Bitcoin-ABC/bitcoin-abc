@@ -43,9 +43,6 @@ class PersistDataTestCase(ABCBotFixture):
             json.loads(test.mocks.teamcity.buildInfo().content)
         )
 
-        self.cirrus.get_default_branch_status = mock.Mock()
-        self.cirrus.get_default_branch_status.return_value = BuildStatus.Success
-
     def test_persist_diff_targets(self):
         queryData = buildRequestQuery()
         queryData.abcBuildName = BUILD_NAME
@@ -85,7 +82,7 @@ class PersistDataTestCase(ABCBotFixture):
             self.teamcity,
             self.phab,
             self.slackbot,
-            self.cirrus,
+            self.githubactions,
             db_file_no_ext=self.db_file_no_ext,
             jsonProvider=test.mocks.fixture.MockJSONProvider,
         ).test_client()

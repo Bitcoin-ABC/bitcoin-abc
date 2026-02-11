@@ -13,8 +13,8 @@ import unittest
 from pathlib import Path
 
 import server
-import test.mocks.cirrus
 import test.mocks.fixture
+import test.mocks.githubactions
 import test.mocks.phabricator
 import test.mocks.slackbot
 import test.mocks.teamcity
@@ -49,12 +49,12 @@ class ABCBotFixture(unittest.TestCase):
         self.phab = test.mocks.phabricator.instance()
         self.slackbot = test.mocks.slackbot.instance()
         self.teamcity = test.mocks.teamcity.instance()
-        self.cirrus = test.mocks.cirrus.instance()
+        self.githubactions = test.mocks.githubactions.instance()
         self.app = server.create_server(
             self.teamcity,
             self.phab,
             self.slackbot,
-            self.cirrus,
+            self.githubactions,
             db_file_no_ext=self.db_file_no_ext,
             jsonProvider=test.mocks.fixture.MockJSONProvider,
         ).test_client()

@@ -6,6 +6,7 @@
 
 import json
 import unittest
+from contextlib import contextmanager
 from urllib.parse import urljoin
 
 import mock
@@ -15,6 +16,7 @@ import test.mocks.fixture
 import test.mocks.phabricator
 import test.mocks.teamcity
 from build import BuildStatus
+from githubactions import WorkflowStatus
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE
 from teamcity_wrapper import BuildInfo
@@ -59,9 +61,6 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.teamcity.get_coverage_summary.return_value = None
         self.teamcity.getIgnoreList = mock.Mock()
         self.teamcity.getIgnoreList.return_value = []
-
-        self.cirrus.get_default_branch_status = mock.Mock()
-        self.cirrus.get_default_branch_status.return_value = BuildStatus.Success
 
     def setup_master_failureAndTaskDoesNotExist(
         self,
@@ -1594,20 +1593,17 @@ class EndpointStatusTestCase(ABCBotFixture):
 
         self.teamcity.getBuildInfo.side_effect = _get_build_info
 
-        def get_cirrus_panel_content(status=None):
-            if not status:
-                status = BuildStatus.Success
-
+        def get_github_panel_content(status=BuildStatus.Success, run_id=1337):
+            run_url = "https://github.com/Bitcoin-ABC/secp256k1/actions"
+            if run_id is not None:
+                run_url += f"/runs/{run_id}"
+            color = "brightgreen" if status == BuildStatus.Success else "red"
             return (
                 "| secp256k1 ([[https://github.com/Bitcoin-ABC/secp256k1 | Github]]) |"
                 " Status |\n|---|---|\n|"
-                " [[https://cirrus-ci.com/github/Bitcoin-ABC/secp256k1 | master]] |"
-                ' {{image uri="https://raster.shields.io/static/v1?label=Cirrus'
-                ' build&message={}&color={}&logo=cirrus-ci", alt="{}"}} |\n\n'
-            ).format(
-                status.value,
-                "brightgreen" if status == BuildStatus.Success else "red",
-                status.value,
+                f' [[{run_url} | master]] | {{image uri="'
+                "https://raster.shields.io/static/v1?label=Github build&message="
+                f'{status.value}&color={color}&logo=github", alt="{status.value}"}} |\n\n'
             )
 
         def set_config_file(names_to_display, names_to_hide):
@@ -1698,7 +1694,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         # teamcity content
         set_config_file([], [])
         call_status("dont_care", BuildStatus.Success)
-        assert_panel_content(get_cirrus_panel_content())
+        assert_panel_content(get_github_panel_content())
 
         # If branch is not master the panel is not updated
         self.phab.set_text_panel_content.reset_mock()
@@ -1710,23 +1706,38 @@ class EndpointStatusTestCase(ABCBotFixture):
         )
         self.phab.set_text_panel_content.assert_not_called()
 
-        # Turn cirrus build into failure
-        self.cirrus.get_default_branch_status.return_value = BuildStatus.Failure
-        call_status("dont_care", BuildStatus.Success)
-        assert_panel_content(get_cirrus_panel_content(BuildStatus.Failure))
-        self.cirrus.get_default_branch_status.return_value = BuildStatus.Success
+        @contextmanager
+        def changed_workflow_status(build_status, run_id):
+            self.githubactions.get_latest_workflow_status.return_value = WorkflowStatus(
+                build_status, run_id
+            )
+            yield
+            # restore default
+            self.githubactions.get_latest_workflow_status.return_value = WorkflowStatus(
+                BuildStatus.Success, run_id=1337
+            )
+
+        # Turn github build into failure
+        with changed_workflow_status(BuildStatus.Failure, 1337):
+            call_status("dont_care", BuildStatus.Success)
+            assert_panel_content(get_github_panel_content(BuildStatus.Failure))
+
+        # No run returned by github's API
+        with changed_workflow_status(BuildStatus.Success, None):
+            call_status("dont_care", BuildStatus.Success)
+            assert_panel_content(get_github_panel_content(run_id=None))
 
         # Some builds in config file but no associated teamcity build
         set_config_file(["show_me11"], [])
         call_status("dont_care", BuildStatus.Success)
-        assert_panel_content(get_cirrus_panel_content())
+        assert_panel_content(get_github_panel_content())
 
         # Set one build to be shown and associate it. This is not the build that
         # just finished.
         associate_build("show_me11")
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name")
             + build_line("show_me11")
             + "\n"
@@ -1738,7 +1749,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         associate_build("show_me13")
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name")
             + build_line("show_me11")
             + build_line("show_me12")
@@ -1764,7 +1775,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         for i in range(10):
             call_status("hide_me_Type", BuildStatus.Success)
             assert_panel_content(
-                get_cirrus_panel_content()
+                get_github_panel_content()
                 + header("Project Name")
                 + build_line("show_me11")
                 + build_line("show_me12")
@@ -1780,7 +1791,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me12"]
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name")
             + build_line("show_me11")
             + build_line("show_me13")
@@ -1798,7 +1809,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me13"]
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name")
             + build_line("show_me11")
             + "\n"
@@ -1813,7 +1824,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me11"]
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name 2")
             + build_line("show_me21")
             + build_line("show_me22")
@@ -1825,7 +1836,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         failing_build_type_ids = ["show_me21_Type"]
         call_status("hide_me_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name 2")
             + build_line("show_me21")
             + build_line("show_me22")
@@ -1837,7 +1848,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         # and will be fetched from Teamcity anyway.
         call_status("show_me21_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name 2")
             + build_line("show_me21", status=BuildStatus.Failure)
             + build_line("show_me22")
@@ -1853,7 +1864,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         no_complete_build_type_ids = ["show_me23_Type"]
         call_status("show_me21_Type", BuildStatus.Success)
         assert_panel_content(
-            get_cirrus_panel_content()
+            get_github_panel_content()
             + header("Project Name 2")
             + build_line("show_me21", status=BuildStatus.Failure)
             + build_line("show_me22")

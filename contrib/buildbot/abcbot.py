@@ -14,7 +14,7 @@ from logging.handlers import RotatingFileHandler
 import slack
 
 import server
-from cirrus import Cirrus
+from githubactions import GithubActions
 from phabricator_wrapper import PhabWrapper
 from slackbot import SlackBot
 from teamcity_wrapper import TeamCity
@@ -39,7 +39,7 @@ slack_channels = {
     "infra": "G016CFAV8KS",
 }
 slackbot = SlackBot(slack.WebClient, slack_token, slack_channels)
-cirrus = Cirrus()
+github_actions = GithubActions()
 
 
 def main(args):
@@ -61,7 +61,7 @@ def main(args):
     log_file = args.log_file
 
     app = server.create_server(
-        tc, phab, slackbot, cirrus, db_file_no_ext=db_file_no_ext
+        tc, phab, slackbot, github_actions, db_file_no_ext=db_file_no_ext
     )
 
     formater = logging.Formatter(
