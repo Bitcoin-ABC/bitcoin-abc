@@ -263,4 +263,57 @@ describe('<Receive />', () => {
         expect(svgElement).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
         expect(svgElement).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
     });
+    it('Shows fiat equivalent when XEC amount is entered and fiat price is available', async () => {
+        // beforeEach mocks fetch with xecPrice = 0.00003 USD
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(await screen.findByTitle('Receive')).toBeInTheDocument();
+
+        // Enter 1000 XEC; at 0.00003 USD/XEC = 0.03 USD
+        await user.type(
+            screen.getByPlaceholderText('Enter receive amount'),
+            '1000',
+        );
+
+        // Fiat equivalent should show: = $ 0.03 USD (or similar locale format)
+        expect(screen.getByText('= $ 0.03 USD')).toBeInTheDocument();
+    });
+    it('Shows no fiat equivalent when fiat price is not available', async () => {
+        global.fetch = jest
+            .fn()
+            .mockRejectedValue(new Error('Failed to fetch'));
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(await screen.findByTitle('Receive')).toBeInTheDocument();
+
+        await user.type(
+            screen.getByPlaceholderText('Enter receive amount'),
+            '1000',
+        );
+
+        // Fiat equivalent should not appear when price fetch failed
+        expect(screen.queryByText('= $ 0.03 USD')).not.toBeInTheDocument();
+        expect(screen.queryByText(/=\s*\$.*USD/)).not.toBeInTheDocument();
+    });
 });

@@ -22,6 +22,20 @@ export const Row = styled.div<{ qrWidth?: number }>`
     color: ${props => props.theme.primaryText};
 `;
 
+export const ReceiveInputWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 4px;
+`;
+
+export const FiatEquivalentSlot = styled.div`
+    min-height: 1.25rem;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: ${props => props.theme.primaryText};
+`;
+
 export const FirmaRow = styled.div<{ qrWidth: number }>`
     display: flex;
     align-items: flex-start;

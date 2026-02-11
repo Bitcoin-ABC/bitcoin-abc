@@ -1,4 +1,4 @@
-// Copyright (c) 2024-2025 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,13 +7,22 @@ import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { QRCode } from 'components/Receive/QRCode';
 import useWindowDimensions from 'components/Receive/useWindowDimensions';
 import Switch from 'components/Common/Switch';
-import { ReceiveCtn, ReceiveFormFlex, Row, FirmaRow } from './styled';
+import {
+    ReceiveCtn,
+    ReceiveFormFlex,
+    Row,
+    FirmaRow,
+    ReceiveInputWrapper,
+    FiatEquivalentSlot,
+} from './styled';
 import { FIRMA } from 'constants/tokens';
 import { getReceiveAmountError } from 'validation';
 import appConfig from 'config/app';
 import firmaLogo from 'assets/firma-icon.png';
 import { CopyIconButton } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
+import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import { getUserLocale } from 'helpers';
 
 export const Receive: React.FC = () => {
     const contextValue = useContext(WalletContext);
@@ -21,10 +30,12 @@ export const Receive: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { ecashWallet } = contextValue;
+    const { ecashWallet, fiatPrice, cashtabState } = contextValue;
     if (!ecashWallet) {
         return null;
     }
+    const settings = cashtabState?.settings;
+    const userLocale = getUserLocale();
     // Get device window width
     // Size the QR code depending on device width
     const { width, height } = useWindowDimensions();
@@ -78,6 +89,26 @@ export const Receive: React.FC = () => {
         setBip21QtyError(error);
     }, [bip21Qty, receiveFirma]);
 
+    // Show XEC amount in user's native currency below input when typed
+    let fiatEquivalentString = '';
+    if (!receiveFirma && fiatPrice !== null && bip21Qty !== '') {
+        const amount = parseFloat(bip21Qty);
+        if (!isNaN(amount) && amount > 0) {
+            const fiatAmount = fiatPrice * amount;
+            const fiatCurrency = settings?.fiatCurrency ?? 'usd';
+            const symbol = settings?.fiatCurrency
+                ? supportedFiatCurrencies[settings.fiatCurrency].symbol
+                : '$';
+            fiatEquivalentString = `= ${symbol} ${fiatAmount.toLocaleString(
+                userLocale,
+                {
+                    minimumFractionDigits: appConfig.cashDecimals,
+                    maximumFractionDigits: appConfig.cashDecimals,
+                },
+            )} ${fiatCurrency.toUpperCase()}`;
+        }
+    }
+
     return (
         <ReceiveCtn title="Receive">
             <ReceiveFormFlex title="QR Code">
@@ -103,27 +134,38 @@ export const Receive: React.FC = () => {
                             }}
                         />
 
-                        <Input
-                            style={{
-                                paddingLeft: '42px',
-                                paddingRight: '72px',
-                            }}
-                            prefix={{
-                                src: receiveFirma ? firmaLogo : appConfig.logo,
-                                alt: receiveFirma ? 'Firma Logo' : 'eCash Logo',
-                            }}
-                            suffix={receiveFirma ? 'FIRMA' : appConfig.ticker}
-                            name="bip21Qty"
-                            value={bip21Qty}
-                            error={bip21QtyError}
-                            type="number"
-                            placeholder={
-                                width < CASHTAB_FULLSCREEN_WIDTH
-                                    ? ''
-                                    : `Enter receive amount`
-                            }
-                            handleInput={handleBip21QtyChange}
-                        />
+                        <ReceiveInputWrapper>
+                            <Input
+                                style={{
+                                    paddingLeft: '42px',
+                                    paddingRight: '72px',
+                                }}
+                                prefix={{
+                                    src: receiveFirma
+                                        ? firmaLogo
+                                        : appConfig.logo,
+                                    alt: receiveFirma
+                                        ? 'Firma Logo'
+                                        : 'eCash Logo',
+                                }}
+                                suffix={
+                                    receiveFirma ? 'FIRMA' : appConfig.ticker
+                                }
+                                name="bip21Qty"
+                                value={bip21Qty}
+                                error={bip21QtyError}
+                                type="number"
+                                placeholder={
+                                    width < CASHTAB_FULLSCREEN_WIDTH
+                                        ? ''
+                                        : `Enter receive amount`
+                                }
+                                handleInput={handleBip21QtyChange}
+                            />
+                            <FiatEquivalentSlot>
+                                {fiatEquivalentString}
+                            </FiatEquivalentSlot>
+                        </ReceiveInputWrapper>
                     </FirmaRow>
                 </Row>
                 <Row>
