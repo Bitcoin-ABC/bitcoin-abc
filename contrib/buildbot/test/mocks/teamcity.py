@@ -5,8 +5,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
+from unittest import mock
 
-import mock
 import requests
 
 from teamcity_wrapper import TeamCity

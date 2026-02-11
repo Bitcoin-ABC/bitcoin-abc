@@ -7,8 +7,7 @@
 import os
 import unittest
 from base64 import b64encode
-
-import mock
+from unittest import mock
 
 import test.mocks.phabricator
 from build import BuildStatus, BuildTarget

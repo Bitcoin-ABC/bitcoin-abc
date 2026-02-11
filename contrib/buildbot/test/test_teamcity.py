@@ -7,9 +7,9 @@
 import json
 import time
 import unittest
+from unittest import mock
 from urllib.parse import urljoin
 
-import mock
 import requests
 
 import test.mocks.teamcity

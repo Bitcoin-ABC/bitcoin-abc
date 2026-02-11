@@ -7,9 +7,9 @@
 import json
 import unittest
 from contextlib import contextmanager
+from unittest import mock
 from urllib.parse import urljoin
 
-import mock
 import requests
 
 import test.mocks.fixture

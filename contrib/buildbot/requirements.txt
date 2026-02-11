@@ -1,5 +1,4 @@
 deepmerge
-mock
 flask>=2.2
 phabricator>=0.8.0
 pyyaml

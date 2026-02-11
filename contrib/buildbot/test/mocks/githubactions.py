@@ -4,7 +4,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import mock
+from unittest import mock
 
 from build import BuildStatus
 from githubactions import WorkflowStatus

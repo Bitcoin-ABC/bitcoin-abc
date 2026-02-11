@@ -7,9 +7,8 @@
 
 import json
 import unittest
-from unittest.mock import call
+from unittest import mock
 
-import mock
 import requests
 
 import test.mocks.teamcity
@@ -75,7 +74,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
                 )
 
             expected_calls = [
-                call(
+                mock.call(
                     AnyWith(
                         requests.PreparedRequest,
                         {

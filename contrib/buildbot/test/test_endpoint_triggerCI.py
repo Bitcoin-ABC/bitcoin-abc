@@ -7,9 +7,7 @@
 import itertools
 import json
 import unittest
-from unittest.mock import call
-
-import mock
+from unittest import mock
 
 import test.mocks.phabricator
 import test.mocks.teamcity
@@ -337,7 +335,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             self.set_transaction_return_value(comments)
             response = self.call_endpoint()
             expected_calls = [
-                call(
+                mock.call(
                     "BitcoinABC_BitcoinAbcStaging",
                     f"refs/tags/phabricator/diff/{self.diff_id}",
                     properties=[

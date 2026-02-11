@@ -5,8 +5,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import unittest
-
-import mock
+from unittest import mock
 
 import test.mocks.slackbot
 from slackbot import SlackBot

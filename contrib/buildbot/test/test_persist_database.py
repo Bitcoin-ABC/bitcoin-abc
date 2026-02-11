@@ -8,8 +8,7 @@ import json
 import os
 import shelve
 import unittest
-
-import mock
+from unittest import mock
 
 import server
 import test.mocks.teamcity
