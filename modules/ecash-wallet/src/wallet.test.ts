@@ -59,6 +59,8 @@ import {
     batchTokenSendOutputs,
     checkTokenSendExceedsMaxOutputs,
     RequiredTokenInputs,
+    getTokenUtxosWithExactAtoms,
+    WalletUtxo,
 } from './wallet';
 import { WalletBase } from './walletBase';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
@@ -6363,6 +6365,57 @@ describe('Support functions', () => {
                     `An SLP SLP_TOKEN_TYPE_MINT_VAULT GENESIS tx may have only one mint qty output and it must be at outIdx 1. Found another mint qty output at outIdx 2.`,
                 );
             });
+        });
+    });
+    context('getTokenUtxosWithExactAtoms', () => {
+        it('Returns hasExact: false when DP limit is hit despite an exact match existing', () => {
+            // Build a UTXO set where an exact match exists (100000 + 50000 = 150000) but the DP
+            // hits the entry limit before finding it. First 17 UTXOs are powers of 2, which cause
+            // the DP map to grow to 2^17 = 131072 entries (> 100k limit) before we process the
+            // 18th UTXO. The exact match requires the 18th (100000) and 19th (50000) UTXOs.
+            const tokenId = DUMMY_TOKENID_SLP_TOKEN_TYPE_FUNGIBLE;
+            const atoms = [
+                1n,
+                2n,
+                4n,
+                8n,
+                16n,
+                32n,
+                64n,
+                128n,
+                256n,
+                512n,
+                1024n,
+                2048n,
+                4096n,
+                8192n,
+                16384n,
+                32768n,
+                65536n,
+                100000n,
+                50000n,
+            ];
+            const utxos = atoms.map((atom, i) => ({
+                ...getDummySlpUtxo(atom, tokenId),
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 100 + i },
+            }));
+
+            const burnAtoms = 150000n; // 100000 + 50000, the last two UTXOs
+            const result = getTokenUtxosWithExactAtoms(
+                utxos as unknown as WalletUtxo[],
+                tokenId,
+                burnAtoms,
+            );
+
+            expect(result.hasExact).to.equal(false);
+
+            // We hit the limit at 18
+            expect(result.burnUtxos.length).to.equal(18);
+            const accumulatedAtoms = result.burnUtxos.reduce(
+                (sum, u) => sum + (u.token?.atoms ?? 0n),
+                0n,
+            );
+            expect(accumulatedAtoms).to.equal(231071n); // Greater than burnAtoms, but we will need a chained tx for an SLP burn
         });
     });
 });

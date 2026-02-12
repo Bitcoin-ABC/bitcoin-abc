@@ -294,3 +294,9 @@ See tests for detailed methods.
 - Changes the API as `satsStrategy` is no longer its own param, now part of `SelectUtxosConfig`
 
 [D19476](https://reviews.bitcoinabc.org/D19476)
+
+# 4.0.1
+
+- Add a memory limit on iterations for attempts to determine exact atom available in utxo set to prevent OOM crashes
+
+[D19556](https://reviews.bitcoinabc.org/D19556)

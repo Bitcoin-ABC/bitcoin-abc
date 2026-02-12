@@ -290,7 +290,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 ### 2.6.16
 
-- Publish to catch updead `ecash-wallet` breaking change `4.0.0` [D19476](https://reviews.bitcoinabc.org/D19476)
+- Publish to catch updated `ecash-wallet` breaking change `4.0.0` [D19476](https://reviews.bitcoinabc.org/D19476)
 
 ### 2.7.0 [D19491](https://reviews.bitcoinabc.org/D19491)
 
@@ -302,3 +302,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 **BREAKING CHANGE**
 
 - Default to 64-bit ints for all created offers
+
+### 3.0.1 [D19556](https://reviews.bitcoinabc.org/D19556)
+
+- Publish to catch updated `ecash-wallet`

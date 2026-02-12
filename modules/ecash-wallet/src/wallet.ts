@@ -79,6 +79,15 @@ const CHAINED_TX_ALPHA_RESERVED_OUTPUTS = 2;
 // A tx in a chain that is not the first tx will always have exactly 1 input
 const NTH_TX_IN_CHAIN_INPUTS = 1;
 
+// Cap on DP map entries in getTokenUtxosWithExactAtoms to avoid OOM. With many UTXOs of differing
+// amounts, the subset-sum DP can grow exponentially. ~100k typically covers ~15–20 UTXOs of differing
+// atom amounts. Kept conservative (~15–20MB at limit) to support 3-year-old Android devices.
+// We could make this a configurable param, but the use cases would be quite sophisticated. I think
+// it's better for ecash-wallet to be opinionated here. The consequence of being wrong about not having
+// exact atoms available are building a chained tx when you maybe didn't have to on SLP, or adding a change
+// SEND action on an ALP burn when you maybe didn't have to on ALP (not a big deal in either case)
+const DP_ENTRY_LIMIT = 100_000;
+
 /**
  * Dummy prevOut txid for preliminary txs in chained token sends
  * To be used for PreliminaryTxs that will be updated with the real txid
@@ -623,14 +632,15 @@ class WalletAction {
         config: SelectUtxosConfig = {},
     ): WalletAction {
         // Preprocess action: infer SEND actions for ALP-only-burn cases
+        const spendableUtxos = wallet.spendableUtxos();
         const preprocessedAction = inferAlpBurnSendActions(
             action,
-            wallet.spendableUtxos(),
+            spendableUtxos,
         );
 
         const selectUtxosResult = selectUtxos(
             preprocessedAction,
-            wallet.spendableUtxos(),
+            spendableUtxos,
             config,
         );
 
@@ -2775,11 +2785,15 @@ export const getTokenUtxosWithExactAtoms = (
         return { hasExact: true, burnUtxos: relevantUtxos };
     }
 
-    // Use dynamic programming to find the exact sum and track UTXOs
+    // Use dynamic programming to find the exact sum and track UTXOs.
     const dp: Map<bigint, WalletUtxo[]> = new Map();
     dp.set(0n, []);
 
     for (const utxo of relevantUtxos) {
+        if (dp.size > DP_ENTRY_LIMIT) {
+            // Abort DP to avoid OOM; fall through to hasExact: false / SEND path
+            break;
+        }
         const atoms = utxo.token!.atoms;
         const newEntries: Array<[bigint, WalletUtxo[]]> = [];
 
