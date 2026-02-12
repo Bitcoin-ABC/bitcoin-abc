@@ -39,7 +39,7 @@ class GithubActions:
         self.base_url = f"https://api.github.com/repos/{OWNER}/{REPO}/actions/workflows/{WORKFLOW_ID}/runs"
 
     def get_latest_workflow_status(self):
-        response = requests.get(self.base_url, headers=HEADERS, **PARAMS)
+        response = requests.get(self.base_url, headers=HEADERS, params=PARAMS)
 
         if response.status_code != requests.codes.ok:
             raise AssertionError(
