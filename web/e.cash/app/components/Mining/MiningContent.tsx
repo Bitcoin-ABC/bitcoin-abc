@@ -254,6 +254,16 @@ export default function MiningContent() {
                       Kryptex
                     </a>
                   </li>
+                  <li>
+                    <a
+                      href="https://jackpool.org/#xec_sha256"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 transition-colors hover:text-blue-300"
+                    >
+                      Jackpool
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
