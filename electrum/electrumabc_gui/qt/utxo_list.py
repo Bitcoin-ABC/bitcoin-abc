@@ -1,6 +1,7 @@
 #
 # Electrum ABC - lightweight eCash client
-# Copyright (C) 2020 The Electrum ABC developers
+# Copyright (C) 2020-2026 The Electrum ABC developers
+# Copyright (C) 2017-2026 The Electron Cash Developers
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -39,6 +40,7 @@ from electrumabc.amount import format_satoshis
 from electrumabc.bitcoin import COINBASE_MATURITY
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
+from electrumabc.util import PrintError, profiler
 from electrumabc.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 
 from .avalanche.proof_editor import AvaProofDialog
@@ -82,7 +84,7 @@ class CoinDisplayData:
         )
 
 
-class UTXOList(MyTreeWidget):
+class UTXOList(MyTreeWidget, PrintError):
     class Col(IntEnum):
         """Column numbers. This is to make code in on_update easier to read.
         If you modify these, make sure to modify the column header names in
@@ -138,6 +140,9 @@ class UTXOList(MyTreeWidget):
 
         self.cleaned_up = False
 
+    def diagnostic_name(self):
+        return f"{super().diagnostic_name()}/{self.wallet.diagnostic_name()}"
+
     def clean_up(self):
         self.cleaned_up = True
 
@@ -167,12 +172,14 @@ class UTXOList(MyTreeWidget):
         super().update()
 
     @if_not_dead
+    @profiler
     def on_update(self):
         local_maturity_height = (self.wallet.get_local_height() + 1) - COINBASE_MATURITY
         # cache previous selection, if any
         prev_selection = self.get_selected()
         self.clear()
         self.utxos = self.wallet.get_utxos(exclude_tokens=False)
+        self._update_utxo_count_display(len(self.utxos))
         for x in self.utxos:
             address = x["address"]
             address_text = address.to_ui_string()
@@ -244,7 +251,6 @@ class UTXOList(MyTreeWidget):
             if coin.get_name() in prev_selection:
                 # NB: This needs to be here after the item is added to the widget. See #979.
                 utxo_item.setSelected(True)  # restore previous selection
-        self._update_utxo_count_display(len(self.utxos))
 
     def _update_utxo_count_display(self, num_utxos: int):
         headerItem = self.headerItem()
