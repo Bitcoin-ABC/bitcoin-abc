@@ -16,6 +16,7 @@ else
     echo "unexpected WIN_ARCH: $WIN_ARCH"
     exit 1
 fi
+export ARCH="${GCC_TRIPLET_HOST%%-*}"  # e.g. x86_64
 
 export BUILD_TYPE="wine"
 export GCC_TRIPLET_BUILD="x86_64-pc-linux-gnu"
@@ -244,7 +245,7 @@ build_the_app() {
         # build NSIS installer
         info "Running makensis to build setup .exe version ..."
         # $VERSION could be passed to the electrum-abc.nsi script, but this would require some rewriting in the script itself.
-        makensis -DPRODUCT_VERSION=${ELECTRUM_VERSION} electrum-abc.nsi || fail "makensis failed"
+        makensis -DPRODUCT_VERSION=${ELECTRUM_VERSION} -DARCH=${ARCH} electrum-abc.nsi || fail "makensis failed"
 
         cd dist
         mv $NAME_ROOT-setup.exe $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe  || fail "Failed to move $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe to the output dist/ directory"

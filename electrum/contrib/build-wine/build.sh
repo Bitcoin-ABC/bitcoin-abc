@@ -52,20 +52,19 @@ MAPPED_DIR=/homedir/wine/drive_c/electrumabc
 
 (
     docker run $DOCKER_RUN_TTY \
-    -u $USER_ID:$GROUP_ID \
-    -e HOME=/homedir \
-    -e ELECTRUM_ROOT=${MAPPED_DIR} \
-    -e GIT_COMMIT_HASH=$(git rev-parse HEAD) \
-    -e WIN_ARCH="$WIN_ARCH" \
-    -e WINEARCH="$WIN_ARCH" \
-    -e BUILD_DEBUG="$BUILD_DEBUG" \
-    -e PYI_SKIP_TAG="$PYI_SKIP_TAG" \
-    --name ec-wine-builder-cont \
-    -v "${ELECTRUM_ROOT}":${MAPPED_DIR}:delegated \
-    --rm \
-    --workdir /homedir/wine/drive_c/electrumabc/contrib/build-wine \
-    $IMGNAME \
-    ./_build.sh
+        -u $USER_ID:$GROUP_ID \
+        -e HOME=/homedir \
+        -e ELECTRUM_ROOT=${MAPPED_DIR} \
+        -e GIT_COMMIT_HASH=$(git rev-parse HEAD) \
+        -e WIN_ARCH="$WIN_ARCH" \
+        -e BUILD_DEBUG="$BUILD_DEBUG" \
+        -e PYI_SKIP_TAG="$PYI_SKIP_TAG" \
+        --name ec-wine-builder-cont \
+        -v "${ELECTRUM_ROOT}":${MAPPED_DIR}:delegated \
+        --rm \
+        --workdir /homedir/wine/drive_c/electrumabc/contrib/build-wine \
+        $IMGNAME \
+        ./_build.sh
 ) || fail "Build inside docker container failed"
 
 popd

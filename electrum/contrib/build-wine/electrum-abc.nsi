@@ -28,8 +28,11 @@
   Name "${PRODUCT_NAME}"
   OutFile "dist/${INTERNAL_NAME}-setup.exe"
 
-  ;Default installation folder
-  InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
+  !if "${ARCH}" == "x86_64"
+    InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}"
+  !else
+    InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
+  !endif
 
   ;Get installation folder from registry if available
   InstallDirRegKey ${INSTDIR_REG_ROOT} "Software\${PRODUCT_NAME}" ""
@@ -105,6 +108,12 @@
 ;--------------------------------
 ;Functions
 
+!macro SetRegView64
+  !if "${ARCH}" == "x86_64"
+    SetRegView 64 ; Use the 64-bit registry view
+  !endif
+!macroend
+
 !macro CreateEnsureNotRunning prefix operation
 
 Function ${prefix}EnsureNotRunning
@@ -165,6 +174,7 @@ Function .onInit
 FunctionEnd
 
 Section
+  !insertmacro SetRegView64
   SetOutPath $INSTDIR ; side-effect is it creates dir if not exist
 
   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
@@ -228,6 +238,8 @@ SectionEnd
 ;Uninstaller Section
 
 Section "Uninstall"
+  !insertmacro SetRegView64
+
   !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR"
 
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
