@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { Wrapper } from 'components/Rewards/styled';
+import { Wrapper, ContentDiv } from 'components/Rewards/styled';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
@@ -208,6 +208,19 @@ const Rewards = () => {
             ) : (
                 <p>Token Rewards are not enabled for Testnet</p>
             )}
+            <ContentDiv>
+                <h3>What can I do with Cachet?</h3>
+                <p>
+                    Play for free at{' '}
+                    <a
+                        href="https://everydayjackpot.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        everydayjackpot.com
+                    </a>
+                </p>
+            </ContentDiv>
         </Wrapper>
     );
 };

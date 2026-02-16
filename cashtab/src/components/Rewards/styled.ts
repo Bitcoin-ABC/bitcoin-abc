@@ -11,3 +11,32 @@ export const Wrapper = styled.div`
         margin-bottom: 30px;
     }
 `;
+
+export const ContentDiv = styled.div`
+    color: ${props => props.theme.primaryText};
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    margin-top: 24px;
+    padding: 16px;
+    background-color: ${props => props.theme.secondaryBackground};
+    border-radius: 12px;
+
+    h3 {
+        margin: 0 0 12px 0;
+        font-size: var(--text-lg);
+        line-height: var(--text-lg--line-height);
+    }
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        color: ${props => props.theme.primary};
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+`;
