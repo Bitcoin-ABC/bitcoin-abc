@@ -79,7 +79,11 @@ function AppContent(): React.JSX.Element {
         }
 
         const handlePaymentRequest = (bip21Uri: string) => {
-            // If wallet is already ready, send immediately
+            // Always store as pending first (in case WebView isn't ready)
+            // This ensures we don't lose the payment request
+            pendingPaymentRequestRef.current = bip21Uri;
+
+            // If wallet is already ready and WebView is mounted, send immediately
             if (walletReadyRef.current && webViewRef.current) {
                 webViewRef.current.postMessage(
                     JSON.stringify({
@@ -87,9 +91,8 @@ function AppContent(): React.JSX.Element {
                         data: bip21Uri,
                     }),
                 );
-            } else {
-                // Store as pending - will be sent when WALLET_READY is received
-                pendingPaymentRequestRef.current = bip21Uri;
+                // Clear pending since we sent it
+                pendingPaymentRequestRef.current = null;
             }
         };
 

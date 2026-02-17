@@ -44,6 +44,7 @@
             <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <data android:scheme="https" android:host="paybutton.org" android:pathPrefix="/app"/>
+            <data android:scheme="https" android:host="api.paybutton.org" android:pathPrefix="/app"/>
         </intent-filter>
         
         <!-- Deep link for BIP21 URIs (camera QR scanner, etc.) -->
@@ -61,6 +62,7 @@
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="https" android:host="paybutton.org" android:pathPrefix="/app"/>
+            <data android:scheme="https" android:host="api.paybutton.org" android:pathPrefix="/app"/>
         </intent-filter>
         
         <!-- Intent filter for watch to open phone app -->

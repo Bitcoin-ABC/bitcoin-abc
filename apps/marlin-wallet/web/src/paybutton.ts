@@ -41,7 +41,8 @@ export function paybuttonDeepLinkToBip21Uri(
 
         if (
             url.protocol !== 'https:' ||
-            url.hostname !== 'paybutton.org' ||
+            (url.hostname !== 'paybutton.org' &&
+                url.hostname !== 'api.paybutton.org') ||
             url.pathname !== '/app'
         ) {
             return { bip21Uri: deepLink, returnToBrowser: false };

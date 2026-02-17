@@ -70,6 +70,15 @@ class MainActivity : ReactActivity() {
     
     // Reset listener state on app launch
     PaymentRequestModule.reset()
+    
+    // Set up callback to be notified when listener is ready
+    PaymentRequestModule.setReadyCallback {
+      // Listener is now ready, try to send pending payment request
+      if (pendingPaymentUri != null) {
+        tryToSendPendingPaymentRequest()
+      }
+    }
+    
     handleIntent(intent)
   }
   
@@ -200,7 +209,9 @@ class MainActivity : ReactActivity() {
    */
   private fun sendPaymentRequest(uri: String) {
     val reactContext = getReactContext()
-    if (reactContext != null) {
+    val listenerReady = PaymentRequestModule.isListenerReady()
+    
+    if (reactContext != null && listenerReady) {
       try {
         reactContext
           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -211,7 +222,7 @@ class MainActivity : ReactActivity() {
         setPendingPaymentRequest(uri)
       }
     } else {
-      // ReactContext not available yet, store for later
+      // ReactContext not available yet or listener not ready, store for later
       setPendingPaymentRequest(uri)
     }
   }
