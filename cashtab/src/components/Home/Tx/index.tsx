@@ -80,6 +80,7 @@ import {
     DiceIcon,
     PayoutWinIcon,
     BlitsPayoutIcon,
+    EdjIcon,
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -97,7 +98,12 @@ import AvalancheFinalized from 'components/Common/AvalancheFinalized';
 import CashtabState from 'config/CashtabState';
 import { previewAddress, previewTokenId, previewSolAddr } from 'helpers';
 import { CopyIconButton, IconButton } from 'components/Common/Buttons';
-import { FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
+import {
+    FIRMA_REDEEM_ADDRESS,
+    EDJ_TOKEN_ID,
+    CACHET_TOKEN_ID,
+    EDJ_COM_GAME_ADDRESSES,
+} from 'constants/tokens';
 import { Alert } from 'components/Common/Atoms';
 import { UpdateCashtabState } from 'wallet/useWallet';
 
@@ -185,6 +191,25 @@ const Tx: React.FC<TxProps> = ({
         appActions[0].isValid &&
         appActions[0].lokadId === opReturn.appPrefixesHex.solAddr;
 
+    const isEverydayJackpotTx =
+        xecTxType === 'Sent' &&
+        typeof parsed.parsedTokenEntries[0] !== 'undefined' &&
+        recipients.some(addr => EDJ_COM_GAME_ADDRESSES.includes(addr));
+    const everydayJackpotTokenId = isEverydayJackpotTx
+        ? parsed.parsedTokenEntries[0].tokenId
+        : null;
+    const isCachetFreePlay =
+        isEverydayJackpotTx && everydayJackpotTokenId === CACHET_TOKEN_ID;
+    const isEdjBet =
+        isEverydayJackpotTx && everydayJackpotTokenId === EDJ_TOKEN_ID;
+
+    const isEdjPayout =
+        xecTxType === 'Received' &&
+        typeof replyAddress !== 'undefined' &&
+        EDJ_COM_GAME_ADDRESSES.includes(replyAddress) &&
+        typeof parsed.parsedTokenEntries[0] !== 'undefined' &&
+        parsed.parsedTokenEntries[0].tokenId === EDJ_TOKEN_ID;
+
     if (isFirmaYield) {
         renderedAppActions.push(
             <IconAndLabel>
@@ -199,6 +224,36 @@ const Tx: React.FC<TxProps> = ({
                 <FirmaIcon />
                 <TetherIcon />
                 <AppDescLabel noWordBreak>Firma USDT conversion</AppDescLabel>
+            </IconAndLabel>,
+        );
+    }
+    if (isCachetFreePlay) {
+        renderedAppActions.push(
+            <IconAndLabel>
+                <EdjIcon />
+                <AppDescLabel noWordBreak>
+                    everydayjackpot.com - free play
+                </AppDescLabel>
+            </IconAndLabel>,
+        );
+    }
+    if (isEdjBet) {
+        renderedAppActions.push(
+            <IconAndLabel>
+                <EdjIcon />
+                <AppDescLabel noWordBreak>
+                    everydayjackpot.com - EDJ Play
+                </AppDescLabel>
+            </IconAndLabel>,
+        );
+    }
+    if (isEdjPayout) {
+        renderedAppActions.push(
+            <IconAndLabel>
+                <EdjIcon />
+                <AppDescLabel noWordBreak>
+                    everydayjackpot.com - EDJ payout
+                </AppDescLabel>
             </IconAndLabel>,
         );
     }
@@ -303,6 +358,67 @@ const Tx: React.FC<TxProps> = ({
                                     rel="noreferrer"
                                 >
                                     {betTxid.slice(0, 3)}...{betTxid.slice(-3)}
+                                </ActionLink>
+                            </AppDescMsg>
+                        </>,
+                    );
+                }
+            }
+            continue;
+        }
+        if (app === 'EDJ.com Payout') {
+            if (!isValid) {
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <UnknownIcon />
+                        <AppDescLabel>Invalid EDJ.com Payout</AppDescLabel>
+                    </IconAndLabel>,
+                );
+            } else {
+                if (
+                    typeof action !== 'undefined' &&
+                    'numTxs' in action &&
+                    'potAtoms' in action &&
+                    'winnerOddsBps' in action &&
+                    'winnerTxid' in action
+                ) {
+                    const { numTxs, potAtoms, winnerOddsBps, winnerTxid } =
+                        action as {
+                            numTxs: number;
+                            potAtoms: bigint;
+                            winnerOddsBps: number;
+                            winnerTxid: string;
+                        };
+                    const oddsPct = (winnerOddsBps / 100).toFixed(2);
+                    const potFirma = (Number(potAtoms) / 10000).toLocaleString(
+                        userLocale,
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        },
+                    );
+
+                    renderedAppActions.push(
+                        <>
+                            <IconAndLabel>
+                                <PayoutWinIcon />
+                                <AppDescLabel>
+                                    EverydayJackpot Winner
+                                </AppDescLabel>
+                            </IconAndLabel>
+                            <AppDescMsg>
+                                🏆 {numTxs} entries | ${potFirma} pot |{' '}
+                                {oddsPct}% odds
+                            </AppDescMsg>
+                            <AppDescMsg>
+                                Winning bet:{' '}
+                                <ActionLink
+                                    href={`${explorer.blockExplorerUrl}/tx/${winnerTxid}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    {winnerTxid.slice(0, 8)}...
+                                    {winnerTxid.slice(-8)}
                                 </ActionLink>
                             </AppDescMsg>
                         </>,

@@ -13,6 +13,11 @@ import {
 } from 'chronik';
 import vectors from '../fixtures/vectors';
 import {
+    EDJ_COM_GAME_ADDRESSES,
+    CACHET_TOKEN_ID,
+    EDJ_TOKEN_ID,
+} from 'constants/tokens';
+import {
     chronikTokenMocks,
     mockLargeTokenCache,
     chronikSlpUtxos,
@@ -25,6 +30,9 @@ import {
     noCachedInfoParsedTxHistory,
     NftParentGenesisTx,
     NftChildGenesisTx,
+    cachetSendToEdjTx,
+    edjSendTx,
+    edjPayoutTx,
 } from '../fixtures/mocks';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import CashtabCache from 'config/CashtabCache';
@@ -555,6 +563,50 @@ describe('Cashtab chronik.js functions', () => {
             );
             expect(rollAction.action.roll).toBe(87389273);
             expect(rollAction.action.result).toBe('W');
+        });
+
+        it('parseTx: CACHET sent to EverydayJackpot game address (free play)', () => {
+            const parsed = parseTx(cachetSendToEdjTx.tx, [
+                cachetSendToEdjTx.sendingHash,
+            ]);
+
+            expect(parsed.xecTxType).toBe('Sent');
+            expect(parsed.recipients).toEqual(
+                expect.arrayContaining(EDJ_COM_GAME_ADDRESSES),
+            );
+            const cachetEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === CACHET_TOKEN_ID,
+            );
+            expect(cachetEntry).toBeDefined();
+            expect(cachetEntry.renderedTxType).toBe('SEND');
+            expect(cachetEntry.tokenSatoshis).toBe('1000'); // 10 CACHET to game
+        });
+
+        it('parseTx: EDJ sent to EverydayJackpot game address (EDJ Play)', () => {
+            const parsed = parseTx(edjSendTx.tx, [edjSendTx.sendingHash]);
+
+            expect(parsed.xecTxType).toBe('Sent');
+            expect(parsed.recipients).toEqual(
+                expect.arrayContaining(EDJ_COM_GAME_ADDRESSES),
+            );
+            const edjEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === EDJ_TOKEN_ID,
+            );
+            expect(edjEntry).toBeDefined();
+            expect(edjEntry.renderedTxType).toBe('SEND');
+            expect(edjEntry.tokenSatoshis).toBe('10000'); // 100 EDJ to game
+        });
+
+        it('parseTx: EDJ received from EverydayJackpot game address (EDJ payout)', () => {
+            const parsed = parseTx(edjPayoutTx.tx, [edjPayoutTx.receivingHash]);
+
+            expect(parsed.xecTxType).toBe('Received');
+            const edjEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === EDJ_TOKEN_ID,
+            );
+            expect(edjEntry).toBeDefined();
+            expect(edjEntry.renderedTxType).toBe('SEND');
+            expect(edjEntry.tokenSatoshis).toBe('5000'); // 50 EDJ payout
         });
     });
 });

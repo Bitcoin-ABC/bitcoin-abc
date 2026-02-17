@@ -71,6 +71,9 @@ import {
     firmaYieldTx,
     firmaRedeemTx,
     alpSendWithCashtabMsgTx,
+    cachetSendToEdjTx,
+    edjSendTx,
+    edjPayoutTx,
 } from './mocks';
 
 export default {
@@ -1032,6 +1035,27 @@ export default {
                 tx: alpSendWithCashtabMsgTx.tx,
                 hashes: [alpSendWithCashtabMsgTx.receivingHash],
                 parsed: alpSendWithCashtabMsgTx.parsedReceive,
+            },
+            {
+                description:
+                    'CACHET sent to EverydayJackpot game address (free play)',
+                tx: cachetSendToEdjTx.tx,
+                hashes: [cachetSendToEdjTx.sendingHash],
+                parsed: cachetSendToEdjTx.parsed,
+            },
+            {
+                description:
+                    'EDJ sent to EverydayJackpot game address (EDJ Play)',
+                tx: edjSendTx.tx,
+                hashes: [edjSendTx.sendingHash],
+                parsed: edjSendTx.parsed,
+            },
+            {
+                description:
+                    'EDJ received from EverydayJackpot game address (EDJ payout)',
+                tx: edjPayoutTx.tx,
+                hashes: [edjPayoutTx.receivingHash],
+                parsed: edjPayoutTx.parsed,
             },
         ],
     },

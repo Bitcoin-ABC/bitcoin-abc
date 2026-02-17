@@ -326,6 +326,12 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                             if (typeof emppAction !== 'undefined') {
                                 appActions.push(emppAction);
                             }
+                        } else if (lokadId === opReturn.appPrefixesHex.trophy) {
+                            // Found everydayjackpot.com payout in ALP transaction
+                            const emppAction = getEmppAppAction(push);
+                            if (typeof emppAction !== 'undefined') {
+                                appActions.push(emppAction);
+                            }
                         }
                     }
                 }

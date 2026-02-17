@@ -27,6 +27,7 @@ export const opReturn = {
         solAddr: '534f4c30', // SOL0
         dice: '44494345', // DICE
         roll: '524f4c4c', // ROLL
+        trophy: 'f09f8f86', // 🏆 everydayjackpot.com game payout
     },
     /* The max payload per spec is 220 bytes (or 223 bytes including +1 for OP_RETURN and +2 for pushdata opcodes)
        Within this 223 bytes, transaction building will take up 8 bytes, hence cashtabMsgByteLimit is set to 215 bytes

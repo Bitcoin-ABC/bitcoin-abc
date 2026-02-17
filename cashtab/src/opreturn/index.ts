@@ -644,6 +644,52 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
                 },
             };
         }
+        case opReturn.appPrefixesHex.trophy: {
+            // EDJ.com game payout: lokad (4 bytes) + numTxs (u32 LE) + potAtoms (u64 LE) + winnerOddsBps (u32 LE) + winnerTxid (32 bytes)
+            const trophyStack = { remainingHex: emppStack.remainingHex };
+            const TROPHY_DATA_LEN = 4 + 8 + 4 + 32; // 48 bytes = 96 hex chars
+
+            if (trophyStack.remainingHex.length < TROPHY_DATA_LEN * 2) {
+                return {
+                    lokadId,
+                    app: 'EDJ.com Payout',
+                    isValid: false,
+                    action: {
+                        stack: push,
+                        decoded: 'Invalid trophy data length',
+                    },
+                };
+            }
+
+            const numTxs = new Bytes(
+                fromHex(consume(trophyStack, 4)),
+            ).readU32();
+            const potAtoms = new Bytes(
+                fromHex(consume(trophyStack, 8)),
+            ).readU64();
+            const winnerOddsBps = new Bytes(
+                fromHex(consume(trophyStack, 4)),
+            ).readU32();
+            const winnerTxid = consume(trophyStack, 32);
+
+            const isValid =
+                winnerOddsBps <= 10000 &&
+                numTxs >= 1 &&
+                potAtoms >= 0n &&
+                winnerTxid.length === 64;
+
+            return {
+                lokadId,
+                app: 'EDJ.com Payout',
+                isValid,
+                action: {
+                    numTxs,
+                    potAtoms,
+                    winnerOddsBps,
+                    winnerTxid,
+                },
+            };
+        }
         default: {
             // Unknown EMPP action
             return {
@@ -772,6 +818,30 @@ export const parseEmppRaw = (emppRaw: string): ParsedOpReturnRaw => {
                     parsed.data = `Bet: ${rollAction.betTxid.slice(0, 8)}...${rollAction.betTxid.slice(-8)}, Roll: ${rollAction.roll}, Result: ${resultLabel}`;
                 } else {
                     parsed.protocol = 'Invalid ROLL Payout';
+                }
+                return parsed;
+            }
+            case 'EDJ.com Payout': {
+                if (
+                    emppAction.isValid &&
+                    'numTxs' in action &&
+                    'potAtoms' in action &&
+                    'winnerOddsBps' in action &&
+                    'winnerTxid' in action
+                ) {
+                    parsed.protocol = 'EDJ.com Payout';
+                    const trophyAction = action as {
+                        numTxs: number;
+                        potAtoms: bigint;
+                        winnerOddsBps: number;
+                        winnerTxid: string;
+                    };
+                    const oddsPct = (trophyAction.winnerOddsBps / 100).toFixed(
+                        2,
+                    );
+                    parsed.data = `${trophyAction.numTxs} entries, $${(Number(trophyAction.potAtoms) / 10000).toFixed(2)} pot, ${oddsPct}% odds, winning tx: ${trophyAction.winnerTxid.slice(0, 8)}...${trophyAction.winnerTxid.slice(-8)}`;
+                } else {
+                    parsed.protocol = 'Invalid EDJ.com Payout';
                 }
                 return parsed;
             }

@@ -61,6 +61,7 @@ import { ReactComponent as NFToa } from 'assets/nftoa.svg';
 import { ReactComponent as Dice } from 'assets/dice.svg';
 import { ReactComponent as PayoutWin } from 'assets/payout-win.svg';
 import { ReactComponent as BlitsPayout } from 'assets/blits-payout.svg';
+import { ReactComponent as Edj } from 'assets/edj.svg';
 
 import appConfig from 'config/app';
 
@@ -275,3 +276,4 @@ export const PayoutWinIcon: React.FC = () => (
 export const BlitsPayoutIcon: React.FC = () => (
     <BlitsPayout title="Blitzchips Payout Loss" />
 );
+export const EdjIcon: React.FC = () => <Edj title="everydayjackpot.com" />;

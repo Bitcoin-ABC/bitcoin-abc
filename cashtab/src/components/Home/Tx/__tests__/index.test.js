@@ -77,6 +77,9 @@ import {
     invalidXecxTx,
     firmaYieldTx,
     firmaRedeemTx,
+    cachetSendToEdjTx,
+    edjSendTx,
+    edjPayoutTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router';
@@ -4090,5 +4093,101 @@ describe('<Tx />', () => {
 
         // We see Firma redeem app action
         expect(screen.getByText(`Firma USDT conversion`)).toBeInTheDocument();
+    });
+    it('CACHET sent to EverydayJackpot (free play)', () => {
+        const thisMock = cachetSendToEdjTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx-sent icon
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+
+        // We see the EverydayJackpot icon
+        expect(screen.getByTitle('everydayjackpot.com')).toBeInTheDocument();
+
+        // We see the free play message
+        expect(
+            screen.getByText('everydayjackpot.com - free play'),
+        ).toBeInTheDocument();
+    });
+    it('EDJ sent to EverydayJackpot (EDJ Play)', () => {
+        const thisMock = edjSendTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx-sent icon
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+
+        // We see the EverydayJackpot icon
+        expect(screen.getByTitle('everydayjackpot.com')).toBeInTheDocument();
+
+        // We see the EDJ Play message
+        expect(
+            screen.getByText('everydayjackpot.com - EDJ Play'),
+        ).toBeInTheDocument();
+    });
+    it('EDJ received from EverydayJackpot (EDJ payout)', () => {
+        const thisMock = edjPayoutTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.receivingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx-received icon
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see the EverydayJackpot icon
+        expect(screen.getByTitle('everydayjackpot.com')).toBeInTheDocument();
+
+        // We see the EDJ payout message
+        expect(
+            screen.getByText('everydayjackpot.com - EDJ payout'),
+        ).toBeInTheDocument();
     });
 });

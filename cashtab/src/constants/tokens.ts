@@ -24,6 +24,19 @@ export const XECX_SWEEPER_ADDRESS =
 export const FIRMA_REDEEM_ADDRESS =
     'ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5';
 
+/** EDJ token - everydayjackpot.com bets (100 EDJ = 1 FIRMA) */
+export const EDJ_TOKEN_ID =
+    '411f07171b98e8e1e0c368dc88673bb7228e56fb96079f838ca57c2022777d84';
+
+/** CACHET token - free plays (10 CACHET = 1 free bet) */
+export const CACHET_TOKEN_ID =
+    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
+
+/** EDJ.com game addresses - CACHET/EDJ/FIRMA sent here = bet */
+export const EDJ_COM_GAME_ADDRESSES = [
+    'ecash:qzqcq9p5lxa3jhc5lhwaefua9cjfhfjvcvsj887fg5',
+];
+
 /** firma.cash min fee for redemptions */
 export const FIRMA_REDEEM_FEE_MIN = 2;
 
