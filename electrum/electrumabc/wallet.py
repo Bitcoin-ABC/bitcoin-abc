@@ -1992,7 +1992,10 @@ class AbstractWallet(PrintError, SPVDelegate):
                 # hasattr check should have caught those.
                 return []
 
+            did_create_new_addresses = False
+
             def gen_change():
+                nonlocal did_create_new_addresses
                 try:
                     while True:
                         yield self.change_unreserved.pop(0)
@@ -2000,8 +2003,9 @@ class AbstractWallet(PrintError, SPVDelegate):
                     pass
                 for addr in last_change_addrs:
                     yield addr
+                did_create_new_addresses = True
                 while True:
-                    yield self.create_new_address(for_change=True)
+                    yield self.create_new_address(for_change=True, save=False)
 
             result = []
             for addr in gen_change():
@@ -2023,6 +2027,8 @@ class AbstractWallet(PrintError, SPVDelegate):
                 else:
                     self.change_reserved.add(addr)
                 if len(result) >= count:
+                    if did_create_new_addresses:
+                        self.save_addresses()
                     return result
 
             raise RuntimeError("Unable to generate new addresses")  # should not happen
