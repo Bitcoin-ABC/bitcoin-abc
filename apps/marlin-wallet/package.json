@@ -1,6 +1,6 @@
 {
     "name": "MarlinWallet",
-    "version": "1.8.1",
+    "version": "1.8.2",
     "private": true,
     "scripts": {
         "android": "pnpm run build-web && pnpm run copy-web-android && react-native run-android",
