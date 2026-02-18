@@ -41,6 +41,9 @@ const config: TokenServerConfig = {
         'https://cashtab-testnet.fabien.cash',
         'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
         'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
+        // Cashtab mobile app (Capacitor)
+        'https://localhost', // Capacitor Android default (androidScheme: https)
+        'capacitor://localhost', // Capacitor iOS default (iosScheme: capacitor)
     ],
     iconSizes: [32, 64, 128, 256, 512],
 };
