@@ -16,6 +16,7 @@ import {
     EDJ_COM_GAME_ADDRESSES,
     CACHET_TOKEN_ID,
     EDJ_TOKEN_ID,
+    FIRMA,
 } from 'constants/tokens';
 import {
     chronikTokenMocks,
@@ -33,6 +34,7 @@ import {
     cachetSendToEdjTx,
     edjSendTx,
     edjPayoutTx,
+    edjFirmaPayoutTx,
 } from '../fixtures/mocks';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import CashtabCache from 'config/CashtabCache';
@@ -607,6 +609,31 @@ describe('Cashtab chronik.js functions', () => {
             expect(edjEntry).toBeDefined();
             expect(edjEntry.renderedTxType).toBe('SEND');
             expect(edjEntry.tokenSatoshis).toBe('5000'); // 50 EDJ payout
+        });
+
+        it('parseTx: FIRMA received from EverydayJackpot (EDJ.com payout with trophy)', () => {
+            const parsed = parseTx(edjFirmaPayoutTx.tx, [
+                edjFirmaPayoutTx.receivingHash,
+            ]);
+
+            expect(parsed.xecTxType).toBe('Received');
+            const firmaEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === FIRMA.tokenId,
+            );
+            expect(firmaEntry).toBeDefined();
+            expect(firmaEntry.renderedTxType).toBe('SEND');
+            expect(firmaEntry.tokenSatoshis).toBe('141954'); // FIRMA payout
+            const trophyAction = parsed.appActions.find(
+                a => a.app === 'EDJ.com Payout',
+            );
+            expect(trophyAction).toBeDefined();
+            expect(trophyAction.isValid).toBe(true);
+            expect(trophyAction.action.numTxs).toBe(103);
+            expect(trophyAction.action.potAtoms).toBe(146004n);
+            expect(trophyAction.action.winnerOddsBps).toBe(137);
+            expect(trophyAction.action.winnerTxid).toBe(
+                '956c1d56c0ef15ed31fa69ff2c5773020b18adc1ec763eeb46f4774bf83c8fca',
+            );
         });
     });
 });

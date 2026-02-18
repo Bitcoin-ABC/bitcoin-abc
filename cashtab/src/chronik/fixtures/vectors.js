@@ -74,6 +74,7 @@ import {
     cachetSendToEdjTx,
     edjSendTx,
     edjPayoutTx,
+    edjFirmaPayoutTx,
 } from './mocks';
 
 export default {
@@ -1056,6 +1057,13 @@ export default {
                 tx: edjPayoutTx.tx,
                 hashes: [edjPayoutTx.receivingHash],
                 parsed: edjPayoutTx.parsed,
+            },
+            {
+                description:
+                    'FIRMA received from EverydayJackpot game address (EDJ.com payout with trophy)',
+                tx: edjFirmaPayoutTx.tx,
+                hashes: [edjFirmaPayoutTx.receivingHash],
+                parsed: edjFirmaPayoutTx.parsed,
             },
         ],
     },

@@ -80,6 +80,7 @@ import {
     cachetSendToEdjTx,
     edjSendTx,
     edjPayoutTx,
+    edjFirmaPayoutTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router';
@@ -4189,5 +4190,38 @@ describe('<Tx />', () => {
         expect(
             screen.getByText('everydayjackpot.com - EDJ payout'),
         ).toBeInTheDocument();
+    });
+    it('FIRMA received from EverydayJackpot (EDJ.com payout with trophy)', () => {
+        const thisMock = edjFirmaPayoutTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.receivingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(),
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx-received icon
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see the EverydayJackpot Winner label (trophy payout)
+        expect(screen.getByText('EverydayJackpot Winner')).toBeInTheDocument();
+
+        // We see the trophy payout details
+        expect(screen.getByText(/103 entries/)).toBeInTheDocument();
+        expect(screen.getByText(/\$14\.60 pot/)).toBeInTheDocument();
+        expect(screen.getByText(/1\.37% odds/)).toBeInTheDocument();
+        expect(screen.getByText(/Winning bet:/)).toBeInTheDocument();
     });
 });

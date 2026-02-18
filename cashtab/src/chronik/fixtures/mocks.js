@@ -24947,3 +24947,244 @@ export const edjPayoutTx = {
     /** Wallet hash for recipient (286eabaf796ec8be1265c79f57b6c93114c0387f) */
     receivingHash: '286eabaf796ec8be1265c79f57b6c93114c0387f',
 };
+
+export const edjFirmaPayoutTx = {
+    tx: {
+        txid: '62cbd0419cb896b43d062487d73fc66f9fd1e0dbf465d309fe26541385ff8936',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '9128128e6b7a5fde33362b931e6e4b6c74ccb4a353bc8d036a191b8cba5b07ce',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '410be2f99b8bb84305405332bf23141cb79e9dc96ac76eb58bead7e4b9d64d960aea2fd4b7bc5483404b4b6b005e0fdc335382ecbf83f4428eb165f3d12efc32a44121037609a974d6c91903caf954a0161500db5c433e70abf91d756efa789646e4545c',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 11n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+            {
+                prevOut: {
+                    txid: 'bf094d0e36adbf9abff09e305e382affb89958df68c79ca5d98b3e162e660c54',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '410b660e0cda30f26e90e32b8b1aa6a820bac9c9acf238a2689397275349f45721009b3c6f694d5c243539e53b059433f5e5a979435393954f9ea7951579e889564121037609a974d6c91903caf954a0161500db5c433e70abf91d756efa789646e4545c',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 49537n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+            {
+                prevOut: {
+                    txid: 'c4adc31eed0f47e774e03f5e99903eb736785bb567b33b29851e558b9947a51a',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '4107aa943983a0f6bcbf5649965b8f1a9c75742f5fa80fa6c1c1522ce8f986a4f661019bf3da55e367151f28f4bb2226800c05a7d6944d51de6cfb0d9e6700c3aa4121037609a974d6c91903caf954a0161500db5c433e70abf91d756efa789646e4545c',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 52860n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+            {
+                prevOut: {
+                    txid: 'ee80070dfda7f4f0ca3cf5aa4d5cc1c6e6be802837f8deabbc3fc620d6f33ce2',
+                    outIdx: 24,
+                },
+                inputScript:
+                    '410add4c528f71958faa48c303d2f9df569d0a3013d56a908732947cc60c5f4485c888fec5f908409acb24f5e626eef9911809338377fbb59ee7227745c010c09a4121037609a974d6c91903caf954a0161500db5c433e70abf91d756efa789646e4545c',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 106n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+            {
+                prevOut: {
+                    txid: '0a4f46313d5e5594588b13308b5354384c7538d81d050dc8fa686600c8287396',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41586d5eb9f1252f36afedfa2f25dc6d713cf4852b44a4fa55db67c6cf3547bc732104bf88d8746959b64108d6a2487cd24063d413cc84ca8bba96a3762e9a7b074121037609a974d6c91903caf954a0161500db5c433e70abf91d756efa789646e4545c',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 47048n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a5037534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302822a02000000b81d0000000034f09f8f8667000000543a02000000000089000000956c1d56c0ef15ed31fa69ff2c5773020b18adc1ec763eeb46f4774bf83c8fca',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a914c9ff3dc758c72bdd1fac4a557799a16c465668c688ac',
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 141954n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+                token: {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    atoms: 7608n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 701n,
+                outputScript:
+                    '76a91481801434f9bb195f14fddddca79d2e249ba64cc388ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1771452003,
+        size: 937,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 936949,
+            hash: '000000000000000015ef9f68e4def4ed0009d901f050632d672779cd444c6c8c',
+            timestamp: 1771452363,
+        },
+    },
+    parsed: {
+        satoshisSent: 546,
+        stackArray: [
+            '50',
+            '534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870302822a02000000b81d00000000',
+            'f09f8f8667000000543a02000000000089000000956c1d56c0ef15ed31fa69ff2c5773020b18adc1ec763eeb46f4774bf83c8fca',
+        ],
+        xecTxType: 'Received',
+        recipients: ['ecash:qzqcq9p5lxa3jhc5lhwaefua9cjfhfjvcvsj887fg5'],
+        replyAddress: 'ecash:qzqcq9p5lxa3jhc5lhwaefua9cjfhfjvcvsj887fg5',
+        appActions: [
+            {
+                lokadId: 'f09f8f86',
+                app: 'EDJ.com Payout',
+                isValid: true,
+                action: {
+                    numTxs: 103,
+                    potAtoms: 146004n,
+                    winnerOddsBps: 137,
+                    winnerTxid:
+                        '956c1d56c0ef15ed31fa69ff2c5773020b18adc1ec763eeb46f4774bf83c8fca',
+                },
+            },
+        ],
+        parsedTokenEntries: [
+            {
+                renderedTokenType: 'ALP',
+                renderedTxType: 'SEND',
+                tokenId:
+                    '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                tokenSatoshis: '141954',
+            },
+        ],
+    },
+    /** Wallet hash for winner (c9ff3dc758c72bdd1fac4a557799a16c465668c6) */
+    receivingHash: 'c9ff3dc758c72bdd1fac4a557799a16c465668c6',
+};
