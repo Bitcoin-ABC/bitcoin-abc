@@ -9,3 +9,6 @@ This release includes the following features and fixes:
    the wallet cannot store it. The same applies to imports without a `range`
    when `-keypool` is above 2147483647, since `-keypool` is then used as the end
    of the range. Previously such imports could crash the node.
+ - Tor onion services that are created automatically by Bitcoin ABC will have
+   [PoW defenses](https://tpo.pages.torproject.net/onion-services/ecosystem/technology/security/pow/)
+   enabled if the Tor daemon supports that.

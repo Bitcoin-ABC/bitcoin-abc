@@ -38,8 +38,10 @@ FUZZ_TARGET_INIT(torcontrol, initialize_torcontrol) {
     LIMITED_WHILE(fuzzed_data_provider.ConsumeBool(), 10000) {
         TorControlReply tor_control_reply;
         CallOneOf(
-            fuzzed_data_provider, [&] { tor_control_reply.code = 250; },
-            [&] { tor_control_reply.code = 510; },
+            fuzzed_data_provider,
+            [&] { tor_control_reply.code = TOR_REPLY_OK; },
+            [&] { tor_control_reply.code = TOR_REPLY_UNRECOGNIZED; },
+            [&] { tor_control_reply.code = TOR_REPLY_SYNTAX_ERROR; },
             [&] {
                 tor_control_reply.code =
                     fuzzed_data_provider.ConsumeIntegral<int>();
@@ -54,7 +56,13 @@ FUZZ_TARGET_INIT(torcontrol, initialize_torcontrol) {
             fuzzed_data_provider,
             [&] {
                 tor_controller.add_onion_cb(dummy_tor_control_connection,
-                                            tor_control_reply);
+                                            tor_control_reply,
+                                            /*pow_was_enabled=*/true);
+            },
+            [&] {
+                tor_controller.add_onion_cb(dummy_tor_control_connection,
+                                            tor_control_reply,
+                                            /*pow_was_enabled=*/false);
             },
             [&] {
                 tor_controller.auth_cb(dummy_tor_control_connection,
