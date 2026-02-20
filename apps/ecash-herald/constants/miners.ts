@@ -10,7 +10,7 @@
  */
 export interface MinerInfo {
     miner: string;
-    coinbaseHexFragment: string;
+    coinbaseHexFragment?: string;
     parseableCoinbase?: boolean; // Note: Added optional property since it's not present in all entries
 }
 
@@ -187,6 +187,34 @@ const miners: Miners = {
             {
                 miner: 'hash-hut.net',
                 coinbaseHexFragment: '686173682d6875742e6e6574', // "hash-hut.net " ASCII
+            },
+        ],
+        [
+            '76a914b5c116444e75989be5cd2acb22e1abaad61ca8f088ac',
+            {
+                miner: 'OneClickMiner.com',
+                coinbaseHexFragment: '4f6e65436c69636b4d696e65722e636f6d', // "OneClickMiner.com" ASCII
+            },
+        ],
+        [
+            '76a914ae579f5c9fcfeeef77adf62ba153d8e72fdccb4388ac',
+            {
+                miner: 'koinium.com',
+                coinbaseHexFragment: '6b6f696e69756d2e636f6d', // "koinium.com" ASCII
+            },
+        ],
+        [
+            '76a9144b083dd037dd4af6ef80a9b69c7747a1baf533be88ac',
+            {
+                miner: 'btccore.tech',
+                coinbaseHexFragment: '627463636f72652e74656368', // "btccore.tech" ASCII
+            },
+        ],
+        [
+            '76a914bb9571dc3b28f96d03bf36e438b260ae9871d85188ac',
+            {
+                miner: 'Jackpool',
+                // Jackpool only include "pool" in ASCII which is not unique
             },
         ],
     ],

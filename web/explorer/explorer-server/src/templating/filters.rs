@@ -147,6 +147,11 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "nodeStratum",
         "90 01 Pte Ltd",
         "LSoftware DMCC",
+        "hash-hut.net",
+        "OneClickMiner.com",
+        "koinium.com",
+        "btccore.tech",
+        // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
     for &str_to_match in &self_identified_miners {
@@ -495,6 +500,37 @@ mod tests {
             render_miner(lsoftware_dmcc_coinbase_hex).unwrap(),
             "LSoftware DMCC"
         );
+
+        // hash-hut.net 927610
+        let hashhut_coinbase_hex =
+            b"\x03z'\x0e\x04\xab\xfc?i\x08\xb6\xf3\x88\xe9)\x00\x00\x00N/hash-h\
+            ut.net/18bcfhwGj7nr472b\xfa\xbemm\xce\xeb]\xbbP\x1d<Y\xf0\xb0\x01x\
+            x07\x88\x03\xb2c\x12W5n\xf2\xbf\xfe3\xd8\x88\xbd\x14\xbe\xfbw \x00\
+            x00\x00\x8e\x00\x00\x00\x00\x00\x00\x00";
+        assert_eq!(render_miner(hashhut_coinbase_hex).unwrap(), "hash-hut.net");
+
+        // OneClickMiner.com 936966
+        let oneclickminer_coinbase_hex =
+            b"\x03\x06L\x0e\x04\xebn\x96i\x00{@=~\x7f\x92\x00\x00\x11OneClickMi\
+            ner.com";
+        assert_eq!(
+            render_miner(oneclickminer_coinbase_hex).unwrap(),
+            "OneClickMiner.com"
+        );
+
+        // koinium.com 935791
+        let koinium_coinbase_hex =
+            b"\x03oG\x0e\x04\x1b\xe1\x8bi\x0c\x81\x00x\x11f\x00-\x00\x00\x00\
+            x00\x00koinium.com\xfa\xbemm\xffl\xc9\xdd\xca\x8er\x19\xe7\x0a\x9a\
+            xb9d\x87@\xdb5\xd9e5\x81\xce\x86^\x03\xde\xd7\xaa\xd9n\xda\x1f@\x00\
+            x00\x00\x00\x00\x00\x00";
+        assert_eq!(render_miner(koinium_coinbase_hex).unwrap(), "koinium.com");
+
+        // btccore.tech 935760
+        let btccore_coinbase_hex =
+            b"\x03PG\x0e\x04D\x98\x8bi\x00\xa0\x00\x03\xcc\x91\x00\x00\x00\x0cb\
+            tccore.tech";
+        assert_eq!(render_miner(btccore_coinbase_hex).unwrap(), "btccore.tech");
 
         // Unknown miner
         // genesis block 0

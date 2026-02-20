@@ -264,7 +264,10 @@ export const getMinerFromCoinbaseTx = (
         // Possibly a known miner is using a new address
         knownMiners.forEach(knownMinerInfo => {
             const { coinbaseHexFragment } = knownMinerInfo;
-            if (coinbaseScriptsig.includes(coinbaseHexFragment)) {
+            if (
+                coinbaseHexFragment !== undefined &&
+                coinbaseScriptsig.includes(coinbaseHexFragment)
+            ) {
                 minerInfo = knownMinerInfo;
             }
         });
@@ -294,6 +297,10 @@ export const getMinerFromCoinbaseTx = (
         // Intentional fall-through so ViaBTC and CKPool have same parsing
         // es-lint ignore no-fallthrough
         case 'CK Pool': {
+            if (minerInfo.coinbaseHexFragment === undefined) {
+                return minerInfo.miner;
+            }
+
             /* For ViaBTC, the interesting info is between '/' characters
              * i.e. /Mined by 260786/
              * In ascii, these are encoded with '2f'

@@ -447,6 +447,65 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'hash-hut.net',
     },
+    // OneClickMiner.com - parsed from payout script
+    {
+        height: '936966',
+        coinbaseHex:
+            '03064c0e04eb6e9669007b403d7e7f920000114f6e65436c69636b4d696e65722e636f6d',
+        payoutOutputScript:
+            '76a914b5c116444e75989be5cd2acb22e1abaad61ca8f088ac',
+        parsed: 'OneClickMiner.com',
+    },
+    // OneClickMiner.com - parsed from coinbase hex fragment
+    {
+        height: '936966',
+        coinbaseHex:
+            '03064c0e04eb6e9669007b403d7e7f920000114f6e65436c69636b4d696e65722e636f6d',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'OneClickMiner.com',
+    },
+    // koinium.com - parsed from payout script
+    {
+        height: '935791',
+        coinbaseHex:
+            '036f470e041be18b690c8100781166002d00000000006b6f696e69756d2e636f6dfabe6d6dff6cc9ddca8e7219e70a9ab9648740db35d9653581ce865e03ded7aad96eda1f4000000000000000',
+        payoutOutputScript:
+            '76a914ae579f5c9fcfeeef77adf62ba153d8e72fdccb4388ac',
+        parsed: 'koinium.com',
+    },
+    // koinium.com - parsed from coinbase hex fragment
+    {
+        height: '935791',
+        coinbaseHex:
+            '036f470e041be18b690c8100781166002d00000000006b6f696e69756d2e636f6dfabe6d6dff6cc9ddca8e7219e70a9ab9648740db35d9653581ce865e03ded7aad96eda1f4000000000000000',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'koinium.com',
+    },
+    // btccore.tech - parsed from payout script
+    {
+        height: '935760',
+        coinbaseHex:
+            '0350470e0444988b6900a00003cc910000000c627463636f72652e74656368',
+        payoutOutputScript:
+            '76a9144b083dd037dd4af6ef80a9b69c7747a1baf533be88ac',
+        parsed: 'btccore.tech',
+    },
+    // btccore.tech - parsed from coinbase hex fragment
+    {
+        height: '935760',
+        coinbaseHex:
+            '0350470e0444988b6900a00003cc910000000c627463636f72652e74656368',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'btccore.tech',
+    },
+    // Jackpool - parsed from payout script (can't be parsed from the coinbase hex fragment)
+    {
+        height: '935754',
+        coinbaseHex: '034a470e04cb828b6900300000023005000004706f6f6c',
+        payoutOutputScript:
+            '76a914bb9571dc3b28f96d03bf36e438b260ae9871d85188ac',
+        parsed: 'Jackpool',
+    },
 ];
 
 export default minerTestFixtures;
