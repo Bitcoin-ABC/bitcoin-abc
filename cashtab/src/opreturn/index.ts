@@ -839,7 +839,7 @@ export const parseEmppRaw = (emppRaw: string): ParsedOpReturnRaw => {
                     const oddsPct = (trophyAction.winnerOddsBps / 100).toFixed(
                         2,
                     );
-                    parsed.data = `${trophyAction.numTxs} entries, $${(Number(trophyAction.potAtoms) / 10000).toFixed(2)} pot, ${oddsPct}% odds, winning tx: ${trophyAction.winnerTxid.slice(0, 8)}...${trophyAction.winnerTxid.slice(-8)}`;
+                    parsed.data = `${trophyAction.numTxs} entries, $${(Number(trophyAction.potAtoms) / 10000).toFixed(2)} pot, ${oddsPct}% odds, winning tx: ${trophyAction.winnerTxid.slice(0, 3)}...${trophyAction.winnerTxid.slice(-3)}`;
                 } else {
                     parsed.protocol = 'Invalid EDJ.com Payout';
                 }

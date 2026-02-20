@@ -417,8 +417,8 @@ const Tx: React.FC<TxProps> = ({
                                     target="_blank"
                                     rel="noreferrer"
                                 >
-                                    {winnerTxid.slice(0, 8)}...
-                                    {winnerTxid.slice(-8)}
+                                    {winnerTxid.slice(0, 3)}...
+                                    {winnerTxid.slice(-3)}
                                 </ActionLink>
                             </AppDescMsg>
                         </>,

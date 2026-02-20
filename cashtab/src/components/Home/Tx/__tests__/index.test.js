@@ -4223,5 +4223,6 @@ describe('<Tx />', () => {
         expect(screen.getByText(/\$14\.60 pot/)).toBeInTheDocument();
         expect(screen.getByText(/1\.37% odds/)).toBeInTheDocument();
         expect(screen.getByText(/Winning bet:/)).toBeInTheDocument();
+        expect(screen.getByText('956...fca')).toBeInTheDocument();
     });
 });
