@@ -215,7 +215,13 @@ contrib/make_zbar && mv -vf electrumabc/libzbar.0.dylib contrib/osx/. || fail "C
 info "Building libsecp256k1"
 
 contrib_abspath=`greadlink -f contrib`
-setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" ${contrib_abspath}
+if [ -n "${USE_SECP256K1_GITHUB_FALLBACK}" ]; then
+    warn "Building secp256k1 using the Github repo"
+    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master" "${contrib_abspath}"
+else
+    info "Building secp256k1 from the monorepo"
+    setup_secp_from_monorepo
+fi
 ./autogen.sh || fail "Could not run autogen for secp256k1"
 ./configure \
     --enable-module-recovery \
@@ -223,6 +229,7 @@ setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" ${
     --enable-module-ecdh \
     --with-bignum=no \
     --enable-module-schnorr \
+    --disable-module-schnorrsig \
     --disable-tests \
     --disable-static \
     --enable-shared || fail "Could not configure for secp256k1"

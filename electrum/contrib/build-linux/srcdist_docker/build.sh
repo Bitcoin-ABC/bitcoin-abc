@@ -25,7 +25,7 @@ set -e
 info "Using docker: $docker_version"
 
 IMGNAME="electrumabc-srcdist-builder-img"
-MAPPED_DIR=/opt/electrumabc
+MAPPED_DIR=/opt/monorepo
 CONTAINERNAME="electrumabc-srcdist-builder-cont"
 
 info "Creating docker image ..."
@@ -37,13 +37,13 @@ mkdir "${ELECTRUM_ROOT}/contrib/build-linux/home" || fail "Failed to create home
 
 (
     docker run $DOCKER_RUN_TTY \
-    -e HOME="$MAPPED_DIR/contrib/build-linux/home" \
+    -e HOME="$MAPPED_DIR/electrum/contrib/build-linux/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
-    -e ELECTRUM_ROOT=${MAPPED_DIR} \
+    -e MONOREPO_ROOT=${MAPPED_DIR} \
     --name $CONTAINERNAME \
-    -v ${ELECTRUM_ROOT}:$MAPPED_DIR:delegated \
+    -v ${MONOREPO_ROOT}:$MAPPED_DIR:delegated \
     --rm \
-    --workdir $MAPPED_DIR/contrib/build-linux/srcdist_docker \
+    --workdir $MAPPED_DIR/electrum/contrib/build-linux/srcdist_docker \
     -u $(id -u $USER):$(id -g $USER) \
     $IMGNAME \
     ./_build.sh

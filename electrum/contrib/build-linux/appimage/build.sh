@@ -66,19 +66,19 @@ docker build -t $IMGNAME \
     contrib/build-linux/appimage \
     || fail "Failed to create docker image"
 
-MAPPED_DIR=/opt/electrumabc
+MAPPED_DIR=/opt/monorepo
 
 mkdir "${ELECTRUM_ROOT}/contrib/build-linux/appimage/home" || fail "Failed to create home directory"
 
 (
     docker run $DOCKER_RUN_TTY \
-    -e HOME="$MAPPED_DIR/contrib/build-linux/appimage/home" \
+    -e HOME="$MAPPED_DIR/electrum/contrib/build-linux/appimage/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
-    -e ELECTRUM_ROOT=${MAPPED_DIR} \
+    -e MONOREPO_ROOT=${MAPPED_DIR} \
     --name $CONTAINERNAME \
-    -v ${ELECTRUM_ROOT}:$MAPPED_DIR:delegated \
+    -v ${MONOREPO_ROOT}:$MAPPED_DIR:delegated \
     --rm \
-    --workdir $MAPPED_DIR/contrib/build-linux/appimage \
+    --workdir $MAPPED_DIR/electrum/contrib/build-linux/appimage \
     -u $(id -u $USER):$(id -g $USER) \
     $IMGNAME \
     ./_build.sh

@@ -218,9 +218,31 @@ function setup_pkg()
     git checkout ${checkout_ref}
 }
 
+function setup_secp_from_monorepo() {
+    local secp_path="${CONTRIB}/../../src/secp256k1"
+
+    if ! [[ -d "${secp_path}" ]]; then
+        fail "Could not find a secp256k1 directory nearby, and USE_SECP256K1_GITHUB is not set"
+    fi
+
+    parentbuilddir="${CONTRIB}"/build
+    pkgbuilddir="$parentbuilddir"/secp256k1
+
+    mkdir -p $parentbuilddir
+    pushd $parentbuilddir
+    # Delete existing build dir and copy the code from the monorepo,
+    # so that we always use the latest codebase.
+    if [ -d "$pkgbuilddir" ] ; then
+      rm -Rf "$pkgbuilddir"
+    fi
+    # Note that if we switch to the cmake build, we will also need to copy $here/../../cmake
+    cp -Rf "${secp_path}" "$pkgbuilddir"
+    pushd "$pkgbuilddir"
+}
+
 function popd_pkg()
 {
-    # Keep this in sync with the number of pushd operations in setup_pkg
+    # Keep this in sync with the number of pushd operations in setup_pkg and setup_secp_from_monorepo.
     popd
     popd
 }
@@ -256,7 +278,9 @@ export PY_VER_MAJOR="3.11"  # as it appears in fs paths
 export PYTHON_SRC_TARBALL_HASH="9e06008c8901924395bc1da303eac567a729ae012baa182ab39269f650383bb3"
 export PYTHON_MACOS_BINARY_HASH="db3e2ba967acac293c0063591a1d3c4ba713fd89929447715cd56ce06b598200"
 
-: "${ELECTRUM_ROOT:=$(git rev-parse --show-toplevel)/electrum}"
+: "${MONOREPO_ROOT:=$(git rev-parse --show-toplevel)}"
+export MONOREPO_ROOT
+: "${ELECTRUM_ROOT:=${MONOREPO_ROOT}/electrum}"
 export ELECTRUM_ROOT
 export CONTRIB="${ELECTRUM_ROOT}/contrib"
 export DISTDIR="${ELECTRUM_ROOT}/dist"
@@ -271,6 +295,12 @@ fi
 
 export ELECTRUM_LOCALE_REPO="https://github.com/Electron-Cash/electrum-locale"
 export ELECTRUM_LOCALE_COMMIT="848004f800821a3bceaa23d00eeccf78ddb94eb5"
+
+export SECP256K1_GITHUB_REPO="https://github.com/Bitcoin-ABC/secp256k1.git"
+# Set this env var to any value other than empty string to buid secp256k1 from its github repo.
+# This can be useful when working with the standalone repo outside of the Bitcoin ABC monorepo.
+: "${USE_SECP256K1_GITHUB:=}"
+export USE_SECP256K1_GITHUB
 
 # Newer git errors-out about permissions here sometimes, so do this
 if [[ $OSTYPE == "darwin"* ]]; then

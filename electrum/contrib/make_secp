@@ -5,7 +5,14 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" $here
+# Use secp256k1 from the monorepo by default, unless USE_SECP256K1_GITHUB is set by env.
+if [ -n "${USE_SECP256K1_GITHUB}" ]; then
+    warn "Building secp256k1 using the Github repo"
+    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master" "$here"
+else
+    info "Building secp256k1 from the monorepo"
+    setup_secp_from_monorepo
+fi
 
 if ! [ -x configure ] ; then
     echo "LDFLAGS = -no-undefined" >> Makefile.am
