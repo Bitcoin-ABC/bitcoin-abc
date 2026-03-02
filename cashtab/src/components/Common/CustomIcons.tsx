@@ -269,11 +269,9 @@ export const UnparsedIcon: React.FC = () => <Unparsed />;
 export const HomeIcon: React.FC = () => <Home />;
 export const AliasIcon = styled(User)``;
 export const NFToaIcon: React.FC = () => <NFToa title="tx-nftoa" />;
-export const DiceIcon: React.FC = () => <Dice title="Blitzchips Bet" />;
-export const PayoutWinIcon: React.FC = () => (
-    <PayoutWin title="Blitzchips Payout Win" />
-);
+export const DiceIcon: React.FC = () => <Dice title="Blitz play" />;
+export const PayoutWinIcon: React.FC = () => <PayoutWin title="Blitz play" />;
 export const BlitsPayoutIcon: React.FC = () => (
-    <BlitsPayout title="Blitzchips Payout Loss" />
+    <BlitsPayout title="Blitz play" />
 );
 export const EdjIcon: React.FC = () => <Edj title="everydayjackpot.com" />;

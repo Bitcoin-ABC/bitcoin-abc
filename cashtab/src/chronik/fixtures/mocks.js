@@ -25328,7 +25328,7 @@ export const cachetSendWithP2shInputDataTx = {
         parsedTokenEntries: [
             {
                 renderedTokenType: 'SLP',
-                renderedTxType: 'Agora Offer',
+                renderedTxType: 'Blitz play',
                 tokenId:
                     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
                 tokenSatoshis: '100',
@@ -25487,4 +25487,209 @@ export const cachetReceiveWithP2shInputDataTx = {
             },
         ],
     ],
+};
+
+export const cachetPayoutTx = {
+    tx: {
+        txid: 'a687e50f6a9a7b3f76a126ac9a24b02768ce42d290c78f9eb09edca7c78946ed',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'c601202e080a2ff242501e2e7fa5988b6ee0f71bfadd5212fb077f66364b8206',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '04524f4c4c4600958df704207e916fd6643c409e9704edc45dd6df1afb54a79382565eda98938cbbb6870107ed951cf66317d66bc35f7f14d6505af6ca83987e2164f246fce4e8689cf643574148bff8d9898eb3af2893668031bd6d4bf8907b6d1c67810fa075317e8207321d0d15e0cb4b4980544c77f20900ca339ea3863e069734ae24164eccbd9f263b19412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc06724c4fad4600958df704207e916fd6643c409e9704edc45dd6df1afb54a79382565eda98938cbbb6870107ed951cf66317d66bc35f7f14d6505af6ca83987e2164f246fce4e8689cf643578804524f4c4c87',
+                sats: 954n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 200n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript: 'a91441a475f81a64a1d42ba48fe72181f2916d420e4487',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10800000000000000c8',
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 200n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1772409305,
+        size: 408,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+    },
+};
+
+export const cachetBlitzDiceTx = {
+    tx: {
+        txid: 'eaffc8783cba786366e65d864812bed1a46fd5659d2a367d085f85341d97b9e1',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '5726d2254a46c73260579cbf186a403c33af153cf4e1ab578432a6f57632d912',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '41d104525ba0a3aef64517e47b4929d58a926b6784849929ca8527ef1251f802274efec21f47c3858499d64635d2ec43e2b3ca6dd5cdc6e8931eb7ebf15802bc35412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 117182n,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: 'b07ab72d4e71800b1ae6884824a30a59b3724c89301beee2be4fda9f588a2a5e',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '41013e943676e209a91934540977a43e44c811a9ccc798d905679d7c21f8f554132929a30d2ca47f338fe0fe553b86d23762f70e51477e787db327b1a142ba0445412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                sats: 546n,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 10538884n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                sats: 0n,
+                outputScript:
+                    '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000000064080000000000a0cf20',
+            },
+            {
+                sats: 829n,
+                outputScript: 'a9140c765fc4875f9ef28b54202b7f1aa8c7fa7431ec87',
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 100n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '958df704207e916fd6643c409e9704edc45dd6df1afb54a79382565eda98938c',
+                    outIdx: 0,
+                },
+            },
+            {
+                sats: 546n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    atoms: 10538784n,
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                sats: 115888n,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1772408061,
+        size: 465,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'SEND',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAtoms: 0n,
+                intentionalBurnAtoms: 0n,
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        isFinal: true,
+        block: {
+            height: 938555,
+            hash: '00000000000000003bbd56526b7000a315bec7f6f1f7b93e1d856b42cc434b5e',
+            timestamp: 1772408508,
+        },
+    },
 };

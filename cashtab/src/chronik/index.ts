@@ -64,6 +64,7 @@ export enum ParsedTokenTxType {
     AgoraBuy = 'Agora Buy',
     AgoraSale = 'Agora Sale',
     FanOut = 'Fan Out',
+    BlitzPlay = 'Blitz play',
 }
 
 interface AliasAction {
@@ -210,6 +211,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     let isAgoraPurchase = false;
     let isAgoraAdSetup = false;
     let isAgoraOffer = false;
+    let isBlitzPlay = false;
     const p2shInputDataAppActions: AppAction[] = [];
     for (const input of inputs) {
         // Check for P2SH input data (Blitzchips DICE/ROLL, etc.) on any P2SH input
@@ -695,6 +697,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     // These are SLP1 SEND txs where
     // 1. token utxo is > dust
     // 2. recipient is p2sh address
+    // Distinguish CACHET bet from Agora list: Blitzchips uses 829 sats for the token output to P2SH.
+    const BLITZCHIPS_TOKEN_UTXO_SATS = 829;
     const recipients = Array.from(destinationAddresses);
     if (satoshisSent > appConfig.dustSats) {
         if (recipients.length === 1) {
@@ -704,7 +708,19 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             const listingScript = recipients[0];
             try {
                 const { type } = decodeCashAddress(listingScript);
-                isAgoraAdSetup = type === 'p2sh' && isTokenTx;
+                if (type === 'p2sh' && isTokenTx) {
+                    for (const output of outputs) {
+                        if (
+                            output.sats === BigInt(BLITZCHIPS_TOKEN_UTXO_SATS)
+                        ) {
+                            isBlitzPlay = true;
+                            break;
+                        }
+                    }
+                    if (!isBlitzPlay) {
+                        isAgoraAdSetup = true;
+                    }
+                }
             } catch (err) {
                 console.error(
                     `Error in decodeCashAddress(${listingScript}, true)`,
@@ -785,6 +801,9 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         }
         if (isAgoraCancel) {
             renderedTxType = ParsedTokenTxType.AgoraCancel;
+        }
+        if (isBlitzPlay) {
+            renderedTxType = ParsedTokenTxType.BlitzPlay;
         }
 
         if (isAgoraPurchase) {
@@ -1164,6 +1183,9 @@ export const getTxNotificationMsg = (
                 // Sales are incoming txs, the user is not creating this from a UI component
                 // Parse here
                 return `Sold ${renderedTokenQty}${renderedTicker} for ${renderedAmount}`;
+            }
+            case ParsedTokenTxType.BlitzPlay: {
+                return `Blitz play ${renderedTokenQty}${renderedTicker}`;
             }
             case ParsedTokenTxType.FanOut: {
                 return `Created ${nftFanInputsCreated} NFT mint inputs for ${renderedTicker}`;

@@ -34,6 +34,8 @@ import {
     cachetSendToEdjTx,
     cachetSendWithP2shInputDataTx,
     cachetReceiveWithP2shInputDataTx,
+    cachetPayoutTx,
+    cachetBlitzDiceTx,
     edjSendTx,
     edjPayoutTx,
     edjFirmaPayoutTx,
@@ -623,7 +625,7 @@ describe('Cashtab chronik.js functions', () => {
                 e => e.tokenId === CACHET_TOKEN_ID,
             );
             expect(cachetEntry).toBeDefined();
-            expect(cachetEntry.renderedTxType).toBe('Agora Offer');
+            expect(cachetEntry.renderedTxType).toBe('Blitz play');
             expect(cachetEntry.tokenSatoshis).toBe('100');
         });
 
@@ -646,6 +648,38 @@ describe('Cashtab chronik.js functions', () => {
             expect(diceAction.isValid).toBe(true);
             expect(diceAction.action.minValue).toBe(1);
             expect(diceAction.action.maxValue).toBe(100000000);
+        });
+
+        it('parseTx: CACHET bet (Blitz play) - token to P2SH with 829 sats', () => {
+            const sendingHash = '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d';
+            const parsed = parseTx(cachetBlitzDiceTx.tx, [sendingHash]);
+
+            expect(parsed.xecTxType).toBe('Sent');
+            const cachetEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === CACHET_TOKEN_ID,
+            );
+            expect(cachetEntry).toBeDefined();
+            expect(cachetEntry.renderedTxType).toBe('Blitz play');
+            expect(cachetEntry.tokenSatoshis).toBe('100');
+        });
+
+        it('parseTx: CACHET payout from Blitzchips (ROLL in P2SH input)', () => {
+            const receivingHash = '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d';
+            const parsed = parseTx(cachetPayoutTx.tx, [receivingHash]);
+
+            expect(parsed.xecTxType).toBe('Received');
+            const cachetEntry = parsed.parsedTokenEntries.find(
+                e => e.tokenId === CACHET_TOKEN_ID,
+            );
+            expect(cachetEntry).toBeDefined();
+            expect(cachetEntry.renderedTxType).not.toBe('Agora Sale');
+            expect(cachetEntry.renderedTxType).toBe('SEND');
+            expect(cachetEntry.tokenSatoshis).toBe('200');
+            const rollAction = parsed.appActions.find(
+                a => a.app === 'ROLL Payout',
+            );
+            expect(rollAction).toBeDefined();
+            expect(rollAction.isValid).toBe(true);
         });
 
         it('parseTx: FIRMA received from EverydayJackpot (EDJ.com payout with trophy)', () => {

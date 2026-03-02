@@ -80,10 +80,13 @@ import {
     cachetSendToEdjTx,
     cachetSendWithP2shInputDataTx,
     cachetReceiveWithP2shInputDataTx,
+    cachetBlitzDiceTx,
+    cachetPayoutTx,
     edjSendTx,
     edjPayoutTx,
     edjFirmaPayoutTx,
 } from 'chronik/fixtures/mocks';
+import { parseTx } from 'chronik';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
@@ -4097,14 +4100,15 @@ describe('<Tx />', () => {
         // We see Firma redeem app action
         expect(screen.getByText(`Firma USDT conversion`)).toBeInTheDocument();
     });
-    it('CACHET send to P2SH (parsed as Agora list)', () => {
+    it('CACHET send to P2SH (parsed as Blitz play - 829 sats)', () => {
         const thisMock = cachetSendWithP2shInputDataTx;
+        const parsed = parseTx(thisMock.tx, [thisMock.sendingHash]);
         const tokenCache = new Map(thisMock.cache);
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
                     <Tx
-                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        tx={{ ...thisMock.tx, parsed }}
                         hashes={[thisMock.sendingHash]}
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
@@ -4120,8 +4124,62 @@ describe('<Tx />', () => {
         );
 
         expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
-        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
-        expect(screen.getByText(/Listed .* CACHET/)).toBeInTheDocument();
+        expect(screen.getByTitle('Blitz play')).toBeInTheDocument();
+        expect(screen.getByText(/Blitz play .* CACHET/)).toBeInTheDocument();
+    });
+    it('CACHET bet (Blitz play) - token to P2SH with 829 sats', () => {
+        const sendingHash = '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d';
+        const parsed = parseTx(cachetBlitzDiceTx.tx, [sendingHash]);
+        const tokenCache = new Map(cachetSendWithP2shInputDataTx.cache);
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...cachetBlitzDiceTx.tx, parsed }}
+                        hashes={[sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: tokenCache,
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        expect(screen.getByTitle('Blitz play')).toBeInTheDocument();
+        expect(screen.getByText(/Blitz play .* CACHET/)).toBeInTheDocument();
+    });
+    it('CACHET payout with ROLL in P2SH input (token shows SEND)', () => {
+        const receivingHash = '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d';
+        const parsed = parseTx(cachetPayoutTx.tx, [receivingHash]);
+        const tokenCache = new Map(cachetSendWithP2shInputDataTx.cache);
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...cachetPayoutTx.tx, parsed }}
+                        hashes={[receivingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: tokenCache,
+                            },
+                        }}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+        expect(screen.getAllByTitle('Blitz play').length).toBeGreaterThan(0);
+        expect(screen.getByText(/Received .* CACHET/)).toBeInTheDocument();
     });
     it('CACHET receive with p2sh input data (Blitzchips payout)', () => {
         const thisMock = cachetReceiveWithP2shInputDataTx;
@@ -4146,7 +4204,7 @@ describe('<Tx />', () => {
         );
 
         expect(screen.getByTitle('tx-received')).toBeInTheDocument();
-        expect(screen.getByTitle('Blitzchips Bet')).toBeInTheDocument();
+        expect(screen.getByTitle('Blitz play')).toBeInTheDocument();
         expect(
             screen.getByText(/Range: \[1, 100,000,000\]/),
         ).toBeInTheDocument();
