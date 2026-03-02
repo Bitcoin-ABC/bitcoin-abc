@@ -32,6 +32,10 @@ export const EDJ_TOKEN_ID =
 export const CACHET_TOKEN_ID =
     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
 
+/** BLITZ token - Blitzchips.com loyalty token */
+export const BLITZ_CHIPS_TOKEN_ID =
+    'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69';
+
 /** EDJ.com game addresses - CACHET/EDJ/FIRMA sent here = bet */
 export const EDJ_COM_GAME_ADDRESSES = [
     'ecash:qzqcq9p5lxa3jhc5lhwaefua9cjfhfjvcvsj887fg5',

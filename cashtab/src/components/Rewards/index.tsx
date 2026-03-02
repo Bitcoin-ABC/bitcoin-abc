@@ -3,7 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { Wrapper, ContentDiv } from 'components/Rewards/styled';
+import {
+    Wrapper,
+    ContentDiv,
+    GameCardsContainer,
+    GameCard,
+} from 'components/Rewards/styled';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
@@ -11,6 +16,8 @@ import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import { PageHeader } from 'components/Common/Atoms';
 import { RewardIcon } from 'components/Common/CustomIcons';
+import TokenIcon from 'components/Etokens/TokenIcon';
+import { EDJ_TOKEN_ID, BLITZ_CHIPS_TOKEN_ID } from 'constants/tokens';
 
 const Rewards = () => {
     const ContextValue = useContext(WalletContext);
@@ -210,16 +217,24 @@ const Rewards = () => {
             )}
             <ContentDiv>
                 <h3>What can I do with Cachet?</h3>
-                <p>
-                    Play for free at{' '}
-                    <a
+                <GameCardsContainer>
+                    <GameCard
                         href="https://everydayjackpot.com"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        everydayjackpot.com
-                    </a>
-                </p>
+                        <TokenIcon tokenId={EDJ_TOKEN_ID} size={64} />
+                        <span>Play for free at everydayjackpot.com</span>
+                    </GameCard>
+                    <GameCard
+                        href="https://blitzchips.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <TokenIcon tokenId={BLITZ_CHIPS_TOKEN_ID} size={64} />
+                        <span>Play for free at blitzchips.com</span>
+                    </GameCard>
+                </GameCardsContainer>
             </ContentDiv>
         </Wrapper>
     );
