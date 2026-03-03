@@ -12,6 +12,10 @@ interface LokadInfo {
     name: string;
     emoji: string;
     url?: string;
+    /** For block msg when batched (e.g. "DICE play", "ROLL payout") */
+    blockMsg?: string;
+    /** If set, batch under this name in daily summary instead of separate line */
+    batchUnder?: string;
 }
 type LokadMap = Map<string, LokadInfo>;
 const lokadMap: LokadMap = new Map();
@@ -36,6 +40,18 @@ lokadMap.set('584f564d', {
     name: 'Overmind tx',
     emoji: '🤖',
     url: 'https://t.me/TheOvermind_bot',
+});
+lokadMap.set('44494345', {
+    name: 'DICE Play',
+    emoji: '🎲',
+    blockMsg: 'DICE play',
+    batchUnder: 'Blitzchips',
+});
+lokadMap.set('524f4c4c', {
+    name: 'ROLL Payout',
+    emoji: '💰',
+    blockMsg: 'ROLL payout',
+    batchUnder: 'Blitzchips',
 });
 
 export default lokadMap;

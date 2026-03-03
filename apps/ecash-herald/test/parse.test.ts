@@ -287,6 +287,44 @@ describe('parse.js functions', function () {
             },
         );
     });
+    it('parseOpReturn handles DICE and ROLL lokads (Blitzchips)', function () {
+        // DICE play: non-EMPP OP_RETURN, lokad + version + minValue + maxValue
+        assert.deepEqual(parseOpReturn('0444494345010004010000000464000000'), {
+            app: 'Blitzchips',
+            msg: 'DICE play',
+            stackArray: ['44494345', '00', '01000000', '64000000'],
+            tokenId: false,
+        });
+        // ROLL payout: non-EMPP OP_RETURN (lokad + version + betTxid + roll + seedHash + result)
+        const rollHex =
+            '04524f4c4c0100200000000000000000000000000000000000000000000000000000000000000001040100000020000000000000000000000000000000000000000000000000000000000000020157';
+        const rollResult = parseOpReturn(rollHex);
+        assert.strictEqual(rollResult.app, 'Blitzchips');
+        assert.strictEqual(rollResult.msg, 'ROLL payout');
+        assert.ok(rollResult.stackArray, 'stackArray should be defined');
+        const stackArray = rollResult.stackArray!;
+        assert.strictEqual(stackArray[0], '524f4c4c');
+        assert.strictEqual(stackArray[1], '00');
+        assert.strictEqual(rollResult.tokenId, false);
+    });
+    it('parseMultipushStack handles DICE and ROLL EMPP pushes', function () {
+        // EMPP: OP_RESERVED + DICE push
+        assert.deepEqual(
+            parseMultipushStack(['50', '4449434500010000000100000064000000']),
+            { app: 'EMPP', msg: 'Blitzchips: DICE play' },
+        );
+        // EMPP: OP_RESERVED + ROLL push
+        const rollPush =
+            '524f4c4c00' +
+            '0000000000000000000000000000000000000000000000000000000000000001' +
+            '01000000' +
+            '0000000000000000000000000000000000000000000000000000000000000002' +
+            '57';
+        assert.deepEqual(parseMultipushStack(['50', rollPush]), {
+            app: 'EMPP',
+            msg: 'Blitzchips: ROLL payout',
+        });
+    });
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoFixtures.map(memoTestObj => {
             const { outputScript, msg } = memoTestObj;
@@ -474,7 +512,7 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
-                    '<b><i>🧮 72 nodes staking <code>251,480,511,703.14</code> XEC ($8.77M)</i></b>\n' +
+                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
                     '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
                     '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +
@@ -565,7 +603,7 @@ describe('parse.js functions', function () {
                     '3. ViaBTC, 1 <i>(0%)</i>\n' +
                     '\n' +
                     '<b><i>💰3 stakers earned $33</i></b>\n' +
-                    '<b><i>🧮 72 nodes staking <code>251,480,511,703.14</code> XEC ($8.77M)</i></b>\n' +
+                    '<b><i>🧮 71 nodes staking <code>251,280,511,703.14</code> XEC ($8.76M)</i></b>\n' +
                     '<u>Top 3</u>\n' +
                     '1. <a href="https://explorer.e.cash/address/ecash:qzs8hq2pj4hu5j09fdr5uhha3986h2mthvfp7362nu">qzs...2nu</a>, 1 <i>(0% won, 1% expected)</i>\n' +
                     '2. <a href="https://explorer.e.cash/address/ecash:qr42c8c04tqndscfrdnl0rzterg0qdaegyjzt8egyg">qr4...gyg</a>, 1 <i>(0% won, 9% expected)</i>\n' +

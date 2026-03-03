@@ -92,6 +92,8 @@ const txids = [
     '22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9', // alias beta
     '9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1', // Unknown app tx, parsable
     'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e', // Unknown app tx, likely hex
+    '01ef128ab5424ca838ae9e94ac62754ba561d4f382125a0beeca0c981d9cb7f4', // Blitzchips DICE play (block 938796)
+    '02e71b9638a960befbc0cecb9aa01bdb68d7f9ed3303aca02e9032a22322e04f', // Blitzchips ROLL payout (block 938796)
 
     // XEC send txs
     '4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035', // 🐋, Address in directory, self-send XEC tx

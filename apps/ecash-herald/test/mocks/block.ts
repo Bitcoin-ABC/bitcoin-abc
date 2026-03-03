@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockedBlock: any = {
     blockTxs: [
         {
@@ -16,7 +17,10 @@ const mockedBlock: any = {
                     inputScript:
                         '0392800c04904c5d650cfabe6d6d2a5055cb96fc034feb64a6533f9ba428768f019b0efc92797bb1eeae3bda05e410000000000000000800002bed8efca61700000015643839366564326466356633353334353432323837',
                     sequenceNo: 0,
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             outputs: [
@@ -27,7 +31,10 @@ const mockedBlock: any = {
                         txid: '2e3399f02280def3908afc561157cbaa159bbacee47dbcdebac15a668d009fc0',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '362500000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '362500000',
+                    },
                 },
                 {
                     outputScript:
@@ -36,7 +43,10 @@ const mockedBlock: any = {
                         txid: '2df7650a9ebebd998d0dc756650144c21d84722c60fe6389c538d272f134d365',
                         outIdx: 226,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '200000000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '200000000',
+                    },
                 },
                 {
                     outputScript:
@@ -45,7 +55,10 @@ const mockedBlock: any = {
                         txid: '6da0fa092de6c985365eb40ebe8a9112a62e48a1375dc348b2f2fc9fc27664d1',
                         outIdx: 27,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '62500000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '62500000',
+                    },
                 },
             ],
             lockTime: 0,
@@ -75,14 +88,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a914104e67d912a7aab2a159bba141477e5867c04bfd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5285' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5285',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010747454e45534953054c6f6c6c79054c4f4c4c591468747470733a2f2f636173687461622e636f6d2f4c0001084c00080162ea854d0fc000',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -102,12 +121,18 @@ const mockedBlock: any = {
                             value: '99900000000000000',
                         },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
                         '76a914104e67d912a7aab2a159bba141477e5867c04bfd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4284' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4284',
+                    },
                 },
             ],
             lockTime: 0,
@@ -129,7 +154,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -169,7 +197,10 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -181,14 +212,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '14274406' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14274406',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000000589ffd0',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -203,9 +240,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '10000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '10000',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -229,7 +272,10 @@ const mockedBlock: any = {
                         txid: '4852929bc3809bb1b6fa5b607f4856df1d0cf13816e01c93a3b32f6a59647f73',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -238,7 +284,10 @@ const mockedBlock: any = {
                         txid: '4852929bc3809bb1b6fa5b607f4856df1d0cf13816e01c93a3b32f6a59647f73',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '14273379' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14273379',
+                    },
                 },
             ],
             lockTime: 0,
@@ -260,7 +309,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -300,7 +352,10 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -312,14 +367,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '14243596' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14243596',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005856bf0',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -334,9 +395,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '10000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '10000',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -360,7 +427,10 @@ const mockedBlock: any = {
                         txid: 'a998c6bdd2d4755b4be7537a5ba064cc19428ce3a47d0c069ee4241a1a83058e',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -369,7 +439,10 @@ const mockedBlock: any = {
                         txid: 'a998c6bdd2d4755b4be7537a5ba064cc19428ce3a47d0c069ee4241a1a83058e',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '14242569' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14242569',
+                    },
                 },
             ],
             lockTime: 0,
@@ -391,7 +464,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -431,7 +507,10 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -443,14 +522,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '14235380' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14235380',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005843370',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -465,9 +550,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '10000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '10000',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -491,7 +582,10 @@ const mockedBlock: any = {
                         txid: '0a77eb6a5b08bc91a60a8ed8752ac2d3dc477e0c94624c486fcef7429be47d0d',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -500,7 +594,10 @@ const mockedBlock: any = {
                         txid: '0a77eb6a5b08bc91a60a8ed8752ac2d3dc477e0c94624c486fcef7429be47d0d',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '14234353' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14234353',
+                    },
                 },
             ],
             lockTime: 0,
@@ -522,7 +619,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -562,7 +662,10 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -574,14 +677,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3899' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3899',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000986f70',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -596,13 +705,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '10000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '10000',
+                        },
                     },
                     spentBy: {
                         txid: '80baab3dc64a3922c8d3ca11bacc6af4f05b103e15e18e9ea7592d926612c829',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -617,13 +732,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '9990000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '9990000',
+                        },
                     },
                     spentBy: {
                         txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
                         outIdx: 3,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -632,7 +753,10 @@ const mockedBlock: any = {
                         txid: 'fb6086e1e98f88fdef7abab312dfb68449d1b43d511e1f15c488a8cb804f1c51',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2872' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2872',
+                    },
                 },
             ],
             lockTime: 0,
@@ -654,7 +778,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -679,7 +806,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '15177819' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '15177819',
+                    },
                 },
                 {
                     prevOut: {
@@ -706,14 +836,20 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f4808000000000000003708000000003b9a72a4',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -728,9 +864,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '55' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '55',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -750,7 +892,10 @@ const mockedBlock: any = {
                             value: '999977636',
                         },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -759,7 +904,10 @@ const mockedBlock: any = {
                         txid: '5f06207dea4762524dbe2d84900cc78711d079f2b2e909867ec5e9abdeb850aa',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '15176136' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '15176136',
+                    },
                 },
             ],
             lockTime: 0,
@@ -781,7 +929,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -806,7 +957,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '17421473' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '17421473',
+                    },
                 },
                 {
                     prevOut: {
@@ -833,14 +987,20 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e44207443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d0800000000068c953f08001299507b7b143a',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -860,7 +1020,10 @@ const mockedBlock: any = {
                             value: '109876543',
                         },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -880,7 +1043,10 @@ const mockedBlock: any = {
                             value: '5235120528888890',
                         },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -889,7 +1055,10 @@ const mockedBlock: any = {
                         txid: '8f6676b602a9f074f10a7561fb7256bbce3b103a119f809a05485e42489d2233',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '17419790' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '17419790',
+                    },
                 },
             ],
             lockTime: 0,
@@ -911,7 +1080,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -936,7 +1108,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967294,
                     outputScript:
                         '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1528001' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1528001',
+                    },
                 },
                 {
                     prevOut: {
@@ -963,14 +1138,20 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000001dcd65000800000007e7339728',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -994,7 +1175,10 @@ const mockedBlock: any = {
                         txid: '9b4cad218d7743f1610d73577e2c3c4bcd97a2e70a61e69aea67088277dad936',
                         outIdx: 2,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -1018,7 +1202,10 @@ const mockedBlock: any = {
                         txid: 'd28244a5f79ed2323c543294d901fc0fe6ecc3c08f2ab4224ac141289daa4da9',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -1027,7 +1214,10 @@ const mockedBlock: any = {
                         txid: '660d23a32becd5fbca89e87a15981953c1ad092ec148f2f04661b3c54d8b5e25',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1526318' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1526318',
+                    },
                 },
             ],
             lockTime: 0,
@@ -1049,7 +1239,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -1082,11 +1275,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '526349' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '526349',
+                        },
                     },
                     outputScript:
                         '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -1106,11 +1305,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '420181' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '420181',
+                        },
                     },
                     outputScript:
                         '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -1130,11 +1335,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '312605' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '312605',
+                        },
                     },
                     outputScript:
                         '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -1154,11 +1365,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '526877' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '526877',
+                        },
                     },
                     outputScript:
                         '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -1178,18 +1395,27 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '1780906' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '1780906',
+                        },
                     },
                     outputScript:
                         '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000002737100800000000000f3636',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -1204,13 +1430,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '2570000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '2570000',
+                        },
                     },
                     spentBy: {
                         txid: 'ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -1225,13 +1457,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '996918' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '996918',
+                        },
                     },
                     spentBy: {
                         txid: 'f490c4dd2b2a7cf14a04af6efaba9851cd233e753e239ff021296aae4b71ad88',
                         outIdx: 3,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             lockTime: 0,
@@ -1253,7 +1491,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -1278,7 +1519,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9144bb6f659b8dafd99527e0c0a3289f121b0a0209f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5000',
+                    },
                 },
                 {
                     prevOut: {
@@ -1305,14 +1549,20 @@ const mockedBlock: any = {
                     },
                     outputScript:
                         '76a9144bb6f659b8dafd99527e0c0a3289f121b0a0209f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000000c380cdc',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -1332,17 +1582,26 @@ const mockedBlock: any = {
                             value: '204999900',
                         },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
                         '76a9144bb6f659b8dafd99527e0c0a3289f121b0a0209f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
                         '76a9144bb6f659b8dafd99527e0c0a3289f121b0a0209f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3317' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3317',
+                    },
                 },
             ],
             lockTime: 0,
@@ -1392,7 +1651,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91412934a7a99b69a60c3b99f991cd79d257104f5a688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '789283' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '789283',
+                    },
                 },
                 {
                     prevOut: {
@@ -1404,7 +1666,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91415c0b62c9f73847ca9a686561216c20b487a0aad88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '19661976' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '19661976',
+                    },
                 },
                 {
                     prevOut: {
@@ -1416,7 +1681,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a4e299724b8e81474df916c25c7a816a43c8748888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '236812' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '236812',
+                    },
                 },
                 {
                     prevOut: {
@@ -1428,7 +1696,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147afa62562b93fecaff30190ee3a2836dcb95d42f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1481924' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1481924',
+                    },
                 },
                 {
                     prevOut: {
@@ -1440,7 +1711,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91468e15e8bfe2d969b7963181b976e6833e294661288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1923633' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1923633',
+                    },
                 },
                 {
                     prevOut: {
@@ -1452,7 +1726,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f941b2e03f973ce5b13766159eef190963e2393488ac',
-                    sats: { dataType: 'BigIntReplacer', value: '12566124' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '12566124',
+                    },
                 },
                 {
                     prevOut: {
@@ -1464,7 +1741,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9146e3430f87a128ac4509fb0547f07ba0e3e8cea7688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '20033202' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '20033202',
+                    },
                 },
                 {
                     prevOut: {
@@ -1476,7 +1756,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914c72166790bc8c779163e17b11939a6bd6022a7e188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '30370886' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '30370886',
+                    },
                 },
                 {
                     prevOut: {
@@ -1488,7 +1771,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91483c54d6ec805f4db16c935f5bb89da791f971ac888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '37898355' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '37898355',
+                    },
                 },
                 {
                     prevOut: {
@@ -1500,7 +1786,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914336fb64b7e98221f82aced275440c29e7e1d11b388ac',
-                    sats: { dataType: 'BigIntReplacer', value: '2489718' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2489718',
+                    },
                 },
                 {
                     prevOut: {
@@ -1512,7 +1801,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b114a9d636ac7558c04e902c3a1f7c1fd9008bcd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5710023' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5710023',
+                    },
                 },
                 {
                     prevOut: {
@@ -1524,7 +1816,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91411667c453097adf3e71d08986df7766c26f3399088ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8237826' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8237826',
+                    },
                 },
                 {
                     prevOut: {
@@ -1536,7 +1831,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a125966da9024acea37f867323778641ff0e891888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8485409' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8485409',
+                    },
                 },
                 {
                     prevOut: {
@@ -1548,7 +1846,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914e03ba5757763a00aaa8aa9eda71da51610d5ef2788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '24067273' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '24067273',
+                    },
                 },
                 {
                     prevOut: {
@@ -1560,7 +1861,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914b13b05d51174d91381b0ea6fb07a6345eea1abf788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '25912582' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '25912582',
+                    },
                 },
                 {
                     prevOut: {
@@ -1572,7 +1876,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914349c3f91c2782b235ae0d1a2c3acf053d554170788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '32513005' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '32513005',
+                    },
                 },
                 {
                     prevOut: {
@@ -1584,7 +1891,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9143afafec322ef1a4f70a6ca68dd9090182716181888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '70247919' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '70247919',
+                    },
                 },
                 {
                     prevOut: {
@@ -1596,7 +1906,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914cb74cf87cd355cd01505645eaf165646a4eb1ce988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1199454' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1199454',
+                    },
                 },
                 {
                     prevOut: {
@@ -1608,7 +1921,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914c42245ebeb7fea2996e5e0f65537b56fb58ea97d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3496387' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3496387',
+                    },
                 },
                 {
                     prevOut: {
@@ -1620,7 +1936,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91447d7bc2240955fd18d53c67c4b814e166b152ec388ac',
-                    sats: { dataType: 'BigIntReplacer', value: '30653501' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '30653501',
+                    },
                 },
                 {
                     prevOut: {
@@ -1632,7 +1951,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91410b45d95195a71957b43bb82762e6cb48e67888f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '54383530' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '54383530',
+                    },
                 },
                 {
                     prevOut: {
@@ -1644,7 +1966,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914894e84afe4b07413c99087067292aca67d286fbf88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '48782413' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '48782413',
+                    },
                 },
                 {
                     prevOut: {
@@ -1656,7 +1981,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91473b804181c01f16cbf63fe262e9a0c8de929af1e88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '25031767' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '25031767',
+                    },
                 },
                 {
                     prevOut: {
@@ -1668,7 +1996,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147b1a9441467759f8693bdac3e356ab6110bebe1c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '29615068' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '29615068',
+                    },
                 },
                 {
                     prevOut: {
@@ -1680,7 +2011,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914443f7cf9987b921c10d888c3d617c54aba5e8fb088ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3563255' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3563255',
+                    },
                 },
                 {
                     prevOut: {
@@ -1692,7 +2026,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91490de1562e4aadc991dc13d28a9d112461fea9cb888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '11787007' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '11787007',
+                    },
                 },
                 {
                     prevOut: {
@@ -1704,7 +2041,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914273808f74a845b9b77345d43cb679ca793c5e9e688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '23443485' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '23443485',
+                    },
                 },
                 {
                     prevOut: {
@@ -1716,7 +2056,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91402a6a02a8bbdc6a9ebeb74bf5d8b9f7d20ad386688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '26370841' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '26370841',
+                    },
                 },
                 {
                     prevOut: {
@@ -1728,7 +2071,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914fcc200903ed9167def3df599c599d0c98b2cea0588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3053762' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3053762',
+                    },
                 },
                 {
                     prevOut: {
@@ -1740,7 +2086,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914692a38590fe1786dca47d2cbcc0ee30d969ca0c788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3278623' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3278623',
+                    },
                 },
                 {
                     prevOut: {
@@ -1752,7 +2101,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91486b2a4458787245715865c9ea5e42f8d68e8828988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3534883' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3534883',
+                    },
                 },
                 {
                     prevOut: {
@@ -1764,7 +2116,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914c472cd5ea7282180aa6a663498e98c2b781afa0488ac',
-                    sats: { dataType: 'BigIntReplacer', value: '7546746' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '7546746',
+                    },
                 },
                 {
                     prevOut: {
@@ -1776,7 +2131,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914457a8a10ca1b8ab373c7e5e9ea7d784e8ce2efd188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '11875440' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '11875440',
+                    },
                 },
                 {
                     prevOut: {
@@ -1788,7 +2146,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91406cbe837f5a8b81ec8fddcf6e46c15b84b43965788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '12066672' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '12066672',
+                    },
                 },
                 {
                     prevOut: {
@@ -1800,7 +2161,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9145ab8a85ea3f6bf3a69b15b9f7570aeb021df77b488ac',
-                    sats: { dataType: 'BigIntReplacer', value: '31042739' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '31042739',
+                    },
                 },
                 {
                     prevOut: {
@@ -1812,7 +2176,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9149704c9d13afb31a9b84ea5cb56140499e54743bd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '34725141' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '34725141',
+                    },
                 },
                 {
                     prevOut: {
@@ -1824,7 +2191,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91423dab92affaa336ae18cab2669d116fbfa55b0bf88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4898437' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4898437',
+                    },
                 },
                 {
                     prevOut: {
@@ -1836,7 +2206,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914c6a520edfedb88ae478c1fdb309739d62d47dbd088ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5379161' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5379161',
+                    },
                 },
                 {
                     prevOut: {
@@ -1848,7 +2221,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914388d048805daa142def4833f5cb1e02db7013a6f88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8316321' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8316321',
+                    },
                 },
                 {
                     prevOut: {
@@ -1860,7 +2236,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914cf55018839d8ab8b93de655551357d081f8120c788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '35352936' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '35352936',
+                    },
                 },
                 {
                     prevOut: {
@@ -1872,7 +2251,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147eb48844af0ceae69879fd66456a5afffed24cb788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '40175305' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '40175305',
+                    },
                 },
                 {
                     prevOut: {
@@ -1884,7 +2266,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914e94c40d02b7860a76057a48b826ef847372eb74388ac',
-                    sats: { dataType: 'BigIntReplacer', value: '40956943' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '40956943',
+                    },
                 },
                 {
                     prevOut: {
@@ -1896,7 +2281,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148fddf18aecb230772dec7d9fa6ec5c2eae1303bf88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4594328' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4594328',
+                    },
                 },
                 {
                     prevOut: {
@@ -1908,7 +2296,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914687b26740360cae141c61c9e5dcb03b6100dc42b88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '7254551' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '7254551',
+                    },
                 },
                 {
                     prevOut: {
@@ -1920,7 +2311,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914c9fd6f67f21b1970264ba239e82d4a3c40e2063188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '9563229' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '9563229',
+                    },
                 },
                 {
                     prevOut: {
@@ -1932,7 +2326,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914cfbdaf0aaed19c7fc5e2a39e77cc780db5e333b588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '9731469' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '9731469',
+                    },
                 },
                 {
                     prevOut: {
@@ -1944,7 +2341,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a17017d5f758fcc1372746bce8509c3d23f218a788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '15786585' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '15786585',
+                    },
                 },
                 {
                     prevOut: {
@@ -1956,7 +2356,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914d179b30a22db1d4aa04c163f7c1474fc1fbb5c5588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '21867579' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21867579',
+                    },
                 },
                 {
                     prevOut: {
@@ -1968,7 +2371,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f3f590529240d25b82fe10c18efbb64a64f9625988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '71746009' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '71746009',
+                    },
                 },
                 {
                     prevOut: {
@@ -1980,7 +2386,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9143856ed1d33df771934e14e0446518fa21c8ef6f188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1688043' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1688043',
+                    },
                 },
                 {
                     prevOut: {
@@ -1992,7 +2401,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914d26a1fac6b5c02e98e839956f3a7547d0c1b5c0088ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8049989' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8049989',
+                    },
                 },
                 {
                     prevOut: {
@@ -2004,7 +2416,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147cf1203b978724009018c3a5e6a605590f6e9fed88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '15469696' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '15469696',
+                    },
                 },
                 {
                     prevOut: {
@@ -2016,7 +2431,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9146e56ad4a85fa5e2d03f3bc16b52cfcab65c5e74188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3192502' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3192502',
+                    },
                 },
                 {
                     prevOut: {
@@ -2028,7 +2446,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914d17e89b26be59dfdbbd2582afdbf785cc11ad56388ac',
-                    sats: { dataType: 'BigIntReplacer', value: '93002901' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '93002901',
+                    },
                 },
                 {
                     prevOut: {
@@ -2040,7 +2461,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914888bdff661832d406351713b49c683776b90e7b088ac',
-                    sats: { dataType: 'BigIntReplacer', value: '2523800' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2523800',
+                    },
                 },
                 {
                     prevOut: {
@@ -2052,7 +2476,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914e58661c82c66669cbaa2d1e813009d0b5d2fafb888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4330481' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4330481',
+                    },
                 },
                 {
                     prevOut: {
@@ -2064,7 +2491,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91463b5940d2fd7d998b343a54986ca375ff8cd2bbd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '7600077' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '7600077',
+                    },
                 },
                 {
                     prevOut: {
@@ -2076,7 +2506,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91490b66329b172fd43feacbbb461c54183eed1bd5d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '66688896' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '66688896',
+                    },
                 },
                 {
                     prevOut: {
@@ -2088,7 +2521,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91490b66329b172fd43feacbbb461c54183eed1bd5d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5668556' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5668556',
+                    },
                 },
                 {
                     prevOut: {
@@ -2100,7 +2536,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142fd4bdafad85abcb999c4bab8a2901f92caf487988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '9521209' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '9521209',
+                    },
                 },
                 {
                     prevOut: {
@@ -2112,7 +2551,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914979d66b56061bc4b7ac2118f54aecbf86ae5773888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '13527166' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '13527166',
+                    },
                 },
                 {
                     prevOut: {
@@ -2124,7 +2566,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9144724b6e46690d083ece0390ced609aeb0488486988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '76789054' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '76789054',
+                    },
                 },
                 {
                     prevOut: {
@@ -2136,7 +2581,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142342542a4947b9bfcedffa803b369ec8c108b0b488ac',
-                    sats: { dataType: 'BigIntReplacer', value: '35013098' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '35013098',
+                    },
                 },
                 {
                     prevOut: {
@@ -2148,7 +2596,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140f18bea6bafd89a55997c72703006ec7a83d6e6988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4158314' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4158314',
+                    },
                 },
                 {
                     prevOut: {
@@ -2160,14 +2611,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914a7bf09e5099224ead64cb27cc9eb38283c3cde4288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '17803274' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '17803274',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a0446555a0020ab3267b0b667ea2252d414b3714d6f08b5fbf16c0026ce454c903dc6ff002255',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -2176,7 +2633,10 @@ const mockedBlock: any = {
                         txid: 'c5f288c020ec4e8701d2114d0f4d7970e9e01e4396abd10ddaebd6e4b44c3d5f',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '506531' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '506531',
+                    },
                 },
                 {
                     outputScript:
@@ -2185,7 +2645,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 39,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1175076' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1175076',
+                    },
                 },
                 {
                     outputScript:
@@ -2194,7 +2657,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 46,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1557619' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1557619',
+                    },
                 },
                 {
                     outputScript:
@@ -2203,7 +2669,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 47,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1685802' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1685802',
+                    },
                 },
                 {
                     outputScript:
@@ -2212,7 +2681,10 @@ const mockedBlock: any = {
                         txid: 'b3368d0b4495896c4e057a0be8df58cdead551057c0103f35a5e3a4dce7cf4b5',
                         outIdx: 43,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1957993' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1957993',
+                    },
                 },
                 {
                     outputScript:
@@ -2221,7 +2693,10 @@ const mockedBlock: any = {
                         txid: 'b3368d0b4495896c4e057a0be8df58cdead551057c0103f35a5e3a4dce7cf4b5',
                         outIdx: 44,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2280297' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2280297',
+                    },
                 },
                 {
                     outputScript:
@@ -2230,7 +2705,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 45,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2804591' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2804591',
+                    },
                 },
                 {
                     outputScript:
@@ -2239,7 +2717,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 50,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2810950' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2810950',
+                    },
                 },
                 {
                     outputScript:
@@ -2248,7 +2729,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 40,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2862208' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2862208',
+                    },
                 },
                 {
                     outputScript:
@@ -2257,7 +2741,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 41,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2880530' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2880530',
+                    },
                 },
                 {
                     outputScript:
@@ -2266,7 +2753,10 @@ const mockedBlock: any = {
                         txid: '1d385f3ca974110728849913177291fc4e303bdb03481b9bef7adba15734d18f',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2894084' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2894084',
+                    },
                 },
                 {
                     outputScript:
@@ -2275,7 +2765,10 @@ const mockedBlock: any = {
                         txid: 'ae14b96fc44c7f43c3c2fd268e484b26d8f4794afef5767392fb1c246d7d3e0f',
                         outIdx: 5,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '3104218' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3104218',
+                    },
                 },
                 {
                     outputScript:
@@ -2284,7 +2777,10 @@ const mockedBlock: any = {
                         txid: 'ae14b96fc44c7f43c3c2fd268e484b26d8f4794afef5767392fb1c246d7d3e0f',
                         outIdx: 7,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '3122421' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3122421',
+                    },
                 },
                 {
                     outputScript:
@@ -2293,7 +2789,10 @@ const mockedBlock: any = {
                         txid: 'e59775f4ca2828c87a5b31e415e657d571184891c62860acd5a23523830e38a9',
                         outIdx: 3,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '3419974' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3419974',
+                    },
                 },
                 {
                     outputScript:
@@ -2302,7 +2801,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 46,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '3594078' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3594078',
+                    },
                 },
                 {
                     outputScript:
@@ -2311,7 +2813,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 42,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '3794311' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3794311',
+                    },
                 },
                 {
                     outputScript:
@@ -2320,7 +2825,10 @@ const mockedBlock: any = {
                         txid: '0ec20eea27fcc5eb12211157a64eb34c58b6df3911d5158faa5824e5fd3002a0',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '4241488' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4241488',
+                    },
                 },
                 {
                     outputScript:
@@ -2329,7 +2837,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 48,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '5771042' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5771042',
+                    },
                 },
                 {
                     outputScript:
@@ -2338,7 +2849,10 @@ const mockedBlock: any = {
                         txid: '493dd3339fca03c94dd0e9b53359630fa8dc2aaef404a6a2328229ae64eb8721',
                         outIdx: 4,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '5801672' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5801672',
+                    },
                 },
                 {
                     outputScript:
@@ -2347,7 +2861,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 49,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '6529646' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '6529646',
+                    },
                 },
                 {
                     outputScript:
@@ -2356,7 +2873,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 47,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '6536855' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '6536855',
+                    },
                 },
                 {
                     outputScript:
@@ -2365,7 +2885,10 @@ const mockedBlock: any = {
                         txid: 'b3368d0b4495896c4e057a0be8df58cdead551057c0103f35a5e3a4dce7cf4b5',
                         outIdx: 45,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '7742026' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '7742026',
+                    },
                 },
                 {
                     outputScript:
@@ -2374,7 +2897,10 @@ const mockedBlock: any = {
                         txid: 'dbc41978baa1e1b0d1b098a34722eadf351e19383dcc1266118333060847a8e5',
                         outIdx: 35,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '8072753' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8072753',
+                    },
                 },
                 {
                     outputScript:
@@ -2383,7 +2909,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 48,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '8820534' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8820534',
+                    },
                 },
                 {
                     outputScript:
@@ -2392,7 +2921,10 @@ const mockedBlock: any = {
                         txid: 'a96de5afa4eee4b098ff8b7423e90d0131673862cb79e7b02a06e084146d5dfe',
                         outIdx: 56,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '9000450' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '9000450',
+                    },
                 },
                 {
                     outputScript:
@@ -2401,7 +2933,10 @@ const mockedBlock: any = {
                         txid: 'a96de5afa4eee4b098ff8b7423e90d0131673862cb79e7b02a06e084146d5dfe',
                         outIdx: 57,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '11771919' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '11771919',
+                    },
                 },
                 {
                     outputScript:
@@ -2410,7 +2945,10 @@ const mockedBlock: any = {
                         txid: '262832d24a3b26fd1af1b24f0a7d019579b7ed1f040777d3374c62305c5f4415',
                         outIdx: 39,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '13144002' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '13144002',
+                    },
                 },
                 {
                     outputScript:
@@ -2419,7 +2957,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 43,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '13393930' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '13393930',
+                    },
                 },
                 {
                     outputScript:
@@ -2428,7 +2969,10 @@ const mockedBlock: any = {
                         txid: 'c2409334c0c33750529e2f9b762e7dab7ca2fb4e67883cd3244b7cbbdc9add14',
                         outIdx: 36,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '13691033' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '13691033',
+                    },
                 },
                 {
                     outputScript:
@@ -2437,7 +2981,10 @@ const mockedBlock: any = {
                         txid: '493dd3339fca03c94dd0e9b53359630fa8dc2aaef404a6a2328229ae64eb8721',
                         outIdx: 10,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '14490346' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14490346',
+                    },
                 },
                 {
                     outputScript:
@@ -2446,7 +2993,10 @@ const mockedBlock: any = {
                         txid: '262832d24a3b26fd1af1b24f0a7d019579b7ed1f040777d3374c62305c5f4415',
                         outIdx: 40,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '15649462' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '15649462',
+                    },
                 },
                 {
                     outputScript:
@@ -2455,7 +3005,10 @@ const mockedBlock: any = {
                         txid: '5beda1f52503457c3e2bd93357ad7510e16e69021c589ce91b092215eb37fce5',
                         outIdx: 2,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '16885611' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '16885611',
+                    },
                 },
                 {
                     outputScript:
@@ -2464,7 +3017,10 @@ const mockedBlock: any = {
                         txid: 'a96de5afa4eee4b098ff8b7423e90d0131673862cb79e7b02a06e084146d5dfe',
                         outIdx: 58,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '17311755' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '17311755',
+                    },
                 },
                 {
                     outputScript:
@@ -2473,7 +3029,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 51,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '19229444' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '19229444',
+                    },
                 },
                 {
                     outputScript:
@@ -2482,7 +3041,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 44,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '19612475' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '19612475',
+                    },
                 },
                 {
                     outputScript:
@@ -2491,7 +3053,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 50,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '20857697' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '20857697',
+                    },
                 },
                 {
                     outputScript:
@@ -2500,7 +3065,10 @@ const mockedBlock: any = {
                         txid: '493dd3339fca03c94dd0e9b53359630fa8dc2aaef404a6a2328229ae64eb8721',
                         outIdx: 9,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '21475345' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21475345',
+                    },
                 },
                 {
                     outputScript:
@@ -2509,7 +3077,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 52,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '21879959' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21879959',
+                    },
                 },
                 {
                     outputScript:
@@ -2518,7 +3089,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 45,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '21900743' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21900743',
+                    },
                 },
                 {
                     outputScript:
@@ -2527,7 +3101,10 @@ const mockedBlock: any = {
                         txid: 'a96de5afa4eee4b098ff8b7423e90d0131673862cb79e7b02a06e084146d5dfe',
                         outIdx: 59,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '22276723' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '22276723',
+                    },
                 },
                 {
                     outputScript:
@@ -2536,7 +3113,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 53,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '22828111' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '22828111',
+                    },
                 },
                 {
                     outputScript:
@@ -2545,7 +3125,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 51,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '22829710' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '22829710',
+                    },
                 },
                 {
                     outputScript:
@@ -2554,7 +3137,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 54,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '23106927' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '23106927',
+                    },
                 },
                 {
                     outputScript:
@@ -2563,7 +3149,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 52,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '25043923' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '25043923',
+                    },
                 },
                 {
                     outputScript:
@@ -2572,7 +3161,10 @@ const mockedBlock: any = {
                         txid: 'c2409334c0c33750529e2f9b762e7dab7ca2fb4e67883cd3244b7cbbdc9add14',
                         outIdx: 37,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '25946731' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '25946731',
+                    },
                 },
                 {
                     outputScript:
@@ -2581,7 +3173,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 49,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '26216189' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '26216189',
+                    },
                 },
                 {
                     outputScript:
@@ -2590,7 +3185,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 50,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '27153210' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '27153210',
+                    },
                 },
                 {
                     outputScript:
@@ -2599,7 +3197,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 46,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '27888923' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '27888923',
+                    },
                 },
                 {
                     outputScript:
@@ -2608,7 +3209,10 @@ const mockedBlock: any = {
                         txid: 'f7ffab99cca8005728105f2b93a0afd49444116bcd6131b2fcecd0fea40391ab',
                         outIdx: 53,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '28283566' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '28283566',
+                    },
                 },
                 {
                     outputScript:
@@ -2617,7 +3221,10 @@ const mockedBlock: any = {
                         txid: 'de39274a222922abfdd373cd373b1f71fb0e58c0c569ac6bc813d01a1dc64f8e',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '29688615' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '29688615',
+                    },
                 },
                 {
                     outputScript:
@@ -2626,7 +3233,10 @@ const mockedBlock: any = {
                         txid: '1ed72329e29d9441dc9fb3ac828fc66d08e52c8e67a9a0b0268b5ce6bb7e0695',
                         outIdx: 4,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '32471718' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '32471718',
+                    },
                 },
                 {
                     outputScript:
@@ -2635,7 +3245,10 @@ const mockedBlock: any = {
                         txid: 'de39274a222922abfdd373cd373b1f71fb0e58c0c569ac6bc813d01a1dc64f8e',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '35209256' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '35209256',
+                    },
                 },
                 {
                     outputScript:
@@ -2644,7 +3257,10 @@ const mockedBlock: any = {
                         txid: '697372648af8320cd2975e4ea52d9772f6f06d9610e5088f4d92ef3f69422c30',
                         outIdx: 35,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '40404442' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '40404442',
+                    },
                 },
                 {
                     outputScript:
@@ -2653,7 +3269,10 @@ const mockedBlock: any = {
                         txid: 'de39274a222922abfdd373cd373b1f71fb0e58c0c569ac6bc813d01a1dc64f8e',
                         outIdx: 16,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '48107746' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '48107746',
+                    },
                 },
                 {
                     outputScript:
@@ -2662,7 +3281,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 55,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '54611567' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '54611567',
+                    },
                 },
                 {
                     outputScript:
@@ -2671,7 +3293,10 @@ const mockedBlock: any = {
                         txid: 'de39274a222922abfdd373cd373b1f71fb0e58c0c569ac6bc813d01a1dc64f8e',
                         outIdx: 6,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '54872231' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '54872231',
+                    },
                 },
                 {
                     outputScript:
@@ -2680,7 +3305,10 @@ const mockedBlock: any = {
                         txid: '9086ca2908df5f06b61ca2ec2040fc3e7bd39843e35b934f23f89ea7196c7036',
                         outIdx: 47,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '56164346' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '56164346',
+                    },
                 },
                 {
                     outputScript:
@@ -2689,7 +3317,10 @@ const mockedBlock: any = {
                         txid: '24863ec1bc8eca7d449a37a5bd3bd85e7ccbd2d77ee51c84e1b5b8ade8bada01',
                         outIdx: 51,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '58564003' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '58564003',
+                    },
                 },
                 {
                     outputScript:
@@ -2698,7 +3329,10 @@ const mockedBlock: any = {
                         txid: 'd3942acaefee091f6bf0a9d34282988b31458bb6b10b7cfc3fcd3471be3c2ea7',
                         outIdx: 56,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '59817398' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '59817398',
+                    },
                 },
                 {
                     outputScript:
@@ -2707,7 +3341,10 @@ const mockedBlock: any = {
                         txid: 'de39274a222922abfdd373cd373b1f71fb0e58c0c569ac6bc813d01a1dc64f8e',
                         outIdx: 15,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '64104923' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '64104923',
+                    },
                 },
                 {
                     outputScript:
@@ -2716,7 +3353,10 @@ const mockedBlock: any = {
                         txid: '021b600e1425c69c1977daf2e72a13b83fe40414061641011573eef88834dec1',
                         outIdx: 53,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '87305777' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '87305777',
+                    },
                 },
                 {
                     outputScript:
@@ -2725,7 +3365,10 @@ const mockedBlock: any = {
                         txid: '14483f95867cb556833f90ef73485fc883a04fa31404a650c11208dfc391183e',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '91558238' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '91558238',
+                    },
                 },
             ],
             lockTime: 0,
@@ -2755,13 +3398,19 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147d432e8ccc646fe6c52e36c285bce2b75f0f500b88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '98396406' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '98396406',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript: '6a04007461620c49206c696b65206543617368',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -2770,7 +3419,10 @@ const mockedBlock: any = {
                         txid: 'b16ef7b4c184201dd858325c43cd67459bce352f041f7bf44f4b99972cba81bd',
                         outIdx: 5,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '1000000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000000',
+                    },
                 },
                 {
                     outputScript:
@@ -2779,7 +3431,10 @@ const mockedBlock: any = {
                         txid: '2c644fba674af09cec58af30be0a93b6ebe4f48b976e0531aaacb0b3220a1556',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '97395927' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '97395927',
+                    },
                 },
             ],
             lockTime: 0,
@@ -2809,7 +3464,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -2821,7 +3479,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '550' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '550',
+                    },
                 },
                 {
                     prevOut: {
@@ -2833,14 +3494,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '64959' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '64959',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04657461624c71036bdec11e461033145b5d96661e45ba2a40081aad01d34c4da4dac5e42b9961c990fc603ad5c6fed77fff016d57caa7ba8cbcebb33bd47e5eb0707628c0331e4d714054ab773ae4a555c9ea432af23a83104209e5299e86081f5fabe4a744e96eac6675149ce4e7680e342270498d0e68',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -2849,7 +3516,10 @@ const mockedBlock: any = {
                         txid: '00dbc347e48d2d422541057f2d3d1a6c32542ec2bea9e59664edbd8613774e7d',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2000',
+                    },
                 },
                 {
                     outputScript:
@@ -2858,7 +3528,10 @@ const mockedBlock: any = {
                         txid: 'f189376fd662b113e5da5904e318123aee5f573221e57a2545849ac556f31130',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '63232' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '63232',
+                    },
                 },
             ],
             lockTime: 0,
@@ -2888,7 +3561,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914aed3f8a5add35a9ddaf0a07986c2b73a2202727d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -2900,14 +3576,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914d50ec518d64850fda86e926764ce1bce1ba01a1988ac',
-                    sats: { dataType: 'BigIntReplacer', value: '43110' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '43110',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a04535750000101010120aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c0453454c4c0831353938383335340100203dd9beaedcbb3ad90eec2214fcf71381fa89b08b899813e182a7a393e1ab06190101010012333236322e39393939393939393939393935',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -2916,7 +3598,10 @@ const mockedBlock: any = {
                         txid: '09fe3d1b848dcc23006393604811cd1e79cfb12f79c44b0d76a8822c8910ca69',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '43190' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '43190',
+                    },
                 },
             ],
             lockTime: 0,
@@ -2946,14 +3631,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148fa951904f6d0ebbc92dc29e761b9eb0a837545c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '21944557' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21944557',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a026d0320eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a4c9654776974746572206b65657073207475726e696e6720746865697220415049206f6e20616e64206f66662e20536f6d6574696d657320697420776f726b732c20736f6d6574696d657320697420646f65736e27742e204665617475726520746f20637265617465207477656574732066726f6d206d656d6f206d617920776f726b20616761696e20617420736f6d6520706f696e742e',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -2962,7 +3653,10 @@ const mockedBlock: any = {
                         txid: 'ce4a58281bda100a572a1d365cb4a83b85d08874daff194179708b18e3f651cf',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '21944167' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '21944167',
+                    },
                 },
             ],
             lockTime: 0,
@@ -2992,7 +3686,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '500000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '500000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3004,7 +3701,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '28351' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '28351',
+                    },
                 },
                 {
                     prevOut: {
@@ -3016,7 +3716,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '200000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '200000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3028,7 +3731,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '48995' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '48995',
+                    },
                 },
                 {
                     prevOut: {
@@ -3040,14 +3746,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4000000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4000000',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a0464726f7020b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a04007461624c525374617920776974682075732c2065436173682041667269636120697320746865206e6578742062696720636f6d6d756e69747920696e20746865204166726963616e2063727970746f7370686572652e20',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -3056,7 +3768,10 @@ const mockedBlock: any = {
                         txid: '33b640c3f87a5d7d148bdf8870a3cdfad4dbfdad7abfb39fa97787ca9744b912',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
@@ -3065,17 +3780,26 @@ const mockedBlock: any = {
                         txid: '54d7c32d64ac3cb94c55ae4a9ca5c0519ea2dcf65962485e668ebb0bd7b0e990',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '529412' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '529412',
+                    },
                 },
                 {
                     outputScript:
                         '76a914f43ac7271cee240bee3796938203105fb54c045c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '529412' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '529412',
+                    },
                 },
                 {
                     outputScript:
                         '76a914d5a79acda6dbbe14a686a0c59466f52656330a9588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
@@ -3084,32 +3808,50 @@ const mockedBlock: any = {
                         txid: '80129555a3900a8d1084a6ecaf24f60dfb4fb25fa93ffed057536f0655d4df24',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '529412' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '529412',
+                    },
                 },
                 {
                     outputScript:
                         '76a914e735901add6ea366a0964ab54ad9d9158597f50c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
                         '76a91407acf15b7cc6a4c18d8d1c3a5611ea30718c2a0d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
                         '76a9146671b4690e282cb79707b1ee696d54a6072329fa88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '529412' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '529412',
+                    },
                 },
                 {
                     outputScript:
                         '76a914d4f7e7b420eb1c5410abf698c72d790f0c4cc1b388ac',
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
                         '76a914b19e12ae2aa186102486e8348f22b87ae426eafd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
@@ -3118,7 +3860,10 @@ const mockedBlock: any = {
                         txid: 'e58c868250f4e2949d5b72a1975d3a90247d59ea019edf4aebd214ed0d4c62b3',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '529412' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '529412',
+                    },
                 },
                 {
                     outputScript:
@@ -3127,7 +3872,10 @@ const mockedBlock: any = {
                         txid: 'f33e2516b93628e6f3608a2233e35af00426eb8ec3cba5836af827ba62cc0bf9',
                         outIdx: 2,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '264706' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '264706',
+                    },
                 },
                 {
                     outputScript:
@@ -3136,7 +3884,10 @@ const mockedBlock: any = {
                         txid: 'a2d019cffeb34decfe11f6135ee6aec09aeed439f34369ea9216b78a5d2040a0',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '274783' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '274783',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3166,7 +3917,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3178,14 +3932,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '28091' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '28091',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a042e7865630005646f67653215000b7d35fda03544a08e65464d54cfae4257eb6db7',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -3194,7 +3954,10 @@ const mockedBlock: any = {
                         txid: '9b9bc49c18a513f04c9d05dcff2d5e1164408b837d95ef695d24524520fb9358',
                         outIdx: 196,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '554' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '554',
+                    },
                 },
                 {
                     outputScript:
@@ -3203,7 +3966,10 @@ const mockedBlock: any = {
                         txid: 'c3bae8350772a99d52086720d2712813f8e47313d20f5d914a728cb7a2bcd9ea',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '27785' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '27785',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3241,11 +4007,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '39976' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '39976',
+                        },
                     },
                     outputScript:
                         '76a9147276ae7693883fa1165628e298899d8ee9248e7c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -3265,11 +4037,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '228263' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '228263',
+                        },
                     },
                     outputScript:
                         '76a9147276ae7693883fa1165628e298899d8ee9248e7c88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -3281,7 +4059,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3293,7 +4074,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3305,7 +4089,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3317,7 +4104,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3329,14 +4119,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a503d534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03401f000000006067010000002f9102000000',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -3351,9 +4147,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '8000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '8000',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     outputScript:
@@ -3368,13 +4170,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '92000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '92000',
+                        },
                     },
                     spentBy: {
                         txid: '73ce0b742131ace72e8598a9585971220c4ddcd4d4d13a058bbcc52c355dca2c',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2588' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2588',
+                    },
                 },
                 {
                     outputScript:
@@ -3389,13 +4197,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '168239' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '168239',
+                        },
                     },
                     spentBy: {
                         txid: '292057e2071f8245317ff4e504a0b57ce3c841f4a9505cfbe7ecc7521d0054ff',
                         outIdx: 4,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3417,7 +4231,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -3450,18 +4267,27 @@ const mockedBlock: any = {
                         },
                         isMintBaton: true,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '0' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '0',
+                        },
                     },
                     outputScript:
                         'a914ea826cc1a3a981d048cd78b66711222bece8ebf287',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a5032534c503200044d494e5445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd0160ae0a00000000',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -3476,13 +4302,19 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '700000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '700000',
+                        },
                     },
                     spentBy: {
                         txid: '4307458f1952db756e959e68aacae82c73a4b86d6e996636d66bf79bca28cbbe',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3504,7 +4336,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -3529,24 +4364,36 @@ const mockedBlock: any = {
                     sequenceNo: 0,
                     outputScript:
                         '76a914d95a60cea21479569e6b1ad39416c8fbc97323c588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8862751' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8862751',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '76a914453c8c15aee05fe5a027d4bf5681cd0bc682c0b788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8419613' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8419613',
+                    },
                 },
                 {
                     outputScript:
                         '76a914d95a60cea21479569e6b1ad39416c8fbc97323c588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '442686' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '442686',
+                    },
                 },
                 {
                     outputScript:
                         '6a403d3a4554482e4554483a3078613961614633304636353935354336396331364233333435423531443432364439423838426138373a3834313332313a74723a30',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3576,7 +4423,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '12966881' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '12966881',
+                    },
                 },
             ],
             outputs: [
@@ -3587,12 +4437,18 @@ const mockedBlock: any = {
                         txid: '56f1c0813d1b44697deccdd32b5182448e8c4c1bd6db771ceed779d4a5021ab9',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '12966621' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '12966621',
+                    },
                 },
                 {
                     outputScript:
                         '6a14663ddd99990bcd969994ec2288a2a86dc532e1a8',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             lockTime: 1692219709,
@@ -3622,7 +4478,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '584106362127' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '584106362127',
+                    },
                 },
             ],
             outputs: [
@@ -3633,7 +4492,10 @@ const mockedBlock: any = {
                         txid: '63edf584e527ec15d6d3ffa33db55cd6055a5d8af3dd778a8ffaad35a594a180',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '214748364700' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '214748364700',
+                    },
                 },
                 {
                     outputScript:
@@ -3642,7 +4504,10 @@ const mockedBlock: any = {
                         txid: '99eec6fec03c1c3d2043a07f38488aae9416e676f859a940e521b619f9308d6d',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '154609632467' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '154609632467',
+                    },
                 },
                 {
                     outputScript:
@@ -3651,7 +4516,10 @@ const mockedBlock: any = {
                         txid: '63edf584e527ec15d6d3ffa33db55cd6055a5d8af3dd778a8ffaad35a594a180',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '214748364700' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '214748364700',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3681,7 +4549,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147c09e7cf1b2c40d4e08057e47bda9cabcdfd208588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '30426563453' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '30426563453',
+                    },
                 },
                 {
                     prevOut: {
@@ -3693,7 +4564,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9147c09e7cf1b2c40d4e08057e47bda9cabcdfd208588ac',
-                    sats: { dataType: 'BigIntReplacer', value: '30225350654' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '30225350654',
+                    },
                 },
                 {
                     prevOut: {
@@ -3705,7 +4579,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9149f27f41b828019c141516179ab00e538a3f65a1788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '16816891900' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '16816891900',
+                    },
                 },
                 {
                     prevOut: {
@@ -3717,7 +4594,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142d9c4a5a292f5fef07b8cfe76b0c66d90d15a5d688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '6908486500' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '6908486500',
+                    },
                 },
                 {
                     prevOut: {
@@ -3729,7 +4609,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9149d1cd75ff25c555213ab5fef4bbd6a180a5e5e7d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '5101721000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5101721000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3741,7 +4624,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142d9c4a5a292f5fef07b8cfe76b0c66d90d15a5d688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4810263100' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4810263100',
+                    },
                 },
                 {
                     prevOut: {
@@ -3753,7 +4639,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9143d1ee2681911f344e77097a8bd25576e1da1c51788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '4000000000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4000000000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3765,7 +4654,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142d9c4a5a292f5fef07b8cfe76b0c66d90d15a5d688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3463133300' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3463133300',
+                    },
                 },
                 {
                     prevOut: {
@@ -3777,7 +4669,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9142d9c4a5a292f5fef07b8cfe76b0c66d90d15a5d688ac',
-                    sats: { dataType: 'BigIntReplacer', value: '3295559900' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '3295559900',
+                    },
                 },
                 {
                     prevOut: {
@@ -3789,7 +4684,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a91429981fd0910f0851fcb3422b37abb5de442de33188ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1412324900' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1412324900',
+                    },
                 },
                 {
                     prevOut: {
@@ -3801,7 +4699,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914ef95330c2b65976c5c63b03d544207b5e55bb58b88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '99900000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '99900000',
+                    },
                 },
                 {
                     prevOut: {
@@ -3813,7 +4714,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9144d746dbe5864a2635376326a3995f8ada2ec339d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8625006' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8625006',
+                    },
                 },
                 {
                     prevOut: {
@@ -3825,7 +4729,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9144d746dbe5864a2635376326a3995f8ada2ec339d88ac',
-                    sats: { dataType: 'BigIntReplacer', value: '8625000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '8625000',
+                    },
                 },
             ],
             outputs: [
@@ -3836,7 +4743,10 @@ const mockedBlock: any = {
                         txid: '78bc65dce0917bf1d3c29f8a9cce02204cc85f90dfeda68356d7338e4d68be4f',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '106577441836' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '106577441836',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3874,11 +4784,17 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '2000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '2000',
+                        },
                     },
                     outputScript:
                         '76a914378c3b416e77e01198c01ad215b8afd0bb72799488ac',
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
                 {
                     prevOut: {
@@ -3890,14 +4806,20 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
-                    sats: { dataType: 'BigIntReplacer', value: '1000' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1000',
+                    },
                 },
             ],
             outputs: [
                 {
                     outputScript:
                         '6a5031534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd01d00700000000',
-                    sats: { dataType: 'BigIntReplacer', value: '0' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
                 {
                     outputScript:
@@ -3912,9 +4834,15 @@ const mockedBlock: any = {
                         },
                         isMintBaton: false,
                         entryIdx: 0,
-                        atoms: { dataType: 'BigIntReplacer', value: '2000' },
+                        atoms: {
+                            dataType: 'BigIntReplacer',
+                            value: '2000',
+                        },
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '546' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '546',
+                    },
                 },
             ],
             lockTime: 0,
@@ -3936,7 +4864,10 @@ const mockedBlock: any = {
                     failedColorings: [],
                     intentionalBurn: '0',
                     burnsMintBatons: false,
-                    actualBurnAtoms: { dataType: 'BigIntReplacer', value: '0' },
+                    actualBurnAtoms: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
                 },
             ],
             tokenFailedParsings: [],
@@ -3961,7 +4892,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '2531619' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2531619',
+                    },
                 },
             ],
             outputs: [
@@ -3972,7 +4906,10 @@ const mockedBlock: any = {
                         txid: '16eb156e4b2688706f9e3da8bdcba69f363d1975ccb363b02274a7ff13d3220a',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '4200' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4200',
+                    },
                 },
                 {
                     outputScript:
@@ -3981,7 +4918,10 @@ const mockedBlock: any = {
                         txid: '6f77cfe3148f28de4b982c18d34e79b8d51a368a7c94354b7399133318daf129',
                         outIdx: 1,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2527200' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2527200',
+                    },
                 },
             ],
             lockTime: 0,
@@ -4011,7 +4951,10 @@ const mockedBlock: any = {
                     sequenceNo: 4294967295,
                     outputScript:
                         '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                    sats: { dataType: 'BigIntReplacer', value: '2524161' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2524161',
+                    },
                 },
             ],
             outputs: [
@@ -4022,7 +4965,10 @@ const mockedBlock: any = {
                         txid: 'afde4b9345a7bdbb20eaf7a0da3c730ca28334b8ceffce0a3e7b720b0c5d5a09',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '4200' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '4200',
+                    },
                 },
                 {
                     outputScript:
@@ -4031,7 +4977,10 @@ const mockedBlock: any = {
                         txid: '68d48755e671dbd6946d811dff04532ede483cee2f3c284e08dddec3d7c351d9',
                         outIdx: 0,
                     },
-                    sats: { dataType: 'BigIntReplacer', value: '2519742' },
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '2519742',
+                    },
                 },
             ],
             lockTime: 0,
@@ -4041,6 +4990,186 @@ const mockedBlock: any = {
             tokenEntries: [],
             tokenFailedParsings: [],
             tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        },
+        {
+            txid: '01ef128ab5424ca838ae9e94ac62754ba561d4f382125a0beeca0c981d9cb7f4',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '222bf62d65b432d3c832532c3547de8f026db0f091ef5c8d5a1fe77b86a1b215',
+                        outIdx: 2,
+                    },
+                    inputScript:
+                        '41623c714574c3466b67f1e05a1e1b451a5bf1375e2149b57bf0052b88f93c6393ccdcaa345d8eb6276f9293718ae0e605996efd71a4b6bab61a1f05645d7bcea941210291a94a68f87b3078ee57770a7c615f1bd466bbc0536d16169f6f0b7d51e102b0',
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '307555',
+                    },
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
+                    outputScript: '6a044449434501000454bbbe02044c303104',
+                },
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '10000',
+                    },
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                    spentBy: {
+                        txid: '742f5e849ea933a72bbb7450f4107c9abfd9d853461599adf652cd1c4a2ec442',
+                        outIdx: 1,
+                    },
+                },
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '297309',
+                    },
+                    outputScript:
+                        '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                    spentBy: {
+                        txid: 'a4f0220d5b8ac2eea23d8a7f4b8abeaa35d7d929edd115d035ff6c4956fced40',
+                        outIdx: 0,
+                    },
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1772566217,
+            size: 246,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            isFinal: true,
+            block: {
+                height: 938796,
+                hash: '0000000000000000451ae99111101a671679e8f70e6af20973fffc791a0c6360',
+                timestamp: 1772566488,
+            },
+        },
+        {
+            txid: '02e71b9638a960befbc0cecb9aa01bdb68d7f9ed3303aca02e9032a22322e04f',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'e297f79a0ad7d7a66217c11f31829028920e22c17993365a4d07faf650dfa84b',
+                        outIdx: 1,
+                    },
+                    inputScript:
+                        '417d4c7b9d34ad7be3d453619efb005f08cc032ef09466ad0300bbbd9ec103ef84831ed78f4bb9e2f903b46c68cd8954003a31860f8b3e2946fa9723ef360e2f51412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '10000',
+                    },
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+                {
+                    prevOut: {
+                        txid: '2c6660486df99e8c549a1cc5dc2790b0283b5d86a42ee6da1ed4b0420d328b58',
+                        outIdx: 3,
+                    },
+                    inputScript:
+                        '414c15072d4b09691cc4fbfa81246cf070e19856c25c34f5d6095d88db6d5045019b3e5a0d5c8c59b4bb1b9256f6ebe408e8cd0d6d9ec7420709350dc940887c03412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '14639',
+                    },
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+                {
+                    prevOut: {
+                        txid: 'ac292b6899c83e6edbabfa77a71e3dd21287df0d11274ac3008978d9530ae1dc',
+                        outIdx: 1,
+                    },
+                    inputScript:
+                        '419dd04647f0f92ff8c92b41212027b546ee7c3e9ab24e864e97e0039b8dd648fc8f98e5d84559f56f16bdfec7dfcc822f07b144ce08a9b0a17e6c6a79bfe65833412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '5000',
+                    },
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+                {
+                    prevOut: {
+                        txid: 'a4698d2bbe90adcceb29d89a239f4cf7057b15b58d3a7076bced8478164c8f9c',
+                        outIdx: 3,
+                    },
+                    inputScript:
+                        '41ddd08cae1f11b27178cfc17111d5b1287a0c7311d7fae4a6c127692fbad4de8b3f335740a7f9cf5aa09c349cbb379177c5f868e3de0e61164f2587eb7c001b40412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1132215533',
+                    },
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '0',
+                    },
+                    outputScript:
+                        '6a04524f4c4c010020e297f79a0ad7d7a66217c11f31829028920e22c17993365a4d07faf650dfa84b04d4be4903205c63fadad17a3f673a7ab4db8b058babe0646c01b42349e5af8284f0fbcd21760157',
+                },
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '39953',
+                    },
+                    outputScript:
+                        '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                    spentBy: {
+                        txid: 'cf3efa727f8eb56f1d16cc37ea993167cd1536ec57b7650ae59106e003df3ae7',
+                        outIdx: 0,
+                    },
+                },
+                {
+                    sats: {
+                        dataType: 'BigIntReplacer',
+                        value: '1132204487',
+                    },
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                    spentBy: {
+                        txid: '6b0b1a5691f24bb805ef5e98a19607fc372fb721eca30966acab4c6664c6fed3',
+                        outIdx: 2,
+                    },
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1772566050,
+            size: 732,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            isFinal: true,
+            block: {
+                height: 938796,
+                hash: '0000000000000000451ae99111101a671679e8f70e6af20973fffc791a0c6360',
+                timestamp: 1772566488,
+            },
         },
     ],
     parsedBlock: {
@@ -4054,7 +5183,7 @@ const mockedBlock: any = {
                 value: '62500000',
             },
         },
-        numTxs: 27,
+        numTxs: 29,
         parsedTxs: [
             {
                 txid: '4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035',
@@ -4067,7 +5196,10 @@ const mockedBlock: any = {
                         '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
                     ],
                 },
-                xecReceivingOutputs: { dataType: 'Map', value: [] },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [],
+                },
                 totalSatsSent: {
                     dataType: 'BigIntReplacer',
                     value: '584106361867',
@@ -4098,7 +5230,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '76a914a520c86a08366941cd90d22e11ac1c7eefa2db3788ac',
-                            106577441836,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '106577441836',
+                            },
                         ],
                     ],
                 },
@@ -4196,255 +5331,444 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a0446555a0020ab3267b0b667ea2252d414b3714d6f08b5fbf16c0026ce454c903dc6ff002255',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914d7fc1d156d8ec4384623bb8ceb135df93f2bd93188ac',
-                            506531,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '506531',
+                            },
                         ],
                         [
                             '76a91447da14cfad47a7971dd345821ac7a81e194e474588ac',
-                            1175076,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '1175076',
+                            },
                         ],
                         [
                             '76a914d6b7baf14352dd9769a9a8bdb1f69cf700766aca88ac',
-                            1557619,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '1557619',
+                            },
                         ],
                         [
                             '76a914bc53fc8620ece064004a7bb72f0613a0045f6ae488ac',
-                            1685802,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '1685802',
+                            },
                         ],
                         [
                             '76a914ea34af00f2585bddc37607af492a7d5b35d431fe88ac',
-                            1957993,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '1957993',
+                            },
                         ],
                         [
                             '76a914dab80f23ec17efe39e3167ac47575f5b102855d288ac',
-                            2280297,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2280297',
+                            },
                         ],
                         [
                             '76a914f10147fbbff24aa9f4f9a9f3726760a4abad6a9688ac',
-                            2804591,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2804591',
+                            },
                         ],
                         [
                             '76a9140b8b9344a473853830f3657c7247e4834171d6fd88ac',
-                            2810950,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2810950',
+                            },
                         ],
                         [
                             '76a914a0737c0938d04eff2d5074513ee5fd3fd41de38488ac',
-                            2862208,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2862208',
+                            },
                         ],
                         [
                             '76a914b5d94938a3665b01fc0afee6b6179bb2b9e46b2e88ac',
-                            2880530,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2880530',
+                            },
                         ],
                         [
                             '76a914dbb0e87717a034774a2435db6c9d4791f58bd43f88ac',
-                            2894084,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2894084',
+                            },
                         ],
                         [
                             '76a9144e3bebebb3ac2785181534094eadccad4ea8dc4688ac',
-                            3104218,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '3104218',
+                            },
                         ],
                         [
                             '76a91458c2d76cd32e1d30d0e62b641d50bdd89200a7f188ac',
-                            3122421,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '3122421',
+                            },
                         ],
                         [
                             '76a9142980d02fa9a25306f3dd195ab9c82a2e2877f67e88ac',
-                            3419974,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '3419974',
+                            },
                         ],
                         [
                             '76a91451331eca38c944f17ee6354a3ee48193c7eb1b6b88ac',
-                            3594078,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '3594078',
+                            },
                         ],
                         [
                             '76a914755b984555fcd6305583c21d996a8dea7faa67d488ac',
-                            3794311,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '3794311',
+                            },
                         ],
                         [
                             '76a914e245bab4243bd6a8f3932c9dab9df496f003eae488ac',
-                            4241488,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '4241488',
+                            },
                         ],
                         [
                             '76a9147901f7c02a7fb7de87c373c143e15e87989f764b88ac',
-                            5771042,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '5771042',
+                            },
                         ],
                         [
                             '76a9149db2a709e1f26df987ecd5a5dcb8db0b36a449ef88ac',
-                            5801672,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '5801672',
+                            },
                         ],
                         [
                             '76a9141c5dd21c29a653e6922c2058852d9f56e483170188ac',
-                            6529646,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '6529646',
+                            },
                         ],
                         [
                             '76a9143510f0c92f8b26e26de575140a084773e95f439a88ac',
-                            6536855,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '6536855',
+                            },
                         ],
                         [
                             '76a914ee542bd41bb07264cf9f6e824e45d3446a26077c88ac',
-                            7742026,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '7742026',
+                            },
                         ],
                         [
                             '76a914c4131be628403d70a62e46dfc13b576af05aa5f088ac',
-                            8072753,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '8072753',
+                            },
                         ],
                         [
                             '76a914f5ffa38db9ffac77b5a1a6c35eebf2415fedf87c88ac',
-                            8820534,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '8820534',
+                            },
                         ],
                         [
                             '76a914b3e42f44a3dff21f72c90555d0ec62b273f0d4a588ac',
-                            9000450,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '9000450',
+                            },
                         ],
                         [
                             '76a91463a7fe1eff49be76e18538f3ed380b7386af1c8f88ac',
-                            11771919,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '11771919',
+                            },
                         ],
                         [
                             '76a91457f118d5f5eecebc88f711a80018bececbeb86e088ac',
-                            13144002,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '13144002',
+                            },
                         ],
                         [
                             '76a9148d2a8ce8e95b3047b918d8bd24db8c3e39d906cc88ac',
-                            13393930,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '13393930',
+                            },
                         ],
                         [
                             '76a914d6a0a87a3a5ea254ed4a2665ac328a7ef769747688ac',
-                            13691033,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '13691033',
+                            },
                         ],
                         [
                             '76a914810c66b72d769d1fefd2c5bb26d20024e25fd35088ac',
-                            14490346,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '14490346',
+                            },
                         ],
                         [
                             '76a914b3f036ee778de53049e0152a140bcba4952081f788ac',
-                            15649462,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '15649462',
+                            },
                         ],
                         [
                             '76a9144dbd06c9f304601d8fe89199ee7afa0afc3e5de688ac',
-                            16885611,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '16885611',
+                            },
                         ],
                         [
                             '76a91435cf783dd7fc1a919c5a92d73feedcab1d3e4dd588ac',
-                            17311755,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '17311755',
+                            },
                         ],
                         [
                             '76a914c570835edbc0de4a525a9ba9501eb0b123b8ab1c88ac',
-                            19229444,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '19229444',
+                            },
                         ],
                         [
                             '76a9142368a5b973c7d48fa8343b71cfb51b5a4ccfcb2488ac',
-                            19612475,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '19612475',
+                            },
                         ],
                         [
                             '76a9149163b5cb6618d7d67562270de630da0d62896c1e88ac',
-                            20857697,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '20857697',
+                            },
                         ],
                         [
                             '76a91464be00bf5c68a60ae520cfa81d051225457572a788ac',
-                            21475345,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '21475345',
+                            },
                         ],
                         [
                             '76a9148bc944201dec7391def49db52202a009c6a81f2088ac',
-                            21879959,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '21879959',
+                            },
                         ],
                         [
                             '76a914af6ae4c996d1ab51dd344b1f491c01163169053588ac',
-                            21900743,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '21900743',
+                            },
                         ],
                         [
                             '76a914c1f421d009c6b36b205721c064c2ae5ea3272a4688ac',
-                            22276723,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '22276723',
+                            },
                         ],
                         [
                             '76a9146454f4696e5bbb5eb4d368c162b35f6fcc861e6b88ac',
-                            22828111,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '22828111',
+                            },
                         ],
                         [
                             '76a9142a8af09882e0b5dd047b03e61eb3630e0678325e88ac',
-                            22829710,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '22829710',
+                            },
                         ],
                         [
                             '76a9147eec957f14c8c35b491f487a8d777cf3b427f47688ac',
-                            23106927,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '23106927',
+                            },
                         ],
                         [
                             '76a9148f41a4d08d01a574210a0d99784248d7b718a6b388ac',
-                            25043923,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '25043923',
+                            },
                         ],
                         [
                             '76a9149fbf277434a5a0582ffe774693c343e95c442a8188ac',
-                            25946731,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '25946731',
+                            },
                         ],
                         [
                             '76a914d35d6706484afdc79bbaab9ce1f84fed4939317f88ac',
-                            26216189,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '26216189',
+                            },
                         ],
                         [
                             '76a914fc64d1ceb75ef723b8bb81f53039f239f69de25d88ac',
-                            27153210,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '27153210',
+                            },
                         ],
                         [
                             '76a9140b395214ae8c35fd7e8bb6921fa478216fd9e41988ac',
-                            27888923,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '27888923',
+                            },
                         ],
                         [
                             '76a9145c9faf662be3667f760e03535c511085a2bc814488ac',
-                            28283566,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '28283566',
+                            },
                         ],
                         [
                             '76a914f883cd4d8e8b6e1cba5d127e24c57b45c26b46a288ac',
-                            29688615,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '29688615',
+                            },
                         ],
                         [
                             '76a9147fe1c85d201af0ab1322d5809aaa03bb7dac05fb88ac',
-                            32471718,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '32471718',
+                            },
                         ],
                         [
                             '76a9141ab1428e336477a213d18207570b5008841d24ea88ac',
-                            35209256,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '35209256',
+                            },
                         ],
                         [
                             '76a914219f01df857ef5faa2c1509b8dc958eb9425f5df88ac',
-                            40404442,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '40404442',
+                            },
                         ],
                         [
                             '76a914a4c2e50019b19c9d152b6327733033253d61efe188ac',
-                            48107746,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '48107746',
+                            },
                         ],
                         [
                             '76a91479be8c6a6fc20a9f4cd1e55d8e99fef936a5b4fb88ac',
-                            54611567,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '54611567',
+                            },
                         ],
                         [
                             '76a914e8f011eded020ed1605848c7b5e6704eb689b33f88ac',
-                            54872231,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '54872231',
+                            },
                         ],
                         [
                             '76a9146573038dc2d55422c20b91588f8264f9aa038d6088ac',
-                            56164346,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '56164346',
+                            },
                         ],
                         [
                             '76a9147077be58e7ead7443259fe5409309edbabef41d388ac',
-                            58564003,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '58564003',
+                            },
                         ],
                         [
                             '76a9149cf6eb2a055f3340d31d83bf5e29cfe0e9d919f288ac',
-                            59817398,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '59817398',
+                            },
                         ],
                         [
                             '76a914d12908c4b7be22044226856207328e20e3e1f2c288ac',
-                            64104923,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '64104923',
+                            },
                         ],
                         [
                             '76a91437a517f6174aed807cb1f9fb26ff25912c8ea4ee88ac',
-                            87305777,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '87305777',
+                            },
                         ],
                         [
                             '76a914b2094f7a6f5c39a66ddff6852bfef1f6dac495fb88ac',
-                            91558238,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '91558238',
+                            },
                         ],
                     ],
                 },
@@ -4476,9 +5800,18 @@ const mockedBlock: any = {
                     value: [
                         [
                             'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
-                            12966621,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '12966621',
+                            },
                         ],
-                        ['6a14663ddd99990bcd969994ec2288a2a86dc532e1a8', 0],
+                        [
+                            '6a14663ddd99990bcd969994ec2288a2a86dc532e1a8',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
+                        ],
                     ],
                 },
                 totalSatsSent: {
@@ -4511,11 +5844,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '76a914453c8c15aee05fe5a027d4bf5681cd0bc682c0b788ac',
-                            8419613,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '8419613',
+                            },
                         ],
                         [
                             '6a403d3a4554482e4554483a3078613961614633304636353935354336396331364233333435423531443432364439423838426138373a3834313332313a74723a30',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -4553,55 +5892,94 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a0464726f7020b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a04007461624c525374617920776974682075732c2065436173682041667269636120697320746865206e6578742062696720636f6d6d756e69747920696e20746865204166726963616e2063727970746f7370686572652e20',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914957b59a2bfa17ea7fc234e532b263169b6d34aa988ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a9148f882b02e1040f83c2f73007bb334716c38dbffc88ac',
-                            529412,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '529412',
+                            },
                         ],
                         [
                             '76a914f43ac7271cee240bee3796938203105fb54c045c88ac',
-                            529412,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '529412',
+                            },
                         ],
                         [
                             '76a914d5a79acda6dbbe14a686a0c59466f52656330a9588ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a91429207c3d229d6163521fbe87e52e64bbe584dbc988ac',
-                            529412,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '529412',
+                            },
                         ],
                         [
                             '76a914e735901add6ea366a0964ab54ad9d9158597f50c88ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a91407acf15b7cc6a4c18d8d1c3a5611ea30718c2a0d88ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a9146671b4690e282cb79707b1ee696d54a6072329fa88ac',
-                            529412,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '529412',
+                            },
                         ],
                         [
                             '76a914d4f7e7b420eb1c5410abf698c72d790f0c4cc1b388ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a914b19e12ae2aa186102486e8348f22b87ae426eafd88ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                         [
                             '76a914e6309418b6e60b8119928ec45b8ba87de8e735f788ac',
-                            529412,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '529412',
+                            },
                         ],
                         [
                             '76a914cdba2655ee5abf18a5b6203da5b7d8cc28c36ca888ac',
-                            264706,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '264706',
+                            },
                         ],
                     ],
                 },
@@ -4631,16 +6009,116 @@ const mockedBlock: any = {
                 xecReceivingOutputs: {
                     dataType: 'Map',
                     value: [
-                        ['6a04007461620c49206c696b65206543617368', 0],
+                        [
+                            '6a04007461620c49206c696b65206543617368',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
+                        ],
                         [
                             '76a9144fb74b44c66ab529428a943131f236c80d99b82088ac',
-                            1000000,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '1000000',
+                            },
                         ],
                     ],
                 },
                 totalSatsSent: {
                     dataType: 'BigIntReplacer',
                     value: '1000000',
+                },
+                tokenSendInfo: false,
+                tokenBurnInfo: false,
+            },
+            {
+                txid: '02e71b9638a960befbc0cecb9aa01bdb68d7f9ed3303aca02e9032a22322e04f',
+                genesisInfo: false,
+                opReturnInfo: {
+                    app: 'Blitzchips',
+                    msg: 'ROLL payout',
+                    stackArray: [
+                        '524f4c4c',
+                        '00',
+                        'e297f79a0ad7d7a66217c11f31829028920e22c17993365a4d07faf650dfa84b',
+                        'd4be4903',
+                        '5c63fadad17a3f673a7ab4db8b058babe0646c01b42349e5af8284f0fbcd2176',
+                        '57',
+                    ],
+                    tokenId: false,
+                },
+                txFee: 732,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a04524f4c4c010020e297f79a0ad7d7a66217c11f31829028920e22c17993365a4d07faf650dfa84b04d4be4903205c63fadad17a3f673a7ab4db8b058babe0646c01b42349e5af8284f0fbcd21760157',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
+                        ],
+                        [
+                            '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '39953',
+                            },
+                        ],
+                    ],
+                },
+                totalSatsSent: {
+                    dataType: 'BigIntReplacer',
+                    value: '39953',
+                },
+                tokenSendInfo: false,
+                tokenBurnInfo: false,
+            },
+            {
+                txid: '01ef128ab5424ca838ae9e94ac62754ba561d4f382125a0beeca0c981d9cb7f4',
+                genesisInfo: false,
+                opReturnInfo: {
+                    app: 'Blitzchips',
+                    msg: 'DICE play',
+                    stackArray: ['44494345', '00', '54bbbe02', '4c303104'],
+                    tokenId: false,
+                },
+                txFee: 246,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a044449434501000454bbbe02044c303104',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
+                        ],
+                        [
+                            '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '10000',
+                            },
+                        ],
+                    ],
+                },
+                totalSatsSent: {
+                    dataType: 'BigIntReplacer',
+                    value: '10000',
                 },
                 tokenSendInfo: false,
                 tokenBurnInfo: false,
@@ -4661,7 +6139,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '76a91430f16ad77116a4b9e7f337743e35271323d63e0d88ac',
-                            4200,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '4200',
+                            },
                         ],
                     ],
                 },
@@ -4688,7 +6169,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '76a914eeae0fea781c26c93879523ba5a47c244c768ece88ac',
-                            4200,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '4200',
+                            },
                         ],
                     ],
                 },
@@ -4716,15 +6200,24 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a503d534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03401f000000006067010000002f9102000000',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                         [
                             'a914f71cf8cb91804a2205901cc0972c3f4a088a1aae87',
-                            2588,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2588',
+                            },
                         ],
                     ],
                 },
@@ -4801,11 +6294,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04657461624c71036bdec11e461033145b5d96661e45ba2a40081aad01d34c4da4dac5e42b9961c990fc603ad5c6fed77fff016d57caa7ba8cbcebb33bd47e5eb0707628c0331e4d714054ab773ae4a555c9ea432af23a83104209e5299e86081f5fabe4a744e96eac6675149ce4e7680e342270498d0e68',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac',
-                            2000,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '2000',
+                            },
                         ],
                     ],
                 },
@@ -4842,9 +6341,18 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a042e7865630005646f67653215000b7d35fda03544a08e65464d54cfae4257eb6db7',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
-                        ['a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087', 554],
+                        [
+                            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '554',
+                            },
+                        ],
                     ],
                 },
                 totalSatsSent: {
@@ -4870,11 +6378,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000000589ffd0',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -4936,11 +6450,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005856bf0',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5002,11 +6522,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005843370',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5068,11 +6594,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000986f70',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914821407ac2993f8684227004f4086082f3f801da788ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5134,11 +6666,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e442098183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f4808000000000000003708000000003b9a72a4',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5168,7 +6706,10 @@ const mockedBlock: any = {
                         value: [
                             [
                                 '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
-                                { dataType: 'BigNumberReplacer', value: '55' },
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '55',
+                                },
                             ],
                         ],
                     },
@@ -5197,11 +6738,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e44207443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d0800000000068c953f08001299507b7b143a',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5263,11 +6810,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000001dcd65000800000007e7339728',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5327,11 +6880,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a5032534c503200044d494e5445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd0160ae0a00000000',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a91472a92e48c5ab72566959db1dbf1b8dce83afabb788ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5359,11 +6918,17 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a5031534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd01d00700000000',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                         [
                             '76a914acdbf937b086ddaa970072a610daa8d10f14549a88ac',
-                            546,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '546',
+                            },
                         ],
                     ],
                 },
@@ -5376,7 +6941,10 @@ const mockedBlock: any = {
                         'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
                     parsedTokenType: 'ALP',
                     txType: 'SEND',
-                    tokenChangeOutputs: { dataType: 'Map', value: [] },
+                    tokenChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
                     tokenReceivingOutputs: {
                         dataType: 'Map',
                         value: [
@@ -5417,7 +6985,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010747454e45534953054c6f6c6c79054c4f4c4c591468747470733a2f2f636173687461622e636f6d2f4c0001084c00080162ea854d0fc000',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -5444,7 +7015,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000002737100800000000000f3636',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -5469,7 +7043,10 @@ const mockedBlock: any = {
                             ],
                         ],
                     },
-                    tokenReceivingOutputs: { dataType: 'Map', value: [] },
+                    tokenReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
                     tokenSendingOutputScripts: {
                         dataType: 'Set',
                         value: [
@@ -5495,7 +7072,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000000c380cdc',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -5548,7 +7128,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a04535750000101010120aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c0453454c4c0831353938383335340100203dd9beaedcbb3ad90eec2214fcf71381fa89b08b899813e182a7a393e1ab06190101010012333236322e39393939393939393939393935',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -5578,7 +7161,10 @@ const mockedBlock: any = {
                     value: [
                         [
                             '6a026d0320eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a4c9654776974746572206b65657073207475726e696e6720746865697220415049206f6e20616e64206f66662e20536f6d6574696d657320697420776f726b732c20736f6d6574696d657320697420646f65736e27742e204665617475726520746f20637265617465207477656574732066726f6d206d656d6f206d617920776f726b20616761696e20617420736f6d6520706f696e742e',
-                            0,
+                            {
+                                dataType: 'BigIntReplacer',
+                                value: '0',
+                            },
                         ],
                     ],
                 },
@@ -5620,6 +7206,8 @@ const mockedBlock: any = {
                 '76a914957b59a2bfa17ea7fc234e532b263169b6d34aa988ac',
                 '76a9147d432e8ccc646fe6c52e36c285bce2b75f0f500b88ac',
                 '76a9144fb74b44c66ab529428a943131f236c80d99b82088ac',
+                '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
                 '76a914821407ac2993f8684227004f4086082f3f801da788ac',
                 '76a91430f16ad77116a4b9e7f337743e35271323d63e0d88ac',
                 '76a914eeae0fea781c26c93879523ba5a47c244c768ece88ac',
@@ -5652,19 +7240,6 @@ const mockedBlock: any = {
             {
                 source: {
                     dataType: 'CryptoTickerReplacer',
-                    value: 'btc',
-                },
-                quote: {
-                    dataType: 'FiatReplacer',
-                    value: 'usd',
-                },
-                provider: 'mock',
-                price: 30000,
-                lastUpdated: '2026-01-12T22:26:03.095Z',
-            },
-            {
-                source: {
-                    dataType: 'CryptoTickerReplacer',
                     value: 'xec',
                 },
                 quote: {
@@ -5673,7 +7248,20 @@ const mockedBlock: any = {
                 },
                 provider: 'mock',
                 price: 0.0001,
-                lastUpdated: '2026-01-12T22:26:03.095Z',
+                lastUpdated: '2026-03-03T20:36:23.996Z',
+            },
+            {
+                source: {
+                    dataType: 'CryptoTickerReplacer',
+                    value: 'btc',
+                },
+                quote: {
+                    dataType: 'FiatReplacer',
+                    value: 'usd',
+                },
+                provider: 'mock',
+                price: 30000,
+                lastUpdated: '2026-03-03T20:36:23.996Z',
             },
             {
                 source: {
@@ -5686,7 +7274,7 @@ const mockedBlock: any = {
                 },
                 provider: 'mock',
                 price: 2000,
-                lastUpdated: '2026-01-12T22:26:03.095Z',
+                lastUpdated: '2026-03-03T20:36:23.996Z',
             },
         ],
     },
@@ -5818,21 +7406,15 @@ const mockedBlock: any = {
             payoutAddress: 'ecash:qqqp96rlge8472qxf2lq2m35s83agdgyyg2nve2xxw',
         },
         {
+            proof: 'c029f8a81314659cf1a4876997b714643fdb0989288069dd9a1070686137c071',
+            stake: '1855260785.32',
+            creationTimeStamp: '1706051624',
+            payoutAddress: 'ecash:qp275h0upptxxhwtu424vvf66tnvaphhju6qmng0gh',
+        },
+        {
             proof: '8066b1a3dad041688cec5132db7c934f7e98fef54b9c6e2873da22bbc7764b3a',
             stake: '1805196027.32',
             creationTimeStamp: '1706609839',
-            payoutAddress: 'ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt',
-        },
-        {
-            proof: '98ebbd3f2ac8d633080999c6cf7eded621c96382488ba97da271ae3d04324cc6',
-            stake: '1855260785.32',
-            creationTimeStamp: '1706051624',
-            payoutAddress: 'ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt',
-        },
-        {
-            proof: 'ce69e661d39b70549230ff2504140586b38129828afeb232faa0bbf5dd5ac16b',
-            stake: '200000000.00',
-            creationTimeStamp: '1760429260',
             payoutAddress: 'ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt',
         },
         {
@@ -6133,7 +7715,7 @@ const mockedBlock: any = {
             price: 0.0001,
             ticker: {
                 dataType: 'CryptoTickerReplacer',
-                value: 'XEC',
+                value: 'xec',
             },
         },
         {
@@ -6144,7 +7726,7 @@ const mockedBlock: any = {
             price: 30000,
             ticker: {
                 dataType: 'CryptoTickerReplacer',
-                value: 'BTC',
+                value: 'btc',
             },
         },
         {
@@ -6155,7 +7737,7 @@ const mockedBlock: any = {
             price: 2000,
             ticker: {
                 dataType: 'CryptoTickerReplacer',
-                value: 'ETH',
+                value: 'eth',
             },
         },
     ],
@@ -6266,7 +7848,7 @@ const mockedBlock: any = {
                     emoji: '🐳',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '01000000000000',
+                        value: '1000000000000',
                     },
                     utxos: [
                         {
@@ -6284,7 +7866,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6302,7 +7884,7 @@ const mockedBlock: any = {
                     emoji: '🦀',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000000000',
+                        value: '10000000000',
                     },
                     utxos: [
                         {
@@ -6320,7 +7902,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6338,7 +7920,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6356,7 +7938,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6374,7 +7956,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6392,7 +7974,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6410,7 +7992,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6428,7 +8010,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6446,7 +8028,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6464,7 +8046,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6482,7 +8064,43 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
+                    },
+                    utxos: [
+                        {
+                            sats: {
+                                dataType: 'BigIntReplacer',
+                                value: '10000',
+                            },
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                {
+                    emoji: '',
+                    balanceSats: {
+                        dataType: 'BigIntReplacer',
+                        value: '10000',
+                    },
+                    utxos: [
+                        {
+                            sats: {
+                                dataType: 'BigIntReplacer',
+                                value: '10000',
+                            },
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+                {
+                    emoji: '',
+                    balanceSats: {
+                        dataType: 'BigIntReplacer',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6500,7 +8118,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6554,7 +8172,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6572,7 +8190,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6590,7 +8208,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6608,7 +8226,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6626,7 +8244,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6644,7 +8262,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6662,7 +8280,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6680,7 +8298,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6698,7 +8316,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6716,7 +8334,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6734,7 +8352,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6752,7 +8370,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6770,7 +8388,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6788,7 +8406,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6842,7 +8460,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6860,7 +8478,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6878,7 +8496,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6896,7 +8514,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6914,7 +8532,7 @@ const mockedBlock: any = {
                     emoji: '',
                     balanceSats: {
                         dataType: 'BigIntReplacer',
-                        value: '010000',
+                        value: '10000',
                     },
                     utxos: [
                         {
@@ -6929,11 +8547,12 @@ const mockedBlock: any = {
         ],
     },
     blockSummaryTgMsgs: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 27 txs | unknown, ...863u\n⏰ 20,654 blocks until eCash halving\n💰$63 to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a> $386.05k staked (1.54%)\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<a href="https://cashtab.com/">Cashtab</a>\n<b>3</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> rewards\n<b>2</b> new users received <b>84 XEC</b>\n\n2 txs sent 10.2000 <a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo (CRD)</a>\n1 tx sent 100.00 <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet (CACHET)</a>\n1 tx sent 55 <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">Delta Variant Variants (DVV)</a>\n1 tx sent 10.9876543 <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">Test Token With Exceptionally Long Name For CSS And Style Revisions (WDT)</a>\n1 tx sent 5,000,000.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRUMPY (GRP)</a>\n1 tx sent 356.6918 <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">Badger Universal Token (BUX)</a>\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>9 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused $1.31k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">eAfrica</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">GORB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>3 eCash txs</b>',
-        '💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584.11k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$106.58k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg\n💸<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">$0.0005 for $0.0005</a>',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 29 txs | unknown, ...863u\n⏰ 20,654 blocks until eCash halving\n💰$63 to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a> $180.52k staked (0.72%)\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<a href="https://cashtab.com/">Cashtab</a>\n<b>3</b> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> rewards\n<b>2</b> new users received <b>84 XEC</b>\n\n2 txs sent 10.2000 <a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo (CRD)</a>\n1 tx sent 100.00 <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">Cachet (CACHET)</a>\n1 tx sent 55 <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">Delta Variant Variants (DVV)</a>\n1 tx sent 10.9876543 <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">Test Token With Exceptionally Long Name For CSS And Style Revisions (WDT)</a>\n1 tx sent 5,000,000.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRUMPY (GRP)</a>\n1 tx sent 356.6918 <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">Badger Universal Token (BUX)</a>\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>11 app txs</b>\n🎲 1 <a href="https://blitzchips.com">blitzchips.com</a> play\n💰 1 <a href="https://blitzchips.com">blitzchips.com</a> payout\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused $1.31k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">eAfrica</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">GORB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC',
+        '🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>3 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584.11k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$106.58k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg\n💸<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">$0.0005 for $0.0005</a>',
     ],
     blockSummaryTgMsgsApiFailure: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 27 txs | unknown, ...863u\n⏰ 20,654 blocks until eCash halving\n💰625k XEC to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a>\n\n<b>9 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>17 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/d8fe456c89357c23ac6d240fe9319ce9ba393c9c3833631046a265ca7c8349e6">42 XEC for 2.19 XEC</a>\n💸<a href="https://explorer.e.cash/tx/083b7862bae48e78549ccf63833896f5f4f5bdef5c380a108fa99cdb64261fa3">42 XEC for 2.19 XEC</a>\n💸<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">31 XEC for 24 XEC</a>\n💸<a href="https://explorer.e.cash/tx/004e018dd98520aa722ee76c608771dd578a044f38103a8298f25e6ffbc7c3ba">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0110cd886ecd2d9570e98b7501cd039f4e5352d69659a46f1a49cc19c1869701">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/327101f6f3b740280a6e9fbd8edc41f4f0500633672975a5974a4147c94016a5">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>\n...and <a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">5 more</a>',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 29 txs | unknown, ...863u\n⏰ 20,654 blocks until eCash halving\n💰625k XEC to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a>\n\n<b>11 app txs</b>\n🎲 1 <a href="https://blitzchips.com">blitzchips.com</a> play\n💰 1 <a href="https://blitzchips.com">blitzchips.com</a> payout\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>17 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/d8fe456c89357c23ac6d240fe9319ce9ba393c9c3833631046a265ca7c8349e6">42 XEC for 2.19 XEC</a>\n💸<a href="https://explorer.e.cash/tx/083b7862bae48e78549ccf63833896f5f4f5bdef5c380a108fa99cdb64261fa3">42 XEC for 2.19 XEC</a>\n💸<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">31 XEC for 24 XEC</a>\n💸<a href="https://explorer.e.cash/tx/004e018dd98520aa722ee76c608771dd578a044f38103a8298f25e6ffbc7c3ba">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0110cd886ecd2d9570e98b7501cd039f4e5352d69659a46f1a49cc19c1869701">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/327101f6f3b740280a6e9fbd8edc41f4f0500633672975a5974a4147c94016a5">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>',
+        '...and <a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">5 more</a>',
     ],
 };
 

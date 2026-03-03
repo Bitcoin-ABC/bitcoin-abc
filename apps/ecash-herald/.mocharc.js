@@ -4,7 +4,7 @@
 
 'use strict';
 module.exports = {
-    require: ['mocha-suppress-logs', 'ts-node/register'],
+    require: ['mocha-suppress-logs', 'tsx/cjs'],
     extensions: ['ts'],
     spec: ['test/**/*.test.ts'],
 };

@@ -465,18 +465,24 @@ export const parseMultipushStack = (
 
     // Start at i=1 because emppStackArray[0] is OP_RESERVED
     for (let i = 1; i < emppStackArray.length; i += 1) {
-        if (emppStackArray[i].slice(0, 8) === opReturn.knownApps.slp2.prefix) {
+        const pushPrefix = emppStackArray[i].slice(0, 8);
+        if (pushPrefix === opReturn.knownApps.slp2.prefix) {
             // Parse string for slp v2
             const thisMsg = parseSlpTwo(emppStackArray[i].slice(8));
             msgs.push(`${opReturn.knownApps.slp2.app}:${thisMsg}`);
         } else {
-            // Since we don't know any spec or parsing rules for other types of EMPP pushes,
-            // Just add an ASCII decode of the whole thing if you see one
-            msgs.push(
-                `${'Unknown App:'}${prepareStringForTelegramHTML(
-                    Buffer.from(emppStackArray[i], 'hex').toString('ascii'),
-                )}`,
-            );
+            const lokadInfo = lokadMap.get(pushPrefix);
+            if (lokadInfo?.blockMsg && lokadInfo?.batchUnder === 'Blitzchips') {
+                msgs.push(`${lokadInfo.batchUnder}: ${lokadInfo.blockMsg}`);
+            } else {
+                // Since we don't know any spec or parsing rules for other types of EMPP pushes,
+                // Just add an ASCII decode of the whole thing if you see one
+                msgs.push(
+                    `${'Unknown App:'}${prepareStringForTelegramHTML(
+                        Buffer.from(emppStackArray[i], 'hex').toString('ascii'),
+                    )}`,
+                );
+            }
         }
         // Do not parse any other empp (haven't seen any in the wild, no existing specs to follow)
     }
@@ -929,6 +935,12 @@ export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
             break;
         }
         default: {
+            const lokadInfo = lokadMap.get(protocolIdentifier);
+            if (lokadInfo?.blockMsg && lokadInfo?.batchUnder === 'Blitzchips') {
+                app = 'Blitzchips';
+                msg = lokadInfo.blockMsg;
+                break;
+            }
             // If you do not recognize the protocol identifier, just print the pushes in hex
             // If it is an app or follows a pattern, can be added later
             app = 'unknown';
@@ -1595,6 +1607,8 @@ export const getBlockTgMessage = (
     const opReturnTxTgMsgLines = [];
     let xecSendTxTgMsgLines = [];
     let payButtonTxCount = 0;
+    let blitzchipsPlayCount = 0;
+    let blitzchipsPayoutCount = 0;
 
     // We do not get that much newsworthy value from a long list of individual token send txs
     // So, we organize token send txs by tokenId
@@ -1725,6 +1739,39 @@ export const getBlockTgMessage = (
 
                     msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
                     appEmoji = emojis.fusion;
+                    break;
+                }
+                case 'Blitzchips': {
+                    // Batch Blitzchips txs instead of displaying individually
+                    if (msg === 'DICE play') {
+                        blitzchipsPlayCount += 1;
+                    } else if (msg === 'ROLL payout') {
+                        blitzchipsPayoutCount += 1;
+                    }
+                    continue;
+                }
+                case 'EMPP': {
+                    // EMPP may contain Blitzchips DICE/ROLL pushes - batch those
+                    const diceMatches = msg.match(/Blitzchips: DICE play/g);
+                    const rollMatches = msg.match(/Blitzchips: ROLL payout/g);
+                    if (diceMatches) {
+                        blitzchipsPlayCount += diceMatches.length;
+                    }
+                    if (rollMatches) {
+                        blitzchipsPayoutCount += rollMatches!.length;
+                    }
+                    if (diceMatches || rollMatches) {
+                        const nonBlitzchipsParts = msg
+                            .split('|')
+                            .filter(
+                                p =>
+                                    p !== 'Blitzchips: DICE play' &&
+                                    p !== 'Blitzchips: ROLL payout',
+                            );
+                        if (nonBlitzchipsParts.length === 0) continue;
+                        msg = nonBlitzchipsParts.join('|');
+                    }
+                    appEmoji = emojis.unknown;
                     break;
                 }
                 default: {
@@ -2160,18 +2207,30 @@ export const getBlockTgMessage = (
     }
 
     // OP_RETURN txs
-    if (opReturnTxTgMsgLines.length > 0) {
+    const totalAppTxs =
+        opReturnTxTgMsgLines.length +
+        blitzchipsPlayCount +
+        blitzchipsPayoutCount;
+    if (totalAppTxs > 0) {
         // Line break for new section
         tgMsg.push('');
 
         // App txs
         // or
         // App tx
-        tgMsg.push(
-            `<b>${opReturnTxTgMsgLines.length} app tx${
-                opReturnTxTgMsgLines.length > 1 ? `s` : ''
-            }</b>`,
-        );
+        tgMsg.push(`<b>${totalAppTxs} app tx${totalAppTxs > 1 ? `s` : ''}</b>`);
+
+        // Blitzchips batched summary (plays = DICE, payouts = ROLL)
+        if (blitzchipsPlayCount > 0) {
+            tgMsg.push(
+                `🎲 ${blitzchipsPlayCount.toLocaleString('en-US')} <a href="https://blitzchips.com">blitzchips.com</a> play${blitzchipsPlayCount > 1 ? 's' : ''}`,
+            );
+        }
+        if (blitzchipsPayoutCount > 0) {
+            tgMsg.push(
+                `💰 ${blitzchipsPayoutCount.toLocaleString('en-US')} <a href="https://blitzchips.com">blitzchips.com</a> payout${blitzchipsPayoutCount > 1 ? 's' : ''}`,
+            );
+        }
 
         // <appName> : <parsedAppData>
         // alias: newlyregisteredalias
@@ -4040,6 +4099,13 @@ export const summarizeTxHistory = (
     if (hasTokenSummaryLines) {
         tgMsg.push('');
     }
+    // Add DICE/ROLL (batchUnder Blitzchips) to blitzchipsTxCount
+    for (const [lokadId, count] of appTxMap) {
+        const info = lokadMap.get(lokadId);
+        if (info?.batchUnder === 'Blitzchips') {
+            blitzchipsTxCount += count;
+        }
+    }
     const totalAppTxs = appTxs + blitzchipsTxCount + everydayjackpotTxCount;
     if (totalAppTxs > 0) {
         // Sort appTxMap by most common app txs
@@ -4060,6 +4126,11 @@ export const summarizeTxHistory = (
             if (typeof supportedLokadApp === 'undefined') {
                 unknownLokadTxs += count;
                 // Go to the next lokadId
+                return;
+            }
+            // DICE/ROLL batch under Blitzchips, don't show as separate line
+            if (supportedLokadApp.batchUnder === 'Blitzchips') {
+                blitzchipsTxCount += count;
                 return;
             }
             const { name, emoji, url } = supportedLokadApp;
