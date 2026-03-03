@@ -670,7 +670,7 @@ describe('Atomic swap mechanism using ignoredTokenIds', () => {
         expect(attackingSwapResp.success).to.equal(false);
         expect(attackingSwapResp.errors).to.have.length(1);
         expect(attackingSwapResp.errors?.[0]).to.equal(
-            `Error: Failed getting /broadcast-tx: 400: Tx ${broadcastableTx.txs[0].txid()} failed token checks: Validation error: Insufficient token input output sum: 0 < 100. Unexpected burn: Burns 1 atoms. Reason(s): Invalid coloring at pushdata idx 1: Overlapping atoms when trying to color 1 at index 1, output is already colored with 1 of ${tokenPsiId} (ALP STANDARD (V0))..`,
+            `Error: Failed getting /broadcast-txs: 400: Tx ${broadcastableTx.txs[0].txid()} failed token checks: Validation error: Insufficient token input output sum: 0 < 100. Unexpected burn: Burns 1 atoms. Reason(s): Invalid coloring at pushdata idx 1: Overlapping atoms when trying to color 1 at index 1, output is already colored with 1 of ${tokenPsiId} (ALP STANDARD (V0))..`,
         );
     });
 });

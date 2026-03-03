@@ -4271,7 +4271,7 @@ describe('Wallet can build and broadcast on regtest', () => {
         expect(resp.success).to.equal(false);
         expect(resp.errors).to.have.length(1);
         expect(resp.errors![0]).to.equal(
-            'Error: Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict',
+            'Error: Failed getting /broadcast-txs: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict',
         );
     });
 

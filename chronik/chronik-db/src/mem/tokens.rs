@@ -197,6 +197,19 @@ impl MempoolTokens {
         db: &Db,
         is_mempool_tx: impl Fn(&TxId) -> bool,
     ) -> Result<Result<Vec<Option<SpentToken>>, MempoolTokensError>> {
+        self.fetch_tx_spent_tokens_batch(tx, db, is_mempool_tx, &HashMap::new())
+    }
+
+    /// Same as [`fetch_tx_spent_tokens`] but accepts `batch_txs` for chained
+    /// broadcast validation, where earlier txs in the batch are not yet in the
+    /// mempool. Pass `&HashMap::new()` when not validating a batch.
+    pub fn fetch_tx_spent_tokens_batch(
+        &self,
+        tx: &Tx,
+        db: &Db,
+        is_mempool_tx: impl Fn(&TxId) -> bool,
+        batch_txs: &HashMap<TxId, TokenTx>,
+    ) -> Result<Result<Vec<Option<SpentToken>>, MempoolTokensError>> {
         let tx_reader = TxReader::new(db)?;
         let token_reader = TokenReader::new(db)?;
 
@@ -223,8 +236,23 @@ impl MempoolTokens {
                 continue;
             }
 
-            // prevout is in the mempool but not a token tx
+            // prevout is in the mempool (or batch) but not in our token_txs -
+            // check batch_txs for chained broadcast
             if is_mempool_tx(input_txid) {
+                if let Some(token_tx) = batch_txs.get(input_txid) {
+                    match token_tx.outputs.get(out_idx) {
+                        Some(Some(output)) => {
+                            spent_tokens[input_idx] =
+                                Some(token_tx.spent_token(output));
+                        }
+                        Some(None) => {
+                            // Output exists but is not a token output
+                        }
+                        None => {
+                            return Ok(Err(InputTxNoSuchOutput(input.prev_out)))
+                        }
+                    }
+                }
                 continue;
             }
 

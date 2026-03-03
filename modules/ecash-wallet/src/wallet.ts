@@ -2821,101 +2821,90 @@ export class BuiltAction {
     /**
      * Broadcast the built transaction(s) to the network.
      *
+     * Uses Chronik's broadcastTxs for all cases (single batched request).
+     *
      * @param config - Optional configuration for broadcasting. Defaults to { retryOnUtxoConflict: true }
      * @returns Object with success status, broadcasted txids, and any errors
      */
     public async broadcast(
         config: BroadcastConfig = { retryOnUtxoConflict: true },
     ) {
-        // We must broadcast each tx in order and separately
-        // We must track which txs broadcast successfully
-        // If any tx in the chain fails, we stop, and return the txs that broadcast successfully and those that failed
-
-        // txids that broadcast succcessfully
-        const broadcasted: string[] = [];
-
         const txsToBroadcast = this.txs.map(tx => toHex(tx.ser()));
 
-        for (let i = 0; i < txsToBroadcast.length; i++) {
-            try {
-                // NB we DO NOT sync in between txs, as all chained txs are built with utxos that exist at initial sync or are implied by previous txs in the chain
-                const { txid } = await this._wallet.chronik.broadcastTx(
-                    txsToBroadcast[i],
-                );
-                broadcasted.push(txid);
-            } catch (err) {
-                // Check if this error should trigger a sync and retry
-                // Only do this if the failure happened on the first tx (i === 0)
-                // This allows us to rebuild the entire chain with fresh UTXOs
-                // If a later tx in the chain fails, it's more complex and we don't handle it
-                if (
-                    config.retryOnUtxoConflict !== false &&
-                    this._shouldSyncAndRetry(err) &&
-                    i === 0 &&
-                    this._walletAction
-                ) {
-                    // Sync and rebuild - if it's a chained tx, we rebuild the entire chain
-                    await this._wallet.sync();
-                    try {
-                        // Create a new WalletAction to re-select UTXOs with the synced wallet state
-                        const rebuiltWalletAction = this._wallet.action(
-                            this._walletAction.action,
-                            this._walletAction.selectUtxosResult.config,
-                        );
-                        const rebuiltAction = rebuiltWalletAction.build();
-                        const rebuiltTxs = rebuiltAction.txs.map(tx =>
-                            toHex(tx.ser()),
-                        );
+        try {
+            const { txids } =
+                await this._wallet.chronik.broadcastTxs(txsToBroadcast);
+            return { success: true, broadcasted: txids };
+        } catch (err) {
+            // Check if this error should trigger a sync and retry
+            // Only do this if the failure happened on the first broadcast attempt
+            // This allows us to rebuild the entire chain with fresh UTXOs
+            if (
+                config.retryOnUtxoConflict !== false &&
+                this._shouldSyncAndRetry(err) &&
+                this._walletAction
+            ) {
+                /**
+                 * NB it is technically possible that the broadcastTxs fails even though some of the rawTxs were in fact broadcast successfully
+                 * However it is extremely unlikely if not impossible that the 1st tx successfully broadcast but a subsequent tx in an ecash-wallet
+                 * constructed chain fails for reasons that trigger _shouldSyncAndRetry, as chain txs only use inputs that are created by their previous tx
+                 *
+                 * shouldSyncAndRetry is only used for txs that have utxo sync errors; these are only expected on the first tx which is using utxos in the wallet
+                 * and not utxos constructed in the chain
+                 *
+                 * Best practice for wallet devs is to persist rawTxs that are broadcast in some capacity, so there is an opportunity to rebroadcast if some kind
+                 * of edge case network issue interrupts a chain
+                 */
 
-                        // Broadcast all rebuilt transactions (may be 1 or more for chained txs)
-                        for (let j = 0; j < rebuiltTxs.length; j++) {
-                            const { txid } =
-                                await this._wallet.chronik.broadcastTx(
-                                    rebuiltTxs[j],
-                                );
-                            broadcasted.push(txid);
-                        }
+                // Sync and rebuild - if it's a chained tx, we rebuild the entire chain
+                await this._wallet.sync();
+                try {
+                    // Create a new WalletAction to re-select UTXOs with the synced wallet state
+                    const rebuiltWalletAction = this._wallet.action(
+                        this._walletAction.action,
+                        this._walletAction.selectUtxosResult.config,
+                    );
+                    const rebuiltAction = rebuiltWalletAction.build();
+                    const rebuiltTxs = rebuiltAction.txs.map(tx =>
+                        toHex(tx.ser()),
+                    );
 
-                        // Update this BuiltAction's txs to match the rebuilt one
-                        this.txs = rebuiltAction.txs;
-                        this.builtTxs = rebuiltAction.builtTxs;
-                        // We've successfully broadcast all rebuilt txs, so we're done
-                        break;
-                    } catch (retryErr) {
-                        // Retry also failed, return the error
-                        console.error(
-                            `Error broadcasting after sync and rebuild retry:`,
-                            retryErr,
-                        );
-                        return {
-                            success: false,
-                            broadcasted,
-                            unbroadcasted: txsToBroadcast.slice(i),
-                            errors: [`${retryErr}`],
-                        };
-                    }
+                    const { txids } =
+                        await this._wallet.chronik.broadcastTxs(rebuiltTxs);
+
+                    // Update this BuiltAction's txs to match the rebuilt one
+                    this.txs = rebuiltAction.txs;
+                    this.builtTxs = rebuiltAction.builtTxs;
+                    return { success: true, broadcasted: txids };
+                } catch (retryErr) {
+                    // Retry also failed, return the error
+                    console.error(
+                        `Error broadcasting after sync and rebuild retry:`,
+                        retryErr,
+                    );
+                    return {
+                        success: false,
+                        broadcasted: [],
+                        unbroadcasted: txsToBroadcast,
+                        errors: [`${retryErr}`],
+                    };
                 }
-                // If we get here, either:
-                // 1. The error doesn't require sync/retry
-                // 2. The failure happened on a later tx in a chain (i > 0) - we don't handle this
-                // 3. We don't have a WalletAction reference - can't rebuild
-                // In all these cases, return the error immediately
-                console.error(
-                    `Error broadcasting tx ${i + 1} of ${
-                        txsToBroadcast.length
-                    }:`,
-                    err,
-                );
-                return {
-                    success: false,
-                    broadcasted,
-                    unbroadcasted: txsToBroadcast.slice(i),
-                    errors: [`${err}`],
-                };
             }
+            // If we get here, either:
+            // 1. The error doesn't require sync/retry
+            // 2. We don't have a WalletAction reference - can't rebuild
+            // In all these cases, return the error immediately
+            console.error(
+                `Error broadcasting ${txsToBroadcast.length} tx(s):`,
+                err,
+            );
+            return {
+                success: false,
+                broadcasted: [],
+                unbroadcasted: txsToBroadcast,
+                errors: [`${err}`],
+            };
         }
-
-        return { success: true, broadcasted };
     }
 }
 

@@ -4,7 +4,7 @@
 
 //! Module for [`TxTokenData`].
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeSet, collections::HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
@@ -141,13 +141,30 @@ impl<'m> TxTokenData<'m> {
         mempool: &'m Mempool,
         tx: &Tx,
     ) -> Result<Option<Self>> {
+        Self::from_unbroadcast_tx_batch(db, mempool, tx, None, &HashMap::new())
+    }
+
+    /// Same as [`from_unbroadcast_tx`] but accepts `batch_txids` and
+    /// `batch_txs` for chained broadcast validation, where earlier txs in
+    /// the batch are not yet in the mempool.
+    pub fn from_unbroadcast_tx_batch(
+        db: &Db,
+        mempool: &'m Mempool,
+        tx: &Tx,
+        batch_txids: Option<&BTreeSet<TxId>>,
+        batch_txs: &HashMap<TxId, TokenTx>,
+    ) -> Result<Option<Self>> {
         let colored = ColoredTx::color_tx(tx);
 
         let tx_reader = TxReader::new(db)?;
         let token_reader = TokenReader::new(db)?;
+        let is_mempool_tx = |txid: &TxId| {
+            mempool.tx(txid).is_some()
+                || batch_txids.is_some_and(|set| set.contains(txid))
+        };
         let spent_tokens = mempool
             .tokens()
-            .fetch_tx_spent_tokens(tx, db, |txid| mempool.tx(txid).is_some())?
+            .fetch_tx_spent_tokens_batch(tx, db, is_mempool_tx, batch_txs)?
             .map_err(BadTxInputs)?;
 
         let colored = colored.unwrap_or_else(|| ColoredTx {

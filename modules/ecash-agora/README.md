@@ -318,3 +318,9 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 3.0.4 [D19626](https://reviews.bitcoinabc.org/D19626)
 
 - Leave token utxo selection and change calculation to `ecash-wallet`
+
+### 4.0.0 [D19628](https://reviews.bitcoinabc.org/D19628)
+
+**BREAKING CHANGE**
+
+- Upgrade to `ecash-wallet` 5.0.0, which requires chronik >= 0.32.10

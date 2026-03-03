@@ -388,10 +388,10 @@ describe('bot', () => {
             // Mock: set up broadcast transaction to return success for any rawTx
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await register(
                 mockCtx,
@@ -556,10 +556,10 @@ describe('bot', () => {
             // Mock: set up broadcast transaction to return success for any rawTx
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await register(
                 mockCtx,
@@ -605,10 +605,10 @@ describe('bot', () => {
             // Mock: set up broadcast transaction to return success for any rawTx
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await register(
                 mockCtx,
@@ -775,10 +775,10 @@ describe('bot', () => {
             // Mock: set up broadcast transaction to return success for any rawTx
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await register(
                 mockCtx,
@@ -863,10 +863,10 @@ describe('bot', () => {
             // Mock: set up broadcast transaction to return success for any rawTx
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             // Update botWithMember to include sendMessage for admin notifications
             const botWithMemberAndAdmin = {
@@ -1373,8 +1373,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await respawn(
                 mockCtx,
@@ -1600,8 +1600,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await respawn(
                 mockCtx,
@@ -1671,8 +1671,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await respawn(
                 mockCtx,
@@ -1818,7 +1818,7 @@ describe('bot', () => {
 
             // Mock broadcast to fail by throwing an error
             sandbox
-                .stub(mockChronik, 'broadcastTx')
+                .stub(mockChronik, 'broadcastTxs')
                 .rejects(new Error('Broadcast failed'));
 
             await respawn(
@@ -1871,8 +1871,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await respawn(
                 mockCtx,
@@ -2063,8 +2063,8 @@ describe('bot', () => {
             const expectedTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
             sandbox
-                .stub(mockChronik, 'broadcastTx')
-                .resolves({ txid: expectedTxid });
+                .stub(mockChronik, 'broadcastTxs')
+                .resolves({ txids: [expectedTxid] });
 
             await respawn(
                 mockCtx,
@@ -2734,7 +2734,7 @@ describe('bot', () => {
             }
 
             // Set up a mock broadcast response
-            // The wallet will build a transaction dynamically, so we need to stub broadcastTx
+            // The wallet will build a transaction dynamically, so we need to stub broadcastTxs
             // to return success for any raw transaction
             // Note: We'll stub this in individual tests that need it
         });
@@ -2873,11 +2873,11 @@ describe('bot', () => {
                 userAddress: USER_ADDRESS,
             });
 
-            // Stub broadcastTx to return success
+            // Stub broadcastTxs to return success
             const mockTxid =
                 '0000000000000000000000000000000000000000000000000000000000000003';
-            sandbox.stub(mockChronik, 'broadcastTx').resolves({
-                txid: mockTxid,
+            sandbox.stub(mockChronik, 'broadcastTxs').resolves({
+                txids: [mockTxid],
             });
 
             await handleWithdrawConfirm(
@@ -2975,7 +2975,7 @@ describe('bot', () => {
 
             // Make broadcast fail by stubbing it to reject
             sandbox
-                .stub(mockChronik, 'broadcastTx')
+                .stub(mockChronik, 'broadcastTxs')
                 .rejects(new Error('Broadcast failed'));
 
             await handleWithdrawConfirm(
@@ -4748,17 +4748,16 @@ describe('bot', () => {
                 ]);
             }
 
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             const expectedTxid1 =
                 '0000000000000000000000000000000000000000000000000000000000000001';
             const expectedTxid2 =
                 '0000000000000000000000000000000000000000000000000000000000000002';
             let callCount = 0;
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
-                return {
-                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
-                };
+                const txid = callCount === 1 ? expectedTxid1 : expectedTxid2;
+                return { txids: [txid] };
             });
 
             // Create reply message with 1 bottle emoji
@@ -4983,17 +4982,16 @@ describe('bot', () => {
                 ]);
             }
 
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             const expectedTxid1 =
                 '0000000000000000000000000000000000000000000000000000000000000001';
             const expectedTxid2 =
                 '0000000000000000000000000000000000000000000000000000000000000002';
             let callCount = 0;
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
-                return {
-                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
-                };
+                const txid = callCount === 1 ? expectedTxid1 : expectedTxid2;
+                return { txids: [txid] };
             });
 
             // Create reply message with 3 bottle emojis
@@ -5120,8 +5118,10 @@ describe('bot', () => {
                 ]);
             }
 
-            sandbox.stub(mockChronik, 'broadcastTx').resolves({
-                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            sandbox.stub(mockChronik, 'broadcastTxs').resolves({
+                txids: [
+                    '00000000000000000000000000000000000000000000000000000000000000ab',
+                ],
             });
 
             const mockCtx = {
@@ -5236,8 +5236,10 @@ describe('bot', () => {
                 ]);
             }
 
-            sandbox.stub(mockChronik, 'broadcastTx').resolves({
-                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            sandbox.stub(mockChronik, 'broadcastTxs').resolves({
+                txids: [
+                    '00000000000000000000000000000000000000000000000000000000000000ab',
+                ],
             });
 
             const mockCtx = {
@@ -5350,8 +5352,10 @@ describe('bot', () => {
                 ]);
             }
 
-            sandbox.stub(mockChronik, 'broadcastTx').resolves({
-                txid: '00000000000000000000000000000000000000000000000000000000000000ab',
+            sandbox.stub(mockChronik, 'broadcastTxs').resolves({
+                txids: [
+                    '00000000000000000000000000000000000000000000000000000000000000ab',
+                ],
             });
 
             const mockCtx = {
@@ -5580,11 +5584,10 @@ describe('bot', () => {
             }
 
             let callCount = 0;
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
-                return {
-                    txid: `000000000000000000000000000000000000000000000000000000000000000${callCount}`,
-                };
+                const txid = `000000000000000000000000000000000000000000000000000000000000000${callCount}`;
+                return { txids: [txid] };
             });
 
             const mockCtx = {
@@ -5743,11 +5746,10 @@ describe('bot', () => {
             }
 
             let callCount = 0;
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
-                return {
-                    txid: `000000000000000000000000000000000000000000000000000000000000000${callCount}`,
-                };
+                const txid = `000000000000000000000000000000000000000000000000000000000000000${callCount}`;
+                return { txids: [txid] };
             });
 
             const mockCtx = {
@@ -6713,17 +6715,16 @@ describe('bot', () => {
                 ]);
             }
 
-            // Stub broadcastTx to return success for any transaction
+            // Stub broadcastTxs to return success for any transaction
             const expectedTxid1 =
                 '0000000000000000000000000000000000000000000000000000000000000001';
             const expectedTxid2 =
                 '0000000000000000000000000000000000000000000000000000000000000002';
             let callCount = 0;
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
-                return {
-                    txid: callCount === 1 ? expectedTxid1 : expectedTxid2,
-                };
+                const txid = callCount === 1 ? expectedTxid1 : expectedTxid2;
+                return { txids: [txid] };
             });
         });
 
@@ -6965,11 +6966,17 @@ describe('bot', () => {
         });
 
         it('should send admin notification on author transaction failure', async () => {
-            // Make broadcastTx fail for author's transaction
+            // Make broadcastTxs fail for author's transaction
             let callCount = 0;
             sandbox.restore();
             sandbox = sinon.createSandbox();
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            mockBot.api.sendMessage = sandbox.stub().resolves({
+                message_id: 1,
+                date: Date.now(),
+                chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                text: 'test',
+            }) as unknown as typeof mockBot.api.sendMessage;
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
                 if (callCount === 1) {
                     // First call (author) fails
@@ -6977,7 +6984,9 @@ describe('bot', () => {
                 }
                 // Second call (reply sender) succeeds
                 return {
-                    txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                    txids: [
+                        '0000000000000000000000000000000000000000000000000000000000000002',
+                    ],
                 };
             });
 
@@ -7010,16 +7019,24 @@ describe('bot', () => {
         });
 
         it('should send admin notification on reply sender transaction failure', async () => {
-            // Make broadcastTx fail for reply sender's transaction
+            // Make broadcastTxs fail for reply sender's transaction
             let callCount = 0;
             sandbox.restore();
             sandbox = sinon.createSandbox();
-            sandbox.stub(mockChronik, 'broadcastTx').callsFake(async () => {
+            mockBot.api.sendMessage = sandbox.stub().resolves({
+                message_id: 1,
+                date: Date.now(),
+                chat: { id: ADMIN_CHAT_ID, type: 'supergroup' },
+                text: 'test',
+            }) as unknown as typeof mockBot.api.sendMessage;
+            sandbox.stub(mockChronik, 'broadcastTxs').callsFake(async () => {
                 callCount++;
                 if (callCount === 1) {
                     // First call (author) succeeds
                     return {
-                        txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                        txids: [
+                            '0000000000000000000000000000000000000000000000000000000000000001',
+                        ],
                     };
                 }
                 // Second call (reply sender) fails

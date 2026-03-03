@@ -312,3 +312,10 @@ See tests for detailed methods.
 - Add a `consolidateUtxos` method that consolidates XEC or token utxos by tokenId down to a single utxo
 
 [D19613](https://reviews.bitcoinabc.org/D19613)
+
+# 5.0.0 **BREAKING CHANGE**
+
+- Requires chronik >= 0.32.10
+- Use `broadcastTxs` instead of `broadcastTx` to handle chained txs (requires upgraded chronik server)
+
+[D19628](https://reviews.bitcoinabc.org/D19628)

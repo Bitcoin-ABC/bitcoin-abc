@@ -2,7 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::{mem::take, time::Duration};
+use std::{
+    collections::BTreeSet, collections::HashMap, mem::take, time::Duration,
+};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
@@ -133,6 +135,8 @@ impl QueryBroadcast<'_> {
     fn do_token_checks(&self, raw_txs: &[Bytes]) -> Result<Vec<ffi::OutPoint>> {
         let mut token_errors = Vec::new();
         let mut coins_to_uncache = Vec::new();
+        let mut batch_txids = BTreeSet::new();
+        let mut batch_txs = HashMap::new();
         for mut raw_tx in raw_txs.iter().cloned() {
             let tx = TxMut::deser(&mut raw_tx).map_err(ParsingFailed)?;
             let mut ffi_tx = ffi::Tx::from(tx);
@@ -147,8 +151,21 @@ impl QueryBroadcast<'_> {
             coins_to_uncache.extend(tx_coins_to_uncache);
 
             let tx = Tx::from(ffi_tx);
-            let token =
-                TxTokenData::from_unbroadcast_tx(self.db, self.mempool, &tx)?;
+            let token = TxTokenData::from_unbroadcast_tx_batch(
+                self.db,
+                self.mempool,
+                &tx,
+                Some(&batch_txids),
+                &batch_txs,
+            )?;
+            // Add this tx to batch_txs and batch_txids after the call so that
+            // later txs in the batch can resolve token inputs that
+            // reference earlier txs (e.g. chained SEND then BURN).
+            // Inserting after processing preserves ordering.
+            if let Some(ref token_data) = token {
+                batch_txs.insert(tx.txid(), token_data.tx.clone().into_owned());
+            }
+            batch_txids.insert(tx.txid());
             let Some(token) = token else {
                 continue;
             };
