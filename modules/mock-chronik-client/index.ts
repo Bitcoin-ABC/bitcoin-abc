@@ -398,15 +398,18 @@ export class MockChronikClient {
         );
     };
     broadcastTxs = async (txsHex: string[]) => {
-        const returns = [];
+        const txids: string[] = [];
         for (const txHex of txsHex) {
             if (this.mockedResponses.broadcastTx[txHex] instanceof Error) {
                 throw this.mockedResponses.broadcastTx[txHex];
             } else {
-                returns.push(this.mockedResponses.broadcastTx[txHex]);
+                const { txid } = this.mockedResponses.broadcastTx[txHex] as {
+                    txid: string;
+                };
+                txids.push(txid);
             }
         }
-        return returns;
+        return { txids };
     };
     blockchainInfo = async () => {
         return this._throwOrReturnValue(this.mockedResponses.blockchainInfo);

@@ -169,7 +169,7 @@ describe('MockChronikClient', () => {
         mockChronik.setBroadcastTx(rawTx, txid);
         expect(
             await mockChronik.broadcastTxs([rawTx, rawTx, rawTx]),
-        ).to.deep.equal([{ txid }, { txid }, { txid }]);
+        ).to.deep.equal({ txids: [txid, txid, txid] });
 
         // And force a thrown error
         mockChronik.setBroadcastTx(rawTx, chronikError);
