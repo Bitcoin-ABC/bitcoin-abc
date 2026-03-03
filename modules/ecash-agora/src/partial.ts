@@ -1446,48 +1446,13 @@ export class AgoraPartial {
 
         const offeredAtoms = this.offeredAtoms();
 
-        // Get token UTXOs from wallet
-        const tokenUtxos = params.wallet.utxos.filter(
-            utxo =>
-                utxo.token?.tokenId === this.tokenId &&
-                utxo.token?.isMintBaton === false,
-        );
-
-        // Calculate how many tokens we need to send
-        let totalTokenAtoms = 0n;
-        const selectedUtxos: typeof tokenUtxos = [];
-        for (const utxo of tokenUtxos) {
-            selectedUtxos.push(utxo);
-            totalTokenAtoms += utxo.token!.atoms;
-            if (totalTokenAtoms >= offeredAtoms) {
-                break;
-            }
-        }
-
-        if (totalTokenAtoms < offeredAtoms) {
-            throw new Error(
-                `Insufficient token utxos to list ${offeredAtoms} atoms. Only ${totalTokenAtoms} atoms available.`,
-            );
-        }
-
-        // Calculate token change if any
-        const tokenChange = totalTokenAtoms - offeredAtoms;
-        const sendAmounts: bigint[] = [offeredAtoms];
-        if (tokenChange > 0n) {
-            sendAmounts.push(tokenChange);
-        }
-
         const offerTargetOutputs: TxBuilderOutput[] = [
             {
                 sats: 0n,
                 // We will not have any token change for the tx that creates the offer
                 // This is bc the ad setup tx sends the exact amount of tokens we need
                 // for the ad tx (the offer)
-                script: slpSend(
-                    this.tokenId,
-                    this.tokenType,
-                    sendAmounts.slice(0, 1),
-                ),
+                script: slpSend(this.tokenId, this.tokenType, [offeredAtoms]),
             },
             { sats: dustSats, script: agoraP2sh },
         ];
@@ -1511,28 +1476,16 @@ export class AgoraPartial {
             // This sends tokens to the P2SH address with fuel for the offer tx
             // Output 0: OP_RETURN (ecash-wallet will build the script from tokenActions)
             // Output 1: P2SH output with tokens (for the offer tx)
-            // Output 2 (if change): Token change output
+            // ecash-wallet automatically selects token UTXOs and adds token change output if needed
             const adSetupOutputs: payment.PaymentOutput[] = [
                 { sats: 0n }, // OP_RETURN - ecash-wallet will build the script
                 {
                     sats: agoraAdFuelInputSats,
                     script: agoraAdP2sh,
                     tokenId: this.tokenId,
-                    atoms: sendAmounts[0], // The amount being sent to P2SH
+                    atoms: offeredAtoms,
                 },
             ];
-
-            // Include token change output for the ad setup tx if we have change
-            if (sendAmounts.length > 1) {
-                adSetupOutputs.push({
-                    sats: dustSats,
-                    script: params.wallet.script,
-                    tokenId: this.tokenId,
-                    atoms: sendAmounts[1],
-                });
-            }
-
-            // ecash-wallet will automatically select the required token UTXOs based on the token send action
             const adSetupAction: payment.Action = {
                 outputs: adSetupOutputs,
                 tokenActions: [

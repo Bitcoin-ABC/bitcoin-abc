@@ -314,3 +314,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 3.0.3 [D19613](https://reviews.bitcoinabc.org/D19613)
 
 - Upgrade to `ecash-wallet` 4.2.0
+
+### 3.0.4 [D19626](https://reviews.bitcoinabc.org/D19626)
+
+- Leave token utxo selection and change calculation to `ecash-wallet`
