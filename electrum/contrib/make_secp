@@ -8,7 +8,7 @@ here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 # Use secp256k1 from the monorepo by default, unless USE_SECP256K1_GITHUB is set by env.
 if [ -n "${USE_SECP256K1_GITHUB}" ]; then
     warn "Building secp256k1 using the Github repo"
-    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master" "$here"
+    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master"
 else
     info "Building secp256k1 from the monorepo"
     setup_secp_from_monorepo

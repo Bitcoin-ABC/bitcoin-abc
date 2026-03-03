@@ -5,7 +5,7 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "tor" "https://github.com/EchterAgo/tor.git" "ac027d4f9d0d3bd334adde2cb9d03cc7ed9531d7" $here
+setup_pkg "tor" "https://github.com/EchterAgo/tor.git" "ac027d4f9d0d3bd334adde2cb9d03cc7ed9531d7"
 
 LDFLAGS="-s"
 EXTRA_FLAGS=""

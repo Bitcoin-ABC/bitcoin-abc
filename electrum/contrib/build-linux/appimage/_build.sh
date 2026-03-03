@@ -79,7 +79,7 @@ info "Installing pip"
 info "Preparing electrum-locale"
 (
     cd "${ELECTRUM_ROOT}"
-    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
+    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT}
     if ! which msgfmt > /dev/null 2>&1; then
         fail "Please install gettext"
     fi

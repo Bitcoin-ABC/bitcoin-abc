@@ -5,7 +5,7 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "zlib" "https://github.com/madler/zlib.git" "cacf7f1d4e3d44d871b605da3b647f07d718623f" $here
+setup_pkg "zlib" "https://github.com/madler/zlib.git" "cacf7f1d4e3d44d871b605da3b647f07d718623f"
 
 if [ "$BUILD_TYPE" = "wine" ] ; then
     PREFIXDIR="$pkgbuilddir/dist"

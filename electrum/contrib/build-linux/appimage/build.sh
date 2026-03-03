@@ -87,7 +87,7 @@ mkdir "${ELECTRUM_ROOT}/contrib/build-linux/appimage/home" || fail "Failed to cr
 popd
 
 info "Removing temporary docker HOME ..."
-rm -fr "${ELECTRUM_ROOT}/contrib/build-linux/appimage/home"
+rm -fr "${CONTRIB}/build-linux/appimage/home"
 
 echo ""
 info "Done. Built AppImage has been placed in dist/"

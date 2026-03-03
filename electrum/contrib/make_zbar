@@ -5,7 +5,7 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "zbar" "https://github.com/mchehab/zbar" "c7d9809b0b49e81fd86a48e9d1bc3c7db8c50bbd" $here
+setup_pkg "zbar" "https://github.com/mchehab/zbar" "c7d9809b0b49e81fd86a48e9d1bc3c7db8c50bbd"
 
 if [ "$BUILD_TYPE" = "wine" ] ; then
     echo "libzbar_la_LDFLAGS += -Wc,-static" >> zbar/Makefile.am

@@ -18,7 +18,7 @@ no-siphash no-sm2 no-sm3 no-sm4 no-whirlpool"
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "openssl" "https://github.com/openssl/openssl.git" "830bf8e1e4749ad65c51b6a1d0d769ae689404ba" $here
+setup_pkg "openssl" "https://github.com/openssl/openssl.git" "830bf8e1e4749ad65c51b6a1d0d769ae689404ba"
 
 if ! [ -d dist ] ; then
     (

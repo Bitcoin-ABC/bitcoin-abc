@@ -190,7 +190,7 @@ build_the_app() {
         PYHOME=c:/python$PYTHON_VERSION
         PYTHON="wine $PYHOME/python.exe -OO -B"
 
-        setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$here/.."
+        setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT}
         for i in ./locale/*; do
             dir=$i/LC_MESSAGES
             mkdir -p $dir

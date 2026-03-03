@@ -5,7 +5,7 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "libevent" "https://github.com/libevent/libevent.git" "4c908dde58ef780eeefcc9df4db3063ca62ea862" $here
+setup_pkg "libevent" "https://github.com/libevent/libevent.git" "4c908dde58ef780eeefcc9df4db3063ca62ea862"
 
 if ! [ -x configure ] ; then
     ./autogen.sh || fail "Could not configure $pkgname"

@@ -191,7 +191,7 @@ rm -rf ./dist
 info "Installing locale files"
 (
     cd "${ELECTRUM_ROOT}"
-    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
+    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT}
     if ! which msgfmt > /dev/null 2>&1; then
         fail "Please install gettext"
     fi
@@ -214,10 +214,9 @@ contrib/make_zbar && mv -vf electrumabc/libzbar.0.dylib contrib/osx/. || fail "C
 
 info "Building libsecp256k1"
 
-contrib_abspath=`greadlink -f contrib`
 if [ -n "${USE_SECP256K1_GITHUB_FALLBACK}" ]; then
     warn "Building secp256k1 using the Github repo"
-    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master" "${contrib_abspath}"
+    setup_pkg "secp256k1" "${SECP256K1_GITHUB_REPO}" "master"
 else
     info "Building secp256k1 from the monorepo"
     setup_secp_from_monorepo

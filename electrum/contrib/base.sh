@@ -191,9 +191,9 @@ function setup_pkg()
     pkgname=$1
     info "Building $pkgname..."
 
-    local git_url=$2 checkout_ref=$3 contrib=$4
+    local git_url=$2 checkout_ref=$3
 
-    parentbuilddir="$contrib"/build
+    parentbuilddir="${CONTRIB}"/build
     pkgbuilddir="$parentbuilddir"/$pkgname
 
     mkdir -p $parentbuilddir
