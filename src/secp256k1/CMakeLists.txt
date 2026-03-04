@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.18)
 project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
 set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_EXTENSIONS OFF)
 
 option(SECP256K1_BUILD_SHARED "Build secp256k1 (only) as a shared library" OFF)
 
