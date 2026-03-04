@@ -4099,14 +4099,21 @@ export const summarizeTxHistory = (
     if (hasTokenSummaryLines) {
         tgMsg.push('');
     }
-    // Add DICE/ROLL (batchUnder Blitzchips) to blitzchipsTxCount
+    // Blitzchips: use address-based tx count only (txs to/from game address).
+    // Do NOT add DICE/ROLL from appTxMap - that counts EMPP pushes (1 tx can have
+    // multiple) and would double-count with the address check.
+    let diceRollFromAppTxMap = 0;
     for (const [lokadId, count] of appTxMap) {
         const info = lokadMap.get(lokadId);
         if (info?.batchUnder === 'Blitzchips') {
-            blitzchipsTxCount += count;
+            diceRollFromAppTxMap += count;
         }
     }
-    const totalAppTxs = appTxs + blitzchipsTxCount + everydayjackpotTxCount;
+    const totalAppTxs =
+        appTxs -
+        diceRollFromAppTxMap +
+        blitzchipsTxCount +
+        everydayjackpotTxCount;
     if (totalAppTxs > 0) {
         // Sort appTxMap by most common app txs
         const sortedAppTxMap = new Map(
@@ -4130,7 +4137,6 @@ export const summarizeTxHistory = (
             }
             // DICE/ROLL batch under Blitzchips, don't show as separate line
             if (supportedLokadApp.batchUnder === 'Blitzchips') {
-                blitzchipsTxCount += count;
                 return;
             }
             const { name, emoji, url } = supportedLokadApp;
