@@ -40,7 +40,7 @@ class P2PIgnoreInv(P2PInterface):
     def send_getdata_for_block(self, blockhash):
         getdata_request = msg_getdata()
         getdata_request.inv.append(CInv(MSG_BLOCK, int(blockhash, 16)))
-        self.send_message(getdata_request)
+        self.send_without_ping(getdata_request)
 
 
 class NodeNetworkLimitedTest(BitcoinTestFramework):
@@ -92,7 +92,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         self.log.info("Check local address relay, do a fresh connection.")
         self.nodes[0].disconnect_p2ps()
         node1 = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
-        node1.send_message(msg_verack())
+        node1.send_without_ping(msg_verack())
 
         node1.wait_for_addr()
         # must relay address with NODE_NETWORK_LIMITED

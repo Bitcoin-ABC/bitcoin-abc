@@ -68,7 +68,7 @@ class AddrTest(BitcoinTestFramework):
         self.log.info("Send too-large addrv2 message")
         msg.addrs = ADDRS * 101
         with self.nodes[0].assert_debug_log(["addrv2 message size = 1010"]):
-            addr_source.send_message(msg)
+            addr_source.send_without_ping(msg)
             addr_source.wait_for_disconnect()
 
 

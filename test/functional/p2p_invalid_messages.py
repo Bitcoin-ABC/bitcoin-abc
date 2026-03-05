@@ -291,7 +291,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             ["Misbehaving", f"{msg_type} message size = {size}"]
         ):
             conn = self.nodes[0].add_p2p_connection(P2PInterface())
-            conn.send_message(msg)
+            conn.send_without_ping(msg)
             conn.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
@@ -420,7 +420,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             ["Misbehaving", "header with invalid proof of work"]
         ):
-            peer.send_message(msg_headers([blockheader]))
+            peer.send_without_ping(msg_headers([blockheader]))
             peer.wait_for_disconnect()
 
     def test_noncontinuous_headers_msg(self):
@@ -451,7 +451,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             expected_msgs=MISBEHAVING_NONCONTINUOUS_HEADERS_MSGS
         ):
-            peer.send_message(msg_headers(block_headers))
+            peer.send_without_ping(msg_headers(block_headers))
             peer.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
@@ -464,7 +464,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
 
         self.log.info("(a) Send 80 messages, each of maximum valid data size (2MB)")
         for _ in range(80):
-            conn.send_message(msg_at_size)
+            conn.send_without_ping(msg_at_size)
 
         # Check that, even though the node is being hammered by nonsense from one
         # connection, it can still service other peers in a timely way.

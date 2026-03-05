@@ -549,7 +549,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         msg = msg_avaproof()
         msg.proof = conflicting_proofobj
-        peer.send_message(msg)
+        peer.send_without_ping(msg)
         wait_for_proof(node, conflicting_proofid_hex, expect_status="conflicting")
 
         raw_proof = node.getrawavalancheproof(conflicting_proofid_hex)

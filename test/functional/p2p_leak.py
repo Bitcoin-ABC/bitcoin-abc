@@ -115,8 +115,8 @@ class NoVerackIdlePeer(LazyPeer):
 
     def on_version(self, message):
         self.version_received = True
-        self.send_message(msg_ping())
-        self.send_message(msg_getaddr())
+        self.send_without_ping(msg_ping())
+        self.send_without_ping(msg_getaddr())
 
 
 class P2PVersionStore(P2PInterface):
@@ -153,7 +153,7 @@ class P2PLeakTest(BitcoinTestFramework):
         # Send a ping message (any non-version message will do) prior
         # to sending version to reach the peer discouragement threshold. This
         # should get us disconnected.
-        no_version_disconnect_peer.send_message(msg_ping())
+        no_version_disconnect_peer.send_without_ping(msg_ping())
 
         # Wait until we got the verack in response to the version. Though, don't wait for the node to receive the
         # verack, since we never sent one
@@ -208,7 +208,7 @@ class P2PLeakTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             ["peer=4 using obsolete version 31799; disconnecting"]
         ):
-            p2p_old_peer.send_message(old_version_msg)
+            p2p_old_peer.send_without_ping(old_version_msg)
             p2p_old_peer.wait_for_disconnect()
 
 

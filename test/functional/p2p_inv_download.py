@@ -238,13 +238,13 @@ class InventoryDownloadTest(BitcoinTestFramework):
         mock_time = int(time.time() + 1)
         self.nodes[0].setmocktime(mock_time)
         for i in range(max_getdata_in_flight):
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
+            p.send_without_ping(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
         p.sync_with_ping()
         mock_time += context.constants.inbound_peer_delay
         self.nodes[0].setmocktime(mock_time)
         p.wait_until(lambda: p.getdata_count >= max_getdata_in_flight)
         for i in range(max_getdata_in_flight, len(invids)):
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
+            p.send_without_ping(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
         p.sync_with_ping()
         self.log.info(
             f"No more than {max_getdata_in_flight} requests should be seen within "
@@ -266,7 +266,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xFFAA)]))
+            p.send_without_ping(msg_inv([CInv(t=context.inv_type, h=0xFFAA)]))
         # One of the peers is asked for the data
         peer2.wait_until(lambda: sum(p.getdata_count for p in [peer1, peer2]) == 1)
         with p2p_lock:
@@ -287,7 +287,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xFFBB)]))
+            p.send_without_ping(msg_inv([CInv(t=context.inv_type, h=0xFFBB)]))
         # One of the peers is asked for the data
         peer2.wait_until(lambda: sum(p.getdata_count for p in [peer1, peer2]) == 1)
         with p2p_lock:
@@ -306,7 +306,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xFFDD)]))
+            p.send_without_ping(msg_inv([CInv(t=context.inv_type, h=0xFFDD)]))
         # One of the peers is asked for the data
         peer2.wait_until(lambda: sum(p.getdata_count for p in [peer1, peer2]) == 1)
         with p2p_lock:
@@ -354,7 +354,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             extra_args=self.extra_args[0] + [f"-whitelist={net_permissions}@127.0.0.1"],
         )
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
-        peer.send_message(
+        peer.send_without_ping(
             msg_inv(
                 [
                     CInv(t=context.inv_type, h=invid)
@@ -370,7 +370,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         )
         self.restart_node(0)
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
-        peer.send_message(
+        peer.send_without_ping(
             msg_inv(
                 [
                     CInv(t=context.inv_type, h=invid)
@@ -383,7 +383,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
     def test_spurious_notfound(self, context):
         self.log.info("Check that spurious notfound is ignored")
-        self.nodes[0].p2ps[0].send_message(
+        self.nodes[0].p2ps[0].send_without_ping(
             msg_notfound(vec=[CInv(context.inv_type, 1)])
         )
 
@@ -410,7 +410,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         wait_for_proof(node, proofid_hex, expect_status="immature")
 
         peer = node.add_p2p_connection(context.p2p_conn())
-        peer.send_message(msg_inv([CInv(t=context.inv_type, h=immature.proofid)]))
+        peer.send_without_ping(msg_inv([CInv(t=context.inv_type, h=immature.proofid)]))
 
         # Give enough time for the node to eventually request the proof.
         node.setmocktime(int(time.time()) + context.constants.getdata_interval + 1)
@@ -439,14 +439,14 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # Send the proof
         msg = msg_avaproof()
         msg.proof = no_stake
-        node.p2ps[0].send_message(msg)
+        node.p2ps[0].send_without_ping(msg)
 
         # Check we get banned
         node.p2ps[0].wait_for_disconnect()
 
         # Now that the node knows the proof is invalid, it should not be
         # requested anymore
-        node.p2ps[1].send_message(
+        node.p2ps[1].send_without_ping(
             msg_inv([CInv(t=context.inv_type, h=no_stake.proofid)])
         )
 

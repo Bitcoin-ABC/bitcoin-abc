@@ -265,7 +265,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.wait_until(received_getheaders, timeout=30)
 
         # Return the favor
-        test_p2p.send_message(test_p2p.last_getheaders)
+        test_p2p.send_without_ping(test_p2p.last_getheaders)
 
         # Wait for the header list
         def received_headers():
@@ -274,7 +274,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.wait_until(received_headers, timeout=30)
 
         # It's like we know about the same headers !
-        test_p2p.send_message(test_p2p.last_headers)
+        test_p2p.send_without_ping(test_p2p.last_headers)
 
         # Send a block
         b1 = block(1, spend=out[0], block_size=ONE_MEGABYTE + 1)

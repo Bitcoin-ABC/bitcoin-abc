@@ -374,7 +374,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             thr = LongpollThread(node, gbt["longpollid"])
             thr.start()
 
-            mining_peer.send_message(msg)
+            mining_peer.send_without_ping(msg)
 
             thr.join(5)
             assert not thr.is_alive()

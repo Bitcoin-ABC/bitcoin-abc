@@ -20,7 +20,7 @@ class msg_pong_corrupt(msg_pong):
 
 class NodePongAdd1(P2PInterface):
     def on_ping(self, message):
-        self.send_message(msg_pong(message.nonce + 1))
+        self.send_without_ping(msg_pong(message.nonce + 1))
 
 
 class NodeNoPong(P2PInterface):

@@ -110,7 +110,7 @@ class MaxUploadTest(BitcoinTestFramework):
         # At most a couple more tries should succeed (depending on how long
         # the test has been running so far).
         for _ in range(3):
-            p2p_conns[0].send_message(getdata_request)
+            p2p_conns[0].send_without_ping(getdata_request)
         p2p_conns[0].wait_for_disconnect()
         self.wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 2)
         self.log.info("Peer 0 disconnected after downloading old block too many times")
@@ -128,7 +128,7 @@ class MaxUploadTest(BitcoinTestFramework):
         # But if p2p_conns[1] tries for an old block, it gets disconnected
         # too.
         getdata_request.inv = [CInv(MSG_BLOCK, big_old_block)]
-        p2p_conns[1].send_message(getdata_request)
+        p2p_conns[1].send_without_ping(getdata_request)
         p2p_conns[1].wait_for_disconnect()
         self.wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1)
 

@@ -202,7 +202,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         self.log.info("Empty avaproofs will not trigger any request")
         for p in outbound_avapeers:
-            p.send_message(build_raw_msg_avaproofs([]))
+            p.send_without_ping(build_raw_msg_avaproofs([]))
 
         with p2p_lock:
             # Only this peer actually sent a proof
@@ -269,7 +269,7 @@ class CompactProofsTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         def send_getavaproof_check_shortid_len(peer, expected_len):
-            peer.send_message(msg_getavaproofs())
+            peer.send_without_ping(msg_getavaproofs())
             self.wait_until(lambda: self.received_avaproofs(peer))
 
             avaproofs = self.received_avaproofs(peer)
@@ -356,7 +356,7 @@ class CompactProofsTest(BitcoinTestFramework):
         )
 
         with node.assert_debug_log(["Ignoring unsollicited avaproofs"]):
-            spam_peer.send_message(msg)
+            spam_peer.send_without_ping(msg)
 
         def received_avaproofsreq(peer):
             with p2p_lock:
@@ -389,7 +389,7 @@ class CompactProofsTest(BitcoinTestFramework):
             msg.shortids = shortids
 
             peer = add_avalanche_p2p_outbound()
-            peer.send_message(msg)
+            peer.send_without_ping(msg)
             self.wait_until(lambda: received_avaproofsreq(peer))
 
             avaproofsreq = received_avaproofsreq(peer)
@@ -399,7 +399,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         msg = build_raw_msg_avaproofs([])
         sender = add_avalanche_p2p_outbound()
-        sender.send_message(msg)
+        sender.send_without_ping(msg)
         # Make sure we don't get an avaproofsreq message
         sender.sync_with_ping()
         with p2p_lock:
@@ -468,7 +468,7 @@ class CompactProofsTest(BitcoinTestFramework):
         msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "avaproofs-bad-indexes"]):
-            bad_peer.send_message(msg)
+            bad_peer.send_without_ping(msg)
         bad_peer.wait_for_disconnect()
 
         self.log.info("An invalid prefilled proof will trigger a ban")
@@ -488,7 +488,7 @@ class CompactProofsTest(BitcoinTestFramework):
         msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
-            bad_peer.send_message(msg)
+            bad_peer.send_without_ping(msg)
         bad_peer.wait_for_disconnect()
 
     def test_send_missing_proofs(self):
@@ -520,7 +520,7 @@ class CompactProofsTest(BitcoinTestFramework):
         assert_equal(len(peer.get_proofs()), 0)
 
         def request_proofs(peer):
-            peer.send_message(msg_getavaproofs())
+            peer.send_without_ping(msg_getavaproofs())
             self.wait_until(lambda: self.received_avaproofs(peer))
 
             avaproofs = self.received_avaproofs(peer)
@@ -543,7 +543,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
             req = msg_avaproofsreq()
             req.indices = indices
-            requester.send_message(req)
+            requester.send_without_ping(req)
 
             # Check we got the expected number of proofs
             self.wait_until(lambda: len(requester.get_proofs()) == len(indices))

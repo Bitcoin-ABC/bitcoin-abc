@@ -51,7 +51,7 @@ class BaseNode(P2PInterface):
     def send_header_for_blocks(self, new_blocks):
         headers_message = msg_headers()
         headers_message.headers = [CBlockHeader(b) for b in new_blocks]
-        self.send_message(headers_message)
+        self.send_without_ping(headers_message)
 
 
 class AssumeValidTest(BitcoinTestFramework):
@@ -74,7 +74,7 @@ class AssumeValidTest(BitcoinTestFramework):
             if not p2p_conn.is_connected:
                 break
             try:
-                p2p_conn.send_message(msg_block(self.blocks[i]))
+                p2p_conn.send_without_ping(msg_block(self.blocks[i]))
             except IOError:
                 assert not p2p_conn.is_connected
                 break
@@ -176,7 +176,7 @@ class AssumeValidTest(BitcoinTestFramework):
 
         # Send all blocks to node1. All blocks will be accepted.
         for i in range(2202):
-            p2p1.send_message(msg_block(self.blocks[i]))
+            p2p1.send_without_ping(msg_block(self.blocks[i]))
         # Syncing 2200 blocks can take a while on slow systems. Give it plenty
         # of time to sync.
         p2p1.sync_with_ping(960)

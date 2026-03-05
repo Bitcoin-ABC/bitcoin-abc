@@ -195,7 +195,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # Now send the block at height 5 and check that it wasn't accepted
         # (missing header)
-        test_node.send_message(msg_block(all_blocks[1]))
+        test_node.send_without_ping(msg_block(all_blocks[1]))
         test_node.wait_for_disconnect()
         assert_raises_rpc_error(
             -5, "Block not found", self.nodes[0].getblock, all_blocks[1].hash_hex
@@ -209,13 +209,13 @@ class AcceptBlockTest(BitcoinTestFramework):
         # header, though
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(all_blocks[0]))
-        test_node.send_message(headers_message)
+        test_node.send_without_ping(headers_message)
         test_node.send_and_ping(msg_block(all_blocks[1]))
         self.nodes[0].getblock(all_blocks[1].hash_hex)
 
         # Now send the blocks in all_blocks
         for i in range(288):
-            test_node.send_message(msg_block(all_blocks[i]))
+            test_node.send_without_ping(msg_block(all_blocks[i]))
         test_node.sync_with_ping()
 
         # Blocks 1-287 should be accepted, block 288 should be ignored because
@@ -252,7 +252,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         with p2p_lock:
             # Clear state so we can check the getdata request
             test_node.last_message.pop("getdata", None)
-            test_node.send_message(msg_inv([CInv(MSG_BLOCK, block_h3.hash_int)]))
+            test_node.send_without_ping(msg_inv([CInv(MSG_BLOCK, block_h3.hash_int)]))
 
         test_node.sync_with_ping()
         with p2p_lock:
@@ -320,13 +320,13 @@ class AcceptBlockTest(BitcoinTestFramework):
             -1, "Block not found on disk", self.nodes[0].getblock, block_292.hash_hex
         )
 
-        test_node.send_message(msg_block(block_289f))
+        test_node.send_without_ping(msg_block(block_289f))
         test_node.send_and_ping(msg_block(block_290f))
 
         self.nodes[0].getblock(block_289f.hash_hex)
         self.nodes[0].getblock(block_290f.hash_hex)
 
-        test_node.send_message(msg_block(block_291))
+        test_node.send_without_ping(msg_block(block_291))
 
         # At this point we've sent an obviously-bogus block, wait for full processing
         # without assuming whether we will be disconnected or not
@@ -354,7 +354,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         block_293.solve()
         headers_message = msg_headers()
         headers_message.headers.append(CBlockHeader(block_293))
-        test_node.send_message(headers_message)
+        test_node.send_without_ping(headers_message)
         test_node.wait_for_disconnect()
 
         # 9. Connect node1 to node0 and ensure it is able to sync

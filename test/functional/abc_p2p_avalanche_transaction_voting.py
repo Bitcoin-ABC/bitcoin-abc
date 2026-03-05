@@ -694,7 +694,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             [p.last_message.clear() for p in quorum]
 
         announcing_peer = node.add_p2p_connection(P2PDataStore())
-        announcing_peer.send_message(
+        announcing_peer.send_without_ping(
             msg_inv(
                 [
                     CInv(MSG_TX, int(stalled_txid, 16)),

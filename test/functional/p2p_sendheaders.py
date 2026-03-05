@@ -111,28 +111,28 @@ class BaseNode(P2PInterface):
         msg = msg_getdata()
         for x in block_hashes:
             msg.inv.append(CInv(MSG_BLOCK, x))
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_get_headers(self, locator, hashstop):
         msg = msg_getheaders()
         msg.locator.vHave = locator
         msg.hashstop = hashstop
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_block_inv(self, blockhash):
         msg = msg_inv()
         msg.inv = [CInv(MSG_BLOCK, blockhash)]
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_header_for_blocks(self, new_blocks):
         headers_message = msg_headers()
         headers_message.headers = [CBlockHeader(b) for b in new_blocks]
-        self.send_message(headers_message)
+        self.send_without_ping(headers_message)
 
     def send_getblocks(self, locator):
         getblocks_message = msg_getblocks()
         getblocks_message.locator.vHave = locator
-        self.send_message(getblocks_message)
+        self.send_without_ping(getblocks_message)
 
     def wait_for_block_announcement(self, block_hash, timeout=60):
         def test_function():
@@ -278,7 +278,7 @@ class SendHeadersTest(BitcoinTestFramework):
         test_node.sync_with_ping()
         assert_equal(test_node.block_announced, False)
         inv_node.clear_block_announcements()
-        test_node.send_message(msg_block(block))
+        test_node.send_without_ping(msg_block(block))
         inv_node.check_last_inv_announcement(inv=[int(block.hash_hex, 16)])
 
     def test_nonnull_locators(self, test_node, inv_node):
@@ -331,7 +331,7 @@ class SendHeadersTest(BitcoinTestFramework):
         # PART 2
         # 2. Send a sendheaders message and test that headers announcements
         # commence and keep working.
-        test_node.send_message(msg_sendheaders())
+        test_node.send_without_ping(msg_sendheaders())
         prev_tip = int(self.nodes[0].getbestblockhash(), 16)
         test_node.send_get_headers(locator=[prev_tip], hashstop=0)
         test_node.sync_with_ping()
@@ -379,7 +379,7 @@ class SendHeadersTest(BitcoinTestFramework):
                     # getdata requests (the check is further down)
                     inv_node.send_header_for_blocks(blocks)
                     inv_node.sync_with_ping()
-                [test_node.send_message(msg_block(x)) for x in blocks]
+                [test_node.send_without_ping(msg_block(x)) for x in blocks]
                 test_node.sync_with_ping()
                 inv_node.sync_with_ping()
                 # This block should not be announced to the inv node (since it also
@@ -485,7 +485,7 @@ class SendHeadersTest(BitcoinTestFramework):
             tip = blocks[-1].hash_int
             block_time += 1
             height += 1
-            inv_node.send_message(msg_block(blocks[-1]))
+            inv_node.send_without_ping(msg_block(blocks[-1]))
 
         inv_node.sync_with_ping()  # Make sure blocks are processed
         test_node.last_message.pop("getdata", None)
@@ -510,7 +510,7 @@ class SendHeadersTest(BitcoinTestFramework):
             [x.hash_int for x in blocks], timeout=DIRECT_FETCH_RESPONSE_TIME
         )
 
-        [test_node.send_message(msg_block(x)) for x in blocks]
+        [test_node.send_without_ping(msg_block(x)) for x in blocks]
 
         test_node.sync_with_ping()
 
@@ -561,7 +561,7 @@ class SendHeadersTest(BitcoinTestFramework):
         self.log.info("Part 4: success!")
 
         # Now deliver all those blocks we announced.
-        [test_node.send_message(msg_block(x)) for x in blocks]
+        [test_node.send_without_ping(msg_block(x)) for x in blocks]
 
         self.log.info("Part 5: Testing handling of unconnecting headers")
         # First we test that receipt of an unconnecting header doesn't prevent
@@ -585,7 +585,7 @@ class SendHeadersTest(BitcoinTestFramework):
             test_node.wait_for_getheaders()
             test_node.send_header_for_blocks(blocks)
             test_node.wait_for_getdata([x.hash_int for x in blocks])
-            [test_node.send_message(msg_block(x)) for x in blocks]
+            [test_node.send_without_ping(msg_block(x)) for x in blocks]
             test_node.sync_with_ping()
             assert_equal(self.nodes[0].getbestblockhash(), blocks[1].hash_hex)
 

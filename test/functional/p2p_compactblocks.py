@@ -102,12 +102,12 @@ class TestP2PConn(P2PInterface):
         msg = msg_getheaders()
         msg.locator.vHave = locator
         msg.hashstop = hashstop
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_header_for_blocks(self, new_blocks):
         headers_message = msg_headers()
         headers_message.headers = [CBlockHeader(b) for b in new_blocks]
-        self.send_message(headers_message)
+        self.send_without_ping(headers_message)
 
     def request_headers_and_sync(self, locator, hashstop=0):
         self.clear_block_announcement()
@@ -128,7 +128,7 @@ class TestP2PConn(P2PInterface):
 
         This is used when we want to send a message into the node that we expect
         will get us disconnected, eg an invalid block."""
-        self.send_message(message)
+        self.send_without_ping(message)
         self.wait_for_disconnect()
 
 
@@ -332,7 +332,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Now fetch the compact block using a normal non-announce getdata
         test_node.clear_block_announcement()
         inv = CInv(MSG_CMPCT_BLOCK, block_hash)
-        test_node.send_message(msg_getdata([inv]))
+        test_node.send_without_ping(msg_getdata([inv]))
 
         test_node.wait_until(lambda: "cmpctblock" in test_node.last_message)
 
@@ -398,7 +398,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             block = self.build_block_on_tip(node)
 
             if announce == "inv":
-                test_node.send_message(msg_inv([CInv(MSG_BLOCK, block.hash_int)]))
+                test_node.send_without_ping(msg_inv([CInv(MSG_BLOCK, block.hash_int)]))
                 self.wait_until(lambda: "getheaders" in test_node.last_message)
                 test_node.send_header_for_blocks([block])
             else:
@@ -521,7 +521,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block, ordered_txs = self.build_block_with_transactions(node, utxo, 10)
         self.utxos.append([ordered_txs[-1].txid_int, 0, ordered_txs[-1].vout[0].nValue])
         for tx in ordered_txs[1:]:
-            test_node.send_message(msg_tx(tx))
+            test_node.send_without_ping(msg_tx(tx))
         test_node.sync_with_ping()
         # Make sure all transactions were accepted.
         mempool = node.getrawmempool()
@@ -540,7 +540,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # into vExtraTxnForCompact and will not be requested when reconstructing
         # the block.
         with node.assert_debug_log(["min relay fee not met"]):
-            test_node.send_message(msg_tx(tx_no_fee))
+            test_node.send_without_ping(msg_tx(tx_no_fee))
             test_node.sync_with_ping()
         assert tx_no_fee.txid_hex not in node.getrawmempool()
 
@@ -573,7 +573,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         self.utxos.append([ordered_txs[-1].txid_int, 0, ordered_txs[-1].vout[0].nValue])
         # Relay the first 5 transactions from the block in advance
         for tx in ordered_txs[1:6]:
-            test_node.send_message(msg_tx(tx))
+            test_node.send_without_ping(msg_tx(tx))
         test_node.sync_with_ping()
         # Make sure all transactions were accepted.
         mempool = node.getrawmempool()
@@ -637,7 +637,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             msg.block_txn_request.from_absolute(
                 sorted(random.sample(range(len(block.vtx)), num_to_request))
             )
-            test_node.send_message(msg)
+            test_node.send_without_ping(msg)
             test_node.wait_until(lambda: "blocktxn" in test_node.last_message)
 
             with p2p_lock:
@@ -704,7 +704,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             test_node.wait_until(test_node.received_block_announcement)
 
         test_node.clear_block_announcement()
-        test_node.send_message(
+        test_node.send_without_ping(
             msg_getdata([CInv(MSG_CMPCT_BLOCK, int(new_blocks[0], 16))])
         )
         test_node.wait_until(lambda: "cmpctblock" in test_node.last_message)
@@ -715,7 +715,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.clear_block_announcement()
         with p2p_lock:
             test_node.last_message.pop("block", None)
-        test_node.send_message(
+        test_node.send_without_ping(
             msg_getdata([CInv(MSG_CMPCT_BLOCK, int(new_blocks[0], 16))])
         )
         test_node.wait_until(lambda: "block" in test_node.last_message)
@@ -828,7 +828,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block, ordered_txs, cmpct_block = announce_cmpct_block(node, stalling_peer)
 
         for tx in ordered_txs[1:]:
-            delivery_peer.send_message(msg_tx(tx))
+            delivery_peer.send_without_ping(msg_tx(tx))
         delivery_peer.sync_with_ping()
         mempool = node.getrawmempool()
         for tx in block.vtx[1:]:
@@ -842,7 +842,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # Now test that delivering an invalid compact block won't break relay
         block, ordered_txs, cmpct_block = announce_cmpct_block(node, stalling_peer)
         for tx in ordered_txs[1:]:
-            delivery_peer.send_message(msg_tx(tx))
+            delivery_peer.send_without_ping(msg_tx(tx))
         delivery_peer.sync_with_ping()
 
         # TODO: modify txhash in a way that doesn't impact txid.

@@ -22,10 +22,10 @@ class BaseNode(P2PInterface):
     def send_header(self, block):
         msg = msg_headers()
         msg.headers = [CBlockHeader(block)]
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_block(self, block):
-        self.send_message(msg_block(block))
+        self.send_without_ping(msg_block(block))
 
 
 class SyncChainTest(BitcoinTestFramework):

@@ -30,7 +30,7 @@ class P2PStaller(P2PDataStore):
             self.getdata_requests.append(inv.hash)
             if (inv.type & MSG_TYPE_MASK) == MSG_BLOCK:
                 if inv.hash != self.stall_block:
-                    self.send_message(msg_block(self.block_store[inv.hash]))
+                    self.send_without_ping(msg_block(self.block_store[inv.hash]))
 
     def on_getheaders(self, message):
         pass
@@ -79,7 +79,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
                 )
             )
             peers[-1].block_store = block_dict
-            peers[-1].send_message(headers_message)
+            peers[-1].send_without_ping(headers_message)
 
         # Need to wait until 1023 blocks are received - the magic total bytes number is
         # a workaround in lack of an rpc returning the number of downloaded (but not
@@ -101,7 +101,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
         headers_message.headers = [CBlockHeader(b) for b in blocks]
         with node.assert_debug_log(expected_msgs=["Stall started"]):
             for p in peers:
-                p.send_message(headers_message)
+                p.send_without_ping(headers_message)
             self.all_sync_send_with_ping(peers)
 
         self.log.info("Check that the stalling peer is disconnected after 2 seconds")
@@ -152,7 +152,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
         ):
             for p in peers:
                 if p.is_connected and (stall_block in p.getdata_requests):
-                    p.send_message(msg_block(block_dict[stall_block]))
+                    p.send_without_ping(msg_block(block_dict[stall_block]))
 
         self.log.info("Check that all outstanding blocks get connected")
         self.wait_until(lambda: node.getblockcount() == NUM_BLOCKS, timeout=240)

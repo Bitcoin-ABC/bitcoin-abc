@@ -60,7 +60,7 @@ class ChronikShutdown(BitcoinTestFramework):
             )
             block.solve()
             last_block_hash = block.hash_hex
-            peer.send_message(msg_block(block))
+            peer.send_without_ping(msg_block(block))
 
         self.stop_nodes()
 

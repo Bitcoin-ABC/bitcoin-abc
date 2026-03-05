@@ -267,7 +267,7 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # Send the first block and invalidate it
         with node.assert_debug_log(["policy-bad-miner-fund"]):
-            quorum[0].send_message(msg_block(block1))
+            quorum[0].send_without_ping(msg_block(block1))
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {block1.hash_hex}".encode()],
             chatty_callable=lambda: can_find_inv_in_poll(
@@ -277,7 +277,7 @@ class ChronikWsTest(BitcoinTestFramework):
             pass
 
         # Then the second one
-        quorum[0].send_message(msg_block(block2))
+        quorum[0].send_without_ping(msg_block(block2))
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {block2.hash_hex}".encode()],
             chatty_callable=lambda: can_find_inv_in_poll(

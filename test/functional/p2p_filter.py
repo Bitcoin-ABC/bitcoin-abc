@@ -63,7 +63,7 @@ class P2PBloomFilter(P2PInterface):
             else:
                 want.inv.append(i)
         if len(want.inv):
-            self.send_message(want)
+            self.send_without_ping(want)
 
     def on_merkleblock(self, message):
         self._merkleblock_received = True
@@ -167,7 +167,7 @@ class FilterTest(BitcoinTestFramework):
         )
         self.nodes[0].add_p2p_connection(filter_peer)
         filter_peer.send_and_ping(filter_peer.watch_filter_init)
-        filter_peer.send_message(msg_mempool())
+        filter_peer.send_without_ping(msg_mempool())
         filter_peer.wait_for_tx(txid)
 
     def test_frelay_false(self, filter_peer):
@@ -297,7 +297,7 @@ class FilterTest(BitcoinTestFramework):
         version_without_fRelay.strSubVer = P2P_SUBVERSION
         version_without_fRelay.nServices = P2P_SERVICES
         version_without_fRelay.relay = 0
-        filter_peer_without_nrelay.send_message(version_without_fRelay)
+        filter_peer_without_nrelay.send_without_ping(version_without_fRelay)
         filter_peer_without_nrelay.wait_for_verack()
         assert not self.nodes[0].getpeerinfo()[0]["relaytxes"]
         self.test_frelay_false(filter_peer_without_nrelay)

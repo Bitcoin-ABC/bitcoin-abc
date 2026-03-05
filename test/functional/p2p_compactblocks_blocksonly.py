@@ -131,7 +131,7 @@ class P2PCompactBlocksBlocksOnly(BitcoinTestFramework):
                 == block.hash_int
             )
 
-        p2p_conn_blocksonly.send_message(
+        p2p_conn_blocksonly.send_without_ping(
             msg_getdata([CInv(MSG_CMPCT_BLOCK, block0.hash_int)])
         )
         p2p_conn_blocksonly.wait_until(lambda: test_for_cmpctblock(block0))

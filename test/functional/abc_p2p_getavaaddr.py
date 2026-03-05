@@ -96,8 +96,8 @@ class AvaHelloInterface(AvaP2PInterface):
         super().__init__()
 
     def on_version(self, message):
-        self.send_message(msg_verack())
-        self.send_message(msg_avahello())
+        self.send_without_ping(msg_verack())
+        self.send_without_ping(msg_avahello())
 
 
 class AvaAddrTest(BitcoinTestFramework):
@@ -169,7 +169,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.wait_until(lambda: all_peers_addr_are_relayable(peers[:8]))
 
         requester = node.add_p2p_connection(AddrReceiver())
-        requester.send_message(msg_getavaaddr())
+        requester.send_without_ping(msg_getavaaddr())
         # Make sure the message is processed
         requester.sync_with_ping()
         # Remember the time we sent the getavaaddr message
@@ -177,7 +177,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Spamming more get getavaaddr has no effect
         for _ in range(2):
-            requester.send_message(msg_getavaaddr())
+            requester.send_without_ping(msg_getavaaddr())
             requester.sync_with_ping()
 
         # Move the time so we get an addr response
@@ -200,7 +200,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Check our message is now accepted again now that the getavaaddr
         # interval is elapsed
         assert mock_time >= getavaddr_time + GETAVAADDR_INTERVAL
-        requester.send_message(msg_getavaaddr())
+        requester.send_without_ping(msg_getavaaddr())
         requester.sync_with_ping()
 
         # We can get an addr message again
@@ -558,14 +558,14 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Test getaddr is sent first
         requester1 = node.add_outbound_p2p_connection(AvaHelloInterface(), p2p_idx=0)
-        requester1.send_message(msg_getaddr())
-        requester1.send_message(msg_getavaaddr())
+        requester1.send_without_ping(msg_getaddr())
+        requester1.send_without_ping(msg_getavaaddr())
         check_addr_requests(requester1)
 
         # Test getavaaddr is sent first
         requester2 = node.add_outbound_p2p_connection(AvaHelloInterface(), p2p_idx=1)
-        requester2.send_message(msg_getavaaddr())
-        requester2.send_message(msg_getaddr())
+        requester2.send_without_ping(msg_getavaaddr())
+        requester2.send_without_ping(msg_getaddr())
         check_addr_requests(requester2)
 
     def run_test(self):

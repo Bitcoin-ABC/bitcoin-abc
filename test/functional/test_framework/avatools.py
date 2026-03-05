@@ -233,7 +233,7 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         sig = privkey.sign_schnorr(response.get_hash())
         msg = msg_tcpavaresponse()
         msg.response = TCPAvalancheResponse(response, sig)
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def wait_for_avaresponse(self, timeout=5):
         self.wait_until(lambda: len(self.avaresponses) > 0, timeout=timeout)
@@ -247,12 +247,12 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         self.round += 1
         for h in hashes:
             msg.poll.invs.append(CInv(inv_type, h))
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def send_proof(self, proof):
         msg = msg_avaproof()
         msg.proof = proof
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
     def get_avapoll_if_available(self):
         with p2p_lock:
@@ -287,14 +287,14 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
     def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
         delegation = FromHex(AvalancheDelegation(), delegation_hex)
         msg = self.build_avahello(delegation, delegated_privkey)
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
         return msg.hello.delegation.proofid
 
     def send_avaproof(self, proof: AvalancheProof):
         msg = msg_avaproof()
         msg.proof = proof
-        self.send_message(msg)
+        self.send_without_ping(msg)
 
 
 class AvaP2PInterface(NoHandshakeAvaP2PInterface):
@@ -345,7 +345,7 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
                 self.master_privkey,
             )
 
-        self.send_message(avahello)
+        self.send_without_ping(avahello)
 
     def on_getdata(self, message):
         super().on_getdata(message)
@@ -362,7 +362,7 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
                 not_found.append(inv)
 
         if len(not_found) > 0:
-            self.send_message(msg_notfound(not_found))
+            self.send_without_ping(msg_notfound(not_found))
 
 
 def get_ava_p2p_interface_no_handshake(

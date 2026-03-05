@@ -48,7 +48,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
             with node.assert_debug_log(expected_msgs=["getblocks -1 to"]):
                 msg = msg_getblocks()
                 msg.locator.vHave = [block_hash]
-                peer.send_message(msg)
+                peer.send_without_ping(msg)
                 peer.sync_with_ping()
 
             with node.assert_debug_log(
@@ -59,7 +59,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
             ):
                 msg = msg_getdata()
                 msg.inv.append(CInv(MSG_BLOCK, block_hash))
-                peer.send_message(msg)
+                peer.send_without_ping(msg)
                 peer.sync_with_ping()
 
             with node.assert_debug_log(
@@ -70,7 +70,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
             ):
                 msg = msg_getdata()
                 msg.inv.append(CInv(MSG_CMPCT_BLOCK, block_hash))
-                peer.send_message(msg)
+                peer.send_without_ping(msg)
                 peer.sync_with_ping()
 
             with node.assert_debug_log(
@@ -81,7 +81,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
             ):
                 msg = msg_getheaders()
                 msg.hashstop = block_hash
-                peer.send_message(msg)
+                peer.send_without_ping(msg)
                 peer.sync_with_ping()
 
 

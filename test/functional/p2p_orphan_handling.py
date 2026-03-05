@@ -267,7 +267,7 @@ class OrphanHandlingTest(BitcoinTestFramework):
         # Even though the peer would send a notfound for the "old" confirmed
         # transaction, the node doesn't give up on the orphan. Once all of the
         # missing parents are received, it should be submitted to mempool.
-        peer.send_message(msg_notfound(vec=[CInv(MSG_TX, int(txid_conf_old, 16))]))
+        peer.send_without_ping(msg_notfound(vec=[CInv(MSG_TX, int(txid_conf_old, 16))]))
         # Sync with ping to ensure orphans are reconsidered
         peer.send_and_ping(msg_tx(missing_tx["tx"]))
         print(node.getmempoolentry(orphan["txid"]))

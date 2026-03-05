@@ -39,19 +39,19 @@ from test_framework.wallet_util import bytes_to_wif
 class SlowP2PDataStore(P2PDataStore):
     def on_ping(self, message):
         time.sleep(0.1)
-        self.send_message(msg_pong(message.nonce))
+        self.send_without_ping(msg_pong(message.nonce))
 
 
 class SlowP2PInterface(P2PInterface):
     def on_ping(self, message):
         time.sleep(0.1)
-        self.send_message(msg_pong(message.nonce))
+        self.send_without_ping(msg_pong(message.nonce))
 
 
 class SlowAvaP2PInterface(AvaP2PInterface):
     def on_ping(self, message):
         time.sleep(0.1)
-        self.send_message(msg_pong(message.nonce))
+        self.send_without_ping(msg_pong(message.nonce))
 
 
 class P2PEvict(BitcoinTestFramework):
@@ -118,7 +118,7 @@ class P2PEvict(BitcoinTestFramework):
 
             avaproof_msg = msg_avaproof()
             avaproof_msg.proof = avalanche_proof_from_hex(proof)
-            proof_peer.send_message(avaproof_msg)
+            proof_peer.send_without_ping(avaproof_msg)
             protected_peers.add(current_peer)
 
         self.log.info("Create 5 slow-pinging peers, making them eviction candidates")
@@ -135,7 +135,7 @@ class P2PEvict(BitcoinTestFramework):
             txpeer.sync_with_ping()
 
             tx = self.wallet.create_self_transfer()["tx"]
-            txpeer.send_message(msg_tx(tx))
+            txpeer.send_without_ping(msg_tx(tx))
             protected_peers.add(current_peer)
 
         self.log.info(

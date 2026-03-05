@@ -37,7 +37,7 @@ class HeadersSyncTest(BitcoinTestFramework):
         # An empty reply will clear the outstanding getheaders request,
         # allowing additional getheaders requests to be sent to this peer in
         # the future.
-        peer1.send_message(msg_headers())
+        peer1.send_without_ping(msg_headers())
 
         self.log.info("Connecting two more peers to node0")
         # Connect 2 more peers; they should not receive a getheaders yet
@@ -64,7 +64,7 @@ class HeadersSyncTest(BitcoinTestFramework):
         self.log.info("Check that peer1 receives a getheaders in response")
         peer1.wait_for_getheaders()
         # Send empty response, see above
-        peer1.send_message(msg_headers())
+        peer1.send_without_ping(msg_headers())
         with p2p_lock:
             peer1.last_message.pop("getheaders", None)
 
@@ -80,7 +80,7 @@ class HeadersSyncTest(BitcoinTestFramework):
                     peer_receiving_getheaders = p
                     p.last_message.pop("getheaders", None)
                     # Send empty response, see above
-                    p.send_message(msg_headers())
+                    p.send_without_ping(msg_headers())
 
         assert_equal(count, 1)
 

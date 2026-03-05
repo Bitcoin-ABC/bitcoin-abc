@@ -276,7 +276,7 @@ class PackageRelayTest(BitcoinTestFramework):
 
         # 3. A different peer relays the parent. Parent+Child are evaluated as a
         # package and rejected.
-        parent_sender.send_message(msg_tx(low_fee_parent["tx"]))
+        parent_sender.send_without_ping(msg_tx(low_fee_parent["tx"]))
 
         # 4. Transactions should not be in mempool.
         node_mempool = node.getrawmempool()
@@ -326,7 +326,7 @@ class PackageRelayTest(BitcoinTestFramework):
         # by itself and rejected for being too low feerate. Then it is evaluated
         # as a package and, after passing feerate checks, rejected for having a
         # bad signature (consensus error).
-        fake_parent_sender.send_message(msg_tx(tx_parent_bad_sig))
+        fake_parent_sender.send_without_ping(msg_tx(tx_parent_bad_sig))
 
         # 4. Transactions should not be in mempool.
         node_mempool = node.getrawmempool()

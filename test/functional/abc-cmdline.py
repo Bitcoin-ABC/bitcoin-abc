@@ -60,7 +60,7 @@ class ABC_CmdLine_Test(BitcoinTestFramework):
         mock_time = int(time.time())
 
         peer = node.add_p2p_connection(AddrCounter())
-        peer.send_message(msg_getaddr())
+        peer.send_without_ping(msg_getaddr())
 
         mock_time += 5 * 60
         node.setmocktime(mock_time)

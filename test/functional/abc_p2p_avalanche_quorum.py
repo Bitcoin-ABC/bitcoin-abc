@@ -128,7 +128,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 avapeer.wait_until(lambda: avapeer.last_message.get("getavaproofs"))
 
                 if empty_avaproof:
-                    avapeer.send_message(build_msg_avaproofs([]))
+                    avapeer.send_without_ping(build_msg_avaproofs([]))
                     avapeer.sync_with_ping()
                     with p2p_lock:
                         assert_equal(avapeer.message_count.get("avaproofsreq", 0), 0)

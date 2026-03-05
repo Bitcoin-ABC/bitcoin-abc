@@ -82,7 +82,7 @@ class InvalidMessageTest(BitcoinTestFramework):
             interface.ping_counter += 1
 
         # The valid message is accepted
-        connection.send_message(valid_message)
+        connection.send_without_ping(valid_message)
         wait_for_ping()
 
         # Make an invalid copy of the valid message with an invalid checksum

@@ -199,7 +199,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         peer = node.add_p2p_connection(AvaP2PInterface())
         msg = msg_headers()
         msg.headers = [CBlockHeader(block)]
-        peer.send_message(msg)
+        peer.send_without_ping(msg)
 
         self.wait_until(lambda: node.getchaintips()[0]["height"] == height)
         assert_raises_rpc_error(
