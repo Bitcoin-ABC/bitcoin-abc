@@ -6,15 +6,8 @@
 #define BITCOIN_AVALANCHE_AVALANCHE_H
 
 #include <cstddef>
-#include <memory>
 
 #include <consensus/amount.h>
-
-namespace avalanche {
-class Processor;
-}
-
-class ArgsManager;
 
 /**
  * Is avalanche enabled by default.
