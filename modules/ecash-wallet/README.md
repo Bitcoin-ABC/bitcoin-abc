@@ -319,3 +319,9 @@ See tests for detailed methods.
 - Use `broadcastTxs` instead of `broadcastTx` to handle chained txs (requires upgraded chronik server)
 
 [D19628](https://reviews.bitcoinabc.org/D19628)
+
+# 5.1.0
+
+- Export the functions from WatchOnlyWallet
+
+[D19651](https://reviews.bitcoinabc.org/D19651)
