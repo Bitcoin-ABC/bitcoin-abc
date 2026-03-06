@@ -276,6 +276,7 @@ function(gen_precomputed_tables EXECUTABLE_NAME TABLE_NAME)
 	add_native_executable("${EXECUTABLE_NAME}" "src/${EXECUTABLE_NAME}.c")
 	add_custom_command(
 		OUTPUT "src/${TABLE_NAME}.c"
+		COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/src"
 		COMMAND  "$<TARGET_FILE:${EXECUTABLE_NAME}>"
 		COMMENT "Generating src/${TABLE_NAME}.c"
 	)
