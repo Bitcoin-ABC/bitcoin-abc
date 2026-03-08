@@ -37,5 +37,11 @@ export const OP_RETURN_MAX_BYTES = 223;
  */
 export const MAX_TX_SERSIZE = 100_000;
 
+/**
+ * Maximum byte size of script numbers when interpreting Script.
+ * Mirrors MAX_SCRIPTNUM_BYTE_SIZE in src/script/script.h.
+ */
+export const MAX_SCRIPTNUM_BYTE_SIZE = 8;
+
 // The size in bytes of a p2pkh output
 export const P2PKH_OUTPUT_SIZE = 34;

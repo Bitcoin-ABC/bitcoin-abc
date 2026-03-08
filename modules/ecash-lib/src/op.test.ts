@@ -21,7 +21,14 @@ import {
     OP_PUSHDATA2,
     OP_PUSHDATA4,
 } from './opcode.js';
-import { isPushOp, pushBytesOp, pushNumberOp, readOp, writeOp } from './op.js';
+import {
+    isPushOp,
+    parseNumberFromOp,
+    pushBytesOp,
+    pushNumberOp,
+    readOp,
+    writeOp,
+} from './op.js';
 import { fromHex, toHex } from './io/hex.js';
 import { Bytes } from './io/bytes.js';
 import { WriterBytes } from './io/writerbytes.js';
@@ -33,6 +40,93 @@ const wrote = (size: number, fn: (writer: WriterBytes) => void) => {
 };
 
 describe('Op', () => {
+    it('parseNumberFromOp', () => {
+        // OP_1 through OP_16
+        expect(parseNumberFromOp(OP_1)).to.equal(1n);
+        expect(parseNumberFromOp(OP_16)).to.equal(16n);
+        for (let i = 1; i <= 16; i++) {
+            expect(parseNumberFromOp(0x50 + i)).to.equal(BigInt(i));
+        }
+        // Single-byte push (decodeScriptNum handles sign bit)
+        expect(
+            parseNumberFromOp({ opcode: 1, data: new Uint8Array([5]) }),
+        ).to.equal(5n);
+        expect(
+            parseNumberFromOp({ opcode: 1, data: new Uint8Array([0x81]) }),
+        ).to.equal(-1n);
+        expect(
+            parseNumberFromOp({ opcode: 1, data: new Uint8Array([0xff]) }),
+        ).to.equal(-127n);
+        // Single-byte [0] is non-minimal (0 encodes as empty)
+        expect(() =>
+            parseNumberFromOp({ opcode: 1, data: new Uint8Array([0]) }),
+        ).to.throw('Script number is not minimally encoded');
+
+        // Multi-byte: inverse of pushNumberOp (numbers > 255, 64-bit)
+        expect(parseNumberFromOp(pushNumberOp(256))).to.equal(256n);
+        expect(parseNumberFromOp(pushNumberOp(0x0100))).to.equal(0x0100n);
+        expect(parseNumberFromOp(pushNumberOp(0xffffff))).to.equal(0xffffffn);
+        expect(parseNumberFromOp(pushNumberOp(0x80000000))).to.equal(
+            0x80000000n,
+        );
+        expect(parseNumberFromOp(pushNumberOp(0x010000000000))).to.equal(
+            0x010000000000n,
+        );
+        expect(parseNumberFromOp(pushNumberOp(0x0775f05a074000n))).to.equal(
+            0x0775f05a074000n,
+        );
+        // Negative numbers
+        expect(parseNumberFromOp(pushNumberOp(-255))).to.equal(-255n);
+        expect(parseNumberFromOp(pushNumberOp(-0x010000))).to.equal(-0x010000n);
+
+        // Round-trip: pushNumberOp then parseNumberFromOp
+        expect(parseNumberFromOp(pushNumberOp(0))).to.equal(0n);
+        expect(parseNumberFromOp(pushNumberOp(-1))).to.equal(-1n);
+        for (const val of [
+            1, 16, 255, 256, 0x7fff, 0x8000, 0xffffff, 0x80000000,
+        ]) {
+            expect(parseNumberFromOp(pushNumberOp(val))).to.equal(BigInt(val));
+        }
+        for (const val of [
+            0x010000000000n,
+            0x0775f05a074000n,
+            0x7fffffffffffffffn,
+        ]) {
+            expect(parseNumberFromOp(pushNumberOp(val))).to.equal(val);
+        }
+
+        // OP_0 and OP_1NEGATE (inverse of pushNumberOp(0) and pushNumberOp(-1))
+        expect(parseNumberFromOp(OP_0)).to.equal(0n);
+        expect(parseNumberFromOp(OP_1NEGATE)).to.equal(-1n);
+
+        // Empty push (equivalent to OP_0)
+        expect(
+            parseNumberFromOp({ opcode: OP_0, data: new Uint8Array(0) }),
+        ).to.equal(0n);
+
+        // Throws for non-number ops
+        expect(() => parseNumberFromOp(OP_CHECKSIG)).to.throw(
+            'Opcode 0xac does not encode a number',
+        );
+        // Non-minimal push encoding
+        expect(() =>
+            parseNumberFromOp({
+                opcode: OP_PUSHDATA1,
+                data: new Uint8Array([1, 2]),
+            }),
+        ).to.throw('Push uses non-minimal encoding');
+        // Non-minimal number encoding (e.g. 1 encoded as [1, 0] instead of [1])
+        expect(() =>
+            parseNumberFromOp({ opcode: 2, data: new Uint8Array([1, 0]) }),
+        ).to.throw('Script number is not minimally encoded');
+        // Too many bytes
+        expect(() =>
+            parseNumberFromOp({
+                opcode: 9,
+                data: new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            }),
+        ).to.throw('Script number exceeds maximum size');
+    });
     it('isPushOp', () => {
         expect(isPushOp(null)).to.equal(false);
         expect(isPushOp(OP_CODESEPARATOR)).to.equal(false);
