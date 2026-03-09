@@ -1229,20 +1229,21 @@ void Processor::runEventLoop() {
     // them.
     clearTimedoutRequests();
 
+    clearInvsNotWorthPolling();
+
+    LOCK(cs_peerManager);
+
     // Make sure there is at least one suitable node to query before gathering
     // invs.
-    NodeId nodeid = WITH_LOCK(cs_peerManager, return peerManager->selectNode());
+    NodeId nodeid = peerManager->selectNode();
     if (nodeid == NO_NODE) {
         return;
     }
 
-    clearInvsNotWorthPolling();
     std::vector<CInv> invs = getInvsForNextPoll();
     if (invs.empty()) {
         return;
     }
-
-    LOCK(cs_peerManager);
 
     do {
         /**
