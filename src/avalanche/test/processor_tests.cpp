@@ -102,6 +102,10 @@ namespace {
         static void setStakingPreconsensus(Processor &p, bool enabled) {
             p.m_stakingPreConsensus = enabled;
         }
+
+        static void clearInvsNotWorthPolling(Processor &p) {
+            p.clearInvsNotWorthPolling();
+        }
     };
 } // namespace
 
@@ -229,6 +233,10 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
 
     bool addToReconcile(const AnyVoteItem &item) {
         return m_node.avalanche->addToReconcile(item);
+    }
+
+    void clearInvsNotWorthPolling() {
+        AvalancheTest::clearInvsNotWorthPolling(*m_node.avalanche);
     }
 };
 
@@ -1988,6 +1996,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     BOOST_CHECK(m_node.avalanche->hasFinalizedTip());
 
     // From now only the 10 blocks with more work are polled for
+    clearInvsNotWorthPolling();
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 10);
     for (size_t i = 0; i < 10; i++) {
@@ -2026,6 +2035,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
 
     BOOST_CHECK(addToReconcile(tip));
     BOOST_CHECK(addToReconcile(alttip));
+    clearInvsNotWorthPolling();
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 12);
 
@@ -2054,6 +2064,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     // Now the tip and all its ancestors will be removed from polls. Only the
     // alttip remains because it is on a forked chain so we want to keep polling
     // for that one until it's invalidated or stalled.
+    clearInvsNotWorthPolling();
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].hash, alttip->GetBlockHash());

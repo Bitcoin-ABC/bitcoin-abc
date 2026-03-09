@@ -1235,6 +1235,8 @@ void Processor::runEventLoop() {
     if (nodeid == NO_NODE) {
         return;
     }
+
+    clearInvsNotWorthPolling();
     std::vector<CInv> invs = getInvsForNextPoll();
     if (invs.empty()) {
         return;
@@ -1286,6 +1288,17 @@ void Processor::runEventLoop() {
     } while (nodeid != NO_NODE);
 }
 
+void Processor::clearInvsNotWorthPolling() {
+    auto w = voteRecords.getWriteView();
+    for (auto it = w->begin(); it != w->end();) {
+        if (!isWorthPolling(it->first)) {
+            it = w->erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void Processor::clearTimedoutRequests() {
     auto now = Now<SteadyMilliseconds>();
     std::map<CInv, uint8_t> timedout_items{};
@@ -1327,18 +1340,6 @@ void Processor::clearTimedoutRequests() {
 
 std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
-
-    {
-        // First remove all items that are not worth polling.
-        auto w = voteRecords.getWriteView();
-        for (auto it = w->begin(); it != w->end();) {
-            if (!isWorthPolling(it->first)) {
-                it = w->erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
 
     auto buildInvFromVoteItem = variant::overloaded{
         [](const ProofRef &proof) {
