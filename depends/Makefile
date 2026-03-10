@@ -41,7 +41,7 @@ NO_ZMQ ?=
 NO_UPNP ?=
 NO_NATPMP ?=
 NO_JEMALLOC ?=
-NO_CPYTHON ?=
+BUILD_CPYTHON ?=
 FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
 
 # OpenSSL bn implementation uses inline asm so we have to use gnu extensions
@@ -157,7 +157,7 @@ openssl_packages_$(NO_OPENSSL) = $(openssl_packages)
 
 jemalloc_packages_$(NO_JEMALLOC) = $(jemalloc_packages)
 
-cpython_packages_$(NO_CPYTHON) = $(cpython_packages)
+cpython_packages_$(BUILD_CPYTHON) = $(cpython_packages)
 
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_) $(natpmp_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
@@ -179,7 +179,7 @@ ifneq ($(jemalloc_packages_),)
 packages += $(jemalloc_packages)
 endif
 
-ifneq ($(cpython_packages_),)
+ifeq ($(cpython_packages_),)
 native_packages += $(cpython_native_packages)
 packages += $(cpython_packages)
 endif

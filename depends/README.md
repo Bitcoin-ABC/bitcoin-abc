@@ -100,7 +100,7 @@ The following can be set when running make: `make FOO=bar`
 - `NO_UPNP`: Don't download/build/cache packages needed for enabling UPnP
 - `NO_NATPMP`: Don't download/build/cache packages needed for enabling NAT-PMP
 - `NO_JEMALLOC`: Don't download/build/cache jemalloc
-- `NO_CPYTHON`: Don't download/build/cache cpython
+- `BUILD_CPYTHON`: Download/build/cache cpython
 - `DEBUG`: Disable some optimizations and enable more runtime checking
 - `NO_PROTOBUF`: Don't download/build/cache protobuf (used for BIP70 support)
 - `NO_OPENSSL`: Don't download/build/cache OpenSSL (used for BIP70 support)
