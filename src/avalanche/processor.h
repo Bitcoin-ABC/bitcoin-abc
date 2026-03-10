@@ -419,7 +419,9 @@ private:
     void clearInvsNotWorthPolling()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
-    std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
+    std::vector<CInv>
+    getInvsForNextPoll(RWCollection<VoteMap>::ReadView &voteRecordsReadView,
+                       bool forPoll = true) const;
     bool sendHelloInternal(CNode *pfrom)
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const

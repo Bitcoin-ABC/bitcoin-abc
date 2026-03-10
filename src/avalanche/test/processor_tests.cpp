@@ -42,7 +42,8 @@ namespace {
         static void runEventLoop(avalanche::Processor &p) { p.runEventLoop(); }
 
         static std::vector<CInv> getInvsForNextPoll(Processor &p) {
-            return p.getInvsForNextPoll(false);
+            auto r = p.voteRecords.getReadView();
+            return p.getInvsForNextPoll(r, false);
         }
 
         static NodeId getSuitableNodeToQuery(Processor &p) {

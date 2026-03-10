@@ -1231,6 +1231,13 @@ void Processor::runEventLoop() {
 
     clearInvsNotWorthPolling();
 
+    // Build a unique pointer to the read view of vote records.
+    // This is so we can release the lock immediately after we have gathered the
+    // invs to poll and avoid a lock inversion with the peer manager lock.
+    auto voteRecordsReadView =
+        std::make_unique<decltype(voteRecords.getReadView())>(
+            voteRecords.getReadView());
+
     LOCK(cs_peerManager);
 
     // Make sure there is at least one suitable node to query before gathering
@@ -1240,10 +1247,13 @@ void Processor::runEventLoop() {
         return;
     }
 
-    std::vector<CInv> invs = getInvsForNextPoll();
+    std::vector<CInv> invs = getInvsForNextPoll(*voteRecordsReadView);
     if (invs.empty()) {
         return;
     }
+
+    // Release the read lock on vote records
+    voteRecordsReadView.reset();
 
     do {
         /**
@@ -1339,7 +1349,8 @@ void Processor::clearTimedoutRequests() {
     }
 }
 
-std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
+std::vector<CInv> Processor::getInvsForNextPoll(
+    RWCollection<VoteMap>::ReadView &voteRecordsReadView, bool forPoll) const {
     std::vector<CInv> invs;
 
     auto buildInvFromVoteItem = variant::overloaded{
@@ -1355,8 +1366,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         [](const CTransactionRef &tx) { return CInv(MSG_TX, tx->GetHash()); },
     };
 
-    auto r = voteRecords.getReadView();
-    for (const auto &[item, voteRecord] : r) {
+    for (const auto &[item, voteRecord] : voteRecordsReadView) {
         if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
             // Make sure we do not produce more invs than specified by the
             // protocol.
