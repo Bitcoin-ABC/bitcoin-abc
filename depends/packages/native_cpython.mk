@@ -1,6 +1,6 @@
-package=cpython
+package=native_cpython
 $(package)_version=3.12.7
-$(package)_download_path=https://github.com/python/$(package)/archive/refs/tags/
+$(package)_download_path=https://github.com/python/cpython/archive/refs/tags/
 $(package)_file_name=v$($(package)_version).tar.gz
 $(package)_sha256_hash=0c4db8f00ab490bfb5a4b0d0e763319d017226b5521f97e851412342ff04d459
 
