@@ -43,5 +43,8 @@ export const MAX_TX_SERSIZE = 100_000;
  */
 export const MAX_SCRIPTNUM_BYTE_SIZE = 8;
 
+/** Max pubkeys per multisig script. Matches MAX_PUBKEYS_PER_MULTISIG in src/script/script.h. */
+export const MAX_PUBKEYS_PER_MULTISIG = 20;
+
 // The size in bytes of a p2pkh output
 export const P2PKH_OUTPUT_SIZE = 34;

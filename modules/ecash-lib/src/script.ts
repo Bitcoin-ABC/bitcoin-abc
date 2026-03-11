@@ -7,9 +7,21 @@ import { Writer } from './io/writer.js';
 import { WriterLength } from './io/writerlength.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { toHex, fromHex } from './io/hex.js';
-import { Op, pushBytesOp, readOp, writeOp } from './op.js';
 import {
+    isPushOp,
+    Op,
+    parseNumberFromOp,
+    pushBytesOp,
+    pushNumberOp,
+    readOp,
+    writeOp,
+} from './op.js';
+import {
+    OP_0,
+    OP_1,
+    OP_16,
     OP_CHECKSIG,
+    OP_CHECKMULTISIG,
     OP_CODESEPARATOR,
     OP_DUP,
     OP_EQUAL,
@@ -17,6 +29,7 @@ import {
     OP_HASH160,
 } from './opcode.js';
 import { Bytes } from './io/bytes.js';
+import { MAX_PUBKEYS_PER_MULTISIG } from './consts.js';
 import { Address } from './address/address';
 
 /** A Bitcoin Script locking/unlocking a UTXO */
@@ -172,6 +185,304 @@ export class Script {
     public static p2pkhSpend(pk: Uint8Array, sig: Uint8Array): Script {
         return Script.fromOps([pushBytesOp(sig), pushBytesOp(pk)]);
     }
+
+    /**
+     * Build m-of-n multisig script: OP_m pubkey1 pubkey2 ... pubkey_n OP_n OP_CHECKMULTISIG.
+     * Works for P2SH-wrapped or bare multisig.
+     * Pubkeys are used in the order given; callers who want canonical (sorted) multisig
+     * must sort pubkeys before calling.
+     */
+    public static multisig(minNumPks: number, pubkeys: Uint8Array[]): Script {
+        const numPubkeys = pubkeys.length;
+        if (minNumPks < 1) {
+            throw new Error(`minNumPks must be >= 1 (got ${minNumPks})`);
+        }
+        if (minNumPks > numPubkeys) {
+            throw new Error(
+                `minNumPks must be <= numPubkeys (got ${minNumPks} of ${numPubkeys})`,
+            );
+        }
+        if (numPubkeys > MAX_PUBKEYS_PER_MULTISIG) {
+            throw new Error(
+                `numPubkeys must be <= ${MAX_PUBKEYS_PER_MULTISIG} (got ${numPubkeys})`,
+            );
+        }
+        const ops: Op[] = [
+            pushNumberOp(minNumPks),
+            ...pubkeys.map(pk => pushBytesOp(pk)),
+            pushNumberOp(numPubkeys),
+            OP_CHECKMULTISIG,
+        ];
+        return Script.fromOps(ops);
+    }
+
+    /**
+     * Build scriptSig for multisig: <dummy> sig1 sig2 ... sig_m [redeemScript].
+     * Omit redeemScript for bare multisig; include for P2SH-wrapped.
+     * Use undefined for missing signatures (replaced with 0x01 placeholder).
+     * For Schnorr sigs, pass pubkeyIndices (set of signer indices) to build the
+     * checkbits dummy; signatures must be ordered by sorted pubkeyIndices.
+     * The full set of signer indices must be known when building Schnorr format.
+     * For partially signed inputs where the final signers are not yet known,
+     * use ECDSA format (omit pubkeyIndices) until the full signer set is determined.
+     * Ref spec https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/2019-11-15-schnorrmultisig.md
+     */
+    public static multisigSpend(params: {
+        signatures: (Uint8Array | undefined)[];
+        redeemScript?: Script;
+        pubkeyIndices?: Set<number>;
+        /** For bare Schnorr multisig: total pubkey count when redeemScript omitted */
+        numPubkeys?: number;
+    }): Script {
+        const { signatures, redeemScript, pubkeyIndices, numPubkeys } = params;
+        const PLACEHOLDER = new Uint8Array([0x01]);
+        let dummyOp: Op;
+        if (pubkeyIndices !== undefined) {
+            const nVal =
+                numPubkeys ??
+                (redeemScript !== undefined
+                    ? redeemScript.parseMultisigRedeemScript().numPubkeys
+                    : undefined);
+            if (nVal === undefined) {
+                throw new Error(
+                    'pubkeyIndices requires redeemScript or numPubkeys to derive checkbits',
+                );
+            }
+            const mVal = redeemScript
+                ? redeemScript.parseMultisigRedeemScript().numSignatures
+                : signatures.length;
+            if (pubkeyIndices.size !== mVal) {
+                throw new Error(
+                    `pubkeyIndices must have ${mVal} elements for ${mVal}-of-${nVal}`,
+                );
+            }
+            for (const i of pubkeyIndices) {
+                if (i < 0 || i >= nVal) {
+                    throw new Error(
+                        `pubkeyIndices index ${i} out of range [0, ${nVal})`,
+                    );
+                }
+            }
+            dummyOp = pushBytesOp(
+                checkbitsFromPubkeyIndices(pubkeyIndices, nVal),
+            );
+        } else {
+            dummyOp = OP_0;
+        }
+        const ops: Op[] = [
+            dummyOp,
+            ...signatures.map(sig =>
+                pushBytesOp(sig !== undefined ? sig : PLACEHOLDER),
+            ),
+        ];
+        if (redeemScript !== undefined) {
+            ops.push(pushBytesOp(redeemScript.bytecode));
+        }
+        return Script.fromOps(ops);
+    }
+
+    /**
+     * Parse P2SH multisig spend script to extract signatures and redeem script.
+     * Returns signatures (undefined for placeholder) and parsed numSignatures, numPubkeys from redeem script.
+     * Supports both ECDSA (OP_0 + sigs) and Schnorr (checkbits + sigs) formats.
+     * Schnorr format accepts partial scriptSigs (checkbits may have fewer bits set than
+     * numSignatures when earlier signers may not yet know who else will sign).
+     * Not for bare multisig (where the locking script is in output, not input).
+     */
+    public parseP2shMultisigSpend(): {
+        signatures: (Uint8Array | undefined)[];
+        redeemScript: Script;
+        numSignatures: number;
+        numPubkeys: number;
+        pubkeys: Uint8Array[];
+        isSchnorr: boolean;
+        /** Indices of signers (0..numPubkeys-1) for Schnorr; undefined for ECDSA */
+        pubkeyIndices?: Set<number>;
+    } {
+        const ops: Op[] = [];
+        const iter = this.ops();
+        let op: Op | undefined;
+        while ((op = iter.next()) !== undefined) {
+            ops.push(op);
+        }
+        if (ops.length < 3) {
+            throw new Error('Invalid multisig scriptSig: too few ops');
+        }
+        const redeemScriptOp = ops[ops.length - 1];
+        if (!isPushOp(redeemScriptOp)) {
+            throw new Error(
+                'Invalid multisig scriptSig: redeem script must be final push',
+            );
+        }
+        const redeemScript = new Script(redeemScriptOp.data);
+        const parsed = Script.parseMultisigScriptSig(
+            ops.slice(0, -1),
+            redeemScript,
+        );
+        return { ...parsed, redeemScript };
+    }
+
+    /**
+     * Parse bare multisig spend scriptSig to extract signatures.
+     * For bare multisig the output script is the multisig script; the scriptSig
+     * is [dummy] sig1 sig2 ... sig_m with no redeem script.
+     * Assumes a fully-formed scriptSig (see parseP2shMultisigSpend for details).
+     * @param outputScript - The multisig output script (OP_m pubkey1 ... pubkey_n OP_n OP_CHECKMULTISIG)
+     */
+    public parseBareMultisigSpend(outputScript: Script): {
+        signatures: (Uint8Array | undefined)[];
+        numSignatures: number;
+        numPubkeys: number;
+        pubkeys: Uint8Array[];
+        isSchnorr: boolean;
+        pubkeyIndices?: Set<number>;
+    } {
+        const ops: Op[] = [];
+        const iter = this.ops();
+        let op: Op | undefined;
+        while ((op = iter.next()) !== undefined) {
+            ops.push(op);
+        }
+        return Script.parseMultisigScriptSig(ops, outputScript);
+    }
+
+    private parseMultisigRedeemScript(): {
+        numSignatures: number;
+        numPubkeys: number;
+        pubkeys: Uint8Array[];
+    } {
+        const ops: Op[] = [];
+        const iter = this.ops();
+        let op: Op | undefined;
+        while ((op = iter.next()) !== undefined) {
+            ops.push(op);
+        }
+        if (ops.length < 4) {
+            throw new Error('Invalid multisig redeem script');
+        }
+        const first = ops[0];
+        const lastBeforeCheck = ops[ops.length - 2];
+        const numSignatures = Number(parseNumberFromOp(first));
+        const numPubkeys = Number(parseNumberFromOp(lastBeforeCheck));
+        const pubkeys = ops
+            .slice(1, -2)
+            .filter((op): op is { opcode: number; data: Uint8Array } =>
+                isPushOp(op),
+            )
+            .map(op => op.data);
+        if (pubkeys.length !== numPubkeys) {
+            throw new Error(
+                `Invalid multisig redeem script: expected ${numPubkeys} pubkeys, got ${pubkeys.length}`,
+            );
+        }
+        return { numSignatures, numPubkeys, pubkeys };
+    }
+
+    private static parseMultisigScriptSig(
+        ops: Op[],
+        outputScript: Script,
+    ): {
+        signatures: (Uint8Array | undefined)[];
+        numSignatures: number;
+        numPubkeys: number;
+        pubkeys: Uint8Array[];
+        isSchnorr: boolean;
+        pubkeyIndices?: Set<number>;
+    } {
+        const { numSignatures, numPubkeys, pubkeys } =
+            outputScript.parseMultisigRedeemScript();
+        if (ops.length !== numSignatures + 1) {
+            throw new Error(
+                `Invalid multisig scriptSig: expected ${numSignatures + 1} ops (dummy + ${numSignatures} sigs), got ${ops.length}`,
+            );
+        }
+        const expectedCheckbitsLen = Math.floor((numPubkeys + 7) / 8);
+        let isSchnorr: boolean;
+        let sigOps: Op[];
+        let pubkeyIndices: Set<number> | undefined;
+
+        if (ops[0] === OP_0) {
+            isSchnorr = false;
+            sigOps = ops.slice(1);
+        } else {
+            let checkbitsData: Uint8Array;
+            const firstOp = ops[0];
+            if (
+                typeof firstOp === 'number' &&
+                firstOp >= OP_1 &&
+                firstOp <= OP_16
+            ) {
+                checkbitsData = new Uint8Array([firstOp - 0x50]);
+            } else if (isPushOp(firstOp) && firstOp.data.length > 0) {
+                checkbitsData = firstOp.data;
+            } else {
+                throw new Error(
+                    'Invalid multisig scriptSig: must start with OP_0 (ECDSA) or checkbits push (Schnorr)',
+                );
+            }
+            if (checkbitsData.length !== expectedCheckbitsLen) {
+                throw new Error(
+                    `Invalid Schnorr multisig: checkbits length ${checkbitsData.length} != expected ${expectedCheckbitsLen} for numPubkeys=${numPubkeys}`,
+                );
+            }
+            isSchnorr = true;
+            pubkeyIndices = checkbitsToIndices(checkbitsData, numPubkeys);
+            sigOps = ops.slice(1);
+        }
+
+        if (sigOps.length !== numSignatures) {
+            throw new Error(
+                `Invalid multisig scriptSig: expected ${numSignatures} signatures, got ${sigOps.length}`,
+            );
+        }
+        const signatures: (Uint8Array | undefined)[] = sigOps.map(op => {
+            if (!isPushOp(op)) return undefined;
+            return op.data.length === 1 && op.data[0] === 0x01
+                ? undefined
+                : op.data;
+        });
+        return {
+            signatures,
+            numSignatures,
+            numPubkeys,
+            pubkeys,
+            isSchnorr,
+            ...(pubkeyIndices !== undefined && { pubkeyIndices }),
+        };
+    }
+}
+
+/**
+ * Build checkbits byte array from pubkey indices for Schnorr multisig.
+ * Spec: length = floor((N+7)/8), little-endian, bit i = 1 iff index i in set.
+ */
+function checkbitsFromPubkeyIndices(
+    indices: Set<number>,
+    numPubkeys: number,
+): Uint8Array {
+    const numBytes = Math.floor((numPubkeys + 7) / 8);
+    const bytes = new Uint8Array(numBytes);
+    for (const i of indices) {
+        bytes[i >>> 3] |= 1 << (i & 7);
+    }
+    return bytes;
+}
+
+/**
+ * Parse checkbits byte array to set of pubkey indices for Schnorr multisig.
+ * Inverse of checkbitsFromPubkeyIndices.
+ */
+function checkbitsToIndices(
+    checkbits: Uint8Array,
+    numPubkeys: number,
+): Set<number> {
+    const indices = new Set<number>();
+    for (let i = 0; i < numPubkeys; i++) {
+        if ((checkbits[i >>> 3]! & (1 << (i & 7))) !== 0) {
+            indices.add(i);
+        }
+    }
+    return indices;
 }
 
 /** Iterator over the Ops of a Script. */

@@ -109,3 +109,4 @@ console.log(toHex(rawTx));
 - 4.7.0 - Support for custom prefix in all static Address constructors [D19441](https://reviews.bitcoinabc.org/D19441)
 - 4.8.0 - Support for encoding and decoding data and sending address in a p2sh input, implemented in `ecash-wallet` 4.1.0 [D19600](https://reviews.bitcoinabc.org/D19600)
 - 4.9.0 - Add `parseNumberFromOp` as inverse of `pushNumberOp` [D19652](https://reviews.bitcoinabc.org/D19652)
+- 4.10.0 - Support for multisig scripts: Script.multisig, Script.multisigSpend, Script.parseP2shMultisigSpend, Script.parseBareMultisigSpend. Both ECDSA and Schnorr multisig formats supported. [D19663](https://reviews.bitcoinabc.org/D19663)
