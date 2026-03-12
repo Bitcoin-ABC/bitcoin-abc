@@ -3,9 +3,10 @@ $(package)_version=21.12
 $(package)_download_path=https://github.com/protocolbuffers/protobuf/releases/download/v$($(package)_version)
 $(package)_file_name=protobuf-all-$($(package)_version).tar.gz
 $(package)_sha256_hash=2c6a36c7b5a55accae063667ef3c55f2642e67476d96d355ff0acb13dbb47f09
+$(package)_build_subdir=build
 
 define $(package)_config_cmds
-  $($(package)_cmake) \
+  $($(package)_cmake)  -S .. -B . \
         -DCMAKE_CXX_STANDARD=14 \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF \
