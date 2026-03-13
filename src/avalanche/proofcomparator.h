@@ -8,7 +8,6 @@
 #include <avalanche/proof.h>
 
 #include <cstdint>
-#include <memory>
 
 namespace avalanche {
 

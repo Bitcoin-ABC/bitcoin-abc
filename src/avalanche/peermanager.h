@@ -13,7 +13,6 @@
 #include <coins.h>
 #include <common/bloom.h>
 #include <consensus/validation.h>
-#include <pubkey.h>
 #include <radix.h>
 #include <util/fs.h>
 #include <util/hasher.h>
