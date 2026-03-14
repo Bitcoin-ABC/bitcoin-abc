@@ -689,6 +689,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     ret.pushKV("loaded", pool.GetLoadTried());
     ret.pushKV("size", (int64_t)pool.size());
     ret.pushKV("bytes", (int64_t)pool.GetTotalTxSize());
+    ret.pushKV("finalized_txs_size", (int64_t)pool.GetFinalizedTxCount());
     ret.pushKV("finalized_txs_bytes", (int64_t)pool.GetTotalFinalizedTxSize());
     ret.pushKV("finalized_txs_sigchecks",
                (int64_t)pool.GetTotalFinalizedTxSigchecks());
@@ -718,6 +719,8 @@ static RPCHelpMan getmempoolinfo() {
                  "True if the mempool is fully loaded"},
                 {RPCResult::Type::NUM, "size", "Current tx count"},
                 {RPCResult::Type::NUM, "bytes", "Sum of all transaction sizes"},
+                {RPCResult::Type::NUM, "finalized_txs_size",
+                 "Current finalized tx count"},
                 {RPCResult::Type::NUM, "finalized_txs_bytes",
                  "Sum of all finalized transaction sizes"},
                 {RPCResult::Type::NUM, "finalized_txs_sigchecks",

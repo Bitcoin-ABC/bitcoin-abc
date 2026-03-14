@@ -507,6 +507,11 @@ public:
         return totalTxSize;
     }
 
+    uint64_t GetFinalizedTxCount() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
+        return m_finalizedTxsFitter.nBlockTx;
+    }
+
     uint64_t GetTotalFinalizedTxSize() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return m_finalizedTxsFitter.nBlockSize -
