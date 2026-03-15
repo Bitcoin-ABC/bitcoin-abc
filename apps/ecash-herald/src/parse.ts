@@ -2042,7 +2042,7 @@ export const getBlockTgMessage = (
     tgMsg.push(
         `${emojis.block}<a href="${
             config.blockExplorer
-        }/block/${hash}">${height}</a> | ${numTxs} tx${
+        }/block/${hash}">${height}</a> | ${numTxs.toLocaleString('en-US')} tx${
             numTxs > 1 ? `s` : ''
         } | ${miner}`,
     );
