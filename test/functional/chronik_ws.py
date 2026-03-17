@@ -91,7 +91,8 @@ class ChronikWsTest(BitcoinTestFramework):
 
         def finalize_proofs(quorum):
             proofids = [q.proof.proofid for q in quorum]
-            [can_find_inv_in_poll(quorum, proofid) for proofid in proofids]
+            for proofid in proofids:
+                can_find_inv_in_poll(quorum, proofid)
             return all(
                 node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
                 for proofid in proofids

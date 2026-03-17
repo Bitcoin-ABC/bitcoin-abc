@@ -75,7 +75,8 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             proofids = [
                 q.proof.proofid for q in quorum_non_preconsensus + quorum_preconsensus
             ]
-            [can_find_inv_in_poll(quorum, proofid) for proofid in proofids]
+            for proofid in proofids:
+                can_find_inv_in_poll(quorum, proofid)
             return all(
                 node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
                 for proofid in proofids
