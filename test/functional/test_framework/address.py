@@ -71,11 +71,6 @@ def base58_to_byte(s):
     return res[1:-4], int(res[0])
 
 
-def convert_p2pkh(s, net=30):
-    b, _ = base58_to_byte(s)
-    return byte_to_base58(b, net)
-
-
 def keyhash_to_p2pkh(keyhash, main=False):
     assert len(keyhash) == 20
     version = 0 if main else 111
