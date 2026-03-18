@@ -35,12 +35,6 @@ class ParkedChainTest(BitcoinTestFramework):
                 assert_equal(tip["status"], other_tip_status)
 
     def run_test(self):
-        def wait_for_tip(node, tip):
-            def check_tip():
-                return node.getbestblockhash() == tip
-
-            self.wait_until(check_tip)
-
         node = self.nodes[0]
         parking_node = self.nodes[1]
 
@@ -151,7 +145,7 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         # To get ready for next testset, make sure both nodes are in sync.
-        wait_for_tip(parking_node, good_tip)
+        self.wait_until(lambda: parking_node.getbestblockhash() == good_tip)
         assert_equal(node.getbestblockhash(), parking_node.getbestblockhash())
 
         # Wait for node 1 to park the chain.
