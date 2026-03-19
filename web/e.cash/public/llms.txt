@@ -1,0 +1,64 @@
+# eCash
+
+> eCash (XEC) is a cryptocurrency designed to be electronic cash, enabling fast, secure, and low-cost payments across the planet. It combines Bitcoin's battle-tested Proof-of-Work with Avalanche's breakthrough consensus protocol, offering instant transaction finality, enhanced security against 51% attacks, and dynamic scaling capabilities. eCash aims to provide the bandwidth for every economic transaction in the world, at any size, with a roadmap towards 1 billion daily transactions.
+
+## Overview
+
+- [Introduction](https://e.cash/): eCash's vision is to become global electronic cash, focusing on scalability, security, and user experience.
+- [Technology](https://e.cash/tech): Details on eCash's hybrid consensus mechanism (Nakamoto and Avalanche), fork-free upgrades, and robust infrastructure.
+- [Roadmap](https://e.cash/roadmap): The strategic plan for eCash's development, including scaling to 1 billion daily transactions.
+- [About](https://e.cash/about): Information about the Bitcoin ABC team behind eCash, including founders and key developers.
+- [Blog](https://e.cash/blog): Latest news, updates, and articles about eCash.
+- [FAQ](https://e.cash/#faq): Frequently asked questions about eCash, its purpose, how to acquire it, and its uses.
+
+## Developer Resources
+
+- [Build](https://e.cash/build): A hub for developers to find tools, libraries, and documentation for building on eCash.
+  - [Contribute](https://e.cash/build#contribute): Learn more about contributing to the Bitcoin ABC repository.
+    - [Contribution Guide](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md): Learn how to contribute to the Bitcoin ABC repository.
+    - [Source Code](https://github.com/Bitcoin-ABC/bitcoin-abc): Source code for eCash software from Bitcoin ABC.
+  - [Software](https://e.cash/build#software): Ready-to-run binaries and core software.
+    - [Bitcoin ABC Releases](https://www.bitcoinabc.org/releases/): Ready-to-run binaries for the Bitcoin ABC full node.
+    - [Chronik Indexer](https://chronik.e.cash/docs/): Chronik is a fast and reliable indexer built into the Bitcoin ABC node software.
+  - [Libraries](https://e.cash/build#libraries): Essential libraries for interacting with the eCash blockchain.
+    - [chronik-client](https://chronik.e.cash/docs/chronik-js/): A JavaScript/TypeScript client for the Chronik indexer, enabling interaction with the eCash blockchain.
+    - [ecash-lib](https://www.npmjs.com/package/%40ecash%2Flib): A full-featured eCash-native transaction building library.
+    - [ecashaddrjs](https://www.npmjs.com/package/ecashaddrjs): The eCash address format library for Node.js and web browsers.
+    - [cashtab-connect](https://www.npmjs.com/package/cashtab-connect): A developer-friendly API for integrating with the Cashtab browser extension.
+    - [ecash-agora](https://www.npmjs.com/package/ecash-agora): Handles non-custodial XEC to token swaps using Script.
+    - [ecash-wallet](https://www.npmjs.com/package/ecash-wallet): A library for building and broadcasting eCash transactions, including token and Agora support.
+    - [mock-chronik-client](https://www.npmjs.com/package/mock-chronik-client): A testing utility to mock the Chronik indexer client.
+  - [Examples](https://e.cash/build#examples): Real-world implementations and codebases.
+    - [Cashtab Codebase](https://github.com/Bitcoin-ABC/Cashtab/): Public repository for the Cashtab wallet.
+    - [PayButton App](https://github.com/Bitcoin-ABC/paybutton-app): Next.js boilerplate with server-verified transactions.
+  - [Documentation](https://e.cash/build#documentation): Comprehensive guides and technical documentation.
+    - [Bitcoin ABC Documentation](https://www.bitcoinabc.org/doc/): Documentation for the Bitcoin ABC full node software.
+    - [Chronik Documentation](https://chronik.e.cash/docs/): Documentation for the Chronik indexer.
+  - [Devhub](https://e.cash/build#devhub): Connect with the eCash developer community.
+    - [eCash Devs and Builders Telegram group](https://t.me/eCashDevelopment): Telegram group for more info, and to connect with other developers.
+  - [GitHub Mirror](https://github.com/Bitcoin-ABC/bitcoin-abc): The official GitHub repository for Bitcoin ABC, the team behind eCash.
+
+## Wallets & Tools
+
+- [Cashtab](https://cashtab.com/): A user-friendly web wallet for eCash.
+- [PayButton](https://paybutton.cash/): A simple way to accept eCash payments on websites.
+- [XECx](https://stakedxec.com/): A token that makes it easy to get staking rewards by simply holding.
+- [Firma](https://firma.cash/): A stablecoin based on eCash.
+- [Block Explorer](https://explorer.e.cash/): Explore transactions and blocks on the eCash blockchain.
+- [LocaleCash](https://localecash.com/): A peer-to-peer marketplace for eCash.
+
+## Community & Social
+
+- [X (Twitter)](https://x.com/eCash): Official eCash Twitter account for updates and announcements.
+- [Telegram](https://t.me/eCash): Join the eCash community on Telegram.
+- [YouTube](https://www.youtube.com/c/eCashOfficial): Official eCash YouTube channel.
+
+## Exchanges & Data
+
+- [Coingecko](https://www.coingecko.com/en/coins/ecash): eCash price, market cap, and other cryptocurrency data.
+- [Coinmarketcap](https://coinmarketcap.com/currencies/ecash/): eCash market data and information.
+- [Crypto.com](https://crypto.com/price/ecash): eCash price and trading information.
+
+## Brand Assets
+
+- [Brand](https://e.cash/brand): Official eCash branding guidelines and assets.
