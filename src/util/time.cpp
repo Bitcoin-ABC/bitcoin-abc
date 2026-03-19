@@ -5,7 +5,7 @@
 
 #include <util/time.h>
 
-#include <compat.h>
+#include <compat/compat.h>
 #include <util/check.h>
 #include <util/strencodings.h>
 

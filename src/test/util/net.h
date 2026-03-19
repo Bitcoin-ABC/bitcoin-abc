@@ -5,7 +5,7 @@
 #ifndef BITCOIN_TEST_UTIL_NET_H
 #define BITCOIN_TEST_UTIL_NET_H
 
-#include <compat.h>
+#include <compat/compat.h>
 #include <net.h>
 #include <netaddress.h>
 #include <util/sock.h>

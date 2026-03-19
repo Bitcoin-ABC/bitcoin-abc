@@ -6,7 +6,7 @@
 
 #include <chainparams.h>
 #include <common/args.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <compat/endian.h>
 #include <crypto/sha256.h>
 #include <logging.h>

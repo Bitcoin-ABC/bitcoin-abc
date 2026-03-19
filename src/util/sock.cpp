@@ -5,7 +5,7 @@
 #include <util/sock.h>
 
 #include <common/system.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <logging.h>
 #include <tinyformat.h>
 #include <util/syserror.h>

@@ -15,7 +15,7 @@
 #include <banman.h>
 #include <clientversion.h>
 #include <common/args.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <crypto/sha256.h>

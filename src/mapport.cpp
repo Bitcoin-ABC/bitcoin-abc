@@ -18,7 +18,7 @@
 #include <util/threadinterrupt.h>
 
 #ifdef USE_NATPMP
-#include <compat.h>
+#include <compat/compat.h>
 #include <natpmp.h>
 #endif // USE_NATPMP
 

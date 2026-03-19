@@ -7,6 +7,7 @@
 #include <wallet/db.h>
 
 #include <common/args.h>
+#include <compat/compat.h>
 #include <logging.h>
 #include <sync.h>
 #include <util/fs.h>

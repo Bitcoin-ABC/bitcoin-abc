@@ -12,7 +12,7 @@
 #include <common/args.h>
 #include <common/init.h>
 #include <common/system.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <config.h>
 #include <httprpc.h>
 #include <init.h>

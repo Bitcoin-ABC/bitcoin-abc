@@ -19,7 +19,7 @@
 #ifndef WIN32
 #include <sys/stat.h>
 #else
-#include <compat.h>
+#include <compat/compat.h>
 #ifdef _MSC_VER
 #pragma warning(disable : 4786)
 #pragma warning(disable : 4804)

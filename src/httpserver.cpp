@@ -7,7 +7,7 @@
 
 #include <chainparamsbase.h>
 #include <common/args.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <config.h>
 #include <logging.h>
 #include <netbase.h>

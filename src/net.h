@@ -11,7 +11,7 @@
 #include <avalanche/proofradixtreeadapter.h>
 #include <chainparams.h>
 #include <common/bloom.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <consensus/amount.h>
 #include <crypto/siphash.h>
 #include <hash.h>

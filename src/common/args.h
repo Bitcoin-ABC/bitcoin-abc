@@ -5,7 +5,7 @@
 #ifndef BITCOIN_COMMON_ARGS_H
 #define BITCOIN_COMMON_ARGS_H
 
-#include <compat.h>
+#include <compat/compat.h>
 #include <sync.h>
 #include <util/chaintype.h>
 #include <util/fs.h>

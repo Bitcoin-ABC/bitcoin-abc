@@ -6,7 +6,7 @@
 #include <random.h>
 
 #ifdef WIN32
-#include <compat.h> // for Windows API
+#include <compat/compat.h> // for Windows API
 #include <wincrypt.h>
 #endif
 #include <compat/cpuid.h>

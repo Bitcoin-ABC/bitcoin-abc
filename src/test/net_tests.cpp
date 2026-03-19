@@ -10,7 +10,7 @@
 #include <avalanche/statistics.h>
 #include <chainparams.h>
 #include <clientversion.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <config.h>
 #include <net_processing.h>
 #include <netaddress.h>

@@ -5,7 +5,7 @@
 
 #include <netbase.h>
 
-#include <compat.h>
+#include <compat/compat.h>
 #include <logging.h>
 #include <sync.h>
 #include <tinyformat.h>

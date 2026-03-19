@@ -5,7 +5,7 @@
 #include <util/sock.h>
 
 #include <common/system.h>
-#include <compat.h>
+#include <compat/compat.h>
 #include <test/util/setup_common.h>
 #include <util/threadinterrupt.h>
 
