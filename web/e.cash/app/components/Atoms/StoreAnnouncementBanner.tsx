@@ -13,7 +13,7 @@ export default function StoreAnnouncementBanner() {
       rel="noopener noreferrer"
       className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[40px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs leading-none font-medium transition-all duration-300 sm:h-[30px] lg:text-sm"
     >
-      The eCash Merchandising Store is now live! Shop at store.e.cash
+      The eCash Merch Store is now live! Shop at store.e.cash
     </Link>
   );
 }
