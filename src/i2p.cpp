@@ -193,7 +193,7 @@ namespace sam {
             }
 
             const Reply &lookup_reply = SendRequestAndGetReply(
-                *sock, strprintf("NAMING LOOKUP NAME=%s", to.ToStringIP()));
+                *sock, strprintf("NAMING LOOKUP NAME=%s", to.ToStringAddr()));
 
             const std::string &dest = lookup_reply.Get("VALUE");
 

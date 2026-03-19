@@ -559,7 +559,8 @@ bool OptionsModel::getProxySettings(QNetworkProxy &proxy) const {
     proxyType curProxy;
     if (node().getProxy(NET_IPV4, curProxy)) {
         proxy.setType(QNetworkProxy::Socks5Proxy);
-        proxy.setHostName(QString::fromStdString(curProxy.proxy.ToStringIP()));
+        proxy.setHostName(
+            QString::fromStdString(curProxy.proxy.ToStringAddr()));
         proxy.setPort(curProxy.proxy.GetPort());
 
         return true;

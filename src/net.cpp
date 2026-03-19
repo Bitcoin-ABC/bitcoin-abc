@@ -393,7 +393,7 @@ CNode *CConnman::FindNode(const CService &addr) {
 
 bool CConnman::AlreadyConnectedToAddress(const CAddress &addr) {
     return FindNode(static_cast<CNetAddr>(addr)) ||
-           FindNode(addr.ToStringIPPort());
+           FindNode(addr.ToStringAddrPort());
 }
 
 bool CConnman::CheckIncomingNonce(uint64_t nonce) {
@@ -502,7 +502,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
                 return nullptr;
             }
             connected = ConnectThroughProxy(
-                proxy, addrConnect.ToStringIP(), addrConnect.GetPort(), *sock,
+                proxy, addrConnect.ToStringAddr(), addrConnect.GetPort(), *sock,
                 nConnectTimeout, proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
@@ -2979,7 +2979,7 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
       m_permission_flags{node_opts.permission_flags}, m_sock{sock},
       m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn),
-      m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
+      m_addr_name{addrNameIn.empty() ? addr.ToStringAddrPort() : addrNameIn},
       m_inbound_onion(inbound_onion), m_prefer_evict{node_opts.prefer_evict},
       nKeyedNetGroup(nKeyedNetGroupIn), m_conn_type(conn_type_in), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn),

@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.tor.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using Tor proxy at %s\n",
-                        service.ToStringIPPort());
+                        service.ToStringAddrPort());
             SetProxy(NET_ONION, proxyType(service));
         }
     }
@@ -379,7 +379,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.ipv4_proxy.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv4 proxy at %s\n",
-                        service.ToStringIPPort());
+                        service.ToStringAddrPort());
             SetProxy(NET_IPV4, proxyType(service));
         }
     }
@@ -387,7 +387,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.ipv6_proxy.c_str(), 9050));
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv6 proxy at %s\n",
-                        service.ToStringIPPort());
+                        service.ToStringAddrPort());
             SetProxy(NET_IPV6, proxyType(service));
         }
     }

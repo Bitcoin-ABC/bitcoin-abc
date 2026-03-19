@@ -567,7 +567,7 @@ void TorController::auth_cb(TorControlConnection &_conn,
         // the shutdown sequence some day.
         _conn.Command(strprintf("ADD_ONION %s Port=%i,%s", private_key,
                                 Params().GetDefaultPort(),
-                                m_target.ToStringIPPort()),
+                                m_target.ToStringAddrPort()),
                       std::bind(&TorController::add_onion_cb, this,
                                 std::placeholders::_1, std::placeholders::_2));
     } else {

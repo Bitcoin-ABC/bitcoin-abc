@@ -620,7 +620,7 @@ static std::string IPv6ToString(Span<const uint8_t> a, uint32_t scope_id) {
     return r;
 }
 
-std::string CNetAddr::ToStringIP() const {
+std::string CNetAddr::ToStringAddr() const {
     switch (m_net) {
         case NET_IPV4:
             return IPv4ToString(m_addr);
@@ -666,7 +666,7 @@ std::string CNetAddr::ToStringIP() const {
 }
 
 std::string CNetAddr::ToString() const {
-    return ToStringIP();
+    return ToStringAddr();
 }
 
 bool operator==(const CNetAddr &a, const CNetAddr &b) {
@@ -1080,16 +1080,16 @@ std::string CService::ToStringPort() const {
     return strprintf("%u", port);
 }
 
-std::string CService::ToStringIPPort() const {
+std::string CService::ToStringAddrPort() const {
     if (IsIPv4() || IsTor() || IsI2P() || IsInternal()) {
-        return ToStringIP() + ":" + ToStringPort();
+        return ToStringAddr() + ":" + ToStringPort();
     } else {
-        return "[" + ToStringIP() + "]:" + ToStringPort();
+        return "[" + ToStringAddr() + "]:" + ToStringPort();
     }
 }
 
 std::string CService::ToString() const {
-    return ToStringIPPort();
+    return ToStringAddrPort();
 }
 
 CSubNet::CSubNet() : valid(false) {

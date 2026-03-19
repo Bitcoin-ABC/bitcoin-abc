@@ -1371,7 +1371,7 @@ BOOST_AUTO_TEST_CASE(already_connected_to_address) {
 
     CNetAddr ip1 = ip(FastRandomContext().rand<uint32_t>());
     CNetAddr ip2 = ip(FastRandomContext().rand<uint32_t>());
-    BOOST_CHECK_NE(ip1.ToStringIP(), ip2.ToStringIP());
+    BOOST_CHECK_NE(ip1.ToStringAddr(), ip2.ToStringAddr());
 
     CAddress ip1port1{{ip1, 2001}, NODE_NETWORK};
     CAddress ip1port2{{ip1, 2002}, NODE_NETWORK};
