@@ -21,11 +21,11 @@ struct Node {
     NodeId nodeid;
     PeerId peerid;
     SteadyMilliseconds nextRequestTime;
-    bool avaproofsSent;
+    bool avaproofsSent{false};
 
     Node(NodeId nodeid_, PeerId peerid_)
         : nodeid(nodeid_), peerid(peerid_),
-          nextRequestTime(Now<SteadyMilliseconds>()), avaproofsSent(false) {}
+          nextRequestTime(Now<SteadyMilliseconds>()) {}
 };
 
 } // namespace avalanche

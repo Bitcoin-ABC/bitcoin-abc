@@ -16,11 +16,11 @@
 namespace avalanche {
 
 class Vote {
-    uint32_t error;
+    uint32_t error{std::numeric_limits<uint32_t>::max()};
     uint256 hash;
 
 public:
-    Vote() : error(-1), hash() {}
+    Vote() = default;
     Vote(uint32_t errorIn, uint256 hashIn) : error(errorIn), hash(hashIn) {}
 
     const uint256 &GetHash() const { return hash; }
@@ -31,12 +31,12 @@ public:
 };
 
 class Response {
-    uint64_t round;
-    uint32_t cooldown;
+    uint64_t round{std::numeric_limits<uint64_t>::max()};
+    uint32_t cooldown{std::numeric_limits<uint32_t>::max()};
     std::vector<Vote> votes;
 
 public:
-    Response() : round(-1), cooldown(-1) {}
+    Response() = default;
     Response(uint64_t roundIn, uint32_t cooldownIn, std::vector<Vote> votesIn)
         : round(roundIn), cooldown(cooldownIn), votes(votesIn) {}
 
