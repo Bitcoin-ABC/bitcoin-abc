@@ -228,8 +228,8 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         assert self.avahello is None
         self.avahello = message
 
-    def send_avaresponse(self, avaround, votes, privkey):
-        response = AvalancheResponse(avaround, 0, votes)
+    def send_avaresponse(self, avaround, votes, privkey, cooldown=0):
+        response = AvalancheResponse(avaround, cooldown, votes)
         sig = privkey.sign_schnorr(response.get_hash())
         msg = msg_tcpavaresponse()
         msg.response = TCPAvalancheResponse(response, sig)
@@ -486,6 +486,7 @@ def can_find_inv_in_poll(
     other_response=AvalancheVoteError.ACCEPTED,
     unexpected_hashes=None,
     response_map: Optional[dict] = None,
+    cooldown=0,
 ):
     found_hash = False
 
@@ -519,7 +520,7 @@ def can_find_inv_in_poll(
 
             votes.append(AvalancheVote(r, inv.hash))
 
-        n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+        n.send_avaresponse(poll.round, votes, n.delegated_privkey, cooldown)
 
     return found_hash
 
