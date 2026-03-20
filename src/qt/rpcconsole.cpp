@@ -1287,6 +1287,7 @@ void RPCConsole::updateDetailWidget() {
         bip152_hb_settings = "No";
     }
     ui->peerHighBandwidth->setText(bip152_hb_settings);
+    const auto now{NodeClock::now()};
     const auto time_now{GetTime<std::chrono::seconds>()};
     ui->peerConnTime->setText(
         GUIUtil::formatDurationStr(time_now - stats->nodeStats.m_connected));
@@ -1295,9 +1296,9 @@ void RPCConsole::updateDetailWidget() {
     ui->peerLastTx->setText(
         TimeDurationField(time_now, stats->nodeStats.m_last_tx_time));
     ui->peerLastSend->setText(
-        TimeDurationField(time_now, stats->nodeStats.m_last_send));
+        TimeDurationField(now, stats->nodeStats.m_last_send));
     ui->peerLastRecv->setText(
-        TimeDurationField(time_now, stats->nodeStats.m_last_recv));
+        TimeDurationField(now, stats->nodeStats.m_last_recv));
     ui->peerBytesSent->setText(
         GUIUtil::formatBytes(stats->nodeStats.nSendBytes));
     ui->peerBytesRecv->setText(

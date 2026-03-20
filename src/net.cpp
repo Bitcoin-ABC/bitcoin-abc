@@ -700,10 +700,9 @@ void CNode::pauseRecv(bool pause) {
     if (wasPaused && !pause) {
         // We were paused and are now unpaused, so update the last receive time
         // to prevent us from being disconnected for inactivity.
-        const auto time = GetTime<std::chrono::microseconds>();
-        m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(time);
-        m_last_msg_start =
-            std::chrono::duration_cast<std::chrono::seconds>(time);
+        const auto time{NodeClock::now()};
+        m_last_recv = time;
+        m_last_msg_start = time;
     }
 }
 
@@ -712,13 +711,11 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
     complete = false;
     const auto time{NodeClock::now()};
     LOCK(cs_vRecv);
-    m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(
-        time.time_since_epoch());
+    m_last_recv = time;
     if (!m_deserializer->HasData()) {
         // If deserializer has no data, then we're starting to receive a new
         // message. Record the time that we started receiving the message.
-        m_last_msg_start = std::chrono::duration_cast<std::chrono::seconds>(
-            time.time_since_epoch());
+        m_last_msg_start = time;
     }
 
     nRecvBytes += msg_bytes.size();
@@ -764,9 +761,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
             // If we completed a message but still have more bytes, then we
             // started a new message.
             if (m_deserializer->HasData()) {
-                m_last_msg_start =
-                    std::chrono::duration_cast<std::chrono::seconds>(
-                        time.time_since_epoch());
+                m_last_msg_start = time;
             }
         }
     }
@@ -951,7 +946,7 @@ std::pair<size_t, bool> CConnman::SocketSendData(CNode &node) const {
         }
 
         assert(nBytes > 0);
-        node.m_last_send = GetTime<std::chrono::seconds>();
+        node.m_last_send = NodeClock::now();
         node.nSendBytes += nBytes;
         node.nSendOffset += nBytes;
         nSentSize += nBytes;
@@ -1293,12 +1288,12 @@ void CConnman::NotifyNumConnectionsChanged() {
 }
 
 bool CConnman::ShouldRunInactivityChecks(const CNode &node,
-                                         std::chrono::microseconds now) const {
-    return node.m_connected + m_peer_connect_timeout < now;
+                                         NodeClock::time_point now) const {
+    return node.m_connected + m_peer_connect_timeout < now.time_since_epoch();
 }
 
 bool CConnman::InactivityCheck(const CNode &node,
-                               std::chrono::microseconds now) const {
+                               NodeClock::time_point now) const {
     // Tests that see disconnects after using mocktime can start nodes with a
     // large timeout. For example, -peertimeout=999999999.
     const auto last_send{node.m_last_send.load()};
@@ -1309,11 +1304,14 @@ bool CConnman::InactivityCheck(const CNode &node,
         return false;
     }
 
-    if (last_recv.count() == 0 || last_send.count() == 0) {
+    const bool has_received{last_recv > NodeClock::epoch};
+    const bool has_sent{last_send > NodeClock::epoch};
+
+    if (!has_received || !has_sent) {
         LogDebug(BCLog::NET,
                  "socket no message in first %i seconds, %d %d peer=%d\n",
-                 count_seconds(m_peer_connect_timeout), last_recv.count() != 0,
-                 last_send.count() != 0, node.GetId());
+                 count_seconds(m_peer_connect_timeout), has_received, has_sent,
+                 node.GetId());
         return true;
     }
 
@@ -1430,7 +1428,7 @@ void CConnman::SocketHandlerConnected(
     const std::vector<CNode *> &nodes,
     const Sock::EventsPerSock &events_per_sock) {
     uint64_t nTotalInflightBytes{0};
-    auto now = GetTime<std::chrono::microseconds>();
+    const auto now{NodeClock::now()};
 
     for (CNode *pnode : nodes) {
         if (interruptNet) {

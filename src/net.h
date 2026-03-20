@@ -216,9 +216,9 @@ typedef std::map</* message type */ std::string, /* total bytes */ uint64_t>
  */
 struct CNodeStats {
     NodeId nodeid;
-    std::chrono::seconds m_last_send;
-    std::chrono::seconds m_last_recv;
-    std::chrono::seconds m_last_msg_start;
+    NodeClock::time_point m_last_send;
+    NodeClock::time_point m_last_recv;
+    NodeClock::time_point m_last_msg_start;
     std::chrono::seconds m_last_tx_time;
     std::chrono::seconds m_last_proof_time;
     std::chrono::seconds m_last_block_time;
@@ -424,9 +424,9 @@ public:
     uint64_t nRecvBytes GUARDED_BY(cs_vRecv){0};
     std::atomic<uint64_t> nInflightBytes{0};
 
-    std::atomic<std::chrono::seconds> m_last_send{0s};
-    std::atomic<std::chrono::seconds> m_last_recv{0s};
-    std::atomic<std::chrono::seconds> m_last_msg_start{0s};
+    std::atomic<NodeClock::time_point> m_last_send{NodeClock::epoch};
+    std::atomic<NodeClock::time_point> m_last_recv{NodeClock::epoch};
+    std::atomic<NodeClock::time_point> m_last_msg_start{NodeClock::epoch};
 
     //! Unix epoch time at peer connection
     const std::chrono::seconds m_connected;
@@ -1084,7 +1084,7 @@ public:
      * check.
      */
     bool ShouldRunInactivityChecks(const CNode &node,
-                                   std::chrono::microseconds now) const;
+                                   NodeClock::time_point now) const;
 
 private:
     struct ListenSocket {
@@ -1141,8 +1141,7 @@ private:
     void DisconnectNodes();
     void NotifyNumConnectionsChanged();
     /** Return true if the peer is inactive and should be disconnected. */
-    bool InactivityCheck(const CNode &node,
-                         std::chrono::microseconds now) const;
+    bool InactivityCheck(const CNode &node, NodeClock::time_point now) const;
 
     /**
      * Generate a collection of sockets to check for IO readiness.

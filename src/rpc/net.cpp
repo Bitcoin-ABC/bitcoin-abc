@@ -258,10 +258,13 @@ static RPCHelpMan getpeerinfo() {
                                                   : ServiceFlags::NODE_NONE};
                 obj.pushKV("services", strprintf("%016x", services));
                 obj.pushKV("servicesnames", GetServicesNames(services));
-                obj.pushKV("lastsend", count_seconds(stats.m_last_send));
-                obj.pushKV("lastrecv", count_seconds(stats.m_last_recv));
+                obj.pushKV("lastsend", TicksSinceEpoch<std::chrono::seconds>(
+                                           stats.m_last_send));
+                obj.pushKV("lastrecv", TicksSinceEpoch<std::chrono::seconds>(
+                                           stats.m_last_recv));
                 obj.pushKV("last_msg_start",
-                           count_seconds(stats.m_last_msg_start));
+                           TicksSinceEpoch<std::chrono::seconds>(
+                               stats.m_last_msg_start));
                 obj.pushKV("last_transaction",
                            count_seconds(stats.m_last_tx_time));
                 if (node.avalanche) {

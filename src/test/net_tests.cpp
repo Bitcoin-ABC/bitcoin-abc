@@ -123,7 +123,7 @@ struct CConnmanTest : public CConnman {
     }
 
     bool TestInactivityCheck(const CNode &node) const {
-        return InactivityCheck(node, GetTime<std::chrono::microseconds>());
+        return InactivityCheck(node, NodeClock::now());
     }
 
     void openNetworkConnection(const CAddress &addrConnect,
@@ -1420,8 +1420,8 @@ BOOST_AUTO_TEST_CASE(already_connected_to_address) {
 }
 
 BOOST_AUTO_TEST_CASE(inactivity_check) {
-    auto now = GetTime<std::chrono::seconds>();
-    SetMockTime(count_seconds(now));
+    NodeClock::time_point now{GetTime<std::chrono::seconds>()};
+    SetMockTime(TicksSinceEpoch<std::chrono::seconds>(now));
 
     CConnmanTest connman(m_node.chainman->GetConfig(), 0x1337, 0x1337,
                          *m_node.addrman);
@@ -1441,7 +1441,7 @@ BOOST_AUTO_TEST_CASE(inactivity_check) {
 
     auto bumpMockTime = [&](std::chrono::seconds offset) {
         now += offset;
-        SetMockTime(count_seconds(now));
+        SetMockTime(TicksSinceEpoch<std::chrono::seconds>(now));
     };
 
     const std::chrono::seconds peer_timeout{DEFAULT_PEER_CONNECT_TIMEOUT};
@@ -1459,11 +1459,11 @@ BOOST_AUTO_TEST_CASE(inactivity_check) {
 
         // We received some data, but did not send any
         node->m_last_recv = now;
-        node->m_last_send = 0s;
+        node->m_last_send = NodeClock::epoch;
         checkInactivity(node, true);
 
         // We sent some data, but did not receive any
-        node->m_last_recv = 0s;
+        node->m_last_recv = NodeClock::epoch;
         node->m_last_send = now;
         checkInactivity(node, true);
 

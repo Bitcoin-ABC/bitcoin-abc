@@ -401,7 +401,7 @@ struct Peer {
     /** The pong reply we're expecting, or 0 if no pong expected. */
     std::atomic<uint64_t> m_ping_nonce_sent{0};
     /** When the last ping was sent, or 0 if no ping was ever sent */
-    std::atomic<std::chrono::microseconds> m_ping_start{0us};
+    std::atomic<NodeClock::time_point> m_ping_start{NodeClock::epoch};
     /** Whether a ping has been requested by the user */
     std::atomic<bool> m_ping_queued{false};
 
@@ -1130,8 +1130,7 @@ private:
      * We use mockable time for ping timeouts, so setmocktime may cause pings
      * to time out.
      */
-    void MaybeSendPing(CNode &node_to, Peer &peer,
-                       std::chrono::microseconds now);
+    void MaybeSendPing(CNode &node_to, Peer &peer, NodeClock::time_point now);
 
     /** Send `addr` messages on a regular schedule. */
     void MaybeSendAddr(CNode &node, Peer &peer,
@@ -2514,11 +2513,10 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     // complete, which might take a while. So, if a ping is taking an unusually
     // long time in flight, the caller can immediately detect that this is
     // happening.
-    auto ping_wait{0us};
+    NodeClock::duration ping_wait{0us};
     if ((0 != peer->m_ping_nonce_sent) &&
-        (0 != peer->m_ping_start.load().count())) {
-        ping_wait =
-            GetTime<std::chrono::microseconds>() - peer->m_ping_start.load();
+        (peer->m_ping_start.load() > NodeClock::epoch)) {
+        ping_wait = NodeClock::now() - peer->m_ping_start.load();
     }
 
     if (auto tx_relay = peer->GetTxRelay()) {
@@ -7461,7 +7459,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::PONG) {
-        const auto ping_end{time_received.time_since_epoch()};
+        const auto ping_end{time_received};
         uint64_t nonce = 0;
         size_t nAvail = vRecv.in_avail();
         bool bPingFinished = false;
@@ -8057,7 +8055,7 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
 }
 
 void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer,
-                                    std::chrono::microseconds now) {
+                                    NodeClock::time_point now) {
     if (m_connman.ShouldRunInactivityChecks(node_to, now) &&
         peer.m_ping_nonce_sent &&
         now > peer.m_ping_start.load() + TIMEOUT_INTERVAL) {
@@ -8332,6 +8330,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         return true;
     }
 
+    const auto now{NodeClock::now()};
     const auto current_time{GetTime<std::chrono::microseconds>()};
 
     if (pto->IsAddrFetchConn() &&
@@ -8343,7 +8342,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         return true;
     }
 
-    MaybeSendPing(*pto, *peer, current_time);
+    MaybeSendPing(*pto, *peer, now);
 
     // MaybeSendPing may have marked peer for disconnection
     if (pto->fDisconnect) {
