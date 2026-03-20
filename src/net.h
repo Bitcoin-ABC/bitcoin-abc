@@ -264,7 +264,7 @@ public:
     //! received message data
     DataStream m_recv;
     //! time of message receipt
-    std::chrono::microseconds m_time{0};
+    NodeClock::time_point m_time{NodeClock::epoch};
     //! size of the payload
     uint32_t m_message_size{0};
     //! used wire size of the message (including header/checksum)
@@ -294,7 +294,7 @@ public:
     /** read and deserialize data, advances msg_bytes data pointer */
     virtual int Read(const Config &config, Span<const uint8_t> &msg_bytes) = 0;
     // decomposes a message from the context
-    virtual CNetMessage GetMessage(std::chrono::microseconds time,
+    virtual CNetMessage GetMessage(NodeClock::time_point time,
                                    bool &reject_message) = 0;
     virtual bool HasData() const = 0;
 
@@ -359,7 +359,7 @@ public:
         return ret;
     }
 
-    CNetMessage GetMessage(std::chrono::microseconds time,
+    CNetMessage GetMessage(NodeClock::time_point time,
                            bool &reject_message) override;
 
     bool HasData() const override { return in_data || nHdrPos > 0; }

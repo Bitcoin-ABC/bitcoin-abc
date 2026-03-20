@@ -710,14 +710,15 @@ void CNode::pauseRecv(bool pause) {
 bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
                             bool &complete) {
     complete = false;
-    const auto time = GetTime<std::chrono::microseconds>();
+    const auto time{NodeClock::now()};
     LOCK(cs_vRecv);
-    m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(time);
+    m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(
+        time.time_since_epoch());
     if (!m_deserializer->HasData()) {
         // If deserializer has no data, then we're starting to receive a new
         // message. Record the time that we started receiving the message.
-        m_last_msg_start =
-            std::chrono::duration_cast<std::chrono::seconds>(time);
+        m_last_msg_start = std::chrono::duration_cast<std::chrono::seconds>(
+            time.time_since_epoch());
     }
 
     nRecvBytes += msg_bytes.size();
@@ -764,7 +765,8 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
             // started a new message.
             if (m_deserializer->HasData()) {
                 m_last_msg_start =
-                    std::chrono::duration_cast<std::chrono::seconds>(time);
+                    std::chrono::duration_cast<std::chrono::seconds>(
+                        time.time_since_epoch());
             }
         }
     }
@@ -845,9 +847,8 @@ const uint256 &V1TransportDeserializer::GetMessageHash() const {
     return data_hash;
 }
 
-CNetMessage
-V1TransportDeserializer::GetMessage(const std::chrono::microseconds time,
-                                    bool &reject_message) {
+CNetMessage V1TransportDeserializer::GetMessage(NodeClock::time_point time,
+                                                bool &reject_message) {
     // Initialize out parameter
     reject_message = false;
     // decompose a single CNetMessage from the TransportDeserializer

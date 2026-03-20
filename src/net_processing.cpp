@@ -829,7 +829,7 @@ public:
     }
     void ProcessMessage(const Config &config, CNode &pfrom,
                         const std::string &msg_type, DataStream &vRecv,
-                        const std::chrono::microseconds time_received,
+                        const NodeClock::time_point time_received,
                         const std::atomic<bool> &interruptMsgProc) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
 
@@ -4742,7 +4742,7 @@ void PeerManagerImpl::ProcessCompactBlockTxns(
 
 void PeerManagerImpl::ProcessMessage(
     const Config &config, CNode &pfrom, const std::string &msg_type,
-    DataStream &vRecv, const std::chrono::microseconds time_received,
+    DataStream &vRecv, const NodeClock::time_point time_received,
     const std::atomic<bool> &interruptMsgProc) {
     AssertLockHeld(g_msgproc_mutex);
 
@@ -7461,7 +7461,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::PONG) {
-        const auto ping_end = time_received;
+        const auto ping_end{time_received.time_since_epoch()};
         uint64_t nonce = 0;
         size_t nAvail = vRecv.in_avail();
         bool bPingFinished = false;

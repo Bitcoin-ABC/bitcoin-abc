@@ -30,15 +30,14 @@ FUZZ_TARGET_INIT(p2p_transport_deserializer,
             break;
         }
         if (deserializer.Complete()) {
-            const std::chrono::microseconds m_time{
-                std::numeric_limits<int64_t>::max()};
+            const auto time{NodeClock::time_point::max()};
             bool reject_message{false};
-            CNetMessage msg = deserializer.GetMessage(m_time, reject_message);
+            CNetMessage msg = deserializer.GetMessage(time, reject_message);
             assert(msg.m_type.size() <= CMessageHeader::MESSAGE_TYPE_SIZE);
             assert(msg.m_raw_message_size <= buffer.size());
             assert(msg.m_raw_message_size ==
                    CMessageHeader::HEADER_SIZE + msg.m_message_size);
-            assert(msg.m_time == m_time);
+            assert(msg.m_time == time);
         }
     }
 }

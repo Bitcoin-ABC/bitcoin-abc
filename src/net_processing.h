@@ -152,7 +152,7 @@ public:
     /** Process a single message from a peer. Public for fuzz testing */
     virtual void ProcessMessage(const Config &config, CNode &pfrom,
                                 const std::string &msg_type, DataStream &vRecv,
-                                const std::chrono::microseconds time_received,
+                                const NodeClock::time_point time_received,
                                 const std::atomic<bool> &interruptMsgProc)
         EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex) = 0;
 

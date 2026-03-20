@@ -1333,7 +1333,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     m_node.peerman->InitializeNode(config, peer, NODE_NETWORK);
 
     std::atomic<bool> interrupt_dummy{false};
-    std::chrono::microseconds time_received_dummy{0};
+    NodeClock::time_point time_received_dummy{NodeClock::epoch};
 
     const auto msg_version =
         NetMsg::Make(NetMsgType::VERSION, PROTOCOL_VERSION, services, time,
