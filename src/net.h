@@ -890,7 +890,7 @@ public:
 
     CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1,
              AddrMan &addrmanIn, bool network_active = true);
-    ~CConnman();
+    virtual ~CConnman();
 
     bool Start(CScheduler &scheduler, const Options &options)
         EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex, !m_addr_fetches_mutex,
