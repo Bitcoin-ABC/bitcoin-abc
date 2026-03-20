@@ -2135,7 +2135,8 @@ void PeerManagerImpl::FindNextBlocks(std::vector<const CBlockIndex *> &vBlocks,
 void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
                                       const Peer &peer) {
     uint64_t my_services{peer.m_our_services};
-    const int64_t nTime{count_seconds(GetTime<std::chrono::seconds>())};
+    const int64_t nTime{
+        TicksSinceEpoch<std::chrono::seconds>(NodeClock::now())};
     uint64_t nonce = pnode.GetLocalNonce();
     const int nNodeStartingHeight{m_best_height};
     NodeId nodeid = pnode.GetId();
