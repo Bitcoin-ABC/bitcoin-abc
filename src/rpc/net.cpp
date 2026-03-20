@@ -276,7 +276,8 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("bytessent", stats.nSendBytes);
                 obj.pushKV("bytesrecv", stats.nRecvBytes);
                 obj.pushKV("bytes_inflight", stats.nInflightBytes);
-                obj.pushKV("conntime", count_seconds(stats.m_connected));
+                obj.pushKV("conntime", TicksSinceEpoch<std::chrono::seconds>(
+                                           stats.m_connected));
                 obj.pushKV("timeoffset", stats.nTimeOffset);
                 if (stats.m_last_ping_time > 0us) {
                     obj.pushKV("pingtime",

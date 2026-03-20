@@ -222,7 +222,7 @@ struct CNodeStats {
     std::chrono::seconds m_last_tx_time;
     std::chrono::seconds m_last_proof_time;
     std::chrono::seconds m_last_block_time;
-    std::chrono::seconds m_connected;
+    NodeClock::time_point m_connected;
     int64_t nTimeOffset;
     std::string m_addr_name;
     int nVersion;
@@ -429,7 +429,7 @@ public:
     std::atomic<NodeClock::time_point> m_last_msg_start{NodeClock::epoch};
 
     //! Unix epoch time at peer connection
-    const std::chrono::seconds m_connected;
+    const NodeClock::time_point m_connected;
     std::atomic<int64_t> nTimeOffset{0};
     // Address of this peer
     const CAddress addr;

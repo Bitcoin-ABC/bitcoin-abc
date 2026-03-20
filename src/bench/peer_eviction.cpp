@@ -37,96 +37,96 @@ static void EvictionProtectionCommon(
 /* Benchmarks */
 
 static void EvictionProtection0Networks250Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 250 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 c.m_network = NET_IPV4;
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/250, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            c.m_network = NET_IPV4;
+        });
 }
 
 static void EvictionProtection1Networks250Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 250 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 c.m_is_local = false;
-                                 // 110 Tor
-                                 if (c.id >= 130 && c.id < 240) {
-                                     c.m_network = NET_ONION;
-                                 } else {
-                                     c.m_network = NET_IPV4;
-                                 }
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/250, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            c.m_is_local = false;
+            // 110 Tor
+            if (c.id >= 130 && c.id < 240) {
+                c.m_network = NET_ONION;
+            } else {
+                c.m_network = NET_IPV4;
+            }
+        });
 }
 
 static void EvictionProtection2Networks250Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 250 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 c.m_is_local = false;
-                                 if (c.id >= 90 && c.id < 160) {
-                                     // 70 Tor
-                                     c.m_network = NET_ONION;
-                                 } else if (c.id >= 170 && c.id < 250) {
-                                     // 80 I2P
-                                     c.m_network = NET_I2P;
-                                 } else {
-                                     c.m_network = NET_IPV4;
-                                 }
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/250, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            c.m_is_local = false;
+            if (c.id >= 90 && c.id < 160) {
+                // 70 Tor
+                c.m_network = NET_ONION;
+            } else if (c.id >= 170 && c.id < 250) {
+                // 80 I2P
+                c.m_network = NET_I2P;
+            } else {
+                c.m_network = NET_IPV4;
+            }
+        });
 }
 
 static void EvictionProtection3Networks050Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 50 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 //  2 localhost
-                                 c.m_is_local = (c.id == 28 || c.id == 47);
-                                 if (c.id >= 30 && c.id < 47) {
-                                     // 17 I2P
-                                     c.m_network = NET_I2P;
-                                 } else if (c.id >= 24 && c.id < 28) {
-                                     //  4 Tor
-                                     c.m_network = NET_ONION;
-                                 } else {
-                                     c.m_network = NET_IPV4;
-                                 }
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/50, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            //  2 localhost
+            c.m_is_local = (c.id == 28 || c.id == 47);
+            if (c.id >= 30 && c.id < 47) {
+                // 17 I2P
+                c.m_network = NET_I2P;
+            } else if (c.id >= 24 && c.id < 28) {
+                //  4 Tor
+                c.m_network = NET_ONION;
+            } else {
+                c.m_network = NET_IPV4;
+            }
+        });
 }
 
 static void EvictionProtection3Networks100Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 100 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 //  5 localhost
-                                 c.m_is_local = (c.id >= 55 && c.id < 60);
-                                 if (c.id >= 70 && c.id < 80) {
-                                     // 10 I2P
-                                     c.m_network = NET_I2P;
-                                 } else if (c.id >= 80 && c.id < 96) {
-                                     // 16 Tor
-                                     c.m_network = NET_ONION;
-                                 } else {
-                                     c.m_network = NET_IPV4;
-                                 }
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/100, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            //  5 localhost
+            c.m_is_local = (c.id >= 55 && c.id < 60);
+            if (c.id >= 70 && c.id < 80) {
+                // 10 I2P
+                c.m_network = NET_I2P;
+            } else if (c.id >= 80 && c.id < 96) {
+                // 16 Tor
+                c.m_network = NET_ONION;
+            } else {
+                c.m_network = NET_IPV4;
+            }
+        });
 }
 
 static void EvictionProtection3Networks250Candidates(benchmark::Bench &bench) {
-    EvictionProtectionCommon(bench, 250 /* num_candidates */,
-                             [](NodeEvictionCandidate &c) {
-                                 c.m_connected = std::chrono::seconds{c.id};
-                                 // 20 localhost
-                                 c.m_is_local = (c.id >= 140 && c.id < 160);
-                                 if (c.id >= 170 && c.id < 180) {
-                                     // 10 I2P
-                                     c.m_network = NET_I2P;
-                                 } else if (c.id >= 190 && c.id < 240) {
-                                     // 50 Tor
-                                     c.m_network = NET_ONION;
-                                 } else {
-                                     c.m_network = NET_IPV4;
-                                 }
-                             });
+    EvictionProtectionCommon(
+        bench, /*num_candidates=*/250, [](NodeEvictionCandidate &c) {
+            c.m_connected = NodeSeconds{std::chrono::seconds{c.id}};
+            // 20 localhost
+            c.m_is_local = (c.id >= 140 && c.id < 160);
+            if (c.id >= 170 && c.id < 180) {
+                // 10 I2P
+                c.m_network = NET_I2P;
+            } else if (c.id >= 190 && c.id < 240) {
+                // 50 Tor
+                c.m_network = NET_ONION;
+            } else {
+                c.m_network = NET_IPV4;
+            }
+        });
 }
 
 // Candidate numbers used for the benchmarks:

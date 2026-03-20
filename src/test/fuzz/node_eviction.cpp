@@ -21,8 +21,8 @@ FUZZ_TARGET(node_eviction) {
         eviction_candidates.push_back({
             /*id=*/fuzzed_data_provider.ConsumeIntegral<NodeId>(),
             /*m_connected=*/
-            std::chrono::seconds{
-                fuzzed_data_provider.ConsumeIntegral<int64_t>()},
+            NodeSeconds{
+                std::chrono::seconds{ConsumeTime(fuzzed_data_provider)}},
             /*m_min_ping_time=*/
             NodeClock::duration{
                 fuzzed_data_provider

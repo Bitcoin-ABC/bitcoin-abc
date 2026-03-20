@@ -1289,7 +1289,7 @@ void CConnman::NotifyNumConnectionsChanged() {
 
 bool CConnman::ShouldRunInactivityChecks(const CNode &node,
                                          NodeClock::time_point now) const {
-    return node.m_connected + m_peer_connect_timeout < now.time_since_epoch();
+    return node.m_connected + m_peer_connect_timeout < now;
 }
 
 bool CConnman::InactivityCheck(const CNode &node,
@@ -3098,8 +3098,7 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
       m_serializer{
           std::make_unique<V1TransportSerializer>(V1TransportSerializer())},
       m_permission_flags{node_opts.permission_flags}, m_sock{sock},
-      m_connected(GetTime<std::chrono::seconds>()), addr{addrIn},
-      addrBind{addrBindIn},
+      m_connected(NodeClock::now()), addr{addrIn}, addrBind{addrBindIn},
       m_addr_name{addrNameIn.empty() ? addr.ToStringAddrPort() : addrNameIn},
       m_inbound_onion{inbound_onion}, m_prefer_evict{node_opts.prefer_evict},
       nKeyedNetGroup{nKeyedNetGroupIn}, m_conn_type{conn_type_in}, id{idIn},

@@ -1290,7 +1290,7 @@ void RPCConsole::updateDetailWidget() {
     const auto now{NodeClock::now()};
     const auto time_now{GetTime<std::chrono::seconds>()};
     ui->peerConnTime->setText(
-        GUIUtil::formatDurationStr(time_now - stats->nodeStats.m_connected));
+        GUIUtil::formatDurationStr(now - stats->nodeStats.m_connected));
     ui->peerLastBlock->setText(
         TimeDurationField(time_now, stats->nodeStats.m_last_block_time));
     ui->peerLastTx->setText(

@@ -852,7 +852,7 @@ private:
      * If we have extra outbound peers, try to disconnect the one with the
      * oldest block announcement.
      */
-    void EvictExtraOutboundPeers(std::chrono::seconds now)
+    void EvictExtraOutboundPeers(NodeClock::time_point now)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -7884,7 +7884,7 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, Peer &peer,
     }
 }
 
-void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
+void PeerManagerImpl::EvictExtraOutboundPeers(NodeClock::time_point now) {
     // If we have any extra block-relay-only peers, disconnect the youngest
     // unless it's given us a block -- in which case, compare with the
     // second-youngest, and out of those two, disconnect the peer who least
@@ -7939,7 +7939,9 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
                         BCLog::NET,
                         "keeping block-relay-only peer=%d chosen for eviction "
                         "(connect time: %d, blocks_in_flight: %d)\n",
-                        pnode->GetId(), count_seconds(pnode->m_connected),
+                        pnode->GetId(),
+                        TicksSinceEpoch<std::chrono::seconds>(
+                            pnode->m_connected),
                         node_state->vBlocksInFlight.size());
                 }
                 return false;
@@ -8006,11 +8008,13 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
                 pnode->fDisconnect = true;
                 return true;
             } else {
-                LogDebug(BCLog::NET,
-                         "keeping outbound peer=%d chosen for eviction "
-                         "(connect time: %d, blocks_in_flight: %d)\n",
-                         pnode->GetId(), count_seconds(pnode->m_connected),
-                         state.vBlocksInFlight.size());
+                LogDebug(
+                    BCLog::NET,
+                    "keeping outbound peer=%d chosen for eviction "
+                    "(connect time: %d, blocks_in_flight: %d)\n",
+                    pnode->GetId(),
+                    TicksSinceEpoch<std::chrono::seconds>(pnode->m_connected),
+                    state.vBlocksInFlight.size());
                 return false;
             }
         });
@@ -8028,11 +8032,11 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
 void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
     LOCK(cs_main);
 
-    auto now{GetTime<std::chrono::seconds>()};
+    const auto now{NodeClock::now()};
 
     EvictExtraOutboundPeers(now);
 
-    if (now > m_stale_tip_check_time) {
+    if (now > NodeSeconds{m_stale_tip_check_time}) {
         // Check whether our tip is stale, and if so, allow using an extra
         // outbound peer.
         if (!m_chainman.m_blockman.LoadingBlocks() &&
@@ -8040,12 +8044,15 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
             TipMayBeStale()) {
             LogPrintf("Potential stale tip detected, will try using extra "
                       "outbound peer (last tip update: %d seconds ago)\n",
-                      count_seconds(now - m_last_tip_update.load()));
+                      Ticks<std::chrono::seconds>(
+                          now - NodeSeconds{m_last_tip_update.load()}));
             m_connman.SetTryNewOutboundPeer(true);
         } else if (m_connman.GetTryNewOutboundPeer()) {
             m_connman.SetTryNewOutboundPeer(false);
         }
-        m_stale_tip_check_time = now + STALE_CHECK_INTERVAL;
+        m_stale_tip_check_time =
+            std::chrono::seconds{TicksSinceEpoch<std::chrono::seconds>(now)} +
+            STALE_CHECK_INTERVAL;
     }
 
     if (!m_initial_sync_finished && CanDirectFetch()) {
@@ -8334,7 +8341,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     const auto current_time{GetTime<std::chrono::microseconds>()};
 
     if (pto->IsAddrFetchConn() &&
-        current_time - pto->m_connected > 10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
+        now - pto->m_connected > 10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
         LogDebug(BCLog::NET,
                  "addrfetch connection timeout; disconnecting peer=%d\n",
                  pto->GetId());
