@@ -7,6 +7,7 @@
 
 #include <net_permissions.h>
 #include <node/connection_types.h>
+#include <util/time.h>
 
 #include <chrono>
 #include <cstdint>
@@ -18,7 +19,7 @@ typedef int64_t NodeId;
 struct NodeEvictionCandidate {
     NodeId id;
     std::chrono::seconds m_connected;
-    std::chrono::microseconds m_min_ping_time;
+    NodeClock::duration m_min_ping_time;
     std::chrono::seconds m_last_block_time;
     std::chrono::seconds m_last_proof_time;
     std::chrono::seconds m_last_tx_time;

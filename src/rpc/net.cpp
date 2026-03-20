@@ -279,7 +279,8 @@ static RPCHelpMan getpeerinfo() {
                     obj.pushKV("pingtime",
                                CountSecondsDouble(stats.m_last_ping_time));
                 }
-                if (stats.m_min_ping_time < std::chrono::microseconds::max()) {
+                if (stats.m_min_ping_time <
+                    decltype(CNode::m_min_ping_time.load())::max()) {
                     obj.pushKV("minping",
                                CountSecondsDouble(stats.m_min_ping_time));
                 }

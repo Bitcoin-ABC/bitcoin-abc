@@ -24,8 +24,9 @@ FUZZ_TARGET(node_eviction) {
             std::chrono::seconds{
                 fuzzed_data_provider.ConsumeIntegral<int64_t>()},
             /*m_min_ping_time=*/
-            std::chrono::microseconds{
-                fuzzed_data_provider.ConsumeIntegral<int64_t>()},
+            NodeClock::duration{
+                fuzzed_data_provider
+                    .ConsumeIntegral<NodeClock::duration::rep>()},
             /*m_last_proof_time=*/
             std::chrono::seconds{
                 fuzzed_data_provider.ConsumeIntegral<int64_t>()},

@@ -8,6 +8,7 @@
 #include <consensus/amount.h>
 #include <netaddress.h>
 #include <util/fs.h>
+#include <util/time.h>
 
 #include <QEvent>
 #include <QHeaderView>
@@ -286,10 +287,10 @@ QString formatDurationStr(std::chrono::nanoseconds dur);
 QString formatServicesStr(quint64 mask);
 
 /**
- * Format a CNodeStats.m_last_ping_time into a user-readable string or display
- * N/A, if 0.
+ * Format a CNodeStats.m_last_ping_time/m_min_ping_time/m_ping_wait into a
+ * user-readable string if it exists, or display N/A
  */
-QString formatPingTime(std::chrono::microseconds ping_time);
+QString formatPingTime(NodeClock::duration ping_time);
 
 /** Format a CNodeCombinedStats.nTimeOffset into a user-readable string. */
 QString formatTimeOffset(int64_t nTimeOffset);

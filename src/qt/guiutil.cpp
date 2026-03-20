@@ -12,6 +12,7 @@
 #include <interfaces/node.h>
 #include <key_io.h>
 #include <logging.h>
+#include <net.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <protocol.h>
@@ -858,8 +859,9 @@ QString formatServicesStr(quint64 mask) {
     }
 }
 
-QString formatPingTime(std::chrono::microseconds ping_time) {
-    return (ping_time == std::chrono::microseconds::max() || ping_time == 0us)
+QString formatPingTime(NodeClock::duration ping_time) {
+    return (ping_time == decltype(CNode::m_min_ping_time.load())::max() ||
+            ping_time == 0us)
                ? QObject::tr("N/A")
                : QString(QObject::tr("%1 ms"))
                      .arg(QString::number(

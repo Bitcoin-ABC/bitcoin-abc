@@ -54,7 +54,7 @@ struct CNodeStateStats {
     int nSyncHeight = -1;
     int nCommonHeight = -1;
     int m_starting_height = -1;
-    std::chrono::microseconds m_ping_wait;
+    NodeClock::duration m_ping_wait;
     std::vector<int> vHeightInFlight;
     bool m_relay_txs;
     Amount m_fee_filter_received;
