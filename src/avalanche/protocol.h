@@ -56,7 +56,7 @@ class Poll {
 
 public:
     Poll(uint64_t roundIn, std::vector<CInv> invsIn)
-        : round(roundIn), invs(invsIn) {}
+        : round(roundIn), invs(std::move(invsIn)) {}
 
     uint64_t GetRound() { return round; }
     const std::vector<CInv> &GetInvs() const { return invs; }
