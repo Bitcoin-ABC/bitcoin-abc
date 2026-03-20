@@ -636,15 +636,15 @@ public:
      * UNIX epoch time of the last block received from this peer that we had
      * not yet seen (e.g. not already received from another peer), that passed
      * preliminary validity checks and was saved to disk, even if we don't
-     * connect the block or it eventually fails connection. Used as an inbound
-     * peer eviction criterium in CConnman::AttemptToEvictConnection.
+     * connect the block or it eventually fails to connect. Used as an inbound
+     * peer eviction criterion in CConnman::AttemptToEvictConnection.
      */
     std::atomic<std::chrono::seconds> m_last_block_time{0s};
 
     /**
      * UNIX epoch time of the last transaction received from this peer that we
      * had not yet seen (e.g. not already received from another peer) and that
-     * was accepted into our mempool. Used as an inbound peer eviction criterium
+     * was accepted into our mempool. Used as an inbound peer eviction criterion
      * in CConnman::AttemptToEvictConnection.
      */
     std::atomic<std::chrono::seconds> m_last_tx_time{0s};
@@ -653,16 +653,16 @@ public:
      * UNIX epoch time of the last proof received from this peer that we
      * had not yet seen (e.g. not already received from another peer) and that
      * was accepted into our proof pool. Used as an inbound peer eviction
-     * criterium in CConnman::AttemptToEvictConnection.
+     * criterion in CConnman::AttemptToEvictConnection.
      */
     std::atomic<std::chrono::seconds> m_last_proof_time{0s};
 
-    /** Last measured round-trip time. Used only for RPC/GUI stats/debugging.*/
+    /** Last measured round-trip duration. Used only for stats. */
     std::atomic<std::chrono::microseconds> m_last_ping_time{0us};
 
     /**
-     * Lowest measured round-trip time. Used as an inbound peer eviction
-     * criterium in CConnman::AttemptToEvictConnection.
+     * Lowest measured round-trip duration. Used as an inbound peer eviction
+     * criterion in CConnman::AttemptToEvictConnection.
      */
     std::atomic<std::chrono::microseconds> m_min_ping_time{
         std::chrono::microseconds::max()};
@@ -677,7 +677,7 @@ public:
 
     /**
      * A ping-pong round trip has completed successfully. Update latest and
-     * minimum ping times.
+     * minimum ping durations.
      */
     void PongReceived(std::chrono::microseconds ping_time) {
         m_last_ping_time = ping_time;
