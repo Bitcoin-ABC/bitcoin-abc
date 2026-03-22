@@ -26,7 +26,7 @@ import {
     SINGLE_LEGACY,
 } from './sigHashType.js';
 import { Ecc } from './ecc.js';
-import { signWithSigHash } from './txBuilder.js';
+import { signWithSigHash } from './signatories.js';
 import './initNodeJs.js';
 
 const TX = new Tx({

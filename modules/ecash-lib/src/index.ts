@@ -14,6 +14,7 @@ export * from './hdwallet.js';
 export * from './address/address.js';
 export * from './sigHashType.js';
 export * from './tx.js';
+export * from './signatories.js';
 export * from './txBuilder.js';
 export * from './unsignedTx.js';
 export * from './io/bytes.js';

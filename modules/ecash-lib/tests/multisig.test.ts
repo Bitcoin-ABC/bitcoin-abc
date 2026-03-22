@@ -11,7 +11,8 @@ import { fromHex, toHex } from '../src/io/hex.js';
 import { Script } from '../src/script.js';
 import { ALL_BIP143 } from '../src/sigHashType.js';
 import { TestRunner } from '../src/test/testRunner.js';
-import { TxBuilder, flagSignature, signWithSigHash } from '../src/txBuilder.js';
+import { flagSignature, signWithSigHash } from '../src/signatories.js';
+import { TxBuilder } from '../src/txBuilder.js';
 import { UnsignedTxInput } from '../src/unsignedTx.js';
 import '../src/initNodeJs.js';
 

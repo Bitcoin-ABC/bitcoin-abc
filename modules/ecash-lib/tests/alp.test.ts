@@ -19,7 +19,8 @@ import {
     alpSend,
 } from '../src/token/alp.js';
 import { emppScript } from '../src/token/empp.js';
-import { P2PKHSignatory, TxBuilder } from '../src/txBuilder.js';
+import { P2PKHSignatory } from '../src/signatories.js';
+import { TxBuilder } from '../src/txBuilder.js';
 import '../src/initNodeJs.js';
 
 const NUM_COINS = 500;
