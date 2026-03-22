@@ -175,6 +175,57 @@ export class Tx {
     public txid(): string {
         return toHexRev(sha256d(this.ser()));
     }
+
+    /**
+     * Attempt to parse a **non-SegWit** serialized transaction from `data` — the same
+     * encoding as {@link Tx.deser} / `Tx.ser()` (version, inputs, outputs, locktime;
+     * no witness marker or witness stacks). eCash does not use SegWit transactions,
+     * so this is the full-transaction wire format on-chain here. Returns a `Tx` only
+     * when `data` is **exactly** one such transaction: the parse must consume the
+     * **entire** buffer (no trailing bytes). Returns `undefined` on malformed input
+     * or if any bytes remain after `locktime`.
+     *
+     * **PSBT-only motivation:** Bitcoin ABC’s PSBT input key `0x00` (`PSBT_IN_UTXO`)
+     * stores **either** a full previous transaction (BIP 174 “non-witness UTXO”) **or**
+     * a compact `CTxOut` (amount + `scriptPubKey`). Callers must disambiguate. Plain
+     * {@link Tx.deser} reads a tx from the start of `data` but **does not** require
+     * `data.length` to match the serialized length — leftover bytes are ignored, so
+     * you cannot use it to prove “this blob is solely a full tx.” This helper is
+     * used from PSBT (`resolveWitnessFromKey00` in `psbt.ts`): if `tryDeserExact`
+     * succeeds (and the txid matches), treat as non-witness UTXO; otherwise decode as
+     * `CTxOut`-shaped bytes.
+     */
+    public static tryDeserExact(data: Uint8Array): Tx | undefined {
+        try {
+            const bytes = new Bytes(data);
+            const version = bytes.readU32();
+            const numInputs = readVarSize(bytes);
+            const inputs: TxInput[] = [];
+            for (let i = 0; i < numInputs; ++i) {
+                const txid = bytes.readBytes(32);
+                const outIdx = bytes.readU32();
+                const script = Script.readWithSize(bytes);
+                const sequence = bytes.readU32();
+                inputs.push({
+                    prevOut: { txid, outIdx },
+                    script,
+                    sequence,
+                });
+            }
+            const numOutputs = readVarSize(bytes);
+            const outputs: TxOutput[] = [];
+            for (let i = 0; i < numOutputs; ++i) {
+                outputs.push(readTxOutput(bytes));
+            }
+            const locktime = bytes.readU32();
+            if (bytes.idx !== data.length) {
+                return undefined;
+            }
+            return new Tx({ version, inputs, outputs, locktime });
+        } catch {
+            return undefined;
+        }
+    }
 }
 
 export function readTxOutput(bytes: Bytes): TxOutput {
