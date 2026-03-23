@@ -26,6 +26,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstdint>
+#include <memory>
 
 static CService ip(uint32_t i) {
     struct in_addr s;
@@ -49,10 +50,19 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
     const Config &config = m_node.chainman->GetConfig();
 
-    ConnmanTestMsg &connman = static_cast<ConnmanTestMsg &>(*m_node.connman);
+    auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
+                                                    *m_node.addrman);
+
+    auto peerman =
+        PeerManager::make(*connman, *m_node.addrman, nullptr, *m_node.chainman,
+                          *m_node.mempool, /*avalanche=*/nullptr, {});
+
+    CConnman::Options options;
+    options.m_msgproc = {peerman.get()};
+    connman->Init(options);
+
     // Disable inactivity checks for this test to avoid interference
-    connman.SetPeerConnectTimeout(99999s);
-    PeerManager &peerman = *m_node.peerman;
+    connman->SetPeerConnectTimeout(99999s);
 
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -62,7 +72,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
                      ConnectionType::OUTBOUND_FULL_RELAY,
                      /* inbound_onion */ false);
 
-    connman.Handshake(
+    connman->Handshake(
         /*node=*/dummyNode1,
         /*successfully_connected=*/true,
         /*remote_services=*/ServiceFlags(NODE_NETWORK),
@@ -80,7 +90,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 
     // Test starts here
     // should result in getheaders
-    BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
+    BOOST_CHECK(peerman->SendMessages(config, &dummyNode1));
     {
         LOCK(dummyNode1.cs_vSend);
         BOOST_CHECK(dummyNode1.vSendMsg.size() > 0);
@@ -91,7 +101,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     // Wait 21 minutes
     SetMockTime(nStartTime + 21 * 60);
     // should result in getheaders
-    BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
+    BOOST_CHECK(peerman->SendMessages(config, &dummyNode1));
 
     {
         LOCK(dummyNode1.cs_vSend);
@@ -100,11 +110,11 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     // Wait 3 more minutes
     SetMockTime(nStartTime + 24 * 60);
     // should result in disconnect
-    BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
+    BOOST_CHECK(peerman->SendMessages(config, &dummyNode1));
     BOOST_CHECK(dummyNode1.fDisconnect == true);
     SetMockTime(0);
 
-    peerman.FinalizeNode(config, dummyNode1);
+    peerman->FinalizeNode(config, dummyNode1);
 }
 
 struct OutboundTest : TestingSetup {
