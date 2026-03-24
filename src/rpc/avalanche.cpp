@@ -193,7 +193,10 @@ static RPCHelpMan addavalanchenode() {
             }
 
             return avalanche.withPeerManager([&](avalanche::PeerManager &pm) {
-                if (!pm.addNode(nodeid, proofid)) {
+                // We don't know what this node supports as number of elements,
+                // so we assume the minimum for now
+                if (!pm.addNode(nodeid, proofid,
+                                AVALANCHE_MAX_ELEMENT_POLL_LEGACY)) {
                     return false;
                 }
 

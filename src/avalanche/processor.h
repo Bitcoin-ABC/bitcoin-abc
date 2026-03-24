@@ -49,9 +49,18 @@ class PeerManager;
 struct bilingual_str;
 
 /**
- * Maximum item that can be polled at once.
+ * Maximum item that can be polled at once. Can be overridden by the
+ * -avamaxelementpoll option.
  */
-static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
+static constexpr size_t DEFAULT_AVALANCHE_MAX_ELEMENT_POLL = 1024;
+
+/**
+ * Legacy maximum element poll.
+ *
+ * TODO: remove after there is no node left on protocol version before
+ * AVALANCHE_MAX_ELEMENT_BUMP_VERSION.
+ */
+static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL_LEGACY = 16;
 
 /**
  * Maximum number of stake contenders to poll for, leaving room for polling
@@ -262,11 +271,14 @@ class Processor final : public NetEventsInterface {
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
               uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn,
-              bool preConsensus, bool stakingPreConsensus);
+              bool preConsensus, bool stakingPreConsensus,
+              size_t maxElementPoll);
 
     const bool m_preConsensus{false};
     // Not const for testing purpose
     std::atomic_bool m_stakingPreConsensus{false};
+
+    const size_t m_maxElementPoll{DEFAULT_AVALANCHE_MAX_ELEMENT_POLL};
 
 public:
     ~Processor();
@@ -407,6 +419,8 @@ public:
     bool isPreconsensusActivated(const CBlockIndex *pprev) const;
     bool isStakingPreconsensusActivated(const CBlockIndex *pprev) const;
 
+    size_t getMaxElementPoll() const { return m_maxElementPoll; }
+
 private:
     void updatedBlockTip()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
@@ -421,7 +435,7 @@ private:
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     std::vector<CInv>
     getInvsForNextPoll(RWCollection<VoteMap>::ReadView &voteRecordsReadView,
-                       bool forPoll = true) const;
+                       size_t max_elements, bool forPoll = true) const;
     bool sendHelloInternal(CNode *pfrom)
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const

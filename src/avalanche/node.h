@@ -23,10 +23,12 @@ struct Node {
     SteadyMilliseconds nextRequestTime;
     bool avaproofsSent{false};
     uint64_t last_round{0};
+    size_t maxElements;
 
-    Node(NodeId nodeid_, PeerId peerid_)
+    Node(NodeId nodeid_, PeerId peerid_, size_t maxElements_)
         : nodeid(nodeid_), peerid(peerid_),
-          nextRequestTime(Now<SteadyMilliseconds>()) {}
+          nextRequestTime(Now<SteadyMilliseconds>()),
+          maxElements(maxElements_) {}
 };
 
 } // namespace avalanche

@@ -1145,21 +1145,37 @@ class AvalancheDelegation:
 
 
 class AvalancheHello:
-    __slots__ = ("delegation", "sig")
+    __slots__ = ("delegation", "sig", "max_elements")
 
-    def __init__(self, delegation: AvalancheDelegation, sig=b"\0" * 64):
+    MAX_ELEMENT_POLL = 1024
+    """Maximum number of items that can be polled at once.
+    See AVALANCHE_MAX_ELEMENT_POLL in processor.h.
+    """
+
+    def __init__(
+        self,
+        delegation: AvalancheDelegation,
+        sig=b"\0" * 64,
+        max_elements=MAX_ELEMENT_POLL,
+    ):
         self.delegation = delegation
         self.sig = sig
+        self.max_elements = max_elements
 
     def deserialize(self, f):
         self.delegation.deserialize(f)
         self.sig = f.read(64)
+        self.max_elements = struct.unpack("<I", f.read(4))[0]
 
     def serialize(self) -> bytes:
-        return self.delegation.serialize() + self.sig
+        return (
+            self.delegation.serialize()
+            + self.sig
+            + struct.pack("<I", self.max_elements)
+        )
 
     def __repr__(self):
-        return f"AvalancheHello(delegation={self.delegation!r}, sig={self.sig})"
+        return f"AvalancheHello(delegation={self.delegation!r}, sig={self.sig}, max_elements={self.max_elements})"
 
     def get_sighash(self, node):
         b = self.delegation.getid()
@@ -1986,11 +2002,6 @@ class msg_avaproof:
 
 
 class msg_avapoll:
-    MAX_ELEMENT_POLL = 16
-    """Maximum number of items that can be polled at once.
-    See AVALANCHE_MAX_ELEMENT_POLL in processor.h.
-    """
-
     __slots__ = ("poll",)
     msgtype = b"avapoll"
 

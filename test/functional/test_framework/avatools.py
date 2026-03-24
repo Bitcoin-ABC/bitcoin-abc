@@ -15,6 +15,7 @@ from .messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalancheDelegation,
+    AvalancheHello,
     AvalanchePrefilledProof,
     AvalancheProof,
     AvalancheResponse,
@@ -265,7 +266,10 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
             return self.avahello
 
     def build_avahello(
-        self, delegation: AvalancheDelegation, delegated_privkey: ECKey
+        self,
+        delegation: AvalancheDelegation,
+        delegated_privkey: ECKey,
+        max_elements: int = AvalancheHello.MAX_ELEMENT_POLL,
     ) -> msg_avahello:
         local_sighash = hash256(
             delegation.getid()
@@ -281,12 +285,18 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         msg = msg_avahello()
         msg.hello.delegation = delegation
         msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
+        msg.hello.max_elements = max_elements
 
         return msg
 
-    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
+    def send_avahello(
+        self,
+        delegation_hex: str,
+        delegated_privkey: ECKey,
+        max_elements: int = AvalancheHello.MAX_ELEMENT_POLL,
+    ):
         delegation = FromHex(AvalancheDelegation(), delegation_hex)
-        msg = self.build_avahello(delegation, delegated_privkey)
+        msg = self.build_avahello(delegation, delegated_privkey, max_elements)
         self.send_without_ping(msg)
 
         return msg.hello.delegation.proofid
@@ -299,7 +309,11 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
 
 class AvaP2PInterface(NoHandshakeAvaP2PInterface):
     def __init__(
-        self, test_framework=None, node=None, payoutAddress=ADDRESS_ECREG_UNSPENDABLE
+        self,
+        test_framework=None,
+        node=None,
+        payoutAddress=ADDRESS_ECREG_UNSPENDABLE,
+        max_elements: int = AvalancheHello.MAX_ELEMENT_POLL,
     ):
         if (test_framework is not None and node is None) or (
             node is not None and test_framework is None
@@ -309,6 +323,8 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
             )
 
         super().__init__()
+
+        self.max_elements = max_elements
 
         self.master_privkey = None
         self.proof = None
@@ -335,7 +351,9 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
 
         avahello = msg_avahello()
         if self.delegation is not None:
-            avahello = self.build_avahello(self.delegation, self.delegated_privkey)
+            avahello = self.build_avahello(
+                self.delegation, self.delegated_privkey, self.max_elements
+            )
         elif self.proof is not None:
             avahello = self.build_avahello(
                 AvalancheDelegation(
@@ -343,6 +361,7 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
                     self.master_privkey.get_pubkey().get_bytes(),
                 ),
                 self.master_privkey,
+                self.max_elements,
             )
 
         self.send_without_ping(avahello)
@@ -386,9 +405,14 @@ def get_ava_p2p_interface(
     stake_utxo_confirmations=1,
     sync_fun=None,
     payoutAddress=ADDRESS_ECREG_UNSPENDABLE,
+    max_elements: int = AvalancheHello.MAX_ELEMENT_POLL,
 ) -> AvaP2PInterface:
     """Build and return an AvaP2PInterface connected to the specified TestNode."""
-    n = AvaP2PInterface(test_framework, node, payoutAddress=payoutAddress)
+    n = AvaP2PInterface(
+        test_framework, node, payoutAddress=payoutAddress, max_elements=max_elements
+    )
+    assert n.master_privkey is not None
+    assert n.proof is not None
 
     # Make sure the proof utxos are mature
     if stake_utxo_confirmations > 1:

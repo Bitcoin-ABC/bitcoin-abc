@@ -1533,6 +1533,12 @@ void SetupServerArgs(NodeContext &node) {
                   AVALANCHE_DEFAULT_QUERY_TIMEOUT.count()),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg(
+        "-avamaxelementpoll",
+        strprintf("Maximum number of elements to include and accept in an "
+                  "avapoll (default: %u)",
+                  DEFAULT_AVALANCHE_MAX_ELEMENT_POLL),
+        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
         "-avadelegation",
         "Avalanche proof delegation to the master key used by this node "
         "(default: none). Should be used in conjunction with -avaproof and "

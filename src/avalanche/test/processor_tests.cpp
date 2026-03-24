@@ -44,7 +44,8 @@ namespace {
 
         static std::vector<CInv> getInvsForNextPoll(Processor &p) {
             auto r = p.voteRecords.getReadView();
-            return p.getInvsForNextPoll(r, false);
+            return p.getInvsForNextPoll(r, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL,
+                                        false);
         }
 
         static NodeId getSuitableNodeToQuery(Processor &p) {
@@ -173,7 +174,8 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
     bool addNode(NodeId nodeid, const ProofId &proofid) {
         return m_node.avalanche->withPeerManager(
             [&](avalanche::PeerManager &pm) {
-                return pm.addNode(nodeid, proofid);
+                return pm.addNode(nodeid, proofid,
+                                  DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
             });
     }
 
@@ -182,7 +184,8 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
         return m_node.avalanche->withPeerManager(
             [&](avalanche::PeerManager &pm) {
                 return pm.registerProof(proof) &&
-                       pm.addNode(nodeid, proof->getId());
+                       pm.addNode(nodeid, proof->getId(),
+                                  DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
             });
     }
 
@@ -1427,7 +1430,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         return proof;
     };
 
-    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
+    for (size_t i = 0; i < DEFAULT_AVALANCHE_MAX_ELEMENT_POLL; i++) {
         auto proof = addProofToReconcile(++score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_node.avalanche);
@@ -1437,13 +1440,13 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     }
 
     // From here a new proof is only polled if its score is in the top
-    // AVALANCHE_MAX_ELEMENT_POLL
+    // DEFAULT_AVALANCHE_MAX_ELEMENT_POLL
     ProofId lastProofId;
     for (size_t i = 0; i < 10; i++) {
         auto proof = addProofToReconcile(++score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_node.avalanche);
-        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
+        BOOST_CHECK_EQUAL(invs.size(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         BOOST_CHECK(invs.front().IsMsgProof());
         BOOST_CHECK_EQUAL(invs.front().hash, proof->getId());
 
@@ -1454,15 +1457,16 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         auto proof = addProofToReconcile(--score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_node.avalanche);
-        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
+        BOOST_CHECK_EQUAL(invs.size(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         BOOST_CHECK(invs.front().IsMsgProof());
         BOOST_CHECK_EQUAL(invs.front().hash, lastProofId);
     }
 
     {
         // The score is not high enough to get polled
-        auto proof = addProofToReconcile(--score);
+        auto proof = addProofToReconcile(MIN_VALID_PROOF_SCORE);
         auto invs = AvalancheTest::getInvsForNextPoll(*m_node.avalanche);
+        BOOST_CHECK_EQUAL(invs.size(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         for (auto &inv : invs) {
             BOOST_CHECK_NE(inv.hash, proof->getId());
         }
@@ -1608,7 +1612,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     // Add enough nodes to get a conclusive vote
     for (NodeId id = 0; id < 8; id++) {
         m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            pm.addNode(id, m_node.avalanche->getLocalProof()->getId());
+            pm.addNode(id, m_node.avalanche->getLocalProof()->getId(),
+                       DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
             BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
             BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
         });
@@ -1653,7 +1658,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     // Adding a node should cause the quorum to be detected and locked-in
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.addNode(8, proof2->getId());
+        pm.addNode(8, proof2->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
         // The peer manager knows that proof2 has a node attached ...
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 2);
@@ -1678,7 +1683,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     // It resumes when we have enough nodes again
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.addNode(7, m_node.avalanche->getLocalProof()->getId());
+        pm.addNode(7, m_node.avalanche->getLocalProof()->getId(),
+                   DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
     });
     BOOST_CHECK(m_node.avalanche->isQuorumEstablished());
 
@@ -1805,7 +1811,8 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
                                           MIN_VALID_PROOF_SCORE);
             processor->withPeerManager([&](avalanche::PeerManager &pm) {
                 BOOST_CHECK(pm.registerProof(proof));
-                BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+                BOOST_CHECK(pm.addNode(nodeid, proof->getId(),
+                                       DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
             });
         };
 
@@ -1940,27 +1947,29 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     BOOST_CHECK(!m_node.avalanche->hasFinalizedTip());
 
     std::vector<CBlockIndex *> blockIndexes;
-    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
+    for (size_t i = 0; i < DEFAULT_AVALANCHE_MAX_ELEMENT_POLL; i++) {
         CBlockIndex *pindex = provider.buildVoteItem();
         BOOST_CHECK(addToReconcile(pindex));
         blockIndexes.push_back(pindex);
     }
 
     auto invs = getInvsForNextPoll();
-    BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
-    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
+    BOOST_CHECK_EQUAL(invs.size(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
+    for (size_t i = 0; i < DEFAULT_AVALANCHE_MAX_ELEMENT_POLL; i++) {
         BOOST_CHECK_EQUAL(
             invs[i].hash,
-            blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - i - 1]->GetBlockHash());
+            blockIndexes[DEFAULT_AVALANCHE_MAX_ELEMENT_POLL - i - 1]
+                ->GetBlockHash());
     }
 
     // Build a vote vector with the 11th block only being accepted and others
     // unknown.
     const BlockHash eleventhBlockHash =
-        blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - 10 - 1]->GetBlockHash();
+        blockIndexes[DEFAULT_AVALANCHE_MAX_ELEMENT_POLL - 10 - 1]
+            ->GetBlockHash();
     std::vector<Vote> votes;
-    votes.reserve(AVALANCHE_MAX_ELEMENT_POLL);
-    for (size_t i = AVALANCHE_MAX_ELEMENT_POLL; i > 0; i--) {
+    votes.reserve(DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
+    for (size_t i = DEFAULT_AVALANCHE_MAX_ELEMENT_POLL; i > 0; i--) {
         BlockHash blockhash = blockIndexes[i - 1]->GetBlockHash();
         votes.emplace_back(blockhash == eleventhBlockHash ? 0 : -1, blockhash);
     }
@@ -2004,11 +2013,12 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     for (size_t i = 0; i < 10; i++) {
         BOOST_CHECK_EQUAL(
             invs[i].hash,
-            blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - i - 1]->GetBlockHash());
+            blockIndexes[DEFAULT_AVALANCHE_MAX_ELEMENT_POLL - i - 1]
+                ->GetBlockHash());
     }
 
     // Adding ancestor blocks to reconcile will fail
-    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL - 10 - 1; i++) {
+    for (size_t i = 0; i < DEFAULT_AVALANCHE_MAX_ELEMENT_POLL - 10 - 1; i++) {
         BOOST_CHECK(!addToReconcile(blockIndexes[i]));
     }
 
@@ -2270,7 +2280,8 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
         auto proof = GetProof(payoutScript);
         m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             BOOST_CHECK(pm.registerProof(proof));
-            BOOST_CHECK(pm.addNode(i, proof->getId()));
+            BOOST_CHECK(pm.addNode(i, proof->getId(),
+                                   DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
             // Finalize the proof
             BOOST_CHECK(pm.forPeer(proof->getId(), [&](const Peer peer) {
                 return pm.setFinalized(peer.peerid);
@@ -2579,7 +2590,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         pm.registerProof(proof2);
         for (NodeId n = 0; n < 8; n++) {
-            pm.addNode(n, proofid2);
+            pm.addNode(n, proofid2, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         }
         pm.saveRemoteProof(proofid2, 0, true);
         BOOST_CHECK(pm.forPeer(proofid2, [&](const Peer peer) {
@@ -2672,7 +2683,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         pm.registerProof(proof3);
         for (NodeId n = 0; n < 8; n++) {
-            pm.addNode(n, proofid3);
+            pm.addNode(n, proofid3, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         }
     });
     BOOST_CHECK(m_node.avalanche->isQuorumEstablished());
@@ -2731,7 +2742,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         const ProofId proofid = proofs[0]->getId();
         for (NodeId n = 0; n < 8; n++) {
-            pm.addNode(n, proofid);
+            pm.addNode(n, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         }
     });
 
@@ -2879,7 +2890,8 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
         ConnectNode(NODE_AVALANCHE);
         pm.registerProof(localWinnerProof);
         for (NodeId n = 0; n < 8; n++) {
-            pm.addNode(n, localWinnerProofId);
+            pm.addNode(n, localWinnerProofId,
+                       DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
         }
         BOOST_CHECK(pm.forPeer(localWinnerProofId, [&](const Peer peer) {
             return pm.setFinalized(peer.peerid);

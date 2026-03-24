@@ -30,7 +30,8 @@
 namespace avalanche {
 static constexpr uint64_t PEERS_DUMP_VERSION{1};
 
-bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
+bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid,
+                          size_t max_elements) {
     auto &pview = peers.get<by_proofid>();
     auto it = pview.find(proofid);
     if (it == pview.end()) {
@@ -38,21 +39,22 @@ bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
         // one. In this case we need to remove it so it is not both active and
         // pending at the same time.
         removeNode(nodeid);
-        pendingNodes.emplace(proofid, nodeid);
+        pendingNodes.emplace(proofid, nodeid, max_elements);
         return false;
     }
 
-    return addOrUpdateNode(peers.project<0>(it), nodeid);
+    return addOrUpdateNode(peers.project<0>(it), nodeid, max_elements);
 }
 
-bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
+bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,
+                                  size_t max_elements) {
     assert(it != peers.end());
 
     const PeerId peerid = it->peerid;
 
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
-        if (!nodes.emplace(nodeid, peerid).second) {
+        if (!nodes.emplace(nodeid, peerid, max_elements).second) {
             return false;
         }
     } else {
@@ -431,13 +433,16 @@ bool PeerManager::registerProof(const ProofRef &proof,
     // We want to update the nodes then remove them from the pending set. That
     // will invalidate the range iterators, so we need to save the node ids
     // first before we can loop over them.
-    std::vector<NodeId> nodeids;
-    nodeids.reserve(std::distance(range.first, range.second));
-    std::transform(range.first, range.second, std::back_inserter(nodeids),
-                   [](const PendingNode &n) { return n.nodeid; });
+    std::vector<std::pair<NodeId, size_t>> nodeids_and_max_elements;
+    nodeids_and_max_elements.reserve(std::distance(range.first, range.second));
+    std::transform(range.first, range.second,
+                   std::back_inserter(nodeids_and_max_elements),
+                   [](const PendingNode &n) {
+                       return std::make_pair(n.nodeid, n.max_elements);
+                   });
 
-    for (const NodeId &nodeid : nodeids) {
-        addOrUpdateNode(inserted.first, nodeid);
+    for (const auto &[nodeid, max_elements] : nodeids_and_max_elements) {
+        addOrUpdateNode(inserted.first, nodeid, max_elements);
     }
 
     if (isStakingPreconsensusActivated()) {
@@ -767,7 +772,7 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // Add the nodes to the pending set
     auto range = nview.equal_range(peerid);
     for (auto &nit = range.first; nit != range.second; ++nit) {
-        pendingNodes.emplace(it->getProofId(), nit->nodeid);
+        pendingNodes.emplace(it->getProofId(), nit->nodeid, nit->maxElements);
     };
 
     // Remove nodes associated with this peer, unless their timeout is still

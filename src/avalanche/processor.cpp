@@ -152,7 +152,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
                      Amount stakeUtxoDustThreshold, bool preConsensus,
-                     bool stakingPreConsensus)
+                     bool stakingPreConsensus, size_t maxElementPoll)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
       chainman(chainmanIn), mempool(mempoolIn), round(0),
       peerManager(std::make_unique<PeerManager>(
@@ -164,7 +164,8 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
       minAvaproofsNodeCount(minAvaproofsNodeCountIn),
       staleVoteThreshold(staleVoteThresholdIn),
       staleVoteFactor(staleVoteFactorIn), m_preConsensus(preConsensus),
-      m_stakingPreConsensus(stakingPreConsensus) {
+      m_stakingPreConsensus(stakingPreConsensus),
+      m_maxElementPoll(maxElementPoll) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -401,6 +402,17 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
 
     Config avaconfig(queryTimeoutDuration);
 
+    int64_t maxElementPoll = argsman.GetIntArg(
+        "-avamaxelementpoll", DEFAULT_AVALANCHE_MAX_ELEMENT_POLL);
+    if (maxElementPoll < int64_t{AVALANCHE_MAX_ELEMENT_POLL_LEGACY} ||
+        maxElementPoll > std::numeric_limits<uint32_t>::max()) {
+        error = strprintf(
+            _("The -avamaxelementpoll value must be between %d and %d"),
+            AVALANCHE_MAX_ELEMENT_POLL_LEGACY,
+            std::numeric_limits<uint32_t>::max());
+        return nullptr;
+    }
+
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
         std::move(avaconfig), chain, connman, chainman, mempool, scheduler,
@@ -411,7 +423,9 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         argsman.GetBoolArg("-avalanchepreconsensus",
                            DEFAULT_AVALANCHE_PRECONSENSUS),
         argsman.GetBoolArg("-avalanchestakingpreconsensus",
-                           DEFAULT_AVALANCHE_STAKING_PRECONSENSUS)));
+                           DEFAULT_AVALANCHE_STAKING_PRECONSENSUS),
+        // This is safe because we ensure size_t is >= 32 bits in assumptions.h
+        static_cast<size_t>(maxElementPoll)));
 }
 
 static bool isNull(const AnyVoteItem &item) {
@@ -728,7 +742,8 @@ bool Processor::sendHelloInternal(CNode *pfrom) {
     }
 
     connman->PushMessage(
-        pfrom, NetMsg::Make(NetMsgType::AVAHELLO, Hello(delegation, sig)));
+        pfrom, NetMsg::Make(NetMsgType::AVAHELLO,
+                            Hello(delegation, sig, m_maxElementPoll)));
 
     return delegation.getLimitedProofId() != uint256::ZERO;
 }
@@ -1224,39 +1239,49 @@ void Processor::runEventLoop() {
 
     clearInvsNotWorthPolling();
 
-    // Build a unique pointer to the read view of vote records.
-    // This is so we can release the lock immediately after we have gathered the
-    // invs to poll and avoid a lock inversion with the peer manager lock.
-    auto voteRecordsReadView =
-        std::make_unique<decltype(voteRecords.getReadView())>(
-            voteRecords.getReadView());
-
-    LOCK(cs_peerManager);
-
-    // Make sure there is at least one suitable node to query before gathering
-    // invs.
-    NodeId nodeid = peerManager->selectNode();
-    if (nodeid == NO_NODE) {
-        return;
-    }
-
-    std::vector<CInv> invs = getInvsForNextPoll(*voteRecordsReadView);
-    if (invs.empty()) {
-        return;
-    }
-
-    // Release the read lock on vote records
-    voteRecordsReadView.reset();
-
+    NodeId nodeid{NO_NODE};
     do {
+        // Build a unique pointer to the read view of vote records.
+        // This is so we can release the lock immediately after we have gathered
+        // the invs to poll and avoid a lock inversion with the peer manager
+        // lock.
+        auto voteRecordsReadView =
+            std::make_unique<decltype(voteRecords.getReadView())>(
+                voteRecords.getReadView());
+
+        LOCK(cs_peerManager);
+
+        // Make sure there is at least one suitable node to query before
+        // gathering invs.
+        nodeid = peerManager->selectNode();
+        if (nodeid == NO_NODE) {
+            return;
+        }
+
+        size_t max_elements = AVALANCHE_MAX_ELEMENT_POLL_LEGACY;
+        peerManager->forNode(nodeid, [&max_elements](const Node &node) {
+            max_elements = node.maxElements;
+            return true;
+        });
+
+        std::vector<CInv> invs =
+            getInvsForNextPoll(*voteRecordsReadView, max_elements);
+        if (invs.empty()) {
+            return;
+        }
+
+        // Release the read lock on vote records
+        voteRecordsReadView.reset();
+
         /**
          * If we lost contact to that node, then we remove it from nodeids, but
          * never add the request to queries, which ensures bad nodes get cleaned
          * up over time.
          */
         bool hasSent = connman->ForNode(
-            nodeid, [this, &invs](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(
-                        cs_peerManager) {
+            nodeid,
+            [this, invs = std::move(invs)](
+                CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_peerManager) mutable {
                 uint64_t current_round = round++;
 
                 {
@@ -1287,9 +1312,6 @@ void Processor::runEventLoop() {
 
         // This node is obsolete, delete it.
         peerManager->removeNode(nodeid);
-
-        // Get next suitable node to try again
-        nodeid = peerManager->selectNode();
     } while (nodeid != NO_NODE);
 }
 
@@ -1344,7 +1366,8 @@ void Processor::clearTimedoutRequests() {
 }
 
 std::vector<CInv> Processor::getInvsForNextPoll(
-    RWCollection<VoteMap>::ReadView &voteRecordsReadView, bool forPoll) const {
+    RWCollection<VoteMap>::ReadView &voteRecordsReadView, size_t max_elements,
+    bool forPoll) const {
     std::vector<CInv> invs;
 
     auto buildInvFromVoteItem = variant::overloaded{
@@ -1361,7 +1384,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(
     };
 
     for (const auto &[item, voteRecord] : voteRecordsReadView) {
-        if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
+        if (invs.size() >= max_elements) {
             // Make sure we do not produce more invs than specified by the
             // protocol.
             return invs;

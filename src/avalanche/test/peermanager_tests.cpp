@@ -346,7 +346,8 @@ static void addNodeWithScore(Chainstate &active_chainstate,
                              uint32_t score) {
     auto proof = buildRandomProof(active_chainstate, score);
     BOOST_CHECK(pm.registerProof(proof));
-    BOOST_CHECK(pm.addNode(node, proof->getId()));
+    BOOST_CHECK(
+        pm.addNode(node, proof->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 };
 
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
@@ -399,7 +400,8 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 40000);
@@ -431,7 +433,8 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i + 4] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 70000);
@@ -475,7 +478,8 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
         auto p = buildRandomProof(chainman.ActiveChainstate(),
                                   MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
-        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId()));
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     // Remove all peers.
@@ -511,7 +515,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     // Add 4 nodes.
     const ProofId &proofid = proof->getId();
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     uint64_t round{0};
@@ -589,7 +593,8 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Add a bunch of nodes with no associated peer
     for (int i = 0; i < 10; i++) {
-        BOOST_CHECK(!pm.addNode(i, proofid));
+        BOOST_CHECK(
+            !pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), i + 1);
@@ -617,7 +622,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Add nodes when the peer already exists
     for (int i = 0; i < 5; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
         BOOST_CHECK_EQUAL(pm.getNodeCount(), 5 + i + 1);
@@ -629,7 +634,8 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Update some nodes from a known proof to an unknown proof
     for (int i = 0; i < 5; i++) {
-        BOOST_CHECK(!pm.addNode(i, alt_proofid));
+        BOOST_CHECK(
+            !pm.addNode(i, alt_proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
         BOOST_CHECK_EQUAL(pm.getNodeCount(), 10 - i - 1);
@@ -642,7 +648,8 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Update some nodes from an unknown proof to another unknown proof
     for (int i = 0; i < 5; i++) {
-        BOOST_CHECK(!pm.addNode(i, alt2_proofid));
+        BOOST_CHECK(
+            !pm.addNode(i, alt2_proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK_EQUAL(pm.getNodeCount(), 5);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 5);
@@ -650,7 +657,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Update some nodes from an unknown proof to a known proof
     for (int i = 0; i < 5; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
         BOOST_CHECK_EQUAL(pm.getNodeCount(), 5 + i + 1);
@@ -694,7 +701,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     // Add nodes to our peer
     for (int i = 0; i < 10; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
     }
@@ -909,7 +916,8 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
 
     // Add nodes to this peer and update their request time far in the future
     for (int i = 0; i < 10; i++) {
-        BOOST_CHECK(pm.addNode(i, proof->getId()));
+        BOOST_CHECK(
+            pm.addNode(i, proof->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(pm.updateNextRequestTimeForPoll(i, theFuture, i));
     }
 
@@ -928,7 +936,8 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
 
     // Update the nodes with the new proof
     for (int i = 0; i < 10; i++) {
-        BOOST_CHECK(pm.addNode(i, proof->getId()));
+        BOOST_CHECK(
+            pm.addNode(i, proof->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(pm.forNode(
             i, [&](const Node &n) { return n.nextRequestTime == theFuture; }));
     }
@@ -1519,7 +1528,7 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     // Add a few nodes.
     const ProofId &proofid = proof->getId();
     for (size_t i = 0; i < 10; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(pm.addNode(i, proofid, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     BOOST_CHECK(!pm.isDangling(proof->getId()));
@@ -1590,7 +1599,8 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     }
 
     // Attach a node to that proof
-    BOOST_CHECK(!pm.addNode(11, proof2->getId()));
+    BOOST_CHECK(
+        !pm.addNode(11, proof2->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     BOOST_CHECK(pm.registerProof(proof2));
     SetMockTime(GetTime() + 15 * 60);
     TestPeerManager::cleanupDanglingProofs(pm);
@@ -1782,7 +1792,8 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     const ProofId &proofid1 = proof1->getId();
     const uint8_t nodesToAdd = 10;
     for (int i = 0; i < nodesToAdd; i++) {
-        BOOST_CHECK(pm.addNode(i, proofid1));
+        BOOST_CHECK(
+            pm.addNode(i, proofid1, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         checkScores(score1, score1);
     }
 
@@ -1798,15 +1809,16 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
 
     // Add 2 nodes to peer and create peer2. Without a node peer2 has no
     // connected score but after adding a node it does.
-    BOOST_CHECK(pm.addNode(0, proofid1));
-    BOOST_CHECK(pm.addNode(1, proofid1));
+    BOOST_CHECK(pm.addNode(0, proofid1, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
+    BOOST_CHECK(pm.addNode(1, proofid1, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     checkScores(score1, score1);
 
     uint32_t score2 = 1 * MIN_VALID_PROOF_SCORE;
     auto proof2 = buildRandomProof(active_chainstate, score2);
     PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, proof2);
     checkScores(score1 + score2, score1);
-    BOOST_CHECK(pm.addNode(2, proof2->getId()));
+    BOOST_CHECK(
+        pm.addNode(2, proof2->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     checkScores(score1 + score2, score1 + score2);
 
     // The first peer has two nodes left. Remove one and nothing happens, remove
@@ -1835,9 +1847,11 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     checkScores(score1, 0);
     peerid2 = TestPeerManager::registerAndGetPeerId(pm, proof2);
     checkScores(score1 + score2, 0);
-    BOOST_CHECK(pm.addNode(0, proof1->getId()));
+    BOOST_CHECK(
+        pm.addNode(0, proof1->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     checkScores(score1 + score2, score1);
-    BOOST_CHECK(pm.addNode(1, proof2->getId()));
+    BOOST_CHECK(
+        pm.addNode(1, proof2->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     checkScores(score1 + score2, score1 + score2);
 
     BOOST_CHECK(pm.removePeer(peerid2));
@@ -1970,7 +1984,8 @@ BOOST_AUTO_TEST_CASE(received_avaproofs) {
         auto proof = buildRandomProof(chainman.ActiveChainstate(),
                                       MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(proof));
-        BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+        BOOST_CHECK(pm.addNode(nodeid, proof->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     };
 
     for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
@@ -2019,7 +2034,8 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
 
         if (i % 2) {
             // Odd indexes get a node attached to them
-            BOOST_CHECK(pm.addNode(i, proofs[i]->getId()));
+            BOOST_CHECK(pm.addNode(i, proofs[i]->getId(),
+                                   DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         }
         BOOST_CHECK_EQUAL(pm.forPeer(proofs[i]->getId(),
                                      [&](const avalanche::Peer &peer) {
@@ -2056,7 +2072,8 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     }
 
     // Attach a node to the first conflicting proof, which has been promoted
-    BOOST_CHECK(pm.addNode(42, conflictingProofs[0]->getId()));
+    BOOST_CHECK(pm.addNode(42, conflictingProofs[0]->getId(),
+                           DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     BOOST_CHECK(pm.forPeer(
         conflictingProofs[0]->getId(),
         [&](const avalanche::Peer &peer) { return peer.node_count == 1; }));
@@ -2248,7 +2265,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         BOOST_CHECK_LE(winners.size(), numProofs);
 
-        BOOST_CHECK(pm.addNode(NodeId(i), proofs[i]->getId()));
+        BOOST_CHECK(pm.addNode(NodeId(i), proofs[i]->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
         BOOST_CHECK(!TestPeerManager::isFlaky(pm, proofs[i]->getId()));
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
@@ -2438,7 +2456,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
                 return peer.registration_time == now + i * 30min;
             }));
 
-            BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
+            BOOST_CHECK(pm.addNode(NodeId(i), proof->getId(),
+                                   DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
             BOOST_CHECK(pm.setFinalized(peerid));
 
@@ -2574,10 +2593,12 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
     // Actually register the nodes
     auto proof0 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof0));
-    BOOST_CHECK(pm.addNode(0, proof0->getId()));
+    BOOST_CHECK(
+        pm.addNode(0, proof0->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof1));
-    BOOST_CHECK(pm.addNode(1, proof1->getId()));
+    BOOST_CHECK(
+        pm.addNode(1, proof1->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
     // Removing the node removes all the associated remote proofs
     BOOST_CHECK(pm.removeNode(0));
@@ -2689,7 +2710,8 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
     for (NodeId nodeid = 0; nodeid < 12; nodeid++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(proof));
-        BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+        BOOST_CHECK(pm.addNode(nodeid, proof->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid,
                                        nodeid % 2 == 0));
     }
@@ -2741,7 +2763,8 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
         buildRandomProof(active_chainstate, 100 * MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(bigProof));
     // Update the node's proof
-    BOOST_CHECK(pm.addNode(0, bigProof->getId()));
+    BOOST_CHECK(
+        pm.addNode(0, bigProof->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
     // 7/12 (~58%) of the remotes, but < 10% of the stakes => absent
     for (NodeId nodeid = 0; nodeid < 5; nodeid++) {
@@ -2770,13 +2793,15 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
     // Peer 1 has 1 node (id 0)
     auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof1));
-    BOOST_CHECK(pm.addNode(0, proof1->getId()));
+    BOOST_CHECK(
+        pm.addNode(0, proof1->getId(), DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
     // Peer 2 has 5 nodes (ids 1 to 5)
     auto proof2 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof2));
     for (NodeId nodeid = 1; nodeid < 6; nodeid++) {
-        BOOST_CHECK(pm.addNode(nodeid, proof2->getId()));
+        BOOST_CHECK(pm.addNode(nodeid, proof2->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
     }
 
     // Node 0 is missing proofid 0, nodes 1 to 5 have it
@@ -2832,7 +2857,8 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
         auto localProof =
             buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(localProof));
-        BOOST_CHECK(pm.addNode(nodeid, localProof->getId()));
+        BOOST_CHECK(pm.addNode(nodeid, localProof->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
 
         for (const auto &proof : proofs) {
             BOOST_CHECK(pm.saveRemoteProof(proof->getId(), nodeid, true));

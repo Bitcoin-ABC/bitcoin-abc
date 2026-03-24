@@ -8,7 +8,7 @@
 /**
  * network protocol versioning
  */
-static const int PROTOCOL_VERSION = 70016;
+static const int PROTOCOL_VERSION = 70017;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
@@ -39,5 +39,8 @@ static const int INVALID_CB_NO_BAN_VERSION = 70015;
 
 //! send extra peer specific entropy in the version message
 static const int PEER_ENTROPY_VERSION = 70016;
+
+//! Avalanche can poll up to 1024 items per message starting with this version
+static const int AVALANCHE_MAX_ELEMENT_BUMP_VERSION = 70017;
 
 #endif // BITCOIN_NODE_PROTOCOL_VERSION_H

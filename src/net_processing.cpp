@@ -6636,10 +6636,23 @@ void PeerManagerImpl::ProcessMessage(
                                          preferred);
                 }
 
+                uint32_t max_elements{AVALANCHE_MAX_ELEMENT_POLL_LEGACY};
+                if (pfrom.GetCommonVersion() >=
+                        AVALANCHE_MAX_ELEMENT_BUMP_VERSION &&
+                    !vRecv.empty()) {
+                    vRecv >> max_elements;
+                    // max_elements below AVALANCHE_MAX_ELEMENT_POLL_LEGACY is
+                    // invalid
+                    if (max_elements < AVALANCHE_MAX_ELEMENT_POLL_LEGACY) {
+                        Misbehaving(*peer, "avahello-max-elements-too-low");
+                        return;
+                    }
+                }
+
                 // Don't check the return value. If it fails we probably don't
                 // know about the proof yet.
                 m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                    return pm.addNode(pfrom.GetId(), proofid);
+                    return pm.addNode(pfrom.GetId(), proofid, max_elements);
                 });
             }
 
@@ -6686,7 +6699,7 @@ void PeerManagerImpl::ProcessMessage(
         Unserialize(vRecv, round);
 
         unsigned int nCount = ReadCompactSize(vRecv);
-        if (nCount > AVALANCHE_MAX_ELEMENT_POLL) {
+        if (nCount > m_avalanche->getMaxElementPoll()) {
             Misbehaving(
                 *peer,
                 strprintf("too-many-ava-poll: poll message size = %u", nCount));

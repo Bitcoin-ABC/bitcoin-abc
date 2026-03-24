@@ -12,7 +12,7 @@ from test_framework.avatools import (
     get_ava_p2p_interface,
 )
 from test_framework.key import ECPubKey
-from test_framework.messages import AvalancheVote, AvalancheVoteError, msg_avapoll
+from test_framework.messages import AvalancheHello, AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 
@@ -418,16 +418,16 @@ class AvalancheTest(BitcoinTestFramework):
         with node.assert_debug_log(
             ["received: avapoll"], unexpected_msgs=["Misbehaving", "too-many-ava-poll"]
         ):
-            fresh_poll_node.send_poll(list(range(msg_avapoll.MAX_ELEMENT_POLL)))
+            fresh_poll_node.send_poll(list(range(AvalancheHello.MAX_ELEMENT_POLL)))
 
         with node.assert_debug_log(
             [
-                f"too-many-ava-poll: poll message size = {msg_avapoll.MAX_ELEMENT_POLL + 1}",
+                f"too-many-ava-poll: poll message size = {AvalancheHello.MAX_ELEMENT_POLL + 1}",
             ]
         ):
             # Too many items in an avapoll would get the interface disconnected if it wasn't
             # for `noban_tx_relay = True`
-            fresh_poll_node.send_poll(list(range(msg_avapoll.MAX_ELEMENT_POLL + 1)))
+            fresh_poll_node.send_poll(list(range(AvalancheHello.MAX_ELEMENT_POLL + 1)))
 
 
 if __name__ == "__main__":

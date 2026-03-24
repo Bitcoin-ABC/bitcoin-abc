@@ -126,9 +126,10 @@ struct next_request_time {};
 struct PendingNode {
     ProofId proofid;
     NodeId nodeid;
+    size_t max_elements;
 
-    PendingNode(ProofId proofid_, NodeId nodeid_)
-        : proofid(proofid_), nodeid(nodeid_){};
+    PendingNode(ProofId proofid_, NodeId nodeid_, size_t max_elements_)
+        : proofid(proofid_), nodeid(nodeid_), max_elements(max_elements_){};
 };
 
 struct by_proofid;
@@ -313,7 +314,7 @@ public:
     /**
      * Node API.
      */
-    bool addNode(NodeId nodeid, const ProofId &proofid);
+    bool addNode(NodeId nodeid, const ProofId &proofid, size_t max_elements);
     bool removeNode(NodeId nodeid);
     size_t getNodeCount() const { return nodes.size(); }
     size_t getPendingNodeCount() const { return pendingNodes.size(); }
@@ -551,7 +552,8 @@ private:
     template <typename ProofContainer>
     void moveToConflictingPool(const ProofContainer &proofs);
 
-    bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
+    bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,
+                         size_t max_elements);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
 

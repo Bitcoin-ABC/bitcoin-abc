@@ -68,15 +68,20 @@ public:
 class Hello {
     Delegation delegation;
     SchnorrSig sig;
+    uint32_t max_elements;
 
 public:
-    Hello(Delegation delegationIn, SchnorrSig sigIn)
-        : delegation(std::move(delegationIn)), sig(sigIn) {}
+    Hello(Delegation delegationIn, SchnorrSig sigIn, uint32_t max_elements_in)
+        : delegation(std::move(delegationIn)), sig(sigIn),
+          max_elements(max_elements_in) {}
 
     SchnorrSig GetSig() { return sig; }
+    uint32_t GetMaxElements() const { return max_elements; }
 
     // serialization support
-    SERIALIZE_METHODS(Hello, obj) { READWRITE(obj.delegation, obj.sig); }
+    SERIALIZE_METHODS(Hello, obj) {
+        READWRITE(obj.delegation, obj.sig, obj.max_elements);
+    }
 };
 
 } // namespace avalanche
