@@ -111,3 +111,4 @@ console.log(toHex(rawTx));
 - 4.9.0 - Add `parseNumberFromOp` as inverse of `pushNumberOp` [D19652](https://reviews.bitcoinabc.org/D19652)
 - 4.10.0 - Support for multisig scripts: Script.multisig, Script.multisigSpend, Script.parseP2shMultisigSpend, Script.parseBareMultisigSpend. Both ECDSA and Schnorr multisig formats supported. [D19663](https://reviews.bitcoinabc.org/D19663)
 - 4.11.0 - Implement `PSBT` to pass in-node and electrum-abc tests. [D19712](https://reviews.bitcoinabc.org/D19712)
+- 4.12.0 - Add multisig support to `TxBuilder` (bare and P2SH signatories, ECDSA and Schnorr), partial signing via `Tx.addMultisigSignature` and `Tx.isFullySignedMultisig`, and BIP 174 `Psbt` (`Psbt.fromTx` / `Psbt.fromBytes` / `Psbt.toBytes`, `Psbt.addMultisigSignature`, `Psbt.isFullySignedMultisig`) for passing partially signed transactions between signers. [D19688](https://reviews.bitcoinabc.org/D19688)

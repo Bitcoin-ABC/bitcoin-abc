@@ -291,6 +291,35 @@ describe('Script', () => {
         );
     });
 
+    it('Script.isMultisig', () => {
+        const pk1 = fromHex('02'.repeat(33));
+        const pk2 = fromHex('03'.repeat(33));
+        const pk3 = fromHex('04'.repeat(33));
+
+        expect(Script.multisig(2, [pk1, pk2, pk3]).isMultisig()).to.equal(true);
+        expect(Script.p2pkh(fromHex('11'.repeat(20))).isMultisig()).to.equal(
+            false,
+        );
+        expect(
+            Script.fromOps([
+                OP_1,
+                pushBytesOp(pk1),
+                OP_3,
+                OP_CHECKSIG,
+            ]).isMultisig(),
+        ).to.equal(false);
+
+        // Claims 3 pubkeys (OP_3) but only one push: length 4 != 3 + 3.
+        expect(
+            Script.fromOps([
+                OP_1,
+                pushBytesOp(pk1),
+                OP_3,
+                OP_CHECKMULTISIG,
+            ]).isMultisig(),
+        ).to.equal(false);
+    });
+
     it('Script.multisigSpend throws when pubkeyIndices without redeemScript or numPubkeys', () => {
         const sig = fromHex('40'.repeat(64));
         expect(() =>

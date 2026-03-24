@@ -217,6 +217,29 @@ export class Script {
     }
 
     /**
+     * Return true iff this script has the shape of a standard multisig output script
+     * `OP_m pubkey_1 ... pubkey_N OP_N OP_CHECKMULTISIG` (fixed size: `N + 3` ops).
+     */
+    public isMultisig(): boolean {
+        const ops: Op[] = [];
+        const iter = this.ops();
+        let op: Op | undefined;
+        while ((op = iter.next()) !== undefined) {
+            ops.push(op);
+        }
+        if (ops.length < 4 || ops[ops.length - 1] !== OP_CHECKMULTISIG) {
+            return false;
+        }
+        try {
+            parseNumberFromOp(ops[0]!);
+            const numPubkeys = Number(parseNumberFromOp(ops[ops.length - 2]!));
+            return ops.length === numPubkeys + 3;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Build scriptSig for multisig: <dummy> sig1 sig2 ... sig_m [redeemScript].
      * Omit redeemScript for bare multisig; include for P2SH-wrapped.
      * Use undefined for missing signatures (replaced with 0x01 placeholder).
@@ -346,7 +369,8 @@ export class Script {
         return Script.parseMultisigScriptSig(ops, outputScript);
     }
 
-    private parseMultisigRedeemScript(): {
+    /** Parse an OP_m ... OP_CHECKMULTISIG redeem script (used by multisig PSBT flows). */
+    public parseMultisigRedeemScript(): {
         numSignatures: number;
         numPubkeys: number;
         pubkeys: Uint8Array[];

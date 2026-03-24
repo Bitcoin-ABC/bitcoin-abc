@@ -288,6 +288,24 @@ describe('Tx', () => {
         );
     });
 
+    it('Tx.tryDeserExact rejects witness-UTXO-shaped payloads and requires exact length', () => {
+        const witnessUtxoLike =
+            '00c2eb0b000000001976a91485cff1097fd9e008bb34af709c62197b38978a4888ac';
+        expect(Tx.tryDeserExact(fromHex(witnessUtxoLike))).to.equal(undefined);
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: { txid: new Uint8Array(32), outIdx: 0 },
+                },
+            ],
+            outputs: [{ sats: 1000n, script: new Script() }],
+        });
+        const raw = tx.ser();
+        const t2 = Tx.tryDeserExact(raw);
+        expect(t2).to.not.equal(undefined);
+        expect(t2!.toHex()).to.equal(tx.toHex());
+    });
+
     it('Tx.txid() for real blockchain transactions', () => {
         // eCash genesis tx
         const rawHexGenesis =
@@ -314,5 +332,95 @@ describe('Tx', () => {
         const tx2 = Tx.fromHex(rawHex2);
         const txid2 = tx2.txid();
         expect(txid2).to.equal(expectedTxid2);
+    });
+
+    it('Tx.isFullySignedMultisig ignores signed non-multisig inputs and checks multisig inputs', () => {
+        const nonMultisigInput = {
+            prevOut: {
+                txid: new Uint8Array(32),
+                outIdx: 0,
+            },
+            script: Script.p2pkhSpend(
+                fromHex('02'.repeat(33)),
+                fromHex('30'.repeat(71)),
+            ),
+            signData: {
+                sats: 90000n,
+                outputScript: Script.p2pkh(fromHex('11'.repeat(20))),
+            },
+        };
+
+        const pk1 = fromHex('02'.repeat(33));
+        const pk2 = fromHex('03'.repeat(33));
+        const pk3 = fromHex('04'.repeat(33));
+        const redeemScript = Script.multisig(2, [pk1, pk2, pk3]);
+        const partialMultisigInput = {
+            prevOut: {
+                txid: new Uint8Array(32),
+                outIdx: 1,
+            },
+            script: Script.multisigSpend({
+                signatures: [fromHex('30'.repeat(71)), undefined],
+                redeemScript,
+            }),
+            signData: {
+                sats: 90000n,
+                redeemScript,
+            },
+        };
+        const fullySignedMultisigInput = {
+            prevOut: {
+                txid: new Uint8Array(32),
+                outIdx: 1,
+            },
+            script: Script.multisigSpend({
+                signatures: [
+                    fromHex('30'.repeat(71)),
+                    fromHex('31'.repeat(71)),
+                ],
+                redeemScript,
+            }),
+            signData: {
+                sats: 90000n,
+                redeemScript,
+            },
+        };
+
+        const partiallySignedTx = new Tx({
+            inputs: [nonMultisigInput, partialMultisigInput],
+            outputs: [],
+        });
+        expect(partiallySignedTx.isFullySignedMultisig()).to.equal(false);
+
+        const fullySignedTx = new Tx({
+            inputs: [nonMultisigInput, fullySignedMultisigInput],
+            outputs: [],
+        });
+        expect(fullySignedTx.isFullySignedMultisig()).to.equal(true);
+    });
+
+    it('Tx.isFullySignedMultisig ignores non-multisig inputs entirely', () => {
+        // No input is classified as multisig (P2PKH signData only), so the
+        // predicate is vacuously satisfied and returns true — see
+        // Tx.isFullySignedMultisig JSDoc. In real use we only call this for txs
+        // that include multisig inputs we care about.
+        const tx = new Tx({
+            inputs: [
+                {
+                    prevOut: {
+                        txid: new Uint8Array(32),
+                        outIdx: 0,
+                    },
+                    script: Script.fromOps([0x51]),
+                    signData: {
+                        sats: 90000n,
+                        outputScript: Script.p2pkh(fromHex('11'.repeat(20))),
+                    },
+                },
+            ],
+            outputs: [],
+        });
+
+        expect(tx.isFullySignedMultisig()).to.equal(true);
     });
 });

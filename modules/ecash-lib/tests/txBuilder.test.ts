@@ -26,12 +26,18 @@ import {
 } from '../src/sigHashType.js';
 import { TestRunner } from '../src/test/testRunner.js';
 import {
+    BareMultisigSignatory,
+    BareMultisigSignatorySchnorr,
     P2PKHSignatory,
     P2PKSignatory,
+    P2SHMultisigSignatory,
+    P2SHMultisigSignatorySchnorr,
     flagSignature,
 } from '../src/signatories.js';
-import { TxBuilder } from '../src/txBuilder.js';
+import { Psbt } from '../src/psbt.js';
 import { UnsignedTxInput } from '../src/unsignedTx.js';
+import { Tx } from '../src/tx.js';
+import { TxBuilder } from '../src/txBuilder.js';
 import { encodeCashAddress } from 'ecashaddrjs';
 import '../src/initNodeJs.js';
 
@@ -778,5 +784,332 @@ describe('TxBuilder', () => {
         expect(() => txBuild.sign()).to.throw(
             'Using a leftover output requires setting feePerKb',
         );
+    });
+
+    it('TxBuilder P2SH 2-of-3 multisig: partial sign, addSignature, broadcast', async () => {
+        const sk1 = fromHex('aa'.repeat(32));
+        const sk2 = fromHex('bb'.repeat(32));
+        const sk3 = fromHex('cc'.repeat(32));
+        const pk1 = ecc.derivePubkey(sk1);
+        const pk2 = ecc.derivePubkey(sk2);
+        const pk3 = ecc.derivePubkey(sk3);
+        const redeemScript = Script.multisig(2, [pk1, pk2, pk3]);
+        const scriptHash = shaRmd160(redeemScript.bytecode);
+        const p2sh = Script.p2sh(scriptHash);
+
+        await runner.sendToScript(90000n, p2sh);
+        const utxos = await chronik.script('p2sh', toHex(scriptHash)).utxos();
+        expect(utxos.utxos.length).to.equal(1);
+        const utxo = utxos.utxos[0];
+
+        const recipientPkh = fromHex('01'.repeat(20));
+        const recipientScript = Script.p2pkh(recipientPkh);
+
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData: {
+                            sats: utxo.sats,
+                            redeemScript,
+                        },
+                    },
+                    signatory: P2SHMultisigSignatory(
+                        2,
+                        [pk1, pk2, pk3],
+                        sk1,
+                        pk1,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [{ sats: 50000n, script: recipientScript }, p2sh],
+        });
+        const partialTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        const signData = { sats: utxo.sats, redeemScript };
+
+        const psbtShared = Psbt.fromTx(partialTx, [signData], ecc);
+        const psbtBytes = psbtShared.toBytes();
+        const psbtBob = Psbt.fromBytes(psbtBytes);
+        expect(psbtBob.isFullySignedMultisig()).to.equal(false);
+
+        const psbtDone = psbtBob.addMultisigSignatureFromKey({
+            inputIdx: 0,
+            sk: sk2,
+            signData,
+            ecc,
+        });
+        expect(psbtDone.isFullySignedMultisig()).to.equal(true);
+
+        await chronik.broadcastTx(psbtDone.toTx().ser());
+    });
+
+    it('TxBuilder bare 2-of-3 multisig: partial sign, addSignature, broadcast', async () => {
+        const sk1 = fromHex('aa'.repeat(32));
+        const sk2 = fromHex('bb'.repeat(32));
+        const sk3 = fromHex('cc'.repeat(32));
+        const pk1 = ecc.derivePubkey(sk1);
+        const pk2 = ecc.derivePubkey(sk2);
+        const pk3 = ecc.derivePubkey(sk3);
+        const bareMultisigScript = Script.multisig(2, [pk1, pk2, pk3]);
+
+        await runner.sendToScript(90000n, bareMultisigScript);
+        const utxos = await chronik
+            .script('other', toHex(bareMultisigScript.bytecode))
+            .utxos();
+        expect(utxos.utxos.length).to.equal(1);
+        const utxo = utxos.utxos[0];
+
+        const recipientPkh = fromHex('01'.repeat(20));
+        const recipientScript = Script.p2pkh(recipientPkh);
+
+        const signData = {
+            sats: utxo.sats,
+            outputScript: bareMultisigScript,
+        };
+
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData,
+                    },
+                    signatory: BareMultisigSignatory(
+                        2,
+                        [pk1, pk2, pk3],
+                        sk1,
+                        pk1,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [{ sats: 50000n, script: recipientScript }],
+        });
+        const partialTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        const fullySigned = partialTx.addMultisigSignatureFromKey({
+            inputIdx: 0,
+            sk: sk2,
+            signData,
+        });
+        expect(fullySigned.isFullySignedMultisig()).to.equal(true);
+
+        await chronik.broadcastTx(fullySigned.ser());
+    });
+
+    it('TxBuilder bare 2-of-3 Schnorr multisig: partial sign, addSignature, broadcast', async () => {
+        const sk1 = fromHex('11'.repeat(32));
+        const sk2 = fromHex('22'.repeat(32));
+        const sk3 = fromHex('33'.repeat(32));
+        const pk1 = ecc.derivePubkey(sk1);
+        const pk2 = ecc.derivePubkey(sk2);
+        const pk3 = ecc.derivePubkey(sk3);
+        const bareMultisigScript = Script.multisig(2, [pk1, pk2, pk3]);
+
+        await runner.sendToScript(90000n, bareMultisigScript);
+        const utxos = await chronik
+            .script('other', toHex(bareMultisigScript.bytecode))
+            .utxos();
+        expect(utxos.utxos.length).to.equal(1);
+        const utxo = utxos.utxos[0];
+
+        const recipientPkh = fromHex('02'.repeat(20));
+        const recipientScript = Script.p2pkh(recipientPkh);
+
+        const signerIndices = new Set([0, 2]);
+        const signData = {
+            sats: utxo.sats,
+            outputScript: bareMultisigScript,
+        };
+
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData,
+                    },
+                    signatory: BareMultisigSignatorySchnorr(
+                        2,
+                        [pk1, pk2, pk3],
+                        sk1,
+                        pk1,
+                        signerIndices,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [{ sats: 50000n, script: recipientScript }],
+        });
+        const partialTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        const parsed =
+            partialTx.inputs[0].script!.parseBareMultisigSpend(
+                bareMultisigScript,
+            );
+        expect(parsed.isSchnorr).to.equal(true);
+        expect(parsed.pubkeyIndices).to.deep.equal(new Set([0, 2]));
+
+        const fullySigned = partialTx.addMultisigSignatureFromKey({
+            inputIdx: 0,
+            sk: sk3,
+            signData,
+        });
+        expect(fullySigned.isFullySignedMultisig()).to.equal(true);
+
+        const finalParsed =
+            fullySigned.inputs[0].script!.parseBareMultisigSpend(
+                bareMultisigScript,
+            );
+        expect(finalParsed.isSchnorr).to.equal(true);
+        expect(finalParsed.pubkeyIndices!.size).to.equal(2);
+        expect(finalParsed.pubkeyIndices!.has(0)).to.equal(true);
+        expect(finalParsed.pubkeyIndices!.has(2)).to.equal(true);
+
+        await chronik.broadcastTx(fullySigned.ser());
+    });
+
+    it('TxBuilder P2SH 3-of-5 multisig: 2 sigs fail broadcast, 3rd sig succeeds', async () => {
+        const sks = [
+            fromHex('aa'.repeat(32)),
+            fromHex('bb'.repeat(32)),
+            fromHex('cc'.repeat(32)),
+            fromHex('dd'.repeat(32)),
+            fromHex('ee'.repeat(32)),
+        ];
+        const pks = sks.map(sk => ecc.derivePubkey(sk));
+        const redeemScript = Script.multisig(3, pks);
+        const scriptHash = shaRmd160(redeemScript.bytecode);
+        const p2sh = Script.p2sh(scriptHash);
+
+        await runner.sendToScript(90000n, p2sh);
+        const utxos = await chronik.script('p2sh', toHex(scriptHash)).utxos();
+        expect(utxos.utxos.length).to.equal(1);
+        const utxo = utxos.utxos[0];
+
+        const recipientPkh = fromHex('01'.repeat(20));
+        const recipientScript = Script.p2pkh(recipientPkh);
+
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData: { sats: utxo.sats, redeemScript },
+                    },
+                    signatory: P2SHMultisigSignatory(
+                        3,
+                        pks,
+                        sks[0]!,
+                        pks[0]!,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [{ sats: 50000n, script: recipientScript }, p2sh],
+        });
+        let partialTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        const signData = { sats: utxo.sats, redeemScript };
+
+        const addCosignerSig = (tx: Tx, sk: Uint8Array): Tx => {
+            return tx.addMultisigSignatureFromKey({
+                inputIdx: 0,
+                sk,
+                signData,
+            });
+        };
+
+        partialTx = addCosignerSig(partialTx, sks[1]!);
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        let rejection: unknown;
+        try {
+            await chronik.broadcastTx(partialTx.ser());
+        } catch (err) {
+            rejection = err;
+        }
+        expect(String(rejection)).to.match(
+            /mandatory-script-verify-flag-failed \(Non-canonical DER signature\)/,
+        );
+
+        partialTx = addCosignerSig(partialTx, sks[2]!);
+        expect(partialTx.isFullySignedMultisig()).to.equal(true);
+
+        await chronik.broadcastTx(partialTx.ser());
+    });
+
+    it('TxBuilder P2SH 2-of-3 Schnorr multisig: partial sign, addSignature, broadcast', async () => {
+        const sk1 = fromHex('11'.repeat(32));
+        const sk2 = fromHex('22'.repeat(32));
+        const sk3 = fromHex('33'.repeat(32));
+        const pk1 = ecc.derivePubkey(sk1);
+        const pk2 = ecc.derivePubkey(sk2);
+        const pk3 = ecc.derivePubkey(sk3);
+        const redeemScript = Script.multisig(2, [pk1, pk2, pk3]);
+        const scriptHash = shaRmd160(redeemScript.bytecode);
+        const p2sh = Script.p2sh(scriptHash);
+
+        await runner.sendToScript(90000n, p2sh);
+        const utxos = await chronik.script('p2sh', toHex(scriptHash)).utxos();
+        expect(utxos.utxos.length).to.equal(1);
+        const utxo = utxos.utxos[0];
+
+        const recipientPkh = fromHex('02'.repeat(20));
+        const recipientScript = Script.p2pkh(recipientPkh);
+
+        const signerIndices = new Set([0, 2]);
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: utxo.outpoint,
+                        signData: {
+                            sats: utxo.sats,
+                            redeemScript,
+                        },
+                    },
+                    signatory: P2SHMultisigSignatorySchnorr(
+                        2,
+                        [pk1, pk2, pk3],
+                        sk1,
+                        pk1,
+                        signerIndices,
+                        ALL_BIP143,
+                    ),
+                },
+            ],
+            outputs: [{ sats: 50000n, script: recipientScript }, p2sh],
+        });
+        const partialTx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
+        expect(partialTx.isFullySignedMultisig()).to.equal(false);
+
+        const parsed = partialTx.inputs[0].script!.parseP2shMultisigSpend();
+        expect(parsed.isSchnorr).to.equal(true);
+
+        const signData = { sats: utxo.sats, redeemScript };
+
+        const fullySigned = partialTx.addMultisigSignatureFromKey({
+            inputIdx: 0,
+            sk: sk3,
+            signData,
+        });
+        expect(fullySigned.isFullySignedMultisig()).to.equal(true);
+
+        const finalParsed =
+            fullySigned.inputs[0].script!.parseP2shMultisigSpend();
+        expect(finalParsed.isSchnorr).to.equal(true);
+        expect(finalParsed.pubkeyIndices!.size).to.equal(2);
+        expect(finalParsed.pubkeyIndices!.has(0)).to.equal(true);
+        expect(finalParsed.pubkeyIndices!.has(2)).to.equal(true);
+
+        await chronik.broadcastTx(fullySigned.ser());
     });
 });

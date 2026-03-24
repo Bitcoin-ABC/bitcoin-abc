@@ -46,5 +46,18 @@ export const MAX_SCRIPTNUM_BYTE_SIZE = 8;
 /** Max pubkeys per multisig script. Matches MAX_PUBKEYS_PER_MULTISIG in src/script/script.h. */
 export const MAX_PUBKEYS_PER_MULTISIG = 20;
 
+/**
+ * Upper bound on ECDSA `vchSig` size (strict DER + sighash byte) for fee / size
+ * estimation with {@link EccDummy}. Matches script validation: DER ≤ 72 bytes,
+ * then one sighash byte → max 73. Slightly above typical sizes (~71–72) and
+ * above the wallet dummy (72-byte `vchSig` in Bitcoin ABC); avoids underestimating.
+ *
+ * Since 1 sat/byte is both the min fee and a typical fee, do not assume slack
+ */
+export const ECDSA_SIG_ESTIMATE_BYTES = 73;
+
+/** Schnorr signature size in bytes including sighash flag, for fee estimation. */
+export const SCHNORR_SIG_ESTIMATE_BYTES = 65;
+
 // The size in bytes of a p2pkh output
 export const P2PKH_OUTPUT_SIZE = 34;

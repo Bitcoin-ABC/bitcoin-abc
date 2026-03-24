@@ -6,15 +6,18 @@
  * Partially Signed Bitcoin Transaction (PSBT) per **BIP 174**:
  * - Spec: https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
  *
- * This module implements **decode/encode** (`{@link Psbt.fromBytes}`,
- * `{@link Psbt.toBytes}`) aligned with Bitcoin ABC: global unsigned tx, per-input
- * `PSBT_IN_UTXO` (`0x00`) / redeem script / partial sigs, output maps, and
- * preservation of unknown pairs (BIP 174).
+ * Decode/encode aligned with Bitcoin ABC (`{@link Psbt.fromBytes}`,
+ * `{@link Psbt.toBytes}`), plus multisig workflows: per-input `PSBT_IN_UTXO`
+ * (`0x00`), redeem script, partial signatures; unknown pairs preserved (BIP 174).
  *
  * **Input key `0x00` (`PSBT_IN_UTXO`):** BIP 174 also defines type `0x01` (“witness
  * UTXO”) for the same *value* shape. **Bitcoin ABC only implements `0x00`:** value
  * is `CTxOut` or full previous tx (non-witness UTXO). We match the node; `0x01`
  * entries are preserved as unknown keys on round-trip.
+ *
+ * High-level merge/sign helpers: {@link Tx.addMultisigSignature},
+ * {@link Tx.addMultisigSignatureFromKey}; {@link Psbt.fromTx} builds a PSBT from a
+ * partially signed {@link Tx}; {@link Psbt.toTx} rebuilds scriptSigs from partial sigs.
  */
 
 import { Bytes } from './io/bytes.js';
@@ -23,9 +26,19 @@ import { readVarSize, writeVarSize } from './io/varsize.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
 import { Writer } from './io/writer.js';
-import { shaRmd160 } from './hash.js';
+import { Ecc } from './ecc.js';
+import { shaRmd160, sha256d } from './hash.js';
 import { Script } from './script.js';
-import { OutPoint, SignData, Tx } from './tx.js';
+import { ALL_BIP143, type SigHashType } from './sigHashType.js';
+import {
+    copyTxInput,
+    copyTxOutput,
+    OutPoint,
+    SignData,
+    Tx,
+    TxInput,
+} from './tx.js';
+import { UnsignedTx } from './unsignedTx.js';
 
 /**
  * BIP 174 **magic bytes** for PSBT version 0: ASCII `psbt` + `0xff`.
@@ -206,6 +219,20 @@ function validateBip32DerivationKeyValue(
     }
 }
 
+/** Strip input scripts for PSBT global unsigned transaction (BIP 174). */
+export function txToUnsigned(tx: Tx): Tx {
+    return new Tx({
+        version: tx.version,
+        inputs: tx.inputs.map(inp => ({
+            prevOut: inp.prevOut,
+            script: new Script(),
+            sequence: inp.sequence,
+        })),
+        outputs: tx.outputs.map(o => copyTxOutput(o)),
+        locktime: tx.locktime,
+    });
+}
+
 /** `CTxOut` bytes for a {@link PSBT_IN_UTXO} map value (same layout BIP 174 labels “witness UTXO”). */
 function encodeWitnessUtxo(sats: bigint, scriptPubKey: Uint8Array): Uint8Array {
     const wl = new WriterLength();
@@ -277,6 +304,178 @@ function scriptPubKeyFromSignData(signData: SignData): Uint8Array {
         return signData.outputScript.bytecode;
     }
     throw new Error('SignData needs redeemScript or outputScript for PSBT');
+}
+
+/**
+ * The multisig **redeem** script used to interpret partial sigs: P2SH `redeemScript`,
+ * or bare `outputScript` (the locking script is the multisig template itself).
+ */
+function multisigLockingScript(signData: SignData): Script {
+    if (signData.redeemScript !== undefined) {
+        return signData.redeemScript;
+    }
+    if (signData.outputScript !== undefined) {
+        return signData.outputScript;
+    }
+    throw new Error('SignData needs redeemScript or outputScript');
+}
+
+/**
+ * Build the input `scriptSig` for a multisig spend from the PSBT partial-signature
+ * map (pubkey hex → signature with sighash byte). Used by {@link Psbt.toTx} only.
+ *
+ * Matches pubkey order from {@link multisigLockingScript}'s `parseMultisigRedeemScript`,
+ * then dispatches:
+ * - **Schnorr** if any partial sig has length 65 (Schnorr + sighash): uses
+ *   {@link Script.multisigSpend} with `pubkeyIndices` derived from which pubkeys
+ *   have sigs (bare passes `numPubkeys`; P2SH passes `redeemScript`).
+ * - **ECDSA** otherwise: fills `m` slots left-to-right from present sigs (same
+ *   convention as {@link BareMultisigSignatory} / {@link P2SHMultisigSignatory}).
+ */
+function buildScriptSigFromPartialSigs(
+    signData: SignData,
+    partialSigs: Map<string, Uint8Array>,
+): Script {
+    const lock = multisigLockingScript(signData);
+    const { numSignatures, numPubkeys, pubkeys } =
+        lock.parseMultisigRedeemScript();
+    const perPk = pubkeys.map(pk => partialSigs.get(pubkeyHex(pk)));
+    const signatures = perPk.filter((s): s is Uint8Array => s !== undefined);
+
+    const anySchnorr = [...partialSigs.values()].some(s => s.length === 65);
+    if (anySchnorr) {
+        const pubkeyIndices = new Set(
+            perPk.flatMap((s, i) => (s !== undefined ? [i] : [])),
+        );
+        if (signData.redeemScript !== undefined) {
+            return Script.multisigSpend({
+                signatures,
+                redeemScript: signData.redeemScript,
+                pubkeyIndices,
+            });
+        }
+        return Script.multisigSpend({
+            signatures,
+            pubkeyIndices,
+            numPubkeys,
+        });
+    }
+
+    const sigsForScript: (Uint8Array | undefined)[] =
+        signatures.length >= numSignatures
+            ? signatures.slice(0, numSignatures)
+            : [
+                  ...signatures,
+                  ...Array(numSignatures - signatures.length).fill(undefined),
+              ];
+
+    return Script.multisigSpend({
+        signatures: sigsForScript,
+        redeemScript: signData.redeemScript,
+    });
+}
+
+/**
+ * Extract pubkey → signature (with sighash byte) from a multisig scriptSig.
+ */
+function extractPartialSigsFromInput(
+    script: Script,
+    signData: SignData,
+    unsignedTx: Tx,
+    inputIdx: number,
+    ecc: Ecc,
+): Map<string, Uint8Array> {
+    const map = new Map<string, Uint8Array>();
+    if (!script.bytecode.length) return map;
+
+    const inputs: TxInput[] = unsignedTx.inputs.map((inp, i) => ({
+        ...copyTxInput(inp),
+        signData: i === inputIdx ? signData : undefined,
+    }));
+    inputs[inputIdx] = {
+        ...copyTxInput(unsignedTx.inputs[inputIdx]!),
+        script,
+        signData,
+    };
+
+    const txForPreimage = new Tx({
+        version: unsignedTx.version,
+        inputs,
+        outputs: unsignedTx.outputs.map(copyTxOutput),
+        locktime: unsignedTx.locktime,
+    });
+
+    const msgHash = sha256d(
+        UnsignedTx.fromTx(txForPreimage)
+            .inputAt(inputIdx)
+            .sigHashPreimage(ALL_BIP143).bytes,
+    );
+
+    if (signData.redeemScript !== undefined) {
+        const parsed = script.parseP2shMultisigSpend();
+        if (parsed.isSchnorr) {
+            const sorted = [...(parsed.pubkeyIndices ?? [])].sort(
+                (a, b) => a - b,
+            );
+            for (let i = 0; i < sorted.length; i++) {
+                const pkIdx = sorted[i]!;
+                const pk = parsed.pubkeys[pkIdx]!;
+                const sig = parsed.signatures[i];
+                if (sig !== undefined) map.set(pubkeyHex(pk), sig);
+            }
+            return map;
+        }
+        for (const sig of parsed.signatures) {
+            if (sig === undefined) continue;
+            const sigNo = sig.slice(0, -1);
+            for (const pk of parsed.pubkeys) {
+                try {
+                    ecc.ecdsaVerify(sigNo, msgHash, pk);
+                    map.set(pubkeyHex(pk), sig);
+                    break;
+                } catch {
+                    /* next */
+                }
+            }
+        }
+        return map;
+    }
+
+    if (signData.outputScript !== undefined) {
+        const parsed = script.parseBareMultisigSpend(signData.outputScript);
+        if (parsed.isSchnorr) {
+            const sorted = [...(parsed.pubkeyIndices ?? [])].sort(
+                (a, b) => a - b,
+            );
+            for (let i = 0; i < sorted.length; i++) {
+                const pkIdx = sorted[i]!;
+                const pk = parsed.pubkeys[pkIdx]!;
+                const sig = parsed.signatures[i];
+                if (sig !== undefined) map.set(pubkeyHex(pk), sig);
+            }
+            return map;
+        }
+        for (const sig of parsed.signatures) {
+            if (sig === undefined) continue;
+            const sigNo = sig.slice(0, -1);
+            for (const pk of parsed.pubkeys) {
+                try {
+                    ecc.ecdsaVerify(sigNo, msgHash, pk);
+                    map.set(pubkeyHex(pk), sig);
+                    break;
+                } catch {
+                    /* next */
+                }
+            }
+        }
+    }
+    return map;
+}
+
+export interface PsbtInputMaps {
+    witnessUtxo: { sats: bigint; scriptPubKey: Uint8Array };
+    redeemScript?: Script;
+    partialSigs: Map<string, Uint8Array>;
 }
 
 /** One PSBT key-value pair (BIP 174). */
@@ -361,16 +560,17 @@ function parseInputMapPairs(
 }
 
 /**
- * BIP 174 PSBT decode/encode for eCash, aligned with Bitcoin ABC’s PSBT maps.
+ * BIP 174 PSBT for eCash multisig and ABC-aligned decode/encode.
  * See https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki#serialization
  *
- * Use {@link Psbt.fromBytes} / {@link Psbt.toBytes} for round-trip; unknown
- * key-value pairs are preserved (BIP 174).
+ * Typical flow: {@link Psbt.fromTx} from a partially signed {@link Tx} plus
+ * {@link SignData} per input → {@link Psbt.toBytes} → share → {@link Psbt.fromBytes}.
+ * Unknown key-value pairs are preserved (BIP 174).
  */
 export class Psbt {
     /** Unsigned transaction (empty scriptSigs). */
     public readonly unsignedTx: Tx;
-    /** Per-input data derived from maps (amount, scripts, partial sigs). */
+    /** Per-input signing data (amount, scripts, partial sig maps). */
     public readonly signDataPerInput: SignData[];
     /** Per-input partial signatures: hex(pubkey) → signature incl. sighash byte. */
     public readonly inputPartialSigs: Map<string, Uint8Array>[];
@@ -432,6 +632,35 @@ export class Psbt {
         ) {
             throw new Error('inputWitnessIncomplete length must match inputs');
         }
+    }
+
+    /**
+     * Build a PSBT from a transaction that may already include partial scriptSigs.
+     * Populates `PSBT_IN_UTXO` (`0x00`) + redeem script + partial signatures.
+     */
+    public static fromTx(tx: Tx, signDataPerInput: SignData[], ecc: Ecc): Psbt {
+        const unsignedTx = txToUnsigned(tx);
+        const inputPartialSigs: Map<string, Uint8Array>[] = [];
+        for (let i = 0; i < tx.inputs.length; i++) {
+            const script = tx.inputs[i]?.script ?? new Script();
+            const sigs = extractPartialSigsFromInput(
+                script,
+                signDataPerInput[i]!,
+                unsignedTx,
+                i,
+                ecc,
+            );
+            inputPartialSigs.push(sigs);
+        }
+        return new Psbt({
+            unsignedTx,
+            signDataPerInput,
+            inputPartialSigs,
+            unknownGlobalPairs: [],
+            unknownInputPairs: unsignedTx.inputs.map(() => []),
+            unknownOutputPairs: unsignedTx.outputs.map(() => []),
+            inputWitnessIncomplete: unsignedTx.inputs.map(() => false),
+        });
     }
 
     /** Deserialize PSBT bytes (BIP 174). */
@@ -586,5 +815,94 @@ export class Psbt {
             w.putBytes(p);
         }
         return w.data;
+    }
+
+    /**
+     * Current transaction with scriptSigs built from partial signatures.
+     * Attach each input's `signData` for signing and validation helpers.
+     */
+    public toTx(): Tx {
+        return new Tx({
+            version: this.unsignedTx.version,
+            inputs: this.unsignedTx.inputs.map((inp, i) => {
+                const sd = this.signDataPerInput[i]!;
+                const script = buildScriptSigFromPartialSigs(
+                    sd,
+                    this.inputPartialSigs[i]!,
+                );
+                return {
+                    ...copyTxInput(inp),
+                    script,
+                    signData: sd,
+                };
+            }),
+            outputs: this.unsignedTx.outputs.map(copyTxOutput),
+            locktime: this.unsignedTx.locktime,
+        });
+    }
+
+    /**
+     * Add or merge a multisig signature on an input (same semantics as
+     * {@link Tx.addMultisigSignature}).
+     */
+    public addMultisigSignature(params: {
+        inputIdx: number;
+        signature: Uint8Array;
+        signData: SignData;
+        ecc?: Ecc;
+    }): Psbt {
+        const tx = this.toTx();
+        const nextTx = tx.addMultisigSignature(params);
+        const next = Psbt.fromTx(
+            nextTx,
+            this.signDataPerInput,
+            params.ecc ?? new Ecc(),
+        );
+        return new Psbt({
+            unsignedTx: next.unsignedTx,
+            signDataPerInput: next.signDataPerInput,
+            inputPartialSigs: next.inputPartialSigs,
+            unknownGlobalPairs: this.unknownGlobalPairs,
+            unknownInputPairs: this.unknownInputPairs,
+            unknownOutputPairs: this.unknownOutputPairs,
+            inputWitnessIncomplete: this.inputWitnessIncomplete,
+        });
+    }
+
+    /**
+     * Like {@link addMultisigSignature}, but signs with a secret key (see
+     * {@link Tx.addMultisigSignatureFromKey}).
+     */
+    public addMultisigSignatureFromKey(params: {
+        inputIdx: number;
+        sk: Uint8Array;
+        signData: SignData;
+        sigHashType?: SigHashType;
+        ecc?: Ecc;
+    }): Psbt {
+        const tx = this.toTx();
+        const nextTx = tx.addMultisigSignatureFromKey(params);
+        const next = Psbt.fromTx(
+            nextTx,
+            this.signDataPerInput,
+            params.ecc ?? new Ecc(),
+        );
+        return new Psbt({
+            unsignedTx: next.unsignedTx,
+            signDataPerInput: next.signDataPerInput,
+            inputPartialSigs: next.inputPartialSigs,
+            unknownGlobalPairs: this.unknownGlobalPairs,
+            unknownInputPairs: this.unknownInputPairs,
+            unknownOutputPairs: this.unknownOutputPairs,
+            inputWitnessIncomplete: this.inputWitnessIncomplete,
+        });
+    }
+
+    /**
+     * Same as {@link Tx.isFullySignedMultisig} on {@link toTx} (including
+     * vacuous `true` when there are no multisig inputs).
+     */
+    public isFullySignedMultisig(): boolean {
+        return this.toTx().isFullySignedMultisig();
     }
 }

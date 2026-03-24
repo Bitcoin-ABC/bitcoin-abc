@@ -8,8 +8,12 @@ import { writeVarSize, readVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
+import { Ecc } from './ecc.js';
 import { Script } from './script.js';
 import { sha256d } from './hash.js';
+import { flagSignature } from './signatories.js';
+import { ALL_BIP143, SigHashType } from './sigHashType.js';
+import { UnsignedTx } from './unsignedTx.js';
 
 /**
  * Default value for nSequence of inputs if left undefined; this opts out of
@@ -225,6 +229,281 @@ export class Tx {
         } catch {
             return undefined;
         }
+    }
+
+    /**
+     * Add a signature to a partially-signed multisig input.
+     * Verifies the signature against the sighash for each pubkey in the
+     * redeem/output script and merges with existing signatures (which pubkey
+     * signed is inferred from verification).
+     */
+    public addMultisigSignature(params: {
+        inputIdx: number;
+        signature: Uint8Array;
+        signData: SignData;
+        ecc?: Ecc;
+    }): Tx {
+        const { inputIdx, signature, signData } = params;
+        const ecc = params.ecc ?? new Ecc();
+        const input = this.inputs[inputIdx];
+        if (!input.script || input.script.bytecode.length === 0) {
+            throw new Error(
+                `Input ${inputIdx} has no scriptSig to add signature to`,
+            );
+        }
+        const isBare =
+            signData.outputScript !== undefined &&
+            signData.redeemScript === undefined;
+        const parsed = isBare
+            ? input.script.parseBareMultisigSpend(signData.outputScript!)
+            : input.script.parseP2shMultisigSpend();
+        const txWithSignData = new Tx({
+            version: this.version,
+            inputs: this.inputs.map((inp, i) =>
+                i === inputIdx
+                    ? { ...copyTxInput(inp), signData }
+                    : copyTxInput(inp),
+            ),
+            outputs: this.outputs,
+            locktime: this.locktime,
+        });
+        const unsignedTx = UnsignedTx.fromTx(txWithSignData);
+        const inputAt = unsignedTx.inputAt(inputIdx);
+        const sigHashType =
+            SigHashType.fromInt(
+                (signature[signature.length - 1] ?? 0) & 0xff,
+            ) ?? ALL_BIP143;
+        const preimage = inputAt.sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sigWithoutFlag = signature.slice(0, -1);
+
+        let pubkeyIndex = -1;
+        if (parsed.isSchnorr) {
+            for (let i = 0; i < parsed.pubkeys.length; i++) {
+                try {
+                    ecc.schnorrVerify(
+                        sigWithoutFlag,
+                        sighash,
+                        parsed.pubkeys[i]!,
+                    );
+                    pubkeyIndex = i;
+                    break;
+                } catch {
+                    /* try next pubkey */
+                }
+            }
+            if (pubkeyIndex < 0) {
+                throw new Error(
+                    'Schnorr signature does not verify for any pubkey in the multisig script',
+                );
+            }
+        } else {
+            for (let i = 0; i < parsed.pubkeys.length; i++) {
+                try {
+                    ecc.ecdsaVerify(
+                        sigWithoutFlag,
+                        sighash,
+                        parsed.pubkeys[i]!,
+                    );
+                    pubkeyIndex = i;
+                    break;
+                } catch {
+                    /* try next pubkey */
+                }
+            }
+            if (pubkeyIndex < 0) {
+                throw new Error(
+                    'ECDSA signature does not verify for any pubkey in the multisig script',
+                );
+            }
+        }
+
+        const sigsByPubkey: (Uint8Array | undefined)[] = Array(
+            parsed.pubkeys.length,
+        ).fill(undefined);
+
+        if (parsed.isSchnorr) {
+            const indices = parsed.pubkeyIndices!;
+            const sortedIndices = [...indices].sort((a, b) => a - b);
+            for (let i = 0; i < parsed.signatures.length; i++) {
+                const sig = parsed.signatures[i];
+                if (sig !== undefined && i < sortedIndices.length) {
+                    sigsByPubkey[sortedIndices[i]!] = sig;
+                }
+            }
+        } else {
+            for (const sig of parsed.signatures) {
+                if (sig === undefined) continue;
+                const sigNoFlag = sig.slice(0, -1);
+                for (let i = 0; i < parsed.pubkeys.length; i++) {
+                    try {
+                        ecc.ecdsaVerify(sigNoFlag, sighash, parsed.pubkeys[i]!);
+                        sigsByPubkey[i] = sig;
+                        break;
+                    } catch {
+                        /* try next pubkey */
+                    }
+                }
+            }
+        }
+        sigsByPubkey[pubkeyIndex] = signature;
+
+        const nonNullSigs = sigsByPubkey.filter(
+            (s): s is Uint8Array => s !== undefined,
+        );
+        const sigsForScript =
+            nonNullSigs.length >= parsed.numSignatures
+                ? nonNullSigs.slice(0, parsed.numSignatures)
+                : [
+                      ...nonNullSigs,
+                      ...Array(parsed.numSignatures - nonNullSigs.length).fill(
+                          undefined,
+                      ),
+                  ];
+
+        const redeemScript: Script | undefined =
+            !isBare && 'redeemScript' in parsed
+                ? (parsed as { redeemScript: Script }).redeemScript
+                : undefined;
+        const newScriptSig = parsed.isSchnorr
+            ? (() => {
+                  const signerIndices = new Set<number>();
+                  for (
+                      let i = 0;
+                      i < parsed.pubkeys.length &&
+                      signerIndices.size < parsed.numSignatures;
+                      i++
+                  ) {
+                      if (sigsByPubkey[i] !== undefined) signerIndices.add(i);
+                  }
+                  return isBare
+                      ? Script.multisigSpend({
+                            signatures: sigsForScript,
+                            pubkeyIndices: signerIndices,
+                            numPubkeys: parsed.numPubkeys,
+                        })
+                      : Script.multisigSpend({
+                            signatures: sigsForScript,
+                            redeemScript,
+                            pubkeyIndices: signerIndices,
+                        });
+              })()
+            : Script.multisigSpend({
+                  signatures: sigsForScript,
+                  redeemScript,
+              });
+
+        const newInputs = this.inputs.map((inp, i) =>
+            i === inputIdx
+                ? { ...copyTxInput(inp), script: newScriptSig }
+                : copyTxInput(inp),
+        );
+        return new Tx({
+            version: this.version,
+            inputs: newInputs,
+            outputs: this.outputs,
+            locktime: this.locktime,
+        });
+    }
+
+    /**
+     * Like {@link addMultisigSignature}, but computes the signature from a
+     * secret key: BIP143 preimage (or legacy if `sigHashType` is legacy),
+     * Schnorr for Schnorr-format multisig spends and ECDSA otherwise.
+     */
+    public addMultisigSignatureFromKey(params: {
+        inputIdx: number;
+        sk: Uint8Array;
+        signData: SignData;
+        /** Defaults to {@link ALL_BIP143}. */
+        sigHashType?: SigHashType;
+        ecc?: Ecc;
+    }): Tx {
+        const sigHashType = params.sigHashType ?? ALL_BIP143;
+        const ecc = params.ecc ?? new Ecc();
+        const { inputIdx, sk, signData } = params;
+        const input = this.inputs[inputIdx];
+        if (!input.script || input.script.bytecode.length === 0) {
+            throw new Error(
+                `Input ${inputIdx} has no scriptSig to add signature to`,
+            );
+        }
+        const isBare =
+            signData.outputScript !== undefined &&
+            signData.redeemScript === undefined;
+        const parsed = isBare
+            ? input.script.parseBareMultisigSpend(signData.outputScript!)
+            : input.script.parseP2shMultisigSpend();
+        const txWithSignData = new Tx({
+            version: this.version,
+            inputs: this.inputs.map((inp, i) =>
+                i === inputIdx
+                    ? { ...copyTxInput(inp), signData }
+                    : copyTxInput(inp),
+            ),
+            outputs: this.outputs,
+            locktime: this.locktime,
+        });
+        const unsignedTx = UnsignedTx.fromTx(txWithSignData);
+        const preimage = unsignedTx
+            .inputAt(inputIdx)
+            .sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sig = parsed.isSchnorr
+            ? ecc.schnorrSign(sk, sighash)
+            : ecc.ecdsaSign(sk, sighash);
+        const signature = flagSignature(sig, sigHashType);
+        return this.addMultisigSignature({
+            inputIdx,
+            signature,
+            signData,
+            ecc,
+        });
+    }
+
+    /**
+     * Whether every **multisig** input (identified from `signData`) has enough
+     * signatures in its scriptSig. Non-multisig inputs are ignored.
+     *
+     * If the transaction has **no** multisig inputs, this returns `true` (there
+     * is nothing multisig-specific left to satisfy). That can look surprising on
+     * a non-multisig or otherwise incomplete tx; this helper is **not** a
+     * broadcast-readiness check. Call sites are expected to use it only in
+     * multisig / PSBT flows where the question is specifically whether multisig
+     * inputs still need more signatures (including mixed txs: non-multisig
+     * inputs are finalized elsewhere).
+     */
+    public isFullySignedMultisig(): boolean {
+        for (let i = 0; i < this.inputs.length; i++) {
+            const input = this.inputs[i];
+            const multisigScript =
+                input.signData?.redeemScript !== undefined
+                    ? input.signData.redeemScript
+                    : input.signData?.outputScript?.isMultisig()
+                      ? input.signData!.outputScript
+                      : undefined;
+            if (multisigScript === undefined) {
+                continue;
+            }
+            if (!input.script || input.script.bytecode.length === 0) {
+                return false;
+            }
+            try {
+                const parsed =
+                    input.signData?.redeemScript === undefined
+                        ? input.script.parseBareMultisigSpend(multisigScript)
+                        : input.script.parseP2shMultisigSpend();
+                const sigCount = parsed.signatures.filter(
+                    s => s !== undefined,
+                ).length;
+                if (sigCount < parsed.numSignatures) {
+                    return false;
+                }
+            } catch {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

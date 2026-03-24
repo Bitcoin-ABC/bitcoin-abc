@@ -6,7 +6,11 @@
  * Signatories and signing helpers used with `TxBuilder` (`TxBuilderInput.signatory`).
  */
 
-import { Ecc } from './ecc.js';
+import { Ecc, EccDummy } from './ecc.js';
+import {
+    ECDSA_SIG_ESTIMATE_BYTES,
+    SCHNORR_SIG_ESTIMATE_BYTES,
+} from './consts.js';
 import { sha256d } from './hash.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { pushBytesOp } from './op.js';
@@ -65,7 +69,7 @@ export const P2PKHSignatory = (
     sk: Uint8Array,
     pk: Uint8Array,
     sigHashType: SigHashType,
-) => {
+): Signatory => {
     return (ecc: Ecc, input: UnsignedTxInput): Script => {
         const preimage = input.sigHashPreimage(sigHashType);
         const sighash = sha256d(preimage.bytes);
@@ -74,8 +78,215 @@ export const P2PKHSignatory = (
     };
 };
 
+/** Signatory for bare m-of-n multisig (output script is the multisig script itself). */
+export const BareMultisigSignatory = (
+    m: number,
+    pubkeys: Uint8Array[],
+    sk: Uint8Array,
+    myPk: Uint8Array,
+    sigHashType: SigHashType,
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        if (ecc instanceof EccDummy) {
+            const dummySig = new Uint8Array(ECDSA_SIG_ESTIMATE_BYTES);
+            const signatures = Array(m)
+                .fill(undefined)
+                .map(() => dummySig);
+            return Script.multisigSpend({ signatures });
+        }
+        const preimage = input.sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sig = ecc.ecdsaSign(sk, sighash);
+        const sigFlagged = flagSignature(sig, sigHashType);
+        const myIndex = pubkeys.findIndex(
+            pk =>
+                pk.length === myPk.length && pk.every((b, i) => b === myPk[i]),
+        );
+        if (myIndex < 0) {
+            throw new Error('Signer pubkey not found in multisig pubkeys');
+        }
+        const n = pubkeys.length;
+        const signatures: (Uint8Array | undefined)[] = Array(n).fill(undefined);
+        signatures[myIndex] = sigFlagged;
+        const nonNull = signatures.filter(
+            (s): s is Uint8Array => s !== undefined,
+        );
+        const sigsForScript: (Uint8Array | undefined)[] = [
+            ...nonNull,
+            ...Array(m - nonNull.length).fill(undefined),
+        ];
+        return Script.multisigSpend({ signatures: sigsForScript });
+    };
+};
+
+/** Signatory for bare m-of-n multisig using Schnorr signatures (BIP143 Schnorr multisig). */
+export const BareMultisigSignatorySchnorr = (
+    m: number,
+    pubkeys: Uint8Array[],
+    sk: Uint8Array,
+    myPk: Uint8Array,
+    signerIndices: Set<number>,
+    sigHashType: SigHashType,
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        const n = pubkeys.length;
+        if (signerIndices.size !== m) {
+            throw new Error(
+                `signerIndices must have ${m} elements for ${m}-of-${n} multisig`,
+            );
+        }
+        if (ecc instanceof EccDummy) {
+            const dummySig = new Uint8Array(SCHNORR_SIG_ESTIMATE_BYTES);
+            const signatures = Array(m)
+                .fill(undefined)
+                .map(() => dummySig);
+            return Script.multisigSpend({
+                signatures,
+                pubkeyIndices: signerIndices,
+                numPubkeys: n,
+            });
+        }
+        const preimage = input.sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sig = ecc.schnorrSign(sk, sighash);
+        const sigFlagged = flagSignature(sig, sigHashType);
+        const myIndex = pubkeys.findIndex(
+            pk =>
+                pk.length === myPk.length && pk.every((b, i) => b === myPk[i]),
+        );
+        if (myIndex < 0) {
+            throw new Error('Signer pubkey not found in multisig pubkeys');
+        }
+        if (!signerIndices.has(myIndex)) {
+            throw new Error(
+                `Signer index ${myIndex} not in signerIndices ${[
+                    ...signerIndices,
+                ].join(',')}`,
+            );
+        }
+        const sortedIndices = [...signerIndices].sort((a, b) => a - b);
+        const signatures: (Uint8Array | undefined)[] = sortedIndices.map(idx =>
+            idx === myIndex ? sigFlagged : undefined,
+        );
+        return Script.multisigSpend({
+            signatures,
+            pubkeyIndices: signerIndices,
+            numPubkeys: n,
+        });
+    };
+};
+
+/** Signatory for P2SH m-of-n multisig. */
+export const P2SHMultisigSignatory = (
+    m: number,
+    pubkeys: Uint8Array[],
+    sk: Uint8Array,
+    myPk: Uint8Array,
+    sigHashType: SigHashType,
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        const redeemScript = Script.multisig(m, pubkeys);
+        if (ecc instanceof EccDummy) {
+            const dummySig = new Uint8Array(ECDSA_SIG_ESTIMATE_BYTES);
+            const signatures = Array(m)
+                .fill(undefined)
+                .map(() => dummySig);
+            return Script.multisigSpend({
+                signatures,
+                redeemScript,
+            });
+        }
+        const preimage = input.sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sig = ecc.ecdsaSign(sk, sighash);
+        const sigFlagged = flagSignature(sig, sigHashType);
+        const myIndex = pubkeys.findIndex(
+            pk =>
+                pk.length === myPk.length && pk.every((b, i) => b === myPk[i]),
+        );
+        if (myIndex < 0) {
+            throw new Error('Signer pubkey not found in multisig pubkeys');
+        }
+        const n = pubkeys.length;
+        const signatures: (Uint8Array | undefined)[] = Array(n).fill(undefined);
+        signatures[myIndex] = sigFlagged;
+        const nonNull = signatures.filter(
+            (s): s is Uint8Array => s !== undefined,
+        );
+        const sigsForScript: (Uint8Array | undefined)[] = [
+            ...nonNull,
+            ...Array(m - nonNull.length).fill(undefined),
+        ];
+        return Script.multisigSpend({
+            signatures: sigsForScript,
+            redeemScript,
+        });
+    };
+};
+
+/** Signatory for P2SH m-of-n multisig using Schnorr signatures. */
+export const P2SHMultisigSignatorySchnorr = (
+    m: number,
+    pubkeys: Uint8Array[],
+    sk: Uint8Array,
+    myPk: Uint8Array,
+    signerIndices: Set<number>,
+    sigHashType: SigHashType,
+): Signatory => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        const redeemScript = Script.multisig(m, pubkeys);
+        const n = pubkeys.length;
+        if (signerIndices.size !== m) {
+            throw new Error(
+                `signerIndices must have ${m} elements for ${m}-of-${n} multisig`,
+            );
+        }
+        if (ecc instanceof EccDummy) {
+            const dummySig = new Uint8Array(SCHNORR_SIG_ESTIMATE_BYTES);
+            const signatures = Array(m)
+                .fill(undefined)
+                .map(() => dummySig);
+            return Script.multisigSpend({
+                signatures,
+                redeemScript,
+                pubkeyIndices: signerIndices,
+            });
+        }
+        const preimage = input.sigHashPreimage(sigHashType);
+        const sighash = sha256d(preimage.bytes);
+        const sig = ecc.schnorrSign(sk, sighash);
+        const sigFlagged = flagSignature(sig, sigHashType);
+        const myIndex = pubkeys.findIndex(
+            pk =>
+                pk.length === myPk.length && pk.every((b, i) => b === myPk[i]),
+        );
+        if (myIndex < 0) {
+            throw new Error('Signer pubkey not found in multisig pubkeys');
+        }
+        if (!signerIndices.has(myIndex)) {
+            throw new Error(
+                `Signer index ${myIndex} not in signerIndices ${[
+                    ...signerIndices,
+                ].join(',')}`,
+            );
+        }
+        const sortedIndices = [...signerIndices].sort((a, b) => a - b);
+        const signatures: (Uint8Array | undefined)[] = sortedIndices.map(idx =>
+            idx === myIndex ? sigFlagged : undefined,
+        );
+        return Script.multisigSpend({
+            signatures,
+            redeemScript,
+            pubkeyIndices: signerIndices,
+        });
+    };
+};
+
 /** Signatory for a P2PK input. Always uses Schnorr signatures */
-export const P2PKSignatory = (sk: Uint8Array, sigHashType: SigHashType) => {
+export const P2PKSignatory = (
+    sk: Uint8Array,
+    sigHashType: SigHashType,
+): Signatory => {
     return (ecc: Ecc, input: UnsignedTxInput): Script => {
         const preimage = input.sigHashPreimage(sigHashType);
         const sighash = sha256d(preimage.bytes);
