@@ -681,7 +681,7 @@ static UniValue GetNetworksInfo() {
             network == NET_INTERNAL) {
             continue;
         }
-        proxyType proxy;
+        Proxy proxy;
         UniValue obj(UniValue::VOBJ);
         GetProxy(network, proxy);
         obj.pushKV("name", GetNetworkName(network));

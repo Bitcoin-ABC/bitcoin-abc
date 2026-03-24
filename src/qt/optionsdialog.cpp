@@ -412,7 +412,7 @@ void OptionsDialog::updateDefaultProxyNets() {
     const CService ui_proxy{ui_proxy_netaddr.value_or(CNetAddr{}),
                             ui->proxyPort->text().toUShort()};
 
-    proxyType proxy;
+    Proxy proxy;
     bool has_proxy;
 
     has_proxy = model->node().getProxy(NET_IPV4, proxy);
@@ -433,7 +433,7 @@ QValidator::State ProxyAddressValidator::validate(QString &input,
     Q_UNUSED(pos);
     // Validate the proxy
     CService serv(LookupNumeric(input.toStdString(), DEFAULT_GUI_PROXY_PORT));
-    proxyType addrProxy = proxyType(serv, true);
+    Proxy addrProxy = Proxy(serv, true);
     if (addrProxy.IsValid()) {
         return QValidator::Acceptable;
     }

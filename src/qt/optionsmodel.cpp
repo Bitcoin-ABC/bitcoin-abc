@@ -556,7 +556,7 @@ void OptionsModel::setDisplayUnit(const QVariant &value) {
 bool OptionsModel::getProxySettings(QNetworkProxy &proxy) const {
     // Directly query current base proxy, because
     // GUI settings can be overridden with -proxy.
-    proxyType curProxy;
+    Proxy curProxy;
     if (node().getProxy(NET_IPV4, curProxy)) {
         proxy.setType(QNetworkProxy::Socks5Proxy);
         proxy.setHostName(

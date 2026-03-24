@@ -372,7 +372,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             tfm::format(std::cout, "Using Tor proxy at %s\n",
                         service.ToStringAddrPort());
-            SetProxy(NET_ONION, proxyType(service));
+            SetProxy(NET_ONION, Proxy(service));
         }
     }
     if (!opts.ipv4_proxy.empty()) {
@@ -380,7 +380,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv4 proxy at %s\n",
                         service.ToStringAddrPort());
-            SetProxy(NET_IPV4, proxyType(service));
+            SetProxy(NET_IPV4, Proxy(service));
         }
     }
     if (!opts.ipv6_proxy.empty()) {
@@ -388,7 +388,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             tfm::format(std::cout, "Using IPv6 proxy at %s\n",
                         service.ToStringAddrPort());
-            SetProxy(NET_IPV6, proxyType(service));
+            SetProxy(NET_IPV6, Proxy(service));
         }
     }
     bool fDNS = true;

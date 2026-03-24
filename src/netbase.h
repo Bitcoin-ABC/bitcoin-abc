@@ -48,11 +48,10 @@ static inline bool operator&(ConnectionDirection a, ConnectionDirection b) {
     return (underlying(a) & underlying(b));
 }
 
-class proxyType {
+class Proxy {
 public:
-    proxyType() : randomize_credentials(false) {}
-    explicit proxyType(const CService &_proxy,
-                       bool _randomize_credentials = false)
+    Proxy() : randomize_credentials(false) {}
+    explicit Proxy(const CService &_proxy, bool _randomize_credentials = false)
         : proxy(_proxy), randomize_credentials(_randomize_credentials) {}
 
     bool IsValid() const { return proxy.IsValid(); }
@@ -81,8 +80,8 @@ std::string GetNetworkName(enum Network net);
  * NET_UNROUTABLE
  */
 std::vector<std::string> GetNetworkNames(bool append_unroutable = false);
-bool SetProxy(enum Network net, const proxyType &addrProxy);
-bool GetProxy(enum Network net, proxyType &proxyInfoOut);
+bool SetProxy(enum Network net, const Proxy &addrProxy);
+bool GetProxy(enum Network net, Proxy &proxyInfoOut);
 bool IsProxy(const CNetAddr &addr);
 
 /**
@@ -101,9 +100,9 @@ bool IsProxy(const CNetAddr &addr);
  *       server in common use (most notably Tor) actually implements UDP
  *       support, and a DNS resolver is beyond the scope of this project.
  */
-bool SetNameProxy(const proxyType &addrProxy);
+bool SetNameProxy(const Proxy &addrProxy);
 bool HaveNameProxy();
-bool GetNameProxy(proxyType &nameProxyOut);
+bool GetNameProxy(Proxy &nameProxyOut);
 
 using DNSLookupFn =
     std::function<std::vector<CNetAddr>(const std::string &, bool)>;
@@ -244,7 +243,7 @@ bool ConnectSocketDirectly(const CService &addrConnect, const Sock &sock,
  *
  * @returns Whether or not the operation succeeded.
  */
-bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
+bool ConnectThroughProxy(const Proxy &proxy, const std::string &strDest,
                          uint16_t port, const Sock &sock, int nTimeout,
                          bool &outProxyConnectionFailed);
 

@@ -247,7 +247,7 @@ bool CSeederNode::Run() {
     // FIXME: This logic is duplicated with CConnman::ConnectNode for no
     // good reason.
     bool connected = false;
-    proxyType proxy;
+    Proxy proxy;
 
     if (you.IsValid()) {
         bool proxyConnectionFailed = false;

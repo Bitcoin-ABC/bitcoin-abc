@@ -2397,7 +2397,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // parameters
     fNameLookup = args.GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
 
-    proxyType onion_proxy;
+    Proxy onion_proxy;
 
     bool proxyRandomize =
         args.GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE);
@@ -2413,7 +2413,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 _("Invalid -proxy address or hostname: '%s'"), proxyArg));
         }
 
-        proxyType addrProxy = proxyType(proxyAddr.value(), proxyRandomize);
+        Proxy addrProxy = Proxy(proxyAddr.value(), proxyRandomize);
         if (!addrProxy.IsValid()) {
             return InitError(strprintf(
                 _("Invalid -proxy address or hostname: '%s'"), proxyArg));
@@ -2434,7 +2434,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (onionArg != "") {
         if (onionArg == "0") {
             // Handle -noonion/-onion=0
-            onion_proxy = proxyType{};
+            onion_proxy = Proxy{};
         } else {
             const std::optional<CService> addr{
                 Lookup(onionArg, 9050, fNameLookup)};
@@ -2442,7 +2442,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 return InitError(strprintf(
                     _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
-            onion_proxy = proxyType{addr.value(), proxyRandomize};
+            onion_proxy = Proxy{addr.value(), proxyRandomize};
         }
     }
 
@@ -3084,7 +3084,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             return InitError(strprintf(
                 _("Invalid -i2psam address or hostname: '%s'"), i2psam_arg));
         }
-        SetProxy(NET_I2P, proxyType{addr.value()});
+        SetProxy(NET_I2P, Proxy{addr.value()});
     } else {
         SetReachable(NET_I2P, false);
     }

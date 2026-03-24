@@ -24,7 +24,7 @@
 		5FB5C2A12EAE50CA005521DD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
+			Proxy = 1;
 			remoteGlobalIDString = 5FB5C2952EAE50C9005521DD;
 			remoteInfo = "MarlinWalletWatch Watch App";
 		};
