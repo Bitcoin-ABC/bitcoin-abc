@@ -278,8 +278,9 @@ QString boostPathToQString(const fs::path &path);
 /** Convert enum Network to QString */
 QString NetworkToQString(Network net);
 
-/** Convert seconds into a QString with days, hours, mins, secs */
-QString formatDurationStr(std::chrono::seconds dur);
+/// Convert a duration into a QString with days, hours, mins, secs. This ignores
+/// sub-seconds.
+QString formatDurationStr(std::chrono::nanoseconds dur);
 
 /** Format CNodeStats.nServices bitmask into a user-readable string */
 QString formatServicesStr(quint64 mask);

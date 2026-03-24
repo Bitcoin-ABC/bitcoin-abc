@@ -819,28 +819,27 @@ QString NetworkToQString(Network net) {
     assert(false);
 }
 
-QString formatDurationStr(std::chrono::seconds dur) {
-    const auto secs = count_seconds(dur);
-    QStringList strList;
-    int days = secs / 86400;
-    int hours = (secs % 86400) / 3600;
-    int mins = (secs % 3600) / 60;
-    int seconds = secs % 60;
-
-    if (days) {
-        strList.append(QString(QObject::tr("%1 d")).arg(days));
+QString formatDurationStr(std::chrono::nanoseconds dur) {
+    const auto d{std::chrono::duration_cast<std::chrono::days>(dur)};
+    const auto h{std::chrono::duration_cast<std::chrono::hours>(dur - d)};
+    const auto m{std::chrono::duration_cast<std::chrono::minutes>(dur - d - h)};
+    const auto s{
+        std::chrono::duration_cast<std::chrono::seconds>(dur - d - h - m)};
+    QStringList str_list;
+    if (auto d2{d.count()}) {
+        str_list.append(QObject::tr("%1 d").arg(d2));
     }
-    if (hours) {
-        strList.append(QString(QObject::tr("%1 h")).arg(hours));
+    if (auto h2{h.count()}) {
+        str_list.append(QObject::tr("%1 h").arg(h2));
     }
-    if (mins) {
-        strList.append(QString(QObject::tr("%1 m")).arg(mins));
+    if (auto m2{m.count()}) {
+        str_list.append(QObject::tr("%1 m").arg(m2));
     }
-    if (seconds || (!days && !hours && !mins)) {
-        strList.append(QString(QObject::tr("%1 s")).arg(seconds));
+    const auto s2{s.count()};
+    if (s2 || str_list.empty()) {
+        str_list.append(QObject::tr("%1 s").arg(s2));
     }
-
-    return strList.join(" ");
+    return str_list.join(" ");
 }
 
 QString formatServicesStr(quint64 mask) {
