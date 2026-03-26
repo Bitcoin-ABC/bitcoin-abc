@@ -845,7 +845,7 @@ void SetupServerArgs(NodeContext &node) {
         OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-connect=<ip>",
-        "Connect only to the specified node(s); -connect=0 disables automatic "
+        "Connect only to the specified node(s); -noconnect disables automatic "
         "connections (the rules for this peer are the same as for -addnode)",
         ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
         OptionsCategory::CONNECTION);
@@ -918,11 +918,12 @@ void SetupServerArgs(NodeContext &node) {
                   "backward by this amount. (default: %u seconds)",
                   DEFAULT_MAX_TIME_ADJUSTMENT),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    argsman.AddArg("-onion=<ip:port>",
-                   strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
-                             "onion services (default: %s)",
-                             "-proxy"),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-onion=<ip:port>",
+        strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
+                  "onion services, set -noonion to disable (default: %s)",
+                  "-proxy"),
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-i2psam=<ip:port>",
                    "I2P SAM proxy to reach I2P peers and accept I2P "
                    "connections (default: none)",
@@ -974,7 +975,9 @@ void SetupServerArgs(NodeContext &node) {
                              regtestChainParams->GetDefaultPort()),
                    ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
                    OptionsCategory::CONNECTION);
-    argsman.AddArg("-proxy=<ip:port>", "Connect through SOCKS5 proxy",
+    argsman.AddArg("-proxy=<ip:port>",
+                   "Connect through SOCKS5 proxy, set -noproxy to disable "
+                   "(default: disabled)",
                    ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_ELISION,
                    OptionsCategory::CONNECTION);
     argsman.AddArg(
