@@ -30,6 +30,21 @@
                                     ({{ total_size|to_i128|render_integer_smallify|safe }} B)
                                 </td>
                             </tr>
+                            <tr>
+                                <td>
+                                    <strong>Finalized transactions</strong>
+                                </td>
+                                <td>{{ num_finalized_txs }}</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Total finalized size</strong>
+                                </td>
+                                <td>
+                                    {{ total_finalized_size|render_human_size }}
+                                    ({{ total_finalized_size|to_i128|render_integer_smallify|safe }} B)
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

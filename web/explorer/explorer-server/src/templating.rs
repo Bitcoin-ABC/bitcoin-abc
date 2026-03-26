@@ -94,6 +94,8 @@ pub struct AddressTemplate<'a> {
 pub struct MempoolTemplate {
     pub num_txs: u32,
     pub total_size: u64,
+    pub num_finalized_txs: u64,
+    pub total_finalized_size: u64,
     pub network_selector: bool,
     pub hashes: FileHashes,
 }

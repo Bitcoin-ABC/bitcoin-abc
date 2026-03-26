@@ -685,13 +685,21 @@ impl Server {
         let mempool_txs = self.chronik.unconfirmed_txs().await?;
 
         let mut total_size = 0u64;
+        let mut num_finalized_txs = 0u64;
+        let mut total_finalized_size = 0u64;
         for tx in mempool_txs.txs.iter() {
             total_size += tx.size as u64;
+            if tx.is_final {
+                num_finalized_txs += 1;
+                total_finalized_size += tx.size as u64;
+            }
         }
 
         let mempool_template = MempoolTemplate {
             num_txs: mempool_txs.txs.len() as u32,
             total_size,
+            num_finalized_txs,
+            total_finalized_size,
             network_selector: self.network_selector,
             hashes: *FileHashes::get()?,
         };
