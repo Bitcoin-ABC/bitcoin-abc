@@ -217,6 +217,13 @@ const miners: Miners = {
                 // Jackpool only include "pool" in ASCII which is not unique
             },
         ],
+        [
+            '76a914c485fb0e21b57b691877102977a7d5a56a882d6888ac',
+            {
+                miner: 'Himpool',
+                coinbaseHexFragment: '48696d706f6f6c', // "Himpool" ASCII
+            },
+        ],
     ],
 };
 

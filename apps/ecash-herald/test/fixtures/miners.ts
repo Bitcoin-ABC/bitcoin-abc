@@ -506,6 +506,23 @@ const minerTestFixtures = [
             '76a914bb9571dc3b28f96d03bf36e438b260ae9871d85188ac',
         parsed: 'Jackpool',
     },
+    // Himpool - parsed from payout script
+    {
+        height: '942044',
+        coinbaseHex:
+            '03dc5f0e04c773c56900d0000006b94d0000000000000748696d706f6f6c',
+        payoutOutputScript:
+            '76a914c485fb0e21b57b691877102977a7d5a56a882d6888ac',
+        parsed: 'Himpool',
+    },
+    // Himpool - parsed from coinbase hex fragment
+    {
+        height: '942044',
+        coinbaseHex:
+            '03dc5f0e04c773c56900d0000006b94d0000000000000748696d706f6f6c',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'Himpool',
+    },
 ];
 
 export default minerTestFixtures;
