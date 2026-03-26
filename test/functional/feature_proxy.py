@@ -244,7 +244,6 @@ class ProxyTest(BitcoinTestFramework):
         assert_equal(NETWORKS, n0.keys())
         ip1, port1 = self.conf1.addr
         ip2, port2 = self.conf2.addr
-        ip3, port3 = self.conf3.addr
         for net in NETWORKS:
             if net == NET_I2P:
                 expected_proxy = ""
@@ -286,6 +285,7 @@ class ProxyTest(BitcoinTestFramework):
         if self.have_ipv6:
             n3 = networks_dict(self.nodes[3].getnetworkinfo())
             assert_equal(NETWORKS, n3.keys())
+            ip3, port3 = self.conf3.addr
             for net in NETWORKS:
                 expected_proxy = (
                     "" if net == NET_I2P or net == NET_ONION else f"[{ip3}]:{port3}"
