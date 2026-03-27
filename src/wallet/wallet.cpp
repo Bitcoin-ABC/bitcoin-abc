@@ -8,6 +8,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <common/args.h>
+#include <common/messages.h>
 #include <common/signmessage.h>
 #include <config.h>
 #include <consensus/amount.h>
@@ -30,7 +31,6 @@
 #include <univalue.h>
 #include <util/bip32.h>
 #include <util/check.h>
-#include <util/error.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/moneystr.h>
@@ -42,6 +42,8 @@
 
 #include <variant>
 
+using common::AmountErrMsg;
+using common::AmountHighWarn;
 using common::PSBTError;
 using interfaces::FoundBlock;
 

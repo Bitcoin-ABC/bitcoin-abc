@@ -5,6 +5,7 @@
 #include <blockfilter.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/messages.h>
 #include <common/signmessage.h>
 #include <common/system.h>
 #include <logging.h>
@@ -19,7 +20,6 @@
 #include <script/script.h>
 #include <serialize.h>
 #include <streams.h>
-#include <util/error.h>
 #include <util/settings.h>
 #include <util/strencodings.h>
 #include <util/string.h>
@@ -34,6 +34,10 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+
+using common::AmountErrMsg;
+using common::AmountHighWarn;
+using common::ResolveErrMsg;
 
 namespace {
 bool LegacyParsePrechecks(const std::string &str) {

@@ -5,6 +5,7 @@
 #include <wallet/spend.h>
 
 #include <common/args.h>
+#include <common/messages.h>
 #include <common/system.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
@@ -18,6 +19,8 @@
 #include <wallet/receive.h>
 #include <wallet/transaction.h>
 #include <wallet/wallet.h>
+
+using common::TransactionErrorString;
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 

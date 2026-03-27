@@ -25,6 +25,7 @@
 #include <chainparamsbase.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/messages.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <currencyunit.h>
@@ -115,6 +116,10 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+using common::AmountErrMsg;
+using common::InvalidPortErrMsg;
+using common::ResolveErrMsg;
 
 using kernel::DEFAULT_STOPAFTERBLOCKIMPORT;
 using kernel::DumpMempool;

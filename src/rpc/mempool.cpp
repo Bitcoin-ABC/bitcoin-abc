@@ -10,6 +10,7 @@
 #include <core_io.h>
 #include <node/context.h>
 #include <node/mempool_persist_args.h>
+#include <node/types.h>
 #include <policy/settings.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>

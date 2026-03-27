@@ -6,8 +6,8 @@
 #define BITCOIN_NODE_TRANSACTION_H
 
 #include <feerate.h>
+#include <node/types.h>
 #include <primitives/transaction.h>
-#include <util/error.h>
 
 struct BlockHash;
 class CBlockIndex;

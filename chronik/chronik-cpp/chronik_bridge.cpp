@@ -9,6 +9,7 @@
 #include <chronik-cpp/util/collection.h>
 #include <chronik-cpp/util/hash.h>
 #include <clientversion.h>
+#include <common/messages.h>
 #include <compressor.h>
 #include <config.h>
 #include <feerate.h>
@@ -23,9 +24,10 @@
 #include <streams.h>
 #include <sync.h>
 #include <undo.h>
-#include <util/error.h>
 #include <validation.h>
 #include <validationinterface.h>
+
+using common::TransactionErrorString;
 
 chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
     return {

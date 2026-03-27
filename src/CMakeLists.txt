@@ -419,7 +419,6 @@ add_library(util
 	util/check.cpp
 	util/hasher.cpp
 	util/exception.cpp
-	util/error.cpp
 	util/fs.cpp
 	util/fs_helpers.cpp
 	util/moneystr.cpp
@@ -520,6 +519,7 @@ add_library(common
 	common/bloom.cpp
 	common/init.cpp
 	common/configfile.cpp
+	common/messages.cpp
 	common/signmessage.cpp
 	common/system.cpp
 	cashaddr.cpp
@@ -966,6 +966,7 @@ if(BUILD_CHAINSTATE)
 		avalanche/voterecord.cpp
 		cashaddr.cpp         # via cashaddrenc.cpp
 		cashaddrenc.cpp      # via key_io.cpp
+		common/messages.cpp  # via net_permissions.cpp (ResolveErrMsg)
 		dnsseeds.cpp         # via net.cpp (GetRandomizedDNSSeeds)
 		i2p.cpp              # via net.cpp
 		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret
@@ -984,7 +985,6 @@ if(BUILD_CHAINSTATE)
 		protocol.cpp            # avalanche/processor.cpp uses NetMsgType
 		timedata.cpp            # via net.cpp
 		util/asmap.cpp          # via netaddress.cpp
-		util/error.cpp          # via net_permissions.cpp (ResolveErrMsg)
 		util/readwritefile.cpp  # via i2p.cpp
 		util/sock.cpp           # via net.cpp
 	)

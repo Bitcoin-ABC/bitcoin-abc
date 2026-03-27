@@ -21,7 +21,6 @@
 #include <rpc/util.h>
 #include <script/descriptor.h>
 #include <util/bip32.h>
-#include <util/error.h>
 #include <util/moneystr.h>
 #include <util/result.h>
 #include <util/string.h>

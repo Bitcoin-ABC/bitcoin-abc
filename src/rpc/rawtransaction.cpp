@@ -35,7 +35,6 @@
 #include <uint256.h>
 #include <util/bip32.h>
 #include <util/check.h>
-#include <util/error.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/vector.h>

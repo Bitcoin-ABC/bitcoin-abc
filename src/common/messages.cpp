@@ -1,15 +1,21 @@
-// Copyright (c) 2010-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <util/error.h>
+#include <common/messages.h>
 
 #include <common/system.h>
 #include <common/types.h>
 #include <tinyformat.h>
+#include <util/strencodings.h>
+#include <util/string.h>
 #include <util/translation.h>
-using common::PSBTError;
 
+#include <cassert>
+#include <string>
+
+namespace common {
 bilingual_str PSBTErrorString(PSBTError err) {
     switch (err) {
         case PSBTError::MISSING_INPUTS:
@@ -66,3 +72,4 @@ bilingual_str AmountErrMsg(const std::string &optname,
     return strprintf(_("Invalid amount for -%s=<amount>: '%s'"), optname,
                      strValue);
 }
+} // namespace common

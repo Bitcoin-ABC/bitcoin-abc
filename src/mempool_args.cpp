@@ -7,17 +7,18 @@
 #include <kernel/mempool_options.h>
 
 #include <common/args.h>
+#include <common/messages.h>
 #include <consensus/amount.h>
 #include <kernel/chainparams.h>
 #include <policy/policy.h>
 #include <tinyformat.h>
-#include <util/error.h>
 #include <util/moneystr.h>
 #include <util/translation.h>
 
 #include <chrono>
 #include <memory>
 
+using common::AmountErrMsg;
 using kernel::MemPoolOptions;
 
 //! Maximum mempool size on 32-bit systems.

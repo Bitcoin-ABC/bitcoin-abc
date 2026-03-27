@@ -6,6 +6,7 @@
 
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/messages.h>
 #include <common/types.h>
 #include <consensus/amount.h>
 #include <key_io.h>
@@ -24,6 +25,8 @@
 #include <variant>
 
 using common::PSBTError;
+using common::PSBTErrorString;
+using common::TransactionErrorString;
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =

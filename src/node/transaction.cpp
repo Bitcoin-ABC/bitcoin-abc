@@ -12,6 +12,7 @@
 #include <net_processing.h>
 #include <node/blockstorage.h>
 #include <node/context.h>
+#include <node/types.h>
 #include <primitives/blockhash.h>
 #include <primitives/txid.h>
 #include <txmempool.h>
