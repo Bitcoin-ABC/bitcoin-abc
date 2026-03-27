@@ -19,6 +19,7 @@ add_library(crypto
 	sha3.cpp
 	sha512.cpp
 	siphash.cpp
+	../support/cleanse.cpp
 )
 
 target_include_directories(crypto

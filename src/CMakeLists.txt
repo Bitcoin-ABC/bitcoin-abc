@@ -400,7 +400,6 @@ add_custom_command(
 
 # Various completely unrelated features shared by all executables.
 add_library(util
-	chainparamsbase.cpp
 	clientversion.cpp
 	compat/strnlen.cpp
 	currencyunit.cpp
@@ -409,7 +408,6 @@ add_library(util
 	random.cpp
 	randomenv.cpp
 	rcu.cpp
-	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp
 	uint256.cpp
@@ -519,6 +517,7 @@ add_network_sources(NETWORK_SOURCES
 # Because nothing says this is different from util than "common"
 add_library(common
 	base58.cpp
+	chainparamsbase.cpp
 	common/args.cpp
 	common/bloom.cpp
 	common/init.cpp
@@ -922,7 +921,6 @@ if(BUILD_CHAINSTATE)
 		script/standard.cpp
 		shutdown.cpp
 		streams.cpp
-		support/cleanse.cpp
 		support/lockedpool.cpp
 		sync.cpp
 		txdb.cpp
