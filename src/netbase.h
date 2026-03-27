@@ -66,7 +66,7 @@ bool IsUnixSocketPath(const std::string &name);
 
 class Proxy {
 public:
-    Proxy() : m_randomize_credentials(false) {}
+    Proxy() : m_is_unix_socket(false), m_randomize_credentials(false) {}
     explicit Proxy(const CService &_proxy, bool randomize_credentials = false)
         : proxy(_proxy), m_is_unix_socket(false),
           m_randomize_credentials(randomize_credentials) {}
