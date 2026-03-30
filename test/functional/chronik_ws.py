@@ -592,31 +592,33 @@ class ChronikWsTest(BitcoinTestFramework):
 
         invalidate_tx(txid2)
         # We first get the tx2 removal message, then the conflicting tx3 is
-        # added to the mempool, then tx2 is invalidated
-        msg = pb.WsMsg(
-            tx=pb.MsgTx(
-                msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
-                txid=bytes.fromhex(txid2)[::-1],
-            )
-        )
-        assert_equal(ws.recv(), msg)
-        assert_equal(ws_all.recv(), msg)
-        msg = pb.WsMsg(
-            tx=pb.MsgTx(
-                msg_type=pb.TX_ADDED_TO_MEMPOOL,
-                txid=bytes.fromhex(txid3)[::-1],
-            )
-        )
-        assert_equal(ws.recv(), msg)
-        assert_equal(ws_all.recv(), msg)
-        msg = pb.WsMsg(
-            tx=pb.MsgTx(
-                msg_type=pb.TX_INVALIDATED,
-                txid=bytes.fromhex(txid2)[::-1],
-            )
-        )
-        assert_equal(ws.recv(), msg)
-        assert_equal(ws_all.recv(), msg)
+        # added to the mempool, then tx2 is invalidated. Note that it's possible
+        # that txid2 gets invalidated in a single cycle in which case the
+        # invalidation message might fire first. So we check all 3 are received
+        # but we don't ensure strict ordering.
+        msgs = [
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_REMOVED_FROM_MEMPOOL,
+                    txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_ADDED_TO_MEMPOOL,
+                    txid=bytes.fromhex(txid3)[::-1],
+                )
+            ),
+            pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=pb.TX_INVALIDATED,
+                    txid=bytes.fromhex(txid2)[::-1],
+                )
+            ),
+        ]
+
+        assert_recv_all_any_order(ws, msgs)
+        assert_recv_all_any_order(ws_all, msgs)
 
         finalize_tx(txid3)
         msg = pb.WsMsg(
