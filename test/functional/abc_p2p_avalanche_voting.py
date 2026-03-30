@@ -41,6 +41,7 @@ class AvalancheTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
+                "-avalanchestakingpreconsensus=0",
             ],
             [
                 "-avaproofstakeutxodustthreshold=1000000",
@@ -49,6 +50,7 @@ class AvalancheTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-noparkdeepreorg",
+                "-avalanchestakingpreconsensus=0",
             ],
         ]
         self.supports_cli = False
@@ -344,6 +346,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Check the node is discouraging unexpected avaresponses.")
 
+        self.stop_node(1)
         self.restart_node(0)
 
         poll_node = get_ava_p2p_interface(self, node)
