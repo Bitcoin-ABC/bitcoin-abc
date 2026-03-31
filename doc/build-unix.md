@@ -36,7 +36,6 @@ Optional dependencies:
 
  Library     | Purpose          | Description
  ------------|------------------|----------------------
- miniupnpc   | UPnP Support     | Firewall-jumping support
  libdb       | Berkeley DB      | Wallet storage (only needed when wallet enabled)
  libsqlite3  | SQLite 3         | Wallet storage (only needed when wallet enabled)
  jemalloc    | Memory allocator | Library to enhance the memory allocation and improve performances
@@ -107,10 +106,6 @@ BerkeleyDB 5.3 or later and SQLite 3.7 or later are required for the wallet. The
 
 See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
 
-Port mapping dependency MiniUPnPc (can be disabled by passing `-DENABLE_UPNP=OFF` on the cmake command line):
-
-    sudo apt-get install libminiupnpc-dev
-
 ZMQ dependencies (provides ZMQ API, can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
     sudo apt-get install libzmq3-dev
@@ -151,10 +146,6 @@ Build requirements:
 
     sudo dnf install boost-devel cmake gcc-c++ libdb-cxx-devel libdb-devel libevent-devel ninja-build openssl-devel python3
 
-Port mapping dependency MiniUPnPc (can be disabled by passing `-DENABLE_UPNP=OFF` on the cmake command line):
-
-    sudo dnf install miniupnpc-devel
-
 ZMQ dependencies (can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
     sudo dnf install zeromq-devel
@@ -179,16 +170,6 @@ Notes
 -----
 The release is built with GCC and then "strip bitcoind" to strip the debug
 symbols, which reduces the executable size by about 90%.
-
-
-miniupnpc
----------
-
-[miniupnpc](https://miniupnp.tuxfamily.org) may be used for UPnP port mapping.  It can be downloaded from [here](
-https://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
-turned off by default.  See the cmake options for UPnP behavior desired:
-
-    ENABLE_UPNP            Enable UPnP support (miniupnp required, default ON)
 
 Boost
 -----
@@ -258,7 +239,7 @@ non-wallet distribution of the latest changes on Arch Linux:
     cd bitcoin-abc/
     mkdir build
     cd build
-    cmake -GNinja .. -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DENABLE_UPNP=OFF -DBUILD_ZMQ=OFF -DUSE_JEMALLOC=OFF
+    cmake -GNinja .. -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF -DUSE_JEMALLOC=OFF
     ninja
 
 AArch64 Cross-compilation

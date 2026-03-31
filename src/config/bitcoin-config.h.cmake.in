@@ -62,9 +62,6 @@
 /* Define if QR support should be compiled in */
 #cmakedefine USE_QRCODE 1
 
-/* UPnP support not compiled if undefined */
-#cmakedefine USE_UPNP
-
 /* Define if QtDBus support should be enabled */
 #cmakedefine USE_DBUS 1
 

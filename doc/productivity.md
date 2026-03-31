@@ -44,7 +44,6 @@ Note that the ramdisk does not persist between reboots, so neither will your tes
 You can disable features to save on compilation time. A few common flags:
 
 ```sh
--DENABLE_UPNP=OFF
 -DBUILD_WALLET=OFF
 -DBUILD_QT=OFF
 ```

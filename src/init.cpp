@@ -1041,14 +1041,11 @@ void SetupServerArgs(NodeContext &node) {
                    "Tor control port password (default: empty)",
                    ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
                    OptionsCategory::CONNECTION);
-#ifdef USE_UPNP
-    argsman.AddArg("-upnp",
-                   strprintf("Use UPnP to map the listening port (default: %u)",
-                             DEFAULT_UPNP),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-#else
-    hidden_args.emplace_back("-upnp");
-#endif
+    // UPnP support was dropped. We keep `-upnp` as a hidden arg to display a
+    // more user friendly error when set. TODO: remove (here and below) for
+    // 0.34.0.
+    argsman.AddArg("-upnp", "", ArgsManager::ALLOW_ANY,
+                   OptionsCategory::HIDDEN);
     argsman.AddArg(
         "-natpmp",
         strprintf("Use PCP or NAT-PMP to map the listening port (default: %u)",
@@ -1688,11 +1685,6 @@ void InitParameterInteraction(ArgsManager &args) {
         // to protect privacy, do not map ports when a proxy is set. The user
         // may still specify -listen=1 to listen locally, so don't rely on this
         // happening through -listen below.
-        if (args.SoftSetBoolArg("-upnp", false)) {
-            LogPrintf(
-                "%s: parameter interaction: -proxy set -> setting -upnp=0\n",
-                __func__);
-        }
         if (args.SoftSetBoolArg("-natpmp", false)) {
             LogPrintf(
                 "%s: parameter interaction: -proxy set -> setting -natpmp=0\n",
@@ -1709,11 +1701,6 @@ void InitParameterInteraction(ArgsManager &args) {
     if (!args.GetBoolArg("-listen", DEFAULT_LISTEN)) {
         // do not map ports or try to retrieve public IP when not listening
         // (pointless)
-        if (args.SoftSetBoolArg("-upnp", false)) {
-            LogPrintf(
-                "%s: parameter interaction: -listen=0 -> setting -upnp=0\n",
-                __func__);
-        }
         if (args.SoftSetBoolArg("-natpmp", false)) {
             LogPrintf(
                 "%s: parameter interaction: -listen=0 -> setting -natpmp=0\n",
@@ -3019,9 +3006,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         node.peerman->SetBestHeight(chain_active_height);
     }
 
-    // Map ports with UPnP or NAT-PMP
-    StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP),
-                 args.GetBoolArg("-natpmp", DEFAULT_NATPMP));
+    // Map ports with NAT-PMP
+    StartMapPort(args.GetBoolArg("-natpmp", DEFAULT_NATPMP));
 
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;

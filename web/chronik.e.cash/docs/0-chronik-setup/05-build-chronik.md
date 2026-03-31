@@ -41,7 +41,7 @@ This only builds what's necessary to run Chronik:
 ```bash
 mkdir build
 cd build
-cmake -GNinja .. -DBUILD_CHRONIK=ON -DENABLE_UPNP=OFF -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
+cmake -GNinja .. -DBUILD_CHRONIK=ON -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
 ninja
 ```
 
@@ -79,7 +79,7 @@ This only builds what's necessary to run Chronik:
 ```bash
 mkdir build
 cd build
-cmake -GNinja .. -DBUILD_CHRONIK=ON -DENABLE_UPNP=OFF -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
+cmake -GNinja .. -DBUILD_CHRONIK=ON -DBUILD_WALLET=OFF -DBUILD_QT=OFF -DBUILD_ZMQ=OFF
 ninja
 ```
 

@@ -38,7 +38,6 @@ NO_OPENSSL ?=
 NO_QR ?=
 NO_WALLET ?=
 NO_ZMQ ?=
-NO_UPNP ?=
 NO_JEMALLOC ?=
 BUILD_CPYTHON ?=
 FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
@@ -145,8 +144,6 @@ bdb_packages_$(NO_BDB) = $(bdb_packages)
 sqlite_packages_$(NO_SQLITE) = $(sqlite_packages)
 wallet_packages_$(NO_WALLET) = $(bdb_packages_) $(sqlite_packages_)
 
-upnp_packages_$(NO_UPNP) = $(upnp_packages)
-
 zmq_packages_$(NO_ZMQ) = $(zmq_packages)
 
 protobuf_packages_$(NO_PROTOBUF) = $(protobuf_packages)
@@ -157,7 +154,7 @@ jemalloc_packages_$(NO_JEMALLOC) = $(jemalloc_packages)
 
 cpython_packages_$(BUILD_CPYTHON) = $(cpython_packages)
 
-packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_)
+packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
 
 ifneq ($(protobuf_packages_),)

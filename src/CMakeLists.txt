@@ -28,7 +28,6 @@ option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
-option(ENABLE_UPNP "Enable UPnP support" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 option(ENABLE_TRACING "Enable eBPF user static defined tracepoints" OFF)
@@ -83,7 +82,6 @@ native_add_cmake_flags(
 	"-DBUILD_QT=OFF"
 	"-DBUILD_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"
-	"-DENABLE_UPNP=OFF"
 	"-DUSE_JEMALLOC=OFF"
 	"-DENABLE_CLANG_TIDY=OFF"
 	"-DENABLE_BIP70=OFF"
@@ -730,21 +728,6 @@ target_link_libraries(server
 link_event(server event)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	link_event(server pthreads)
-endif()
-
-if(ENABLE_UPNP)
-	find_package(MiniUPnPc 1.9 REQUIRED)
-	target_link_libraries(server MiniUPnPc::miniupnpc)
-
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		# TODO: check if we are really using a static library. Assume this is
-		# the one from the depends for now since the native windows build is not
-		# supported.
-		target_compile_definitions(server
-			PUBLIC -DSTATICLIB
-			PUBLIC -DMINIUPNP_STATICLIB
-		)
-	endif()
 endif()
 
 # Test suites.

@@ -18,7 +18,6 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.1.8 | No |  |  |
 | libpng |  |  |  |  | Yes |
 | librsvg | |  |  |  |  |
-| MiniUPnPc | [2.2.7](https://miniupnp.tuxfamily.org/files) | 1.9 | No |  |  |
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
 | PCRE |  |  |  |  | Yes |
@@ -39,7 +38,6 @@ Some dependencies are not needed in all configurations. The following are some
 factors that affect the dependency list.
 
 #### Options passed to `cmake`
-* MiniUPnPc is not needed with  `-DENABLE_UPNP=OFF`.
 * Berkeley DB and SQLite are not needed with `-DBUILD_WALLET=OFF`.
 * OpenSSL is not needed with `-DENABLE_BIP70=OFF`.
 * protobuf is not needed with `-DENABLE_BIP70=OFF`.

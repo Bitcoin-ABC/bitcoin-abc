@@ -204,11 +204,6 @@ if(ENABLE_QRCODE AND BUILD_WALLET AND BUILD_QT)
 	set(USE_QRCODE 1 CACHE INTERNAL "QR code is enabled")
 endif()
 
-# Try to find miniupnpc
-if(ENABLE_UPNP)
-	set(USE_UPNP 1 CACHE INTERNAL "UPnP is supported")
-endif()
-
 if(ENABLE_DBUS_NOTIFICATIONS)
 	set(USE_DBUS 1)
 endif()

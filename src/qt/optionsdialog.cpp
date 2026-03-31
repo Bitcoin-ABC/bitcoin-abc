@@ -44,16 +44,11 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
     connect(ui->prune, &QPushButton::toggled, ui->pruneSize,
             &QWidget::setEnabled);
 
-/* Network elements init */
-#ifndef USE_UPNP
-    ui->mapPortUpnp->setEnabled(false);
-#endif
+    /* Network elements init */
     connect(this, &QDialog::accepted, [this]() {
         QSettings settings;
-        model->node().mapPort(settings.value("fUseUPnP").toBool(),
-                              settings.value("fUseNatpmp").toBool());
+        model->node().mapPort(settings.value("fUseNatpmp").toBool());
     });
-
     ui->proxyIp->setEnabled(false);
     ui->proxyPort->setEnabled(false);
     ui->proxyPort->setValidator(new QIntValidator(1, 65535, this));
@@ -272,7 +267,6 @@ void OptionsDialog::setMapper() {
                        OptionsModel::CoinControlFeatures);
 
     /* Network */
-    mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);
     mapper->addMapping(ui->mapPortNatpmp, OptionsModel::MapPortNatpmp);
     mapper->addMapping(ui->allowIncoming, OptionsModel::Listen);
 

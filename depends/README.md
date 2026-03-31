@@ -97,7 +97,6 @@ The following can be set when running make: `make FOO=bar`
 - `NO_WALLET`: Don't download/build/cache libs needed to enable the wallet
 - `NO_BDB`: Don't download/build/cache BerkeleyDB
 - `NO_SQLITE`: Don't download/build/cache SQLite
-- `NO_UPNP`: Don't download/build/cache packages needed for enabling UPnP
 - `NO_JEMALLOC`: Don't download/build/cache jemalloc
 - `BUILD_CPYTHON`: Download/build/cache cpython
 - `DEBUG`: Disable some optimizations and enable more runtime checking

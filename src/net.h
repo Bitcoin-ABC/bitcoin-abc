@@ -162,7 +162,7 @@ enum {
     LOCAL_IF,
     // address explicit bound to
     LOCAL_BIND,
-    // address reported by UPnP or PCP
+    // address reported by PCP
     LOCAL_MAPPED,
     // address explicitly specified (-externalip=)
     LOCAL_MANUAL,

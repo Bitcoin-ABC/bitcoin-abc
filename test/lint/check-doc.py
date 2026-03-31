@@ -29,6 +29,7 @@ SET_FALSE_POSITIVE_UNKNOWNS = {
     "-includeconf",
     "-regtest",
     "-testnet",
+    "-upnp",
     "-zmqpubhashblock",
     "-zmqpubhashtx",
     "-zmqpubrawblock",

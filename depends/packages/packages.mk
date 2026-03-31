@@ -17,8 +17,6 @@ sqlite_packages=sqlite
 
 zmq_packages=zeromq
 
-upnp_packages=miniupnpc
-
 jemalloc_packages = jemalloc
 
 ifeq ($(host_os),linux)
