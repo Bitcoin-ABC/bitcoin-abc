@@ -553,17 +553,10 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
                               bool &disconnect, std::string &error) {
     disconnect = false;
     updates.clear();
-    {
-        // Save the time at which we can query again.
-        LOCK(cs_peerManager);
 
-        // FIXME: This will override the time even when we received an old stale
-        // message. This should check that the message is indeed the most up to
-        // date one before updating the time.
-        peerManager->updateNextRequestTime(
-            nodeid, Now<SteadyMilliseconds>() +
-                        std::chrono::milliseconds(response.getCooldown()));
-    }
+    // Save the time at which we can query again.
+    WITH_LOCK(cs_peerManager,
+              peerManager->updateNextRequestTimeForResponse(nodeid, response));
 
     std::vector<CInv> invs;
 
@@ -1274,7 +1267,8 @@ void Processor::runEventLoop() {
                     queries.getWriteView()->insert(
                         {pnode->GetId(), current_round, timeout, invs});
                     // Set the timeout.
-                    peerManager->updateNextRequestTime(pnode->GetId(), timeout);
+                    peerManager->updateNextRequestTimeForPoll(
+                        pnode->GetId(), timeout, current_round);
                 }
 
                 pnode->invsPolled(invs.size());

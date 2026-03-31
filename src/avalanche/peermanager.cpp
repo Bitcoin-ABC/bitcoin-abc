@@ -181,14 +181,39 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
     return true;
 }
 
-bool PeerManager::updateNextRequestTime(NodeId nodeid,
-                                        SteadyMilliseconds timeout) {
+bool PeerManager::updateNextRequestTimeForPoll(NodeId nodeid,
+                                               SteadyMilliseconds timeout,
+                                               uint64_t round) {
     auto it = nodes.find(nodeid);
     if (it == nodes.end()) {
         return false;
     }
 
-    return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
+    return nodes.modify(it, [&](Node &n) {
+        n.nextRequestTime = timeout;
+        n.last_round = round;
+    });
+}
+
+bool PeerManager::updateNextRequestTimeForResponse(NodeId nodeid,
+                                                   const Response &response) {
+    auto it = nodes.find(nodeid);
+    if (it == nodes.end()) {
+        return false;
+    }
+
+    if (it->last_round > response.getRound()) {
+        // This is a response for a previous round, ignore it.
+        return false;
+    }
+
+    auto timeout = Now<SteadyMilliseconds>() +
+                   std::chrono::milliseconds(response.getCooldown());
+
+    return nodes.modify(it, [&](Node &n) {
+        n.nextRequestTime = timeout;
+        n.last_round = response.getRound();
+    });
 }
 
 bool PeerManager::latchAvaproofsSent(NodeId nodeid) {

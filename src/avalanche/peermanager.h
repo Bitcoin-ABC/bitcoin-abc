@@ -9,6 +9,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <avalanche/proofradixtreeadapter.h>
+#include <avalanche/protocol.h>
 #include <avalanche/stakecontendercache.h>
 #include <coins.h>
 #include <common/bloom.h>
@@ -318,7 +319,10 @@ public:
     size_t getPendingNodeCount() const { return pendingNodes.size(); }
 
     // Update when a node is to be polled next.
-    bool updateNextRequestTime(NodeId nodeid, SteadyMilliseconds timeout);
+    bool updateNextRequestTimeForPoll(NodeId nodeid, SteadyMilliseconds timeout,
+                                      uint64_t round);
+    bool updateNextRequestTimeForResponse(NodeId nodeid,
+                                          const Response &response);
     /**
      * Flag that a node did send its compact proofs.
      * @return True if the flag changed state, i;e. if this is the first time

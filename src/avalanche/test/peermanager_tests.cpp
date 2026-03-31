@@ -514,10 +514,12 @@ BOOST_AUTO_TEST_CASE(node_crud) {
         BOOST_CHECK(pm.addNode(i, proofid));
     }
 
+    uint64_t round{0};
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n >= 0 && n < 4);
-        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+            n, Now<SteadyMilliseconds>(), round++));
     }
 
     // Remove a node, check that it doesn't show up.
@@ -526,17 +528,19 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 1 || n == 3);
-        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+            n, Now<SteadyMilliseconds>(), round++));
     }
 
     // Push a node's timeout in the future, so that it doesn't show up.
-    BOOST_CHECK(pm.updateNextRequestTime(1, Now<SteadyMilliseconds>() +
-                                                std::chrono::hours(24)));
+    BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+        1, Now<SteadyMilliseconds>() + std::chrono::hours(24), round++));
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 3);
-        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+            n, Now<SteadyMilliseconds>(), round++));
     }
 
     // Move a node from a peer to another. This peer has a very low score such
@@ -552,7 +556,22 @@ BOOST_AUTO_TEST_CASE(node_crud) {
         } else {
             BOOST_CHECK_EQUAL(n, 0);
         }
-        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+            n, Now<SteadyMilliseconds>(), round++));
+    }
+
+    FastRandomContext rng;
+    for (int i = 0; i < 100; i++) {
+        NodeId n = pm.selectNode();
+
+        round =
+            pm.forNode(n, [&](const Node &node) { return node.last_round; });
+        // [0..range] (upper bound is inclusive)
+        round = rng.randrange(round + 1);
+
+        // Response to old rounds don't update the next request time.
+        BOOST_CHECK(
+            !pm.updateNextRequestTimeForResponse(n, Response{round--, 0, {}}));
     }
 }
 
@@ -891,7 +910,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     // Add nodes to this peer and update their request time far in the future
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(pm.addNode(i, proof->getId()));
-        BOOST_CHECK(pm.updateNextRequestTime(i, theFuture));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(i, theFuture, i));
     }
 
     // Remove the peer
@@ -1507,11 +1526,14 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
 
     auto cooldownTimepoint = Now<SteadyMilliseconds>() + 10s;
 
+    uint64_t round{0};
+
     // All the nodes can be selected once
     for (size_t i = 0; i < 10; i++) {
         NodeId selectedId = pm.selectNode();
         BOOST_CHECK_NE(selectedId, NO_NODE);
-        BOOST_CHECK(pm.updateNextRequestTime(selectedId, cooldownTimepoint));
+        BOOST_CHECK(pm.updateNextRequestTimeForPoll(
+            selectedId, cooldownTimepoint, round++));
         BOOST_CHECK(!pm.shouldRequestMoreNodes());
     }
 
@@ -1526,7 +1548,8 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     }
 
     // Make it possible to request a node again
-    BOOST_CHECK(pm.updateNextRequestTime(0, Now<SteadyMilliseconds>()));
+    BOOST_CHECK(
+        pm.updateNextRequestTimeForPoll(0, Now<SteadyMilliseconds>(), round++));
     BOOST_CHECK_NE(pm.selectNode(), NO_NODE);
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
 

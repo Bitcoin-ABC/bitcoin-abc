@@ -22,6 +22,7 @@ struct Node {
     PeerId peerid;
     SteadyMilliseconds nextRequestTime;
     bool avaproofsSent{false};
+    uint64_t last_round{0};
 
     Node(NodeId nodeid_, PeerId peerid_)
         : nodeid(nodeid_), peerid(peerid_),
