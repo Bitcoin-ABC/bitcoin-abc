@@ -47,12 +47,6 @@ export const team: TeamMember[] = [
     bio: "David has 13 years of experience in the software industry. He founded Blockchain Ventures, a software company creating bespoke Bitcoin applications. He and his team have been working with Bitcoin ABC since 2017 and currently maintains a number of services including paybutton.org & coin.dance.",
   },
   {
-    name: "Kousha",
-    title: "Biz-Dev",
-    image: "/kousha.png",
-    bio: "Kousha has an education as communications IT specialist and media designer. He began researching Bitcoin in 2013 and has been actively involved in crypto for over 8 years. He has been working as community lead, copywriter, and business developer for Bitcoin ABC since 2023.",
-  },
-  {
     name: "AK",
     title: "Social Media Manager",
     image: "/ak.png",
