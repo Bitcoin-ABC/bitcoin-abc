@@ -16,10 +16,10 @@ PACKAGES=(
   build-essential
   binaryen
   ccache
-  clang-16
-  clang-format-16
-  clang-tidy-16
-  clang-tools-16
+  clang-19
+  clang-format-19
+  clang-tidy-19
+  clang-tools-19
   cmake
   curl
   devscripts
@@ -62,7 +62,7 @@ PACKAGES=(
   libtinfo5
   libtool
   libzmq3-dev
-  lld
+  lld-19
   make
   nasm
   ninja-build
@@ -113,10 +113,14 @@ popd
 
 # Make sure our specific llvm and clang versions have highest priority (Bookworm
 # default is version 14, other packages will not create the clang symlink)
-update-alternatives --install /usr/bin/clang clang "$(command -v clang-16)" 100
-update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-16)" 100
-update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-16)" 100
-update-alternatives --install /usr/bin/llvm-config llvm-config "$(command -v llvm-config-16)" 100
+update-alternatives --install /usr/bin/clang clang "$(command -v clang-19)" 100
+update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-19)" 100
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-19)" 100
+update-alternatives --install /usr/bin/llvm-config llvm-config "$(command -v llvm-config-19)" 100
+update-alternatives --install /usr/bin/llvm-ar llvm-ar "$(command -v llvm-ar-19)" 100
+update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib "$(command -v llvm-ranlib-19)" 100
+update-alternatives --install /usr/bin/llvm-strip llvm-strip "$(command -v llvm-strip-19)" 100
+update-alternatives --install /usr/bin/llvm-objdump llvm-objdump "$(command -v llvm-objdump-19)" 100
 
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)

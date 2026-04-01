@@ -272,6 +272,10 @@ add_compiler_flags(
 	-Wduplicated-cond
 	-Wlogical-op
 	-Wdocumentation
+	# Keep the warning but don't fail a build for deprecated declarations (they
+	# might come from code outside of our control, like libc).
+	-Wno-error=deprecated-declarations
+	-Wno-error=enum-constexpr-conversion
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(

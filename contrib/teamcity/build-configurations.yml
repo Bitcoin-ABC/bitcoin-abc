@@ -469,6 +469,8 @@ builds:
             toolchain: OSX
         cmake_flags:
             - '-DBUILD_CHAINSTATE=ON'
+            - '-DCMAKE_STRIP=/usr/bin/llvm-strip'
+            - '-DCMAKE_OBJDUMP=/usr/bin/llvm-objdump'
         # Uncomment to build Chronik once the cxx crate is working for OSX
         #  - '-DBUILD_CHRONIK=ON'
         targets:
