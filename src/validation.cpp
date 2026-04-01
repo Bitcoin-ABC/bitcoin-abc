@@ -235,7 +235,7 @@ IsReplayProtectionEnabled(const Consensus::Params &params,
     }
 
     return pindexPrev->GetMedianTimePast() >=
-           activation_time.value_or(params.obolenskyActivationTime);
+           activation_time.value_or(params.mengerActivationTime);
 }
 
 /**

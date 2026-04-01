@@ -65,6 +65,11 @@ struct Params {
     int schumpeterActivationTime;
     /** Unix time used for MTP activation of 15 May 2026 12:00:00 UTC upgrade */
     int obolenskyActivationTime;
+    /**
+     * Unix time used for MTP activation of 15 November 2026 12:00:00 UTC
+     * upgrade
+     */
+    int mengerActivationTime;
 
     /** Enable or disable the miner fund by default */
     bool enableMinerFund;
