@@ -139,6 +139,13 @@ void PaymentServerTests::paymentServerTests() {
 
     QByteArray byteArray;
 
+    auto paymentrequest_to_bytearray =
+        [&decode_base64](const char *base64_data) {
+            auto paymentrequest_data = *decode_base64(base64_data);
+            return QByteArray((const char *)paymentrequest_data.data(),
+                              paymentrequest_data.size());
+        };
+
     // For the tests below we just need the payment request data from
     // paymentrequestdata.h parsed + stored in r.paymentRequest.
     //
@@ -154,8 +161,7 @@ void PaymentServerTests::paymentServerTests() {
 
     // Contains a testnet paytoaddress, so payment request network doesn't match
     // client network:
-    data = decode_base64(paymentrequest1_cert2_BASE64);
-    byteArray = QByteArray((const char *)data->data(), data->size());
+    byteArray = paymentrequest_to_bytearray(paymentrequest1_cert2_BASE64);
     r.paymentRequest.parse(byteArray);
     // Ensure the request is initialized, because network "main" is default,
     // even for uninitialized payment requests and that will fail our test here.
@@ -164,8 +170,7 @@ void PaymentServerTests::paymentServerTests() {
              false);
 
     // Expired payment request (expires is set to 1 = 1970-01-01 00:00:01):
-    data = decode_base64(paymentrequest2_cert2_BASE64);
-    byteArray = QByteArray((const char *)data->data(), data->size());
+    byteArray = paymentrequest_to_bytearray(paymentrequest2_cert2_BASE64);
     r.paymentRequest.parse(byteArray);
     // Ensure the request is initialized
     QVERIFY(r.paymentRequest.IsInitialized());
@@ -177,8 +182,7 @@ void PaymentServerTests::paymentServerTests() {
     // 9223372036854775807 (uint64), 9223372036854775807 (int64_t) and -1
     // (int32_t)
     // -1 is 1969-12-31 23:59:59 (for a 32 bit time values)
-    data = decode_base64(paymentrequest3_cert2_BASE64);
-    byteArray = QByteArray((const char *)data->data(), data->size());
+    byteArray = paymentrequest_to_bytearray(paymentrequest3_cert2_BASE64);
     r.paymentRequest.parse(byteArray);
     // Ensure the request is initialized
     QVERIFY(r.paymentRequest.IsInitialized());
@@ -192,8 +196,7 @@ void PaymentServerTests::paymentServerTests() {
     // 9223372036854775808 (uint64), -9223372036854775808 (int64_t) and 0
     // (int32_t)
     // 0 is 1970-01-01 00:00:00 (for a 32 bit time values)
-    data = decode_base64(paymentrequest4_cert2_BASE64);
-    byteArray = QByteArray((const char *)data->data(), data->size());
+    byteArray = paymentrequest_to_bytearray(paymentrequest4_cert2_BASE64);
     r.paymentRequest.parse(byteArray);
     // Ensure the request is initialized
     QVERIFY(r.paymentRequest.IsInitialized());
@@ -214,8 +217,7 @@ void PaymentServerTests::paymentServerTests() {
     QCOMPARE(PaymentServer::verifySize(tempFile.size()), false);
 
     // Payment request with amount overflow (amount is set to 21000001 BCH):
-    data = decode_base64(paymentrequest5_cert2_BASE64);
-    byteArray = QByteArray((const char *)data->data(), data->size());
+    byteArray = paymentrequest_to_bytearray(paymentrequest5_cert2_BASE64);
     r.paymentRequest.parse(byteArray);
     // Ensure the request is initialized
     QVERIFY(r.paymentRequest.IsInitialized());
