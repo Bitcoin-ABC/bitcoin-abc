@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
-const TARGET_DATE = "2025-11-15T12:00:00Z";
+const TARGET_DATE = "2026-05-15T12:00:00Z";
 // 6 hours after the target date, we skip polling the API for blocks until upgrade
 const SKIP_POLLING_GRACE_PERIOD_MS = 6 * 60 * 60 * 1000;
 
@@ -25,9 +25,9 @@ export default function UpgradeCountdown() {
   );
   const [isLive, setIsLive] = useState<boolean>(false);
   const apiUrl = "https://avalanche.cash/api/info/XEC";
-  const preDateText = "Avalanche Pre-Consensus coming to mainnet!";
-  const postDateText =
-    "Upgrade complete! Avalanche Pre-Consensus now live on mainnet!";
+  const preDateText =
+    "On May 15th, 2026 at 12:00 UTC, the eCash network will upgrade. Click to learn more.";
+  const postDateText = "The May 15th, 2026 upgrade is live!";
 
   // Fetch blocks until upgrade from API
   const fetchBlocksUntilUpgrade = useCallback(async () => {
@@ -125,7 +125,7 @@ export default function UpgradeCountdown() {
 
   return (
     <Link
-      href={isExpired ? "/blog/preconsensus-launch" : "/blog/preconsensus-pr"}
+      href="/upgrade"
       target="_blank"
       rel="noopener noreferrer"
       className="from-accentDark to-accentLight hover:from-accentLight hover:to-accentDark flex h-[40px] w-full items-center justify-center bg-gradient-to-tl px-4 text-center text-xs leading-none font-medium transition-all duration-300 sm:h-[30px] lg:text-sm"
@@ -135,7 +135,7 @@ export default function UpgradeCountdown() {
       ) : isExpired && blocksUntilUpgrade !== null ? (
         <div>
           {blocksUntilUpgrade} block{blocksUntilUpgrade !== 1 ? "s" : ""} until
-          Avalanche Pre-consensus is live!
+          May 15th, 2026 upgrade
         </div>
       ) : isExpired ? (
         // Waiting for API response
