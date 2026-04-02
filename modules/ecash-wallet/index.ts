@@ -4,3 +4,4 @@
 
 export * from './src/wallet';
 export * from './src/watchOnly';
+export * from './src/multisigWallet';

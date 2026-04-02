@@ -2,13 +2,86 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Script, Address, HdNode, Ecc, fromHex } from 'ecash-lib';
+import {
+    Script,
+    Address,
+    HdNode,
+    Ecc,
+    fromHex,
+    COINBASE_MATURITY,
+} from 'ecash-lib';
 import { ChronikClient, ScriptUtxo, Tx as ChronikTx } from 'chronik-client';
 import { WalletUtxo } from './wallet';
 
 /**
- * Base class for wallet implementations (Wallet and WatchOnlyWallet)
- * Contains all common properties and methods shared between the two
+ * Subset of coinbase outputs that are allowed as transaction inputs: `isCoinbase` and buried
+ * under at least {@link COINBASE_MATURITY} blocks relative to `tipHeight`.
+ *
+ * Used by spendable UTXO helpers; immature coinbase is excluded.
+ *
+ * @param utxos - Candidate UTXOs (typically the wallet’s full synced set).
+ * @param tipHeight - Chain tip height from the same sync as `utxos` (e.g. Chronik `blockchainInfo().tipHeight`).
+ */
+function filterMatureCoinbaseUtxos(
+    utxos: Iterable<WalletUtxo>,
+    tipHeight: number,
+): WalletUtxo[] {
+    return [...utxos].filter(
+        utxo =>
+            utxo.isCoinbase === true &&
+            tipHeight - utxo.blockHeight >= COINBASE_MATURITY,
+    );
+}
+
+/**
+ * UTXOs safe to use as **plain XEC** inputs (no token coloring): non-coinbase outputs without a
+ * `token` field, **plus** mature coinbase outputs that also have no token.
+ *
+ * Immature coinbase is excluded; coinbase with tokens is excluded from the “sats-only” path.
+ *
+ * @param utxos - Wallet UTXO set.
+ * @param tipHeight - Chain tip for coinbase maturity (see {@link filterMatureCoinbaseUtxos}).
+ */
+function filterSpendableSatsOnlyUtxos(
+    utxos: Iterable<WalletUtxo>,
+    tipHeight: number,
+): WalletUtxo[] {
+    const list = [...utxos];
+    return list
+        .filter(
+            utxo =>
+                typeof utxo.token === 'undefined' && utxo.isCoinbase === false,
+        )
+        .concat(
+            filterMatureCoinbaseUtxos(list, tipHeight).filter(
+                utxo => typeof utxo.token === 'undefined',
+            ),
+        );
+}
+
+/**
+ * All UTXOs that may be spent as inputs for generic coin-selection: every **non-coinbase** output
+ * (including token outputs), union **mature coinbase** outputs (token or not).
+ *
+ * Differs from {@link filterSpendableSatsOnlyUtxos}: this includes token-colored UTXOs and does
+ * not require `token` to be absent.
+ *
+ * @param utxos - Wallet UTXO set.
+ * @param tipHeight - Chain tip for coinbase maturity (see {@link filterMatureCoinbaseUtxos}).
+ */
+function filterSpendableUtxos(
+    utxos: Iterable<WalletUtxo>,
+    tipHeight: number,
+): WalletUtxo[] {
+    const list = [...utxos];
+    return list
+        .filter(utxo => utxo.isCoinbase === false)
+        .concat(filterMatureCoinbaseUtxos(list, tipHeight));
+}
+
+/**
+ * Base class for wallet implementations (Wallet, WatchOnlyWallet, MultisigWallet).
+ * Contains common properties and methods shared between them.
  */
 export abstract class WalletBase<
     TKeypair extends {
@@ -53,6 +126,12 @@ export abstract class WalletBase<
     changeIndex: number;
     /** Map of address -> keypair data for HD wallets */
     keypairs: Map<string, TKeypair>;
+
+    /**
+     * Chain tip height from last successful {@link sync} (for coinbase maturity).
+     * Subclasses update this when they refresh UTXOs. Defaults to `0` (no coinbase spendable).
+     */
+    tipHeight = 0;
 
     protected constructor(
         chronik: ChronikClient,
@@ -601,6 +680,22 @@ export abstract class WalletBase<
         );
 
         return { selfSend, balanceSatsDelta, tokenDeltas };
+    }
+
+    /**
+     * Spendable sats-only UTXOs (no token): non-coinbase outputs without tokens, plus mature
+     * coinbase without tokens. Uses {@link tipHeight} from the last {@link sync}.
+     */
+    public spendableSatsOnlyUtxos(): WalletUtxo[] {
+        return filterSpendableSatsOnlyUtxos(this.utxos, this.tipHeight);
+    }
+
+    /**
+     * Spendable UTXOs including tokens: non-coinbase or mature coinbase.
+     * Uses {@link tipHeight} from the last {@link sync}.
+     */
+    public spendableUtxos(): WalletUtxo[] {
+        return filterSpendableUtxos(this.utxos, this.tipHeight);
     }
 
     /**

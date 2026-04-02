@@ -30,7 +30,6 @@ import {
     SLP_MAX_SEND_OUTPUTS,
     TxOutput,
     TxBuilderOutput,
-    COINBASE_MATURITY,
     OP_RETURN_MAX_BYTES,
     ALP_POLICY_MAX_OUTPUTS,
     payment,
@@ -139,6 +138,32 @@ export interface WalletUtxo extends ScriptUtxo {
 }
 
 /**
+ * Interface for wallets that support the action() API.
+ * Implemented by Wallet and MultisigWallet.
+ */
+export interface ActionableWallet {
+    spendableUtxos(): WalletUtxo[];
+    spendableSatsOnlyUtxos(): WalletUtxo[];
+    getChangeScript(): Script;
+    script: Script;
+    chronik: ChronikClient;
+    isHD: boolean;
+    utxoToBuilderInput(utxo: WalletUtxo, sighash?: SigHashType): TxBuilderInput;
+    sync(): Promise<void>;
+    action(action: payment.Action, config?: SelectUtxosConfig): WalletAction;
+    /** If true, chained txs are not supported (e.g. multisig partial signing). */
+    isMultisig?: boolean;
+    ecc: Ecc;
+    prefix: string;
+    utxos: WalletUtxo[];
+    updateBalance(): void;
+    getKeypairForAddress(
+        address: string,
+    ): { sk?: Uint8Array; pk: Uint8Array } | undefined;
+    isWalletScript(script: Script): boolean;
+}
+
+/**
  * Wallet
  *
  * Implements a one-address eCash (XEC) wallet
@@ -151,13 +176,6 @@ export class Wallet extends WalletBase<KeypairData> {
     sk: Uint8Array;
     /** Public key derived from sk - always defined for Wallet */
     pk: Uint8Array;
-    /**
-     * height of chaintip of last sync
-     * zero if wallet has never successfully synced
-     * We need this info to determine spendability
-     * of coinbase utxos
-     */
-    tipHeight: number;
 
     protected constructor(
         sk: Uint8Array,
@@ -176,7 +194,6 @@ export class Wallet extends WalletBase<KeypairData> {
         super(chronik, address, baseHdNode, accountNumber);
 
         this.sk = sk;
-        this.tipHeight = 0;
 
         // Set derived values for non-HD wallets
         this.pk = pk;
@@ -275,26 +292,6 @@ export class Wallet extends WalletBase<KeypairData> {
     }
 
     /**
-     * Return all spendable UTXOs only containing sats and no tokens
-     *
-     * - Any spendable coinbase UTXO without tokens
-     * - Any non-coinbase UTXO without tokens
-     */
-    public spendableSatsOnlyUtxos(): WalletUtxo[] {
-        return this.utxos
-            .filter(
-                utxo =>
-                    typeof utxo.token === 'undefined' &&
-                    utxo.isCoinbase === false,
-            )
-            .concat(
-                this._spendableCoinbaseUtxos().filter(
-                    utxo => typeof utxo.token === 'undefined',
-                ),
-            );
-    }
-
-    /**
      * Calculate the maximum amount of satoshis this wallet can send
      * Accounts for transaction fees and optional extra outputs (e.g., OP_RETURN for Cashtab messages)
      *
@@ -357,27 +354,6 @@ export class Wallet extends WalletBase<KeypairData> {
             // If building the transaction fails (e.g., insufficient funds), return 0n
             return 0n;
         }
-    }
-
-    /**
-     * Return all spendable utxos
-     */
-    public spendableUtxos(): WalletUtxo[] {
-        return this.utxos
-            .filter(utxo => utxo.isCoinbase === false)
-            .concat(this._spendableCoinbaseUtxos());
-    }
-
-    /**
-     * Return all spendable coinbase utxos
-     * i.e. coinbase utxos with COINBASE_MATURITY confirmations
-     */
-    private _spendableCoinbaseUtxos(): WalletUtxo[] {
-        return this.utxos.filter(
-            utxo =>
-                utxo.isCoinbase === true &&
-                this.tipHeight - utxo.blockHeight >= COINBASE_MATURITY,
-        );
     }
 
     /** Create class that supports action-fulfilling methods  */
@@ -541,8 +517,8 @@ export class Wallet extends WalletBase<KeypairData> {
     }
 
     /**
-     * Convert a WalletUtxo into a TxBuilderInput
-     * Unified method that works for both HD and non-HD wallets
+     * Convert a WalletUtxo into a TxBuilderInput (P2PKH).
+     * Unified method that works for both HD and non-HD wallets.
      */
     public p2pkhUtxoToBuilderInput(
         utxo: WalletUtxo,
@@ -569,6 +545,17 @@ export class Wallet extends WalletBase<KeypairData> {
             },
             signatory: P2PKHSignatory(keypair.sk, keypair.pk, sighash),
         };
+    }
+
+    /**
+     * Convert a WalletUtxo into a TxBuilderInput for {@link WalletAction}.
+     * Delegates to {@link p2pkhUtxoToBuilderInput}.
+     */
+    public utxoToBuilderInput(
+        utxo: WalletUtxo,
+        sighash = ALL_BIP143,
+    ): TxBuilderInput {
+        return this.p2pkhUtxoToBuilderInput(utxo, sighash);
     }
 
     /**
@@ -764,14 +751,14 @@ interface BuildConfig {
 /**
  * eCash tx(s) that fulfill(s) an Action
  */
-class WalletAction {
-    private _wallet: Wallet;
+export class WalletAction {
+    private _wallet: ActionableWallet;
     public action: payment.Action;
     public actionTotal: ActionTotal;
     public selectUtxosResult: SelectUtxosResult;
 
     private constructor(
-        wallet: Wallet,
+        wallet: ActionableWallet,
         action: payment.Action,
         selectUtxosResult: SelectUtxosResult,
         actionTotal: ActionTotal,
@@ -783,7 +770,7 @@ class WalletAction {
     }
 
     static fromAction(
-        wallet: Wallet,
+        wallet: ActionableWallet,
         action: payment.Action,
         config: SelectUtxosConfig = {},
     ): WalletAction {
@@ -891,15 +878,20 @@ class WalletAction {
         const dataPrepSignatory = (ecc: Ecc, input: UnsignedTxInput) => {
             const preimage = input.sigHashPreimage(ALL_BIP143);
             const sighashBytes = sha256d(preimage.bytes);
+            const hdWallet = this._wallet as Wallet;
+            const keypair = hdWallet.getKeypairForAddress(hdWallet.address);
+            if (!keypair?.sk) {
+                throw new Error('Wallet has no sk for data prep signatory');
+            }
             const sig = flagSignature(
-                ecc.schnorrSign(this._wallet.sk, sighashBytes),
+                ecc.schnorrSign(keypair.sk, sighashBytes),
                 sighash,
             );
             return Script.fromOps([
                 pushBytesOp(lokad),
                 pushBytesOp(data),
                 pushBytesOp(sig),
-                pushBytesOp(this._wallet.pk),
+                pushBytesOp(keypair.pk),
                 pushBytesOp(preimage.redeemScript.bytecode),
             ]);
         };
@@ -1423,7 +1415,7 @@ class WalletAction {
 
                 // Build inputs from selected utxos (using dummy signatory for fee estimation)
                 const inputs = tokenUtxos.map(utxo => {
-                    const input = this._wallet.p2pkhUtxoToBuilderInput(
+                    const input = this._wallet.utxoToBuilderInput(
                         utxo,
                         sighash,
                     );
@@ -1475,7 +1467,7 @@ class WalletAction {
                         );
 
                     for (const fuelUtxo of fuelUtxos) {
-                        const fuelInput = this._wallet.p2pkhUtxoToBuilderInput(
+                        const fuelInput = this._wallet.utxoToBuilderInput(
                             fuelUtxo,
                             sighash,
                         );
@@ -1611,10 +1603,7 @@ class WalletAction {
                     );
                     if (utxo) {
                         // This is a token UTXO, use real signatory
-                        return this._wallet.p2pkhUtxoToBuilderInput(
-                            utxo,
-                            sighash,
-                        );
+                        return this._wallet.utxoToBuilderInput(utxo, sighash);
                     }
                     // This is a fuel UTXO, find it and use real signatory
                     const fuelUtxo = this._wallet
@@ -1627,7 +1616,7 @@ class WalletAction {
                                     input.input.prevOut.outIdx,
                         );
                     if (fuelUtxo) {
-                        return this._wallet.p2pkhUtxoToBuilderInput(
+                        return this._wallet.utxoToBuilderInput(
                             fuelUtxo,
                             sighash,
                         );
@@ -1687,7 +1676,7 @@ class WalletAction {
                 ).toString();
                 const keypair =
                     this._wallet.getKeypairForAddress(chainedOutputAddress);
-                if (!keypair) {
+                if (!keypair?.sk) {
                     throw new Error(
                         `Could not get keypair for chained output address ${chainedOutputAddress}`,
                     );
@@ -2165,10 +2154,7 @@ class WalletAction {
 
             // Prepare the new (dummy) input so we can test the tx for fees
             // NB we use ALL_BIP143, chained txs are NOT (yet) supported by postage
-            const newInput = this._wallet.p2pkhUtxoToBuilderInput(
-                utxo,
-                ALL_BIP143,
-            );
+            const newInput = this._wallet.utxoToBuilderInput(utxo, ALL_BIP143);
             additionalTxInputsToCoverChainedTx.push(newInput);
 
             const newTxBuilder = new TxBuilder({
@@ -2255,6 +2241,11 @@ class WalletAction {
         }
 
         if (this.selectUtxosResult.chainedTxType !== ChainedTxType.NONE) {
+            if (this._wallet.isMultisig) {
+                throw new Error(
+                    'MultisigWallet does not support chained transactions',
+                );
+            }
             // Special handling for chained txs
             return this._buildChained(sighash);
         }
@@ -2287,7 +2278,7 @@ class WalletAction {
         let txFee;
 
         const finalizedInputs = selectedUtxos.map(utxo =>
-            this._wallet.p2pkhUtxoToBuilderInput(utxo, sighash),
+            this._wallet.utxoToBuilderInput(utxo, sighash),
         );
 
         // Can you cover the tx without fuelUtxos?
@@ -2339,7 +2330,7 @@ class WalletAction {
                 // If we know these utxos are insufficient to cover the tx, add a utxo
                 inputSats += utxo.sats;
                 finalizedInputs.push(
-                    this._wallet.p2pkhUtxoToBuilderInput(utxo, sighash),
+                    this._wallet.utxoToBuilderInput(utxo, sighash),
                 );
             }
 
@@ -2389,11 +2380,17 @@ class WalletAction {
      * Build (but do not broadcast) eCash txs to handle the
      * action specified by the constructor
      *
-     * NB calling build() will always update the wallet's utxo set to reflect
-     * the post-broadcast state
+     * For normal wallets, `build()` optimistically updates the in-memory UTXO set
+     * to match the post-broadcast state (see {@link inspect} to avoid that).
+     *
+     * {@link MultisigWallet} skips that update: partial signing means the spend is
+     * not final at build time, and multiple cosigner instances share the same address.
+     * Call {@link ActionableWallet.sync} after a successful {@link BuiltAction.broadcast}
+     * (and before building another spend) so UTXOs match the chain.
      */
     public build(sighash = ALL_BIP143): BuiltAction {
-        return this._build({ sighash, updateUtxos: true });
+        const updateUtxos = !this._wallet.isMultisig;
+        return this._build({ sighash, updateUtxos });
     }
 
     /**
@@ -2580,7 +2577,7 @@ class WalletAction {
 
         // Create inputs with the specified sighash
         const finalizedInputs = selectedUtxos.map(utxo =>
-            this._wallet.p2pkhUtxoToBuilderInput(utxo, sighash),
+            this._wallet.utxoToBuilderInput(utxo, sighash),
         );
 
         // NB we could remove these utxos from the wallet's utxo set, but this would
@@ -2774,7 +2771,7 @@ export class InspectAction {
  * constant interface than to optimze for one-tx actions
  */
 export class BuiltAction {
-    private _wallet: Wallet;
+    private _wallet: ActionableWallet;
     public txs: Tx[];
     public builtTxs: BuiltTx[];
     public feePerKb: bigint;
@@ -2784,7 +2781,7 @@ export class BuiltAction {
      */
     private _walletAction?: WalletAction;
     constructor(
-        wallet: Wallet,
+        wallet: ActionableWallet,
         txs: Tx[],
         feePerKb: bigint,
         walletAction?: WalletAction,
@@ -2823,12 +2820,34 @@ export class BuiltAction {
      *
      * Uses Chronik's broadcastTxs for all cases (single batched request).
      *
+     * **Multisig:** before sending, each tx must satisfy {@link Tx.isFullySignedMultisig}
+     * (partially signed txs throw). Multisig is **not** included in the automatic
+     * sync-and-rebroadcast path on UTXO conflict errors (`retryOnUtxoConflict`): that
+     * path calls {@link ActionableWallet.sync}, {@link WalletAction.build}, and broadcasts
+     * immediately, which only works when `build()` yields a fully signed tx. Multisig
+     * `build()` is still partial until cosigners run {@link MultisigWallet.signPartialTx},
+     * and a rebuild would invalidate earlier signatures. On broadcast failure, multisig
+     * callers should {@link ActionableWallet.sync}, rebuild, redo the signing handoff,
+     * and broadcast again.
+     *
      * @param config - Optional configuration for broadcasting. Defaults to { retryOnUtxoConflict: true }
      * @returns Object with success status, broadcasted txids, and any errors
      */
     public async broadcast(
         config: BroadcastConfig = { retryOnUtxoConflict: true },
     ) {
+        // Only for MultisigWallet: Tx.isFullySignedMultisig keys off signData.redeemScript, which
+        // matches P2SH m-of-n inputs but also unrelated P2SH spends (e.g. p2shInputData); those
+        // txs would falsely fail this check if we ran it on every broadcast.
+        if (this._wallet.isMultisig) {
+            for (const tx of this.txs) {
+                if (!tx.isFullySignedMultisig()) {
+                    throw new Error(
+                        'Transaction is not fully signed. Add signatures before broadcasting.',
+                    );
+                }
+            }
+        }
         const txsToBroadcast = this.txs.map(tx => toHex(tx.ser()));
 
         try {
@@ -2841,6 +2860,8 @@ export class BuiltAction {
             // This allows us to rebuild the entire chain with fresh UTXOs
             if (
                 config.retryOnUtxoConflict !== false &&
+                // Multisig: rebuild would need co-signing again; see BuiltAction.broadcast JSDoc
+                !this._wallet.isMultisig &&
                 this._shouldSyncAndRetry(err) &&
                 this._walletAction
             ) {
@@ -6196,7 +6217,7 @@ export const getFeesForChainedTx = (
  * Another thing to look at for the future here is paginated utxos and utxos() chronik calls that return
  * some kind of filtered set
  */
-export const removeSpentUtxos = (wallet: Wallet, tx: Tx) => {
+export const removeSpentUtxos = (wallet: { utxos: WalletUtxo[] }, tx: Tx) => {
     // Remove spent utxos
     const { inputs } = tx;
     for (const input of inputs) {

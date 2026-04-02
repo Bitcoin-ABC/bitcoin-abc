@@ -324,3 +324,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 **BREAKING CHANGE**
 
 - Upgrade to `ecash-wallet` 5.0.0, which requires chronik >= 0.32.10
+
+### 4.0.1 [D19777](https://reviews.bitcoinabc.org/D19777)
+
+- Upgrade to `ecash-wallet` 5.2.0

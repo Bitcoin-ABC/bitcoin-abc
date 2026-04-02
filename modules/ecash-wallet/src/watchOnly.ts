@@ -27,7 +27,7 @@ export interface WatchOnlyKeypairData {
  * - HD version can be initialized with same options shape as Wallet
  * - Has utxos and balanceSats
  * - HD version can get next change address and next receive address
- * - Does not track tipHeight as it does not track spendability
+ * - Updates {@link WalletBase.tipHeight} on {@link sync} like other wallets (coinbase maturity in spendable* helpers)
  */
 export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
     protected constructor(
@@ -120,12 +120,14 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
                 result.utxos,
                 result.outputScript,
             );
+            this.tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
             this.updateBalance();
             return;
         }
 
         // HD wallet: sync all addresses at or below current indices
         await this._syncHDWallet();
+        this.tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
     }
 
     /**

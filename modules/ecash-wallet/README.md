@@ -20,6 +20,14 @@ const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 
 See tests for detailed methods.
 
+## MultisigWallet (`MultisigWallet`, P2SH m-of-n ECDSA)
+
+`MultisigWallet.fromCosigners` builds the redeem script with **pubkeys sorted by lexicographic byte order** (compressed pubkey encoding), matching **Electrum-ABC** (`MultisigWallet.pubkeys_to_redeem_script` uses `sorted(pubkeys)` in `electrumabc/wallet.py`). Pass cosigners in any order; duplicates are rejected. This convention is **only** in `ecash-wallet`; `ecash-lib` does not impose a multisig pubkey ordering policy.
+
+Exactly **one** cosigner entry must include a secret key per instance (this party's wallet); other participants use their own `MultisigWallet` with `sk` on the matching pubkey entry.
+
+`BuiltAction.broadcast()` rejects partial multisig txs and does **not** auto-retry after UTXO conflict errors (sync + rebuild + immediate broadcast only fits fully signed `Wallet` builds). On failure: `sync`, rebuild, redo `signPartialTx` handoff, broadcast again.
+
 ## Roadmap
 
 `ecash-wallet` is engineered to be a drop-in wallet lib for any ecash application that needs wallet functionality. The first milestone demonstrating minimal fulfillment of this requirement will be the integration of `ecash-wallet` into Cashtab.
@@ -325,3 +333,7 @@ See tests for detailed methods.
 - Export the functions from WatchOnlyWallet
 
 [D19651](https://reviews.bitcoinabc.org/D19651)
+
+# 5.2.0
+
+- Support `p2sh` multisig (ECDSA only) [D19777](https://reviews.bitcoinabc.org/D19777)
