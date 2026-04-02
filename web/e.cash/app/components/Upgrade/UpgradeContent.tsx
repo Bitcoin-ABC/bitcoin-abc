@@ -24,30 +24,6 @@ export default function UpgradeContent({
     <div className="relative w-full py-20">
       <ContentContainer className="max-w-[700px]">
         <div className="space-y-12">
-          {/* What happened Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-            viewport={{ once: true }}
-            className="space-y-6"
-          >
-            <PlusHeader text="What happened?" />
-            <p>
-              The planned upgrade of the eCash network has successfully been
-              completed. The first post-upgrade block is block number{" "}
-              <Link
-                href="https://explorer.e.cash/block/00000000000000004eb0a7a410071b9ff243ed02ea61ce3d566081dd05c05576"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 transition-colors hover:text-blue-300"
-              >
-                923348
-              </Link>
-              .
-            </p>
-          </motion.div>
-
           {/* Who needs to upgrade Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -74,6 +50,26 @@ export default function UpgradeContent({
             </p>
           </motion.div>
 
+          {/* When will it activate Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <PlusHeader text="Exactly when will the upgrade activate?" />
+            <p>
+              In order to activate reliably at a predictable time, the network
+              upgrade uses the &ldquo;Median Time Past&rdquo; mechanism. The
+              upgrade activates when the median of the last 11 blocks reaches
+              timestamp 1778846400 (12:00:00 UTC on May 15th, 2026). This means
+              that the upgrade does not actually activate exactly at that time,
+              but typically about one hour later, when 6 blocks with timestamps
+              greater than the activation time have been produced.
+            </p>
+          </motion.div>
+
           {/* Features Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -83,70 +79,19 @@ export default function UpgradeContent({
             className="space-y-6"
           >
             <PlusHeader text="What features are included in the Network Upgrade?" />
-            <p>This upgrade includes several new protocol features:</p>
-            <h4 className="mb-2 text-lg font-semibold text-white">
-              Avalanche Pre-Consensus
-            </h4>
             <p>
-              Pre-Consensus allows nodes to finalize transactions using the
-              Avalanche protocol. Finalized transactions are protected from
-              double-spending by rejecting blocks containing transactions that
-              conflict with them.
+              This upgrade does not include any new protocol features. However,
+              because of the automatic replay protection that is part of the
+              6-month upgrade cadence, it is necessary for all full node
+              operators to upgrade to {latestMajor}.
             </p>
             <p>
-              This means that transactions can be relied on within 2-3 seconds
-              with a high degree of trust, since finalized transactions are
-              protected from double spending by Avalanche-enabled eCash nodes.
-              See{" "}
-              <Link
-                href="/blog/preconsensus-launch"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 transition-colors hover:text-blue-300"
-              >
-                the Pre-Consensus launch announcement
-              </Link>{" "}
-              for more information on this new feature.
-            </p>
-            <h4 className="mb-2 text-lg font-semibold text-white">
-              64-Bit Integers in Script
-            </h4>
-            <p>
-              After this upgrade, 64-bit integers (63 value bits + 1 sign bit)
-              are enabled. This is an increase from the 31+sign-bit range that
-              was previously active on Script.
-            </p>
-            <p>
-              This improvement allows more finely grained Script smart
-              contracts, for example enabling more precise prices for large
-              Agora offers.
-            </p>
-            <h4 className="mb-2 text-lg font-semibold text-white">
-              Heartbeat Update
-            </h4>
-            <p>
-              A 1-block window was added to the Real-Time Target calculation.
-              This is a refinement to reduce an artifact in the Heartbeat
-              behaviour in particular the case where two blocks are mined in
-              quick succession. See the{" "}
-              <Link
-                href="/mining"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 transition-colors hover:text-blue-300"
-              >
-                eCash Mining page
-              </Link>{" "}
-              for more details.
-            </p>
-            <h4 className="mb-2 text-lg font-semibold text-white">
-              Staking Rewards Pre-Consensus
-            </h4>
-            <p>
-              With this feature, eCash staking nodes use Avalanche polling to
-              come to consensus on the staking reward winner for the next block
-              before it is mined. This makes the network more robust, while
-              retaining the previous staking reward behavior.
+              Versions {latestMajor} and later include improvements to the
+              Avalanche Pre-Consensus and mining layers that enable the eCash
+              network to handle much larger transaction volume during periods of
+              high activity. While these improvements are not activated by the
+              network upgrade, the mandatory update make sure it is fully
+              deployed by the time the network upgrade activates.
             </p>
           </motion.div>
 
