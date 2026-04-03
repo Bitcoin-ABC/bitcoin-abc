@@ -1,12 +1,13 @@
 package=openssl
-$(package)_version=1.1.1t
-$(package)_download_path=https://www.openssl.org/source
+$(package)_version=3.5.9
+$(package)_download_path=https://github.com/openssl/openssl/releases/download/openssl-$($(package)_version)
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=8dee9b24bdb1dcbf0c3d1e9b02fb8f6bf22165e807f45adeb7c9677536859d3b
+$(package)_sha256_hash=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)"
-$(package)_config_opts=--prefix=$(host_prefix) --openssldir=$(host_prefix)/etc/openssl
+$(package)_config_opts=--prefix=$(host_prefix) --openssldir=$(host_prefix)/etc/openssl --libdir=lib
+$(package)_config_opts+=no-apps
 $(package)_config_opts+=no-camellia
 $(package)_config_opts+=no-capieng
 $(package)_config_opts+=no-cast
@@ -16,7 +17,6 @@ $(package)_config_opts+=no-dtls1
 $(package)_config_opts+=no-ec_nistp_64_gcc_128
 $(package)_config_opts+=no-engine
 $(package)_config_opts+=no-gost
-$(package)_config_opts+=no-heartbeats
 $(package)_config_opts+=no-idea
 $(package)_config_opts+=no-md2
 $(package)_config_opts+=no-mdc2
@@ -28,15 +28,14 @@ $(package)_config_opts+=no-sctp
 $(package)_config_opts+=no-seed
 $(package)_config_opts+=no-shared
 $(package)_config_opts+=no-ssl-trace
-$(package)_config_opts+=no-ssl2
 $(package)_config_opts+=no-ssl3
 $(package)_config_opts+=no-tests
 $(package)_config_opts+=no-unit-test
 $(package)_config_opts+=no-weak-ssl-ciphers
+$(package)_config_opts+=no-winstore
 $(package)_config_opts+=no-whirlpool
 $(package)_config_opts+=no-zlib
 $(package)_config_opts+=no-zlib-dynamic
-$(package)_config_opts+=$($(package)_cflags) $($(package)_cppflags)
 $(package)_config_opts_linux=-fPIC -Wa,--noexecstack
 $(package)_config_opts_x86_64_linux=linux-x86_64
 $(package)_config_opts_i686_linux=linux-generic32
@@ -56,7 +55,8 @@ $(package)_config_opts_i686_mingw32+=no-sock
 endef
 
 define $(package)_preprocess_cmds
-  sed -i.old "s/define DATE .*/define DATE \"\"/g" util/mkbuildinf.pl
+  sed -i.old 's|crypto ssl apps util tools fuzz providers doc|crypto ssl util tools providers|' build.info && \
+  rm -rf doc demos apps test
 endef
 
 define $(package)_config_cmds
@@ -68,8 +68,7 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  sed -i.old "s/^INSTALLTOP=/INSTALLTOP?=/g" Makefile && \
-  $($(package)_stage_env) $(MAKE) INSTALLTOP=$($(package)_staging_dir)/$(host_prefix) install_sw
+  $(MAKE) DESTDIR=$($(package)_staging_dir) install_sw
 endef
 
 define $(package)_postprocess_cmds
