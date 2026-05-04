@@ -29,10 +29,7 @@ class ConfigKeys:
     ADDRESS_FORMAT = ConfigKey("address_format", Address.FMT_CASHADDR)
     ALIAS = ConfigKey("alias", "")
     ALLOW_LEGACY_P2SH = ConfigKey("allow_legacy_p2sh", False)
-    # FIXME: auto_connect has a default value (True) defined in network.py, but we
-    #  cannot set it here because we rely on `config.get("auto_connect") is None`
-    #  as a heuristic to determine that the config file does not exist
-    AUTO_CONNECT = ConfigKey("auto_connect")
+    AUTO_CONNECT = ConfigKey("auto_connect", True)
     AUTO_UPDATE_CHECK = ConfigKey("auto_update_check", True)
     # See docstring for Network.blockchain_index
     BLOCKCHAIN_INDEX = ConfigKey("blockchain_index", 0)
@@ -91,7 +88,7 @@ class ConfigKeys:
     # For high dpi, the default value depends on context (OS...)
     # See qt/__init__.py
     QT_DISABLE_HIGHDPI = ConfigKey("qt_disable_highdpi", False)
-    QT_ENABLE_HIGHDPI = ConfigKey("qt_enable_highdpi")
+    QT_ENABLE_HIGHDPI = ConfigKey("qt_enable_highdpi", True)
     QT_GUI_COLOR_THEME = ConfigKey("qt_gui_color_theme", "default")
     # See help for command line argument --qt_opengl
     QT_OPENGL = ConfigKey("qt_opengl")
@@ -233,11 +230,15 @@ class SimpleConfig(PrintError):
         assert default is not None
         return self._get_internal(key, default)
 
-    def _get_internal(self, key: Union[str, ConfigKey], default=None):
+    def is_key_set(self, key: ConfigKey):
+        return self._get_internal(key, nodefault=True) is not None
+
+    def _get_internal(self, key: Union[str, ConfigKey], default=None, nodefault=False):
         # Do not use this directly. Use one of the `get`, `get_or` or
         # `is_key_set` interface methods
+        assert not nodefault or default is None
         if isinstance(key, ConfigKey):
-            if default is None:
+            if default is None and not nodefault:
                 default = key.default
             key = key.key
         with self.lock:

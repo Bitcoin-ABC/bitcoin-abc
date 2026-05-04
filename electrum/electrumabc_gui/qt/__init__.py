@@ -139,7 +139,7 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         #
         # The default on Linux, Windows, etc is to enable high dpi
         disable_scaling = config.get(ConfigKeys.QT_DISABLE_HIGHDPI)
-        enable_scaling = config.get_or(ConfigKeys.QT_ENABLE_HIGHDPI, True)
+        enable_scaling = config.get(ConfigKeys.QT_ENABLE_HIGHDPI)
         if not disable_scaling and enable_scaling:
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -808,15 +808,12 @@ class ElectrumGui(QtCore.QObject, PrintError):
         gc.collect()
 
     def init_network(self):
-        # Show network dialog if config does not exist
-        if self.daemon.network:
-            # fixme: figure out a better way to determine that the config does not exist
-            if self.config.get(ConfigKeys.AUTO_CONNECT) is None:
-                wizard = InstallWizard(
-                    self.config, self.app, self.plugins, gui_object=self
-                )
-                wizard.init_network(self.daemon.network)
-                wizard.terminate()
+        # Show network dialog if network is not yet configured
+        if not self.daemon.network or self.config.is_key_set(ConfigKeys.AUTO_CONNECT):
+            return
+        wizard = InstallWizard(self.config, self.app, self.plugins, gui_object=self)
+        wizard.init_network(self.daemon.network)
+        wizard.terminate()
 
     def on_new_version(self, newver):
         """Called by the auto update check mechanism to notify
@@ -942,8 +939,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             hasattr(QtCore.Qt, "AA_EnableHighDpiScaling")
             and self.app.testAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
             # first run check:
-            # TODO: replace with config.is_key_set, so we can give QT_ENABLE_HIGHDPI a default value
-            and self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI) is None
+            and not self.config.is_key_set(ConfigKeys.QT_ENABLE_HIGHDPI)
             and (
                 is_lin  # we can't check pixel ratio on linux as apparently it's unreliable, so always show this message on linux
                 # on some windows systems running in highdpi causes

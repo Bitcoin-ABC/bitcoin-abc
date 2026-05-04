@@ -57,8 +57,6 @@ Method and params are passed to the interface with a unique request id. Callback
 called and takes the interface's response as a parameter.
 """
 
-DEFAULT_AUTO_CONNECT = True
-
 # Rate-limit the get_merkle requests sent to fulcrum servers.
 # This affects the speed of the initial verification of transactions in a wallet with
 # a large transaction history. Values up to 10000 have been successfully tested for a
@@ -354,9 +352,7 @@ class Network(util.DaemonThread):
         The dict key is a "<host>:<port>:<protocol>" string.
         Requires self.interface_lock.
         """
-        self.auto_connect: bool = self.config.get_or(
-            ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
-        )
+        self.auto_connect: bool = self.config.get(ConfigKeys.AUTO_CONNECT)
         self.connecting: Set[str] = set()
         """Set of servers as "<host>:<port>:<protocol>" strings."""
         self.requested_chunks: Set[int] = set()
@@ -758,9 +754,7 @@ class Network(util.DaemonThread):
         server = self.get_config_server()
         protocol = deserialize_server(server)[2]
         proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
-        self.auto_connect = self.config.get_or(
-            ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
-        )
+        self.auto_connect = self.config.get(ConfigKeys.AUTO_CONNECT)
         if self.proxy != proxy or self.protocol != protocol:
             # Restart the network defaulting to the given server
             self.stop_network()

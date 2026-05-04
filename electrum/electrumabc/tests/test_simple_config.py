@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from io import StringIO
 
-from ..simple_config import ConfigKeys, SimpleConfig, read_user_config
+from ..simple_config import ConfigKey, ConfigKeys, SimpleConfig, read_user_config
 
 
 class TestSimpleConfig(unittest.TestCase):
@@ -42,13 +42,16 @@ class TestSimpleConfig(unittest.TestCase):
         def read_user_dir():
             return self.user_dir
 
+        AUTO_CYCLE = ConfigKey("auto_cycle")
+
         config = SimpleConfig(
             options=self.options,
             read_user_config_function=fake_read_user,
             read_user_dir_function=read_user_dir,
         )
+        self.assertTrue(config.is_key_set(ConfigKeys.AUTO_CONNECT))
         self.assertEqual(config.get(ConfigKeys.AUTO_CONNECT), True)
-        self.assertEqual(config.get("auto_cycle"), None)
+        self.assertFalse(config.is_key_set(AUTO_CYCLE))
 
         def fake_read_user(_):
             return {"auto_connect": False, "auto_cycle": True}
@@ -59,7 +62,7 @@ class TestSimpleConfig(unittest.TestCase):
             read_user_dir_function=read_user_dir,
         )
         self.assertEqual(config.get(ConfigKeys.AUTO_CONNECT), False)
-        self.assertEqual(config.get("auto_cycle"), None)
+        self.assertFalse(config.is_key_set(AUTO_CYCLE))
 
     def test_simple_config_command_line_overrides_everything(self):
         """Options passed by command line override all other configuration
@@ -151,6 +154,33 @@ class TestSimpleConfig(unittest.TestCase):
         result = ast.literal_eval(contents)
         result.pop("config_version", None)
         self.assertEqual({"something": "a"}, result)
+
+    def test_get_default(self):
+        """A config key may set a default that is returned if the key is not set.
+        An explicit default may override this default.
+        """
+        config = SimpleConfig(options=self.options)
+
+        dummy_key1 = ConfigKey("dummy1")
+        self.assertFalse(config.is_key_set(dummy_key1))
+        # we didn't provide a default
+        self.assertIsNone(config.get(dummy_key1))
+        # we can provide a default anyway via get
+        self.assertEqual(config.get_or(dummy_key1, default="spam"), "spam")
+        config.set_key(dummy_key1, "bar")
+        self.assertTrue(config.is_key_set(dummy_key1))
+        self.assertEqual(config.get_or(dummy_key1, default="spam"), "bar")
+
+        dummy_key2 = ConfigKey("dummy2", default="foo")
+        self.assertFalse(config.is_key_set(dummy_key2))
+        # we provided a default
+        self.assertEqual(config.get(dummy_key2), "foo")
+        # we can override the key's default
+        self.assertEqual(config.get_or(dummy_key2, default="baz"), "baz")
+        config.set_key(dummy_key2, "deadbeef")
+        self.assertTrue(config.is_key_set(dummy_key2))
+        self.assertEqual(config.get(dummy_key2), "deadbeef")
+        self.assertEqual(config.get_or(dummy_key2, default="spam"), "deadbeef")
 
 
 class TestUserConfig(unittest.TestCase):

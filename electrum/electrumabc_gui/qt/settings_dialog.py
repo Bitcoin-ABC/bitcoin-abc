@@ -364,9 +364,7 @@ class SettingsDialog(WindowModalDialog):
                         "glitches (such as dialog box text being cut off"
                     )
                 )
-            self.hidpi_chk.setChecked(
-                bool(self.config.get_or(ConfigKeys.QT_ENABLE_HIGHDPI, True))
-            )
+            self.hidpi_chk.setChecked(self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI))
             if self.config.get(ConfigKeys.QT_DISABLE_HIGHDPI):
                 self.hidpi_chk.setToolTip(
                     _("Automatic high DPI scaling was disabled from the command-line")
