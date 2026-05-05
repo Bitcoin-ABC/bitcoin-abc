@@ -860,6 +860,68 @@ describe('Get script().history and script().utxos()', () => {
             'Failed getting /script/batch/utxos: 400: Batch script request must include at least one script',
         );
     });
+    it('batchSummary matches script().history() head tx and numTxs', async () => {
+        const chronik = new ChronikClient(chronikUrl);
+
+        const scripts: ScriptRef[] = [
+            { scriptType: 'p2pkh', payload: p2pkhAddressHash },
+            { scriptType: 'p2sh', payload: p2shAddressHash },
+            { scriptType: 'p2pk', payload: p2pkScript },
+            { scriptType: 'other', payload: otherScript },
+        ];
+
+        const rows = await chronik.batchSummary(scripts);
+        expect(rows.length).to.eql(scripts.length);
+
+        for (let i = 0; i < scripts.length; i += 1) {
+            expect(rows[i].script).to.deep.equal(scripts[i]);
+            const chronikScript = chronik.script(
+                scripts[i].scriptType,
+                scripts[i].payload,
+            );
+            const h = await chronikScript.history();
+            const u = await chronikScript.utxos();
+            expect(rows[i].numTxs).to.eql(h.numTxs);
+            expect(rows[i].numUtxos).to.eql(u.utxos.length);
+            if (h.numTxs === 0) {
+                expect(rows[i].latestTx).to.eql(undefined);
+            } else {
+                expect(rows[i].latestTx).to.deep.equal(h.txs[0]);
+            }
+        }
+
+        await expect(
+            chronik.batchSummary([scripts[0], scripts[0]]),
+        ).to.be.rejectedWith(
+            Error,
+            'Failed getting /script/batch/summary: 400: Duplicate script entries in batch request',
+        );
+
+        await expect(
+            chronik.batchSummary([
+                { scriptType: 'p2pk', payload: p2pkScript },
+                { scriptType: 'p2pkh', payload: '01' },
+            ]),
+        ).to.be.rejectedWith(
+            Error,
+            'Failed getting /script/batch/summary: 400: Invalid payload for P2PKH: Invalid length, expected 20 bytes but got 1 bytes',
+        );
+
+        const emptyP2pkhPayload = '00'.repeat(20);
+        const tooManyScripts: ScriptRef[] = Array.from({ length: 501 }, () => ({
+            scriptType: 'p2pkh',
+            payload: emptyP2pkhPayload,
+        }));
+        await expect(chronik.batchSummary(tooManyScripts)).to.be.rejectedWith(
+            Error,
+            'Failed getting /script/batch/summary: 400: Too many scripts in batch: max is 500, got 501',
+        );
+
+        await expect(chronik.batchSummary([])).to.be.rejectedWith(
+            Error,
+            'Failed getting /script/batch/summary: 400: Batch script request must include at least one script',
+        );
+    });
     it('After a tx is broadcast with outputs of each type', async () => {
         const chronik = new ChronikClient(chronikUrl);
         const mixedTxid = await get_mixed_output_txid;
@@ -921,5 +983,30 @@ describe('Get script().history and script().utxos()', () => {
             mixedTxid,
             txsBroadcast,
         );
+
+        const batchScriptsAfterMixed: ScriptRef[] = [
+            { scriptType: 'p2pkh', payload: p2pkhAddressHash },
+            { scriptType: 'p2sh', payload: p2shAddressHash },
+            { scriptType: 'p2pk', payload: p2pkScript },
+            { scriptType: 'other', payload: otherScript },
+        ];
+        const batchSummaryAfterMixed = await chronik.batchSummary(
+            batchScriptsAfterMixed,
+        );
+        expect(batchSummaryAfterMixed.length).to.eql(
+            batchScriptsAfterMixed.length,
+        );
+        for (let i = 0; i < batchScriptsAfterMixed.length; i += 1) {
+            const s = batchScriptsAfterMixed[i];
+            const row = batchSummaryAfterMixed[i];
+            const chronikScript = chronik.script(s.scriptType, s.payload);
+            const h = await chronikScript.history();
+            const u = await chronikScript.utxos();
+            expect(row.script).to.deep.equal(s);
+            expect(row.numTxs).to.eql(h.numTxs);
+            expect(row.numUtxos).to.eql(u.utxos.length);
+            expect(row.latestTx?.txid).to.eql(mixedTxid);
+            expect(row.latestTx).to.deep.equal(h.txs[0]);
+        }
     });
 });

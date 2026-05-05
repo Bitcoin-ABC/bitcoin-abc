@@ -444,6 +444,39 @@ message ScriptBatchUtxosResponse {
     repeated ScriptBatchUtxosRow rows = 1;
 }
 
+// Parameters for batch script summary (same shape as `ScriptBatchUtxosParams`).
+message ScriptBatchSummaryParams {
+    // Scripts to query.
+    repeated ScriptRef scripts = 1;
+}
+
+// Request a batch script summary for scripts.
+message ScriptBatchSummaryRequest {
+    // Batch inputs (scripts to resolve summaries for).
+    ScriptBatchSummaryParams params = 1;
+}
+
+// One row in the batch script summary response.
+message ScriptBatchSummaryRow {
+    // The requested script.
+    ScriptRef script = 1;
+    // Total txs touching this script (confirmed index + mempool), same as
+    // `TxHistoryPage.num_txs` for `/history`.
+    uint32 num_txs = 2;
+    // Number of UTXOs for this script (confirmed + mempool), same as
+    // `len(script().utxos().utxos)`.
+    uint32 num_utxos = 3;
+    // Most recent tx in `history` order when `num_txs > 0`; unset when
+    // `num_txs == 0`.
+    Tx latest_tx = 4;
+}
+
+// Response for `POST /script/batch/summary`.
+message ScriptBatchSummaryResponse {
+    // One row per requested script, same order as `ScriptBatchSummaryParams.scripts`.
+    repeated ScriptBatchSummaryRow rows = 1;
+}
+
 // List of UTXOs
 message Utxos {
     // UTXOs

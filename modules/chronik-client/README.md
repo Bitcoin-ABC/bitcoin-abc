@@ -137,3 +137,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 - 4.0.0 - **(Breaking change)** Remove pagination params from `unconfirmedTxs` methods that do not actually support pagination; no change in behavior as these params were previously not working, but any callsites using them are now expected to throw or fail type checks [D19059](https://reviews.bitcoinabc.org/D19059)
 - 4.1.0 - Add new methods `broadcastAndFinalizeTx` and `broadcastAndFinalizeTxs`. [D19136](https://reviews.bitcoinabc.org/D19136)
 - 4.2.0 - Add new method `batchUtxos` to fetch utxos for several scripts in a single request [D19909](https://reviews.bitcoinabc.org/D19909)
+- 4.3.0 - Add new method `batchSummary` to fetch a summary of the history/utxos for several scripts in a single request [D19983](https://reviews.bitcoinabc.org/D19983)

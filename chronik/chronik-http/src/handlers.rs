@@ -280,6 +280,41 @@ pub fn handle_script_utxos_batch(
     Ok(proto::ScriptBatchUtxosResponse { rows })
 }
 
+/// Return tx counts, UTXO count, and the newest full [`proto::Tx`] in `history`
+/// order for a batch of scripts in one request. Same validation and echo
+/// semantics as [`handle_script_utxos_batch`]. The limitations of this endpoint
+/// makes it possible to drop pagination and makes it suitable for HD wallet gap
+/// search and subscription heuristics.
+pub fn handle_script_batch_summary(
+    scripts: Vec<proto::ScriptRef>,
+    indexer: &ChronikIndexer,
+    node: &Node,
+) -> Result<proto::ScriptBatchSummaryResponse> {
+    check_batch_script_validity(&scripts)?;
+    let script_history = indexer.script_history(node)?;
+    let script_utxos = indexer.script_utxos(node)?;
+    let mut rows = Vec::with_capacity(scripts.len());
+    for script_req in scripts {
+        let payload_hex = hex::encode(&script_req.payload);
+        let member = get_group_member(&script_req.script_type, &payload_hex)?;
+        let history_page = script_history.rev_history(member.as_ref(), 0, 1)?;
+        let script =
+            script_utxos.script(member, indexer.decompress_script_fn)?;
+        let num_utxos = script_utxos.utxos(&script)?.len() as u32;
+        let latest_tx = history_page.txs.into_iter().next();
+        rows.push(proto::ScriptBatchSummaryRow {
+            script: Some(proto::ScriptRef {
+                script_type: script_req.script_type,
+                payload: script_req.payload,
+            }),
+            num_txs: history_page.num_txs,
+            num_utxos,
+            latest_tx,
+        });
+    }
+    Ok(proto::ScriptBatchSummaryResponse { rows })
+}
+
 /// Return a page of the confirmed txs of the given token ID.
 pub async fn handle_token_id_confirmed_txs(
     token_id_hex: &str,

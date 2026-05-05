@@ -194,6 +194,11 @@ impl ChronikServer {
                     .on(MethodFilter::OPTIONS, handle_post_options),
             )
             .route(
+                "/script/batch/summary",
+                routing::post(handle_script_batch_summary)
+                    .on(MethodFilter::OPTIONS, handle_post_options),
+            )
+            .route(
                 "/script/:type/:payload/confirmed-txs",
                 routing::get(handle_script_confirmed_txs),
             )
@@ -585,6 +590,18 @@ async fn handle_script_batch_utxos(
     let scripts = request.params.map(|p| p.scripts).unwrap_or_default();
     let indexer = indexer.read().await;
     Ok(Protobuf(handlers::handle_script_utxos_batch(
+        scripts, &indexer, &node,
+    )?))
+}
+
+async fn handle_script_batch_summary(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+    Protobuf(request): Protobuf<proto::ScriptBatchSummaryRequest>,
+) -> Result<Protobuf<proto::ScriptBatchSummaryResponse>, ReportError> {
+    let scripts = request.params.map(|p| p.scripts).unwrap_or_default();
+    let indexer = indexer.read().await;
+    Ok(Protobuf(handlers::handle_script_batch_summary(
         scripts, &indexer, &node,
     )?))
 }

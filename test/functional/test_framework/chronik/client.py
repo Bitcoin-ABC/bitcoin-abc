@@ -466,6 +466,20 @@ class ChronikClient:
             pb.ScriptBatchUtxosResponse,
         )
 
+    def script_batch_summary(self, scripts: List[Tuple[str, str]]) -> ChronikResponse:
+        pb_scripts = [
+            pb.ScriptRef(script_type=script_type, payload=bytes.fromhex(payload))
+            for script_type, payload in scripts
+        ]
+        return self._request(
+            "POST",
+            "/script/batch/summary",
+            pb.ScriptBatchSummaryRequest(
+                params=pb.ScriptBatchSummaryParams(scripts=pb_scripts)
+            ).SerializeToString(),
+            pb.ScriptBatchSummaryResponse,
+        )
+
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
 

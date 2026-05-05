@@ -406,6 +406,51 @@ describe('MockChronikClient', () => {
             mockChronik.batchUtxos([{ scriptType: 'p2pkh', payload: hash }]),
         ).to.be.rejectedWith(chronikError);
     });
+    it('batchSummary returns rows from setTxHistoryByScript and setTxHistoryByAddress', async () => {
+        const { tx, scriptUtxo } = mocks;
+        const type = 'p2pkh';
+        const hash = '00'.repeat(20);
+        const otherHash = '11'.repeat(20);
+        const addrForOther = encodeCashAddress('ecash', type, otherHash);
+        mockChronik.setTxHistoryByScript(type, hash, [tx]);
+        mockChronik.setTxHistoryByAddress(addrForOther, [tx]);
+        mockChronik.setUtxosByScript(type, hash, [scriptUtxo]);
+        mockChronik.setUtxosByAddress(addrForOther, [scriptUtxo]);
+
+        const byScript = await mockChronik.batchSummary([
+            { scriptType: 'p2pkh', payload: hash },
+        ]);
+        expect(byScript).to.deep.equal([
+            {
+                script: { scriptType: 'p2pkh', payload: hash },
+                numTxs: 1,
+                numUtxos: 1,
+                latestTx: tx,
+            },
+        ]);
+
+        const byAddress = await mockChronik.batchSummary([
+            { scriptType: 'p2pkh', payload: otherHash },
+        ]);
+        expect(byAddress[0].numTxs).to.eql(1);
+        expect(byAddress[0].numUtxos).to.eql(1);
+        expect(byAddress[0].latestTx).to.deep.equal(tx);
+
+        const unknown = await mockChronik.batchSummary([
+            { scriptType: 'p2pkh', payload: '22'.repeat(20) },
+        ]);
+        expect(unknown[0].numTxs).to.eql(0);
+        expect(unknown[0].numUtxos).to.eql(0);
+        expect(unknown[0].latestTx).to.eql(undefined);
+    });
+    it('batchSummary propagates Error set via setTxHistoryByScript', async () => {
+        const type = 'p2pkh';
+        const hash = '33'.repeat(20);
+        mockChronik.setTxHistoryByScript(type, hash, chronikError);
+        await expect(
+            mockChronik.batchSummary([{ scriptType: 'p2pkh', payload: hash }]),
+        ).to.be.rejectedWith(chronikError);
+    });
     it('We can set and get tx history by tokenId', async () => {
         const { tx } = mocks;
         const tokenId = '00'.repeat(32);

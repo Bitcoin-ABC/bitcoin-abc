@@ -321,6 +321,43 @@ export class ChronikClient {
         });
     }
 
+    /**
+     * Per-script tx count, UTXO count, and the newest `Tx` in `history` order
+     * (same as `script().history().txs[0]`), in a single POST.
+     */
+    public async batchSummary(
+        scripts: ScriptRef[],
+    ): Promise<BatchSummaryRow[]> {
+        const request = proto.ScriptBatchSummaryRequest.encode({
+            params: {
+                scripts: scripts.map(s => ({
+                    scriptType: s.scriptType,
+                    payload: fromHex(s.payload),
+                })),
+            },
+        }).finish();
+        const data = await this._proxyInterface.post(
+            '/script/batch/summary',
+            request,
+        );
+        const response = proto.ScriptBatchSummaryResponse.decode(data);
+        return response.rows.map(row => {
+            if (row.script === undefined) {
+                throw new Error('Invalid script batch summary response');
+            }
+            let latestTx: Tx | undefined;
+            if (row.latestTx !== undefined) {
+                latestTx = convertToTx(row.latestTx);
+            }
+            return {
+                script: scriptRefFromProto(row.script),
+                numTxs: row.numTxs,
+                numUtxos: row.numUtxos,
+                latestTx,
+            };
+        });
+    }
+
     /** Fetch current info of the blockchain, such as tip hash and height. */
     public async blockchainInfo(): Promise<BlockchainInfo> {
         const data = await this._proxyInterface.get(`/blockchain-info`);
@@ -2218,6 +2255,17 @@ export interface BatchUtxosRow {
     /** Echoed script from the batch request. */
     script: ScriptRef;
     utxos: ScriptUtxos;
+}
+
+/** One row from {@link ChronikClient.batchSummary}. */
+export interface BatchSummaryRow {
+    script: ScriptRef;
+    /** Total txs (confirmed index + mempool), same as `history` `numTxs`. */
+    numTxs: number;
+    /** UTXO count for this script, same as `script().utxos().utxos.length`. */
+    numUtxos: number;
+    /** Same as `script().history().txs[0]` when `numTxs > 0`. */
+    latestTx?: Tx;
 }
 
 /** An unspent transaction output (aka. UTXO, aka. "Coin") of a script. */

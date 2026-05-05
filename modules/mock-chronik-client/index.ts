@@ -8,6 +8,7 @@ import {
     decodeCashAddress,
 } from 'ecashaddrjs';
 import {
+    BatchSummaryRow,
     BatchUtxosRow,
     Block,
     TxHistoryPage,
@@ -482,6 +483,26 @@ export class MockChronikClient {
         return rows;
     };
 
+    /**
+     * Batch history summary: uses the same mocked `history` arrays as
+     * `setTxHistoryByScript` / `setTxHistoryByAddress` (p2pkh / p2sh only).
+     * The head tx is `history[0]`, matching page 0 of {@link MockChronikClientMockedMethods.script.*.history}.
+     */
+    batchSummary = async (scripts: ScriptRef[]): Promise<BatchSummaryRow[]> => {
+        const rows: BatchSummaryRow[] = [];
+        for (const script of scripts) {
+            const history = this._txHistoryArrayForScript(script);
+            const numTxs = history.length;
+            let latestTx: BatchSummaryRow['latestTx'];
+            if (numTxs > 0) {
+                latestTx = history[0];
+            }
+            const numUtxos = this._batchUtxosRowForScript(script).utxos.length;
+            rows.push({ script, numTxs, numUtxos, latestTx });
+        }
+        return rows;
+    };
+
     setBroadcastTx = (rawTx: string, txidOrError: string | Error) => {
         this.mockedResponses.broadcastTx[rawTx] =
             typeof txidOrError === 'string'
@@ -763,6 +784,42 @@ export class MockChronikClient {
         }
         throw new Error(
             `MockChronikClient.batchUtxos does not support scriptType ${script.scriptType}`,
+        );
+    }
+
+    /** Resolved tx-history array for p2pkh/p2sh batch helpers. */
+    private _txHistoryArrayForScript(script: ScriptRef): Tx[] {
+        const { scriptType, payload } = script;
+        if (scriptType === 'p2pkh' || scriptType === 'p2sh') {
+            const scriptEntry =
+                this.mockedResponses.script[scriptType][payload];
+            if (scriptEntry !== undefined) {
+                const raw = scriptEntry.history;
+                if (raw instanceof Error) {
+                    throw raw;
+                }
+                return raw;
+            }
+            for (const address of Object.keys(this.mockedResponses.address)) {
+                let decoded;
+                try {
+                    decoded = decodeCashAddress(address);
+                } catch {
+                    continue;
+                }
+                if (decoded.type === scriptType && decoded.hash === payload) {
+                    const addrEntry = this.mockedResponses.address[address];
+                    const raw = addrEntry.history;
+                    if (raw instanceof Error) {
+                        throw raw;
+                    }
+                    return raw as Tx[];
+                }
+            }
+            return [];
+        }
+        throw new Error(
+            `MockChronikClient.batchSummary does not support scriptType ${script.scriptType}`,
         );
     }
 

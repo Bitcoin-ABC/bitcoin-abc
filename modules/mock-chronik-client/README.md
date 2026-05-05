@@ -134,3 +134,7 @@ If you have any implementation questions regarding this mock tool please check t
     3.2.0
 
 - Support for the batchUtxos() function [D19943](https://reviews.bitcoinabc.org/D19943)
+
+    3.3.0
+
+- Support for the batchSummary() function [D19983](https://reviews.bitcoinabc.org/D19983)

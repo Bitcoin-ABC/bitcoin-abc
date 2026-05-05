@@ -6,7 +6,7 @@
     },
     "name": "mock-chronik-client",
     "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
-    "version": "3.2.0",
+    "version": "3.3.0",
     "files": [
         "dist"
     ],

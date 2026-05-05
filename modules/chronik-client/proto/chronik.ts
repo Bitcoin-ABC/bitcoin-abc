@@ -753,33 +753,66 @@ export interface ScriptRef {
     payload: Uint8Array;
 }
 
-/** Batch parameters for `POST /script/batch/utxos`. */
+/** Parameters for requesting the utxos for a batch of scripts. */
 export interface ScriptBatchUtxosParams {
     /** Scripts to query. */
     scripts: ScriptRef[];
 }
 
-/** Request body for `POST /script/batch/utxos` (`application/x-protobuf`). */
+/** Request the utxos for a batch of scripts. */
 export interface ScriptBatchUtxosRequest {
     /** Batch inputs (scripts to resolve UTXOs for). */
     params: ScriptBatchUtxosParams | undefined;
 }
 
-/**
- * One successful row in the batch response (echoes the request script from the same index).
- * If any script in the batch fails, the whole request fails with HTTP 400 and an `Error` body.
- */
+/** One row in the batch response (echoes the request script from the same index). */
 export interface ScriptBatchUtxosRow {
-    /** Echoes the corresponding entry from `ScriptBatchUtxosParams.scripts`. */
+    /** The requested script. */
     script: ScriptRef | undefined;
     /** UTXO set for this script. */
     utxos: ScriptUtxos | undefined;
 }
 
-/** Response body for `POST /script/batch/utxos` (`application/x-protobuf`) on success. */
+/** The utxos from a batch of scripts. */
 export interface ScriptBatchUtxosResponse {
     /** One row per requested script, same order as `ScriptBatchUtxosParams.scripts`. */
     rows: ScriptBatchUtxosRow[];
+}
+
+/** Parameters for batch script summary (same shape as `ScriptBatchUtxosParams`). */
+export interface ScriptBatchSummaryParams {
+    /** Scripts to query. */
+    scripts: ScriptRef[];
+}
+
+/** Request a batch script summary for scripts. */
+export interface ScriptBatchSummaryRequest {
+    /** Batch inputs (scripts to resolve summaries for). */
+    params: ScriptBatchSummaryParams | undefined;
+}
+
+/** One row in the batch script summary response. */
+export interface ScriptBatchSummaryRow {
+    /** The requested script. */
+    script: ScriptRef | undefined;
+    /**
+     * Total txs touching this script (confirmed index + mempool), same as
+     * `TxHistoryPage.num_txs` for `/history`.
+     */
+    numTxs: number;
+    /**
+     * Number of UTXOs for this script (confirmed + mempool), same as
+     * `len(script().utxos().utxos)`.
+     */
+    numUtxos: number;
+    /** Most recent tx in `history` order when `num_txs > 0`; unset when `num_txs == 0`. */
+    latestTx: Tx | undefined;
+}
+
+/** Response for `POST /script/batch/summary`. */
+export interface ScriptBatchSummaryResponse {
+    /** One row per requested script, same order as `ScriptBatchSummaryParams.scripts`. */
+    rows: ScriptBatchSummaryRow[];
 }
 
 /** List of UTXOs */
@@ -5525,6 +5558,364 @@ export const ScriptBatchUtxosResponse = {
         const message = createBaseScriptBatchUtxosResponse();
         message.rows =
             object.rows?.map(e => ScriptBatchUtxosRow.fromPartial(e)) || [];
+        return message;
+    },
+};
+
+function createBaseScriptBatchSummaryParams(): ScriptBatchSummaryParams {
+    return { scripts: [] };
+}
+
+export const ScriptBatchSummaryParams = {
+    encode(
+        message: ScriptBatchSummaryParams,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.scripts) {
+            ScriptRef.encode(v!, writer.uint32(10).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): ScriptBatchSummaryParams {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseScriptBatchSummaryParams();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.scripts.push(
+                        ScriptRef.decode(reader, reader.uint32()),
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): ScriptBatchSummaryParams {
+        return {
+            scripts: globalThis.Array.isArray(object?.scripts)
+                ? object.scripts.map((e: any) => ScriptRef.fromJSON(e))
+                : [],
+        };
+    },
+
+    toJSON(message: ScriptBatchSummaryParams): unknown {
+        const obj: any = {};
+        if (message.scripts?.length) {
+            obj.scripts = message.scripts.map(e => ScriptRef.toJSON(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ScriptBatchSummaryParams>, I>>(
+        base?: I,
+    ): ScriptBatchSummaryParams {
+        return ScriptBatchSummaryParams.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<ScriptBatchSummaryParams>, I>>(
+        object: I,
+    ): ScriptBatchSummaryParams {
+        const message = createBaseScriptBatchSummaryParams();
+        message.scripts =
+            object.scripts?.map(e => ScriptRef.fromPartial(e)) || [];
+        return message;
+    },
+};
+
+function createBaseScriptBatchSummaryRequest(): ScriptBatchSummaryRequest {
+    return { params: undefined };
+}
+
+export const ScriptBatchSummaryRequest = {
+    encode(
+        message: ScriptBatchSummaryRequest,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.params !== undefined) {
+            ScriptBatchSummaryParams.encode(
+                message.params,
+                writer.uint32(10).fork(),
+            ).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): ScriptBatchSummaryRequest {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseScriptBatchSummaryRequest();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.params = ScriptBatchSummaryParams.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): ScriptBatchSummaryRequest {
+        return {
+            params: isSet(object.params)
+                ? ScriptBatchSummaryParams.fromJSON(object.params)
+                : undefined,
+        };
+    },
+
+    toJSON(message: ScriptBatchSummaryRequest): unknown {
+        const obj: any = {};
+        if (message.params !== undefined) {
+            obj.params = ScriptBatchSummaryParams.toJSON(message.params);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ScriptBatchSummaryRequest>, I>>(
+        base?: I,
+    ): ScriptBatchSummaryRequest {
+        return ScriptBatchSummaryRequest.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<ScriptBatchSummaryRequest>, I>>(
+        object: I,
+    ): ScriptBatchSummaryRequest {
+        const message = createBaseScriptBatchSummaryRequest();
+        message.params =
+            object.params !== undefined && object.params !== null
+                ? ScriptBatchSummaryParams.fromPartial(object.params)
+                : undefined;
+        return message;
+    },
+};
+
+function createBaseScriptBatchSummaryRow(): ScriptBatchSummaryRow {
+    return { script: undefined, numTxs: 0, numUtxos: 0, latestTx: undefined };
+}
+
+export const ScriptBatchSummaryRow = {
+    encode(
+        message: ScriptBatchSummaryRow,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.script !== undefined) {
+            ScriptRef.encode(message.script, writer.uint32(10).fork()).ldelim();
+        }
+        if (message.numTxs !== 0) {
+            writer.uint32(16).uint32(message.numTxs);
+        }
+        if (message.numUtxos !== 0) {
+            writer.uint32(24).uint32(message.numUtxos);
+        }
+        if (message.latestTx !== undefined) {
+            Tx.encode(message.latestTx, writer.uint32(34).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): ScriptBatchSummaryRow {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseScriptBatchSummaryRow();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.script = ScriptRef.decode(reader, reader.uint32());
+                    continue;
+                case 2:
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.numTxs = reader.uint32();
+                    continue;
+                case 3:
+                    if (tag !== 24) {
+                        break;
+                    }
+
+                    message.numUtxos = reader.uint32();
+                    continue;
+                case 4:
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.latestTx = Tx.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): ScriptBatchSummaryRow {
+        return {
+            script: isSet(object.script)
+                ? ScriptRef.fromJSON(object.script)
+                : undefined,
+            numTxs: isSet(object.numTxs) ? globalThis.Number(object.numTxs) : 0,
+            numUtxos: isSet(object.numUtxos)
+                ? globalThis.Number(object.numUtxos)
+                : 0,
+            latestTx: isSet(object.latestTx)
+                ? Tx.fromJSON(object.latestTx)
+                : undefined,
+        };
+    },
+
+    toJSON(message: ScriptBatchSummaryRow): unknown {
+        const obj: any = {};
+        if (message.script !== undefined) {
+            obj.script = ScriptRef.toJSON(message.script);
+        }
+        if (message.numTxs !== 0) {
+            obj.numTxs = Math.round(message.numTxs);
+        }
+        if (message.numUtxos !== 0) {
+            obj.numUtxos = Math.round(message.numUtxos);
+        }
+        if (message.latestTx !== undefined) {
+            obj.latestTx = Tx.toJSON(message.latestTx);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ScriptBatchSummaryRow>, I>>(
+        base?: I,
+    ): ScriptBatchSummaryRow {
+        return ScriptBatchSummaryRow.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<ScriptBatchSummaryRow>, I>>(
+        object: I,
+    ): ScriptBatchSummaryRow {
+        const message = createBaseScriptBatchSummaryRow();
+        message.script =
+            object.script !== undefined && object.script !== null
+                ? ScriptRef.fromPartial(object.script)
+                : undefined;
+        message.numTxs = object.numTxs ?? 0;
+        message.numUtxos = object.numUtxos ?? 0;
+        message.latestTx =
+            object.latestTx !== undefined && object.latestTx !== null
+                ? Tx.fromPartial(object.latestTx)
+                : undefined;
+        return message;
+    },
+};
+
+function createBaseScriptBatchSummaryResponse(): ScriptBatchSummaryResponse {
+    return { rows: [] };
+}
+
+export const ScriptBatchSummaryResponse = {
+    encode(
+        message: ScriptBatchSummaryResponse,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.rows) {
+            ScriptBatchSummaryRow.encode(v!, writer.uint32(10).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): ScriptBatchSummaryResponse {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseScriptBatchSummaryResponse();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.rows.push(
+                        ScriptBatchSummaryRow.decode(reader, reader.uint32()),
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): ScriptBatchSummaryResponse {
+        return {
+            rows: globalThis.Array.isArray(object?.rows)
+                ? object.rows.map((e: any) => ScriptBatchSummaryRow.fromJSON(e))
+                : [],
+        };
+    },
+
+    toJSON(message: ScriptBatchSummaryResponse): unknown {
+        const obj: any = {};
+        if (message.rows?.length) {
+            obj.rows = message.rows.map(e => ScriptBatchSummaryRow.toJSON(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ScriptBatchSummaryResponse>, I>>(
+        base?: I,
+    ): ScriptBatchSummaryResponse {
+        return ScriptBatchSummaryResponse.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<ScriptBatchSummaryResponse>, I>>(
+        object: I,
+    ): ScriptBatchSummaryResponse {
+        const message = createBaseScriptBatchSummaryResponse();
+        message.rows =
+            object.rows?.map(e => ScriptBatchSummaryRow.fromPartial(e)) || [];
         return message;
     },
 };
