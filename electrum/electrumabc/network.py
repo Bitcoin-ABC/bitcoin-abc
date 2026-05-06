@@ -256,7 +256,7 @@ class Network(util.DaemonThread):
         self.blockchains = blockchain.read_blockchains(self.config)
         """Dict of blockchains (main chain and forks) indexed by base heights."""
         self.print_error("blockchains", self.blockchains.keys())
-        self.blockchain_index = self.config.get("blockchain_index", 0)
+        self.blockchain_index = self.config.get(ConfigKeys.BLOCKCHAIN_INDEX)
         """Base height of the chain or fork used by the current main server
         (self.interface).
         May be updated in the following situations:
@@ -268,7 +268,7 @@ class Network(util.DaemonThread):
         if self.blockchain_index not in self.blockchains.keys():
             self.blockchain_index = 0
         # Server for addresses and transactions
-        self.blacklisted_servers = set(self.config.get("server_blacklist", []))
+        self.blacklisted_servers = set(self.config.get(ConfigKeys.SERVER_BLACKLIST))
         (
             self.whitelisted_servers,
             self.whitelisted_servers_hostmap,
@@ -2035,7 +2035,7 @@ class Network(util.DaemonThread):
         blockchain = self.blockchains.get(index)
         if blockchain:
             self.blockchain_index = index
-            self.config.set_key("blockchain_index", index)
+            self.config.set_key(ConfigKeys.BLOCKCHAIN_INDEX, index)
             with self.interface_lock:
                 interfaces = list(self.interfaces.values())
             for i in interfaces:
@@ -2442,7 +2442,9 @@ class Network(util.DaemonThread):
             self.blacklisted_servers |= {server}
         else:
             self.blacklisted_servers -= {server}
-        self.config.set_key("server_blacklist", list(self.blacklisted_servers), save)
+        self.config.set_key(
+            ConfigKeys.SERVER_BLACKLIST, list(self.blacklisted_servers), save
+        )
         if b and not skip_connection_logic and server in self.interfaces:
             # if blacklisting, this disconnects (if we were connected)
             self.connection_down(server, False)
@@ -2452,8 +2454,8 @@ class Network(util.DaemonThread):
 
     def server_set_whitelisted(self, server, b, save=True):
         assert isinstance(server, str)
-        adds = set(self.config.get("server_whitelist_added", []))
-        rems = set(self.config.get("server_whitelist_removed", []))
+        adds = set(self.config.get(ConfigKeys.SERVER_WHITELIST_ADDED))
+        rems = set(self.config.get(ConfigKeys.SERVER_WHITELIST_REMOVED))
         is_hardcoded = server in self._hardcoded_whitelist
         s = {server}  # make a set so |= and -= work
         len0 = len(self.whitelisted_servers)
@@ -2489,8 +2491,8 @@ class Network(util.DaemonThread):
             self.whitelisted_servers_hostmap = servers_to_hostmap(
                 self.whitelisted_servers
             )
-        self.config.set_key("server_whitelist_added", list(adds), save)
-        self.config.set_key("server_whitelist_removed", list(rems), save)
+        self.config.set_key(ConfigKeys.SERVER_WHITELIST_ADDED, list(adds), save)
+        self.config.set_key(ConfigKeys.SERVER_WHITELIST_REMOVED, list(rems), save)
 
     def server_is_whitelisted(self, server):
         return server in self.whitelisted_servers
@@ -2501,12 +2503,8 @@ class Network(util.DaemonThread):
                 hostmap_to_servers(networks.net.DEFAULT_SERVERS)
             )
         ret = set(self._hardcoded_whitelist)
-        # this key is all the servers that weren't in the hardcoded whitelist that the
-        # user explicitly added
-        ret |= set(self.config.get("server_whitelist_added", []))
-        # this key is all the servers that were hardcoded in the whitelist that the
-        # user explicitly removed
-        ret -= set(self.config.get("server_whitelist_removed", []))
+        ret |= set(self.config.get(ConfigKeys.SERVER_WHITELIST_ADDED))
+        ret -= set(self.config.get(ConfigKeys.SERVER_WHITELIST_REMOVED))
         return ret, servers_to_hostmap(ret)
 
     def is_whitelist_only(self):

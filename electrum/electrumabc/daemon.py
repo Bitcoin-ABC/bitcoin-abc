@@ -356,7 +356,7 @@ class Daemon(DaemonThread):
     def init_gui(self):
         config = self.config
         plugins = self.plugins
-        gui_name = config.get("gui", "qt")
+        gui_name = config.get(ConfigKeys.GUI)
         if gui_name in ["lite", "classic"]:
             gui_name = "qt"
         if (

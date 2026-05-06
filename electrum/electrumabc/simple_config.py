@@ -29,8 +29,13 @@ class ConfigKeys:
     #  cannot set it here because we rely on `config.get("auto_connect") is None`
     #  as a heuristic to determine that the config file does not exist
     AUTO_CONNECT = ConfigKey("auto_connect")
+    # See docstring for Network.blockchain_index
+    BLOCKCHAIN_INDEX = ConfigKey("blockchain_index", 0)
+    # Whether the user wants to spend confirmed UTXOs only
+    CONFIRMED_ONLY = ConfigKey("confirmed_only", False)
     CURRENCY = ConfigKey("currency", "USD")
     ENABLE_ALIASES = ConfigKey("enable_aliases", False)
+    GUI = ConfigKey("gui", "qt")
     PASSPHRASE = ConfigKey("passphrase", "")
     PROXY = ConfigKey("proxy")
     # For high dpi, the default value depends on context (OS...)
@@ -42,6 +47,11 @@ class ConfigKeys:
     RPCUSER = ConfigKey("rpcuser")
     SEED_TYPE = ConfigKey("seed_type", "bip39")
     SERVER = ConfigKey("server")
+    SERVER_BLACKLIST = ConfigKey("server_blacklist", [])
+    # Servers that weren't in the hardcoded whitelist that the user explicitly added
+    SERVER_WHITELIST_ADDED = ConfigKey("server_whitelist_added", [])
+    # Servers that were hardcoded in the whitelist that the user explicitly removed
+    SERVER_WHITELIST_REMOVED = ConfigKey("server_whitelist_removed", [])
     # Session timeout for Trezor and Keepkey hardware wallets
     SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
     SHOW_FEE = ConfigKey("show_fee", False)

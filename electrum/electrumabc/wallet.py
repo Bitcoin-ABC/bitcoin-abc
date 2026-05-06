@@ -87,6 +87,7 @@ from .paymentrequest import (
 )
 from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
+from .simple_config import ConfigKeys, SimpleConfig
 from .storage import (
     STO_EV_PLAINTEXT,
     STO_EV_USER_PW,
@@ -124,10 +125,7 @@ if TYPE_CHECKING:
     from electrumabc_gui.qt import ElectrumWindow
 
     from .network import Network
-    from .simple_config import SimpleConfig
 
-
-DEFAULT_CONFIRMED_ONLY = False
 
 HistoryItemType = Tuple[str, int]
 """(tx_hash, block_height)"""
@@ -1073,7 +1071,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         return result
 
     def get_spendable_coins(self, domain, config, isInvoice=False):
-        confirmed_only = config.get("confirmed_only", DEFAULT_CONFIRMED_ONLY)
+        confirmed_only = config.get(ConfigKeys.CONFIRMED_ONLY)
         if isInvoice:
             confirmed_only = True
         return self.get_utxos(

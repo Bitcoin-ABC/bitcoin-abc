@@ -391,7 +391,7 @@ def run_gui(config: SimpleConfig, config_options: dict):
 
     file_desc, server = daemon.get_fd_or_server(config)
     if file_desc is not None:
-        plugins = init_plugins(config, config.get("gui", "qt"))
+        plugins = init_plugins(config, config.get(ConfigKeys.GUI))
         daemon_thread = daemon.Daemon(config, file_desc, plugins)
         daemon_thread.start()
         try:

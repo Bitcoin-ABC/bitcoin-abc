@@ -510,7 +510,7 @@ class SettingsDialog(WindowModalDialog):
         self.multiple_cb.stateChanged.connect(self.on_multiple)
         per_wallet_tx_widgets.append((self.multiple_cb, None))
 
-        conf_only = self.config.get("confirmed_only", False)
+        conf_only = self.config.get(ConfigKeys.CONFIRMED_ONLY)
         unconf_cb = QtWidgets.QCheckBox(_("Spend only confirmed coins"))
         unconf_cb.setToolTip(_("Spend only confirmed inputs."))
         unconf_cb.setChecked(conf_only)
@@ -864,7 +864,7 @@ class SettingsDialog(WindowModalDialog):
             self.wallet.storage.put("multiple_change", multiple)
 
     def on_unconf(self, x):
-        self.config.set_key("confirmed_only", bool(x))
+        self.config.set_key(ConfigKeys.CONFIRMED_ONLY, bool(x))
 
     def on_legacy_p2sh_cb(self, b):
         self.config.set_key("allow_legacy_p2sh", bool(b))
