@@ -7187,7 +7187,13 @@ void PeerManagerImpl::ProcessMessage(
                                 // they can be re-downloaded if needed.
                                 auto result = m_chainman.ProcessTransaction(
                                     conflictingTxs[0]);
-                                assert(result.m_state.IsValid());
+                                if (!result.m_state.IsValid()) {
+                                    LogPrint(
+                                        BCLog::AVALANCHE,
+                                        "Attempting to pull a now invalid "
+                                        "conflicting tx %s to mempool\n",
+                                        conflictingTxs[0]->GetId().ToString());
+                                }
                             }
 
                             m_mempool.withConflicting(
