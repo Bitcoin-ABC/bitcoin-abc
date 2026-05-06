@@ -361,7 +361,7 @@ class Daemon(DaemonThread):
             gui_name = "qt"
         if (
             sys.platform in ("windows", "win32")
-            and config.get("qt_opengl")
+            and config.get(ConfigKeys.QT_OPENGL)
             and gui_name == "qt"
         ):
             # Hack to force QT_OPENGL env var. See #1255
@@ -371,7 +371,7 @@ class Daemon(DaemonThread):
             # since this command line option is ultimately intended to just
             # be used for an installer-generated shortcut.
             #
-            os.environ["QT_OPENGL"] = str(config.get("qt_opengl"))
+            os.environ["QT_OPENGL"] = str(config.get(ConfigKeys.QT_OPENGL))
         gui = __import__("electrumabc_gui." + gui_name, fromlist=["electrumabc_gui"])
         self.gui = gui.ElectrumGui(config, self, plugins)
         self.gui.main()

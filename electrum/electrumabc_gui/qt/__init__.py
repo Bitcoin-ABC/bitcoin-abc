@@ -138,8 +138,8 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         # set to False in the GUI.
         #
         # The default on Linux, Windows, etc is to enable high dpi
-        disable_scaling = config.get("qt_disable_highdpi", False)
-        enable_scaling = config.get(ConfigKeys.QT_ENABLE_HIGH_DPI, True)
+        disable_scaling = config.get(ConfigKeys.QT_DISABLE_HIGHDPI)
+        enable_scaling = config.get(ConfigKeys.QT_ENABLE_HIGHDPI, True)
         if not disable_scaling and enable_scaling:
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -252,7 +252,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.update_checker_timer.setSingleShot(False)
         self.update_checker.got_new_version.connect(self.on_new_version)
         # init tray
-        self.dark_icon = self.config.get("dark_icon", False)
+        self.dark_icon = self.config.get(ConfigKeys.DARK_ICON)
         self.tray = QtWidgets.QSystemTrayIcon(self.tray_icon(), self)
         self.tray.setToolTip(f"{PROJECT_NAME}")
         self.tray.activated.connect(self.tray_activated)
@@ -365,7 +365,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # user can set outside of this application.
             use_dark_theme = False
         else:
-            use_dark_theme = self.config.get("qt_gui_color_theme", "default") == "dark"
+            use_dark_theme = self.config.get(ConfigKeys.QT_GUI_COLOR_THEME) == "dark"
         darkstyle_ver = None
         if use_dark_theme:
             try:
@@ -593,7 +593,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     def toggle_tray_icon(self):
         self.dark_icon = not self.dark_icon
-        self.config.set_key("dark_icon", self.dark_icon, True)
+        self.config.set_key(ConfigKeys.DARK_ICON, self.dark_icon, True)
         self.tray.setIcon(self.tray_icon())
 
     def tray_activated(self, reason):
@@ -942,7 +942,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             hasattr(QtCore.Qt, "AA_EnableHighDpiScaling")
             and self.app.testAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
             # first run check:
-            and self.config.get(ConfigKeys.QT_ENABLE_HIGH_DPI) is None
+            and self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI) is None
             and (
                 is_lin  # we can't check pixel ratio on linux as apparently it's unreliable, so always show this message on linux
                 # on some windows systems running in highdpi causes
@@ -962,7 +962,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         ):
             # write to the config key to immediately suppress this warning in
             # the future -- it only appears on first-run if key was None
-            self.config.set_key(ConfigKeys.QT_ENABLE_HIGH_DPI, True)
+            self.config.set_key(ConfigKeys.QT_ENABLE_HIGHDPI, True)
             if is_lin:
                 msg = (
                     _(
@@ -1006,12 +1006,12 @@ class ElectrumGui(QtCore.QObject, PrintError):
             parent.show_message(title=_("Automatic High DPI"), msg=msg)
 
     def has_auto_update_check(self):
-        return bool(self.config.get("auto_update_check", True))
+        return bool(self.config.get(ConfigKeys.AUTO_UPDATE_CHECK))
 
     def set_auto_update_check(self, b):
         was, b = self.has_auto_update_check(), bool(b)
         if was != b:
-            self.config.set_key("auto_update_check", b, save=True)
+            self.config.set_key(ConfigKeys.AUTO_UPDATE_CHECK, b, save=True)
             if b:
                 self._start_auto_update_timer()
             else:
@@ -1069,13 +1069,13 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.addr_fmt_changed.emit()
 
     def is_cashaddr_status_button_hidden(self):
-        return bool(self.config.get("hide_cashaddr_button", False))
+        return bool(self.config.get(ConfigKeys.HIDE_CASHADDR_BUTTON))
 
     def set_cashaddr_status_button_hidden(self, b):
         b = bool(b)
         was = self.is_cashaddr_status_button_hidden()
         if was != b:
-            self.config.set_key("hide_cashaddr_button", bool(b))
+            self.config.set_key(ConfigKeys.HIDE_CASHADDR_BUTTON, bool(b))
             self.cashaddr_status_button_hidden_signal.emit(b)
 
     @property
@@ -1085,15 +1085,15 @@ class ElectrumGui(QtCore.QObject, PrintError):
         True for all Linux, but only is relevant to Qt GUI."""
         return bool(
             sys.platform in ("linux",)
-            and self.config.get("linux_qt_use_custom_fontconfig", True)
+            and self.config.get(ConfigKeys.LINUX_QT_USE_CUSTOM_FONTCONFIG)
         )
 
     @linux_qt_use_custom_fontconfig.setter
     def linux_qt_use_custom_fontconfig(self, b):
         if self.config.is_modifiable(
-            "linux_qt_use_custom_fontconfig"
+            ConfigKeys.LINUX_QT_USE_FONTCONFIG
         ) and sys.platform in ("linux",):
-            self.config.set_key("linux_qt_use_custom_fontconfig", bool(b))
+            self.config.set_key(ConfigKeys.LINUX_QT_USE_CUSTOM_FONTCONFIG, bool(b))
 
     def main(self):
         try:

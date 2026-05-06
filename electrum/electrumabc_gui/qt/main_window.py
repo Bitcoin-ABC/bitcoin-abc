@@ -239,7 +239,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             tab.tab_description = description
             tab.tab_pos = len(tabs)
             tab.tab_name = name
-            if self.config.get("show_{}_tab".format(name), default):
+            if self.config.is_tab_visible(name, default):
                 tabs.addTab(tab, icon, description.replace("&", ""))
 
         add_optional_tab(
@@ -281,7 +281,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         self.setCentralWidget(tabs)
 
-        if self.config.get("is_maximized"):
+        if self.config.get(ConfigKeys.IS_MAXIMIZED):
             self.showMaximized()
 
         self.init_menubar()
@@ -421,7 +421,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def toggle_tab(self, tab):
         show = self.tabs.indexOf(tab) == -1
-        self.config.set_key("show_{}_tab".format(tab.tab_name), show)
+        self.config.set_tab_visibility(tab.tab_name, show)
         item_format = (
             _("Hide {tab_description}") if show else _("Show {tab_description}")
         )
@@ -568,7 +568,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.request_list.update()
         self.tabs.show()
         self.init_geometry()
-        if self.config.get("hide_gui") and self.tray.isVisible():
+        if self.config.get(ConfigKeys.HIDE_GUI) and self.tray.isVisible():
             self.hide()
         else:
             self.show()
@@ -3494,7 +3494,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # this point, given user has likely performed an action we cannot recover
         # cleanly from.  So we attempt to exit as cleanly as possible.
         try:
-            self.config.set_key("is_maximized", self.isMaximized())
+            self.config.set_key(ConfigKeys.IS_MAXIMIZED, self.isMaximized())
             self.config.set_key("console-history", self.console.history[-50:], True)
         except (OSError, PermissionError) as e:
             self.print_error("unable to write to config (directory removed?)", e)

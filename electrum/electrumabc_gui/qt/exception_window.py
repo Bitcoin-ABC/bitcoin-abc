@@ -39,6 +39,7 @@ from qtpy.QtGui import QIcon
 from electrumabc.constants import PROJECT_NAME, REPOSITORY_URL
 from electrumabc.i18n import _
 from electrumabc.printerror import print_error
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import finalization_print_error
 from electrumabc.version import PACKAGE_VERSION
 
@@ -82,7 +83,7 @@ issue_template_markdown = f"""
 
 
 class ExceptionDialog(QtWidgets.QDialog):
-    def __init__(self, config, exctype, value, tb):
+    def __init__(self, config: SimpleConfig, exctype, value, tb):
         super().__init__()
         self.exc_args = (exctype, value, tb)
         self.config = config
@@ -178,12 +179,12 @@ class ExceptionDialog(QtWidgets.QDialog):
         return lines[-1].strip()
 
 
-def is_enabled(config) -> bool:
-    return bool(config.get("show_crash_reporter2", default=True))
+def is_enabled(config: SimpleConfig) -> bool:
+    return bool(config.get(ConfigKeys.SHOW_CRASH_REPORTER))
 
 
-def set_enabled(config, b: bool):
-    config.set_key("show_crash_reporter2", bool(b))
+def set_enabled(config: SimpleConfig, b: bool):
+    config.set_key(ConfigKeys.SHOW_CRASH_REPORTER, bool(b))
 
 
 def _get_current_wallet_types():
@@ -203,7 +204,7 @@ class ExceptionHook(QObject):
     _report_exception = QtCore.Signal(object, object, object, object)
     _instance = None
 
-    def __init__(self, config):
+    def __init__(self, config: SimpleConfig):
         super().__init__()
         self.dialog: Optional[ExceptionDialog] = None
         if ExceptionHook._instance is not None:

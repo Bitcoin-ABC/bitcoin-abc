@@ -311,7 +311,7 @@ class SettingsDialog(WindowModalDialog):
         # dark-looking eg on Mojave or on some Linux desktops.
         self.colortheme_combo.addItem(_("Default"), "default")
         self.colortheme_combo.addItem(_("Dark"), "dark")
-        self.theme_name = self.config.get("qt_gui_color_theme", "default")
+        self.theme_name = self.config.get(ConfigKeys.QT_GUI_COLOR_THEME)
         if self.theme_name == "dark" and not self.gui_object.is_dark_theme_available():
             self.theme_name = "default"
         index = self.colortheme_combo.findData(self.theme_name)
@@ -367,9 +367,9 @@ class SettingsDialog(WindowModalDialog):
                     )
                 )
             self.hidpi_chk.setChecked(
-                bool(self.config.get(ConfigKeys.QT_ENABLE_HIGH_DPI, True))
+                bool(self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI, True))
             )
-            if self.config.get("qt_disable_highdpi"):
+            if self.config.get(ConfigKeys.QT_DISABLE_HIGHDPI):
                 self.hidpi_chk.setToolTip(
                     _("Automatic high DPI scaling was disabled from the command-line")
                 )
@@ -410,7 +410,7 @@ class SettingsDialog(WindowModalDialog):
                     self.gui_object.linux_qt_use_custom_fontconfig
                 )
                 self.fontconfig_chk.setEnabled(
-                    self.config.is_modifiable("linux_qt_use_custom_fontconfig")
+                    self.config.is_modifiable(ConfigKeys.LINUX_QT_USE_CUSTOM_FONTCONFIG)
                 )
                 self.fontconfig_chk.setToolTip(
                     _(
@@ -829,12 +829,12 @@ class SettingsDialog(WindowModalDialog):
             self.show_error(err_msg)
             self.colortheme_combo.setCurrentIndex(0)
             return
-        self.config.set_key("qt_gui_color_theme", item_data, True)
+        self.config.set_key(ConfigKeys.QT_GUI_COLOR_THEME, item_data, True)
         if self.theme_name != item_data:
             self.need_restart = True
 
     def on_hi_dpi_toggle(self):
-        self.config.set_key(ConfigKeys.QT_ENABLE_HIGH_DPI, self.hidpi_chk.isChecked())
+        self.config.set_key(ConfigKeys.QT_ENABLE_HIGHDPI, self.hidpi_chk.isChecked())
         self.need_restart = True
 
     def on_fontconfig_chk(self):

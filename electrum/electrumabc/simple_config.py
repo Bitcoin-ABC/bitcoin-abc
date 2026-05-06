@@ -29,17 +29,15 @@ class ConfigKeys:
     #  cannot set it here because we rely on `config.get("auto_connect") is None`
     #  as a heuristic to determine that the config file does not exist
     AUTO_CONNECT = ConfigKey("auto_connect")
+    AUTO_UPDATE_CHECK = ConfigKey("auto_update_check", True)
     # See docstring for Network.blockchain_index
     BLOCKCHAIN_INDEX = ConfigKey("blockchain_index", 0)
     # Whether the user wants to spend confirmed UTXOs only
     CONFIRMED_ONLY = ConfigKey("confirmed_only", False)
     CURRENCY = ConfigKey("currency", "USD")
     ENABLE_ALIASES = ConfigKey("enable_aliases", False)
-    GUI = ConfigKey("gui", "qt")
     PASSPHRASE = ConfigKey("passphrase", "")
     PROXY = ConfigKey("proxy")
-    # For high dpi, the default value depends on context (OS...)
-    QT_ENABLE_HIGH_DPI = ConfigKey("qt_enable_highdpi")
     RECENTLY_OPEN_WALLETS = ConfigKey("recently_open", [])
     RPCHOST = ConfigKey("rpchost", "127.0.0.1")
     RPCPASSWORD = ConfigKey("rpcpassword")
@@ -62,6 +60,22 @@ class ConfigKeys:
     USE_EXCHANGE_RATE = ConfigKey("use_exchange_rate", False)
     VIDEO_DEVICE = ConfigKey("video_device", "default")
     WHITHELIST_SERVERS_ONLY = ConfigKey("whitelist_servers_only", True)
+
+    # GUI configs.
+    DARK_ICON = ConfigKey("dark_icon", False)
+    GUI = ConfigKey("gui", "qt")
+    HIDE_CASHADDR_BUTTON = ConfigKey("hide_cashaddr_button", False)
+    HIDE_GUI = ConfigKey("hide_gui")
+    IS_MAXIMIZED = ConfigKey("is_maximized")
+    LINUX_QT_USE_CUSTOM_FONTCONFIG = ConfigKey("linux_qt_use_custom_fontconfig", True)
+    # For high dpi, the default value depends on context (OS...)
+    # See qt/__init__.py
+    QT_DISABLE_HIGHDPI = ConfigKey("qt_disable_highdpi", False)
+    QT_ENABLE_HIGHDPI = ConfigKey("qt_enable_highdpi")
+    QT_GUI_COLOR_THEME = ConfigKey("qt_gui_color_theme", "default")
+    # See help for command line argument --qt_opengl
+    QT_OPENGL = ConfigKey("qt_opengl")
+    SHOW_CRASH_REPORTER = ConfigKey("show_crash_reporter2", True)
 
     # Payment server related configs.
     # These are not set in this codebase, but there is documentation on the internet
@@ -374,6 +388,12 @@ class SimpleConfig(PrintError):
     def get_num_zeros(self) -> int:
         # by default, we want to display the full precision down to sats
         return self.get("num_zeros", XEC.decimals)
+
+    def is_tab_visible(self, name: str, default) -> bool:
+        return self.get(ConfigKey(f"show_{name}_tab", default))
+
+    def set_tab_visibility(self, name: str, visibility: bool) -> bool:
+        return self.set_key(ConfigKey(f"show_{name}_tab"), visibility)
 
 
 def read_user_config(path: str) -> dict:
