@@ -29,6 +29,7 @@ import threading
 from collections import defaultdict
 
 from .printerror import PrintError
+from .simple_config import ConfigKeys, SimpleConfig
 
 try:
     from SimpleWebSocketServer import SimpleSSLWebSocketServer, WebSocket
@@ -58,7 +59,7 @@ class ElectrumWebSocket(WebSocket, PrintError):
 
 
 class WsClientThread(util.DaemonThread):
-    def __init__(self, config, network):
+    def __init__(self, config: SimpleConfig, network):
         super().__init__()
         self.network = network
         self.config = config
@@ -68,7 +69,7 @@ class WsClientThread(util.DaemonThread):
 
     def make_request(self, request_id):
         # read json file
-        rdir = self.config.get("requests_dir")
+        rdir = self.config.get(ConfigKeys.PAYMENTREQUESTS_DIR)
         n = os.path.join(
             rdir, "req", request_id[0], request_id[1], request_id, request_id + ".json"
         )
@@ -136,7 +137,7 @@ class WsClientThread(util.DaemonThread):
 
 
 class WebSocketServer(threading.Thread):
-    def __init__(self, config, ns):
+    def __init__(self, config: SimpleConfig, ns):
         threading.Thread.__init__(self)
         self.config = config
         self.net_server = ns
@@ -146,10 +147,10 @@ class WebSocketServer(threading.Thread):
         t = WsClientThread(self.config, self.net_server)
         t.start()
 
-        host = self.config.get("websocket_server")
-        port = self.config.get("websocket_port", 9999)
-        certfile = self.config.get("ssl_chain")
-        keyfile = self.config.get("ssl_privkey")
+        host = self.config.get(ConfigKeys.WEBSOCKET_SERVER)
+        port = self.config.get(ConfigKeys.WEBSOCKET_PORT)
+        certfile = self.config.get(ConfigKeys.SSL_CHAIN)
+        keyfile = self.config.get(ConfigKeys.SSL_PRIVKEY)
         self.server = SimpleSSLWebSocketServer(
             host, port, ElectrumWebSocket, certfile, keyfile
         )

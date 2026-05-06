@@ -209,7 +209,9 @@ class SettingsDialog(WindowModalDialog):
                 _("Use setconfig to set ssl_chain and ssl_privkey."),
             ]
         )
-        if self.config.get("ssl_privkey") or self.config.get("ssl_chain"):
+        if self.config.get(ConfigKeys.SSL_PRIVKEY) or self.config.get(
+            ConfigKeys.SSL_CHAIN
+        ):
             try:
                 ssl_identity = paymentrequest.check_ssl_config(self.config)
                 ssl_error = None

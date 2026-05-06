@@ -425,14 +425,17 @@ def run_start(config: SimpleConfig, config_options: dict, subcommand: str):
         plugins = init_plugins(config, "cmdline")
         daemon_thread = daemon.Daemon(config, file_desc, plugins)
         daemon_thread.start()
+        # TODO: switch this to using config.is_key_set(ConfigKey.WEBSOCKET_SERVER)
         if config.get("websocket_server"):
             # The websockets module relies on an optional module that isn't
             # always available: SimpleWebSocketServer
             from electrumabc import websockets  # pylint: disable=C0415
 
             websockets.WebSocketServer(config, daemon_thread.network).start()
-        if config.get("requests_dir"):
-            requests_path = os.path.join(config.get("requests_dir"), "index.html")
+        if config.get(ConfigKeys.PAYMENTREQUESTS_DIR):
+            requests_path = os.path.join(
+                config.get(ConfigKeys.PAYMENTREQUESTS_DIR), "index.html"
+            )
             if not os.path.exists(requests_path):
                 print("Requests directory not configured.")
                 print(

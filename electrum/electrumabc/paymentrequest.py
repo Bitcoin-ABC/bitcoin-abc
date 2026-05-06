@@ -47,6 +47,7 @@ from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES
 from .crypto import sha256
 from .ecc import ECPrivkey, verify_message_with_address
 from .printerror import print_error
+from .simple_config import ConfigKeys, SimpleConfig
 from .transaction import TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
 from .version import PACKAGE_VERSION
@@ -481,11 +482,11 @@ def verify_cert_chain(chain):
     return x509_chain[0], ca
 
 
-def check_ssl_config(config):
+def check_ssl_config(config: SimpleConfig):
     from . import pem
 
-    key_path = config.get("ssl_privkey")
-    cert_path = config.get("ssl_chain")
+    key_path = config.get(ConfigKeys.SSL_PRIVKEY)
+    cert_path = config.get(ConfigKeys.SSL_CHAIN)
     with open(key_path, "r", encoding="utf-8") as f:
         params = pem.parse_private_key(f.read())
     with open(cert_path, "r", encoding="utf-8") as f:

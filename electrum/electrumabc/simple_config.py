@@ -63,6 +63,18 @@ class ConfigKeys:
     VIDEO_DEVICE = ConfigKey("video_device", "default")
     WHITHELIST_SERVERS_ONLY = ConfigKey("whitelist_servers_only", True)
 
+    # Payment server related configs.
+    # These are not set in this codebase, but there is documentation on the internet
+    # about how to set them via the `setconfig` command line.
+    PAYMENTREQUESTS_DIR = ConfigKey("requests_dir")
+    SSL_CHAIN = ConfigKey("ssl_chain")
+    SSL_PRIVKEY = ConfigKey("ssl_privkey")
+    URL_REWRITE = ConfigKey("url_rewrite")
+    WEBSOCKET_PORT = ConfigKey("websocket_port", 9999)
+    WEBSOCKET_PORT_ANNOUNCE = ConfigKey("websocket_port_announce")
+    WEBSOCKET_SERVER = ConfigKey("websocket_server", "localhost")
+    WEBSOCKET_SERVER_ANNOUNCE = ConfigKey("websocket_server_announce")
+
 
 class SimpleConfig(PrintError):
     """

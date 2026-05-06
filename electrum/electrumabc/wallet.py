@@ -2701,13 +2701,13 @@ class AbstractWallet(PrintError, SPVDelegate):
         if conf is not None:
             out["confirmations"] = conf
         # check if bip70 file exists
-        rdir = config.get("requests_dir")
+        rdir = config.get(ConfigKeys.PAYMENTREQUESTS_DIR)
         if rdir:
             key = out.get("id", addr.to_storage_string())
             path = os.path.join(rdir, "req", key[0], key[1], key)
             if os.path.exists(path):
                 baseurl = "file://" + rdir
-                rewrite = config.get("url_rewrite")
+                rewrite = config.get(ConfigKeys.URL_REWRITE)
                 if rewrite:
                     baseurl = baseurl.replace(*rewrite)
                 out["request_url"] = os.path.join(
@@ -2718,18 +2718,18 @@ class AbstractWallet(PrintError, SPVDelegate):
                     out["index_url"] = (
                         os.path.join(baseurl, "index.html") + "?id=" + key
                     )
-                websocket_server_announce = config.get("websocket_server_announce")
-                if websocket_server_announce:
+                websocket_server_announce = config.get(
+                    ConfigKeys.WEBSOCKET_SERVER_ANNOUNCE
+                )
+                if websocket_server_announce is not None:
                     out["websocket_server"] = websocket_server_announce
                 else:
-                    out["websocket_server"] = config.get(
-                        "websocket_server", "localhost"
-                    )
-                websocket_port_announce = config.get("websocket_port_announce")
-                if websocket_port_announce:
+                    out["websocket_server"] = config.get(ConfigKeys.WEBSOCKET_SERVER)
+                websocket_port_announce = config.get(ConfigKeys.WEBSOCKET_PORT_ANNOUNCE)
+                if websocket_port_announce is not None:
                     out["websocket_port"] = websocket_port_announce
                 else:
-                    out["websocket_port"] = config.get("websocket_port", 9999)
+                    out["websocket_port"] = config.get(ConfigKeys.WEBSOCKET_PORT)
         return out
 
     def get_request_status(self, key):
@@ -2839,7 +2839,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         if set_address_label:
             self.set_label(addr_text, message)  # should be a default label
 
-        rdir = config.get("requests_dir")
+        rdir = config.get(ConfigKeys.PAYMENTREQUESTS_DIR)
         if rdir and amount is not None:
             key = req.get("id", addr_text)
             pr = paymentrequest.make_request(config, req)
@@ -2870,7 +2870,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             if memo and memo == self.labels.get(addr.to_storage_string()):
                 self.set_label(addr, None)
 
-        rdir = config.get("requests_dir")
+        rdir = config.get(ConfigKeys.PAYMENTREQUESTS_DIR)
         if rdir:
             key = r.get("id", addr.to_storage_string())
             for s in [".json", ""]:
