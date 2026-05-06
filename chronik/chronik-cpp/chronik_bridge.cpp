@@ -405,6 +405,10 @@ ChronikBridge::broadcast_tx(rust::Slice<const uint8_t> raw_tx,
     stream >> tx;
     CTransactionRef tx_ref = MakeTransactionRef(tx);
     std::string err_str;
+    // wait_callback is false because this would cause a deadlock. Instead we
+    // explicitly call SyncWithValidationInterfaceQueue() after broadcasting
+    // the transaction to ensure that the transaction is fully processed before
+    // we return.
     TransactionError error = node::BroadcastTransaction(
         m_node, tx_ref, err_str, max_fee * Amount::satoshi(), /*relay=*/true,
         /*wait_callback=*/false);
