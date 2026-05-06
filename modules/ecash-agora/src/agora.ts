@@ -12,6 +12,7 @@ import {
     WsEndpoint,
 } from 'chronik-client';
 import {
+    ALP_TOKEN_TYPE_STANDARD,
     alpSend,
     Bytes,
     DEFAULT_DUST_SATS,
@@ -36,6 +37,7 @@ import {
     TxInput,
     TxOutput,
     ALL_BIP143,
+    type TokenType as EcashTokenType,
 } from 'ecash-lib';
 import { BuiltAction, Wallet, WalletUtxo } from 'ecash-wallet';
 
@@ -55,6 +57,7 @@ import {
     AgoraPartialParams,
     AgoraPartialSignatory,
 } from './partial.js';
+import { reconcileWalletUtxosAfterBroadcasts } from './walletUtxoReconcile.js';
 
 const TOKEN_ID_PREFIX = toHex(strToBytes('T'));
 const PUBKEY_PREFIX = toHex(strToBytes('P'));
@@ -295,6 +298,43 @@ export class AgoraOffer {
         // Broadcast using Wallet, and match the return type of ecash-wallet broadcasts
         const builtAction = new BuiltAction(wallet, [signedTx], feePerKb);
         const broadcastResult = await builtAction.broadcast();
+
+        // Keep wallet in-memory utxo set in sync with this successful spend
+        if (
+            broadcastResult.success &&
+            typeof broadcastResult.broadcasted[0] !== 'undefined'
+        ) {
+            const takerAtoms =
+                this.variant.type === 'ONESHOT'
+                    ? this.token.atoms
+                    : params.acceptedAtoms;
+            if (typeof takerAtoms === 'undefined') {
+                throw new Error(
+                    'Must provide acceptedAtoms to accept a partial offer',
+                );
+            }
+            const takerTokenOutIdx =
+                this.variant.type === 'ONESHOT'
+                    ? this.variant.params.enforcedOutputs.length
+                    : this.token.atoms > takerAtoms
+                      ? 3
+                      : 2;
+
+            reconcileWalletUtxosAfterBroadcasts(
+                wallet,
+                [signedTx],
+                broadcastResult.broadcasted,
+                [
+                    {
+                        txIndex: 0,
+                        outIdx: takerTokenOutIdx,
+                        tokenId: this.token.tokenId,
+                        atoms: takerAtoms,
+                        tokenType: this.token.tokenType as EcashTokenType,
+                    },
+                ],
+            );
+        }
         return broadcastResult;
     }
 
@@ -570,6 +610,25 @@ export class AgoraOffer {
             feePerKb,
         );
         const broadcastResult = await builtAction.broadcast();
+        if (
+            broadcastResult.success &&
+            typeof broadcastResult.broadcasted[0] !== 'undefined'
+        ) {
+            reconcileWalletUtxosAfterBroadcasts(
+                params.wallet,
+                [signedTx],
+                broadcastResult.broadcasted,
+                [
+                    {
+                        txIndex: 0,
+                        outIdx: 1,
+                        tokenId: this.token.tokenId,
+                        atoms: this.token.atoms,
+                        tokenType: this.token.tokenType as EcashTokenType,
+                    },
+                ],
+            );
+        }
         return broadcastResult;
     }
 
@@ -746,6 +805,21 @@ export class AgoraOffer {
         // XEC change for the relisting wallet
         outputs.push(params.wallet.script);
 
+        const relistTokenOuts =
+            sendAmountAtomsArr.length > 1
+                ? [
+                      {
+                          txIndex: 0,
+                          outIdx: 2,
+                          tokenId,
+                          atoms: sendAmountAtomsArr[
+                              sendAmountAtomsArr.length - 1
+                          ],
+                          tokenType: ALP_TOKEN_TYPE_STANDARD,
+                      },
+                  ]
+                : [];
+
         const availableFuelUtxos = params.wallet.spendableSatsOnlyUtxos();
 
         // Assume we cannot cover the tx with dust cancel utxo and immediately add fuel
@@ -791,6 +865,12 @@ export class AgoraOffer {
                     const { txid } =
                         await params.wallet.chronik.broadcastTx(txSer);
                     broadcasted.push(txid);
+                    reconcileWalletUtxosAfterBroadcasts(
+                        params.wallet,
+                        [alpRelistTx],
+                        broadcasted,
+                        relistTokenOuts,
+                    );
                 } catch (err) {
                     console.error(`Error broadcasting tx 1 of 1:`, err);
                     return {

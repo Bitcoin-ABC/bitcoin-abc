@@ -1090,9 +1090,6 @@ describe('SLP', () => {
         expect(listResult.success).to.equal(true);
         expect(listResult.broadcasted.length).to.equal(2);
 
-        // Wait for offer to be indexed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Find the offer
         const offers = await agora.activeOffersByTokenId(childTokenId);
         expect(offers.length).to.equal(1);
@@ -1113,9 +1110,152 @@ describe('SLP', () => {
         expect(takeResult.broadcasted.length).to.equal(1);
 
         // Verify offer is no longer active
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(childTokenId);
         expect(remainingOffers.length).to.equal(0);
+    });
+
+    it('Can take two oneshot NFT offers with the same buyer wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const sellerSk = fromHex('bf'.repeat(32));
+        const sellerWallet = Wallet.fromSk(sellerSk, chronik);
+        const sellerPk = ecc.derivePubkey(sellerSk);
+        const sellerPkh = shaRmd160(sellerPk);
+        const sellerP2pkh = Script.p2pkh(sellerPkh);
+
+        const buyerSk = fromHex('c0'.repeat(32));
+        const buyerWallet = Wallet.fromSk(buyerSk, chronik);
+        const buyerPk = ecc.derivePubkey(buyerSk);
+
+        await runner.sendToScript(90000n, sellerP2pkh);
+        await sellerWallet.sync();
+
+        const groupGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 10000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 2n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    genesisInfo: {
+                        tokenTicker: 'TST GRP SYNC',
+                        decimals: 0,
+                    },
+                },
+            ],
+        };
+        const groupGenesisResult = await sellerWallet
+            .action(groupGenesisAction)
+            .build()
+            .broadcast();
+        expect(groupGenesisResult.success).to.equal(true);
+        const groupBroadcasted = groupGenesisResult.broadcasted;
+        const groupTokenId = groupBroadcasted[groupBroadcasted.length - 1];
+
+        await sellerWallet.sync();
+
+        async function mintChildListing(
+            ticker: string,
+            listPriceSatoshis: bigint,
+        ): Promise<string> {
+            const childGenesisAction: payment.Action = {
+                outputs: [
+                    { sats: 0n },
+                    {
+                        sats: 8000n,
+                        tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                        script: sellerWallet.script,
+                        atoms: 1n,
+                    },
+                ],
+                tokenActions: [
+                    {
+                        type: 'GENESIS',
+                        tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                        genesisInfo: {
+                            tokenTicker: ticker,
+                            decimals: 0,
+                        },
+                        groupTokenId: groupTokenId,
+                    },
+                ],
+            };
+            const childGenesisResult = await sellerWallet
+                .action(childGenesisAction)
+                .build()
+                .broadcast();
+            expect(childGenesisResult.success).to.equal(true);
+            // SLP NFT1 CHILD genesis may be a 2-tx chain (group fan-out SEND + GENESIS).
+            // broadcasted is [fanoutTxid, genesisTxid]; the child token id is always the
+            // GENESIS tx (last in the array). Using broadcasted[0] breaks list() on the
+            // second mint when fan-out triggers.
+            const childBroadcasted = childGenesisResult.broadcasted;
+            const cid = childBroadcasted[childBroadcasted.length - 1];
+
+            const agoraOneshot = new AgoraOneshot({
+                enforcedOutputs: [
+                    {
+                        sats: 0n,
+                        script: slpSend(cid, SLP_NFT1_CHILD, [0n, 1n]),
+                    },
+                    {
+                        sats: listPriceSatoshis,
+                        script: sellerP2pkh,
+                    },
+                ],
+                cancelPk: sellerPk,
+            });
+
+            const listResult = await agoraOneshot.list({
+                wallet: sellerWallet,
+                tokenId: cid,
+                tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+            });
+
+            expect(listResult.success).to.equal(true);
+            expect(listResult.broadcasted.length).to.equal(2);
+            await sellerWallet.sync();
+            return cid;
+        }
+
+        const childTokenIdA = await mintChildListing('TST NFT A', 30000n);
+        const childTokenIdB = await mintChildListing('TST NFT B', 28000n);
+        await runner.sendToScript(90000n, Script.p2pkh(shaRmd160(buyerPk)));
+        await buyerWallet.sync();
+
+        const offersA = await agora.activeOffersByTokenId(childTokenIdA);
+        expect(offersA.length).to.equal(1);
+        const takeAResult = await offersA[0].take({
+            wallet: buyerWallet,
+            covenantSk: buyerSk,
+            covenantPk: buyerPk,
+        });
+        expect(takeAResult.success).to.equal(true);
+        expect(takeAResult.broadcasted.length).to.equal(1);
+
+        const offersB = await agora.activeOffersByTokenId(childTokenIdB);
+        expect(offersB.length).to.equal(1);
+        const takeBResult = await offersB[0].take({
+            wallet: buyerWallet,
+            covenantSk: buyerSk,
+            covenantPk: buyerPk,
+        });
+        expect(takeBResult.success).to.equal(true);
+        expect(takeBResult.broadcasted.length).to.equal(1);
+
+        expect(
+            (await agora.activeOffersByTokenId(childTokenIdA)).length,
+        ).to.equal(0);
+        expect(
+            (await agora.activeOffersByTokenId(childTokenIdB)).length,
+        ).to.equal(0);
     });
 
     it('Can list an NFT offer using list() method and cancel it with the same wallet', async () => {
@@ -1187,7 +1327,8 @@ describe('SLP', () => {
             .action(childGenesisAction)
             .build()
             .broadcast();
-        const childTokenId = childGenesisResult.broadcasted[0];
+        const childBr = childGenesisResult.broadcasted;
+        const childTokenId = childBr[childBr.length - 1];
 
         // Wait for token to be indexed
         await sellerWallet.sync();
@@ -1217,9 +1358,6 @@ describe('SLP', () => {
         expect(listResult.success).to.equal(true);
         expect(listResult.broadcasted.length).to.equal(2);
 
-        // Wait for offer to be indexed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Find the offer
         const offers = await agora.activeOffersByTokenId(childTokenId);
         expect(offers.length).to.equal(1);
@@ -1238,8 +1376,120 @@ describe('SLP', () => {
         expect(cancelResult.broadcasted.length).to.equal(1);
 
         // Verify offer is no longer active
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(childTokenId);
         expect(remainingOffers.length).to.equal(0);
+    });
+
+    it('Can list an NFT oneshot and cancel() with the same wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const sellerSk = fromHex('c1'.repeat(32));
+        const sellerWallet = Wallet.fromSk(sellerSk, chronik);
+        const sellerPk = ecc.derivePubkey(sellerSk);
+        const sellerPkh = shaRmd160(sellerPk);
+        const sellerP2pkh = Script.p2pkh(sellerPkh);
+
+        // Enough XEC so list+cancel need no wallet.sync() mid-flow. TestRunner allocates
+        // ONE setup coin input per sendToScript (COIN_VALUE === 100000n in this suite), so each
+        // call can only pay ~COIN_VALUE − fee — never a single amount above that.
+        await runner.sendToScript(98000n, sellerP2pkh);
+        await runner.sendToScript(98000n, sellerP2pkh);
+        await runner.sendToScript(98000n, sellerP2pkh);
+        await sellerWallet.sync();
+
+        const groupGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 10000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
+                    genesisInfo: {
+                        tokenTicker: 'NST G SYNC',
+                        decimals: 0,
+                    },
+                },
+            ],
+        };
+        const groupGenesisResult = await sellerWallet
+            .action(groupGenesisAction)
+            .build()
+            .broadcast();
+        const groupBr = groupGenesisResult.broadcasted;
+        const groupTokenId = groupBr[groupBr.length - 1];
+        await sellerWallet.sync();
+
+        const childGenesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 8000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: sellerWallet.script,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                    genesisInfo: {
+                        tokenTicker: 'NST NFT SYNC',
+                        decimals: 0,
+                    },
+                    groupTokenId: groupTokenId,
+                },
+            ],
+        };
+        const childGenesisResult = await sellerWallet
+            .action(childGenesisAction)
+            .build()
+            .broadcast();
+        const childBroadcasted = childGenesisResult.broadcasted;
+        const childTokenId = childBroadcasted[childBroadcasted.length - 1];
+        await sellerWallet.sync();
+
+        const listPriceSatoshis = 40000n;
+        const agoraOneshot = new AgoraOneshot({
+            enforcedOutputs: [
+                {
+                    sats: 0n,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0n, 1n]),
+                },
+                {
+                    sats: listPriceSatoshis,
+                    script: sellerP2pkh,
+                },
+            ],
+            cancelPk: sellerPk,
+        });
+
+        const listResult = await agoraOneshot.list({
+            wallet: sellerWallet,
+            tokenId: childTokenId,
+            tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+        });
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(2);
+
+        const offers = await agora.activeOffersByTokenId(childTokenId);
+        expect(offers.length).to.equal(1);
+
+        const cancelResult = await offers[0].cancel({
+            wallet: sellerWallet,
+        });
+        expect(cancelResult.success).to.equal(true);
+        expect(cancelResult.broadcasted.length).to.equal(1);
+
+        expect(
+            (await agora.activeOffersByTokenId(childTokenId)).length,
+        ).to.equal(0);
     });
 });

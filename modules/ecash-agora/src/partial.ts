@@ -92,6 +92,7 @@ import { BuiltAction, Wallet } from 'ecash-wallet';
 import { AGORA_LOKAD_ID } from './consts.js';
 import { getAgoraAdFuelSats } from './inputs.js';
 import { getAgoraPaymentAction } from './actions.js';
+import { reconcileWalletUtxosAfterBroadcasts } from './walletUtxoReconcile.js';
 
 /**
  * "Human viable" parameters for partial Agora offers, can serve as a basis to
@@ -1432,6 +1433,8 @@ export class AgoraPartial {
 
             const builtAction = params.wallet.action(action).build();
             const broadcastResult = await builtAction.broadcast();
+            // Listing ALP calls wallet.action(...).build(), which optimistically updates
+            // Wallet.utxos; no extra reconcile step needed here.
             return broadcastResult;
         }
 
@@ -1563,6 +1566,18 @@ export class AgoraPartial {
                 feePerKb,
             );
             const broadcastResult = await builtAction.broadcast();
+            if (
+                broadcastResult.success &&
+                broadcastResult.broadcasted.length >= 2
+            ) {
+                reconcileWalletUtxosAfterBroadcasts(
+                    params.wallet,
+                    [adSetupTx, offerTx],
+                    broadcastResult.broadcasted,
+                    [],
+                    { skipAddOutputsForTxIndices: new Set([0]) },
+                );
+            }
             return broadcastResult;
         } catch (err) {
             console.error(`Error broadcasting SLP Partial listing txs`, err);

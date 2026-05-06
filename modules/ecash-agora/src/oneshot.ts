@@ -56,6 +56,7 @@ import {
 } from 'ecash-lib';
 import { BuiltAction, Wallet } from 'ecash-wallet';
 import { AGORA_LOKAD_ID } from './consts.js';
+import { reconcileWalletUtxosAfterBroadcasts } from './walletUtxoReconcile.js';
 import { getAgoraAdFuelSats } from './inputs.js';
 
 /**
@@ -407,6 +408,18 @@ export class AgoraOneshot {
                 feePerKb,
             );
             const broadcastResult = await builtAction.broadcast();
+            if (
+                broadcastResult.success &&
+                broadcastResult.broadcasted.length >= 2
+            ) {
+                reconcileWalletUtxosAfterBroadcasts(
+                    params.wallet,
+                    [adSetupTx, offerTx],
+                    broadcastResult.broadcasted,
+                    [],
+                    { skipAddOutputsForTxIndices: new Set([0]) },
+                );
+            }
             return broadcastResult;
         } catch (err) {
             console.error(`Error broadcasting NFT listing txs`, err);

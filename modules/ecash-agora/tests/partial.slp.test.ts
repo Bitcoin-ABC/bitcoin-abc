@@ -888,12 +888,113 @@ describe('AgoraPartial SLP', () => {
         expect(takeResult.broadcasted.length).to.equal(1);
 
         // Verify offer is still active (partial accept leaves remainder)
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(tokenId);
         expect(remainingOffers.length).to.equal(1);
         expect(remainingOffers[0].token.atoms).to.equal(
             100000n - acceptedAtoms,
         );
+    });
+
+    it('Can take a partial SLP offer twice with the same wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const makerSk = fromHex('1d'.repeat(32));
+        const makerWallet = Wallet.fromSk(makerSk, chronik);
+        const makerPk = ecc.derivePubkey(makerSk);
+        const makerPkh = shaRmd160(makerPk);
+        const makerScript = Script.p2pkh(makerPkh);
+
+        const takerSk = fromHex('1e'.repeat(32));
+        const takerWallet = Wallet.fromSk(takerSk, chronik);
+        const takerPk = ecc.derivePubkey(takerSk);
+
+        // Fund maker wallet
+        await runner.sendToScript(50000n, makerScript);
+        await makerWallet.sync();
+
+        // Create SLP token using Wallet
+        const genesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 20000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    atoms: 1000000n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    genesisInfo: {
+                        tokenTicker: 'TEST SLP 3',
+                        decimals: 4,
+                    },
+                },
+            ],
+        };
+        const genesisResult = await makerWallet
+            .action(genesisAction)
+            .build()
+            .broadcast();
+        const tokenId = genesisResult.broadcasted[0];
+
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 100000n,
+                priceNanoSatsPerAtom: 1_000_000_000n,
+                minAcceptedAtoms: 546n,
+                makerPk,
+                tokenId,
+                tokenType: SLP_TOKEN_TYPE_FUNGIBLE.number,
+                tokenProtocol: 'SLP',
+            },
+            64n,
+        );
+
+        const listResult = await agoraPartial.list({
+            wallet: makerWallet,
+        });
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(2);
+
+        const offers = await agora.activeOffersByTokenId(tokenId);
+        expect(offers.length).to.equal(1);
+
+        // Fund taker once and reuse this wallet across both takes
+        await runner.sendToScript(200000n, Script.p2pkh(shaRmd160(takerPk)));
+
+        // Initial sync of taker wallet
+        await takerWallet.sync();
+
+        const firstTakeResult = await offers[0].take({
+            wallet: takerWallet,
+            covenantSk: takerSk,
+            covenantPk: takerPk,
+            acceptedAtoms: 50000n,
+        });
+        expect(firstTakeResult.success).to.equal(true);
+        expect(firstTakeResult.broadcasted.length).to.equal(1);
+
+        // No sync between takes (the scenario we want to validate)
+
+        const offersAfterFirstTake = await agora.activeOffersByTokenId(tokenId);
+        expect(offersAfterFirstTake.length).to.equal(1);
+        expect(offersAfterFirstTake[0].token.atoms).to.equal(50000n);
+
+        const secondTakeResult = await offersAfterFirstTake[0].take({
+            wallet: takerWallet,
+            covenantSk: takerSk,
+            covenantPk: takerPk,
+            acceptedAtoms: 50000n,
+        });
+        expect(secondTakeResult.success).to.equal(true);
+        expect(secondTakeResult.broadcasted.length).to.equal(1);
+
+        const offersAfterSecondTake =
+            await agora.activeOffersByTokenId(tokenId);
+        expect(offersAfterSecondTake.length).to.equal(0);
     });
 
     it('Can list a partial SLP offer using list() method and cancel it with the same wallet', async () => {
@@ -980,8 +1081,80 @@ describe('AgoraPartial SLP', () => {
         expect(cancelResult.broadcasted.length).to.equal(1);
 
         // Verify offer is no longer active
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(tokenId);
         expect(remainingOffers.length).to.equal(0);
+    });
+
+    it('Can list() a partial SLP offer and cancel() with the same wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const makerSk = fromHex('f3'.repeat(32));
+        const makerWallet = Wallet.fromSk(makerSk, chronik);
+        const makerPk = ecc.derivePubkey(makerSk);
+        const makerPkh = shaRmd160(makerPk);
+        const makerScript = Script.p2pkh(makerPkh);
+
+        await runner.sendToScript(400000n, makerScript);
+        await makerWallet.sync();
+
+        const genesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 20000n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    atoms: 1000000n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    genesisInfo: {
+                        tokenTicker: 'SLP NOSYNC',
+                        decimals: 4,
+                    },
+                },
+            ],
+        };
+        const genesisResult = await makerWallet
+            .action(genesisAction)
+            .build()
+            .broadcast();
+        const genesisBr = genesisResult.broadcasted;
+        const tokenId = genesisBr[genesisBr.length - 1];
+
+        await makerWallet.sync();
+
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 100000n,
+                priceNanoSatsPerAtom: 1_000_000_000n,
+                minAcceptedAtoms: 546n,
+                makerPk,
+                tokenId,
+                tokenType: SLP_TOKEN_TYPE_FUNGIBLE.number,
+                tokenProtocol: 'SLP',
+            },
+            64n,
+        );
+
+        const listResult = await agoraPartial.list({
+            wallet: makerWallet,
+        });
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(2);
+
+        const offers = await agora.activeOffersByTokenId(tokenId);
+        expect(offers.length).to.equal(1);
+
+        const cancelResult = await offers[0].cancel({
+            wallet: makerWallet,
+        });
+        expect(cancelResult.success).to.equal(true);
+        expect(cancelResult.broadcasted.length).to.equal(1);
+
+        expect((await agora.activeOffersByTokenId(tokenId)).length).to.equal(0);
     });
 });

@@ -332,3 +332,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.0.2 [D19800](https://reviews.bitcoinabc.org/D19800)
 
 - Upgrade to `ecash-wallet` 5.3.0
+
+### 4.1.0 [D19953](https://reviews.bitcoinabc.org/D19953)
+
+- Add utxo auto-update for agora ecash-wallet methods

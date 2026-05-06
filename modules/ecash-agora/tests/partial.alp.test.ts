@@ -913,9 +913,6 @@ describe('AgoraPartial ALP', () => {
         expect(listResult.success).to.equal(true);
         expect(listResult.broadcasted.length).to.equal(1);
 
-        // Wait for offer to be indexed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Find the offer
         const offers = await agora.activeOffersByTokenId(tokenId);
         expect(offers.length).to.equal(1);
@@ -938,7 +935,6 @@ describe('AgoraPartial ALP', () => {
         expect(takeResult.broadcasted.length).to.equal(1);
 
         // Verify offer is still active (partial accept leaves remainder)
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(tokenId);
         expect(remainingOffers.length).to.equal(1);
         expect(remainingOffers[0].token.atoms).to.equal(
@@ -1019,9 +1015,6 @@ describe('AgoraPartial ALP', () => {
         expect(listResult.success).to.equal(true);
         expect(listResult.broadcasted.length).to.equal(1);
 
-        // Wait for offer to be indexed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Find the offer
         const offers = await agora.activeOffersByTokenId(tokenId);
         expect(offers.length).to.equal(1);
@@ -1040,8 +1033,181 @@ describe('AgoraPartial ALP', () => {
         expect(cancelResult.broadcasted.length).to.equal(1);
 
         // Verify offer is no longer active
-        await new Promise(resolve => setTimeout(resolve, 1000));
         const remainingOffers = await agora.activeOffersByTokenId(tokenId);
         expect(remainingOffers.length).to.equal(0);
+    });
+
+    it('Can list() a partial ALP offer and cancel() with the same wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const makerSk = fromHex('f4'.repeat(32));
+        const makerWallet = Wallet.fromSk(makerSk, chronik);
+        const makerPk = ecc.derivePubkey(makerSk);
+        const makerPkh = shaRmd160(makerPk);
+        const makerScript = Script.p2pkh(makerPkh);
+
+        await runner.sendToScript(400000n, makerScript);
+        await makerWallet.sync();
+
+        const genesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    atoms: 1000000n,
+                },
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    genesisInfo: {
+                        tokenTicker: 'ALP NOSYNC C',
+                        decimals: 4,
+                    },
+                },
+            ],
+        };
+        const genesisResult = await makerWallet
+            .action(genesisAction)
+            .build()
+            .broadcast();
+        const genesisBr = genesisResult.broadcasted;
+        const tokenId = genesisBr[genesisBr.length - 1];
+
+        await makerWallet.sync();
+
+        const agoraPartial = await agora.selectParams(
+            {
+                offeredAtoms: 100000n,
+                priceNanoSatsPerAtom: 1_000_000_000n,
+                minAcceptedAtoms: 546n,
+                makerPk,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD.number,
+                tokenProtocol: 'ALP',
+            },
+            64n,
+        );
+
+        const listResult = await agoraPartial.list({
+            wallet: makerWallet,
+        });
+        expect(listResult.success).to.equal(true);
+        expect(listResult.broadcasted.length).to.equal(1);
+
+        const offers = await agora.activeOffersByTokenId(tokenId);
+        expect(offers.length).to.equal(1);
+        const offer = offers[0];
+
+        const cancelResult = await offer.cancel({
+            wallet: makerWallet,
+        });
+        expect(cancelResult.success).to.equal(true);
+        expect(cancelResult.broadcasted.length).to.equal(1);
+
+        expect((await agora.activeOffersByTokenId(tokenId)).length).to.equal(0);
+    });
+
+    it('Can list() a partial ALP offer and relist() with the same wallet, WITHOUT syncing in between', async () => {
+        const agora = new Agora(chronik);
+
+        const makerSk = fromHex('f5'.repeat(32));
+        const makerWallet = Wallet.fromSk(makerSk, chronik);
+        const makerPk = ecc.derivePubkey(makerSk);
+        const makerPkh = shaRmd160(makerPk);
+        const makerScript = Script.p2pkh(makerPkh);
+
+        await runner.sendToScript(450000n, makerScript);
+        await makerWallet.sync();
+
+        const genesisAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    atoms: 1000000n,
+                },
+                {
+                    sats: DEFAULT_DUST_SATS,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    script: makerWallet.script,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    genesisInfo: {
+                        tokenTicker: 'ALP NOSYNC R',
+                        decimals: 4,
+                    },
+                },
+            ],
+        };
+        const genesisResult = await makerWallet
+            .action(genesisAction)
+            .build()
+            .broadcast();
+        const genesisBr = genesisResult.broadcasted;
+        const tokenId = genesisBr[genesisBr.length - 1];
+
+        await makerWallet.sync();
+
+        const agoraPartialInitial = await agora.selectParams(
+            {
+                offeredAtoms: 100000n,
+                priceNanoSatsPerAtom: 1_000_000_000n,
+                minAcceptedAtoms: 546n,
+                makerPk,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD.number,
+                tokenProtocol: 'ALP',
+            },
+            64n,
+        );
+
+        const listResult = await agoraPartialInitial.list({
+            wallet: makerWallet,
+        });
+        expect(listResult.success).to.equal(true);
+
+        const offers = await agora.activeOffersByTokenId(tokenId);
+        expect(offers.length).to.equal(1);
+        const offer = offers[0];
+
+        const updatedPartial = await agora.selectParams(
+            {
+                offeredAtoms: 80000n,
+                priceNanoSatsPerAtom: 2_000_000_000n,
+                minAcceptedAtoms: 546n,
+                makerPk,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD.number,
+                tokenProtocol: 'ALP',
+            },
+            64n,
+        );
+
+        const relistResult = await offer.relist({
+            wallet: makerWallet,
+            updatedPartial,
+        });
+        expect(relistResult.success).to.equal(true);
+
+        expect((await agora.activeOffersByTokenId(tokenId)).length).to.equal(1);
     });
 });
