@@ -557,7 +557,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     auto registerNewVote = [&](const Response &resp) {
         runEventLoop();
         auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-        BOOST_CHECK(registerVotes(nodeid, resp, updates));
+        std::string error;
+        bool vote_is_registered = registerVotes(nodeid, resp, updates, error);
+        BOOST_CHECK_MESSAGE(vote_is_registered,
+                            "registerVotes failed with error: " << error);
     };
 
     // Finalize the item.
