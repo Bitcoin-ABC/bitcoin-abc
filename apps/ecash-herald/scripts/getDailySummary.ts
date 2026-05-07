@@ -10,8 +10,12 @@
  * node scripts/getDailySummary.js will build and send a summary tg msg to
  * the channel configured in secrets.dev
  *
- * specify timestamp
- * node scripts/getDailySummary 1729031373
+ * specify unix timestamp (seconds) for the end of the 24h window
+ * node scripts/getDailySummary.ts 1729031373
+ *
+ * match production (window ends at latest UTC midnight, same as handleUtcMidnight
+ * when the process runs with TZ=UTC)
+ * node scripts/getDailySummary.ts --utc-midnight
  */
 
 import config from '../config';
@@ -43,11 +47,38 @@ const telegramBotDev = new Bot(botId);
 const chronik = new ChronikClient(config.chronik);
 
 /**
+ * End-of-window timestamp (seconds) matching handleUtcMidnight / TZ=UTC server.
+ */
+const getUtcMidnightThruTimestamp = (): number => {
+    const MS_PER_S = 1000;
+    const dateString = new Date().toDateString();
+    return new Date(dateString).getTime() / MS_PER_S;
+};
+
+/**
+ * Parse optional CLI: --utc-midnight | <unixSeconds>
+ */
+const getThruTimestampFromArgv = (): number => {
+    const arg = process.argv[2];
+    if (arg === '--utc-midnight') {
+        return getUtcMidnightThruTimestamp();
+    }
+    if (typeof arg === 'string' && /^\d+$/.test(arg)) {
+        return parseInt(arg, 10);
+    }
+    return Math.floor(Date.now() / 1000);
+};
+
+/**
  * Build a summary of eCash onchain activity over the last 24 hours
  * @param telegramBot
  * @param channelId
  */
-const getDailySummary = async (telegramBot: Bot, channelId: string) => {
+const getDailySummary = async (
+    telegramBot: Bot,
+    channelId: string,
+    timestamp: number,
+) => {
     const priceFetcher = new PriceFetcher([new CoinGeckoProvider()]);
     const statistics = await priceFetcher.stats(
         { source: CryptoTicker.XEC, quote: Fiat.USD },
@@ -72,8 +103,6 @@ const getDailySummary = async (telegramBot: Bot, channelId: string) => {
         console.error(`Error getting activeStakers`, err);
         // Do not include this info in the tg msg
     }
-
-    const timestamp = Math.floor(Date.now() / 1000);
 
     console.log(`Sending daily summary thru ${new Date(timestamp * 1000)}`);
 
@@ -138,4 +167,5 @@ const getDailySummary = async (telegramBot: Bot, channelId: string) => {
     process.exit(0);
 };
 
-getDailySummary(telegramBotDev, channelId);
+const thruTimestamp = getThruTimestampFromArgv();
+getDailySummary(telegramBotDev, channelId, thruTimestamp);
