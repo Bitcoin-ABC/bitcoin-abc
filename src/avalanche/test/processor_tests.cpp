@@ -27,6 +27,7 @@
 #include <test/util/setup_common.h>
 
 #include <boost/mpl/list.hpp>
+#include <boost/mpl/size.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <functional>
