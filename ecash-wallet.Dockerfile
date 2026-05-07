@@ -21,8 +21,26 @@ COPY modules/mock-chronik-client ./modules/mock-chronik-client
 
 WORKDIR /app/modules/ecash-wallet
 
-# Install and build using local file:// dependencies
+# Install deps (--ignore-scripts avoids pnpm blocked lifecycle scripts on registry packages).
+# Local packages still need their dist/ output; install+build each in dependency order.
 RUN pnpm install --ignore-scripts
+
+WORKDIR /app/modules/ecashaddrjs
+RUN pnpm install --ignore-scripts && pnpm run build
+
+WORKDIR /app/modules/b58-ts
+RUN pnpm install --ignore-scripts && pnpm run build
+
+WORKDIR /app/modules/chronik-client
+RUN pnpm install --ignore-scripts && pnpm run build
+
+WORKDIR /app/modules/ecash-lib
+RUN pnpm install --ignore-scripts && pnpm run build
+
+WORKDIR /app/modules/mock-chronik-client
+RUN pnpm install --ignore-scripts && pnpm run build
+
+WORKDIR /app/modules/ecash-wallet
 RUN pnpm run build
 
 # Rewrite dependencies to published packages for npm publish
