@@ -18,6 +18,8 @@ COPY modules/ecash-lib/package.json /app/modules/ecash-lib/
 COPY modules/chronik-client/package.json /app/modules/chronik-client/
 COPY modules/ecashaddrjs/package.json /app/modules/ecashaddrjs/
 COPY modules/b58-ts/package.json /app/modules/b58-ts/
+COPY modules/mock-chronik-client/package.json /app/modules/mock-chronik-client/
+
 # Install ecash-lib from npm, so that module users install it automatically
 RUN pnpm add ecash-lib@latest
 # Install chronik-client from npm, so that module users install it automatically
