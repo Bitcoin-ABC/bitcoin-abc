@@ -79,4 +79,7 @@ const opReturnConstants: OpReturnConstants = {
     },
 };
 
+/** Max Cashtab Msg lines shown in a block summary; additional msgs are summarized. */
+export const CASHTAB_MSG_DISPLAY_LIMIT = 3;
+
 export default opReturnConstants;

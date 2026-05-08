@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import config from '../config';
-import opReturn from '../constants/op_return';
+import opReturn, { CASHTAB_MSG_DISPLAY_LIMIT } from '../constants/op_return';
 import {
     fromHex,
     toHex,
@@ -1574,6 +1574,39 @@ export const getSwapTgMsg = (
     return msg;
 };
 
+type OpReturnAppLine =
+    | { kind: 'cashtabMsg'; line: string }
+    | { kind: 'other'; line: string };
+
+function applyCashtabMsgDisplayLimit(
+    lines: OpReturnAppLine[],
+    limit: number,
+): string[] {
+    const totalCashtabMsgs = lines.reduce(
+        (n, l) => n + (l.kind === 'cashtabMsg' ? 1 : 0),
+        0,
+    );
+    const out: string[] = [];
+    let shown = 0;
+    for (const entry of lines) {
+        if (entry.kind !== 'cashtabMsg') {
+            out.push(entry.line);
+            continue;
+        }
+        if (shown < limit) {
+            out.push(entry.line);
+            shown += 1;
+            if (shown === limit && totalCashtabMsgs > limit) {
+                const more = totalCashtabMsgs - limit;
+                out.push(
+                    `...and ${more} more Cashtab Msg${more > 1 ? 's' : ''}`,
+                );
+            }
+        }
+    }
+    return out;
+}
+
 /**
  * Build a string formatted for Telegram's API using HTML encoding
  * @param parsedBlock
@@ -1604,7 +1637,7 @@ export const getBlockTgMessage = (
     let cashtabXecRewardsTotalSats = 0n;
     const tokenSendTxTgMsgLines: string[] = [];
     const tokenBurnTxTgMsgLines = [];
-    const opReturnTxTgMsgLines = [];
+    const opReturnTxTgMsgLines: OpReturnAppLine[] = [];
     let xecSendTxTgMsgLines = [];
     let payButtonTxCount = 0;
     let blitzchipsPlayCount = 0;
@@ -1651,6 +1684,7 @@ export const getBlockTgMessage = (
         if (opReturnInfo) {
             let { app, msg } = opReturnInfo;
             const { stackArray, tokenId } = opReturnInfo;
+            const isCashtabMsgTx = app === opReturn.knownApps.cashtabMsg.app;
             let appEmoji = '';
 
             switch (app) {
@@ -1783,8 +1817,11 @@ export const getBlockTgMessage = (
                 }
             }
 
+            const opReturnLineText = `${appEmoji}<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
             opReturnTxTgMsgLines.push(
-                `${appEmoji}<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
+                isCashtabMsgTx
+                    ? { kind: 'cashtabMsg', line: opReturnLineText }
+                    : { kind: 'other', line: opReturnLineText },
             );
             // This parsed tx has a tg msg line. Move on to the next one.
             continue;
@@ -2206,6 +2243,11 @@ export const getBlockTgMessage = (
         );
     }
 
+    const opReturnTxTgMsgStrings = applyCashtabMsgDisplayLimit(
+        opReturnTxTgMsgLines,
+        CASHTAB_MSG_DISPLAY_LIMIT,
+    );
+
     // OP_RETURN txs
     const totalAppTxs =
         opReturnTxTgMsgLines.length +
@@ -2235,7 +2277,7 @@ export const getBlockTgMessage = (
         // <appName> : <parsedAppData>
         // alias: newlyregisteredalias
         // Cashtab Msg: This is a Cashtab Msg
-        tgMsg = tgMsg.concat(opReturnTxTgMsgLines);
+        tgMsg = tgMsg.concat(opReturnTxTgMsgStrings);
     }
 
     // XEC txs
