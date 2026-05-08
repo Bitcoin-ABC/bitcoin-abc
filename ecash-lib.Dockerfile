@@ -51,31 +51,34 @@ COPY modules/ecash-lib-wasm .
 RUN CC=clang ./build-wasm.sh
 
 # Stage 2 - Node image for running npm publish
-FROM node:22-bookworm-slim
-
-# Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
-WORKDIR /app/modules
-COPY --from=wasmbuilder /app/modules .
+FROM node:22-trixie-slim
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.0.8
 
-# Build ecash-lib
-WORKDIR /app/modules/ecash-lib
-# Copy dependency package.json files so pnpm can resolve file: dependencies
-# These will be replaced with npm packages later
-COPY modules/b58-ts/package.json /app/modules/b58-ts/
-COPY modules/ecashaddrjs/package.json /app/modules/ecashaddrjs/
-COPY modules/chronik-client/package.json /app/modules/chronik-client/
-# Install b58-ts from npm, so that module users install it automatically
-RUN pnpm add b58-ts@latest
-# Install ecashaddrjs from npm, so that module users install it automatically
-RUN pnpm add ecashaddrjs@latest
-# Install chronik-client from npm, so that module users install it automatically
-RUN pnpm add -D chronik-client@latest
-# Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
-RUN pnpm install
-RUN pnpm run build
+# Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
+WORKDIR /app
+
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
+
+COPY --from=wasmbuilder /app/modules .
+
+COPY modules/b58-ts ./modules/b58-ts
+COPY modules/ecashaddrjs ./modules/ecashaddrjs
+COPY modules/chronik-client ./modules/chronik-client
+
+# Install deps (--ignore-scripts avoids pnpm blocked lifecycle scripts on registry packages).
+# Local packages still need their dist/ output; install+build each in dependency order.
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# Build the dependencies in order, then ecash-wallet
+RUN pnpm \
+  --filter ecashaddrjs \
+  --filter b58-ts \
+  --filter chronik-client \
+  --filter ecash-lib \
+  run build
 
 # Publish ecash-lib
-CMD [ "pnpm", "publish" ]
+CMD [ "pnpm", "--filter", "ecash-lib", "publish" ]

@@ -37,7 +37,7 @@
     "dependencies": {
         "@types/ws": "^8.2.1",
         "axios": "^1.6.3",
-        "ecashaddrjs": "file:../ecashaddrjs",
+        "ecashaddrjs": "workspace:^",
         "isomorphic-ws": "^4.0.1",
         "long": "^4.0.0",
         "protobufjs": "^6.8.8",

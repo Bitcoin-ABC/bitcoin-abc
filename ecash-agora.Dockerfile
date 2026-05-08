@@ -1,42 +1,89 @@
 # Copyright (c) 2024-2025 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+#
+# Multi-stage:
+# 1) Rust image builds ecash-lib WASM (same layout as cashtab.Dockerfile)
+# 2) Node image installs local file: deps, builds modules, publishes ecash-agora
 
-# Node image for running npm publish
+# Stage 1 - rust machine for building ecash-lib-wasm
+FROM rust:1.87.0 AS wasmbuilder
 
-# Note we do not need the wasmbuilder stage here
-# as we pull ecash-lib from npmjs for publishing ecash-agora
-FROM node:22-bookworm-slim
+RUN apt-get update \
+    && apt-get install clang binaryen -y \
+    && rustup target add wasm32-unknown-unknown \
+    && cargo install -f --locked wasm-bindgen-cli@0.2.92
+
+# Copy Cargo.toml
+WORKDIR /app/
+COPY Cargo.toml .
+
+# Copy chronik to same directory structure as monorepo
+# This needs to be in place to run ./build-wasm
+WORKDIR /app/chronik/
+COPY chronik/ .
+
+# explorer must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/web/explorer
+COPY web/explorer/ .
+
+# bitcoinsuite-chronik-client must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/modules/bitcoinsuite-chronik-client
+COPY modules/bitcoinsuite-chronik-client/ .
+
+# avalanche-lib-wasm must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/modules/avalanche-lib-wasm
+COPY modules/avalanche-lib-wasm/ .
+
+# proof-manager-cli must be in place to to run ./build-wasm as it is a workspace member
+WORKDIR /app/apps/proof-manager-cli
+COPY apps/proof-manager-cli/ .
+
+# Copy secp256k1 to same directory structure as monorepo
+WORKDIR /app/src/secp256k1
+COPY src/secp256k1/ .
+
+# Copy ecash-secp256k1, ecash-lib and ecash-lib-wasm files to same directory structure as monorepo
+WORKDIR /app/modules/ecash-secp256k1
+COPY modules/ecash-secp256k1 .
+WORKDIR /app/modules/ecash-lib
+COPY modules/ecash-lib .
+WORKDIR /app/modules/ecash-lib-wasm
+COPY modules/ecash-lib-wasm .
+
+# Build web assembly for ecash-lib
+RUN CC=clang ./build-wasm.sh
+
+# Stage 2 - Node image for building and publishing ecash-agora
+FROM node:22-trixie-slim
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.0.8
 
-WORKDIR /app/modules/ecash-agora
-COPY modules/ecash-agora .
-# Copy dependency package.json files so pnpm can resolve file: dependencies
-# These will be replaced with npm packages later
-COPY modules/chronik-client/package.json /app/modules/chronik-client/
-COPY modules/ecash-lib/package.json /app/modules/ecash-lib/
-COPY modules/ecash-wallet/package.json /app/modules/ecash-wallet/
+WORKDIR /app
 
-# Replace local file: dependencies with npm registry versions to avoid workspace/file resolution in Docker
-RUN ECLIB_VERSION=$(npm view ecash-lib version) \
-    && CCLIENT_VERSION=$(npm view chronik-client version) \
-    && EWALLET_VERSION=$(npm view ecash-wallet version) \
-    && echo "Latest versions from npm:" \
-    && echo "  ecash-lib: $ECLIB_VERSION" \
-    && echo "  chronik-client: $CCLIENT_VERSION" \
-    && echo "  ecash-wallet: $EWALLET_VERSION" \
-    && npm pkg set dependencies.ecash-lib=$ECLIB_VERSION \
-    && npm pkg set dependencies.chronik-client=$CCLIENT_VERSION \
-    && npm pkg set dependencies.ecash-wallet=$EWALLET_VERSION \
-    && echo "Updated package.json dependencies:" \
-    && cat package.json | grep -A 5 '"dependencies"'
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
 
-# Clean existing lockfile that may contain local file: refs, then install and build
-RUN rm -f pnpm-lock.yaml \
-    && pnpm install \
-    && pnpm run build
+COPY modules/ecash-agora ./modules/ecash-agora
+
+COPY modules/ecashaddrjs ./modules/ecashaddrjs
+COPY modules/b58-ts ./modules/b58-ts
+COPY modules/chronik-client ./modules/chronik-client/
+COPY --from=wasmbuilder /app/modules/ecash-lib ./modules/ecash-lib
+COPY modules/ecash-wallet ./modules/ecash-wallet/
+
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# Build the dependencies in order, then ecash-agora
+RUN pnpm \
+  --filter ecashaddrjs \
+  --filter b58-ts \
+  --filter chronik-client \
+  --filter ecash-lib \
+  --filter ecash-wallet \
+  --filter ecash-agora \
+  run build
 
 # Publish ecash-agora
-CMD [ "pnpm", "publish" ]
+CMD [ "pnpm", "--filter", "ecash-agora", "publish" ]

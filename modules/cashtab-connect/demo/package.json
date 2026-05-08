@@ -11,7 +11,7 @@
         "@types/node": "^20.11.29",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
-        "cashtab-connect": "file:..",
+        "cashtab-connect": "workspace:^",
         "react": "19.2.5",
         "react-dom": "19.2.5",
         "typescript": "^5.9.3",

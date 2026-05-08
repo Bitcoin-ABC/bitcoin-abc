@@ -57,46 +57,37 @@ RUN CC=clang ./build-wasm.sh
 # Stage 2 - Node image for building and publishing ecash-wallet
 FROM node:22-trixie-slim
 
-# Install pnpm and TypeScript (at version used in local ecash-wallet) for build step
-RUN npm install -g pnpm@11.0.8 typescript@5.9.3
+# Install pnpm
+RUN npm install -g pnpm@11.0.8
 
 # Copy ecash-wallet and local dependencies (ecash-lib comes from wasmbuilder with WASM built)
 WORKDIR /app
+
+# We need the workspace file to install the workspace dependencies
+COPY pnpm-workspace.yaml .
+COPY pnpm-lock.yaml .
+
 COPY modules/ecash-wallet ./modules/ecash-wallet
-COPY modules/chronik-client ./modules/chronik-client
+
 COPY modules/ecashaddrjs ./modules/ecashaddrjs
 COPY modules/b58-ts ./modules/b58-ts
+COPY modules/chronik-client ./modules/chronik-client
 COPY modules/mock-chronik-client ./modules/mock-chronik-client
 COPY --from=wasmbuilder /app/modules/ecash-lib ./modules/ecash-lib
 
-WORKDIR /app/modules/ecash-wallet
-
 # Install deps (--ignore-scripts avoids pnpm blocked lifecycle scripts on registry packages).
 # Local packages still need their dist/ output; install+build each in dependency order.
-RUN pnpm install --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-WORKDIR /app/modules/ecashaddrjs
-RUN pnpm install --ignore-scripts && pnpm run build
-
-WORKDIR /app/modules/b58-ts
-RUN pnpm install --ignore-scripts && pnpm run build
-
-WORKDIR /app/modules/chronik-client
-RUN pnpm install --ignore-scripts && pnpm run build
-
-WORKDIR /app/modules/ecash-lib
-RUN pnpm install --ignore-scripts && pnpm run build
-
-WORKDIR /app/modules/mock-chronik-client
-RUN pnpm install --ignore-scripts && pnpm run build
-
-WORKDIR /app/modules/ecash-wallet
-RUN pnpm run build
-
-# Rewrite dependencies to published packages for npm publish
-RUN npm pkg set dependencies.ecash-lib='latest' \
-    dependencies.chronik-client='latest' \
-    devDependencies.mock-chronik-client='latest'
+# Build the dependencies in order, then ecash-wallet
+RUN pnpm \
+  --filter ecashaddrjs \
+  --filter b58-ts \
+  --filter chronik-client \
+  --filter ecash-lib \
+  --filter mock-chronik-client \
+  --filter ecash-wallet \
+  run build
 
 # Publish ecash-wallet
-CMD [ "pnpm", "publish" ]
+CMD [ "pnpm", "--filter", "ecash-wallet", "publish" ]

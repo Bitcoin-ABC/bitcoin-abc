@@ -4,13 +4,10 @@
 
 # Node image for running npm publish
 
-FROM node:22-bookworm-slim
+FROM node:22-trixie-slim
 
 # Install pnpm
-RUN npm install -g pnpm
-
-# Set CI environment variable to avoid pnpm TTY prompts
-ENV CI=true
+RUN npm install -g pnpm@11.0.8
 
 # Set working directory to monorepo root
 WORKDIR /app
@@ -18,28 +15,19 @@ WORKDIR /app
 # Copy workspace files (required for pnpm workspace)
 COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .
-COPY package.json .
 
-# Copy module package.json for dependency resolution
-COPY modules/mock-chronik-client/package.json ./modules/mock-chronik-client/
+COPY modules/mock-chronik-client ./modules/mock-chronik-client
 
-# Copy dependency package.json files so pnpm can resolve file: dependencies
-# These will be replaced with npm packages later
-COPY modules/chronik-client/package.json ./modules/chronik-client/
-COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
+COPY modules/ecashaddrjs ./modules/ecashaddrjs
+COPY modules/chronik-client ./modules/chronik-client
 
-# Copy module source files
-COPY modules/mock-chronik-client/ ./modules/mock-chronik-client/
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Install ecashaddrjs from npm, so that module users install it automatically
-RUN pnpm add ecashaddrjs@latest --filter mock-chronik-client
-# Install chronik-client from npm, so that module users install it automatically
-# Note that in practice any user of chronik-client probably already has chronik-client installed
-# So it won't really be bloating their node_modules
-RUN pnpm add chronik-client@latest --filter mock-chronik-client
-# Install dependencies (no --frozen-lockfile since pnpm add modified package.json)
-RUN pnpm install --filter mock-chronik-client...
-RUN pnpm --filter mock-chronik-client run build
+RUN pnpm \
+  --filter ecashaddrjs \
+  --filter chronik-client \
+  --filter mock-chronik-client \
+  run build
 
 # Publish the module (from monorepo root using filter)
 CMD [ "pnpm", "--filter", "mock-chronik-client", "publish" ]

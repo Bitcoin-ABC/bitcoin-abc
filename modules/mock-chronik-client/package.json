@@ -1,7 +1,7 @@
 {
     "dependencies": {
-        "chronik-client": "file:../chronik-client",
-        "ecashaddrjs": "file:../ecashaddrjs",
+        "chronik-client": "workspace:^",
+        "ecashaddrjs": "workspace:^",
         "ws": "^8.18.0"
     },
     "name": "mock-chronik-client",

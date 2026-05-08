@@ -43,8 +43,8 @@
         "typescript": "^5.9.3"
     },
     "dependencies": {
-        "chronik-client": "file:../chronik-client",
-        "ecash-lib": "file:../ecash-lib",
-        "ecash-wallet": "file:../ecash-wallet"
+        "chronik-client": "workspace:^",
+        "ecash-lib": "workspace:^",
+        "ecash-wallet": "workspace:^"
     }
 }
