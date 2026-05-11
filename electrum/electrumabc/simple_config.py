@@ -68,6 +68,7 @@ class ConfigKeys:
     HIDE_GUI = ConfigKey("hide_gui")
     IS_MAXIMIZED = ConfigKey("is_maximized")
     LINUX_QT_USE_CUSTOM_FONTCONFIG = ConfigKey("linux_qt_use_custom_fontconfig", True)
+    QRREADER_FLIP_X = ConfigKey("qrreader_flip_x", True)
     # For high dpi, the default value depends on context (OS...)
     # See qt/__init__.py
     QT_DISABLE_HIGHDPI = ConfigKey("qt_disable_highdpi", False)
@@ -88,6 +89,15 @@ class ConfigKeys:
     WEBSOCKET_PORT_ANNOUNCE = ConfigKey("websocket_port_announce")
     WEBSOCKET_SERVER = ConfigKey("websocket_server", "localhost")
     WEBSOCKET_SERVER_ANNOUNCE = ConfigKey("websocket_server_announce")
+
+    # Internal plugins
+    # cashfusion sets its config keys and defaults in its own codebase
+    # digital bitbox
+    DIGITALBITBOX = ConfigKey("digitalbitbox", {})
+    # email requests
+    EMAIL_SERVER = ConfigKey("email_server", "")
+    EMAIL_USERNAME = ConfigKey("email_username", "")
+    EMAIL_PASSWORD = ConfigKey("email_password", "")
 
 
 class SimpleConfig(PrintError):

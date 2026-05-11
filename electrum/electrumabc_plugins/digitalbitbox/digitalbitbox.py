@@ -35,6 +35,7 @@ from electrumabc.ecc import (
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.printerror import print_error
+from electrumabc.simple_config import ConfigKeys
 from electrumabc.transaction import Transaction
 from electrumabc.util import UserCancelled, to_string
 
@@ -340,7 +341,9 @@ class DigitalBitboxClient(HardwareClientBase):
             self.plugin.digitalbitbox_config["comserverchannelid"] = dbb_config[
                 "comserverchannelid"
             ]
-        self.plugin.config.set_key("digitalbitbox", self.plugin.digitalbitbox_config)
+        self.plugin.config.set_key(
+            ConfigKeys.DIGITALBITBOX, self.plugin.digitalbitbox_config
+        )
 
     def dbb_generate_wallet(self):
         key = self.stretch_key(self.password)
@@ -816,7 +819,7 @@ class DigitalBitboxPlugin(HWPluginBase):
         if self.libraries_available:
             self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
 
-        self.digitalbitbox_config = self.config.get("digitalbitbox", {})
+        self.digitalbitbox_config = self.config.get(ConfigKeys.DIGITALBITBOX)
 
     def get_dbb_device(self, device):
         with self.device_manager().hid_lock:

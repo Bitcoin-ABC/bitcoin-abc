@@ -41,6 +41,7 @@ from electrumabc.i18n import _
 from electrumabc.paymentrequest import PaymentRequest
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import PrintError
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import Weak
 from electrumabc_gui.qt.util import (
     Buttons,
@@ -155,11 +156,11 @@ class Plugin(BasePlugin):
     def is_available(self):
         return True
 
-    def __init__(self, parent, config, name):
+    def __init__(self, parent, config: SimpleConfig, name):
         BasePlugin.__init__(self, parent, config, name)
-        self.imap_server = self.config.get("email_server", "")
-        self.username = self.config.get("email_username", "")
-        self.password = self.config.get("email_password", "")
+        self.imap_server = self.config.get(ConfigKeys.EMAIL_SERVER)
+        self.username = self.config.get(ConfigKeys.EMAIL_USERNAME)
+        self.password = self.config.get(ConfigKeys.EMAIL_PASSWORD)
         if self.imap_server and self.username and self.password:
             self.processor = Processor(
                 self.imap_server,
@@ -294,11 +295,11 @@ class Plugin(BasePlugin):
             return
 
         server = str(server_e.text())
-        self.config.set_key("email_server", server)
+        self.config.set_key(ConfigKeys.EMAIL_SERVER, server)
 
         username = str(username_e.text())
-        self.config.set_key("email_username", username)
+        self.config.set_key(ConfigKeys.EMAIL_USERNAME, username)
 
         password = str(password_e.text())
-        self.config.set_key("email_password", password)
+        self.config.set_key(ConfigKeys.EMAIL_PASSWORD, password)
         window.show_message(_("Please restart the plugin to activate the new settings"))

@@ -44,7 +44,7 @@ else:
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
 from electrumabc.qrreaders import QrCodeResult, get_qr_reader
-from electrumabc.simple_config import SimpleConfig
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 
 from ..util import MessageBoxMixin
 from ..utils import FixedAspectRatioLayout, ImageGraphicsEffect
@@ -165,7 +165,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         # Flip horizontally checkbox with default coming from global config
         self.flip_x = QtWidgets.QCheckBox()
         self.flip_x.setText(_("&Flip horizontally"))
-        self.flip_x.setChecked(bool(self.config.get("qrreader_flip_x", True)))
+        self.flip_x.setChecked(bool(self.config.get(ConfigKeys.QRREADER_FLIP_X)))
         self.flip_x.stateChanged.connect(self._on_flip_x_changed)
         controls_layout.addWidget(self.flip_x)
 
@@ -189,7 +189,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.finished.connect(self._on_finished, Qt.QueuedConnection)
 
     def _on_flip_x_changed(self, _state: int):
-        self.config.set_key("qrreader_flip_x", self.flip_x.isChecked())
+        self.config.set_key(ConfigKeys.QRREADER_FLIP_X, self.flip_x.isChecked())
 
     def _get_resolution(self, resolutions: List[QSize], min_size: int) -> QSize:
         """

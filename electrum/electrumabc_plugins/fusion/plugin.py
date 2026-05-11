@@ -362,7 +362,7 @@ class FusionPlugin(BasePlugin):
 
     def get_torhost(self):
         if self.has_auto_torport():
-            return Global.Defaults.TorHost
+            return Global.ConfKeys.TorHost.default
         else:
             return Global(self.config).tor_host
 

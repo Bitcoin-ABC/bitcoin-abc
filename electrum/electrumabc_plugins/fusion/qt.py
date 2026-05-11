@@ -38,6 +38,7 @@ from electrumabc.address import Address
 from electrumabc.amount import base_unit, format_amount
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import hook, run_hook
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.tor.controller import TorController
 from electrumabc.util import InvalidPassword, do_in_main_thread, inv_dict
 from electrumabc.wallet import AbstractWallet
@@ -58,7 +59,7 @@ from electrumabc_gui.qt.util import (
 )
 from electrumabc_gui.qt.utils.validators import PortValidator, UserPortValidator
 
-from .conf import Conf, Global
+from .conf import DEFAULT_SERVERS, Conf, Global
 from .fusion import can_fuse_from, can_fuse_to
 from .plugin import (
     COIN_FRACTION_FUDGE_FACTOR,
@@ -71,7 +72,6 @@ from .server import Params
 from .util import get_coin_name
 
 if TYPE_CHECKING:
-    from electrumabc.simple_config import SimpleConfig
     from electrumabc_gui.qt import ElectrumGui
     from electrumabc_gui.qt.address_list import AddressList
 
@@ -501,7 +501,7 @@ class Plugin(FusionPlugin, QObject):
             for coin in wallet.get_utxos(
                 exclude_frozen=True,
                 mature=True,
-                confirmed_only=bool(config.get("confirmed_only", False)),
+                confirmed_only=bool(config.get(ConfigKeys.CONFIRMED_ONLY)),
             )
             if not self.is_fuz_coin(wallet, coin, require_depth=conf.fuse_depth - 1)
         ]
@@ -1210,10 +1210,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.activated.connect(self.combo_server_activated)
         self.combo_server_host.lineEdit().textEdited.connect(self.user_changed_server)
         self.combo_server_host.addItems(
-            [
-                f"{s[0]} ({s[1]}{' - ssl' if s[2] else ''})"
-                for s in Global.Defaults.ServerList
-            ]
+            [f"{s[0]} ({s[1]}{' - ssl' if s[2] else ''})" for s in DEFAULT_SERVERS]
         )
         hbox.addWidget(self.combo_server_host)
         hbox.addWidget(QtWidgets.QLabel(_("P:")))
@@ -1288,7 +1285,7 @@ class SettingsWidget(QtWidgets.QWidget):
         # called initially / when config changes
         host, port, ssl = self.plugin.get_server()
         try:  # see if it's in default list, if so we can set it ...
-            index = Global.Defaults.ServerList.index((host, port, ssl))
+            index = DEFAULT_SERVERS.index((host, port, ssl))
         except ValueError:  # not in list
             index = -1
         self.combo_server_host.setCurrentIndex(index)
@@ -1307,7 +1304,7 @@ class SettingsWidget(QtWidgets.QWidget):
 
     def combo_server_activated(self, index):
         # only triggered when user selects a combo item
-        self.plugin.set_server(*Global.Defaults.ServerList[index])
+        self.plugin.set_server(*DEFAULT_SERVERS[index])
         self.update_server()
 
     def user_changed_server(self, *args):

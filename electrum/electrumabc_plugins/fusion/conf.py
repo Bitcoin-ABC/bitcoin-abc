@@ -30,6 +30,8 @@ CashFusion - conf.py - configuration & settings management
 from collections import namedtuple
 from typing import List, Optional, Tuple, Union
 
+from electrumabc.simple_config import ConfigKey
+
 CashFusionServer = namedtuple("CashFusionServer", ("hostname", "port", "ssl"))
 
 DEFAULT_SERVERS: List[Tuple[str, int, bool]] = [
@@ -215,12 +217,12 @@ class Global:
             Global(config).tor_host = 'localhost'  # setter
     """
 
-    class Defaults:
-        HideHistoryTxs = False
-        ServerList: List[Tuple[str, int, bool]] = DEFAULT_SERVERS
-        TorHost = "localhost"
-        TorPortAuto = True
-        TorPortManual = 9050
+    class ConfKeys:
+        HideHistoryTxs = ConfigKey("fusion_hide_history_txs", False)
+        Server = ConfigKey("cashfusion_server", DEFAULT_SERVERS[0])
+        TorHost = ConfigKey("cashfusion_tor_host", "localhost")
+        TorPortAuto = ConfigKey("cashfusion_tor_port_auto", True)
+        TorPortManual = ConfigKey("cashfusion_tor_port_manual", 9050)
 
     def __init__(self, config):
         assert config
@@ -228,17 +230,15 @@ class Global:
 
     @property
     def hide_history_txs(self) -> bool:
-        return bool(
-            self.config.get("cashfusion_hide_history_txs", self.Defaults.HideHistoryTxs)
-        )
+        return bool(self.config.get(self.ConfKeys.HideHistoryTxs))
 
     @hide_history_txs.setter
     def hide_history_txs(self, b: bool):
-        self.config.set_key("cashfusion_hide_history_txs", bool(b))
+        self.config.set_key(self.ConfKeys.HideHistoryTxs, bool(b))
 
     @property
     def server(self) -> Tuple[str, int, bool]:
-        return tuple(self.config.get("cashfusion_server", self.Defaults.ServerList[0]))
+        return tuple(self.config.get(self.ConfKeys.Server))
 
     @server.setter
     def server(self, t: Optional[Tuple[str, int, bool]]):
@@ -248,40 +248,36 @@ class Global:
             assert isinstance(t.hostname, str)
             assert isinstance(t.port, int)
             assert isinstance(t.ssl, bool)
-        self.config.set_key("cashfusion_server", t)
+        self.config.set_key(self.ConfKeys.Server, t)
 
     @property
     def tor_host(self) -> str:
-        return str(self.config.get("cashfusion_tor_host", self.Defaults.TorHost))
+        return str(self.config.get(self.ConfKeys.TorHost))
 
     @tor_host.setter
     def tor_host(self, h: Optional[str]):
         if h is not None:
             h = str(h)
             assert h
-        self.config.set_key("cashfusion_tor_host", h)
+        self.config.set_key(self.ConfKeys.TorHost, h)
 
     @property
     def tor_port_auto(self) -> bool:
-        return bool(
-            self.config.get("cashfusion_tor_port_auto", self.Defaults.TorPortAuto)
-        )
+        return bool(self.config.get(self.ConfKeys.TorPortAuto))
 
     @tor_port_auto.setter
     def tor_port_auto(self, b: Optional[bool]):
         if b is not None:
             b = bool(b)
-        self.config.set_key("cashfusion_tor_port_auto", b)
+        self.config.set_key(self.ConfKeys.TorPortAuto, b)
 
     @property
     def tor_port_manual(self) -> int:
-        return int(
-            self.config.get("cashfusion_tor_port_manual", self.Defaults.TorPortManual)
-        )
+        return int(self.config.get(self.ConfKeys.TorPortManual))
 
     @tor_port_manual.setter
     def tor_port_manual(self, i: Optional[int]):
         if i is not None:
             i = int(i)
             assert 0 <= i <= 65535
-        self.config.set_key("cashfusion_tor_port_manual", i)
+        self.config.set_key(self.ConfKeys.TorPortManual, i)
