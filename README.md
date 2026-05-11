@@ -9,6 +9,8 @@ upgrades that will enable peer-to-peer digital cash to succeed at mankind scale.
 What is eCash?
 ---------------------
 
+[![eCash Logo](share/pixmaps/ecashlogo.png "eCash")](https://e.cash/)
+
 [eCash](https://e.cash/) is a digital currency that enables instant payments to
 anyone, anywhere in the world. It uses peer-to-peer technology to operate with
 no central authority: managing transactions and issuing money are carried out
