@@ -258,6 +258,7 @@ void LogPackageVersion() {
 #else
     version_string += " (release build)";
 #endif
-    LogPrintf("%s version %s\n", CLIENT_NAME, version_string);
+    LogPrintf("%s version %s for the eCash network\n", CLIENT_NAME,
+              version_string);
 }
 } // namespace init
