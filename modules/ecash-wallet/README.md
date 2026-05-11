@@ -345,3 +345,7 @@ Exactly **one** cosigner entry must include a secret key per instance (this part
 # 5.4.0
 
 - Use batch requests to sync the utxos of HD wallets [D19943](https://reviews.bitcoinabc.org/D19943)
+
+# 5.4.1
+
+- Fix a broken package.json for the eCash dependencies.

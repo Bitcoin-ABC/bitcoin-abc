@@ -1,6 +1,6 @@
 {
     "name": "ecash-wallet",
-    "version": "5.4.0",
+    "version": "5.4.1",
     "description": "An ecash wallet class. Manage keys, build and broadcast txs. Includes support for tokens and agora.",
     "main": "dist/index.js",
     "scripts": {
