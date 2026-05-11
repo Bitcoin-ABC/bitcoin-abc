@@ -86,9 +86,6 @@ class ExternalPluginCodes(IntEnum):
     UNSPECIFIED_ERROR = 13
 
 
-INTERNAL_USE_PREFIX = "use_"
-EXTERNAL_USE_PREFIX = "use_external_"
-
 internal_plugins_namespace = __import__("electrumabc_plugins")
 
 
@@ -97,7 +94,7 @@ class Plugins(DaemonThread):
     internal_plugins_pkgpath = os.path.dirname(internal_plugins_namespace.__file__)
 
     @profiler
-    def __init__(self, config, gui_name):
+    def __init__(self, config: SimpleConfig, gui_name):
         DaemonThread.__init__(self)
         self.config = config
         self.gui_name = gui_name
@@ -199,17 +196,15 @@ class Plugins(DaemonThread):
                 continue
             self.internal_plugin_metadata[name] = d
             self.retranslate_internal_plugin_metadata(name)
-            conf_key = INTERNAL_USE_PREFIX + name
-            conf_value = self.config.get(conf_key)
-            if conf_value is None and d.get("default_on"):
+            if not self.config.is_plugin_set(name) and d.get("default_on"):
                 # An internal plugin wants to be on by default (default_on =
                 # True in its __init__.py). This only applies if no config value
                 # was specified for the plugin (e.g. a new install). If the user
                 # manually disabled the plugin, conf_value will be False (and
                 # not None), and this branch will not be taken.
-                conf_value = True
-                self.config.set_key(conf_key, conf_value)
-            if not d.get("requires_wallet_type") and conf_value:
+                self.config.set_plugin_enabled(name, True)
+            is_enabled = self.config.is_plugin_enabled(name)
+            if not d.get("requires_wallet_type") and is_enabled:
                 try:
                     self.load_internal_plugin(name)
                 except Exception as e:
@@ -244,9 +239,9 @@ class Plugins(DaemonThread):
             metadata["__file__"] = plugin_file_path
             self.external_plugin_metadata[package_name] = metadata
 
-            if not metadata.get("requires_wallet_type") and self.config.get(
-                EXTERNAL_USE_PREFIX + package_name
-            ):
+            if not metadata.get(
+                "requires_wallet_type"
+            ) and self.config.is_external_plugin_enabled(package_name):
                 try:
                     self.load_external_plugin(package_name)
                 except Exception as e:
@@ -284,7 +279,6 @@ class Plugins(DaemonThread):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         plugin = module.Plugin(self, self.config, name)
-        plugin.set_enabled_prefix(INTERNAL_USE_PREFIX)
         self.add_jobs(plugin.thread_jobs())
         self.internal_plugins[name] = plugin
         self.print_error("loaded internal plugin", name)
@@ -327,8 +321,8 @@ class Plugins(DaemonThread):
             )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        plugin = module.Plugin(self, self.config, name)
-        plugin.set_enabled_prefix(EXTERNAL_USE_PREFIX)
+        plugin: BasePlugin = module.Plugin(self, self.config, name)
+        plugin.set_external(True)
         self.add_jobs(plugin.thread_jobs())
         self.external_plugins[name] = plugin
         self.print_error("loaded external plugin", name)
@@ -338,15 +332,15 @@ class Plugins(DaemonThread):
         self.remove_jobs(plugin.thread_jobs())
 
     def enable_internal_plugin(self, name):
-        self.config.set_key(INTERNAL_USE_PREFIX + name, True, True)
+        self.config.set_plugin_enabled(name, True)
         return self.get_internal_plugin(name, force_load=True)
 
     def enable_external_plugin(self, name):
-        self.config.set_key(EXTERNAL_USE_PREFIX + name, True, True)
+        self.config.set_external_plugin_enabled(name, True)
         return self.get_external_plugin(name, force_load=True)
 
     def disable_internal_plugin(self, name):
-        self.config.set_key(INTERNAL_USE_PREFIX + name, False, True)
+        self.config.set_plugin_enabled(name, False)
         p = self.get_internal_plugin(name)
         if not p:
             return
@@ -355,7 +349,7 @@ class Plugins(DaemonThread):
         self.print_error("closed", name)
 
     def disable_external_plugin(self, name):
-        self.config.set_key(EXTERNAL_USE_PREFIX + name, False, True)
+        self.config.set_external_plugin_enabled(name, False)
         p = self.get_external_plugin(name)
         if not p:
             return
@@ -726,7 +720,7 @@ class BasePlugin(PrintError):
         self.name = name
         self.config = config
         self.wallet = None
-        self.enabled_use_prefix = INTERNAL_USE_PREFIX
+        self.is_external = False
         self._hooks_i_registered = []
         # add self to hooks
         for aname in dir(self):
@@ -756,9 +750,8 @@ class BasePlugin(PrintError):
             {cmdname: getattr(self, cmdname) for cmdname in self._daemon_commands}
         )
 
-    def set_enabled_prefix(self, prefix):
-        # This is set via a method in order not to break the existing API.
-        self.enabled_use_prefix = prefix
+    def set_external(self, flag):
+        self.is_external = True
 
     def diagnostic_name(self):
         return self.name
@@ -793,10 +786,12 @@ class BasePlugin(PrintError):
         return []
 
     def is_enabled(self):
-        return (
-            self.is_available()
-            and self.config.get(self.enabled_use_prefix + self.name) is True
+        conf_getter = (
+            self.config.is_plugin_enabled
+            if not self.is_external
+            else self.config.is_external_plugin_enabled
         )
+        return self.is_available() and conf_getter(self.name)
 
     def is_available(self):
         return True

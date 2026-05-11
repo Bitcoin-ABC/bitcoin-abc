@@ -15,6 +15,9 @@ from .util import get_user_dir, make_dir
 
 FINAL_CONFIG_VERSION = 2
 
+PLUGIN_USE_PREFIX = "use_"
+EXT_PLUGIN_USE_PREFIX = "use_external_"
+
 
 @dataclass
 class ConfigKey:
@@ -442,6 +445,23 @@ class SimpleConfig(PrintError):
 
     def set_tab_visibility(self, name: str, visibility: bool) -> bool:
         return self.set_key(ConfigKey(f"show_{name}_tab"), visibility)
+
+    def is_external_plugin_enabled(self, name) -> bool:
+        return self.get(ConfigKey(f"{EXT_PLUGIN_USE_PREFIX}{name}", default=False))
+
+    def set_external_plugin_enabled(self, name, flag: bool):
+        self.set_key(f"{EXT_PLUGIN_USE_PREFIX}{name}", flag, save=True)
+
+    def is_plugin_enabled(self, name, default=True) -> bool:
+        return self.get(ConfigKey(f"{PLUGIN_USE_PREFIX}{name}", default=default))
+
+    def is_plugin_set(self, name) -> bool:
+        """Returns False if the config file does not specify whether the plugin
+        is enabled or not."""
+        return self.get(ConfigKey(f"{PLUGIN_USE_PREFIX}{name}")) is not None
+
+    def set_plugin_enabled(self, name, flag: bool):
+        self.set_key(f"{PLUGIN_USE_PREFIX}{name}", flag, save=True)
 
 
 def read_user_config(path: str) -> dict:
