@@ -62,7 +62,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .
 
-COPY --from=wasmbuilder /app/modules .
+COPY --from=wasmbuilder /app/modules ./modules
 
 COPY modules/b58-ts ./modules/b58-ts
 COPY modules/ecashaddrjs ./modules/ecashaddrjs
