@@ -465,10 +465,9 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
     def get_custom_fee_text(self, fee_rate=None):
         if not self.config.has_custom_fee_rate():
             return ""
-        else:
-            if fee_rate is None:
-                fee_rate = self.config.custom_fee_rate() / 1000.0
-            return str(round(fee_rate * 100) / 100) + " sats/B"
+        if fee_rate is None:
+            fee_rate = self.config.custom_fee_rate() / 1000.0
+        return str(round(fee_rate * 100) / 100) + " sats/B"
 
     def do_update_fee(self):
         """Recalculate the fee.  If the fee was manually input, retain it, but
@@ -541,19 +540,21 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
     def from_list_delete(self, name):
         item = self.from_list.currentItem()
         if (
-            item
-            and item.data(0, Qt.UserRole) == name
-            and not item.data(0, Qt.UserRole + 1)
+            not item
+            or item.data(0, Qt.UserRole) != name
+            or item.data(0, Qt.UserRole + 1)
         ):
-            i = self.from_list.indexOfTopLevelItem(item)
-            try:
-                self.pay_from.pop(i)
-            except IndexError:
-                # The list may contain items not in the pay_from if added by a
-                # plugin using the spendable_coin_filter hook
-                pass
-            self.redraw_from_list()
-            self.update_fee()
+            return
+
+        i = self.from_list.indexOfTopLevelItem(item)
+        try:
+            self.pay_from.pop(i)
+        except IndexError:
+            # The list may contain items not in the pay_from if added by a
+            # plugin using the spendable_coin_filter hook
+            pass
+        self.redraw_from_list()
+        self.update_fee()
 
     def from_list_menu(self, position):
         item = self.from_list.itemAt(position)
@@ -726,24 +727,24 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             line = line.strip()
             if line.startswith(prefix_char) and Address.is_valid(line):
                 segwits.add(line)
-        if segwits:
-            msg = ngettext(
-                "Possible BTC Segwit address in 'Pay to' field. Please use CashAddr"
-                " format for p2sh addresses.\n\n{segwit_addresses}",
-                "Possible BTC Segwit addresses in 'Pay to' field. Please use"
-                " CashAddr format for p2sh addresses.\n\n{segwit_addresses}",
-                len(segwits),
-            ).format(segwit_addresses="\n".join(segwits))
-            detail = _(
-                "Legacy '{prefix_char}...' p2sh address support in the Send tab is "
-                "restricted by default in order to prevent inadvertently "
-                f"sending {CURRENCY} to Segwit BTC addresses.\n\n"
-                "If you are an expert user, go to 'Preferences -> Transactions' "
-                "to enable the use of legacy p2sh addresses in the Send tab."
-            ).format(prefix_char=prefix_char)
-            self.show_error(msg, detail_text=detail)
-            return False
-        return True
+        if not segwits:
+            return True
+        msg = ngettext(
+            "Possible BTC Segwit address in 'Pay to' field. Please use CashAddr"
+            " format for p2sh addresses.\n\n{segwit_addresses}",
+            "Possible BTC Segwit addresses in 'Pay to' field. Please use"
+            " CashAddr format for p2sh addresses.\n\n{segwit_addresses}",
+            len(segwits),
+        ).format(segwit_addresses="\n".join(segwits))
+        detail = _(
+            "Legacy '{prefix_char}...' p2sh address support in the Send tab is "
+            "restricted by default in order to prevent inadvertently "
+            f"sending {CURRENCY} to Segwit BTC addresses.\n\n"
+            "If you are an expert user, go to 'Preferences -> Transactions' "
+            "to enable the use of legacy p2sh addresses in the Send tab."
+        ).format(prefix_char=prefix_char)
+        self.show_error(msg, detail_text=detail)
+        return False
 
     def _warn_if_legacy_address(self):
         """Show a warning if self.payto_e has legacy addresses, since the user
@@ -759,38 +760,37 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
                 # if address, amount line, strip address out and ignore rest
                 line = line.split(",", 1)[0]
             line = line.strip()
-            if Address.is_legacy(line):
-                msg1 = (
-                    _("You are about to send {} to a legacy address.").format(CURRENCY)
-                    + "<br><br>"
-                    + _(
-                        "Legacy addresses are deprecated for {} "
-                        ", and used by Bitcoin (BTC)."
-                    ).format(CURRENCY)
-                )
-                msg2 = _("Proceed if what you intend to do is to send {}.").format(
-                    CURRENCY
-                )
-                msg3 = _(
-                    "If you intend to send BTC, close the application "
-                    "and use a BTC wallet instead. {} is a "
-                    "{} wallet, not a BTC wallet."
-                ).format(PROJECT_NAME, CURRENCY)
-                res = self.msg_box(
-                    parent=self,
-                    icon=QtWidgets.QMessageBox.Warning,
-                    title=_("You are sending to a legacy address"),
-                    rich_text=True,
-                    text=msg1,
-                    informative_text=msg2,
-                    detail_text=msg3,
-                    checkbox_text=_("Never show this again"),
-                    checkbox_ischecked=False,
-                )
-                if res[1]:
-                    # Never ask if checked
-                    self.config.set_key(ConfigKeys.WARN_LEGACY_ADDRESS, False)
-                break
+            if not Address.is_legacy(line):
+                continue
+            msg1 = (
+                _("You are about to send {} to a legacy address.").format(CURRENCY)
+                + "<br><br>"
+                + _(
+                    "Legacy addresses are deprecated for {} "
+                    ", and used by Bitcoin (BTC)."
+                ).format(CURRENCY)
+            )
+            msg2 = _("Proceed if what you intend to do is to send {}.").format(CURRENCY)
+            msg3 = _(
+                "If you intend to send BTC, close the application "
+                "and use a BTC wallet instead. {} is a "
+                "{} wallet, not a BTC wallet."
+            ).format(PROJECT_NAME, CURRENCY)
+            res = self.msg_box(
+                parent=self,
+                icon=QtWidgets.QMessageBox.Warning,
+                title=_("You are sending to a legacy address"),
+                rich_text=True,
+                text=msg1,
+                informative_text=msg2,
+                detail_text=msg3,
+                checkbox_text=_("Never show this again"),
+                checkbox_ischecked=False,
+            )
+            if res[1]:
+                # Never ask if checked
+                self.config.set_key(ConfigKeys.WARN_LEGACY_ADDRESS, False)
+            break
 
     def do_preview(self):
         self.do_send(preview=True)

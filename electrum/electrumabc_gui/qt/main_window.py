@@ -1513,30 +1513,28 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def sign_payment_request(self, addr):
         alias = self.config.get(ConfigKeys.ALIAS)
-        if alias and self.alias_info:
-            alias_addr, alias_name, validated = self.alias_info
-            if alias_addr:
-                if self.wallet.is_mine(alias_addr):
-                    msg = (
-                        _("This payment request will be signed.")
-                        + "\n"
-                        + _("Please enter your password")
-                    )
-                    password = None
-                    if self.wallet.has_keystore_encryption():
-                        password = self.password_dialog(msg)
-                        if not password:
-                            return
-                    try:
-                        self.wallet.sign_payment_request(
-                            addr, alias, alias_addr, password
-                        )
-                    except Exception as e:
-                        traceback.print_exc(file=sys.stderr)
-                        self.show_error(str(e) or repr(e))
-                        return
-                else:
-                    return
+        if not alias or not self.alias_info:
+            return
+
+        alias_addr, alias_name, validated = self.alias_info
+        if not alias_addr or not self.wallet.is_mine(alias_addr):
+            return
+        msg = (
+            _("This payment request will be signed.")
+            + "\n"
+            + _("Please enter your password")
+        )
+        password = None
+        if self.wallet.has_keystore_encryption():
+            password = self.password_dialog(msg)
+            if not password:
+                return
+        try:
+            self.wallet.sign_payment_request(addr, alias, alias_addr, password)
+        except Exception as e:
+            traceback.print_exc(file=sys.stderr)
+            self.show_error(str(e) or repr(e))
+            return
 
     def save_payment_request(self):
         if not self.receive_address:

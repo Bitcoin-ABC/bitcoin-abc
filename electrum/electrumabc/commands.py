@@ -1517,19 +1517,19 @@ def get_parser():
                 )
             else:
                 p.add_argument(*args, action=action, default=default, help=help_)
-
         for param in cmd.params:
             h = param_descriptions.get(param, "")
             _type = arg_types.get(param, str)
             p.add_argument(param, help=h, type=_type)
 
         cvh = config_variables.get(cmdname)
-        if cvh:
-            group = p.add_argument_group(
-                "configuration variables", "(set with setconfig/getconfig)"
-            )
-            for k, v in cvh.items():
-                group.add_argument(k, nargs="?", help=v)
+        if not cvh:
+            continue
+        group = p.add_argument_group(
+            "configuration variables", "(set with setconfig/getconfig)"
+        )
+        for k, v in cvh.items():
+            group.add_argument(k, nargs="?", help=v)
 
     return parser
 

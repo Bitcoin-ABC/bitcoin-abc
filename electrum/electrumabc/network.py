@@ -640,17 +640,18 @@ class Network(util.DaemonThread):
         Arguments:
         server_key --- server specifier in the form of '<host>:<port>:<protocol>'
         """
-        if server_key not in self.interfaces and server_key not in self.connecting:
-            if server_key == self.default_server:
-                self.print_error("connecting to %s as new interface" % server_key)
-                self.set_status("connecting")
-            self.connecting.add(server_key)
-            Connection(
-                server_key,
-                self.socket_queue,
-                self.config.path,
-                lambda x: x.bad_certificate.append_weak(self.on_bad_certificate),
-            )
+        if server_key in self.interfaces or server_key in self.connecting:
+            return
+        if server_key == self.default_server:
+            self.print_error("connecting to %s as new interface" % server_key)
+            self.set_status("connecting")
+        self.connecting.add(server_key)
+        Connection(
+            server_key,
+            self.socket_queue,
+            self.config.path,
+            lambda x: x.bad_certificate.append_weak(self.on_bad_certificate),
+        )
 
     def get_unavailable_servers(self):
         exclude_set = set(self.interfaces)
@@ -801,17 +802,18 @@ class Network(util.DaemonThread):
 
     def switch_lagging_interface(self):
         """If auto_connect and lagging, switch interface"""
-        if self.server_is_lagging() and self.auto_connect:
-            # switch to one that has the correct header (not height)
-            header = self.blockchain().read_header(self.get_local_height())
-            filtered = [
-                server_key
-                for (server_key, interface) in self.interfaces.items()
-                if interface.tip_header == header
-            ]
-            if filtered:
-                choice = random.choice(filtered)
-                self.switch_to_interface(choice, self.SWITCH_LAGGING)
+        if not self.server_is_lagging() or not self.auto_connect:
+            return
+        # switch to one that has the correct header (not height)
+        header = self.blockchain().read_header(self.get_local_height())
+        filtered = [
+            server_key
+            for (server_key, interface) in self.interfaces.items()
+            if interface.tip_header == header
+        ]
+        if filtered:
+            choice = random.choice(filtered)
+            self.switch_to_interface(choice, self.SWITCH_LAGGING)
 
     SWITCH_DEFAULT = "SWITCH_DEFAULT"
     SWITCH_RANDOM = "SWITCH_RANDOM"
@@ -831,26 +833,26 @@ class Network(util.DaemonThread):
             self.start_interface(server)
             return
         i = self.interfaces[server]
-        if self.interface != i:
-            self.print_error(
-                "switching to '{}' reason '{}'".format(server, switch_reason)
-            )
-            # stop any current interface in order to terminate subscriptions
-            # fixme: we don't want to close headers sub
-            # self.close_interface(self.interface)
-            self.interface = i
-            self.send_subscriptions()
-            self.set_status("connected")
-            self.notify("blockchain_updated")
+        if self.interface == i:
+            return
+        self.print_error("switching to '{}' reason '{}'".format(server, switch_reason))
+        # stop any current interface in order to terminate subscriptions
+        # fixme: we don't want to close headers sub
+        # self.close_interface(self.interface)
+        self.interface = i
+        self.send_subscriptions()
+        self.set_status("connected")
+        self.notify("blockchain_updated")
 
     def close_interface(self, interface):
-        if interface:
-            with self.interface_lock:
-                if interface.server in self.interfaces:
-                    self.interfaces.pop(interface.server)
-                if interface.server == self.default_server:
-                    self.interface = None
-                interface.close()
+        if not interface:
+            return
+        with self.interface_lock:
+            if interface.server in self.interfaces:
+                self.interfaces.pop(interface.server)
+            if interface.server == self.default_server:
+                self.interface = None
+            interface.close()
 
     def add_recent_server(self, server):
         # list is ordered
@@ -1000,16 +1002,17 @@ class Network(util.DaemonThread):
                     self.subscribed_addresses.discard(sh)
                     with self.interface_lock:
                         self.sub_cache.pop(k, None)
-        if msgs:
+        if not msgs:
+            return
 
-            def unsub_callback(response):
-                method = response.get("method")
-                result = response.get("result")
-                sh = response.get("params", [None])[0]
-                self.print_error(f"Got {method} response for {sh}: {result}")
+        def unsub_callback(response):
+            method = response.get("method")
+            result = response.get("result")
+            sh = response.get("params", [None])[0]
+            self.print_error(f"Got {method} response for {sh}: {result}")
 
-            self.print_error(f"Sending unsub for {len(msgs)} scripthash(es) ...")
-            self.send(msgs, unsub_callback)
+        self.print_error(f"Sending unsub for {len(msgs)} scripthash(es) ...")
+        self.send(msgs, unsub_callback)
 
     def request_scripthash_history(self, sh, callback):
         self.send([("blockchain.scripthash.get_history", [sh])], callback)
@@ -1217,19 +1220,20 @@ class Network(util.DaemonThread):
 
         # main interface
         with self.interface_lock:
-            if not self.is_connected():
-                if self.auto_connect:
-                    if not self.is_connecting():
-                        self.switch_to_random_interface()
+            if self.is_connected():
+                return
+            if self.auto_connect:
+                if not self.is_connecting():
+                    self.switch_to_random_interface()
+            else:
+                if self.default_server in self.disconnected_servers:
+                    if now - self.server_retry_time > self.SERVER_RETRY_INTERVAL:
+                        self.disconnected_servers.remove(self.default_server)
+                        self.server_retry_time = now
                 else:
-                    if self.default_server in self.disconnected_servers:
-                        if now - self.server_retry_time > self.SERVER_RETRY_INTERVAL:
-                            self.disconnected_servers.remove(self.default_server)
-                            self.server_retry_time = now
-                    else:
-                        self.switch_to_interface(
-                            self.default_server, self.SWITCH_SOCKET_LOOP
-                        )
+                    self.switch_to_interface(
+                        self.default_server, self.SWITCH_SOCKET_LOOP
+                    )
 
     def request_chunk(self, interface: Interface, chunk_index: int):
         if chunk_index in self.requested_chunks:
@@ -1256,37 +1260,33 @@ class Network(util.DaemonThread):
             )
 
         top_height = base_height + count - 1
-        if top_height > networks.net.VERIFICATION_BLOCK_HEIGHT:
-            if base_height < networks.net.VERIFICATION_BLOCK_HEIGHT:
-                # As part of the verification process, we fetched the set of headers
-                # that allowed manual verification of the post-checkpoint headers that
-                # were fetched as part of the "catch-up" process.  This requested
-                # header batch overlaps the checkpoint, so we know we have the
-                # post-checkpoint segment from the "catch-up".  This leaves us needing
-                # some header preceding the checkpoint, and we can clip the batch to
-                # the checkpoint to ensure we can verify the fetched batch, which we
-                # wouldn't otherwise be able to do manually as we cannot guarantee we
-                # have the headers preceding the batch.
-                interface.print_error(
-                    "clipping request across checkpoint height {} ({} -> {})".format(
-                        networks.net.VERIFICATION_BLOCK_HEIGHT, base_height, top_height
-                    )
-                )
-                verified_count = (
-                    networks.net.VERIFICATION_BLOCK_HEIGHT - base_height + 1
-                )
-                return self._request_headers(
-                    interface,
-                    base_height,
-                    verified_count,
-                    networks.net.VERIFICATION_BLOCK_HEIGHT,
-                )
-            else:
-                return self._request_headers(interface, base_height, count)
-        else:
+        if top_height <= networks.net.VERIFICATION_BLOCK_HEIGHT:
             return self._request_headers(
                 interface, base_height, count, networks.net.VERIFICATION_BLOCK_HEIGHT
             )
+        if base_height >= networks.net.VERIFICATION_BLOCK_HEIGHT:
+            return self._request_headers(interface, base_height, count)
+        # As part of the verification process, we fetched the set of headers
+        # that allowed manual verification of the post-checkpoint headers that
+        # were fetched as part of the "catch-up" process.  This requested
+        # header batch overlaps the checkpoint, so we know we have the
+        # post-checkpoint segment from the "catch-up".  This leaves us needing
+        # some header preceding the checkpoint, and we can clip the batch to
+        # the checkpoint to ensure we can verify the fetched batch, which we
+        # wouldn't otherwise be able to do manually as we cannot guarantee we
+        # have the headers preceding the batch.
+        interface.print_error(
+            "clipping request across checkpoint height {} ({} -> {})".format(
+                networks.net.VERIFICATION_BLOCK_HEIGHT, base_height, top_height
+            )
+        )
+        verified_count = networks.net.VERIFICATION_BLOCK_HEIGHT - base_height + 1
+        return self._request_headers(
+            interface,
+            base_height,
+            verified_count,
+            networks.net.VERIFICATION_BLOCK_HEIGHT,
+        )
 
     def _request_headers(self, interface, base_height, count, checkpoint_height=0):
         params = [base_height, count, checkpoint_height]
@@ -2004,16 +2004,16 @@ class Network(util.DaemonThread):
         proven_merkle_root = blockchain.root_from_proof(
             header_hash, byte_branches, header_height
         )
-        if proven_merkle_root != expected_merkle_root:
-            interface.print_error(
-                "Sent incorrect merkle branch, expected: {}, proved: {}".format(
-                    networks.net.VERIFICATION_BLOCK_MERKLE_ROOT,
-                    proven_merkle_root[::-1].hex(),
-                )
-            )
-            return False
+        if proven_merkle_root == expected_merkle_root:
+            return True
 
-        return True
+        interface.print_error(
+            "Sent incorrect merkle branch, expected: {}, proved: {}".format(
+                networks.net.VERIFICATION_BLOCK_MERKLE_ROOT,
+                proven_merkle_root[::-1].hex(),
+            )
+        )
+        return False
 
     def blockchain(self):
         with self.interface_lock:
@@ -2382,28 +2382,26 @@ class Network(util.DaemonThread):
         module, or None if no proxy is set for this instance."""
         # retain a copy in case another thread messes with it
         proxy = self.proxy and self.proxy.copy()
-        if proxy:
-            pre = ""
-            # proxies format for requests lib is eg:
-            # {
-            #   'http'  : 'socks[45]://user:password@host:port',
-            #   'https' : 'socks[45]://user:password@host:port'
-            # }
-            # with user:password@ being omitted if no user/password.
-            if proxy.get("user") and proxy.get("password"):
-                pre = "{}:{}@".format(proxy.get("user"), proxy.get("password"))
-            mode = proxy.get("mode")
-            if mode and mode.lower() == "socks5":
-                # socks5 with hostname resolution on the server side so it
-                # works with tor & even onion!
-                mode += "h"
-            socks = "{}://{}{}:{}".format(
-                mode, pre, proxy.get("host"), proxy.get("port")
-            )
-            # transform it to requests format
-            proxies = {"http": socks, "https": socks}
-            return proxies
-        return None
+        if not proxy:
+            return None
+        pre = ""
+        # proxies format for requests lib is eg:
+        # {
+        #   'http'  : 'socks[45]://user:password@host:port',
+        #   'https' : 'socks[45]://user:password@host:port'
+        # }
+        # with user:password@ being omitted if no user/password.
+        if proxy.get("user") and proxy.get("password"):
+            pre = "{}:{}@".format(proxy.get("user"), proxy.get("password"))
+        mode = proxy.get("mode")
+        if mode and mode.lower() == "socks5":
+            # socks5 with hostname resolution on the server side so it
+            # works with tor & even onion!
+            mode += "h"
+        socks = "{}://{}{}:{}".format(mode, pre, proxy.get("host"), proxy.get("port"))
+        # transform it to requests format
+        proxies = {"http": socks, "https": socks}
+        return proxies
 
     def on_bad_certificate(self, server, certificate):
         if server in self.bad_certificate_servers:
@@ -2515,9 +2513,10 @@ class Network(util.DaemonThread):
             # disallow redundant/noop calls
             return
         self.config.set_key(ConfigKeys.WHITHELIST_SERVERS_ONLY, b, True)
-        if b:
-            with self.interface_lock:
-                # now, disconnect from all non-whitelisted servers
-                for s in self.interfaces.copy():
-                    if s not in self.whitelisted_servers:
-                        self.connection_down(s)
+        if not b:
+            return
+        with self.interface_lock:
+            # now, disconnect from all non-whitelisted servers
+            for s in self.interfaces.copy():
+                if s not in self.whitelisted_servers:
+                    self.connection_down(s)
