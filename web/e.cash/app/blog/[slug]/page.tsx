@@ -12,6 +12,7 @@ import {
   formatTimestamp,
   calculateReadTime,
   getNextRecommendedPost,
+  evaluateMediaLink,
 } from "../../data/blog";
 import ContentContainer from "../../components/Atoms/ContentContainer";
 import BlogRecommendation from "../../components/Blog/BlogRecommendation";
@@ -114,6 +115,7 @@ export default async function BlogPostPage({
 
   const { post, posts, imageUrl } = data;
   const recommendedPost = getNextRecommendedPost(posts, slug);
+  const mediaLink = post.attributes.media_link?.trim();
 
   return (
     <ContentContainer className="max-w-[650px] pt-20 pb-30">
@@ -147,6 +149,19 @@ export default async function BlogPostPage({
         className="prose prose-invert prose-lg prose-headings:mt-8 prose-p:mt-4 max-w-none text-lg"
         dangerouslySetInnerHTML={{ __html: post.attributes.content }}
       />
+      {mediaLink && evaluateMediaLink(mediaLink) && (
+        <p className="text-secondaryText mt-6 text-sm italic">
+          Source:{" "}
+          <Link
+            href={mediaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accentMedium break-all hover:underline"
+          >
+            {mediaLink}
+          </Link>
+        </p>
+      )}
       {recommendedPost && <BlogRecommendation post={recommendedPost} />}
     </ContentContainer>
   );
