@@ -125,7 +125,7 @@ export default function Hero() {
                 Scalable payments to meet the{" "}
                 <span className="text-primaryText">demands of tomorrow.</span>
               </p>
-              <Button href="#developers">Start Building</Button>
+              <Button href="/build">Start Building</Button>
             </motion.div>
           </div>
 
