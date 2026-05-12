@@ -7,6 +7,7 @@
 #include <cashaddrenc.h>
 #include <chainparams.h>
 #include <common/args.h>
+#include <currencyunit.h>
 #include <interfaces/node.h>
 #include <key_io.h>
 #include <logging.h>
@@ -136,10 +137,14 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     parent->setFocusProxy(widget);
 
     widget->setFont(fixedPitchFont());
+    auto placeholderText =
+        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH)
+            ? "Enter an eCash address (e.g. %1)"
+            : "Enter an eCash address with the bitcoincash: prefix (e.g. %1)";
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
-        QObject::tr("Enter a Bitcoin address (e.g. %1)")
+        QObject::tr(placeholderText)
             .arg(QString::fromStdString(DummyAddress(Params()))));
     widget->setValidator(
         new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
