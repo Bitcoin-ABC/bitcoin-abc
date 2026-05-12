@@ -525,7 +525,7 @@ class SettingsDialog(WindowModalDialog):
         self.ccy_combo = QtWidgets.QComboBox()
         self.ex_combo = QtWidgets.QComboBox()
 
-        enable_opreturn = bool(self.config.get("enable_opreturn"))
+        enable_opreturn = bool(self.config.get(ConfigKeys.ENABLE_OPRETURN))
         opret_cb = QtWidgets.QCheckBox(_("Enable OP_RETURN output"))
         opret_cb.setToolTip(_("Enable posting messages with OP_RETURN."))
         opret_cb.setChecked(enable_opreturn)
@@ -542,7 +542,7 @@ class SettingsDialog(WindowModalDialog):
                 "p2sh in the UI."
             ).format(prefix_char=prefix_char)
         )
-        legacy_p2sh_cb.setChecked(bool(self.config.get("allow_legacy_p2sh", False)))
+        legacy_p2sh_cb.setChecked(self.config.get(ConfigKeys.ALLOW_LEGACY_P2SH))
 
         legacy_p2sh_cb.stateChanged.connect(self.on_legacy_p2sh_cb)
         global_tx_widgets.append((legacy_p2sh_cb, None))
@@ -869,7 +869,7 @@ class SettingsDialog(WindowModalDialog):
         self.config.set_key(ConfigKeys.CONFIRMED_ONLY, bool(x))
 
     def on_legacy_p2sh_cb(self, b):
-        self.config.set_key("allow_legacy_p2sh", bool(b))
+        self.config.set_key(ConfigKeys.ALLOW_LEGACY_P2SH, bool(b))
 
     def limit_change_subs_changed(self):
         orig_limit_change_subs = self.wallet.limit_change_addr_subs

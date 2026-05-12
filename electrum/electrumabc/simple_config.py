@@ -8,6 +8,7 @@ from decimal import Decimal as PyDecimal
 from typing import Any, Optional, Union
 
 from . import util
+from .address import Address
 from .constants import XEC
 from .printerror import PrintError, print_error
 from .util import get_user_dir, make_dir
@@ -25,6 +26,8 @@ class ConfigKey:
 
 
 class ConfigKeys:
+    ADDRESS_FORMAT = ConfigKey("address_format", Address.FMT_CASHADDR)
+    ALLOW_LEGACY_P2SH = ConfigKey("allow_legacy_p2sh", False)
     # FIXME: auto_connect has a default value (True) defined in network.py, but we
     #  cannot set it here because we rely on `config.get("auto_connect") is None`
     #  as a heuristic to determine that the config file does not exist
@@ -34,8 +37,11 @@ class ConfigKeys:
     BLOCKCHAIN_INDEX = ConfigKey("blockchain_index", 0)
     # Whether the user wants to spend confirmed UTXOs only
     CONFIRMED_ONLY = ConfigKey("confirmed_only", False)
+    CONSOLE_HISTORY = ConfigKey("console-history", [])
     CURRENCY = ConfigKey("currency", "USD")
     ENABLE_ALIASES = ConfigKey("enable_aliases", False)
+    ENABLE_OPRETURN = ConfigKey("enable_opreturn", False)
+    IO_DIR = ConfigKey("io_dir", os.path.expanduser("~"))
     PASSPHRASE = ConfigKey("passphrase", "")
     PROXY = ConfigKey("proxy")
     RECENTLY_OPEN_WALLETS = ConfigKey("recently_open", [])
@@ -53,6 +59,7 @@ class ConfigKeys:
     # Session timeout for Trezor and Keepkey hardware wallets
     SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
     SHOW_FEE = ConfigKey("show_fee", False)
+    TEST_RELEASE_NOTIFICATION = ConfigKey("test_release_notification", False)
     TOR_ENABLED = ConfigKey("tor_enabled", False)
     TOR_SOCKS_PORT = ConfigKey("tor_socks_port", 0)
     TOR_USE = ConfigKey("tor_use", False)
@@ -68,6 +75,7 @@ class ConfigKeys:
     HIDE_GUI = ConfigKey("hide_gui")
     IS_MAXIMIZED = ConfigKey("is_maximized")
     LINUX_QT_USE_CUSTOM_FONTCONFIG = ConfigKey("linux_qt_use_custom_fontconfig", True)
+    NON_SSL_NOPROMPT = ConfigKey("non_ssl_noprompt", False)
     QRREADER_FLIP_X = ConfigKey("qrreader_flip_x", True)
     # For high dpi, the default value depends on context (OS...)
     # See qt/__init__.py

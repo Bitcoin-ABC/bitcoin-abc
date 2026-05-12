@@ -1054,17 +1054,17 @@ class ElectrumGui(QtCore.QObject, PrintError):
         return bool(self.get_config_addr_format() == Address.FMT_CASHADDR)
 
     def get_config_addr_format(self) -> str:
-        return self.config.get("address_format", Address.FMT_CASHADDR)
+        return self.config.get(ConfigKeys.ADDRESS_FORMAT)
 
     def toggle_cashaddr(self):
         """cycle between available address formats"""
         Address.toggle_address_format()
-        self.config.set_key("address_format", Address.FMT_UI)
+        self.config.set_key(ConfigKeys.ADDRESS_FORMAT, Address.FMT_UI)
         self.addr_fmt_changed.emit()
 
     def set_address_format(self, fmt):
         """Specify which address format to use."""
-        self.config.set_key("address_format", fmt)
+        self.config.set_key(ConfigKeys.ADDRESS_FORMAT, fmt)
         Address.set_address_format(fmt)
         self.addr_fmt_changed.emit()
 

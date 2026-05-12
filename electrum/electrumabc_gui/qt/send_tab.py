@@ -493,7 +493,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             try:
                 opreturn_message = (
                     self.message_opreturn_e.text()
-                    if self.config.get("enable_opreturn")
+                    if self.config.get(ConfigKeys.ENABLE_OPRETURN)
                     else None
                 )
                 if opreturn_message:
@@ -708,7 +708,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         Returns True if no segwit suspects were detected in the payto_e,
         False otherwise.  If False is returned, a suitable error dialog
         will have already been presented to the user."""
-        if bool(self.config.get("allow_legacy_p2sh", False)):
+        if self.config.get(ConfigKeys.ALLOW_LEGACY_P2SH):
             return True
         segwits = set()
         prefix_char = "3" if not networks.net.TESTNET else "2"
@@ -870,7 +870,10 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             )
             tx.ephemeral["warned_low_fee_already"] = True
 
-        if self.config.get("enable_opreturn") and self.message_opreturn_e.text():
+        if (
+            self.config.get(ConfigKeys.ENABLE_OPRETURN)
+            and self.message_opreturn_e.text()
+        ):
             msg.append(
                 _(
                     "You are using an OP_RETURN message. This gets permanently written"
@@ -1243,7 +1246,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             self.opreturn_rawhex_cb.setHidden(False)
             self.opreturn_rawhex_cb.setChecked(True)
             self.opreturn_label.setHidden(False)
-        elif not self.config.get("enable_opreturn"):
+        elif not self.config.get(ConfigKeys.ENABLE_OPRETURN):
             self.message_opreturn_e.setText("")
             self.message_opreturn_e.setHidden(True)
             self.opreturn_rawhex_cb.setHidden(True)
@@ -1303,9 +1306,10 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.opreturn_rawhex_cb.setDisabled(False)
         self.set_pay_from([])
         self.tx_external_keypairs = {}
-        self.message_opreturn_e.setVisible(self.config.get("enable_opreturn", False))
-        self.opreturn_rawhex_cb.setVisible(self.config.get("enable_opreturn", False))
-        self.opreturn_label.setVisible(self.config.get("enable_opreturn", False))
+        is_opreturn_enabled = self.config.get(ConfigKeys.ENABLE_OPRETURN)
+        self.message_opreturn_e.setVisible(is_opreturn_enabled)
+        self.opreturn_rawhex_cb.setVisible(is_opreturn_enabled)
+        self.opreturn_label.setVisible(is_opreturn_enabled)
         self.window.update_status()
 
     def get_coins(self, isInvoice=False):

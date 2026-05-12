@@ -43,7 +43,7 @@ from electrumabc.ecc import verify_message_with_address
 from electrumabc.i18n import _
 from electrumabc.networks import MainNet
 from electrumabc.printerror import PrintError, print_error
-from electrumabc.simple_config import SimpleConfig
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 
 from .util import Buttons
 
@@ -95,7 +95,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
 
     def __init__(self, config: SimpleConfig, parent=None):
         super().__init__(parent)
-        self.is_test_run = config.get("test_release_notification", False)
+        self.is_test_run = config.get(ConfigKeys.TEST_RELEASE_NOTIFICATION)
         self.setWindowTitle(f"{PROJECT_NAME} - " + _("Update Checker"))
         self.content = QtWidgets.QVBoxLayout()
         self.content.setContentsMargins(*([10] * 4))

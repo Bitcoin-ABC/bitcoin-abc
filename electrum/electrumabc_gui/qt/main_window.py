@@ -232,7 +232,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         tabs.addTab(self.send_tab, QIcon(":icons/tab_send.png"), _("Send"))
         tabs.addTab(self.receive_tab, QIcon(":icons/tab_receive.png"), _("Receive"))
         # clears/inits the opreturn widgets
-        self.on_toggled_opreturn(bool(self.config.get("enable_opreturn")))
+        self.on_toggled_opreturn(self.config.get(ConfigKeys.ENABLE_OPRETURN))
 
         def add_optional_tab(tabs, tab, icon, description, name, default=True):
             tab.tab_icon = icon
@@ -1292,7 +1292,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         """toggles opreturn-related widgets for both the receive and send
         tabs"""
         b = bool(b)
-        self.config.set_key("enable_opreturn", b)
+        self.config.set_key(ConfigKeys.ENABLE_OPRETURN, b)
         # send tab
         self.send_tab.on_toggled_opreturn(b)
         # receive tab
@@ -2041,7 +2041,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def update_console(self):
         console = self.console
-        console.history = self.config.get("console-history", [])
+        console.history = self.config.get(ConfigKeys.CONSOLE_HISTORY)
         console.history_index = len(console.history)
 
         console.updateNamespace(
@@ -2585,7 +2585,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         filenames, _filter = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select one or more files to open",
-            self.config.get("io_dir", os.path.expanduser("~")),
+            self.config.get(ConfigKeys.IO_DIR),
         )
 
         transactions = []
@@ -3495,7 +3495,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # cleanly from.  So we attempt to exit as cleanly as possible.
         try:
             self.config.set_key(ConfigKeys.IS_MAXIMIZED, self.isMaximized())
-            self.config.set_key("console-history", self.console.history[-50:], True)
+            self.config.set_key(
+                ConfigKeys.CONSOLE_HISTORY, self.console.history[-50:], True
+            )
         except (OSError, PermissionError) as e:
             self.print_error("unable to write to config (directory removed?)", e)
 

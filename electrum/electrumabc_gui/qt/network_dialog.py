@@ -46,7 +46,7 @@ from electrumabc.network import (
 )
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError, print_error
-from electrumabc.simple_config import ConfigKeys
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.tor import TorController
 from electrumabc.util import Weak, in_main_thread
 
@@ -116,7 +116,7 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
             not self.nlayout.ssl_cb.isChecked()
             and not self.nlayout.tor_cb.isChecked()
             and not self.nlayout.server_host.text().lower().endswith(".onion")
-            and not self.nlayout.config.get("non_ssl_noprompt", False)
+            and not self.nlayout.config.get(ConfigKeys.NON_SSL_NOPROMPT)
         ):
             ok, chk = self.question(
                 "".join(
@@ -152,7 +152,7 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
                 checkbox_text="Don't ask me again",
             )
             if chk:
-                self.nlayout.config.set_key("non_ssl_noprompt", True)
+                self.nlayout.config.set_key(ConfigKeys.NON_SSL_NOPROMPT, True)
             if not ok:
                 e.ignore()
                 return
@@ -460,7 +460,7 @@ class ServerListWidget(QtWidgets.QTreeWidget):
 
 
 class NetworkChoiceLayout(QObject, PrintError):
-    def __init__(self, parent, network: Network, config, wizard=False):
+    def __init__(self, parent, network: Network, config: SimpleConfig, wizard=False):
         super().__init__(parent)
         self.network = network
         self.config = config

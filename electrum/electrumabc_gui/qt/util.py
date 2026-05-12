@@ -27,7 +27,7 @@ from qtpy.QtGui import (
 )
 
 from electrumabc.printerror import PrintError, print_error
-from electrumabc.simple_config import SimpleConfig
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import Weak, finalization_print_error
 
 if platform.system() == "Windows":
@@ -605,7 +605,7 @@ def filename_field(config, defaultname, select_msg):
 
     hbox = QtWidgets.QHBoxLayout()
 
-    directory = config.get("io_dir", os.path.expanduser("~"))
+    directory = config.get(ConfigKeys.IO_DIR)
     path = os.path.join(directory, defaultname)
     filename_e = QtWidgets.QLineEdit()
     filename_e.setText(path)
@@ -1305,23 +1305,21 @@ def char_width_in_lineedit() -> int:
 # custom wrappers for getOpenFileName and getSaveFileName, that remember the path
 # selected by the user
 def getOpenFileName(title, config: SimpleConfig, filtr="", parent=None):
-    userdir = os.path.expanduser("~")
-    directory = config.get("io_dir", userdir)
+    directory = config.get(ConfigKeys.IO_DIR)
     fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
         parent, title, directory, filtr
     )
     if fileName and directory != os.path.dirname(fileName):
-        config.set_key("io_dir", os.path.dirname(fileName), True)
+        config.set_key(ConfigKeys.IO_DIR, os.path.dirname(fileName), True)
     return fileName
 
 
 def getSaveFileName(title, filename, config: SimpleConfig, filtr="", parent=None):
-    userdir = os.path.expanduser("~")
-    directory = config.get("io_dir", userdir)
+    directory = config.get(ConfigKeys.IO_DIR)
     path = os.path.join(directory, filename)
     fileName, __ = QtWidgets.QFileDialog.getSaveFileName(parent, title, path, filtr)
     if fileName and directory != os.path.dirname(fileName):
-        config.set_key("io_dir", os.path.dirname(fileName), True)
+        config.set_key(ConfigKeys.IO_DIR, os.path.dirname(fileName), True)
     return fileName
 
 
