@@ -1501,8 +1501,8 @@ importers:
   web/docs.e.cash:
     dependencies:
       chronik-client:
-        specifier: ^4.1.0
-        version: 4.1.0
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       next:
         specifier: 16.0.10
         version: 16.0.10(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(sass@1.99.0)
@@ -6374,9 +6374,6 @@ packages:
   chromium-edge-launcher@0.2.0:
     resolution: {integrity: sha512-JfJjUnq25y9yg4FABRRVPmBGWPZZi+AQXT4mxupb67766/0UlhG8PAZCz6xzEMXTbW3CsSoE8PcCWA49n35mKg==}
 
-  chronik-client@4.1.0:
-    resolution: {integrity: sha512-RA7gXMTmWW3ek29ACvHGfcJxGUBMxtcvMCCV7EJLywYCCYyCDmjdcTVIHEqEFF0QHj6F5PJi5nvA65cAtBnr5Q==}
-
   chronik-client@file:modules/chronik-client:
     resolution: {directory: modules/chronik-client, type: directory}
 
@@ -7170,9 +7167,6 @@ packages:
 
   ecash-wallet@file:modules/ecash-wallet:
     resolution: {directory: modules/ecash-wallet, type: directory}
-
-  ecashaddrjs@2.0.0:
-    resolution: {integrity: sha512-EvK1V4D3+nIEoD0ggy/b0F4lW39/72R9aOs/scm6kxMVuXu16btc+H74eQv7okNfXaQWKgolEekZkQ6wfcMMLw==}
 
   ecc-jsbn@0.1.2:
     resolution: {integrity: sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==}
@@ -19271,20 +19265,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  chronik-client@4.1.0:
-    dependencies:
-      '@types/ws': 8.18.1
-      axios: 1.15.0(debug@4.4.3)
-      ecashaddrjs: 2.0.0
-      isomorphic-ws: 4.0.1(ws@8.20.0)
-      long: 4.0.0
-      protobufjs: 6.11.4
-      ws: 8.20.0
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - utf-8-validate
-
   chronik-client@file:modules/chronik-client:
     dependencies:
       '@types/ws': 8.18.1
@@ -20082,8 +20062,6 @@ snapshots:
     dependencies:
       chronik-client: link:modules/chronik-client
       ecash-lib: link:modules/ecash-lib
-
-  ecashaddrjs@2.0.0: {}
 
   ecc-jsbn@0.1.2:
     dependencies:

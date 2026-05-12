@@ -15,7 +15,7 @@
         "generate:api": "node scripts/generate-chronik-client-api.mjs"
     },
     "dependencies": {
-        "chronik-client": "^4.1.0",
+        "chronik-client": "workspace:^",
         "next": "16.0.10",
         "next-mdx-remote": "^5.0.0",
         "prism-react-renderer": "^2.4.1",
