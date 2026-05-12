@@ -497,7 +497,7 @@ class ElectrumGui:
                 {
                     "label": "proxy",
                     "type": "str",
-                    "value": self.config.get(ConfigKeys.PROXY, ""),
+                    "value": self.config.get_or(ConfigKeys.PROXY, ""),
                 },
             ],
             buttons=1,

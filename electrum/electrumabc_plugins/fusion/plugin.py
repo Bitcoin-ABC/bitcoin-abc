@@ -40,6 +40,7 @@ from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.network import Network
 from electrumabc.plugins import BasePlugin, daemon_command, hook
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import InvalidPassword
 
 from .conf import Conf, Global
@@ -956,7 +957,7 @@ class FusionPlugin(BasePlugin):
                     wallet._cashfusion_address_cache.clear()
 
     @daemon_command
-    def fusion_server_start(self, daemon, config):
+    def fusion_server_start(self, daemon, config: SimpleConfig):
         # Usage:
         #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port>
         #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port> upnp
@@ -1003,7 +1004,7 @@ class FusionPlugin(BasePlugin):
             )
 
         try:
-            host, port = invoke(*config.get("subargs", ()))
+            host, port = invoke(*config.get_or(ConfigKeys.SUBARGS, ()))
         except Exception as e:
             import sys
             import traceback
@@ -1029,10 +1030,10 @@ class FusionPlugin(BasePlugin):
         }
 
     @daemon_command
-    def fusion_server_fuse(self, daemon, config):
+    def fusion_server_fuse(self, daemon, config: SimpleConfig):
         if self.fusion_server is None:
             return
-        subargs = config.get("subargs", ())
+        subargs = config.get_or(ConfigKeys.SUBARGS, ())
         if len(subargs) != 1:
             return "expecting tier"
         tier = int(subargs[0])

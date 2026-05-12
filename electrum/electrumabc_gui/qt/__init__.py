@@ -139,7 +139,7 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         #
         # The default on Linux, Windows, etc is to enable high dpi
         disable_scaling = config.get(ConfigKeys.QT_DISABLE_HIGHDPI)
-        enable_scaling = config.get(ConfigKeys.QT_ENABLE_HIGHDPI, True)
+        enable_scaling = config.get_or(ConfigKeys.QT_ENABLE_HIGHDPI, True)
         if not disable_scaling and enable_scaling:
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -170,9 +170,9 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
 app = None
 
 
-def init_qapplication(config):
+def init_qapplication(config: SimpleConfig):
     global app
-    i18n.set_language(config.get("language"))
+    i18n.set_language(config.get(ConfigKeys.LANGUAGE))
     call_after_app = _pre_and_post_app_setup(config)
     try:
         app = QtWidgets.QApplication(sys.argv)
@@ -942,6 +942,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             hasattr(QtCore.Qt, "AA_EnableHighDpiScaling")
             and self.app.testAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
             # first run check:
+            # TODO: replace with config.is_key_set, so we can give QT_ENABLE_HIGHDPI a default value
             and self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI) is None
             and (
                 is_lin  # we can't check pixel ratio on linux as apparently it's unreliable, so always show this message on linux

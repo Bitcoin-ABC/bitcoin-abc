@@ -747,9 +747,8 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
 
     def _warn_if_legacy_address(self):
         """Show a warning if self.payto_e has legacy addresses, since the user
-        might be trying to send BTC instead of BCHA."""
-        warn_legacy_address = bool(self.config.get("warn_legacy_address", True))
-        if not warn_legacy_address:
+        might be trying to send BTC instead of XEC."""
+        if not self.config.get(ConfigKeys.WARN_LEGACY_ADDRESS):
             return
         for line in self.payto_e.lines():
             line = line.strip()
@@ -788,8 +787,9 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
                     checkbox_text=_("Never show this again"),
                     checkbox_ischecked=False,
                 )
-                if res[1]:  # Never ask if checked
-                    self.config.set_key("warn_legacy_address", False)
+                if res[1]:
+                    # Never ask if checked
+                    self.config.set_key(ConfigKeys.WARN_LEGACY_ADDRESS, False)
                 break
 
     def do_preview(self):

@@ -27,6 +27,7 @@ class ConfigKey:
 
 class ConfigKeys:
     ADDRESS_FORMAT = ConfigKey("address_format", Address.FMT_CASHADDR)
+    ALIAS = ConfigKey("alias", "")
     ALLOW_LEGACY_P2SH = ConfigKey("allow_legacy_p2sh", False)
     # FIXME: auto_connect has a default value (True) defined in network.py, but we
     #  cannot set it here because we rely on `config.get("auto_connect") is None`
@@ -35,13 +36,21 @@ class ConfigKeys:
     AUTO_UPDATE_CHECK = ConfigKey("auto_update_check", True)
     # See docstring for Network.blockchain_index
     BLOCKCHAIN_INDEX = ConfigKey("blockchain_index", 0)
+    BLOCK_EXPLORER = ConfigKey("block_explorer")
+    CONFIG_VERSION = ConfigKey("config_version")
     # Whether the user wants to spend confirmed UTXOs only
     CONFIRMED_ONLY = ConfigKey("confirmed_only", False)
     CONSOLE_HISTORY = ConfigKey("console-history", [])
     CURRENCY = ConfigKey("currency", "USD")
+    DECIMAL_POINT = ConfigKey("decimal_point", XEC.decimals)
     ENABLE_ALIASES = ConfigKey("enable_aliases", False)
+    ENABLE_CURRENT_BLOCK_LOCKTIME = ConfigKey("enable_current_block_locktime", False)
     ENABLE_OPRETURN = ConfigKey("enable_opreturn", False)
+    FETCH_INPUT_DATA = ConfigKey("fetch_input_data")
     IO_DIR = ConfigKey("io_dir", os.path.expanduser("~"))
+    LANGUAGE = ConfigKey("language", "")
+    # by default, we want to display the full precision down to sats
+    NUM_ZEROS = ConfigKey("num_zeros", XEC.decimals)
     PASSPHRASE = ConfigKey("passphrase", "")
     PROXY = ConfigKey("proxy")
     RECENTLY_OPEN_WALLETS = ConfigKey("recently_open", [])
@@ -59,6 +68,7 @@ class ConfigKeys:
     # Session timeout for Trezor and Keepkey hardware wallets
     SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
     SHOW_FEE = ConfigKey("show_fee", False)
+    SUBARGS = ConfigKey("subargs")
     TEST_RELEASE_NOTIFICATION = ConfigKey("test_release_notification", False)
     TOR_ENABLED = ConfigKey("tor_enabled", False)
     TOR_SOCKS_PORT = ConfigKey("tor_socks_port", 0)
@@ -66,6 +76,7 @@ class ConfigKeys:
     USE_EXCHANGE = ConfigKey("use_exchange", "CoinGecko")
     USE_EXCHANGE_RATE = ConfigKey("use_exchange_rate", False)
     VIDEO_DEVICE = ConfigKey("video_device", "default")
+    WARN_LEGACY_ADDRESS = ConfigKey("warn_legacy_address", True)
     WHITHELIST_SERVERS_ONLY = ConfigKey("whitelist_servers_only", True)
 
     # GUI configs.
@@ -85,6 +96,7 @@ class ConfigKeys:
     # See help for command line argument --qt_opengl
     QT_OPENGL = ConfigKey("qt_opengl")
     SHOW_CRASH_REPORTER = ConfigKey("show_crash_reporter2", True)
+    WINDOWS_QT_USE_FREETYPE = ConfigKey("windows_qt_use_freetype")
 
     # Payment server related configs.
     # These are not set in this codebase, but there is documentation on the internet
@@ -205,7 +217,25 @@ class SimpleConfig(PrintError):
             if save:
                 self.save_user_config()
 
-    def get(self, key: Union[str, ConfigKey], default=None):
+    def get(self, key: Union[str, ConfigKey]):
+        """Return the value of a config key or key.default if the key is not
+        set in the config.
+        """
+        return self._get_internal(key)
+
+    def get_or(self, key: ConfigKey, default: Any) -> Any:
+        """Return the value of a config key, or `default` if the key is not
+        set in the config. `default` can not be `None`.
+
+        Use this when the default value is not trivial to set directly with the
+        ConfigKey. In most cases you should just use the above `get` method
+        """
+        assert default is not None
+        return self._get_internal(key, default)
+
+    def _get_internal(self, key: Union[str, ConfigKey], default=None):
+        # Do not use this directly. Use one of the `get`, `get_or` or
+        # `is_key_set` interface methods
         if isinstance(key, ConfigKey):
             if default is None:
                 default = key.default
@@ -223,7 +253,7 @@ class SimpleConfig(PrintError):
         with self.lock:
             self.convert_version_2()
 
-            self.set_key("config_version", FINAL_CONFIG_VERSION, save=True)
+            self.set_key(ConfigKeys.CONFIG_VERSION, FINAL_CONFIG_VERSION, save=True)
 
     def convert_version_2(self):
         if not self._is_upgrade_method_needed(1, 1):
@@ -244,7 +274,7 @@ class SimpleConfig(PrintError):
         except Exception:
             self._set_key_in_user_config(ConfigKeys.SERVER, None)
 
-        self.set_key("config_version", 2)
+        self.set_key(ConfigKeys.CONFIG_VERSION, 2)
 
     def _is_upgrade_method_needed(self, min_version, max_version):
         cur_version = self.get_config_version()
@@ -259,7 +289,7 @@ class SimpleConfig(PrintError):
             return True
 
     def get_config_version(self):
-        config_version = self.get("config_version", 1)
+        config_version = self.get_or(ConfigKeys.CONFIG_VERSION, 1)
         if config_version > FINAL_CONFIG_VERSION:
             self.print_stderr(
                 "WARNING: config version ({}) is higher than ours ({})".format(
@@ -317,7 +347,7 @@ class SimpleConfig(PrintError):
         return new_path
 
     def remove_from_recently_open(self, filename):
-        recent = self.get(ConfigKeys.RECENTLY_OPEN_WALLETS, [])
+        recent = self.get(ConfigKeys.RECENTLY_OPEN_WALLETS)
         if filename in recent:
             recent.remove(filename)
             self.set_key(ConfigKeys.RECENTLY_OPEN_WALLETS, recent)
@@ -395,17 +425,16 @@ class SimpleConfig(PrintError):
         return device
 
     def is_current_block_locktime_enabled(self) -> bool:
-        return self.get("enable_current_block_locktime", False)
+        return self.get(ConfigKeys.ENABLE_CURRENT_BLOCK_LOCKTIME)
 
     def set_current_block_locktime_enabled(self, flag: bool):
-        self.set_key("enable_current_block_locktime", flag, save=True)
+        self.set_key(ConfigKeys.ENABLE_CURRENT_BLOCK_LOCKTIME, flag, save=True)
 
     def get_decimal_point(self) -> int:
-        return self.get("decimal_point", XEC.decimals)
+        return self.get(ConfigKeys.DECIMAL_POINT)
 
     def get_num_zeros(self) -> int:
-        # by default, we want to display the full precision down to sats
-        return self.get("num_zeros", XEC.decimals)
+        return self.get(ConfigKeys.NUM_ZEROS)
 
     def is_tab_visible(self, name: str, default) -> bool:
         return self.get(ConfigKey(f"show_{name}_tab", default))

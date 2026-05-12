@@ -38,6 +38,7 @@ from .address import Address
 from .amount import format_satoshis_plain
 from .i18n import _
 from .printerror import print_error
+from .simple_config import ConfigKeys, SimpleConfig
 from .util import bfh, do_in_main_thread
 
 
@@ -116,10 +117,10 @@ def BE_default_explorer() -> BlockchainExplorer:
     return DEFAULT_EXPLORER
 
 
-def BE_name_from_config(config) -> str:
+def BE_name_from_config(config: SimpleConfig) -> str:
     """Return the block explorer name defined in the config file. If the config is
     set to an unknown block explorer, return the default one."""
-    explorer_name = config.get("block_explorer", BE_default_explorer().name)
+    explorer_name = config.get_or(ConfigKeys.BLOCK_EXPLORER, BE_default_explorer().name)
     if explorer_name not in BE_info():
         explorer_name = BE_default_explorer().name
     return explorer_name

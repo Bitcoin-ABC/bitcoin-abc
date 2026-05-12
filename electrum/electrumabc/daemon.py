@@ -220,7 +220,7 @@ class Daemon(DaemonThread):
     def run_daemon(self, config_options):
         config = SimpleConfig(config_options)
         sub = config.get("subcommand")
-        subargs = config.get("subargs")
+        subargs = config.get(ConfigKeys.SUBARGS)
         plugin_cmd = self.plugins and self.plugins.daemon_commands.get(sub)
         if subargs and sub in [None, "start", "stop"]:
             return "Unexpected arguments: {!r}. {!r} takes no options.".format(

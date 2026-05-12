@@ -354,7 +354,7 @@ class Network(util.DaemonThread):
         The dict key is a "<host>:<port>:<protocol>" string.
         Requires self.interface_lock.
         """
-        self.auto_connect: bool = self.config.get(
+        self.auto_connect: bool = self.config.get_or(
             ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
         )
         self.connecting: Set[str] = set()
@@ -757,7 +757,7 @@ class Network(util.DaemonThread):
         server = self.get_config_server()
         protocol = deserialize_server(server)[2]
         proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
-        self.auto_connect = self.config.get(
+        self.auto_connect = self.config.get_or(
             ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
         )
         if self.proxy != proxy or self.protocol != protocol:

@@ -530,7 +530,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def fetch_alias(self):
         self.alias_info = None
-        alias = self.config.get("alias")
+        alias = self.config.get(ConfigKeys.ALIAS)
         if alias:
             alias = str(alias)
 
@@ -1512,7 +1512,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return str(URI)
 
     def sign_payment_request(self, addr):
-        alias = self.config.get("alias")
+        alias = self.config.get(ConfigKeys.ALIAS)
         if alias and self.alias_info:
             alias_addr, alias_name, validated = self.alias_info
             if alias_addr:
@@ -3057,11 +3057,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return bool(
             self.wallet
             and self.wallet.network
-            and self.config.get("fetch_input_data", self.wallet.network.auto_connect)
+            and self.config.get_or(
+                ConfigKeys.FETCH_INPUT_DATA, self.wallet.network.auto_connect
+            )
         )
 
     def set_fetch_input_data(self, b):
-        self.config.set_key("fetch_input_data", bool(b))
+        self.config.set_key(ConfigKeys.FETCH_INPUT_DATA, bool(b))
 
     def do_export_history(
         self,

@@ -34,7 +34,7 @@ from .qrreader.camera_dialog import get_camera_path
 from .util import Buttons, CloseButton, ColorScheme, HelpLabel, WindowModalDialog
 
 
-def windows_qt_use_freetype(config):
+def windows_qt_use_freetype(config: SimpleConfig):
     """Returns True iff we are windows and we are set to use freetype as
     the font engine.  This will always return false on platforms where the
     question doesn't apply. This config setting defaults to True for
@@ -51,15 +51,13 @@ def windows_qt_use_freetype(config):
         # can always manually override this setting from GUI prefs.
         winver = 10
     # setting defaults to on for Windows < Win10
-    return bool(config.get("windows_qt_use_freetype", winver < 10))
+    return bool(config.get_or(ConfigKeys.WINDOWS_QT_USE_FREETYPE, winver < 10))
 
 
 def set_windows_qt_use_freetype(config, b):
-    if config.is_modifiable("windows_qt_use_freetype") and sys.platform in (
-        "win32",
-        "cygwin",
-    ):
-        config.set_key("windows_qt_use_freetype", bool(b))
+    key = ConfigKeys.WINDOWS_QT_USE_FREETYPE
+    if config.is_modifiable(key) and sys.platform in ("win32", "cygwin"):
+        config.set_key(ConfigKeys.WINDOWS_QT_USE_FREETYPE, bool(b))
 
 
 class SettingsDialog(WindowModalDialog):
@@ -119,7 +117,7 @@ class SettingsDialog(WindowModalDialog):
                     lang_name.append(f" [{languages[sys_lang].name}]")
             language_names.append("".join(lang_name))
         self.lang_combo.addItems(language_names)
-        conf_lang = self.config.get("language", "")
+        conf_lang = self.config.get(ConfigKeys.LANGUAGE)
         if conf_lang:
             # The below code allows us to rename languages in saved config and
             # have them still line up with languages in our languages dict.
@@ -132,7 +130,7 @@ class SettingsDialog(WindowModalDialog):
             index = 0
         self.lang_combo.setCurrentIndex(index)
 
-        if not self.config.is_modifiable("language"):
+        if not self.config.is_modifiable(ConfigKeys.LANGUAGE):
             for w in [self.lang_combo, lang_label]:
                 w.setEnabled(False)
 
@@ -193,7 +191,7 @@ class SettingsDialog(WindowModalDialog):
             + _("For more information, see http://openalias.org")
         )
         alias_label = HelpLabel(_("OpenAlias") + ":", msg)
-        alias = self.config.get("alias", "")
+        alias = self.config.get(ConfigKeys.ALIAS)
         self.alias_e = QtWidgets.QLineEdit(alias)
 
         self.set_alias_color(alias_info)
@@ -367,7 +365,7 @@ class SettingsDialog(WindowModalDialog):
                     )
                 )
             self.hidpi_chk.setChecked(
-                bool(self.config.get(ConfigKeys.QT_ENABLE_HIGHDPI, True))
+                bool(self.config.get_or(ConfigKeys.QT_ENABLE_HIGHDPI, True))
             )
             if self.config.get(ConfigKeys.QT_DISABLE_HIGHDPI):
                 self.hidpi_chk.setToolTip(
@@ -385,7 +383,7 @@ class SettingsDialog(WindowModalDialog):
                 freetype_chk = QtWidgets.QCheckBox(_("Use FreeType for font rendering"))
                 freetype_chk.setChecked(windows_qt_use_freetype(self.config))
                 freetype_chk.setEnabled(
-                    self.config.is_modifiable("windows_qt_use_freetype")
+                    self.config.is_modifiable(ConfigKeys.WINDOWS_QT_USE_FREETYPE)
                 )
                 freetype_chk.setToolTip(
                     _(
@@ -715,7 +713,7 @@ class SettingsDialog(WindowModalDialog):
         self.shown_signal.emit()
 
     def set_alias_color(self, alias_info: Optional[Tuple[Address, str, bool]]):
-        if not self.config.get("alias"):
+        if not self.config.get(ConfigKeys.ALIAS):
             self.alias_e.setStyleSheet("")
             return
         if alias_info is not None:
@@ -730,8 +728,8 @@ class SettingsDialog(WindowModalDialog):
 
     def on_lang(self, x):
         lang_request = self.language_keys[self.lang_combo.currentIndex()]
-        if lang_request != self.config.get("language"):
-            self.config.set_key("language", lang_request, True)
+        if lang_request != self.config.get(ConfigKeys.LANGUAGE):
+            self.config.set_key(ConfigKeys.LANGUAGE, lang_request, True)
             self.need_restart = True
 
     def on_nz(self):
@@ -761,13 +759,13 @@ class SettingsDialog(WindowModalDialog):
     def on_alias_edit(self):
         self.alias_e.setStyleSheet("")
         alias = str(self.alias_e.text())
-        self.config.set_key("alias", alias, True)
+        self.config.set_key(ConfigKeys.ALIAS, alias, True)
         if alias:
             self.alias_changed.emit()
 
     def on_be(self, x):
         be_result = web.BE_sorted_list()[self.block_ex_combo.currentIndex()]
-        self.config.set_key("block_explorer", be_result, True)
+        self.config.set_key(ConfigKeys.BLOCK_EXPLORER, be_result, True)
 
     def set_no_camera(self, e=""):
         # Older Qt or missing libs -- disable GUI control and inform user why

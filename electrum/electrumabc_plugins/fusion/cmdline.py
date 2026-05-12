@@ -29,13 +29,13 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, List, NamedTuple, Optional, Tuple
 
 from electrumabc.plugins import daemon_command
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import InvalidPassword
 
 from .plugin import FusionPlugin
 
 if TYPE_CHECKING:
     from electrumabc.daemon import Daemon
-    from electrumabc.simple_config import SimpleConfig
     from electrumabc.wallet import AbstractWallet
 
 
@@ -97,7 +97,7 @@ class Plugin(FusionPlugin):
             ./electrum-abc -w  /path/to/encrypted_wallet daemon load_wallet
             ./electrum-abc daemon enable_autofuse 'password1'
         """
-        passwords = config.get("subargs")
+        passwords = config.get(ConfigKeys.SUBARGS)
         num_hw, num_without_pwd, wallets_to_fuse = self._get_fusable_wallets(
             daemon, passwords
         )

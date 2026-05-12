@@ -47,7 +47,7 @@ from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .printerror import print_error
-from .simple_config import SimpleConfig
+from .simple_config import ConfigKeys, SimpleConfig
 from .transaction import (
     OPReturn,
     Transaction,
@@ -1084,7 +1084,7 @@ class Commands:
     @command("wp")
     def signrequest(self, address, password=None):
         "Sign payment request with an OpenAlias"
-        alias_ = self.config.get("alias")
+        alias_ = self.config.get(ConfigKeys.ALIAS)
         if not alias_:
             raise ValueError("No alias in your configuration")
         data = alias.resolve(alias_, self.config)
