@@ -60,8 +60,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       chronik-client:
-        specifier: file:../../modules/chronik-client
-        version: file:modules/chronik-client
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       cors:
         specifier: ^2.8.5
         version: 2.8.6
@@ -69,13 +69,13 @@ importers:
         specifier: ^16.4.5
         version: 16.6.1
       ecash-lib:
-        specifier: file:../../modules/ecash-lib
-        version: file:modules/ecash-lib
+        specifier: workspace:^
+        version: link:../../modules/ecash-lib
       ecash-wallet:
-        specifier: file:../../modules/ecash-wallet
-        version: file:modules/ecash-wallet
+        specifier: workspace:^
+        version: link:../../modules/ecash-wallet
       ecashaddrjs:
-        specifier: file:../../modules/ecashaddrjs
+        specifier: workspace:^
         version: link:../../modules/ecashaddrjs
       express:
         specifier: ^5.2.1
@@ -142,22 +142,22 @@ importers:
         specifier: ^5.5.2
         version: 5.7.6
       chronik-client:
-        specifier: file:../../modules/chronik-client
-        version: file:modules/chronik-client
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       cron:
         specifier: ^3.1.7
         version: 3.5.0
       ecash-agora:
-        specifier: file:../../modules/ecash-agora
-        version: file:modules/ecash-agora
+        specifier: workspace:^
+        version: link:../../modules/ecash-agora
       ecash-lib:
-        specifier: file:../../modules/ecash-lib
-        version: file:modules/ecash-lib
+        specifier: workspace:^
+        version: link:../../modules/ecash-lib
       ecash-price:
-        specifier: file:../../modules/ecash-price
+        specifier: workspace:^
         version: link:../../modules/ecash-price
       ecashaddrjs:
-        specifier: file:../../modules/ecashaddrjs
+        specifier: workspace:^
         version: link:../../modules/ecashaddrjs
       grammy:
         specifier: ^1.39.2
@@ -197,16 +197,16 @@ importers:
   apps/faucet:
     dependencies:
       chronik-client:
-        specifier: file:../../modules/chronik-client
-        version: file:modules/chronik-client
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       cors:
         specifier: ^2.8.5
         version: 2.8.6
       ecash-lib:
-        specifier: file:../../modules/ecash-lib
-        version: file:modules/ecash-lib
+        specifier: workspace:^
+        version: link:../../modules/ecash-lib
       ecashaddrjs:
-        specifier: file:../../modules/ecashaddrjs
+        specifier: workspace:^
         version: link:../../modules/ecashaddrjs
       express:
         specifier: ^5.2.1
@@ -489,8 +489,8 @@ importers:
   apps/the-overmind:
     dependencies:
       chronik-client:
-        specifier: file:../../modules/chronik-client
-        version: file:modules/chronik-client
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       cron:
         specifier: ^4.4.0
         version: 4.4.0
@@ -498,13 +498,13 @@ importers:
         specifier: ^17.2.3
         version: 17.4.2
       ecash-lib:
-        specifier: file:../../modules/ecash-lib
-        version: file:modules/ecash-lib
+        specifier: workspace:^
+        version: link:../../modules/ecash-lib
       ecash-wallet:
-        specifier: file:../../modules/ecash-wallet
-        version: file:modules/ecash-wallet
+        specifier: workspace:^
+        version: link:../../modules/ecash-wallet
       ecashaddrjs:
-        specifier: file:../../modules/ecashaddrjs
+        specifier: workspace:^
         version: link:../../modules/ecashaddrjs
       grammy:
         specifier: ^1.39.2
@@ -695,25 +695,25 @@ importers:
         specifier: ^7.4.3
         version: 7.6.1(@capacitor/core@7.6.1)
       b58-ts:
-        specifier: file:../modules/b58-ts
+        specifier: workspace:^
         version: link:../modules/b58-ts
       bignumber.js:
         specifier: ^9.1.2
         version: 9.3.1
       chronik-client:
-        specifier: file:../modules/chronik-client
-        version: file:modules/chronik-client
+        specifier: workspace:^
+        version: link:../modules/chronik-client
       ecash-agora:
-        specifier: file:../modules/ecash-agora
-        version: file:modules/ecash-agora
+        specifier: workspace:^
+        version: link:../modules/ecash-agora
       ecash-lib:
-        specifier: file:../modules/ecash-lib
-        version: file:modules/ecash-lib
+        specifier: workspace:^
+        version: link:../modules/ecash-lib
       ecash-wallet:
-        specifier: file:../modules/ecash-wallet
-        version: file:modules/ecash-wallet
+        specifier: workspace:^
+        version: link:../modules/ecash-wallet
       ecashaddrjs:
-        specifier: file:../modules/ecashaddrjs
+        specifier: workspace:^
         version: link:../modules/ecashaddrjs
       localforage:
         specifier: ^1.9.0
@@ -6397,9 +6397,6 @@ packages:
   chromium-edge-launcher@0.2.0:
     resolution: {integrity: sha512-JfJjUnq25y9yg4FABRRVPmBGWPZZi+AQXT4mxupb67766/0UlhG8PAZCz6xzEMXTbW3CsSoE8PcCWA49n35mKg==}
 
-  chronik-client@file:modules/chronik-client:
-    resolution: {directory: modules/chronik-client, type: directory}
-
   ci-info@2.0.0:
     resolution: {integrity: sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ==}
 
@@ -7181,15 +7178,6 @@ packages:
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
-
-  ecash-agora@file:modules/ecash-agora:
-    resolution: {directory: modules/ecash-agora, type: directory}
-
-  ecash-lib@file:modules/ecash-lib:
-    resolution: {directory: modules/ecash-lib, type: directory}
-
-  ecash-wallet@file:modules/ecash-wallet:
-    resolution: {directory: modules/ecash-wallet, type: directory}
 
   ecc-jsbn@0.1.2:
     resolution: {integrity: sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==}
@@ -19904,20 +19892,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  chronik-client@file:modules/chronik-client:
-    dependencies:
-      '@types/ws': 8.18.1
-      axios: 1.15.0(debug@4.4.3)
-      ecashaddrjs: link:modules/ecashaddrjs
-      isomorphic-ws: 4.0.1(ws@8.20.0)
-      long: 4.0.0
-      protobufjs: 7.5.8
-      ws: 8.20.0
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - utf-8-validate
-
   ci-info@2.0.0: {}
 
   ci-info@3.9.0: {}
@@ -20684,22 +20658,6 @@ snapshots:
       gopd: 1.2.0
 
   eastasianwidth@0.2.0: {}
-
-  ecash-agora@file:modules/ecash-agora:
-    dependencies:
-      chronik-client: link:modules/chronik-client
-      ecash-lib: link:modules/ecash-lib
-      ecash-wallet: link:modules/ecash-wallet
-
-  ecash-lib@file:modules/ecash-lib:
-    dependencies:
-      b58-ts: link:modules/b58-ts
-      ecashaddrjs: link:modules/ecashaddrjs
-
-  ecash-wallet@file:modules/ecash-wallet:
-    dependencies:
-      chronik-client: link:modules/chronik-client
-      ecash-lib: link:modules/ecash-lib
 
   ecc-jsbn@0.1.2:
     dependencies:

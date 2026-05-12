@@ -44,12 +44,12 @@
     "dependencies": {
         "axios": "^1.7.7",
         "bip32": "^4.0.0",
-        "chronik-client": "file:../../modules/chronik-client",
+        "chronik-client": "workspace:^",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
-        "ecash-lib": "file:../../modules/ecash-lib",
-        "ecash-wallet": "file:../../modules/ecash-wallet",
-        "ecashaddrjs": "file:../../modules/ecashaddrjs",
+        "ecash-lib": "workspace:^",
+        "ecash-wallet": "workspace:^",
+        "ecashaddrjs": "workspace:^",
         "express": "^5.2.1",
         "express-rate-limit": "^8.2.1",
         "helmet": "^7.1.0"

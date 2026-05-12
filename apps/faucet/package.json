@@ -10,9 +10,9 @@
     },
     "license": "MIT",
     "dependencies": {
-        "ecash-lib": "file:../../modules/ecash-lib",
-        "ecashaddrjs": "file:../../modules/ecashaddrjs",
-        "chronik-client": "file:../../modules/chronik-client",
+        "ecash-lib": "workspace:^",
+        "ecashaddrjs": "workspace:^",
+        "chronik-client": "workspace:^",
         "cors": "^2.8.5",
         "express": "^5.2.1",
         "express-rate-limit": "^8.2.1"
