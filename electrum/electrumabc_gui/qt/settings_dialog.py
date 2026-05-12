@@ -915,7 +915,7 @@ class SettingsDialog(WindowModalDialog):
             c = self.fx.get_currency()
             h = self.fx.get_history_config()
         else:
-            c, h = self.fx.default_currency, False
+            c, h = ConfigKeys.CURRENCY.default, False
         exchanges = self.fx.get_exchanges_by_ccy(c, h)
         conf_exchange = self.fx.config_exchange()
         self.ex_combo.clear()
@@ -924,7 +924,7 @@ class SettingsDialog(WindowModalDialog):
         idx = self.ex_combo.findText(conf_exchange)
         if idx < 0:
             # hmm, previous exchange wasn't in new h= setting. Try default exchange.
-            idx = self.ex_combo.findText(self.fx.default_exchange)
+            idx = self.ex_combo.findText(ConfigKeys.USE_EXCHANGE.default)
         # if still no success (idx < 0) -> default to the first exchange in combo
         idx = 0 if idx < 0 else idx
         # don't set index if no exchanges, as any index is illegal.

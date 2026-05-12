@@ -3280,7 +3280,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def update_fiat(self):
         b = self.fx and self.fx.is_enabled()
-        self.fiat_send_e.setVisible(b)
+        self.send_tab.fiat_send_e.setVisible(b)
         self.fiat_receive_e.setVisible(b)
         self.history_list.refresh_headers()
         self.history_list.update()
