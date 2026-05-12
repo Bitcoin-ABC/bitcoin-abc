@@ -19,6 +19,7 @@ export const navbarLinks: NavbarLink[] = [
   // Main
   { title: "Build", href: "/build", category: "main" },
   { title: "Tech", href: "/tech", category: "main" },
+  { title: "Download", href: "/download", category: "main" },
 
   // About
   { title: "About", href: "/about", category: "about" },
