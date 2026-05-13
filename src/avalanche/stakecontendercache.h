@@ -25,8 +25,6 @@ class CBlockIndex;
 
 namespace avalanche {
 
-class PeerManager;
-
 enum StakeContenderStatus : uint8_t {
     UNKNOWN = 0,
     // Set according to avalanche acceptance

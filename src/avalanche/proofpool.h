@@ -8,7 +8,6 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/proofid.h>
-#include <coins.h>
 #include <primitives/transaction.h>
 
 #include <boost/multi_index/hashed_index.hpp>

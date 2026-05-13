@@ -6,7 +6,6 @@
 #define BITCOIN_AVALANCHE_NODE_H
 
 #include <nodeid.h>
-#include <pubkey.h>
 #include <util/time.h>
 
 #include <chrono>

@@ -11,6 +11,7 @@
 #include <uint256.h>
 
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 namespace avalanche {

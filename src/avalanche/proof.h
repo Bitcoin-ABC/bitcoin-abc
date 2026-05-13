@@ -15,12 +15,9 @@
 #include <serialize.h>
 #include <util/hasher.h>
 
-#include <array>
 #include <cstdint>
-#include <optional>
 #include <vector>
 
-class ArgsManager;
 class ChainstateManager;
 struct bilingual_str;
 

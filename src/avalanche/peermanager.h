@@ -11,7 +11,6 @@
 #include <avalanche/proofradixtreeadapter.h>
 #include <avalanche/protocol.h>
 #include <avalanche/stakecontendercache.h>
-#include <coins.h>
 #include <common/bloom.h>
 #include <consensus/validation.h>
 #include <radix.h>
@@ -33,7 +32,6 @@
 #include <vector>
 
 class ChainstateManager;
-class CScheduler;
 
 namespace avalanche {
 

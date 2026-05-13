@@ -26,7 +26,6 @@ namespace avalanche {
 constexpr size_t MAX_DELEGATION_LEVELS{20};
 
 class DelegationState;
-class Proof;
 
 class Delegation {
     LimitedProofId limitedProofid;
