@@ -196,16 +196,6 @@ export default function MiningContent() {
                 <ul className="space-y-2">
                   <li>
                     <a
-                      href="https://support.viabtc.com/hc/en-us/articles/7207444931599"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 transition-colors hover:text-blue-300"
-                    >
-                      ViaBTC
-                    </a>
-                  </li>
-                  <li>
-                    <a
                       href="https://www.mining-dutch.nl/pools/ecash.php?page=dashboard"
                       target="_blank"
                       rel="noopener noreferrer"
