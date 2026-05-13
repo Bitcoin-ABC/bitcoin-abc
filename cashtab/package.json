@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "5.6.2",
+    "version": "5.6.3",
     "private": true,
     "type": "module",
     "scripts": {
@@ -58,7 +58,6 @@
         "react-tooltip": "^5.28.0",
         "set-cookie-parser": "^3.0.1",
         "styled-components": "^4.4.0",
-        "swiper": "^11.1.14",
         "wif": "^4.0.0",
         "workbox-core": "^6.6.1",
         "workbox-expiration": "^6.6.1",

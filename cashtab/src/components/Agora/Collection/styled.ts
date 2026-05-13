@@ -167,8 +167,37 @@ export const NftIcon = styled.button<{ tokenId: string; size: number }>`
         background-size: 150% 150%;
     }
 `;
-export const NftSwiperSlide = styled.div`
+export const NftSlide = styled.div`
     background-color: ${props => props.theme.secondaryBackground};
+`;
+export const CarouselNav = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 0;
+    button {
+        background: none;
+        border: 1px solid ${props => props.theme.border};
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        color: ${props => props.theme.primaryText};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        &:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+    }
+`;
+export const CarouselPagination = styled.span`
+    font-size: var(--text-sm);
+    color: ${props => props.theme.primaryText};
 `;
 export const ModalFlex = styled.div`
     display: flex;

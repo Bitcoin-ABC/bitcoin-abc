@@ -298,7 +298,7 @@ describe('<Nfts />', () => {
             screen.queryByText('You have no listed NFTs'),
         ).not.toBeInTheDocument();
 
-        // We see the NFT name for manage swiper, not the collection name
+        // We see the NFT name for the listing carousel, not the collection name
         expect(await screen.findByText('Saturn V (S5)')).toBeInTheDocument();
 
         // Change wallets using the dropdown menu at the top of the screen

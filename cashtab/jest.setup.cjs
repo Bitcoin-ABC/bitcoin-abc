@@ -4,23 +4,6 @@
 
 /* eslint-env jest */
 
-/**
- * Unfortunately swiperjs has a lot of potential jest errors
- * Was not able to troubleshoot
- * Representative dead end:
- * https://github.com/nolimits4web/swiper/discussions/5218
- * Anyway, we do not need to test swiperjs
- */
-jest.mock('swiper/react', () => ({
-    Swiper: ({ children }) => children,
-    SwiperSlide: ({ children }) => children,
-}));
-
-jest.mock('swiper/css', () => jest.fn());
-jest.mock('swiper/css/navigation', () => jest.fn());
-jest.mock('swiper/css/pagination', () => jest.fn());
-jest.mock('swiper/modules', () => jest.fn());
-
 // Mock the JSON wordlist import for Jest
 // This ensures Jest can properly resolve the JSON import from ecash-lib
 jest.mock('ecash-lib/wordlists/english.json', () => {

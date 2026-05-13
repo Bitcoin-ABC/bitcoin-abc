@@ -20,7 +20,9 @@ import {
     CollectionIcon,
     CollectionInfoRow,
     NftInfoRow,
-    NftSwiperSlide,
+    NftSlide,
+    CarouselNav,
+    CarouselPagination,
     ModalFlex,
     ModalRow,
     Arrow,
@@ -30,8 +32,6 @@ import {
     ButtonRow,
 } from './styled';
 import Modal from 'components/Common/Modal';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Navigation } from 'swiper/modules';
 import { getFormattedFiatPrice } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
@@ -43,10 +43,6 @@ import { ChronikClient } from 'chronik-client';
 import { explorer } from 'config/explorer';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import { getTokenGenesisInfo } from 'chronik';
-// Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
 
 /**
  * Collection
@@ -97,8 +93,8 @@ export interface OneshotOffer extends AgoraOffer {
 }
 
 /**
- * OneShotSwiper
- * Portable component swiper of Agora Oneshot offers
+ * OneshotSwiper
+ * Carousel of Agora Oneshot offers with prev/next navigation
  */
 interface OneshotSwiperProps {
     offers: OneshotOffer[];
@@ -126,6 +122,13 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
     setOffers,
 }) => {
     const [selectedIndex, setSelectedIndex] = useState<null | number>(null);
+    const [slideIndex, setSlideIndex] = useState(0);
+
+    useEffect(() => {
+        if (slideIndex >= offers.length && offers.length > 0) {
+            setSlideIndex(offers.length - 1);
+        }
+    }, [offers.length]);
 
     const removeSelectedOffer = () => {
         if (
@@ -328,86 +331,82 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             </Modal>
         );
     };
+    const offer = offers[slideIndex];
+    const thisNftTokenId = offer.token.tokenId;
+    const cachedNftInfo = cashtabCache.tokens.get(thisNftTokenId);
+    const nftName =
+        typeof cachedNftInfo !== 'undefined' ? (
+            `${cachedNftInfo.genesisInfo.tokenName}${
+                cachedNftInfo.genesisInfo.tokenTicker !== ''
+                    ? ` (${cachedNftInfo.genesisInfo.tokenTicker})`
+                    : ''
+            }`
+        ) : (
+            <InlineLoader />
+        );
+    const isMaker =
+        ecashWallet != null &&
+        toHex(ecashWallet.pk) === toHex(offer.variant.params.cancelPk);
+    const priceSatoshis = offer.variant.params.enforcedOutputs[1].sats;
+    const priceXec = toXec(priceSatoshis);
+    const formattedPrice = getFormattedFiatPrice(
+        settings.fiatCurrency,
+        userLocale,
+        priceXec,
+        fiatPrice,
+    );
+
     return (
         <>
             {selectedIndex !== null && getConfirmationModal()}
-            <Swiper
-                pagination={{
-                    type: 'fraction',
-                }}
-                navigation={true}
-                modules={[Pagination, Navigation]}
-                className="mySwiper"
-            >
-                {offers.map((offer: OneshotOffer, index: number) => {
-                    const thisNftTokenId = offer.token.tokenId;
-                    const cachedNftInfo =
-                        cashtabCache.tokens.get(thisNftTokenId);
-                    const nftName =
-                        typeof cachedNftInfo !== 'undefined' ? (
-                            `${cachedNftInfo.genesisInfo.tokenName}${
-                                cachedNftInfo.genesisInfo.tokenTicker !== ''
-                                    ? ` (${cachedNftInfo.genesisInfo.tokenTicker})`
-                                    : ''
-                            }`
+            <NftSlide>
+                <ListedNft>
+                    <NftName>{nftName}</NftName>
+                    <NftIcon tokenId={thisNftTokenId} size={256} />
+                    <NftInfoRow>
+                        <TokenIdPreview tokenId={thisNftTokenId} />
+                    </NftInfoRow>
+                    <NftPrice>{formattedPrice}</NftPrice>
+                    <ButtonRow>
+                        {isMaker ? (
+                            <SecondaryButton
+                                onClick={() => setSelectedIndex(slideIndex)}
+                            >
+                                Cancel {nftName}
+                            </SecondaryButton>
                         ) : (
-                            <InlineLoader />
-                        );
-                    const isMaker =
-                        ecashWallet != null &&
-                        toHex(ecashWallet.pk) ===
-                            toHex(offer.variant.params.cancelPk);
-                    const priceSatoshis =
-                        offer.variant.params.enforcedOutputs[1].sats;
-                    const priceXec = toXec(priceSatoshis);
-                    const formattedPrice = getFormattedFiatPrice(
-                        settings.fiatCurrency,
-                        userLocale,
-                        priceXec,
-                        fiatPrice,
-                    );
-                    return (
-                        <SwiperSlide key={offer.token.tokenId}>
-                            <NftSwiperSlide>
-                                <ListedNft>
-                                    <NftName>{nftName}</NftName>
-                                    <NftIcon
-                                        tokenId={thisNftTokenId}
-                                        size={256}
-                                    />
-                                    <NftInfoRow>
-                                        <TokenIdPreview
-                                            tokenId={thisNftTokenId}
-                                        />
-                                    </NftInfoRow>
-                                    <NftPrice>{formattedPrice}</NftPrice>
-                                    <ButtonRow>
-                                        {isMaker ? (
-                                            <SecondaryButton
-                                                onClick={() =>
-                                                    setSelectedIndex(index)
-                                                }
-                                            >
-                                                Cancel {nftName}
-                                            </SecondaryButton>
-                                        ) : (
-                                            <PrimaryButton
-                                                onClick={() =>
-                                                    setSelectedIndex(index)
-                                                }
-                                            >
-                                                {typeof nftName === 'string'
-                                                    ? `Buy ${nftName}`
-                                                    : nftName}
-                                            </PrimaryButton>
-                                        )}
-                                    </ButtonRow>
-                                </ListedNft>
-                            </NftSwiperSlide>
-                        </SwiperSlide>
-                    );
-                })}
-            </Swiper>
+                            <PrimaryButton
+                                onClick={() => setSelectedIndex(slideIndex)}
+                            >
+                                {typeof nftName === 'string'
+                                    ? `Buy ${nftName}`
+                                    : nftName}
+                            </PrimaryButton>
+                        )}
+                    </ButtonRow>
+                </ListedNft>
+            </NftSlide>
+            {offers.length > 1 && (
+                <CarouselNav>
+                    <button
+                        disabled={slideIndex === 0}
+                        onClick={() => setSlideIndex(slideIndex - 1)}
+                        aria-label="Previous"
+                    >
+                        &#8249;
+                    </button>
+                    <CarouselPagination>
+                        {slideIndex + 1} / {offers.length}
+                    </CarouselPagination>
+                    <button
+                        disabled={slideIndex === offers.length - 1}
+                        onClick={() => setSlideIndex(slideIndex + 1)}
+                        aria-label="Next"
+                    >
+                        &#8250;
+                    </button>
+                </CarouselNav>
+            )}
         </>
     );
 };
