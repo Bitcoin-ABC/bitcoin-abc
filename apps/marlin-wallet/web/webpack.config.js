@@ -44,6 +44,13 @@ module.exports = {
             },
         ],
     },
+    // protobufjs pulls @protobufjs/inquire (dynamic require);
+    // safe for browser, noisy for webpack/Cypress overlay
+    ignoreWarnings: [
+        {
+            module: /@protobufjs\/inquire/,
+        },
+    ],
     plugins: [
         new HtmlWebpackPlugin({
             template: './src/index.html',
