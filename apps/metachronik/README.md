@@ -48,7 +48,7 @@ cd apps/metachronik
 2. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. Copy the environment example file:
@@ -83,7 +83,7 @@ INITIAL_INDEX_START=850000
 
 ```bash
 # The application will automatically initialize the database on first startup
-npm run dev
+pnpm run dev
 ```
 
 The application will:
@@ -97,32 +97,32 @@ The application will:
 ### Building the Application
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### Running in Development Mode
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Running in Production
 
 ```bash
-npm start
+pnpm start
 ```
 
 ### Running Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Linting
 
 ```bash
-npm run lint
-npm run lint:fix
+pnpm run lint
+pnpm run lint:fix
 ```
 
 ## Usage
