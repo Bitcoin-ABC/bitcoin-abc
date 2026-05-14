@@ -17,7 +17,7 @@
     "dependencies": {
         "chronik-client": "workspace:^",
         "next": "16.2.6",
-        "next-mdx-remote": "^5.0.0",
+        "next-mdx-remote": "^6.0.0",
         "prism-react-renderer": "^2.4.1",
         "react": "19.2.5",
         "react-dom": "19.2.5",

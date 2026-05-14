@@ -5,8 +5,8 @@ Next.js documentation hub for the **Bitcoin ABC** monorepo (starting with Chroni
 ## Development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 `predev` and `prebuild` run `scripts/sync-abc-version.mjs`, which at **build time** fetches the latest non-draft release from the **[GitHub Releases API](https://api.github.com/repos/Bitcoin-ABC/bitcoin-abc/releases)** and writes **`src/data/bitcoin-abc-version.json`** (gitignored) for download links—aligned with assets on `download.bitcoinabc.org`. If the API is unreachable, it falls back to the monorepo **`CMakeLists.txt`** (`project(bitcoin-abc VERSION …)`), then to copying **`bitcoin-abc-version.sample.json`**. Set optional **`GITHUB_TOKEN`** in CI for a higher API rate limit. There is no `postinstall` hook (Docker installs dependencies before `scripts/` are copied); run **`pnpm run sync-version`** once after install if you need the JSON before the first `dev`/`build` (for example `tsc --noEmit`).
@@ -20,8 +20,8 @@ Open the site at **`http://localhost:3000/`** (hub). Chronik docs live under **`
 Point `BITCOIN_ABC_ROOT` at a checkout of [bitcoin-abc](https://github.com/Bitcoin-ABC/bitcoin-abc):
 
 ```bash
-BITCOIN_ABC_ROOT=/path/to/bitcoin-abc npm run generate:api
-npm run build
+BITCOIN_ABC_ROOT=/path/to/bitcoin-abc pnpm run generate:api
+pnpm run build
 ```
 
 Markdown is emitted under `content/reference/chronik-client/`. Commit those files if you want them versioned in this repo, or generate them in CI before `next build`.
@@ -37,7 +37,7 @@ Server-side Rust crates (`chronik-lib`, `chronik-http`, etc.) already carry `///
 
 1. Create a project from this Git repository.
 2. Framework preset: **Next.js** (Vercel detects `package.json` / `next.config`).
-3. Default **Build** command `npm run build` and output `.next` match `vercel.json`.
+3. Default **Build** command `pnpm run build` and output `.next` match `vercel.json`.
 
 Optionally set:
 
