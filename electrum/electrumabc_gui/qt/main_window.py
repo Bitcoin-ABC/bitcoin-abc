@@ -78,6 +78,7 @@ from electrumabc.util import (
     bh2u,
     format_time,
 )
+from electrumabc.version import PACKAGE_VERSION
 from electrumabc.wallet import AbstractWallet, MultisigWallet
 
 from . import address_dialog, external_plugins_window, qrwindow
@@ -591,11 +592,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.setGeometry(100, 100, 840, 400)
 
     def watching_only_changed(self):
-        title = "%s %s  -  %s" % (
-            PROJECT_NAME,
-            self.wallet.electrum_version,
-            self.wallet.basename(),
-        )
+        title = f"{PROJECT_NAME} {PACKAGE_VERSION} for eCash - {self.wallet.basename()}"
         extra = [self.wallet.storage.get("wallet_type", "?")]
         if self.wallet.is_watching_only():
             self.warn_if_watching_only()
@@ -1021,19 +1018,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         QtWidgets.QMessageBox.about(
             self,
             f"{PROJECT_NAME}",
-            f"<p><font size=+3><b>{PROJECT_NAME}</b></font></p><p>"
+            f"<p><font size=+3><b>{PROJECT_NAME} for eCash</b></font></p><p>"
             + _("Version")
-            + f" {self.wallet.electrum_version}"
+            + f" {PACKAGE_VERSION}"
             + "</p>"
             + '<span style="font-weight:200;"><p>'
             + _(
-                f"{PROJECT_NAME}'s focus is speed, with low resource usage and"
-                f" simplifying {CURRENCY}. You do not need to perform regular "
+                f"{PROJECT_NAME} is a wallet for eCash, focusing on speed, with "
+                f"low resource usage. You do not need to perform regular "
                 "backups, because your wallet can be recovered from a secret "
                 "phrase that you can memorize or write on paper. Startup times "
                 "are instant because it operates in conjunction with "
                 "high-performance servers that handle the most complicated "
-                f"parts of the {CURRENCY} system."
+                f"parts of the eCash system."
             )
             + "</p></span>"
             + f"<p><a href={REPOSITORY_URL}/blob/master/electrum/COPYING>"

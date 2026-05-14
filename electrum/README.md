@@ -10,6 +10,15 @@ Simple Payment Verification described in the Bitcoin whitepaper.
 
 Anyone can run a backend server for Electrum ABC — no single entity controls the network.
 
+## What is eCash?
+
+[![eCash Logo](icons/ecashlogo.png "eCash")](https://e.cash/)
+
+[eCash](https://e.cash/) is a digital currency that enables instant payments to
+anyone, anywhere in the world. It uses peer-to-peer technology to operate with
+no central authority: managing transactions and issuing money are carried out
+collectively by the network. eCash is a descendant of Bitcoin.
+
 ## Getting started
 
 Electrum ABC can be run from source or from one of the binary releases
