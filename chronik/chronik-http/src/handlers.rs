@@ -23,6 +23,9 @@ use crate::{
 /// Max scripts per batch request.
 pub const MAX_NUM_BATCH_SCRIPTS: usize = 500;
 
+/// Default `page_size` when the query param is omitted
+pub const DEFAULT_PAGE_SIZE: u32 = 25;
+
 /// Errors for HTTP handlers.
 #[derive(Debug, Error, PartialEq)]
 pub enum ChronikHandlerError {
@@ -109,7 +112,8 @@ pub async fn handle_block_txs(
 ) -> Result<proto::TxHistoryPage> {
     let blocks = indexer.blocks(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     blocks.block_txs(hash_or_height, page_num as usize, page_size as usize)
 }
 
@@ -148,7 +152,8 @@ pub async fn handle_script_confirmed_txs(
 ) -> Result<proto::TxHistoryPage> {
     let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     let member = get_group_member(script_type, payload)?;
     script_history.confirmed_txs(
         member.as_ref(),
@@ -169,7 +174,8 @@ pub async fn handle_script_history(
 ) -> Result<proto::TxHistoryPage> {
     let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     let member = get_group_member(script_type, payload)?;
     script_history.rev_history(
         member.as_ref(),
@@ -297,7 +303,19 @@ pub fn handle_script_batch_summary(
     for script_req in scripts {
         let payload_hex = hex::encode(&script_req.payload);
         let member = get_group_member(&script_req.script_type, &payload_hex)?;
-        let history_page = script_history.rev_history(member.as_ref(), 0, 1)?;
+        // We only need a single tx, but we need it to be the latest. Due to how
+        // chronik stores the block txs, if there is more than a single tx for
+        // this script we will get the highest txid, which may not be the
+        // latest. It would be costly to ensure the real last tx is returned if
+        // the script has many txs in the last block (and no mempool txs).
+        // As a best effort we use the default page size to load these txs and
+        // extract the txs from this. For the heuristics this endpoint is
+        // designed for this "error" would have no consequence.
+        let history_page = script_history.rev_history(
+            member.as_ref(),
+            0,
+            DEFAULT_PAGE_SIZE as usize,
+        )?;
         let script =
             script_utxos.script(member, indexer.decompress_script_fn)?;
         let num_utxos = script_utxos.utxos(&script)?.len() as u32;
@@ -325,7 +343,8 @@ pub async fn handle_token_id_confirmed_txs(
     let token_id = token_id_hex.parse::<TokenId>()?;
     let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     token_id_history.confirmed_txs(
         GroupMember::Member(token_id),
         page_num as usize,
@@ -345,7 +364,8 @@ pub async fn handle_token_id_history(
     let token_id = token_id_hex.parse::<TokenId>()?;
     let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     token_id_history.rev_history(
         GroupMember::Member(token_id),
         page_num as usize,
@@ -386,7 +406,8 @@ pub async fn handle_lokad_id_confirmed_txs(
     let lokad_id = parse_lokad_id_hex(lokad_id_hex)?;
     let lokad_id_history = indexer.lokad_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     lokad_id_history.confirmed_txs(
         GroupMember::Member(lokad_id),
         page_num as usize,
@@ -406,7 +427,8 @@ pub async fn handle_lokad_id_history(
     let lokad_id = parse_lokad_id_hex(lokad_id_hex)?;
     let lokad_id_history = indexer.lokad_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     lokad_id_history.rev_history(
         GroupMember::Member(lokad_id),
         page_num as usize,
@@ -448,7 +470,8 @@ pub async fn handle_plugin_confirmed_txs(
 ) -> Result<proto::TxHistoryPage> {
     let group = parse_hex(group_hex)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     let plugin_history = indexer.plugin_history(node);
     let plugin_idx = indexer
         .plugin_name_map()
@@ -494,7 +517,8 @@ pub async fn handle_plugin_history(
 ) -> Result<proto::TxHistoryPage> {
     let group = parse_hex(group_hex)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     let plugin_history = indexer.plugin_history(node);
     let plugin_idx = get_plugin_idx(plugin_name, indexer.plugin_name_map())?;
     let member = PluginMember {
@@ -515,7 +539,8 @@ pub async fn handle_plugin_groups(
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
 ) -> Result<proto::PluginGroups> {
-    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let page_size: u32 =
+        get_param(query_params, "page_size")?.unwrap_or(DEFAULT_PAGE_SIZE);
     let group_prefix = match query_params.get("prefix") {
         Some(prefix_hex) => parse_hex(prefix_hex)?,
         None => vec![],
