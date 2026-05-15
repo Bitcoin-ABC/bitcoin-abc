@@ -92,6 +92,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Shibusawa activation.
         {923348, BlockHash::fromHex("00000000000000004eb0a7a410071b9ff243ed02ea"
                                     "61ce3d566081dd05c05576")},
+        // Obolensky activation.
+        {949200, BlockHash::fromHex("000000000000000098694560815190dba8bbe2f06c"
+                                    "08a7c23837df3c4886cba2")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -151,7 +154,9 @@ static CCheckpointData testNetCheckpointData = {
         // Shibusawa activation.
         {1687664, BlockHash::fromHex("00000000000a09cd4a16996bed7fb6afc58cb52f3"
                                      "df7b1c8ce0bc90e5c56982f")},
-    }};
+        // Obolensky activation.
+        {1713793, BlockHash::fromHex("000000000008b5b5579ca088a51dd7ed18923e150"
+                                     "23f7a296bb248d0eda80f84")}}};
 
 static CCheckpointData regTestCheckpointData = {
     .mapCheckpoints = {
