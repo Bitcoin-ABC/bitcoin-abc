@@ -46,7 +46,7 @@
         "@types/react": "^19.1.1",
         "@types/react-test-renderer": "^19.0.0",
         "fast-xml-parser": "^5.8.0",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.3",
         "react-test-renderer": "19.2.3",
         "typescript": "^5.9.3"
     },

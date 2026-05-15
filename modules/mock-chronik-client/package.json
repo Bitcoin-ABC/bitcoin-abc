@@ -21,7 +21,7 @@
         "chai-as-promised": "^8.0.1",
         "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
-        "nyc": "^15.1.0",
+        "nyc": "^18.0.0",
         "ts-node": "^10.9.2",
         "tsx": "^4.19.2",
         "typescript": "^5.9.3"

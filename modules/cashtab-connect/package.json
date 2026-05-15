@@ -43,7 +43,7 @@
         "chai": "^4.3.4",
         "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.3",
         "ts-node": "^10.4.0",
         "typescript": "^5.9.3"
     }

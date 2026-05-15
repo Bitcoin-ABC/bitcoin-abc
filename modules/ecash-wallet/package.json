@@ -41,7 +41,7 @@
         "mock-chronik-client": "workspace:^",
         "tsx": "^4.19.3",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.26.0"
+        "typescript-eslint": "^8.59.3"
     },
     "dependencies": {
         "chronik-client": "workspace:^",

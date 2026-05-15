@@ -27,7 +27,7 @@
         "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-suppress-logs": "^0.6.0",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.3",
         "prettier-plugin-organize-imports": "^4.3.0",
         "ts-node": "^10.4.0",
         "ts-proto": "^2.11.8",

@@ -43,7 +43,7 @@
         "mocha-junit-reporter": "^2.2.1",
         "mocha-suppress-logs": "^0.6.0",
         "mongodb-memory-server": "^10.1.2",
-        "nyc": "^15.1.0",
+        "nyc": "^18.0.0",
         "supertest": "^7.2.2",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"

@@ -41,7 +41,7 @@
         "mocha-junit-reporter": "^2.2.1",
         "mocha-suppress-logs": "^0.6.0",
         "mock-chronik-client": "workspace:^",
-        "nyc": "^17.1.0",
+        "nyc": "^18.0.0",
         "sinon": "^21.0.0",
         "start-server-and-test": "^3.0.0",
         "style-loader": "^4.0.0",
