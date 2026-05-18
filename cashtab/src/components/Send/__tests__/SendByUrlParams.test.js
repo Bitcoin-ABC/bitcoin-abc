@@ -27,6 +27,10 @@ import {
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 
 describe('<SendXec /> rendered with params in URL', () => {
+    const setLocationHash = hash => {
+        window.history.pushState({}, '', hash);
+    };
+
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
@@ -50,13 +54,7 @@ describe('<SendXec /> rendered with params in URL', () => {
     afterEach(async () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
-        // Unset the window location so it does not impact other tests in this file
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash: undefined,
-            },
-            writable: true, // possibility to override
-        });
+        setLocationHash('');
     });
     it('Legacy params. Address and value keys are set and valid.', async () => {
         const destinationAddress =
@@ -64,12 +62,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const value = 500;
         const hash = `#/send?address=${destinationAddress}&value=${value}`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true, // possibility to override
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -130,12 +123,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const legacyPassedAmount = 500;
         const hash = `#/send?address=${destinationAddress}&value=${legacyPassedAmount}&bip21=isthisgoingtodosomething&someotherparam=false&anotherstill=true`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500&bip21=isthisgoingtodosomething&someotherparam=false&anotherstill=true
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true, // possibility to override
-        });
+        setLocationHash(hash);
 
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
@@ -191,12 +179,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}&value=undefined`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=undefined
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -251,12 +234,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -309,12 +287,7 @@ describe('<SendXec /> rendered with params in URL', () => {
     it('Legacy params. Params are ignored if only value param is present', async () => {
         const hash = `#/send?value=500`;
         // ?value=500
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -362,12 +335,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}&amount=500&amount=1000`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&amount=500&amount=1000
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -416,12 +384,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const legacyPassedAmount = 500;
         const hash = `#/send?address=${destinationAddress}&value=${legacyPassedAmount}&bip21=ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177`;
         // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500&bip21=ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -480,12 +443,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
         // ?bip21=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -562,12 +520,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
         // ?bip21=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -619,12 +572,7 @@ describe('<SendXec /> rendered with params in URL', () => {
     });
     it('No params. Send screen loads normally with no rendered input.', async () => {
         const hash = `#/send`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true, // possibility to override
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -679,12 +627,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}&addr=${secondOutputAddr}&amount=${secondOutputAmount}`;
         const hash = `#/send?bip21=${bip21Str}`;
         // ?bip21=ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?amount=110&op_return_raw=0470617977202562dd05deda1c101b10562527bcd6bec20268fb94eed01843ba049cd774bec1&addr=ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5&amount=5.50
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -768,12 +711,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}`;
         const hash = `#/send?bip21=${bip21Str}`;
         // ?bip21=ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv?token_id=<tokenId>&token_decimalized_qty=110
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -856,10 +794,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&input_data_raw=${inputDataRaw}`;
         const hash = `#/send?bip21=${bip21Str}`;
 
-        Object.defineProperty(window, 'location', {
-            value: { hash },
-            writable: true,
-        });
+        setLocationHash(hash);
 
         const mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -896,12 +831,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&firma=${firma}`;
         const hash = `#/send?bip21=${bip21Str}`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -985,12 +915,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&firma=${firma}`;
         const hash = `#/send?bip21=${bip21Str}`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -1072,12 +997,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&empp_raw=${empp_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
@@ -1169,12 +1089,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=${token_decimalized_qty}&empp_raw=${empp_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(
             tokenTestWallet,
@@ -1291,12 +1206,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const token_id = slp1FixedCachet.tokenId;
         const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=0.01&addr=${secondAddress}&token_decimalized_qty=0.02&addr=${thirdAddress}&token_decimalized_qty=0.03`;
         const hash = `#/send?bip21=${bip21Str}`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true,
-        });
+        setLocationHash(hash);
 
         const mockedChronik = await initializeCashtabStateForTests(
             cachetWallet,
