@@ -2598,7 +2598,7 @@ describe('<Token /> available actions rendered', () => {
         // We see an alert as the hot wallet cannot cover this redemption
         expect(
             screen.getByText(
-                'Cannot redeem more than 1,000.00 XEC worth of $FIRMA. Visit firma.cash to redeem for $USDC.',
+                'Hot wallet balance cannot support redemptions of more than 1,000.00 XEC worth of $FIRMA. Top-up pending.',
             ),
         ).toBeInTheDocument();
 

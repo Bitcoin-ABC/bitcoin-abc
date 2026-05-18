@@ -468,12 +468,12 @@ const Token: React.FC = () => {
     const firmaRedeemErrorMsg =
         maxFirmaRedeemSats === null
             ? `Unable to fetch $FIRMA redeem hot wallet balance`
-            : `Cannot redeem more than ${toXec(
+            : `Hot wallet balance cannot support redemptions of more than ${toXec(
                   maxFirmaRedeemSats,
               ).toLocaleString(userLocale, {
                   maximumFractionDigits: 2,
                   minimumFractionDigits: 2,
-              })} XEC worth of $FIRMA. Visit firma.cash to redeem for $USDC.`;
+              })} XEC worth of $FIRMA. Top-up pending.`;
 
     /**
      * Convenience method to compartmentalize comparison of state
