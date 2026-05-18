@@ -28,6 +28,8 @@ Exactly **one** cosigner entry must include a secret key per instance (this part
 
 `BuiltAction.broadcast()` rejects partial multisig txs and does **not** auto-retry after UTXO conflict errors (sync + rebuild + immediate broadcast only fits fully signed `Wallet` builds). On failure: `sync`, rebuild, redo `signPartialTx` handoff, broadcast again.
 
+Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `broadcastAndFinalizeTxs` to wait for Avalanche finalization. Default behavior is unchanged: broadcast to mempool only.
+
 ## Roadmap
 
 `ecash-wallet` is engineered to be a drop-in wallet lib for any ecash application that needs wallet functionality. The first milestone demonstrating minimal fulfillment of this requirement will be the integration of `ecash-wallet` into Cashtab.
@@ -349,3 +351,7 @@ Exactly **one** cosigner entry must include a secret key per instance (this part
 # 5.4.1
 
 - Fix a broken package.json for the eCash dependencies.
+
+# 5.5.0
+
+- Add optional support for waiting on txs to finalize by using chronik-client exposed `broadcastAndFinalizeTxs` [D20014](https://reviews.bitcoinabc.org/D20014)

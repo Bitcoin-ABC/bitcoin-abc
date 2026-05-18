@@ -177,6 +177,21 @@ describe('MockChronikClient', () => {
             chronikError,
         );
     });
+    it('We can mock broadcastAndFinalizeTx and broadcastAndFinalizeTxs', async () => {
+        const { txid, rawTx } = mocks;
+        mockChronik.setBroadcastTx(rawTx, txid);
+        expect(
+            await mockChronik.broadcastAndFinalizeTx(rawTx, 30),
+        ).to.deep.equal({ txid });
+        expect(
+            await mockChronik.broadcastAndFinalizeTxs([rawTx, rawTx], 60),
+        ).to.deep.equal({ txids: [txid, txid] });
+
+        mockChronik.setBroadcastTx(rawTx, chronikError);
+        await expect(
+            mockChronik.broadcastAndFinalizeTx(rawTx, 2),
+        ).to.be.rejectedWith(chronikError);
+    });
     it('We can test websocket methods', async () => {
         // Create websocket subscription to listen to confirmations on txid
         const ws = mockChronik.ws({

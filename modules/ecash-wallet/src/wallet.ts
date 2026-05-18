@@ -2905,6 +2905,14 @@ export interface BroadcastConfig {
      * (missing inputs or mempool conflicts). If false, return the error immediately.
      */
     retryOnUtxoConflict?: boolean;
+    /**
+     * If set to a positive number, use Chronik's broadcastAndFinalizeTx(s) and wait
+     * for Avalanche finalization for up to this many seconds before returning.
+     * If omitted, use broadcastTx(s) and return after the tx(s) are accepted to mempool.
+     *
+     * Requires chronik-client >= 4.1.0.
+     */
+    finalizationTimeoutSecs?: number;
 }
 
 /**
@@ -2981,9 +2989,34 @@ export class BuiltAction {
     }
 
     /**
+     * Chronik's broadcastAndFinalizeTx(s) throws on finalization timeout, but
+     * the txs were accepted for broadcast before Chronik started waiting.
+     */
+    private _isFinalizationTimeout(error: unknown): boolean {
+        return `${error}`.includes('Transaction(s) failed to finalize within');
+    }
+
+    /**
+     * Broadcast raw txs via Chronik, optionally waiting for Avalanche finalization.
+     */
+    private async _chronikBroadcast(
+        rawTxs: string[],
+        config: BroadcastConfig,
+    ): Promise<{ txids: string[] }> {
+        const finalizationTimeoutSecs = config.finalizationTimeoutSecs;
+        if (finalizationTimeoutSecs != null) {
+            return await this._wallet.chronik.broadcastAndFinalizeTxs(
+                rawTxs,
+                finalizationTimeoutSecs,
+            );
+        }
+        return await this._wallet.chronik.broadcastTxs(rawTxs);
+    }
+
+    /**
      * Broadcast the built transaction(s) to the network.
      *
-     * Uses Chronik's broadcastTxs for all cases (single batched request).
+     * Uses Chronik's broadcastTxs or broadcastAndFinalizeTxs (single batched request).
      *
      * **Multisig:** before sending, each tx must satisfy {@link Tx.isFullySignedMultisig}
      * (partially signed txs throw). Multisig is **not** included in the automatic
@@ -2995,7 +3028,8 @@ export class BuiltAction {
      * callers should {@link ActionableWallet.sync}, rebuild, redo the signing handoff,
      * and broadcast again.
      *
-     * @param config - Optional configuration for broadcasting. Defaults to { retryOnUtxoConflict: true }
+     * @param config - Optional configuration for broadcasting. Defaults to
+     * `{ retryOnUtxoConflict: true }` with no finalization wait.
      * @returns Object with success status, broadcasted txids, and any errors
      */
     public async broadcast(
@@ -3015,9 +3049,20 @@ export class BuiltAction {
         }
         const txsToBroadcast = this.txs.map(tx => toHex(tx.ser()));
 
+        if (
+            config.finalizationTimeoutSecs != null &&
+            config.finalizationTimeoutSecs <= 0
+        ) {
+            throw new Error(
+                'Use broadcast() without finalizationTimeoutSecs if you do not want to wait for finalization.',
+            );
+        }
+
         try {
-            const { txids } =
-                await this._wallet.chronik.broadcastTxs(txsToBroadcast);
+            const { txids } = await this._chronikBroadcast(
+                txsToBroadcast,
+                config,
+            );
             return { success: true, broadcasted: txids };
         } catch (err) {
             // Check if this error should trigger a sync and retry
@@ -3044,25 +3089,46 @@ export class BuiltAction {
 
                 // Sync and rebuild - if it's a chained tx, we rebuild the entire chain
                 await this._wallet.sync();
+                let rebuiltAction: BuiltAction | undefined;
                 try {
                     // Create a new WalletAction to re-select UTXOs with the synced wallet state
                     const rebuiltWalletAction = this._wallet.action(
                         this._walletAction.action,
                         this._walletAction.selectUtxosResult.config,
                     );
-                    const rebuiltAction = rebuiltWalletAction.build();
+                    rebuiltAction = rebuiltWalletAction.build();
                     const rebuiltTxs = rebuiltAction.txs.map(tx =>
                         toHex(tx.ser()),
                     );
 
-                    const { txids } =
-                        await this._wallet.chronik.broadcastTxs(rebuiltTxs);
+                    const { txids } = await this._chronikBroadcast(
+                        rebuiltTxs,
+                        config,
+                    );
 
                     // Update this BuiltAction's txs to match the rebuilt one
                     this.txs = rebuiltAction.txs;
                     this.builtTxs = rebuiltAction.builtTxs;
                     return { success: true, broadcasted: txids };
                 } catch (retryErr) {
+                    if (
+                        this._isFinalizationTimeout(retryErr) &&
+                        rebuiltAction !== undefined
+                    ) {
+                        // In this case, success is false; the tx failed to finalize in our timeframe
+                        // But the tx was still broadcasted
+                        this.txs = rebuiltAction.txs;
+                        this.builtTxs = rebuiltAction.builtTxs;
+                        return {
+                            success: false,
+                            broadcasted: rebuiltAction.builtTxs.map(
+                                tx => tx.txid,
+                            ),
+                            unbroadcasted: [],
+                            errors: [`${retryErr}`],
+                        };
+                    }
+
                     // Retry also failed, return the error
                     console.error(
                         `Error broadcasting after sync and rebuild retry:`,
@@ -3076,6 +3142,15 @@ export class BuiltAction {
                     };
                 }
             }
+            if (this._isFinalizationTimeout(err)) {
+                return {
+                    success: false,
+                    broadcasted: this.builtTxs.map(tx => tx.txid),
+                    unbroadcasted: [],
+                    errors: [`${err}`],
+                };
+            }
+
             // If we get here, either:
             // 1. The error doesn't require sync/retry
             // 2. We don't have a WalletAction reference - can't rebuild

@@ -781,6 +781,127 @@ describe('wallet.ts', () => {
         // Verify both transactions are valid
         expect(builtAction.builtTxs).to.have.length(2);
     });
+
+    context('BuiltAction.broadcast', () => {
+        let mockChronik: MockChronikClient;
+        let testWallet: Wallet;
+        let broadcastTxsCalls: string[][];
+        let broadcastAndFinalizeTxsCalls: {
+            txs: string[];
+            timeout: number;
+        }[];
+
+        beforeEach(async () => {
+            mockChronik = new MockChronikClient();
+            broadcastTxsCalls = [];
+            broadcastAndFinalizeTxsCalls = [];
+
+            const origBroadcastTxs = mockChronik.broadcastTxs.bind(mockChronik);
+            mockChronik.broadcastTxs = async (txsHex, skipTokenChecks) => {
+                broadcastTxsCalls.push(txsHex);
+                return origBroadcastTxs(txsHex, skipTokenChecks);
+            };
+
+            const origBroadcastAndFinalizeTxs =
+                mockChronik.broadcastAndFinalizeTxs.bind(mockChronik);
+            mockChronik.broadcastAndFinalizeTxs = async (
+                txsHex,
+                finalizationTimeoutSecs,
+                skipTokenChecks,
+            ) => {
+                broadcastAndFinalizeTxsCalls.push({
+                    txs: txsHex,
+                    timeout: finalizationTimeoutSecs as number,
+                });
+                return origBroadcastAndFinalizeTxs(
+                    txsHex,
+                    finalizationTimeoutSecs,
+                    skipTokenChecks,
+                );
+            };
+
+            testWallet = Wallet.fromSk(
+                DUMMY_SK,
+                mockChronik as unknown as ChronikClient,
+            );
+            mockChronik.setBlockchainInfo({
+                tipHash: DUMMY_TIPHASH,
+                tipHeight: DUMMY_TIPHEIGHT,
+            });
+            mockChronik.setUtxosByAddress(DUMMY_ADDRESS, [
+                { ...DUMMY_UTXO, sats: 100_000n },
+            ]);
+            await testWallet.sync();
+        });
+
+        const buildSendAction = () =>
+            testWallet.action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 10_000n,
+                    },
+                ],
+            });
+
+        it('uses broadcastTxs by default', async () => {
+            const built = buildSendAction().build();
+            const hex = toHex(built.txs[0].ser());
+            mockChronik.setBroadcastTx(hex, 'aa'.repeat(32));
+
+            const result = await built.broadcast();
+            expect(result.success).to.equal(true);
+            expect(broadcastTxsCalls).to.have.length(1);
+            expect(broadcastAndFinalizeTxsCalls).to.have.length(0);
+        });
+
+        it('uses broadcastAndFinalizeTxs when finalizationTimeoutSecs is set', async () => {
+            const built = buildSendAction().build();
+            const hex = toHex(built.txs[0].ser());
+            mockChronik.setBroadcastTx(hex, 'bb'.repeat(32));
+
+            const result = await built.broadcast({
+                finalizationTimeoutSecs: 45,
+            });
+            expect(result.success).to.equal(true);
+            expect(broadcastAndFinalizeTxsCalls).to.have.length(1);
+            expect(broadcastTxsCalls).to.have.length(0);
+            expect(broadcastAndFinalizeTxsCalls[0].timeout).to.equal(45);
+            expect(broadcastAndFinalizeTxsCalls[0].txs).to.deep.equal([hex]);
+        });
+
+        it('rejects finalizationTimeoutSecs <= 0', async () => {
+            const built = buildSendAction().build();
+
+            await expect(
+                built.broadcast({ finalizationTimeoutSecs: 0 }),
+            ).to.be.rejectedWith(
+                Error,
+                'Use broadcast() without finalizationTimeoutSecs if you do not want to wait for finalization.',
+            );
+            expect(broadcastTxsCalls).to.have.length(0);
+            expect(broadcastAndFinalizeTxsCalls).to.have.length(0);
+        });
+
+        it('returns success false when finalization times out', async () => {
+            const built = buildSendAction().build();
+            const hex = toHex(built.txs[0].ser());
+            mockChronik.setBroadcastTx(
+                hex,
+                new Error('504: Transaction(s) failed to finalize within 2s'),
+            );
+
+            const result = await built.broadcast({
+                finalizationTimeoutSecs: 2,
+                retryOnUtxoConflict: false,
+            });
+            expect(result.success).to.equal(false);
+            expect(result.broadcasted).to.deep.equal([built.builtTxs[0].txid]);
+            expect(result.unbroadcasted).to.deep.equal([]);
+            expect(result.errors?.[0]).to.include('failed to finalize');
+            expect(broadcastAndFinalizeTxsCalls).to.have.length(1);
+        });
+    });
 });
 
 describe('Support functions', () => {

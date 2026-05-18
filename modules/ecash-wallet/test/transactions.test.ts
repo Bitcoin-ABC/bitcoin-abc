@@ -5130,4 +5130,71 @@ describe('Wallet can build and broadcast on regtest', () => {
         }
         expect(recipientScriptsSeenOnChain.size).to.equal(NUM_RECIPIENTS);
     });
+
+    it('We get expected msg if we try to broadcast and finalize a single XEC tx but it does not finalize in our timeframe', async () => {
+        // We haven't set up our test runner to finalize txs so we do not expect finality
+        // The broadcastAndFinalizeTxs method is regtested in chronik-client
+        // Here we confirm expected behavior for a tx that does not finalize
+        const testWallet = Wallet.fromSk(fromHex('1a'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, testWallet.script);
+        await testWallet.sync();
+
+        const built = testWallet
+            .action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 546n,
+                    },
+                ],
+            })
+            .build();
+        expect(built.txs).to.have.length(1);
+
+        const resp = await built.broadcast({ finalizationTimeoutSecs: 1 });
+        expect(resp.success).to.equal(false);
+        expect(resp.broadcasted).to.deep.equal([built.builtTxs[0].txid]);
+        expect(resp.unbroadcasted).to.deep.equal([]);
+        expect(resp.errors).to.deep.equal([
+            'Error: Failed getting /broadcast-txs: 504: Transaction(s) failed to finalize within 1s',
+        ]);
+
+        const tx = await chronik.tx(built.txs[0].txid());
+        expect(tx.isFinal).to.equal(false);
+    });
+
+    it('We can broadcast and finalize a chained XEC tx', async () => {
+        // We haven't set up our test runner to finalize txs so we do not expect finality
+        // The broadcastAndFinalizeTxs method is regtested in chronik-client
+        // Here we confirm expected behavior for a tx that does not finalize
+        const testWallet = Wallet.fromSk(fromHex('1b'.repeat(32)), chronik);
+        await runner.sendToScript(10_000_000_00n, testWallet.script);
+        await testWallet.sync();
+
+        const willNeedChainedTxOutputCount = getDustOutputs(
+            MAX_P2PKH_OUTPUTS_FOR_SINGLE_TX_SIZE_BROADCAST_LIMIT_AND_ONE_INPUT +
+                1,
+        );
+
+        const built = testWallet
+            .action({
+                outputs: willNeedChainedTxOutputCount,
+            })
+            .build();
+        expect(built.txs.length).to.be.greaterThan(1);
+
+        const resp = await built.broadcast({ finalizationTimeoutSecs: 1 });
+
+        // Success is false because the tx failed to finalize in our timeframe
+        expect(resp.success).to.equal(false);
+        // But the txs were broadcasted
+        expect(resp.broadcasted.length).to.equal(built.txs.length);
+
+        for (const txid of resp.broadcasted) {
+            // We can query the txs from the mempool
+            const tx = await chronik.tx(txid);
+            // They are broadcasted but not finalized
+            expect(tx.isFinal).to.equal(false);
+        }
+    });
 });

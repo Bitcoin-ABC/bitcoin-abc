@@ -138,3 +138,7 @@ If you have any implementation questions regarding this mock tool please check t
     3.3.0
 
 - Support for the batchSummary() function [D19983](https://reviews.bitcoinabc.org/D19983)
+
+    3.4.0
+
+- Support for `broadcastAndFinalizeTx` and `broadcastAndFinalizeTxs` [D20014](https://reviews.bitcoinabc.org/D20014)

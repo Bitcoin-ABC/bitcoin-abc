@@ -395,12 +395,12 @@ export class MockChronikClient {
         );
     };
 
-    broadcastTx = async (txHex: string) => {
+    broadcastTx = async (txHex: string, _skipTokenChecks = false) => {
         return this._throwOrReturnValue(
             this.mockedResponses.broadcastTx[txHex],
         );
     };
-    broadcastTxs = async (txsHex: string[]) => {
+    broadcastTxs = async (txsHex: string[], _skipTokenChecks = false) => {
         const txids: string[] = [];
         for (const txHex of txsHex) {
             if (this.mockedResponses.broadcastTx[txHex] instanceof Error) {
@@ -411,6 +411,35 @@ export class MockChronikClient {
                 };
                 txids.push(txid);
             }
+        }
+        return { txids };
+    };
+    /**
+     * Same mocked responses as broadcastTx; optional separate timeout/error behavior later.
+     */
+    broadcastAndFinalizeTx = async (
+        txHex: string,
+        _finalizationTimeoutSecs = 120,
+        _skipTokenChecks = false,
+    ) => {
+        return this._throwOrReturnValue(
+            this.mockedResponses.broadcastTx[txHex],
+        );
+    };
+    broadcastAndFinalizeTxs = async (
+        txsHex: string[],
+        _finalizationTimeoutSecs = 120,
+        _skipTokenChecks = false,
+    ) => {
+        const txids: string[] = [];
+        for (const txHex of txsHex) {
+            if (this.mockedResponses.broadcastTx[txHex] instanceof Error) {
+                throw this.mockedResponses.broadcastTx[txHex];
+            }
+            const { txid } = this.mockedResponses.broadcastTx[txHex] as {
+                txid: string;
+            };
+            txids.push(txid);
         }
         return { txids };
     };
