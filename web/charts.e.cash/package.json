@@ -36,7 +36,7 @@
         "eslint": "^9.39.4",
         "eslint-config-next": "16.2.6",
         "typescript": "^5.9.3",
-        "vercel": "^44.2.12"
+        "vercel": "^54.1.0"
     },
     "keywords": [
         "bitcoin-cash",
