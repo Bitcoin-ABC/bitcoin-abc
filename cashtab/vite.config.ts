@@ -149,7 +149,7 @@ export default defineConfig({
                 safari10: true,
                 reserved: ['BigInteger'],
             },
-            output: {
+            format: {
                 ecma: 5,
                 comments: false,
                 ascii_only: true,
