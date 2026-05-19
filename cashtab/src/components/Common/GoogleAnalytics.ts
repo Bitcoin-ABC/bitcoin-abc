@@ -18,16 +18,16 @@ interface ReactGA {
 let ReactGA: ReactGA | undefined;
 let ReactGALoaded = false;
 
-// Lazy load react-ga for Vite compatibility (can't use require in browser)
+// Lazy load react-ga4 for Vite compatibility (can't use require in browser)
 const loadReactGA = async () => {
     if (ReactGALoaded || ReactGA !== undefined) return ReactGA;
     if (import.meta.env.VITE_BUILD_ENV !== 'extension') {
         try {
-            const module = await import('react-ga');
+            const module = await import('react-ga4');
             ReactGA = module.default || module;
             ReactGALoaded = true;
         } catch (e) {
-            console.warn('Failed to load react-ga:', e);
+            console.warn('Failed to load react-ga4:', e);
         }
     }
     return ReactGA;
@@ -38,7 +38,10 @@ const RouteTracker: React.FC = () => {
     useEffect(() => {
         loadReactGA().then(ga => {
             if (ga) {
-                ga.pageview(location.pathname + location.search);
+                ga.send({
+                    hitType: 'pageview',
+                    page: location.pathname + location.search,
+                });
             }
         });
     }, [location]);
