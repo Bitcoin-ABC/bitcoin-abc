@@ -43,7 +43,6 @@ import {
     paybuttonDeepLinkToBip21Uri,
     payecashDeepLinkToBip21Uri,
 } from 'deeplinks';
-import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
 import Header from 'components/Header';
@@ -228,10 +227,7 @@ const App = () => {
                     {hasWallet && <Extension />}
                 </>
             ) : (
-                <>
-                    <ServiceWorkerWrapper />
-                    <WebApp />
-                </>
+                <WebApp />
             )}
 
             {(loading || (!initialUtxoSyncComplete && wallets.length > 0)) && (

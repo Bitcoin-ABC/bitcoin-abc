@@ -6,14 +6,21 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Ecc } from 'ecash-lib';
 import LoadingWrapper from 'components/LoadingWrapper';
+import { cleanupLegacyServiceWorkers } from 'cleanupLegacyServiceWorkers';
 
 // Initialize Ecc (used for signing txs) at app startup
 const ecc = new Ecc();
 
-const container = document.getElementById('root');
-if (container) {
-    const root = createRoot(container);
-    root.render(<LoadingWrapper ecc={ecc} />);
-} else {
-    console.error('Failed to find the root element');
-}
+const bootstrap = async () => {
+    await cleanupLegacyServiceWorkers();
+
+    const container = document.getElementById('root');
+    if (container) {
+        const root = createRoot(container);
+        root.render(<LoadingWrapper ecc={ecc} />);
+    } else {
+        console.error('Failed to find the root element');
+    }
+};
+
+void bootstrap();
