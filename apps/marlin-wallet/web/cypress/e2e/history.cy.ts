@@ -11,6 +11,7 @@ import {
 } from '../fixture/common';
 import type { ChronikStub } from '../fixture/chronik-json-protobuf';
 import { runWithChronik, stubCoingeckoXecFiatPrices } from '../fixture/stubs';
+import { VISIBLE_BATCH_TARGET } from '../../src/transaction-history';
 
 /** Same mnemonic as mnemonic.cy.ts / cashtab vectors; matches Chronik stubs. */
 const TEST_MNEMONIC =
@@ -22,6 +23,12 @@ const FIRMA_WALLET_MNEMONIC =
     'load quality private purchase cream pony powder stairs edit fashion until earn';
 const CHRONIK_STUB_FIRMA_WALLET =
     'qzrfaekxtl75jsgf30evmnzh9esjmx5wzu0vnzdxy2.json';
+/** Page 0 is XEC-only; Firma txs start on page 1 with a single tx. */
+const CHRONIK_STUB_FIRMA_BURIED =
+    'qzrfaekxtl75jsgf30evmnzh9esjmx5wzu0vnzdxy2-firma-buried.json';
+/** Page 0 is XEC-only; 25 Firma txs on page 1, 10 more on page 2. */
+const CHRONIK_STUB_FIRMA_PAGINATED =
+    'qzrfaekxtl75jsgf30evmnzh9esjmx5wzu0vnzdxy2-firma-paginated.json';
 
 function openHistoryFromMain(): void {
     cy.get('#main-screen').should('be.visible');
@@ -357,6 +364,64 @@ describe('Transaction history', () => {
                         '-12.96 XEC',
                     );
                 });
+        });
+    });
+
+    it('shows Firma history when Firma txs are buried after XEC-only pages', () => {
+        runWithChronik(CHRONIK_STUB_FIRMA_BURIED, ({ stub }) => {
+            expect(stub.meta.historyNumPages).to.be.greaterThan(1);
+
+            visitWithWalletMnemonic(FIRMA_WALLET_MNEMONIC);
+            waitForMainLoaded();
+            selectFirmaAsset();
+            openHistoryFromMain();
+
+            cy.get('#transaction-list').should($el => {
+                expect($el.html()).to.not.include('loading-transactions');
+            });
+            cy.get('#transaction-list .no-transactions').should('not.exist');
+            cy.get('#transaction-list .transaction-item').should(
+                'have.length',
+                1,
+            );
+            cy.get('#transaction-list .transaction-item')
+                .first()
+                .find('.transaction-amount-primary')
+                .should($el => {
+                    expect(normalizeBalanceText($el.text())).to.eq(
+                        '+0.5000 FIRMA',
+                    );
+                });
+        });
+    });
+
+    it('loads more Firma transactions when scrolling after multi-page fetch', () => {
+        runWithChronik(CHRONIK_STUB_FIRMA_PAGINATED, ({ stub }) => {
+            expect(stub.meta.historyNumPages).to.equal(3);
+
+            visitWithWalletMnemonic(FIRMA_WALLET_MNEMONIC);
+            waitForMainLoaded();
+            selectFirmaAsset();
+            openHistoryFromMain();
+
+            cy.get('#transaction-list .transaction-item').should(
+                'have.length',
+                VISIBLE_BATCH_TARGET,
+            );
+
+            cy.get('#transaction-list').invoke(
+                'attr',
+                'style',
+                'max-height: 140px !important; overflow-y: auto !important;',
+            );
+            cy.get('#transaction-list').scrollTo('bottom', {
+                ensureScrollable: false,
+            });
+
+            cy.get('#transaction-list .transaction-item').should(
+                'have.length',
+                VISIBLE_BATCH_TARGET + 10,
+            );
         });
     });
 

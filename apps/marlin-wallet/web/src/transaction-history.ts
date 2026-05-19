@@ -22,6 +22,11 @@ import {
 // TRANSACTION HISTORY MANAGER
 // ============================================================================
 
+/** Visible rows to collect per initial load or scroll (token-filtered). */
+export const VISIBLE_BATCH_TARGET = 25;
+/** Larger fetch pages in token mode to cut round-trips (Chronik max). */
+const TOKEN_HISTORY_FETCH_PAGE_SIZE = 200;
+
 // Transaction History Manager
 export class TransactionHistoryManager {
     private currentPage = 0;
@@ -81,6 +86,91 @@ export class TransactionHistoryManager {
         this.allTransactions = [];
     }
 
+    /**
+     * Counts the number of transactions that should be displayed to the user.
+     *
+     * In token mode, we only count transactions that moved this token.
+     *
+     * @param transactions The transactions to count.
+     * @returns The number of visible transactions.
+     */
+    private countVisibleTransactions(transactions: Tx[]): number {
+        const tokenId = activeTokenId();
+        if (tokenId === null) {
+            return transactions.length;
+        }
+
+        return transactions.reduce((count, tx) => {
+            const atoms = calculateTransactionAmountAtomsFromTx(
+                this.ecashWallet,
+                tx,
+                tokenId,
+            );
+            return atoms !== 0 ? count + 1 : count;
+        }, 0);
+    }
+
+    /**
+     * Fetches the next page of history.
+     *
+     * @returns true if more transactions are available.
+     */
+    private async fetchNextHistoryPage(): Promise<boolean> {
+        // For XEC, simply fetch the first page of the target number of txs we
+        // want to display. For tokens, we need to fetch until we have enough
+        // relevant txs, so it makes sense to use the max page size and cache
+        // the transactions to reduce the number of round-trips.
+        const txHistoryResponse = await this.chronik
+            .address(this.address)
+            .history(
+                this.currentPage,
+                activeTokenId() === null
+                    ? VISIBLE_BATCH_TARGET
+                    : TOKEN_HISTORY_FETCH_PAGE_SIZE,
+            );
+
+        const txHistory = txHistoryResponse.txs;
+        this.totalPages = txHistoryResponse.numPages;
+
+        if (!txHistory || txHistory.length === 0) {
+            return false;
+        }
+
+        this.allTransactions = [...this.allTransactions, ...txHistory];
+
+        if (this.currentPage >= this.totalPages - 1) {
+            return false;
+        }
+
+        this.currentPage++;
+        return true;
+    }
+
+    /**
+     * Address history mixes all assets. In token mode, keep fetching pages
+     * until enough visible rows exist or history is exhausted.
+     */
+    private async fetchMoreTxsToDisplay(
+        targetAdditionalVisible: number,
+    ): Promise<number> {
+        const visibleBefore = this.countVisibleTransactions(
+            this.allTransactions,
+        );
+        let visibleNow = visibleBefore;
+
+        // fetchNextHistoryPage() updates this.allTransactions
+        do {
+            this.hasMoreTransactions = await this.fetchNextHistoryPage();
+            visibleNow = this.countVisibleTransactions(this.allTransactions);
+            if (visibleNow - visibleBefore >= targetAdditionalVisible) {
+                // We have enough transactions to display, so stop fetching.
+                break;
+            }
+        } while (this.hasMoreTransactions);
+
+        return visibleNow;
+    }
+
     // Load more transactions
     async loadMore(): Promise<void> {
         if (!this.hasMoreToLoad || this.isCurrentlyLoading) {
@@ -96,7 +186,8 @@ export class TransactionHistoryManager {
         if (!transactionList) return;
 
         if (this.isLoadingTransactions) {
-            return; // Prevent multiple simultaneous requests
+            // Prevent multiple simultaneous requests
+            return;
         }
 
         if (reset) {
@@ -111,7 +202,7 @@ export class TransactionHistoryManager {
         }
 
         if (!this.hasMoreTransactions) {
-            return; // No more transactions to load
+            return;
         }
 
         this.isLoadingTransactions = true;
@@ -122,48 +213,21 @@ export class TransactionHistoryManager {
         }
 
         try {
-            // Get transaction history from Chronik with pagination
-            const txHistoryResponse = await (
-                this.chronik.address(this.address) as any
-            ).history(this.currentPage, 25);
-            const txHistory = txHistoryResponse.txs;
+            const visibleCount =
+                await this.fetchMoreTxsToDisplay(VISIBLE_BATCH_TARGET);
 
-            // Update pagination metadata
-            this.totalPages = txHistoryResponse.numPages;
-
-            if (!txHistory || txHistory.length === 0) {
-                this.hasMoreTransactions = false;
-                if (this.allTransactions.length === 0) {
-                    this.showNoTransactions();
-                }
+            this.isLoadingTransactions = false;
+            if (visibleCount === 0) {
+                this.showNoTransactions();
                 return;
             }
 
-            // Add new transactions to existing list
-            if (reset) {
-                this.allTransactions = txHistory;
-            } else {
-                this.allTransactions = [...this.allTransactions, ...txHistory];
-            }
-
-            // Check if we've reached the last page
-            if (this.currentPage >= this.totalPages - 1) {
-                this.hasMoreTransactions = false;
-            } else {
-                this.currentPage++;
-            }
-
-            // Process and display all transactions
-            this.displayTransactions(this.allTransactions);
+            await this.displayTransactions(this.allTransactions);
         } catch (error) {
             webViewError('Failed to load transaction history:', error);
             this.showTransactionError();
         } finally {
             this.isLoadingTransactions = false;
-            // Update display one more time to remove loading indicator
-            if (!reset) {
-                this.displayTransactions(this.allTransactions);
-            }
         }
     }
 
