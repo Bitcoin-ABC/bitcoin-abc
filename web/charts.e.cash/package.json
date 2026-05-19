@@ -12,7 +12,7 @@
         "type-check": "tsc --noEmit"
     },
     "dependencies": {
-        "@headlessui/react": "^1.7.17",
+        "@headlessui/react": "2.2.10",
         "@heroicons/react": "^2.2.0",
         "@next/third-parties": "16.2.6",
         "@types/pg": "^8.15.4",

@@ -31,7 +31,7 @@
         "prettier-plugin-organize-imports": "^4.3.0",
         "ts-node": "^10.4.0",
         "ts-proto": "^2.11.8",
-        "typedoc": "^0.22.10",
+        "typedoc": "^0.28.19",
         "typescript": "^5.9.3"
     },
     "dependencies": {
