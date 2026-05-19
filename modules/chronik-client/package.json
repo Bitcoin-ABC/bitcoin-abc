@@ -35,12 +35,12 @@
         "typescript": "^5.9.3"
     },
     "dependencies": {
-        "@types/ws": "^8.2.1",
+        "@types/ws": "^8.18.1",
         "axios": "^1.16.1",
         "ecashaddrjs": "workspace:^",
         "isomorphic-ws": "^4.0.1",
         "long": "^4.0.0",
         "protobufjs": "^7.5.5",
-        "ws": "^8.3.0"
+        "ws": "^8.20.1"
     }
 }

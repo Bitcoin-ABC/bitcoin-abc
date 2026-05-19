@@ -16,3 +16,5 @@ overrides:
     'vercel>smol-toml@<1.6.1': '>=1.6.1'
     '@vercel/python-analysis>smol-toml@<1.6.1': '>=1.6.1'
     '@vercel/rust>smol-toml@<1.6.1': '>=1.6.1'
+    'serialize-javascript@<7.0.5': '>=7.0.5'
+    'postcss@<8.5.10': '>=8.5.14'

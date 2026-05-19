@@ -51,7 +51,7 @@
         "ecash-wallet": "workspace:^",
         "ecashaddrjs": "workspace:^",
         "express": "^5.2.1",
-        "express-rate-limit": "^8.2.1",
+        "express-rate-limit": "^8.5.2",
         "helmet": "^7.1.0"
     }
 }

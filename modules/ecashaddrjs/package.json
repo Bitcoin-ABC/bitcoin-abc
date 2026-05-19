@@ -37,9 +37,9 @@
     },
     "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/modules/ecashaddrjs#readme",
     "devDependencies": {
-        "@babel/cli": "^7.21.0",
-        "@babel/core": "^7.21.3",
-        "@babel/preset-env": "^7.20.2",
+        "@babel/cli": "^7.28.6",
+        "@babel/core": "^7.29.0",
+        "@babel/preset-env": "^7.29.5",
         "@types/chai": "^5.0.1",
         "@types/mocha": "^10.0.10",
         "buffer": "^6.0.3",
