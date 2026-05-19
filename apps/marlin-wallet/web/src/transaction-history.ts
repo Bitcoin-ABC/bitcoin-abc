@@ -3,9 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { webViewLog, webViewError } from './common';
-import { calculateTransactionAmountAtoms, atomsToUnit } from './amount';
+import { calculateTransactionAmountAtomsFromTx, atomsToUnit } from './amount';
 import { Wallet } from 'ecash-wallet';
-import { ChronikClient } from 'chronik-client';
+import { ChronikClient, type Tx } from 'chronik-client';
 import { getAddress } from './wallet';
 import { AppSettings } from './settings';
 import { formatPrice } from 'ecash-price';
@@ -28,7 +28,7 @@ export class TransactionHistoryManager {
     private totalPages = 0;
     private hasMoreTransactions = true;
     private isLoadingTransactions = false;
-    private allTransactions: any[] = [];
+    private allTransactions: Tx[] = [];
     private ecashWallet: Wallet;
     private chronik: ChronikClient;
     private address: string;
@@ -64,7 +64,7 @@ export class TransactionHistoryManager {
         return this.hasMoreTransactions;
     }
 
-    get transactions(): any[] {
+    get transactions(): Tx[] {
         return this.allTransactions;
     }
 
@@ -168,7 +168,7 @@ export class TransactionHistoryManager {
     }
 
     // Display transactions in the UI
-    async displayTransactions(transactions: any[]): Promise<void> {
+    async displayTransactions(transactions: Tx[]): Promise<void> {
         const transactionList = document.getElementById('transaction-list');
         if (!transactionList) return;
 
@@ -198,77 +198,74 @@ export class TransactionHistoryManager {
             alwaysShowSign: true,
         };
 
-        // Process transactions in parallel for better performance
-        const transactionHTML = await Promise.all(
-            transactions.map(async tx => {
-                // Use timeFirstSeen field from Chronik, fallback to block timestamp if zero
-                let time;
-                if (tx.timeFirstSeen && tx.timeFirstSeen > 0) {
-                    time = new Date(tx.timeFirstSeen * 1000).toLocaleString(
-                        this.appSettings.locale,
-                    );
-                } else if (tx.block && tx.block.timestamp) {
-                    time = new Date(tx.block.timestamp * 1000).toLocaleString(
-                        this.appSettings.locale,
-                    );
-                } else {
-                    time = 'Unknown Date';
-                }
-                const txid = String(tx.txid);
-                const shortTxid =
-                    txid.length > 12
-                        ? `${txid.substring(0, 6)}...${txid.substring(
-                              txid.length - 6,
-                          )}`
-                        : txid;
-
-                const atoms = await calculateTransactionAmountAtoms(
-                    this.ecashWallet,
-                    this.chronik,
-                    txid,
-                    tokenId,
+        const transactionHTML = transactions.map(tx => {
+            // Use timeFirstSeen field from Chronik, fallback to block timestamp if zero
+            let time;
+            if (tx.timeFirstSeen && tx.timeFirstSeen > 0) {
+                time = new Date(tx.timeFirstSeen * 1000).toLocaleString(
+                    this.appSettings.locale,
                 );
+            } else if (tx.block && tx.block.timestamp) {
+                time = new Date(tx.block.timestamp * 1000).toLocaleString(
+                    this.appSettings.locale,
+                );
+            } else {
+                time = 'Unknown Date';
+            }
+            const txid = String(tx.txid);
+            const shortTxid =
+                txid.length > 12
+                    ? `${txid.substring(0, 6)}...${txid.substring(
+                          txid.length - 6,
+                      )}`
+                    : txid;
 
-                if (tokenId !== null && atoms === 0) {
-                    return null;
-                }
+            const atoms = calculateTransactionAmountAtomsFromTx(
+                this.ecashWallet,
+                tx,
+                tokenId,
+            );
 
-                const amountPrimary = atomsToUnit(atoms, activeAssetDecimals());
+            if (tokenId !== null && atoms === 0) {
+                return null;
+            }
 
-                const isReceived = amountPrimary >= 0;
-                const amountClass = isReceived ? 'received' : 'sent';
+            const amountPrimary = atomsToUnit(atoms, activeAssetDecimals());
 
-                const primaryAmount =
-                    this.appSettings.primaryBalanceType === 'XEC' ||
-                    pricePerXec === null
+            const isReceived = amountPrimary >= 0;
+            const amountClass = isReceived ? 'received' : 'sent';
+
+            const primaryAmount =
+                this.appSettings.primaryBalanceType === 'XEC' ||
+                pricePerXec === null
+                    ? formatPrice(
+                          amountPrimary,
+                          primaryTicker,
+                          xecFormatOptions,
+                      )
+                    : formatPrice(
+                          amountPrimary * pricePerXec,
+                          this.appSettings.fiatCurrency,
+                          fiatFormatOptions,
+                      );
+
+            let secondaryAmount: string = '';
+            if (pricePerXec !== null) {
+                secondaryAmount =
+                    this.appSettings.primaryBalanceType === 'XEC'
                         ? formatPrice(
-                              amountPrimary,
-                              primaryTicker,
-                              xecFormatOptions,
-                          )
-                        : formatPrice(
                               amountPrimary * pricePerXec,
                               this.appSettings.fiatCurrency,
                               fiatFormatOptions,
+                          )
+                        : formatPrice(
+                              amountPrimary,
+                              primaryTicker,
+                              xecFormatOptions,
                           );
+            }
 
-                let secondaryAmount: string = '';
-                if (pricePerXec !== null) {
-                    secondaryAmount =
-                        this.appSettings.primaryBalanceType === 'XEC'
-                            ? formatPrice(
-                                  amountPrimary * pricePerXec,
-                                  this.appSettings.fiatCurrency,
-                                  fiatFormatOptions,
-                              )
-                            : formatPrice(
-                                  amountPrimary,
-                                  primaryTicker,
-                                  xecFormatOptions,
-                              );
-                }
-
-                return `
+            return `
                 <div class="transaction-item">
                     <div class="transaction-info">
                         <div class="transaction-time">${String(time)}</div>
@@ -284,8 +281,7 @@ export class TransactionHistoryManager {
                     </div>
                 </div>
             `;
-            }),
-        );
+        });
 
         // Add loading indicator at bottom if currently loading more transactions
         let loadingIndicator = '';

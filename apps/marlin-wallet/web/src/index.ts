@@ -25,7 +25,7 @@ import {
     webViewError,
     isReactNativeWebView,
 } from './common';
-import { atomsToUnit } from './amount';
+import { atomsToUnit, calculateTransactionAmountAtomsFromTx } from './amount';
 import {
     activeCryptoTicker,
     activeAssetTicker,
@@ -369,9 +369,16 @@ async function subscribeToAddress(address: string) {
                                 // wallet.
                                 const chronik_tx = await chronik.tx(txid);
                                 if (!chronik_tx.isFinal) {
+                                    const amountAtoms =
+                                        calculateTransactionAmountAtomsFromTx(
+                                            ecashWallet,
+                                            chronik_tx,
+                                            activeTokenId(),
+                                        );
                                     const tx =
                                         await transactionManager.addNonFinalTransaction(
                                             txid,
+                                            amountAtoms,
                                         );
                                     if (!tx) {
                                         webViewError(

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { webViewError } from './common';
-import { ChronikClient } from 'chronik-client';
+import { ChronikClient, type Tx } from 'chronik-client';
 import { Wallet } from 'ecash-wallet';
 import { activeAssetDecimals } from './active-asset';
 import { buildAction, buildTokenSendAction } from './wallet';
@@ -34,6 +34,23 @@ export function unitToAtoms(unit: number, decimals: number): number {
  * Net change in atoms for this wallet in a tx (satoshis for XEC, token atoms
  * when tokenId is set).
  */
+export function calculateTransactionAmountAtomsFromTx(
+    wallet: Wallet,
+    tx: Tx,
+    tokenId: string | null,
+): number {
+    const { balanceSatsDelta, tokenDeltas } = wallet.getTxAmounts(tx);
+    if (tokenId === null) {
+        return Number(balanceSatsDelta);
+    }
+    const delta = tokenDeltas.get(tokenId);
+    return delta !== undefined ? Number(delta) : 0;
+}
+
+/**
+ * Net change in atoms for this wallet in a tx (satoshis for XEC, token atoms
+ * when tokenId is set). Fetches the tx from Chronik.
+ */
 export async function calculateTransactionAmountAtoms(
     wallet: Wallet,
     chronik: ChronikClient,
@@ -41,19 +58,13 @@ export async function calculateTransactionAmountAtoms(
     tokenId: string | null,
 ): Promise<number> {
     try {
-        // Get transaction details from Chronik
         const tx = await chronik.tx(txid);
         if (!tx) {
             webViewError('Transaction not found:', txid);
             return 0;
         }
 
-        const { balanceSatsDelta, tokenDeltas } = wallet.getTxAmounts(tx);
-        if (tokenId === null) {
-            return Number(balanceSatsDelta);
-        }
-        const delta = tokenDeltas.get(tokenId);
-        return delta !== undefined ? Number(delta) : 0;
+        return calculateTransactionAmountAtomsFromTx(wallet, tx, tokenId);
     } catch (error) {
         webViewError('Failed calculating transaction amount:', error);
         return 0;

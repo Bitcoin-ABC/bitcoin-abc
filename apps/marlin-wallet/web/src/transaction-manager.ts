@@ -146,8 +146,13 @@ export class TransactionManager {
     // Add a non-final transaction to the pending amounts
     async addNonFinalTransaction(
         txid: string,
+        amountAtoms?: number,
     ): Promise<PendingTransaction | false> {
-        const tx = await this.addPendingAmount(txid, 'pending_finalization');
+        const tx = await this.addPendingAmount(
+            txid,
+            'pending_finalization',
+            amountAtoms,
+        );
 
         if (tx !== false) {
             this.transitionalBalanceAtoms = this.calculateTransitionalBalance();
@@ -226,6 +231,7 @@ export class TransactionManager {
     private async addPendingAmount(
         txid: string,
         state: 'pending_finalization' | 'finalized',
+        amountAtoms?: number,
     ): Promise<PendingTransaction | false> {
         if (this.pendingAmounts[txid]) {
             webViewLog(
@@ -239,12 +245,15 @@ export class TransactionManager {
             return false;
         }
 
-        const txAmountAtoms = await calculateTransactionAmountAtoms(
-            this.params.ecashWallet,
-            this.params.chronik,
-            txid,
-            this.tokenId,
-        );
+        const txAmountAtoms =
+            amountAtoms !== undefined
+                ? amountAtoms
+                : await calculateTransactionAmountAtoms(
+                      this.params.ecashWallet,
+                      this.params.chronik,
+                      txid,
+                      this.tokenId,
+                  );
         if (txAmountAtoms === 0) {
             webViewLog(`Transaction ${txid} has no amount, ignoring`);
             return false;
