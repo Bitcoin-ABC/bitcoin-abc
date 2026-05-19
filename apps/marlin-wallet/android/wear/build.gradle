@@ -5,8 +5,11 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 
+base {
+    archivesName = 'marlin-wallet-wear'
+}
+
 android {
-    archivesBaseName = "marlin-wallet-wear"
     
     namespace "com.marlinwallet.app"
     compileSdk rootProject.ext.compileSdkVersion
