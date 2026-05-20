@@ -14,19 +14,10 @@ ANDROID_DIR="${APP_DIR}/android"
 
 echo "[build-prod] App dir: ${APP_DIR}"
 
-# Backup original .env and use .env.android for build
 if [ -f "${APP_DIR}/.env.android" ]; then
-    echo "[build-prod] Found .env.android file"
-    # Backup .env if it exists
-    if [ -f "${APP_DIR}/.env" ]; then
-        cp "${APP_DIR}/.env" "${APP_DIR}/.env.backup"
-        echo "[build-prod] Backed up .env to .env.backup"
-    fi
-    # Copy .env.android to .env so Vite loads it
-    cp "${APP_DIR}/.env.android" "${APP_DIR}/.env"
-    echo "[build-prod] Copied .env.android to .env for build"
+    echo "[build-prod] Found .env.android (loaded via vite --mode android)"
 else
-    echo "[build-prod] WARNING: .env.android not found. Using default .env file."
+    echo "[build-prod] WARNING: .env.android not found; create it for Android-specific env vars"
 fi
 
 # Check if keystore properties are set
@@ -78,19 +69,13 @@ cd "${APP_DIR}"
 if command -v pnpm >/dev/null 2>&1; then
   echo "[build-prod] Installing dependencies (pnpm install --frozen-lockfile)"
   pnpm install --frozen-lockfile
-  echo "[build-prod] Building web app"
-  pnpm run build
+  echo "[build-prod] Building web app (android mode)"
+  pnpm run build:android
 else
   echo "[build-prod] Installing dependencies (npm ci)"
   npm ci
-  echo "[build-prod] Building web app"
-  npm run build
-fi
-
-# Restore original .env if backup exists
-if [ -f "${APP_DIR}/.env.backup" ]; then
-  mv "${APP_DIR}/.env.backup" "${APP_DIR}/.env"
-  echo "[build-prod] Restored original .env"
+  echo "[build-prod] Building web app (android mode)"
+  npm run build:android
 fi
 
 # Sync Capacitor Android project

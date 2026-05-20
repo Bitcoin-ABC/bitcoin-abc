@@ -1,12 +1,13 @@
 {
     "name": "cashtab",
-    "version": "5.6.5",
+    "version": "5.6.6",
     "private": true,
     "type": "module",
     "scripts": {
         "dev": "vite",
         "start": "vite",
         "build": "vite build",
+        "build:android": "vite build --mode android",
         "type-check": "tsc --noEmit",
         "preview": "vite preview",
         "test": "node scripts/test.cjs",

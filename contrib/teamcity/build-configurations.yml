@@ -817,6 +817,7 @@ builds:
             corepack prepare pnpm@10.24.0 --activate
             pushd "${TOPLEVEL}"
             pnpm install --frozen-lockfile --filter cashtab...
+            cp cashtab/env.sample cashtab/.env
             pnpm --filter cashtab run build
 
             # Make sure the report is available even if the tests fail.

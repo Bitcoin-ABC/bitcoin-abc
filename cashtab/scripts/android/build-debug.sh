@@ -25,19 +25,10 @@ if command -v java >/dev/null 2>&1; then
   echo "[build-debug] Java: $(java -version 2>&1 | head -n1)"
 fi
 
-# Backup original .env and use .env.android for build
 if [ -f "${APP_DIR}/.env.android" ]; then
-    echo "[build-debug] Found .env.android file"
-    # Backup .env if it exists
-    if [ -f "${APP_DIR}/.env" ]; then
-        cp "${APP_DIR}/.env" "${APP_DIR}/.env.backup"
-        echo "[build-debug] Backed up .env to .env.backup"
-    fi
-    # Copy .env.android to .env so Vite loads it
-    cp "${APP_DIR}/.env.android" "${APP_DIR}/.env"
-    echo "[build-debug] Copied .env.android to .env for build"
+    echo "[build-debug] Found .env.android (loaded via vite --mode android)"
 else
-    echo "[build-debug] WARNING: .env.android not found. Using default .env file."
+    echo "[build-debug] WARNING: .env.android not found; create it for Android-specific env vars"
 fi
 
 # Install deps and build web assets
@@ -45,19 +36,13 @@ cd "${APP_DIR}"
 if command -v pnpm >/dev/null 2>&1; then
   echo "[build-debug] Installing dependencies (pnpm install --frozen-lockfile)"
   pnpm install --frozen-lockfile
-  echo "[build-debug] Building web app"
-  pnpm run build
+  echo "[build-debug] Building web app (android mode)"
+  pnpm run build:android
 else
   echo "[build-debug] Installing dependencies (npm ci)"
   npm ci
-  echo "[build-debug] Building web app"
-  npm run build
-fi
-
-# Restore original .env if backup exists
-if [ -f "${APP_DIR}/.env.backup" ]; then
-  mv "${APP_DIR}/.env.backup" "${APP_DIR}/.env"
-  echo "[build-debug] Restored original .env"
+  echo "[build-debug] Building web app (android mode)"
+  npm run build:android
 fi
 
 # Sync Capacitor Android project
