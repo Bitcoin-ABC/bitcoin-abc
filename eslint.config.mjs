@@ -102,7 +102,7 @@ export default tseslint.config(
             'mocha/no-pending-tests': 'error',
             'mocha/no-identical-title': 'error',
             'mocha/handle-done-callback': 'error',
-            'mocha/no-async-describe': 'error',
+            'mocha/no-async-suite': 'error',
             'eol-last': ['error', 'always'],
             '@typescript-eslint/no-unused-vars': [
                 'error',
