@@ -41,6 +41,7 @@ import {
 } from 'ecash-lib';
 import { BuiltAction, Wallet, WalletUtxo } from 'ecash-wallet';
 
+import { AgoraBroadcastParams, toBroadcastConfig } from './broadcast';
 import {
     getAgoraPartialAcceptFuelInputs,
     getAgoraOneshotAcceptFuelInputs,
@@ -227,7 +228,7 @@ export class AgoraOffer {
             feePerKb?: bigint;
             /** Allow accepting an offer such that the remaining quantity is unacceptable */
             allowUnspendable?: boolean;
-        },
+        } & AgoraBroadcastParams,
     ): Promise<
         | {
               success: boolean;
@@ -297,7 +298,9 @@ export class AgoraOffer {
 
         // Broadcast using Wallet, and match the return type of ecash-wallet broadcasts
         const builtAction = new BuiltAction(wallet, [signedTx], feePerKb);
-        const broadcastResult = await builtAction.broadcast();
+        const broadcastResult = await builtAction.broadcast(
+            toBroadcastConfig(params),
+        );
 
         // Keep wallet in-memory utxo set in sync with this successful spend
         if (
@@ -550,23 +553,25 @@ export class AgoraOffer {
      *
      * Though we could add a relist() method to also simplify that procedure
      */
-    public async cancel(params: {
-        /**
-         * An initialized Wallet from ecash-wallet
-         * This is the wallet that will take the offer
-         *
-         * Note this wallet must have the correct cancelSk
-         * for the method to work
-         *
-         * This is also the wallet that will receive canceled
-         * tokens and leftover sats
-         */
-        wallet: Wallet;
-        /** Dust amount to use for the token output. */
-        dustSats?: bigint;
-        /** Fee per kB to use when building the tx. */
-        feePerKb?: bigint;
-    }): Promise<{
+    public async cancel(
+        params: {
+            /**
+             * An initialized Wallet from ecash-wallet
+             * This is the wallet that will take the offer
+             *
+             * Note this wallet must have the correct cancelSk
+             * for the method to work
+             *
+             * This is also the wallet that will receive canceled
+             * tokens and leftover sats
+             */
+            wallet: Wallet;
+            /** Dust amount to use for the token output. */
+            dustSats?: bigint;
+            /** Fee per kB to use when building the tx. */
+            feePerKb?: bigint;
+        } & AgoraBroadcastParams,
+    ): Promise<{
         success: boolean;
         broadcasted: string[];
         unbroadcasted?: string[];
@@ -609,7 +614,9 @@ export class AgoraOffer {
             [signedTx],
             feePerKb,
         );
-        const broadcastResult = await builtAction.broadcast();
+        const broadcastResult = await builtAction.broadcast(
+            toBroadcastConfig(params),
+        );
         if (
             broadcastResult.success &&
             typeof broadcastResult.broadcasted[0] !== 'undefined'
@@ -645,33 +652,35 @@ export class AgoraOffer {
      * an example in oneshot.test.ts, for now we only support ALP
      * as it is easier to implement and anticipated to have more use cases
      */
-    public async relist(params: {
-        /**
-         * An initialized Wallet from ecash-wallet
-         * This is the wallet that will take the offer
-         *
-         * Note this wallet must have the correct cancelSk
-         * for the method to work
-         *
-         * This is also the wallet that will receive canceled
-         * tokens and leftover sats
-         */
-        wallet: Wallet;
-        /**
-         * The updated offer to relist
-         *
-         * After 64-bit ints, we may consider simply accepting updated terms like
-         * priceNanoSatsPerAtom and offeredAtoms
-         *
-         * But for now, we can't assure that the created offer will reasonably reflect
-         * user wants, so we accept their already-prepared offer
-         */
-        updatedPartial: AgoraPartial;
-        /** Dust amount to use for the token output. */
-        dustSats?: bigint;
-        /** Fee per kB to use when building the tx. */
-        feePerKb?: bigint;
-    }): Promise<{
+    public async relist(
+        params: {
+            /**
+             * An initialized Wallet from ecash-wallet
+             * This is the wallet that will take the offer
+             *
+             * Note this wallet must have the correct cancelSk
+             * for the method to work
+             *
+             * This is also the wallet that will receive canceled
+             * tokens and leftover sats
+             */
+            wallet: Wallet;
+            /**
+             * The updated offer to relist
+             *
+             * After 64-bit ints, we may consider simply accepting updated terms like
+             * priceNanoSatsPerAtom and offeredAtoms
+             *
+             * But for now, we can't assure that the created offer will reasonably reflect
+             * user wants, so we accept their already-prepared offer
+             */
+            updatedPartial: AgoraPartial;
+            /** Dust amount to use for the token output. */
+            dustSats?: bigint;
+            /** Fee per kB to use when building the tx. */
+            feePerKb?: bigint;
+        } & AgoraBroadcastParams,
+    ): Promise<{
         success: boolean;
         broadcasted: string[];
         unbroadcasted?: string[];
@@ -849,38 +858,26 @@ export class AgoraOffer {
                     dustSats,
                 });
 
-                const txSer = alpRelistTx.ser();
-
-                /**
-                 * Build and broadcast in a way where we
-                 * mimic the return type used by ecash-wallet
-                 */
-
-                // txids that broadcast succcessfully
-                const broadcasted: string[] = [];
-
-                const txsToBroadcast = [toHex(txSer)];
-
-                try {
-                    const { txid } =
-                        await params.wallet.chronik.broadcastTx(txSer);
-                    broadcasted.push(txid);
+                const builtAction = new BuiltAction(
+                    params.wallet,
+                    [alpRelistTx],
+                    feePerKb,
+                );
+                const broadcastResult = await builtAction.broadcast(
+                    toBroadcastConfig(params),
+                );
+                if (
+                    broadcastResult.success &&
+                    typeof broadcastResult.broadcasted[0] !== 'undefined'
+                ) {
                     reconcileWalletUtxosAfterBroadcasts(
                         params.wallet,
                         [alpRelistTx],
-                        broadcasted,
+                        broadcastResult.broadcasted,
                         relistTokenOuts,
                     );
-                } catch (err) {
-                    console.error(`Error broadcasting tx 1 of 1:`, err);
-                    return {
-                        success: false,
-                        broadcasted,
-                        unbroadcasted: txsToBroadcast.slice(0),
-                        errors: [`${err}`],
-                    };
                 }
-                return { success: true, broadcasted };
+                return broadcastResult;
             } catch {
                 // We need another fuel utxo
             }

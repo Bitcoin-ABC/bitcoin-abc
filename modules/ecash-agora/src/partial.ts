@@ -89,6 +89,8 @@ import {
     payment,
 } from 'ecash-lib';
 import { BuiltAction, Wallet } from 'ecash-wallet';
+
+import { AgoraBroadcastParams, toBroadcastConfig } from './broadcast.js';
 import { AGORA_LOKAD_ID } from './consts.js';
 import { getAgoraAdFuelSats } from './inputs.js';
 import { getAgoraPaymentAction } from './actions.js';
@@ -1354,21 +1356,23 @@ export class AgoraPartial {
      * @returns Promise resolving to broadcast result
      * @throws Error if token type is SLP NFT
      */
-    public async list(params: {
-        /**
-         * An initialized Wallet from ecash-wallet.
-         * This wallet must hold the tokens to be listed.
-         */
-        wallet: Wallet;
-        /**
-         * Dust amount to use for the token output.
-         */
-        dustSats?: bigint;
-        /**
-         * Fee per kB to use when building the tx.
-         */
-        feePerKb?: bigint;
-    }): Promise<{
+    public async list(
+        params: {
+            /**
+             * An initialized Wallet from ecash-wallet.
+             * This wallet must hold the tokens to be listed.
+             */
+            wallet: Wallet;
+            /**
+             * Dust amount to use for the token output.
+             */
+            dustSats?: bigint;
+            /**
+             * Fee per kB to use when building the tx.
+             */
+            feePerKb?: bigint;
+        } & AgoraBroadcastParams,
+    ): Promise<{
         success: boolean;
         broadcasted: string[];
         unbroadcasted?: string[];
@@ -1432,7 +1436,9 @@ export class AgoraPartial {
             );
 
             const builtAction = params.wallet.action(action).build();
-            const broadcastResult = await builtAction.broadcast();
+            const broadcastResult = await builtAction.broadcast(
+                toBroadcastConfig(params),
+            );
             // Listing ALP calls wallet.action(...).build(), which optimistically updates
             // Wallet.utxos; no extra reconcile step needed here.
             return broadcastResult;
@@ -1565,7 +1571,9 @@ export class AgoraPartial {
                 [adSetupTx, offerTx],
                 feePerKb,
             );
-            const broadcastResult = await builtAction.broadcast();
+            const broadcastResult = await builtAction.broadcast(
+                toBroadcastConfig(params),
+            );
             if (
                 broadcastResult.success &&
                 broadcastResult.broadcasted.length >= 2

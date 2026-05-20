@@ -336,3 +336,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.1.0 [D19953](https://reviews.bitcoinabc.org/D19953)
 
 - Add utxo auto-update for agora ecash-wallet methods
+
+### 4.2.0
+
+- Add optional `finalizationTimeoutSecs` to `AgoraOffer.take()`, `cancel()`, and `relist()`, and to `AgoraPartial.list()` and `AgoraOneshot.list()`, forwarding to ecash-wallet `BuiltAction.broadcast()` / Chronik `broadcastAndFinalizeTx(s)` [D20025](https://reviews.bitcoinabc.org/D20025)

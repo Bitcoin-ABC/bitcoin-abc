@@ -55,6 +55,8 @@ import {
     writeTxOutput,
 } from 'ecash-lib';
 import { BuiltAction, Wallet } from 'ecash-wallet';
+
+import { AgoraBroadcastParams, toBroadcastConfig } from './broadcast.js';
 import { AGORA_LOKAD_ID } from './consts.js';
 import { reconcileWalletUtxosAfterBroadcasts } from './walletUtxoReconcile.js';
 import { getAgoraAdFuelSats } from './inputs.js';
@@ -246,29 +248,31 @@ export class AgoraOneshot {
      * @returns Promise resolving to broadcast result
      * @throws Error if token type is not SLP NFT
      */
-    public async list(params: {
-        /**
-         * An initialized Wallet from ecash-wallet.
-         * This wallet must hold the NFT token to be listed.
-         */
-        wallet: Wallet;
-        /**
-         * Token ID of the NFT to list (in big-endian hex).
-         */
-        tokenId: string;
-        /**
-         * Token type - must be SLP_TOKEN_TYPE_NFT1_CHILD.
-         */
-        tokenType: typeof SLP_TOKEN_TYPE_NFT1_CHILD;
-        /**
-         * Dust amount to use for the token output.
-         */
-        dustSats?: bigint;
-        /**
-         * Fee per kB to use when building the tx.
-         */
-        feePerKb?: bigint;
-    }): Promise<{
+    public async list(
+        params: {
+            /**
+             * An initialized Wallet from ecash-wallet.
+             * This wallet must hold the NFT token to be listed.
+             */
+            wallet: Wallet;
+            /**
+             * Token ID of the NFT to list (in big-endian hex).
+             */
+            tokenId: string;
+            /**
+             * Token type - must be SLP_TOKEN_TYPE_NFT1_CHILD.
+             */
+            tokenType: typeof SLP_TOKEN_TYPE_NFT1_CHILD;
+            /**
+             * Dust amount to use for the token output.
+             */
+            dustSats?: bigint;
+            /**
+             * Fee per kB to use when building the tx.
+             */
+            feePerKb?: bigint;
+        } & AgoraBroadcastParams,
+    ): Promise<{
         success: boolean;
         broadcasted: string[];
         unbroadcasted?: string[];
@@ -407,7 +411,9 @@ export class AgoraOneshot {
                 [adSetupTx, offerTx],
                 feePerKb,
             );
-            const broadcastResult = await builtAction.broadcast();
+            const broadcastResult = await builtAction.broadcast(
+                toBroadcastConfig(params),
+            );
             if (
                 broadcastResult.success &&
                 broadcastResult.broadcasted.length >= 2
