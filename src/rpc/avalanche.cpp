@@ -38,7 +38,8 @@ static RPCHelpMan getavalanchekey() {
         "Returns the key used to sign avalanche messages.\n",
         {},
         RPCResult{RPCResult::Type::STR_HEX, "", ""},
-        RPCExamples{HelpExampleRpc("getavalanchekey", "")},
+        RPCExamples{HelpExampleCli("getavalanchekey", "") +
+                    HelpExampleRpc("getavalanchekey", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -136,6 +137,7 @@ static RPCHelpMan addavalanchenode() {
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the addition succeeded or not."},
         RPCExamples{
+            HelpExampleCli("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"") +
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
@@ -253,7 +255,9 @@ static RPCHelpMan buildavalancheproof() {
         },
         RPCResult{RPCResult::Type::STR_HEX, "proof",
                   "A string that is a serialized, hex-encoded proof data."},
-        RPCExamples{HelpExampleRpc("buildavalancheproof",
+        RPCExamples{HelpExampleCli("buildavalancheproof",
+                                   "0 1234567800 \"<master>\" []") +
+                    HelpExampleRpc("buildavalancheproof",
                                    "0 1234567800 \"<master>\" []")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
@@ -483,6 +487,8 @@ static RPCHelpMan delegateavalancheproof() {
         RPCResult{RPCResult::Type::STR_HEX, "delegation",
                   "A string that is a serialized, hex-encoded delegation."},
         RPCExamples{
+            HelpExampleCli("delegateavalancheproof",
+                           "\"<limitedproofid>\" \"<privkey>\" \"<pubkey>\"") +
             HelpExampleRpc("delegateavalancheproof",
                            "\"<limitedproofid>\" \"<privkey>\" \"<pubkey>\"")},
         [&](const RPCHelpMan &self, const Config &config,
@@ -1026,7 +1032,8 @@ static RPCHelpMan getstakingreward() {
                       }},
                  }},
             }},
-        RPCExamples{HelpExampleRpc("getstakingreward", "<blockhash>")},
+        RPCExamples{HelpExampleCli("getstakingreward", "<blockhash>") +
+                    HelpExampleRpc("getstakingreward", "<blockhash>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1106,7 +1113,8 @@ static RPCHelpMan hasstakingreward() {
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether staking reward winner has been computed for "
                   "previous block hash or not."},
-        RPCExamples{HelpExampleRpc("hasstakingreward", "<blockhash>")},
+        RPCExamples{HelpExampleCli("hasstakingreward", "<blockhash>") +
+                    HelpExampleRpc("hasstakingreward", "<blockhash>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1161,6 +1169,7 @@ static RPCHelpMan setstakingreward() {
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the payout script was set or not"},
         RPCExamples{
+            HelpExampleCli("setstakingreward", "<blockhash> <payout script>") +
             HelpExampleRpc("setstakingreward", "<blockhash> <payout script>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
@@ -1251,7 +1260,8 @@ static RPCHelpMan getremoteproofs() {
                 }},
             }},
         },
-        RPCExamples{HelpExampleRpc("getremoteproofs", "<nodeid>")},
+        RPCExamples{HelpExampleCli("getremoteproofs", "<nodeid>") +
+                    HelpExampleRpc("getremoteproofs", "<nodeid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1305,7 +1315,8 @@ static RPCHelpMan getrawavalancheproof() {
                  "Whether the proof is finalized by vote."},
             }},
         },
-        RPCExamples{HelpExampleRpc("getrawavalancheproof", "<proofid>")},
+        RPCExamples{HelpExampleCli("getrawavalancheproof", "<proofid>") +
+                    HelpExampleRpc("getrawavalancheproof", "<proofid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1362,7 +1373,8 @@ static RPCHelpMan invalidateavalancheproof() {
             "success",
             "",
         },
-        RPCExamples{HelpExampleRpc("invalidateavalancheproof", "<proofid>")},
+        RPCExamples{HelpExampleCli("invalidateavalancheproof", "<proofid>") +
+                    HelpExampleRpc("invalidateavalancheproof", "<proofid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1410,8 +1422,8 @@ static RPCHelpMan isfinalblock() {
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the block has been finalized by avalanche votes."},
-        RPCExamples{HelpExampleRpc("isfinalblock", "<block hash>") +
-                    HelpExampleCli("isfinalblock", "<block hash>")},
+        RPCExamples{HelpExampleCli("isfinalblock", "<block hash>") +
+                    HelpExampleRpc("isfinalblock", "<block hash>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1456,8 +1468,8 @@ static RPCHelpMan isfinaltransaction() {
         RPCResult{
             RPCResult::Type::BOOL, "success",
             "Whether the transaction has been finalized by avalanche votes."},
-        RPCExamples{HelpExampleRpc("isfinaltransaction", "<txid> <blockhash>") +
-                    HelpExampleCli("isfinaltransaction", "<txid> <blockhash>")},
+        RPCExamples{HelpExampleCli("isfinaltransaction", "<txid> <blockhash>") +
+                    HelpExampleRpc("isfinaltransaction", "<txid> <blockhash>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1554,7 +1566,8 @@ static RPCHelpMan reconsideravalancheproof() {
             "success",
             "Whether the proof has been successfully registered.",
         },
-        RPCExamples{HelpExampleRpc("reconsideravalancheproof", "<proof hex>")},
+        RPCExamples{HelpExampleCli("reconsideravalancheproof", "<proof hex>") +
+                    HelpExampleRpc("reconsideravalancheproof", "<proof hex>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             auto proof = RCUPtr<avalanche::Proof>::make();
@@ -1605,7 +1618,8 @@ static RPCHelpMan sendavalancheproof() {
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the proof was sent successfully or not."},
-        RPCExamples{HelpExampleRpc("sendavalancheproof", "<proof>")},
+        RPCExamples{HelpExampleCli("sendavalancheproof", "<proof>") +
+                    HelpExampleRpc("sendavalancheproof", "<proof>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             auto proof = RCUPtr<avalanche::Proof>::make();
@@ -1653,7 +1667,8 @@ static RPCHelpMan verifyavalancheproof() {
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the proof is valid or not."},
-        RPCExamples{HelpExampleRpc("verifyavalancheproof", "\"<proof>\"")},
+        RPCExamples{HelpExampleCli("verifyavalancheproof", "\"<proof>\"") +
+                    HelpExampleRpc("verifyavalancheproof", "\"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             avalanche::Proof proof;
@@ -1676,7 +1691,8 @@ static RPCHelpMan verifyavalanchedelegation() {
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the delegation is valid or not."},
-        RPCExamples{HelpExampleRpc("verifyavalanchedelegation", "\"<proof>\"")},
+        RPCExamples{HelpExampleCli("verifyavalanchedelegation", "\"<proof>\"") +
+                    HelpExampleRpc("verifyavalanchedelegation", "\"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             avalanche::Delegation delegation;
@@ -1704,7 +1720,8 @@ static RPCHelpMan setflakyproof() {
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the addition/removal is successful."},
-        RPCExamples{HelpExampleRpc("setflakyproof", "\"<proofid>\" true")},
+        RPCExamples{HelpExampleCli("setflakyproof", "\"<proofid>\" true") +
+                    HelpExampleRpc("setflakyproof", "\"<proofid>\" true")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1776,7 +1793,8 @@ static RPCHelpMan getflakyproofs() {
                 }},
             }},
         },
-        RPCExamples{HelpExampleRpc("getflakyproofs", "")},
+        RPCExamples{HelpExampleCli("getflakyproofs", "") +
+                    HelpExampleRpc("getflakyproofs", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1816,7 +1834,8 @@ static RPCHelpMan getavailabilityscore() {
         },
         RPCResult{RPCResult::Type::NUM, "availability_score",
                   "The node availability score (if any)."},
-        RPCExamples{HelpExampleRpc("getavailabilityscore", "<nodeid>")},
+        RPCExamples{HelpExampleCli("getavailabilityscore", "<nodeid>") +
+                    HelpExampleRpc("getavailabilityscore", "<nodeid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1849,7 +1868,9 @@ static RPCHelpMan getstakecontendervote() {
         },
         RPCResult{RPCResult::Type::NUM, "vote",
                   "The vote that would be returned if polled."},
-        RPCExamples{HelpExampleRpc("getstakecontendervote",
+        RPCExamples{HelpExampleCli("getstakecontendervote",
+                                   "<prevblockhash> <proofid>") +
+                    HelpExampleRpc("getstakecontendervote",
                                    "<prevblockhash> <proofid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
@@ -1888,7 +1909,8 @@ static RPCHelpMan finalizetransaction() {
                       "txid",
                       "The finalized transaction id.",
                   }}},
-        RPCExamples{HelpExampleRpc("finalizetransaction", "<txid>")},
+        RPCExamples{HelpExampleCli("finalizetransaction", "<txid>") +
+                    HelpExampleRpc("finalizetransaction", "<txid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1956,7 +1978,8 @@ static RPCHelpMan removetransaction() {
                       "txid",
                       "The removed transaction id.",
                   }}},
-        RPCExamples{HelpExampleRpc("removetransaction", "<txid>")},
+        RPCExamples{HelpExampleCli("removetransaction", "<txid>") +
+                    HelpExampleRpc("removetransaction", "<txid>")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             CTxMemPool &mempool = EnsureAnyMemPool(request.context);
