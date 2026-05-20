@@ -217,7 +217,7 @@ static RPCHelpMan buildavalancheproof() {
             {"sequence", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The proof's sequence"},
             {"expiration", RPCArg::Type::NUM, RPCArg::Optional::NO,
-             "A timestamp indicating when the proof expire"},
+             "A timestamp indicating when the proof expires"},
             {"master", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The master private key in base58-encoding"},
             {
@@ -242,7 +242,7 @@ static RPCHelpMan buildavalancheproof() {
                              "The height at which this UTXO was mined"},
                             {"iscoinbase", RPCArg::Type::BOOL,
                              RPCArg::Default{false},
-                             "Indicate wether the UTXO is a coinbase"},
+                             "Indicate whether the UTXO is a coinbase"},
                             {"privatekey", RPCArg::Type::STR,
                              RPCArg::Optional::NO,
                              "private key in base58-encoding"},
@@ -345,7 +345,7 @@ static RPCHelpMan buildavalancheproof() {
 static RPCHelpMan decodeavalancheproof() {
     return RPCHelpMan{
         "decodeavalancheproof",
-        "Convert a serialized, hex-encoded proof, into JSON object. "
+        "Convert a serialized, hex-encoded proof into a JSON object. "
         "The validity of the proof is not verified.\n",
         {
             {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
@@ -477,7 +477,7 @@ static RPCHelpMan delegateavalancheproof() {
             {"privatekey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The private key in base58-encoding. Must match the proof master "
              "public key or the upper level parent delegation public key if "
-             " supplied."},
+             "supplied."},
             {"publickey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The public key to delegate the proof to."},
             {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
@@ -544,8 +544,8 @@ static RPCHelpMan delegateavalancheproof() {
 static RPCHelpMan decodeavalanchedelegation() {
     return RPCHelpMan{
         "decodeavalanchedelegation",
-        "Convert a serialized, hex-encoded avalanche proof delegation, into "
-        "JSON object. \n"
+        "Convert a serialized, hex-encoded avalanche proof delegation into "
+        "a JSON object.\n"
         "The validity of the delegation is not verified.\n",
         {
             {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
