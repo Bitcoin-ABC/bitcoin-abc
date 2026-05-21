@@ -18,6 +18,11 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import {
+    isRecaptchaV3Configured,
+    TOKEN_REWARD_RECAPTCHA_ACTION,
+} from 'constants/recaptcha';
 import { ReactComponent as WarningIcon } from 'assets/warning.svg';
 import ActionButtonRow from 'components/Common/ActionButtonRow';
 import { ReactComponent as GiftIcon } from 'assets/gift-icon.svg';
@@ -202,7 +207,6 @@ const Home: React.FC = () => {
         Number(ecashWallet.balanceSats) > 0;
 
     const [airdropPending, setAirdropPending] = useState(false);
-    const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
@@ -261,43 +265,6 @@ const Home: React.FC = () => {
 
     const handleRecaptchaChange = (token: string | null) => {
         setRecaptchaToken(token);
-    };
-
-    const claimTokenRewardsForNewWallet = async () => {
-        // Disable the button to prevent double claims
-        setTokenRewardsPending(true);
-        // Claim rewards
-        // We only show this option if wallet has no tx history. Such a wallet is always
-        // expected to be eligible.
-        let claimResponse;
-        try {
-            claimResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${ecashWallet.address}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                )
-            ).json();
-            // Could help in debugging from user reports
-            console.info(claimResponse);
-            if ('error' in claimResponse) {
-                throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
-            }
-            toast.success(
-                'Token rewards claimed! Check "Rewards" menu option for more.',
-            );
-            // Note we do not setTokenRewardsPending(false) on a successful claim
-            // The button will disappear when the tx is seen by the wallet
-            // We do not want the button to be enabled before this
-        } catch (err) {
-            setTokenRewardsPending(false);
-            console.error(err);
-            toast.error(`${err}`);
-        }
     };
 
     return (
@@ -364,68 +331,56 @@ const Home: React.FC = () => {
                                         <>
                                             {cashtabState.wallets.length ===
                                             1 ? (
-                                                <ClaimRewardsButton
-                                                    onClick={
-                                                        claimAirdropForNewWallet
-                                                    }
-                                                    disabled={
-                                                        airdropPending ||
-                                                        !recaptchaToken
-                                                    }
-                                                >
-                                                    <div>
-                                                        <GiftIcon /> Free XEC
-                                                        Welcome Bonus!
+                                                <>
+                                                    <ClaimRewardsButton
+                                                        onClick={
+                                                            claimAirdropForNewWallet
+                                                        }
+                                                        disabled={
+                                                            airdropPending ||
+                                                            !recaptchaToken
+                                                        }
+                                                    >
+                                                        <div>
+                                                            <GiftIcon /> Free
+                                                            XEC Welcome Bonus!
+                                                        </div>
+                                                        <span>
+                                                            {airdropPending ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                'Claim Now!'
+                                                            )}
+                                                        </span>
+                                                    </ClaimRewardsButton>
+                                                    <div
+                                                        style={{
+                                                            marginTop: '12px',
+                                                            display: 'flex',
+                                                            justifyContent:
+                                                                'center',
+                                                        }}
+                                                    >
+                                                        <ReCAPTCHA
+                                                            ref={recaptchaRef}
+                                                            sitekey={
+                                                                import.meta.env
+                                                                    .VITE_RECAPTCHA_SITE_KEY ||
+                                                                ''
+                                                            }
+                                                            onChange={
+                                                                handleRecaptchaChange
+                                                            }
+                                                        />
                                                     </div>
-                                                    <span>
-                                                        {airdropPending ? (
-                                                            <InlineLoader />
-                                                        ) : (
-                                                            'Claim Now!'
-                                                        )}
-                                                    </span>
-                                                </ClaimRewardsButton>
-                                            ) : (
-                                                <ClaimRewardsButton
-                                                    onClick={
-                                                        claimTokenRewardsForNewWallet
-                                                    }
-                                                    disabled={
-                                                        tokenRewardsPending
-                                                    }
-                                                >
-                                                    <div>
-                                                        <GiftIcon /> You've
-                                                        earned Token Rewards!
-                                                    </div>
-                                                    <span>
-                                                        {tokenRewardsPending ? (
-                                                            <InlineLoader />
-                                                        ) : (
-                                                            'Claim Now!'
-                                                        )}
-                                                    </span>
-                                                </ClaimRewardsButton>
-                                            )}
-                                            <div
-                                                style={{
-                                                    marginTop: '12px',
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                <ReCAPTCHA
-                                                    ref={recaptchaRef}
-                                                    sitekey={
-                                                        import.meta.env
-                                                            .VITE_RECAPTCHA_SITE_KEY ||
-                                                        ''
-                                                    }
-                                                    onChange={
-                                                        handleRecaptchaChange
+                                                </>
+                                            ) : isRecaptchaV3Configured() ? (
+                                                <NewWalletTokenRewardsClaimButton
+                                                    address={
+                                                        ecashWallet.address
                                                     }
                                                 />
-                                            </div>
+                                            ) : null}
                                         </>
                                     )}
                             </>
@@ -434,6 +389,84 @@ const Home: React.FC = () => {
                 )}
             </TxHistoryCtn>
         </>
+    );
+};
+
+interface NewWalletTokenRewardsClaimButtonProps {
+    address: string;
+}
+
+const NewWalletTokenRewardsClaimButton: React.FC<
+    NewWalletTokenRewardsClaimButtonProps
+> = ({ address }) => {
+    const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
+    const [claimSucceeded, setClaimSucceeded] = useState(false);
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    const claimTokenRewardsForNewWallet = async () => {
+        if (!executeRecaptcha) {
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
+        let tokenRewardRecaptchaToken;
+        try {
+            tokenRewardRecaptchaToken = await executeRecaptcha(
+                TOKEN_REWARD_RECAPTCHA_ACTION,
+            );
+        } catch (err) {
+            console.error(
+                'Error executing reCAPTCHA v3 for token rewards',
+                err,
+            );
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
+        setTokenRewardsPending(true);
+        let claimResponse;
+        try {
+            claimResponse = await (
+                await fetch(
+                    `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            token: tokenRewardRecaptchaToken,
+                        }),
+                    },
+                )
+            ).json();
+            console.info(claimResponse);
+            if ('error' in claimResponse) {
+                throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
+            }
+            toast.success(
+                'Token rewards claimed! Check "Rewards" menu option for more.',
+            );
+            setClaimSucceeded(true);
+        } catch (err) {
+            setTokenRewardsPending(false);
+            console.error(err);
+            toast.error(`${err}`);
+        }
+    };
+
+    if (claimSucceeded) {
+        return null;
+    }
+
+    return (
+        <ClaimRewardsButton
+            onClick={claimTokenRewardsForNewWallet}
+            disabled={tokenRewardsPending}
+        >
+            <div>
+                <GiftIcon /> You've earned Token Rewards!
+            </div>
+            <span>{tokenRewardsPending ? <InlineLoader /> : 'Claim Now!'}</span>
+        </ClaimRewardsButton>
     );
 };
 

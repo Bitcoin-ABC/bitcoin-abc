@@ -11,7 +11,7 @@ Server to manage Cashtab rewards tokens. May be modified to support other token 
 You will need to configure environment variables in .env using your CI system, or
 
 ```
-cp env.example .env
+cp env.sample .env
 ```
 
 and manually edit

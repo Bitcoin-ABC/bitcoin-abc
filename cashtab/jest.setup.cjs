@@ -30,6 +30,9 @@ const mockResizeObserver = jest.fn().mockImplementation(() => ({
 
 global.ResizeObserver = mockResizeObserver;
 
+process.env.VITE_RECAPTCHA_V3_SITE_KEY =
+    process.env.VITE_RECAPTCHA_V3_SITE_KEY || 'mock-recaptcha-v3-site-key';
+
 // Mock import.meta.env for Vite environment variables in tests
 Object.defineProperty(globalThis, 'import', {
     value: {
@@ -39,6 +42,9 @@ Object.defineProperty(globalThis, 'import', {
                 VITE_GOOGLE_ANALYTICS: process.env.VITE_GOOGLE_ANALYTICS || '',
                 VITE_RECAPTCHA_SITE_KEY:
                     process.env.VITE_RECAPTCHA_SITE_KEY || '',
+                VITE_RECAPTCHA_V3_SITE_KEY:
+                    process.env.VITE_RECAPTCHA_V3_SITE_KEY ||
+                    'mock-recaptcha-v3-site-key',
                 VITE_VERSION: process.env.VITE_VERSION || '',
                 VITE_TESTNET: process.env.VITE_TESTNET || 'false',
             },

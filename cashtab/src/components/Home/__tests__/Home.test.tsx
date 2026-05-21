@@ -31,6 +31,7 @@ import { token as tokenConfig } from 'config/token';
 
 // Mock the react-google-recaptcha library
 const MOCKED_RECAPTCHA_TOKEN = 'mocked-recaptcha-token';
+const MOCKED_RECAPTCHA_V3_TOKEN = 'mocked-recaptcha-v3-token';
 jest.mock('react-google-recaptcha', () => {
     const React = require('react');
     return React.forwardRef(function MockReCAPTCHA(
@@ -231,6 +232,9 @@ describe('<Home />', () => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
+                        body: JSON.stringify({
+                            token: MOCKED_RECAPTCHA_V3_TOKEN,
+                        }),
                     },
                 )
                 .mockResolvedValue({
@@ -291,15 +295,19 @@ describe('<Home />', () => {
         // We can claim an airdrop on a new wallet
         await user.click(tokenRewardsButton);
 
-        // Token rewards button is disabled after clicking for claim
-        expect(tokenRewardsButton).toBeDisabled();
-
         // We see a toast for the successful rewards claim
         expect(
             await screen.findByText(
                 'Token rewards claimed! Check "Rewards" menu option for more.',
             ),
         ).toBeInTheDocument();
+
+        // Token rewards button is removed after a successful claim
+        expect(
+            screen.queryByRole('button', {
+                name: /You've earned Token Rewards/,
+            }),
+        ).not.toBeInTheDocument();
 
         // Note we cannot test that these options go away after the tx is received without
         // regtest-integrated integration testing

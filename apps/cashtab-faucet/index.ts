@@ -22,6 +22,18 @@ if (typeof mnemonic !== 'string') {
 // Init wallet
 const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 
+const recaptchaV3MinScore = Number.parseFloat(
+    process.env.RECAPTCHA_V3_MIN_SCORE ?? '0.9',
+);
+if (
+    Number.isNaN(recaptchaV3MinScore) ||
+    recaptchaV3MinScore < 0 ||
+    recaptchaV3MinScore > 1
+) {
+    console.error('RECAPTCHA_V3_MIN_SCORE must be a number between 0 and 1');
+    process.exit(1);
+}
+
 // Start the express app to expose API endpoints
 const server = startExpressServer(
     config.port,
@@ -29,6 +41,8 @@ const server = startExpressServer(
     rateLimit(config.limiter),
     rateLimit(config.tokenLimiter),
     process.env.RECAPTCHA_SK || '',
+    process.env.RECAPTCHA_V3_SK || '',
+    recaptchaV3MinScore,
     wallet,
 );
 console.log(`Express server started on port ${config.port}`);

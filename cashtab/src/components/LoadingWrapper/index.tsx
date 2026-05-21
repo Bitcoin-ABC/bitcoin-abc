@@ -17,6 +17,8 @@ import GA from 'components/Common/GoogleAnalytics';
 import App from 'components/App/App';
 import { SplashScreen, SplashLogo } from './styled';
 import { ExtensionFrame } from 'components/App/styles';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import { isRecaptchaV3Configured } from 'constants/recaptcha';
 
 interface LoadingWrapperProps {
     ecc: Ecc;
@@ -71,6 +73,19 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
         );
     }
 
+    const recaptchaV3SiteKey = isRecaptchaV3Configured()
+        ? import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY
+        : undefined;
+
+    const app = (
+        <WalletProvider chronik={chronik!} agora={agora!} ecc={ecc}>
+            <Router>
+                {gaEnabled && <GA.RouteTracker />}
+                <App />
+            </Router>
+        </WalletProvider>
+    );
+
     return (
         <>
             {chronik === null || agora === null ? (
@@ -80,13 +95,12 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
                     )}
                     <SplashLogo src={Cashtab} alt="cashtab" />
                 </SplashScreen>
+            ) : recaptchaV3SiteKey ? (
+                <GoogleReCaptchaProvider reCaptchaKey={recaptchaV3SiteKey}>
+                    {app}
+                </GoogleReCaptchaProvider>
             ) : (
-                <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
-                    <Router>
-                        {gaEnabled && <GA.RouteTracker />}
-                        <App />
-                    </Router>
-                </WalletProvider>
+                app
             )}
         </>
     );

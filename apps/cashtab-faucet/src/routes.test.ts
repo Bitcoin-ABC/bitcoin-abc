@@ -23,6 +23,7 @@ import { fromHex } from 'ecash-lib';
 
 describe('routes.js', function () {
     let app: http.Server;
+    let axiosRecaptchaMock: MockAdapter | undefined;
 
     const ELIGIBLE_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
     const ELIGIBLE_OUTPUTSCRIPT = getOutputScriptFromAddress(ELIGIBLE_ADDRESS);
@@ -114,7 +115,17 @@ describe('routes.js', function () {
         expectedXecAirdropTxid,
     );
 
-    // Initialize fs, to be memfs in these tests
+    const MOCK_RECAPTCHA_V3_TOKEN = 'goodrecaptcha-v3-token';
+    const mockRecaptchaV3Success = (): MockAdapter => {
+        axiosRecaptchaMock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        axiosRecaptchaMock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: 0.9,
+        });
+        return axiosRecaptchaMock;
+    };
     beforeEach(async () => {
         const TEST_PORT = 5000;
 
@@ -156,12 +167,16 @@ describe('routes.js', function () {
                 message: 'You have rate limited your own unit tests.',
             }),
             'goodrecaptcha',
+            'goodrecaptcha-v3',
+            0.9,
             mockServerWallet,
         );
     });
     afterEach(async () => {
         // Stop express server
         app.close();
+        axiosRecaptchaMock?.restore();
+        axiosRecaptchaMock = undefined;
     });
     it('/status returns expected status', function () {
         return request(app)
@@ -209,10 +224,63 @@ describe('routes.js', function () {
                 error: 'chronik error determining address eligibility',
             });
     });
+    it('/claim/:address returns 500 if request does not include a recaptcha token', function () {
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                error: `Request did not include Recaptcha token. Are you a bot?`,
+            });
+    });
+    it('/claim/:address returns 500 and expected msg if there is an error checking the recaptcha', function () {
+        axiosRecaptchaMock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        axiosRecaptchaMock
+            .onPost(config.recaptchaUrl)
+            .reply(500, new Error('some error'));
+
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                error: `Error validating recaptcha response, please try again later`,
+            });
+    });
+    it('/claim/:address returns 500 and expected msg if the recaptcha score is too low', function () {
+        axiosRecaptchaMock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        axiosRecaptchaMock.onPost(config.recaptchaUrl).reply(200, {
+            success: true,
+            score: 0.1,
+        });
+
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                error: `Recaptcha score too low. Are you a bot?`,
+            });
+    });
     it('/claim/:address returns expected status for an ineligible address', function () {
+        mockRecaptchaV3Success();
+
         return request(app)
             .post(`/claim/${INELIGIBLE_ADDRESS}`)
-            .set('Content-Type', 'application/json') // set the Content-Type header
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
@@ -223,9 +291,12 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected error status if called with invalid address', function () {
+        mockRecaptchaV3Success();
+
         return request(app)
             .post(`/claim/${INVALID_ADDRESS}`)
-            .set('Content-Type', 'application/json') // set the Content-Type header
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
@@ -234,9 +305,12 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected error status on chronik error', function () {
+        mockRecaptchaV3Success();
+
         return request(app)
             .post(`/claim/${ERROR_ADDRESS}`)
-            .set('Content-Type', 'application/json') // set the Content-Type header
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
@@ -245,9 +319,12 @@ describe('routes.js', function () {
             });
     });
     it('/claim/:address returns expected status for an eligible address', function () {
+        mockRecaptchaV3Success();
+
         return request(app)
             .post(`/claim/${ELIGIBLE_ADDRESS}`)
-            .set('Content-Type', 'application/json') // set the Content-Type header
+            .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
+            .set('Content-Type', 'application/json')
             .expect(200)
             .expect('Content-Type', /json/)
             .expect({

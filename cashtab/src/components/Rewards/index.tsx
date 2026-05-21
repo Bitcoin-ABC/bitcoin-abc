@@ -18,6 +18,123 @@ import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { EDJ_TOKEN_ID, BLITZ_CHIPS_TOKEN_ID } from 'constants/tokens';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import {
+    isRecaptchaV3Configured,
+    TOKEN_REWARD_RECAPTCHA_ACTION,
+} from 'constants/recaptcha';
+
+interface RewardsClaimButtonProps {
+    address: string;
+    isEligible: boolean | null;
+    claimPending: boolean;
+    setClaimPending: (claimPending: boolean) => void;
+    timeRemainingMs: number | null;
+    hours: string;
+    minutes: string;
+    seconds: string;
+    onClaimSuccess: () => void;
+}
+
+const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
+    address,
+    isEligible,
+    claimPending,
+    setClaimPending,
+    timeRemainingMs,
+    hours,
+    minutes,
+    seconds,
+    onClaimSuccess,
+}) => {
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    const handleClaim = async () => {
+        if (!executeRecaptcha) {
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
+        let recaptchaToken;
+        try {
+            recaptchaToken = await executeRecaptcha(
+                TOKEN_REWARD_RECAPTCHA_ACTION,
+            );
+        } catch (err) {
+            console.error(
+                'Error executing reCAPTCHA v3 for token rewards',
+                err,
+            );
+            toast.error('Please complete the reCAPTCHA verification');
+            return;
+        }
+        setClaimPending(true);
+        let claimResponse;
+        try {
+            claimResponse = await (
+                await fetch(
+                    `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: recaptchaToken }),
+                    },
+                )
+            ).json();
+            setClaimPending(false);
+            console.info(claimResponse);
+            if ('error' in claimResponse) {
+                if (
+                    claimResponse.error ===
+                    'Address is not yet eligible for token rewards'
+                ) {
+                    throw new Error(
+                        'Address is not eligible for token rewards. Try again 24 hours after your last claim.',
+                    );
+                }
+                if (
+                    'msg' in claimResponse &&
+                    claimResponse.msg === 'Error: Insufficient token utxos'
+                ) {
+                    throw new Error(
+                        'token-server is out of rewards to send. Contact admin.',
+                    );
+                }
+                throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
+            }
+            toast.success('Rewards claimed!');
+            onClaimSuccess();
+        } catch (err) {
+            console.error(err);
+            toast.error(`${err}`);
+            setClaimPending(false);
+        }
+    };
+
+    return (
+        <ButtonContainer>
+            <PrimaryButton
+                disabled={!isEligible || claimPending}
+                onClick={handleClaim}
+            >
+                {isEligible === null || claimPending ? (
+                    <center>
+                        <InlineLoader />
+                    </center>
+                ) : isEligible ? (
+                    'Claim Reward'
+                ) : timeRemainingMs !== null ? (
+                    `Come back in ${hours}:${minutes}:${seconds}`
+                ) : (
+                    <center>
+                        <InlineLoader />
+                    </center>
+                )}
+            </PrimaryButton>
+        </ButtonContainer>
+    );
+};
 
 const Rewards = () => {
     const ContextValue = useContext(WalletContext);
@@ -61,54 +178,6 @@ const Rewards = () => {
             const errorMsg = `Error determining token reward eligibility for address ${address}: Token rewards server is not responding.`;
             console.error(errorMsg, err);
             return toast.error(errorMsg);
-        }
-    };
-    const handleClaim = async () => {
-        setClaimPending(true);
-        // Hit token-server API for rewards
-        let claimResponse;
-        try {
-            claimResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                )
-            ).json();
-            setClaimPending(false);
-            // Could help in debugging from user reports
-            console.info(claimResponse);
-            if ('error' in claimResponse) {
-                if (
-                    claimResponse.error ===
-                    'Address is not yet eligible for token rewards'
-                ) {
-                    throw new Error(
-                        'Address is not eligible for token rewards. Try again 24 hours after your last claim.',
-                    );
-                }
-                if (
-                    'msg' in claimResponse &&
-                    claimResponse.msg === 'Error: Insufficient token utxos'
-                ) {
-                    throw new Error(
-                        'token-server is out of rewards to send. Contact admin.',
-                    );
-                }
-                throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
-            }
-            toast.success('Rewards claimed!');
-
-            // Reset rewards eligibility
-            getIsEligible(address);
-        } catch (err) {
-            console.error(err);
-            toast.error(`${err}`);
-            setClaimPending(false);
         }
     };
 
@@ -197,26 +266,21 @@ const Rewards = () => {
                 activeIndex={showRewardsLink ? 3 : -1}
             />
             {import.meta.env.VITE_TESTNET !== 'true' ? (
-                <ButtonContainer>
-                    <PrimaryButton
-                        disabled={!isEligible || claimPending}
-                        onClick={handleClaim}
-                    >
-                        {isEligible === null || claimPending ? (
-                            <center>
-                                <InlineLoader />
-                            </center>
-                        ) : isEligible ? (
-                            'Claim Reward'
-                        ) : timeRemainingMs !== null ? (
-                            `Come back in ${hours}:${minutes}:${seconds}`
-                        ) : (
-                            <center>
-                                <InlineLoader />
-                            </center>
-                        )}
-                    </PrimaryButton>
-                </ButtonContainer>
+                isRecaptchaV3Configured() ? (
+                    <RewardsClaimButton
+                        address={address}
+                        isEligible={isEligible}
+                        claimPending={claimPending}
+                        setClaimPending={setClaimPending}
+                        timeRemainingMs={timeRemainingMs}
+                        hours={hours}
+                        minutes={minutes}
+                        seconds={seconds}
+                        onClaimSuccess={() => getIsEligible(address)}
+                    />
+                ) : (
+                    <p>Token rewards are unavailable</p>
+                )
             ) : (
                 <p>Token Rewards are not enabled for Testnet</p>
             )}

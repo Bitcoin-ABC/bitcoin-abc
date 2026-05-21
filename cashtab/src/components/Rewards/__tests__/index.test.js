@@ -18,6 +18,8 @@ import {
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { token as tokenConfig } from 'config/token';
 
+const MOCKED_RECAPTCHA_V3_TOKEN = 'mocked-recaptcha-v3-token';
+
 describe('<Rewards />', () => {
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
@@ -87,6 +89,7 @@ describe('<Rewards />', () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    body: JSON.stringify({ token: MOCKED_RECAPTCHA_V3_TOKEN }),
                 },
             )
             .mockResolvedValue({
@@ -220,6 +223,7 @@ describe('<Rewards />', () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    body: JSON.stringify({ token: MOCKED_RECAPTCHA_V3_TOKEN }),
                 },
             )
             .mockResolvedValue({

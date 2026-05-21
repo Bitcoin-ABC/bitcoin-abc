@@ -33,6 +33,8 @@ module.exports = {
     ],
     modulePaths: ['src'],
     moduleNameMapper: {
+        '^react-google-recaptcha-v3$':
+            '<rootDir>/config/jest/__mocks__/react-google-recaptcha-v3.js',
         '\\.(jpg|jpeg|png|gif|eot|otf|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
             '<rootDir>/config/jest/__mocks__/fileMock.js',
         '\\.svg': '<rootDir>/config/jest/__mocks__/svg.js',

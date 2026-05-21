@@ -14,7 +14,11 @@ import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { RateLimitRequestHandler } from 'express-rate-limit';
-import axios from 'axios';
+import {
+    validateRecaptchaV2,
+    validateRecaptchaV3,
+    verifyRecaptchaToken,
+} from './recaptcha';
 
 /**
  * routes.ts
@@ -35,7 +39,9 @@ export const startExpressServer = (
     chronik: ChronikClient,
     limiter: RateLimitRequestHandler,
     tokenLimiter: RateLimitRequestHandler,
-    recaptchaSecret: string,
+    recaptchaV2Secret: string,
+    recaptchaV3Secret: string,
+    recaptchaV3MinScore: number,
     wallet: Wallet,
 ): http.Server => {
     // Initialize express
@@ -156,6 +162,38 @@ export const startExpressServer = (
 
             logIpInfo(req);
 
+            if (typeof req.body.token !== 'string') {
+                console.error('Request did not include a recaptcha token');
+                return res.status(500).json({
+                    address,
+                    error: `Request did not include Recaptcha token. Are you a bot?`,
+                });
+            }
+
+            try {
+                const recaptchaVerification = await verifyRecaptchaToken(
+                    recaptchaV3Secret,
+                    req.body.token,
+                );
+                const recaptchaError = validateRecaptchaV3(
+                    recaptchaVerification,
+                    recaptchaV3MinScore,
+                );
+                if (recaptchaError !== null) {
+                    console.error('Recaptcha v3 check failed.');
+                    return res.status(500).json({
+                        address,
+                        error: recaptchaError,
+                    });
+                }
+            } catch (err) {
+                console.error('Error verifying recaptcha-response', err);
+                return res.status(500).json({
+                    address,
+                    error: `Error validating recaptcha response, please try again later`,
+                });
+            }
+
             if (!isValidCashAddress(address, 'ecash')) {
                 return res.status(500).json({
                     address,
@@ -268,25 +306,19 @@ export const startExpressServer = (
             }
 
             // Verify recaptcha before reward
-
-            let recaptchaVerification;
             try {
-                recaptchaVerification = await axios.post(
-                    config.recaptchaUrl,
-                    null,
-                    {
-                        params: {
-                            secret: recaptchaSecret,
-                            response: req.body.token,
-                        },
-                    },
+                const recaptchaVerification = await verifyRecaptchaToken(
+                    recaptchaV2Secret,
+                    req.body.token,
                 );
-
-                if (recaptchaVerification.data.success !== true) {
+                const recaptchaError = validateRecaptchaV2(
+                    recaptchaVerification,
+                );
+                if (recaptchaError !== null) {
                     console.error('Recaptcha check failed.');
                     return res.status(500).json({
                         address,
-                        error: `Recaptcha check failed. Are you a bot?`,
+                        error: recaptchaError,
                     });
                 }
             } catch (err) {
