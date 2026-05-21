@@ -48,4 +48,36 @@ describe('<UncontrolledLink />', () => {
         // We DO NOT see the safety modal
         expect(screen.queryByText('⚠️⚠️⚠️')).not.toBeInTheDocument();
     });
+    it('We navigate directly to an approved domain URL', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <UncontrolledLink
+                        url={'https://www.proofofwriting.com/26'}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(
+            screen.getByText('www.proofofwriting.com/26'),
+        ).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('www.proofofwriting.com/26'));
+
+        expect(screen.queryByText('⚠️⚠️⚠️')).not.toBeInTheDocument();
+    });
+    it('Approved domain matching is case insensitive', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <UncontrolledLink url={'https://StakedXec.com'} />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        await userEvent.click(screen.getByText('StakedXec.com'));
+
+        expect(screen.queryByText('⚠️⚠️⚠️')).not.toBeInTheDocument();
+    });
 });

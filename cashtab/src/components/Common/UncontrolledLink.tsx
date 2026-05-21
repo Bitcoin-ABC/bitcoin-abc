@@ -35,8 +35,14 @@ const LinkButton = styled.button`
 `;
 
 const Wrapper = styled.div`
+    display: inline;
+`;
+
+const ModalContent = styled.div`
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
 `;
 
 /**
@@ -48,7 +54,6 @@ const LinkAlert = styled.div`
     color: red;
     padding: 12px;
     margin: 12px 0;
-    max-width: 300px;
     width: 100%;
     box-sizing: border-box;
     text-align: center;
@@ -70,27 +75,39 @@ interface UncontrolledLinkProps {
 }
 
 /**
- * URLs that will open in a new tab
- * without any modal warning
- * Case sensitive, char sensitive, bc
- * correspond to specific token URLs
- *
- * We are ok being explicit here and
- * potentially showing the modal "too often"
+ * Domains that will open in a new tab without any modal warning.
+ * Matches the hostname with or without a www. prefix, case insensitive.
  */
-const APPROVED_URLS = [
-    'https://firma.cash',
-    'https://stakedXec.com',
-    'https://cashtab.com',
-    'https://cashtab.com/',
-    'https://agora.cash',
+const APPROVED_DOMAINS = [
+    'agora.cash',
+    'cashtab.com',
+    'firma.cash',
+    'proofofwriting.com',
+    'stakedxec.com',
 ];
+
+const normalizeDomain = (hostname: string): string => {
+    const lowerHostname = hostname.toLowerCase();
+    return lowerHostname.startsWith('www.')
+        ? lowerHostname.slice(4)
+        : lowerHostname;
+};
+
+const isApprovedUrl = (linkUrl: string): boolean => {
+    try {
+        const { hostname } = new URL(linkUrl);
+        const domain = normalizeDomain(hostname);
+        return APPROVED_DOMAINS.includes(domain);
+    } catch {
+        return false;
+    }
+};
 
 const UncontrolledLink: React.FC<UncontrolledLinkProps> = ({ url }) => {
     const [showModal, setShowModal] = useState<boolean>(false);
 
     const handleLinkClick = () => {
-        if (APPROVED_URLS.includes(url)) {
+        if (isApprovedUrl(url)) {
             window.open(url, '_blank');
         } else {
             setShowModal(true);
@@ -117,17 +134,19 @@ const UncontrolledLink: React.FC<UncontrolledLinkProps> = ({ url }) => {
                     height={420}
                     showCancelButton
                 >
-                    <ModalText>⚠️⚠️⚠️</ModalText>
-                    <ModalText>{url}</ModalText>
-                    <LinkAlert>
-                        You are about to open a link that doesn't belong to
-                        cashtab.com.{' '}
-                    </LinkAlert>
-                    <LinkAlert>
-                        This link has not been reviewed or approved in any way,
-                        and can contain phishing material or inappropriate
-                        content.
-                    </LinkAlert>
+                    <ModalContent>
+                        <ModalText>⚠️⚠️⚠️</ModalText>
+                        <ModalText>{url}</ModalText>
+                        <LinkAlert>
+                            You are about to open a link that doesn't belong to
+                            cashtab.com.{' '}
+                        </LinkAlert>
+                        <LinkAlert>
+                            This link has not been reviewed or approved in any
+                            way, and can contain phishing material or
+                            inappropriate content.
+                        </LinkAlert>
+                    </ModalContent>
                 </Modal>
             )}
             <LinkButton onClick={handleLinkClick}>{renderedUrl}</LinkButton>
