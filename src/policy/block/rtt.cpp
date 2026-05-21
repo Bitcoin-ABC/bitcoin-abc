@@ -116,9 +116,14 @@ static const std::vector<double> RTT_CONSTANT_FACTOR = {
 std::optional<uint32_t>
 GetNextRTTWorkRequired(const CBlockIndex *pprev, int64_t now,
                        const Consensus::Params &consensusParams) {
+    if (now == 0) {
+        // This block has no receive time (loaded from disk), skip RTT
+        return std::nullopt;
+    }
+
     const CBlockIndex *previousIndex = pprev;
     // We loop over the past 17 blocks to gather their receive time. We don't
-    // care about the receive time of the current block se we leave it at zero.
+    // care about the receive time of the current block so we leave it at zero.
     std::vector<int64_t> prevHeaderReceivedTime(18, 0);
     for (size_t i = 1; i < 18; i++) {
         if (!previousIndex) {
