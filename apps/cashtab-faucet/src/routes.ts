@@ -16,8 +16,9 @@ import { isValidCashAddress } from 'ecashaddrjs';
 import { RateLimitRequestHandler } from 'express-rate-limit';
 import {
     validateRecaptchaV2,
-    validateRecaptchaV3,
     verifyRecaptchaToken,
+    verifyTokenRewardRecaptcha,
+    RecaptchaEnterpriseSettings,
 } from './recaptcha';
 
 /**
@@ -29,8 +30,19 @@ import {
  * Standard IP logger function to be called by all endpoints
  * @param request express request
  */
+function getRequestIp(req: Request): string | undefined {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string' && forwarded.length > 0) {
+        return forwarded.split(',')[0]?.trim();
+    }
+    if (Array.isArray(forwarded) && forwarded.length > 0) {
+        return forwarded[0]?.split(',')[0]?.trim();
+    }
+    return req.socket.remoteAddress ?? undefined;
+}
+
 function logIpInfo(req: Request) {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = getRequestIp(req);
     console.log(`${req.url} from ${ip}`);
 }
 
@@ -43,6 +55,7 @@ export const startExpressServer = (
     recaptchaV3Secret: string,
     recaptchaV3MinScore: number,
     wallet: Wallet,
+    recaptchaEnterprise: RecaptchaEnterpriseSettings | null = null,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
@@ -171,13 +184,24 @@ export const startExpressServer = (
             }
 
             try {
-                const recaptchaVerification = await verifyRecaptchaToken(
-                    recaptchaV3Secret,
+                const recaptchaClient =
+                    typeof req.body.recaptchaClient === 'string'
+                        ? req.body.recaptchaClient
+                        : undefined;
+                const userAgent = req.headers['user-agent'];
+                const recaptchaError = await verifyTokenRewardRecaptcha(
                     req.body.token,
-                );
-                const recaptchaError = validateRecaptchaV3(
-                    recaptchaVerification,
+                    recaptchaClient,
+                    recaptchaV3Secret,
                     recaptchaV3MinScore,
+                    recaptchaEnterprise,
+                    {
+                        userIpAddress: getRequestIp(req),
+                        userAgent:
+                            typeof userAgent === 'string'
+                                ? userAgent
+                                : undefined,
+                    },
                 );
                 if (recaptchaError !== null) {
                     console.error('Recaptcha v3 check failed.');

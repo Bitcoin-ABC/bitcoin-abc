@@ -34,6 +34,17 @@ if (
     process.exit(1);
 }
 
+const recaptchaEnterprise =
+    process.env.RECAPTCHA_PROJECT_ID &&
+    process.env.RECAPTCHA_ENTERPRISE_API_KEY &&
+    process.env.RECAPTCHA_V3_ANDROID_SITE_KEY
+        ? {
+              projectId: process.env.RECAPTCHA_PROJECT_ID,
+              apiKey: process.env.RECAPTCHA_ENTERPRISE_API_KEY,
+              androidSiteKey: process.env.RECAPTCHA_V3_ANDROID_SITE_KEY,
+          }
+        : null;
+
 // Start the express app to expose API endpoints
 const server = startExpressServer(
     config.port,
@@ -44,6 +55,7 @@ const server = startExpressServer(
     process.env.RECAPTCHA_V3_SK || '',
     recaptchaV3MinScore,
     wallet,
+    recaptchaEnterprise,
 );
 console.log(`Express server started on port ${config.port}`);
 

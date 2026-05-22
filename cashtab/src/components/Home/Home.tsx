@@ -18,11 +18,15 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import {
     isRecaptchaV3Configured,
     TOKEN_REWARD_RECAPTCHA_ACTION,
+    RECAPTCHA_V3_VERIFICATION_ERROR,
 } from 'constants/recaptcha';
+import {
+    buildTokenRewardClaimBody,
+    useRecaptchaV3Execute,
+} from 'services/recaptchaService';
 import { ReactComponent as WarningIcon } from 'assets/warning.svg';
 import ActionButtonRow from 'components/Common/ActionButtonRow';
 import { ReactComponent as GiftIcon } from 'assets/gift-icon.svg';
@@ -401,24 +405,14 @@ const NewWalletTokenRewardsClaimButton: React.FC<
 > = ({ address }) => {
     const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
     const [claimSucceeded, setClaimSucceeded] = useState(false);
-    const { executeRecaptcha } = useGoogleReCaptcha();
+    const { executeRecaptchaV3 } = useRecaptchaV3Execute();
 
     const claimTokenRewardsForNewWallet = async () => {
-        if (!executeRecaptcha) {
-            toast.error('Please complete the reCAPTCHA verification');
-            return;
-        }
-        let tokenRewardRecaptchaToken;
-        try {
-            tokenRewardRecaptchaToken = await executeRecaptcha(
-                TOKEN_REWARD_RECAPTCHA_ACTION,
-            );
-        } catch (err) {
-            console.error(
-                'Error executing reCAPTCHA v3 for token rewards',
-                err,
-            );
-            toast.error('Please complete the reCAPTCHA verification');
+        const tokenRewardRecaptchaToken = await executeRecaptchaV3(
+            TOKEN_REWARD_RECAPTCHA_ACTION,
+        );
+        if (!tokenRewardRecaptchaToken) {
+            toast.error(RECAPTCHA_V3_VERIFICATION_ERROR);
             return;
         }
         setTokenRewardsPending(true);
@@ -432,9 +426,11 @@ const NewWalletTokenRewardsClaimButton: React.FC<
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            token: tokenRewardRecaptchaToken,
-                        }),
+                        body: JSON.stringify(
+                            buildTokenRewardClaimBody(
+                                tokenRewardRecaptchaToken,
+                            ),
+                        ),
                     },
                 )
             ).json();

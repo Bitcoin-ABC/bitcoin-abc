@@ -33,6 +33,9 @@ def appVersionCode = major * 10000 + minor * 100 + patch
 android {
     namespace "com.cashtab.app"
     compileSdk rootProject.ext.compileSdkVersion
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+    }
     defaultConfig {
         applicationId "com.cashtab.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -117,6 +120,8 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+    implementation 'com.google.android.recaptcha:recaptcha:18.9.0'
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"

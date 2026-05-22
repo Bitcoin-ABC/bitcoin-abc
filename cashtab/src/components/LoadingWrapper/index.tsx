@@ -19,6 +19,7 @@ import { SplashScreen, SplashLogo } from './styled';
 import { ExtensionFrame } from 'components/App/styles';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { isRecaptchaV3Configured } from 'constants/recaptcha';
+import { usesNativeRecaptchaV3 } from 'services/recaptchaService';
 
 interface LoadingWrapperProps {
     ecc: Ecc;
@@ -73,9 +74,10 @@ const LoadingWrapper: React.FC<LoadingWrapperProps> = ({ ecc }) => {
         );
     }
 
-    const recaptchaV3SiteKey = isRecaptchaV3Configured()
-        ? import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY
-        : undefined;
+    const recaptchaV3SiteKey =
+        isRecaptchaV3Configured() && !usesNativeRecaptchaV3()
+            ? import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY
+            : undefined;
 
     const app = (
         <WalletProvider chronik={chronik!} agora={agora!} ecc={ecc}>

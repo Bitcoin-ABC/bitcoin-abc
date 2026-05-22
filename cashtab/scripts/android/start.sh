@@ -18,10 +18,16 @@ cd "${APP_DIR}"
 if [ -f "${APP_DIR}/.env.android" ]; then
     echo "[start] Found .env.android (loaded via vite --mode android)"
     RECAPTCHA_KEY=$(grep "^VITE_RECAPTCHA_SITE_KEY=" "${APP_DIR}/.env.android" | cut -d'=' -f2- | tr -d ' ')
+    RECAPTCHA_V3_KEY=$(grep "^VITE_RECAPTCHA_V3_SITE_KEY=" "${APP_DIR}/.env.android" | cut -d'=' -f2- | tr -d ' ')
     if [ -n "${RECAPTCHA_KEY}" ]; then
-        echo "[start] reCAPTCHA site key from .env.android: ${RECAPTCHA_KEY}"
+        echo "[start] reCAPTCHA v2 site key from .env.android: ${RECAPTCHA_KEY}"
     else
         echo "[start] WARNING: VITE_RECAPTCHA_SITE_KEY not found in .env.android"
+    fi
+    if [ -n "${RECAPTCHA_V3_KEY}" ]; then
+        echo "[start] reCAPTCHA v3 site key from .env.android: ${RECAPTCHA_V3_KEY}"
+    else
+        echo "[start] WARNING: VITE_RECAPTCHA_V3_SITE_KEY not found in .env.android"
     fi
 else
     echo "[start] WARNING: .env.android not found; create it for Android-specific env vars"

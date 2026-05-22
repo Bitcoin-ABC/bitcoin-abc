@@ -116,6 +116,11 @@ describe('routes.js', function () {
     );
 
     const MOCK_RECAPTCHA_V3_TOKEN = 'goodrecaptcha-v3-token';
+    const MOCK_RECAPTCHA_ENTERPRISE_SETTINGS = {
+        projectId: 'test-project',
+        apiKey: 'test-api-key',
+        androidSiteKey: 'test-android-site-key',
+    };
     const mockRecaptchaV3Success = (): MockAdapter => {
         axiosRecaptchaMock = new MockAdapter(axios, {
             onNoMatch: 'throwException',
@@ -126,9 +131,50 @@ describe('routes.js', function () {
         });
         return axiosRecaptchaMock;
     };
+    const mockRecaptchaV3EnterpriseSuccess = (): MockAdapter => {
+        axiosRecaptchaMock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        axiosRecaptchaMock
+            .onPost(
+                `${config.recaptchaEnterpriseUrl}/projects/${MOCK_RECAPTCHA_ENTERPRISE_SETTINGS.projectId}/assessments`,
+            )
+            .reply(200, {
+                tokenProperties: {
+                    valid: true,
+                    action: 'claim_token_reward',
+                },
+                riskAnalysis: {
+                    score: 0.9,
+                },
+            });
+        return axiosRecaptchaMock;
+    };
+    const getTestRateLimiter = () =>
+        rateLimit({
+            windowMs: 60000,
+            limit: 100,
+            standardHeaders: 'draft-7',
+            legacyHeaders: false,
+            message: 'You have rate limited your own unit tests.',
+        });
+    const startTestServer = (
+        recaptchaEnterprise:
+            | typeof MOCK_RECAPTCHA_ENTERPRISE_SETTINGS
+            | null = null,
+    ) =>
+        startExpressServer(
+            5000,
+            mockedChronikClient as unknown as ChronikClient,
+            getTestRateLimiter(),
+            getTestRateLimiter(),
+            'goodrecaptcha',
+            'goodrecaptcha-v3',
+            0.9,
+            mockServerWallet,
+            recaptchaEnterprise,
+        );
     beforeEach(async () => {
-        const TEST_PORT = 5000;
-
         // Mock utxo set before each test, to ensure it is constant across tests
         mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, [
             { ...MOCK_SCRIPT_UTXO, sats: 10000n },
@@ -147,30 +193,7 @@ describe('routes.js', function () {
             },
         ] as ScriptUtxo[]);
 
-        app = startExpressServer(
-            TEST_PORT,
-            mockedChronikClient as unknown as ChronikClient,
-            // We need higher rate limits so we do not rate limit ourselves in the tests
-            rateLimit({
-                windowMs: 60000,
-                limit: 100, // Limit each IP to 10 requests per `window`
-                standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-                legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-                message: 'You have rate limited your own unit tests.',
-            }),
-            // In tests, keep the same rate limits for token rewards
-            rateLimit({
-                windowMs: 60000,
-                limit: 100, // Limit each IP to 10 requests per `window`
-                standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-                legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-                message: 'You have rate limited your own unit tests.',
-            }),
-            'goodrecaptcha',
-            'goodrecaptcha-v3',
-            0.9,
-            mockServerWallet,
-        );
+        app = startTestServer();
     });
     afterEach(async () => {
         // Stop express server
@@ -331,6 +354,75 @@ describe('routes.js', function () {
                 address: ELIGIBLE_ADDRESS,
                 msg: 'Success',
                 txid: mockCachetClaim.txid,
+            });
+    });
+    it('/claim/:address returns 500 if Android client is used without enterprise config', function () {
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .send({
+                token: MOCK_RECAPTCHA_V3_TOKEN,
+                recaptchaClient: 'android',
+            })
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                error: 'Android reCAPTCHA verification is not configured on this server',
+            });
+    });
+    it('/claim/:address returns expected status for an eligible address with Android reCAPTCHA', function () {
+        app.close();
+        app = startTestServer(MOCK_RECAPTCHA_ENTERPRISE_SETTINGS);
+        mockRecaptchaV3EnterpriseSuccess();
+
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .send({
+                token: MOCK_RECAPTCHA_V3_TOKEN,
+                recaptchaClient: 'android',
+            })
+            .set('Content-Type', 'application/json')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                msg: 'Success',
+                txid: mockCachetClaim.txid,
+            });
+    });
+    it('/claim/:address returns 500 and expected msg if Android reCAPTCHA score is too low', function () {
+        app.close();
+        app = startTestServer(MOCK_RECAPTCHA_ENTERPRISE_SETTINGS);
+        axiosRecaptchaMock = new MockAdapter(axios, {
+            onNoMatch: 'throwException',
+        });
+        axiosRecaptchaMock
+            .onPost(
+                `${config.recaptchaEnterpriseUrl}/projects/${MOCK_RECAPTCHA_ENTERPRISE_SETTINGS.projectId}/assessments`,
+            )
+            .reply(200, {
+                tokenProperties: {
+                    valid: true,
+                    action: 'claim_token_reward',
+                },
+                riskAnalysis: {
+                    score: 0.1,
+                },
+            });
+
+        return request(app)
+            .post(`/claim/${ELIGIBLE_ADDRESS}`)
+            .send({
+                token: MOCK_RECAPTCHA_V3_TOKEN,
+                recaptchaClient: 'android',
+            })
+            .set('Content-Type', 'application/json')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                error: `Recaptcha score too low. Are you a bot?`,
             });
     });
     it('/claimxec/:address returns 500 and expected msg if there is an error checking the recaptcha', function () {

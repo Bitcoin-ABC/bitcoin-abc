@@ -18,11 +18,15 @@ import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { EDJ_TOKEN_ID, BLITZ_CHIPS_TOKEN_ID } from 'constants/tokens';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import {
     isRecaptchaV3Configured,
     TOKEN_REWARD_RECAPTCHA_ACTION,
+    RECAPTCHA_V3_VERIFICATION_ERROR,
 } from 'constants/recaptcha';
+import {
+    buildTokenRewardClaimBody,
+    useRecaptchaV3Execute,
+} from 'services/recaptchaService';
 
 interface RewardsClaimButtonProps {
     address: string;
@@ -47,24 +51,14 @@ const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
     seconds,
     onClaimSuccess,
 }) => {
-    const { executeRecaptcha } = useGoogleReCaptcha();
+    const { executeRecaptchaV3 } = useRecaptchaV3Execute();
 
     const handleClaim = async () => {
-        if (!executeRecaptcha) {
-            toast.error('Please complete the reCAPTCHA verification');
-            return;
-        }
-        let recaptchaToken;
-        try {
-            recaptchaToken = await executeRecaptcha(
-                TOKEN_REWARD_RECAPTCHA_ACTION,
-            );
-        } catch (err) {
-            console.error(
-                'Error executing reCAPTCHA v3 for token rewards',
-                err,
-            );
-            toast.error('Please complete the reCAPTCHA verification');
+        const recaptchaToken = await executeRecaptchaV3(
+            TOKEN_REWARD_RECAPTCHA_ACTION,
+        );
+        if (!recaptchaToken) {
+            toast.error(RECAPTCHA_V3_VERIFICATION_ERROR);
             return;
         }
         setClaimPending(true);
@@ -78,7 +72,9 @@ const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token: recaptchaToken }),
+                        body: JSON.stringify(
+                            buildTokenRewardClaimBody(recaptchaToken),
+                        ),
                     },
                 )
             ).json();

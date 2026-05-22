@@ -13,5 +13,5 @@ test_results/
 # compiled ts
 dist/
 
-# secrets
-.env
+# secrets and local env files
+.env*
