@@ -60,8 +60,8 @@ const escapeHtml = unsafe => {
 const renderOutput = (satsOutput, _type, row) => {
     if (row.token) {
         var ticker =
-            '<a href="/tx/' +
-            row.txHash +
+            '<a href="/token/' +
+            row.tokenId +
             '" class="num-col-suffix" data-suffix=' +
             escapeHtml(row.token.tokenTicker) +
             '></a>';

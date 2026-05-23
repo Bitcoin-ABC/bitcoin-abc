@@ -101,6 +101,18 @@ pub struct MempoolTemplate {
 }
 
 #[derive(Template)]
+#[template(path = "pages/token.html")]
+pub struct TokenTemplate<'a> {
+    pub token: TokenInfo,
+    pub token_type_str: String,
+    pub specification: String,
+    pub token_icon_url: &'a str,
+    pub num_txs: u32,
+    pub network_selector: bool,
+    pub hashes: FileHashes,
+}
+
+#[derive(Template)]
 #[template(path = "pages/testnet-faucet.html")]
 pub struct TestnetFaucetTemplate {
     pub network_selector: bool,

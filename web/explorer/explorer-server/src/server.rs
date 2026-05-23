@@ -37,15 +37,17 @@ use crate::{
     file_hashes::FileHashes,
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
-        data_block_txs, data_blocks, data_mempool, mempool, search,
-        serve_files, testnet_faucet, tx,
+        data_block_txs, data_blocks, data_mempool, data_token_txs, mempool,
+        search, serve_files, testnet_faucet, token, tx,
     },
     server_primitives::{
-        JsonBalance, JsonBlock, JsonBlocksResponse, JsonTxsResponse, JsonUtxo,
+        JsonBalance, JsonBlock, JsonBlocksResponse, JsonTx, JsonTxStats,
+        JsonTxsResponse, JsonUtxo,
     },
     templating::{
         AddressTemplate, BlockTemplate, BlocksTemplate, MempoolTemplate,
-        TestnetFaucetTemplate, TokenEntryTemplate, TransactionTemplate,
+        TestnetFaucetTemplate, TokenEntryTemplate, TokenTemplate,
+        TransactionTemplate,
     },
 };
 
@@ -99,6 +101,7 @@ impl Server {
             )
             .route("/api/address/:hash/transactions", get(data_address_txs))
             .route("/api/mempool", get(data_mempool))
+            .route("/api/token/:id/transactions", get(data_token_txs))
             .nest("/code", serve_files(&self.base_dir.join("code")))
             .nest("/assets", serve_files(&self.base_dir.join("assets")))
             .nest(
@@ -107,6 +110,7 @@ impl Server {
             )
             .route("/testnet-faucet", get(testnet_faucet))
             .route("/mempool", get(mempool))
+            .route("/token/:id", get(token))
     }
 }
 
@@ -262,6 +266,162 @@ impl Server {
 
         Ok(JsonTxsResponse { data: json_txs })
     }
+
+    pub async fn data_token_txs(
+        &self,
+        token_id: &str,
+        query: HashMap<String, String>,
+    ) -> Result<JsonTxsResponse> {
+        let page: usize = query
+            .get("page")
+            .map(|s| s.as_str())
+            .unwrap_or("0")
+            .parse()?;
+        let take: usize = query
+            .get("take")
+            .map(|s| s.as_str())
+            .unwrap_or("200")
+            .parse()?;
+        let tx_history =
+            self.chronik.token_history(token_id, page, take).await?;
+
+        let token_hash = Sha256d::from_be_hex(token_id)?;
+        let token = self.chronik.token(&token_hash).await?;
+        let json_token =
+            tokens_to_json(&HashMap::from([(token_id.to_string(), token)]))?
+                .get(token_id)
+                .cloned();
+
+        let mut json_txs = Vec::new();
+        for tx in tx_history.txs.iter() {
+            let (block_height, timestamp) = match &tx.block {
+                Some(block) => (
+                    Some(block.height),
+                    if tx.time_first_seen == 0 {
+                        block.timestamp
+                    } else {
+                        tx.time_first_seen
+                    },
+                ),
+                None => (None, tx.time_first_seen),
+            };
+
+            for (entry_idx, token_entry) in tx.token_entries.iter().enumerate()
+            {
+                let tid = token_entry.token_id.clone();
+                if tid != token_id {
+                    continue;
+                }
+
+                let entry_input: i128 = tx
+                    .inputs
+                    .iter()
+                    .filter_map(|input| input.token.as_ref())
+                    .filter(|t| {
+                        t.token_id == tid && t.entry_idx as usize == entry_idx
+                    })
+                    .map(|t| t.atoms as i128)
+                    .sum();
+                let entry_output: i128 = tx
+                    .outputs
+                    .iter()
+                    .filter_map(|output| output.token.as_ref())
+                    .filter(|t| {
+                        t.token_id == tid && t.entry_idx as usize == entry_idx
+                    })
+                    .map(|t| t.atoms as i128)
+                    .sum();
+
+                let burn_atoms =
+                    token_entry.actual_burn_atoms.parse::<i128>().unwrap_or(0);
+                let does_burn = burn_atoms > 0;
+
+                let tx_type = match TokenTxType::from_i32(token_entry.tx_type) {
+                    Some(TokenTxType::Genesis) => "GENESIS",
+                    Some(TokenTxType::Mint) => "MINT",
+                    Some(TokenTxType::Send) => "SEND",
+                    Some(TokenTxType::Burn) => "BURN",
+                    _ => "Unknown",
+                };
+
+                if does_burn && tx_type == "SEND" {
+                    // Split SEND+BURN into two rows so each shows the right
+                    // amount
+                    let send_stats = JsonTxStats {
+                        sats_input: 0,
+                        sats_output: 0,
+                        delta_sats: 0,
+                        delta_tokens: 0,
+                        token_input: entry_input - burn_atoms,
+                        token_output: entry_output,
+                        does_burn_slp: false,
+                    };
+                    json_txs.push(JsonTx {
+                        tx_hash: to_be_hex(&tx.txid),
+                        block_height,
+                        timestamp,
+                        is_coinbase: tx.is_coinbase,
+                        size: tx.size as i32,
+                        num_inputs: tx.inputs.len() as u32,
+                        num_outputs: tx.outputs.len() as u32,
+                        stats: send_stats,
+                        token_id: Some(tid.clone()),
+                        token: json_token.clone(),
+                        is_final: tx.is_final,
+                    });
+
+                    let burn_stats = JsonTxStats {
+                        sats_input: 0,
+                        sats_output: 0,
+                        delta_sats: 0,
+                        delta_tokens: -(burn_atoms as i64),
+                        token_input: burn_atoms,
+                        token_output: 0,
+                        does_burn_slp: true,
+                    };
+                    json_txs.push(JsonTx {
+                        tx_hash: to_be_hex(&tx.txid),
+                        block_height,
+                        timestamp,
+                        is_coinbase: tx.is_coinbase,
+                        size: tx.size as i32,
+                        num_inputs: tx.inputs.len() as u32,
+                        num_outputs: tx.outputs.len() as u32,
+                        stats: burn_stats,
+                        token_id: Some(tid.clone()),
+                        token: json_token.clone(),
+                        is_final: tx.is_final,
+                    });
+                } else {
+                    let stats = JsonTxStats {
+                        sats_input: 0,
+                        sats_output: 0,
+                        delta_sats: 0,
+                        delta_tokens: (entry_output - entry_input) as i64,
+                        token_input: entry_input,
+                        token_output: entry_output,
+                        does_burn_slp: does_burn,
+                    };
+
+                    json_txs.push(JsonTx {
+                        tx_hash: to_be_hex(&tx.txid),
+                        block_height,
+                        timestamp,
+                        is_coinbase: tx.is_coinbase,
+                        size: tx.size as i32,
+                        num_inputs: tx.inputs.len() as u32,
+                        num_outputs: tx.outputs.len() as u32,
+                        stats,
+                        token_id: Some(tid.clone()),
+                        token: json_token.clone(),
+                        is_final: tx.is_final,
+                    });
+                }
+            }
+        }
+
+        Ok(JsonTxsResponse { data: json_txs })
+    }
 }
 
 impl Server {
@@ -398,42 +558,8 @@ impl Server {
             _ => "Unknown",
         };
 
-        let (token_type_str, specification) = match token_type {
-            token_type::TokenType::Slp(slp) => {
-                let slp_token_type = SlpTokenType::from_i32(slp)
-                    .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
-                match slp_token_type {
-                    SlpTokenType::Fungible => (
-                        "SLP Type 1",
-                        "https://github.com/simpleledger/\
-                            slp-specifications/blob/master/\
-                            slp-token-type-1.md",
-                    ),
-                    SlpTokenType::MintVault => (
-                        "SLP Type 2",
-                        "https://github.com/badger-cash/\
-                            slp-specifications/blob/master/\
-                            slp-token-type-2.md",
-                    ),
-                    SlpTokenType::Nft1Group => (
-                        "SLP NFT-1 Group",
-                        "https://github.com/simpleledger/\
-                            slp-specifications/blob/master/slp-nft-1.md",
-                    ),
-                    SlpTokenType::Nft1Child => (
-                        "SLP NFT-1 Child",
-                        "https://github.com/simpleledger/\
-                            slp-specifications/blob/master/slp-nft-1.md",
-                    ),
-                    _ => ("Unknown", "Unknown"),
-                }
-            }
-            token_type::TokenType::Alp(_) => (
-                "ALP",
-                "https://ecashbuilders.notion.site/\
-                    ALP-a862a4130877448387373b9e6a93dd97",
-            ),
-        };
+        let (token_type_str, specification) =
+            token_type_str_and_spec(token_type)?;
 
         let token_section_title = format!(
             "Token Details ({}{} {} Transaction)",
@@ -474,6 +600,47 @@ impl Server {
             specification,
             token_type: token_type_str,
         })
+    }
+}
+
+fn token_type_str_and_spec(
+    token_type: token_type::TokenType,
+) -> Result<(&'static str, &'static str)> {
+    match token_type {
+        token_type::TokenType::Slp(slp) => {
+            let slp_token_type = SlpTokenType::from_i32(slp)
+                .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
+            match slp_token_type {
+                SlpTokenType::Fungible => Ok((
+                    "SLP Type 1",
+                    "https://github.com/simpleledger/\
+                        slp-specifications/blob/master/\
+                        slp-token-type-1.md",
+                )),
+                SlpTokenType::MintVault => Ok((
+                    "SLP Type 2",
+                    "https://github.com/badger-cash/\
+                        slp-specifications/blob/master/\
+                        slp-token-type-2.md",
+                )),
+                SlpTokenType::Nft1Group => Ok((
+                    "SLP NFT-1 Group",
+                    "https://github.com/simpleledger/\
+                        slp-specifications/blob/master/slp-nft-1.md",
+                )),
+                SlpTokenType::Nft1Child => Ok((
+                    "SLP NFT-1 Child",
+                    "https://github.com/simpleledger/\
+                        slp-specifications/blob/master/slp-nft-1.md",
+                )),
+                _ => Ok(("Unknown", "Unknown")),
+            }
+        }
+        token_type::TokenType::Alp(_) => Ok((
+            "ALP",
+            "https://ecashbuilders.notion.site/\
+                ALP-a862a4130877448387373b9e6a93dd97",
+        )),
     }
 }
 
@@ -731,5 +898,35 @@ impl Server {
         let json_txs = mempool_txs_to_json(mempool_txs, &json_tokens)?;
 
         Ok(JsonTxsResponse { data: json_txs })
+    }
+
+    pub async fn token(&self, id: &str) -> Result<String> {
+        let token_id = Sha256d::from_be_hex(id)?;
+        let token = self.chronik.token(&token_id).await?;
+
+        let token_type_inner = token
+            .token_type
+            .clone()
+            .ok_or_else(|| eyre!("Malformed token.token_type"))?
+            .token_type
+            .ok_or_else(|| eyre!("Malformed token.token_type"))?;
+        let (token_type_str, specification) =
+            token_type_str_and_spec(token_type_inner)?;
+
+        let tx_history_count =
+            self.chronik.token_history(&token.token_id, 0, 1).await?;
+        let num_txs = tx_history_count.num_pages as u32;
+
+        let token_template = TokenTemplate {
+            token,
+            token_type_str: token_type_str.to_string(),
+            specification: specification.to_string(),
+            token_icon_url: self.token_icon_url,
+            num_txs,
+            network_selector: self.network_selector,
+            hashes: *FileHashes::get()?,
+        };
+
+        Ok(token_template.render().unwrap())
     }
 }

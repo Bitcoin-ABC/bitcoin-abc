@@ -43,7 +43,6 @@ const renderDifficulty = difficulty => {
         return (estHashrate / 1e18).toFixed(2) + ' EH/s';
     }
 };
-const renderTimestamp = timestamp => moment(timestamp * 1000).format('ll, LTS');
 
 const updateLoading = status => {
     if (status) {
@@ -148,7 +147,7 @@ const dataTable = () => {
             {
                 data: 'hash',
                 orderable: false,
-                className: 'hash',
+                className: 'hex',
                 render: renderHash,
             },
             {

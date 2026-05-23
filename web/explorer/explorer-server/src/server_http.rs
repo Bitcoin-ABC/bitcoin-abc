@@ -126,6 +126,26 @@ pub async fn data_mempool(
     Ok(Json(server.data_mempool().await.map_err(to_server_error)?))
 }
 
+pub async fn token(
+    Path(id): Path<String>,
+    server: Extension<Arc<Server>>,
+) -> Result<Html<String>, ServerError> {
+    Ok(Html(server.token(&id).await.map_err(to_server_error)?))
+}
+
+pub async fn data_token_txs(
+    Path(id): Path<String>,
+    Query(query): Query<HashMap<String, String>>,
+    server: Extension<Arc<Server>>,
+) -> Result<Json<JsonTxsResponse>, ServerError> {
+    Ok(Json(
+        server
+            .data_token_txs(&id, query)
+            .await
+            .map_err(to_server_error)?,
+    ))
+}
+
 pub fn serve_files(path: &std::path::Path) -> MethodRouter {
     get_service(ServeDir::new(path))
         .handle_error(|_| ready(StatusCode::INTERNAL_SERVER_ERROR))

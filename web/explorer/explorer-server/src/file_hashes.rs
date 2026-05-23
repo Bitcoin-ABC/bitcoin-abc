@@ -68,6 +68,7 @@ pub struct FileHashes {
     pub js_timestamps: &'static str,
     pub js_address: &'static str,
     pub js_mempool_txs: &'static str,
+    pub js_token: &'static str,
 }
 
 static FILE_HASHES: LazyLock<Result<FileHashes, String>> =
@@ -107,6 +108,7 @@ impl FileHashes {
             Box::leak(get_file_hash("address.js")?.into_boxed_str());
         let js_mempool_txs =
             Box::leak(get_file_hash("mempoolTxs.js")?.into_boxed_str());
+        let js_token = Box::leak(get_file_hash("token.js")?.into_boxed_str());
 
         Ok(FileHashes {
             css_index,
@@ -117,6 +119,7 @@ impl FileHashes {
             js_timestamps,
             js_address,
             js_mempool_txs,
+            js_token,
         })
     }
 }

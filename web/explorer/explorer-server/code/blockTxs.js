@@ -54,7 +54,7 @@ const datatable = () => {
             {
                 data: { txHash: 'txHash', blockHeight: 'blockHeight' },
                 title: 'ID',
-                className: 'hash',
+                className: 'hex',
                 render: renderTxId,
                 orderable: false,
             },

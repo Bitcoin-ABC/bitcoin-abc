@@ -205,53 +205,6 @@ function loadTokenTable(tokenId) {
     }
 }
 
-const renderAge = timestamp => {
-    if (timestamp == 0) {
-        return '<div class="ui gray horizontal label">Mempool</div>';
-    }
-    return moment(timestamp * 1000).fromNow();
-};
-
-const renderTimestamp = timestamp => {
-    if (timestamp == 0) {
-        return '<div class="ui gray horizontal label">Mempool</div>';
-    }
-    return moment(timestamp * 1000).format('ll, LTS');
-};
-
-const renderTxID = data => {
-    if (data.blockHeight === 0) {
-        return (
-            '<a style="color:#CD0BC3" href="/tx/' +
-            data.txHash +
-            '">' +
-            renderTxHash(data.txHash) +
-            '</a>'
-        );
-    } else {
-        return (
-            '<a href="/tx/' +
-            data.txHash +
-            '">' +
-            renderTxHash(data.txHash) +
-            '</a>'
-        );
-    }
-};
-
-const renderBlockHeight = (_value, _type, row) => {
-    if (row.blockHeight === null) {
-        return '<div class="ui red horizontal label">Unconfirmed</div>';
-    }
-    return (
-        '<a href="/block-height/' +
-        row.blockHeight +
-        '">' +
-        renderInteger(row.blockHeight) +
-        '</a>'
-    );
-};
-
 const renderAmountXEC = (_value, _type, row) => {
     if (row.stats.deltaSats < 0) {
         return (
@@ -337,7 +290,7 @@ const datatable = () => {
                 name: 'age',
                 data: 'timestamp',
                 title: 'Age',
-                render: renderAge,
+                render: renderTxAge,
                 orderSequence: ['desc', 'asc'],
                 // Use timestamp to sort first, then this column. Since the data
                 // will be the same there is no change in the sort whatsoever,
@@ -356,7 +309,7 @@ const datatable = () => {
                 name: 'datetime',
                 data: 'timestamp',
                 title: 'Date (UTC' + tzOffset + ')',
-                render: renderTimestamp,
+                render: renderTxTimestamp,
                 orderSequence: ['desc', 'asc'],
                 // See the above comment about the column sorting
                 orderData: [0, 2],
@@ -365,8 +318,8 @@ const datatable = () => {
                 name: 'txHash',
                 data: { txHash: 'txHash', blockHeight: 'blockHeight' },
                 title: 'Transaction ID',
-                className: 'hash',
-                render: renderTxID,
+                className: 'hex',
+                render: renderTxId,
                 orderable: false,
             },
             {

@@ -250,6 +250,19 @@ impl ChronikClient {
         self._get(&format!("/token/{}", token_id.hex_be())).await
     }
 
+    pub async fn token_history(
+        &self,
+        token_id: &str,
+        page: usize,
+        page_size: usize,
+    ) -> Result<proto::TxHistoryPage> {
+        self._get(&format!(
+            "/token-id/{}/history?page={}&page_size={}",
+            token_id, page, page_size,
+        ))
+        .await
+    }
+
     pub fn script<'payload, 'client>(
         &'client self,
         script_type: ScriptType,

@@ -130,6 +130,33 @@ const renderFinal = isFinal => {
     return 'No';
 };
 
+const renderTxAge = timestamp => {
+    if (timestamp == 0) {
+        return '<div class="ui gray horizontal label">Mempool</div>';
+    }
+    return moment(timestamp * 1000).fromNow();
+};
+
+const renderTxTimestamp = timestamp => {
+    if (timestamp == 0) {
+        return '<div class="ui gray horizontal label">Mempool</div>';
+    }
+    return moment(timestamp * 1000).format('ll, LTS');
+};
+
+const renderBlockHeight = (_value, _type, row) => {
+    if (row.blockHeight === null) {
+        return '<div class="ui red horizontal label">Unconfirmed</div>';
+    }
+    return (
+        '<a href="/block-height/' +
+        row.blockHeight +
+        '">' +
+        renderInteger(row.blockHeight) +
+        '</a>'
+    );
+};
+
 var regHex32 = /^[0-9a-fA-F]{64}$/;
 function searchBarChange() {
     if (event.key == 'Enter') {
