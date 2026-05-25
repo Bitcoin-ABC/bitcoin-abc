@@ -45,6 +45,12 @@ const recaptchaEnterprise =
           }
         : null;
 
+if (!process.env.RECAPTCHA_V3_SK) {
+    console.warn(
+        'RECAPTCHA_V3_SK is not set; token reward claims will fail reCAPTCHA verification',
+    );
+}
+
 // Start the express app to expose API endpoints
 const server = startExpressServer(
     config.port,

@@ -12,9 +12,12 @@ export const TOKEN_REWARD_RECAPTCHA_ACTION = 'claim_token_reward';
 export const RECAPTCHA_V3_ANDROID_CLIENT = 'android';
 
 export interface RecaptchaVerifyResponse {
-    success: boolean;
-    score?: number;
-    action?: string;
+    'success': boolean;
+    'score'?: number;
+    'action'?: string;
+    'hostname'?: string;
+    'challenge_ts'?: string;
+    'error-codes'?: string[];
 }
 
 export interface RecaptchaEnterpriseSettings {
@@ -118,13 +121,30 @@ export const validateRecaptchaV3 = (
     ) {
         return 'Recaptcha action mismatch. Are you a bot?';
     }
-    if (
-        typeof verification.score !== 'number' ||
-        verification.score < minScore
-    ) {
+    if (typeof verification.score !== 'number') {
+        return 'Recaptcha score too low. Are you a bot?';
+    }
+    if (verification.score < minScore) {
         return 'Recaptcha score too low. Are you a bot?';
     }
     return null;
+};
+
+/** Log Google siteverify fields to help diagnose v3 claim failures. */
+export const logRecaptchaV3Failure = (
+    verification: RecaptchaVerifyResponse,
+    minScore: number,
+    reason: string,
+): void => {
+    console.error('Recaptcha v3 check failed.', {
+        reason,
+        minScore,
+        success: verification.success,
+        score: verification.score,
+        action: verification.action,
+        hostname: verification.hostname,
+        errorCodes: verification['error-codes'],
+    });
 };
 
 export const verifyTokenRewardRecaptcha = async (
@@ -137,6 +157,9 @@ export const verifyTokenRewardRecaptcha = async (
 ): Promise<string | null> => {
     if (recaptchaClient === RECAPTCHA_V3_ANDROID_CLIENT) {
         if (recaptchaEnterprise === null) {
+            console.error('Recaptcha v3 check failed.', {
+                reason: 'Android reCAPTCHA verification is not configured on this server',
+            });
             return 'Android reCAPTCHA verification is not configured on this server';
         }
         const verification = await verifyRecaptchaEnterpriseToken(
@@ -145,13 +168,21 @@ export const verifyTokenRewardRecaptcha = async (
             TOKEN_REWARD_RECAPTCHA_ACTION,
             requestMeta,
         );
-        return validateRecaptchaV3(
+        const error = validateRecaptchaV3(
             verification,
             recaptchaV3MinScore,
             TOKEN_REWARD_RECAPTCHA_ACTION,
         );
+        if (error !== null) {
+            logRecaptchaV3Failure(verification, recaptchaV3MinScore, error);
+        }
+        return error;
     }
 
     const verification = await verifyRecaptchaToken(recaptchaV3Secret, token);
-    return validateRecaptchaV3(verification, recaptchaV3MinScore);
+    const error = validateRecaptchaV3(verification, recaptchaV3MinScore);
+    if (error !== null) {
+        logRecaptchaV3Failure(verification, recaptchaV3MinScore, error);
+    }
+    return error;
 };

@@ -204,7 +204,6 @@ export const startExpressServer = (
                     },
                 );
                 if (recaptchaError !== null) {
-                    console.error('Recaptcha v3 check failed.');
                     return res.status(500).json({
                         address,
                         error: recaptchaError,
