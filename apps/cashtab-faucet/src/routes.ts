@@ -54,6 +54,7 @@ export const startExpressServer = (
     recaptchaV2Secret: string,
     recaptchaV3Secret: string,
     recaptchaV3MinScore: number,
+    recaptchaV3AndroidMinScore: number,
     wallet: Wallet,
     recaptchaEnterprise: RecaptchaEnterpriseSettings | null = null,
 ): http.Server => {
@@ -194,6 +195,7 @@ export const startExpressServer = (
                     recaptchaClient,
                     recaptchaV3Secret,
                     recaptchaV3MinScore,
+                    recaptchaV3AndroidMinScore,
                     recaptchaEnterprise,
                     {
                         userIpAddress: getRequestIp(req),

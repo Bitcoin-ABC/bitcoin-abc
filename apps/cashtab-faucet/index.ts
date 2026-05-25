@@ -22,17 +22,29 @@ if (typeof mnemonic !== 'string') {
 // Init wallet
 const wallet = Wallet.fromMnemonic(mnemonic, chronik);
 
-const recaptchaV3MinScore = Number.parseFloat(
-    process.env.RECAPTCHA_V3_MIN_SCORE ?? '0.9',
+const parseRecaptchaMinScore = (
+    value: string | undefined,
+    defaultValue: string,
+    envName: string,
+): number => {
+    const score = Number.parseFloat(value ?? defaultValue);
+    if (Number.isNaN(score) || score < 0 || score > 1) {
+        console.error(`${envName} must be a number between 0 and 1`);
+        process.exit(1);
+    }
+    return score;
+};
+
+const recaptchaV3MinScore = parseRecaptchaMinScore(
+    process.env.RECAPTCHA_V3_MIN_SCORE,
+    '0.9',
+    'RECAPTCHA_V3_MIN_SCORE',
 );
-if (
-    Number.isNaN(recaptchaV3MinScore) ||
-    recaptchaV3MinScore < 0 ||
-    recaptchaV3MinScore > 1
-) {
-    console.error('RECAPTCHA_V3_MIN_SCORE must be a number between 0 and 1');
-    process.exit(1);
-}
+const recaptchaV3AndroidMinScore = parseRecaptchaMinScore(
+    process.env.RECAPTCHA_V3_ANDROID_MIN_SCORE,
+    '0.1',
+    'RECAPTCHA_V3_ANDROID_MIN_SCORE',
+);
 
 const recaptchaEnterprise =
     process.env.RECAPTCHA_PROJECT_ID &&
@@ -60,6 +72,7 @@ const server = startExpressServer(
     process.env.RECAPTCHA_SK || '',
     process.env.RECAPTCHA_V3_SK || '',
     recaptchaV3MinScore,
+    recaptchaV3AndroidMinScore,
     wallet,
     recaptchaEnterprise,
 );

@@ -171,6 +171,7 @@ describe('routes.js', function () {
             'goodrecaptcha',
             'goodrecaptcha-v3',
             0.9,
+            0.1,
             mockServerWallet,
             recaptchaEnterprise,
         );
@@ -407,7 +408,7 @@ describe('routes.js', function () {
                     action: 'claim_token_reward',
                 },
                 riskAnalysis: {
-                    score: 0.1,
+                    score: 0.05,
                 },
             });
 

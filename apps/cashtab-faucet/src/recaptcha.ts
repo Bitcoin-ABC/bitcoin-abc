@@ -152,6 +152,7 @@ export const verifyTokenRewardRecaptcha = async (
     recaptchaClient: string | undefined,
     recaptchaV3Secret: string,
     recaptchaV3MinScore: number,
+    recaptchaV3AndroidMinScore: number,
     recaptchaEnterprise: RecaptchaEnterpriseSettings | null,
     requestMeta: RecaptchaRequestMeta = {},
 ): Promise<string | null> => {
@@ -170,11 +171,15 @@ export const verifyTokenRewardRecaptcha = async (
         );
         const error = validateRecaptchaV3(
             verification,
-            recaptchaV3MinScore,
+            recaptchaV3AndroidMinScore,
             TOKEN_REWARD_RECAPTCHA_ACTION,
         );
         if (error !== null) {
-            logRecaptchaV3Failure(verification, recaptchaV3MinScore, error);
+            logRecaptchaV3Failure(
+                verification,
+                recaptchaV3AndroidMinScore,
+                error,
+            );
         }
         return error;
     }
