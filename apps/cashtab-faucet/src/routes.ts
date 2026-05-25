@@ -190,7 +190,7 @@ export const startExpressServer = (
                         ? req.body.recaptchaClient
                         : undefined;
                 const userAgent = req.headers['user-agent'];
-                const recaptchaError = await verifyTokenRewardRecaptcha(
+                const recaptchaResult = await verifyTokenRewardRecaptcha(
                     req.body.token,
                     recaptchaClient,
                     recaptchaV3Secret,
@@ -205,11 +205,16 @@ export const startExpressServer = (
                                 : undefined,
                     },
                 );
-                if (recaptchaError !== null) {
+                if (recaptchaResult.error !== null) {
                     return res.status(500).json({
                         address,
-                        error: recaptchaError,
+                        error: recaptchaResult.error,
                     });
+                }
+                if (typeof recaptchaResult.score === 'number') {
+                    console.log(
+                        `Token reward recaptcha score: ${recaptchaResult.score} (${recaptchaClient ?? 'web'})`,
+                    );
                 }
             } catch (err) {
                 console.error('Error verifying recaptcha-response', err);
