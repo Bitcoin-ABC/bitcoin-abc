@@ -638,8 +638,8 @@ fn token_type_str_and_spec(
         }
         token_type::TokenType::Alp(_) => Ok((
             "ALP",
-            "https://ecashbuilders.notion.site/\
-                ALP-a862a4130877448387373b9e6a93dd97",
+            "https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/\
+                standards/alp.md",
         )),
     }
 }
