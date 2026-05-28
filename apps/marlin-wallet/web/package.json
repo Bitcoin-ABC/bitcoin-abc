@@ -45,6 +45,7 @@
         "sinon": "^21.0.0",
         "start-server-and-test": "^3.0.0",
         "style-loader": "^4.0.0",
+        "tmp": "~0.2.6",
         "ts-loader": "^9.4.4",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
