@@ -214,11 +214,21 @@ class FullBlockTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason="bad-blk-length", timeout=360
         )
 
+        # Reject way oversized blocks that don't pass the header check
+        overrsize = self.excessive_block_size + 256 * 1024 + 1
+        block(19, spend=out[17], block_size=overrsize)
+        with node.assert_debug_log(
+            expected_msgs=[f"Header error: Size too large (block, {overrsize} bytes)"]
+        ):
+            peer.send_blocks_and_test(
+                [self.tip], node, success=False, timeout=360, expect_disconnect=True
+            )
+
         # Disconnect all the peers now so our node doesn't try to relay the next
         # large block, which could cause a timeout during the test shutdown.
         node.disconnect_p2ps()
 
-        # Rewind bad block.
+        # Rewind bad blocks.
         self.tip = self.blocks[17]
 
         # Submit a very large block via RPC

@@ -145,7 +145,9 @@ bool CMessageHeader::IsOversized(const Config &config) const {
     // Scale the maximum accepted size with the block size for messages with
     // block content
     if (NetMsgType::IsBlockLike(GetMessageType())) {
-        return nMessageSize > 2 * config.GetMaxBlockSize();
+        // Keep some headroom (256 KiB) so we can detect bugs where a node is
+        // producing a slightly oversized block.
+        return nMessageSize > config.GetMaxBlockSize() + 256 * 1024;
     }
 
     return nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH;

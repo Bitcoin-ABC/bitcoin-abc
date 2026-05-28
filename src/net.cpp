@@ -1367,8 +1367,16 @@ Sock::EventsPerSock CConnman::GenerateWaitSockets(Span<CNode *const> nodes) {
         events_per_sock.emplace(hListenSocket.sock, Sock::Events{Sock::RECV});
     }
 
+    int inbound_candidates{0};
     for (CNode *pnode : nodes) {
-        bool select_recv = !pnode->fPauseRecv;
+        inbound_candidates += pnode->IsInboundConn();
+
+        // Stop receiving if the peer is paused, or if we have enough inflight
+        // data to process already in wich case we limit to outbounds and up to
+        // 3 inbounds.
+        bool select_recv = !pnode->fPauseRecv &&
+                           (!inflight_throttle || !pnode->IsInboundConn() ||
+                            inbound_candidates <= 3);
         bool select_send =
             WITH_LOCK(pnode->cs_vSend, return !pnode->vSendMsg.empty());
         if (!select_recv && !select_send) {
@@ -1417,6 +1425,7 @@ void CConnman::SocketHandler() {
 void CConnman::SocketHandlerConnected(
     const std::vector<CNode *> &nodes,
     const Sock::EventsPerSock &events_per_sock) {
+    uint64_t nTotalInflightBytes{0};
     for (CNode *pnode : nodes) {
         if (interruptNet) {
             return;
@@ -1481,6 +1490,7 @@ void CConnman::SocketHandlerConnected(
                     pnode->CloseSocketDisconnect();
                 }
                 RecordBytesRecv(nBytes);
+                nTotalInflightBytes += pnode->nInflightBytes;
                 if (notify) {
                     pnode->MarkReceivedMsgsForProcessing();
                     WakeMessageHandler();
@@ -1510,6 +1520,16 @@ void CConnman::SocketHandlerConnected(
         if (InactivityCheck(*pnode)) {
             pnode->fDisconnect = true;
         }
+    }
+
+    const size_t max_inflight_bytes = DEFAULT_MAXINFLIGHTBUFFER * 1000;
+
+    bool prev_inflight_throttle = inflight_throttle;
+    inflight_throttle = nTotalInflightBytes > max_inflight_bytes;
+    if (prev_inflight_throttle != inflight_throttle) {
+        LogPrintf("Inflight throttling %s (%d/%d)\n",
+                  inflight_throttle ? "enabled" : "disabled",
+                  nTotalInflightBytes, max_inflight_bytes);
     }
 }
 

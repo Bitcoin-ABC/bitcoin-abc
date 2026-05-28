@@ -372,8 +372,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
             self.nodes[0].disconnect_p2ps()
 
         # Test default
-        test_oversized_block_msg(DEFAULT_MAX_BLOCK_SIZE * 2 + 1)
-        self.test_not_oversized_msg(b"block", DEFAULT_MAX_BLOCK_SIZE * 2)
+        test_oversized_block_msg(DEFAULT_MAX_BLOCK_SIZE + 256 * 1024 + 1)
+        self.test_not_oversized_msg(b"block", DEFAULT_MAX_BLOCK_SIZE + 256 * 1024)
 
         # Test largest block that is smaller than max protocol message size
         size = int(MAX_PROTOCOL_MESSAGE_LENGTH / 2 - 1)
@@ -383,10 +383,10 @@ class InvalidMessagesTest(BitcoinTestFramework):
             # blockmaxsize must be lowered for the node to start
             + [f"-excessiveblocksize={size}", f"-blockmaxsize={size}"],
         )
-        test_oversized_block_msg(size * 2 + 1)
-        self.test_not_oversized_msg(b"block", size * 2)
+        test_oversized_block_msg(size + 256 * 1024 + 1)
+        self.test_not_oversized_msg(b"block", size + 256 * 1024)
 
-        # Test barely larger than double minimum block size
+        # Test barely larger than minimum block size
         size = int(LEGACY_MAX_BLOCK_SIZE + 1)
         self.restart_node(
             0,
@@ -394,8 +394,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
             # blockmaxsize must be lowered for the node to start
             + [f"-excessiveblocksize={size}", f"-blockmaxsize={size}"],
         )
-        test_oversized_block_msg(size * 2 + 1)
-        self.test_not_oversized_msg(b"block", size * 2)
+        test_oversized_block_msg(size + 256 * 1024 + 1)
+        self.test_not_oversized_msg(b"block", size + 256 * 1024)
 
         self.restart_node(0)
 

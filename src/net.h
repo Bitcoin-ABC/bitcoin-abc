@@ -107,6 +107,7 @@ static const bool DEFAULT_DNSSEED = true;
 static const bool DEFAULT_FIXEDSEEDS = true;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
+static const size_t DEFAULT_MAXINFLIGHTBUFFER = 1 * 1000 * 1000;
 
 struct AddedNodeInfo {
     std::string strAddedNode;
@@ -1415,6 +1416,8 @@ private:
      * and manual peers with default permissions.
      */
     bool whitelist_relay;
+
+    std::atomic_bool inflight_throttle{false};
 
     /**
      * RAII helper to atomically create a copy of `m_nodes` and add a reference
