@@ -6,7 +6,11 @@ import config from './config';
 import secrets from './secrets';
 import 'dotenv/config';
 import { startExpressServer } from './src/routes';
-import { initializeTelegramBot } from './src/telegram';
+import {
+    initializeTelegramBot,
+    prepareTelegramBotForPolling,
+    startTelegramBotPolling,
+} from './src/telegram';
 import fs from 'fs';
 import { MongoClient } from 'mongodb';
 import { initializeDb } from './src/db';
@@ -34,8 +38,8 @@ async function main(): Promise<void> {
         );
 
         // Start polling
-        telegramBot.start();
-        console.log('Telegram bot started polling');
+        await prepareTelegramBotForPolling(telegramBot);
+        startTelegramBotPolling(telegramBot);
 
         // Start the express app to expose API endpoints
         const server = startExpressServer(config.port, db, telegramBot, fs);

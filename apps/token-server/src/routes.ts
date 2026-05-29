@@ -220,7 +220,12 @@ export const startExpressServer = (
                     telegramBot,
                     secrets.prod.channelId,
                     req.body,
-                );
+                ).catch(err => {
+                    console.error(
+                        `Failed to send Telegram alert for new token icon ${tokenId}:`,
+                        err,
+                    );
+                });
                 return res.status(200).json({
                     status: 'ok',
                 });

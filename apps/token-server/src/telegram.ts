@@ -2,12 +2,33 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Bot, GrammyError, HttpError, InputFile } from 'grammy';
+import { Bot, Context, GrammyError, HttpError, InputFile } from 'grammy';
 import config from '../config';
 import { Db } from 'mongodb';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
 import { existsSync, renameSync } from 'fs';
 import { IFs } from 'memfs';
+
+const logTelegramError = (context: string, err: unknown): void => {
+    console.error(`Telegram bot error (${context}):`, err);
+    if (err instanceof GrammyError) {
+        console.error('Telegram API error:', err.description);
+    } else if (err instanceof HttpError) {
+        console.error('Telegram HTTP error:', err);
+    }
+};
+
+const safeAnswerCallbackQuery = async (
+    ctx: Context,
+    context: string,
+    options?: { text?: string; show_alert?: boolean },
+): Promise<void> => {
+    try {
+        await ctx.answerCallbackQuery(options);
+    } catch (err) {
+        logTelegramError(`answerCallbackQuery (${context})`, err);
+    }
+};
 
 /**
  * telegram.ts
@@ -54,163 +75,231 @@ export const initializeTelegramBot = (
     // Install the error handler first
     telegramBot.catch(err => {
         const ctx = err.ctx;
-        console.error(`Error while handling update ${ctx.update.update_id}:`);
-        const e = err.error;
-        if (e instanceof GrammyError) {
-            console.error('Error in request:', e.description);
-        } else if (e instanceof HttpError) {
-            console.error('Could not contact Telegram:', e);
-        } else {
-            console.error('Unknown error:', e);
-        }
+        console.error(
+            `Error while handling Telegram update ${ctx.update.update_id}:`,
+            err.error,
+        );
+        logTelegramError(`update ${ctx.update.update_id}`, err.error);
     });
 
     // Add event handler for admin actions
     telegramBot.on('callback_query:data', async ctx => {
         const callbackQuery = ctx.callbackQuery;
-        console.log(JSON.stringify(callbackQuery, null, 2));
-        // Get the message ID so the bot can reply to it in the channel
         const msgId = callbackQuery.message?.message_id;
-
-        // Get the tokenId
         const tokenId = callbackQuery.data;
+        const approvingUser = callbackQuery.from.id;
+
+        console.log(
+            `Telegram callback_query ${callbackQuery.id} from user ${approvingUser} for tokenId ${tokenId ?? '(missing)'}`,
+        );
 
         if (!tokenId || typeof tokenId !== 'string') {
+            console.error(
+                `Invalid callback_query.data from user ${approvingUser}:`,
+                callbackQuery.data,
+            );
+            await safeAnswerCallbackQuery(ctx, 'invalid callback data', {
+                text: 'Invalid callback data',
+                show_alert: true,
+            });
             return;
         }
 
-        // Determine the purpose of this callback
         const isRemovalRequest = fs.existsSync(
             `${config.imageDir}/${
                 config.iconSizes[config.iconSizes.length - 1]
             }/${tokenId}.png`,
         );
 
-        const approvingUser = callbackQuery.from.id;
         if (!approvedMods.includes(approvingUser)) {
-            console.log(
-                `Request to ${
-                    isRemovalRequest ? `delete` : `restore`
-                } tokenIcon for ${tokenId} came from unauthorized telegram user ${approvingUser}, ignoring.`,
+            console.error(
+                `Unauthorized token icon ${
+                    isRemovalRequest ? 'deny' : 'restore'
+                } request for ${tokenId} from telegram user ${approvingUser}`,
             );
+            await safeAnswerCallbackQuery(ctx, 'unauthorized user', {
+                text: 'You are not authorized to moderate token icons.',
+                show_alert: true,
+            });
             return;
         }
 
-        // Mod taking this action
         const addedBy =
             typeof callbackQuery.from.username !== 'undefined'
                 ? callbackQuery.from.username
                 : approvingUser.toString();
 
-        if (isRemovalRequest) {
-            // isRemovalRequest
-            // We remove token icons
-            // We add this tokenId to the blacklist
-
-            // Build blacklist metadata
-            const blacklistMetadata = {
-                reason: 'report from icon archon',
-                timestamp: Math.round(new Date().getTime() / 1000),
-                addedBy,
-            };
-
-            // Add this tokenId to blacklist
-            try {
-                await insertBlacklistEntry(db, tokenId, blacklistMetadata);
-                console.log(`${tokenId} added to blacklist by ${addedBy}`);
-            } catch (err) {
-                console.error(`Error adding ${tokenId} to blacklist`, err);
-            }
-
-            // move token icons of all sizes to rejected dir
-            for (const size of config.iconSizes) {
-                fs.renameSync(
-                    `${config.imageDir}/${size}/${tokenId}.png`,
-                    `${config.rejectedDir}/${size}/${tokenId}.png`,
-                );
-            }
-        } else {
-            // !isRemovalRequest
-            // We restore token icons
-            // We remove this tokenId from the blacklist
-
-            // Remove this tokenId from blacklist
-            try {
-                await removeBlacklistEntry(db, tokenId);
-                console.log(`${tokenId} removed from blacklist by ${addedBy}`);
-            } catch (err) {
-                console.error(`Error removing ${tokenId} from blacklist`, err);
-            }
-
-            for (const size of config.iconSizes) {
-                fs.renameSync(
-                    `${config.rejectedDir}/${size}/${tokenId}.png`,
-                    `${config.imageDir}/${size}/${tokenId}.png`,
-                );
-            }
-        }
-
-        console.log(
-            `Token icon for "${tokenId}" ${
-                isRemovalRequest ? `rejected` : `restored`
-            } by mod.`,
-        );
-
-        // Reply to the original tg msg
-        // Get msgChannel from a chat
-        let msgChannel = callbackQuery.message?.chat?.id;
-        // If undefined, get msgChannel from a channel
-        if (typeof msgChannel === 'undefined') {
-            msgChannel = callbackQuery.message?.sender_chat?.id;
-        }
-        if (typeof msgId !== 'undefined' && typeof msgChannel !== 'undefined') {
-            if (isRemovalRequest) {
-                await telegramBot.api.sendMessage(
-                    msgChannel,
-                    'Icon denied and removed from server',
-                    {
-                        reply_to_message_id: msgId,
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    {
-                                        text: 'Changed your mind? Approve it.',
-                                        callback_data: tokenId,
-                                    },
-                                ],
-                            ],
-                        },
-                    },
-                );
-            } else {
-                await telegramBot.api.sendMessage(
-                    msgChannel,
-                    'Icon un-denied and restored to served endpoint',
-                    {
-                        reply_to_message_id: msgId,
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    {
-                                        text: 'Changed your mind? Reject it again.',
-                                        callback_data: tokenId,
-                                    },
-                                ],
-                            ],
-                        },
-                    },
-                );
-            }
-        }
-        await ctx.answerCallbackQuery({
-            text: `Token icons for ${tokenId} ${
-                isRemovalRequest ? `removed from ` : `restored to `
-            } server`,
+        // Answer immediately so Telegram does not expire the callback query
+        await safeAnswerCallbackQuery(ctx, 'acknowledged', {
+            text: `Processing token icon ${isRemovalRequest ? 'deny' : 'restore'} for ${tokenId}`,
         });
+
+        try {
+            if (isRemovalRequest) {
+                const blacklistMetadata = {
+                    reason: 'report from icon archon',
+                    timestamp: Math.round(new Date().getTime() / 1000),
+                    addedBy,
+                };
+
+                try {
+                    await insertBlacklistEntry(db, tokenId, blacklistMetadata);
+                    console.log(`${tokenId} added to blacklist by ${addedBy}`);
+                } catch (err) {
+                    console.error(`Error adding ${tokenId} to blacklist`, err);
+                }
+
+                for (const size of config.iconSizes) {
+                    const sourcePath = `${config.imageDir}/${size}/${tokenId}.png`;
+                    const destPath = `${config.rejectedDir}/${size}/${tokenId}.png`;
+                    try {
+                        fs.renameSync(sourcePath, destPath);
+                    } catch (err) {
+                        console.error(
+                            `Error moving token icon from ${sourcePath} to ${destPath}`,
+                            err,
+                        );
+                        throw err;
+                    }
+                }
+            } else {
+                try {
+                    await removeBlacklistEntry(db, tokenId);
+                    console.log(
+                        `${tokenId} removed from blacklist by ${addedBy}`,
+                    );
+                } catch (err) {
+                    console.error(
+                        `Error removing ${tokenId} from blacklist`,
+                        err,
+                    );
+                }
+
+                for (const size of config.iconSizes) {
+                    const sourcePath = `${config.rejectedDir}/${size}/${tokenId}.png`;
+                    const destPath = `${config.imageDir}/${size}/${tokenId}.png`;
+                    try {
+                        fs.renameSync(sourcePath, destPath);
+                    } catch (err) {
+                        console.error(
+                            `Error moving token icon from ${sourcePath} to ${destPath}`,
+                            err,
+                        );
+                        throw err;
+                    }
+                }
+            }
+
+            console.log(
+                `Token icon for "${tokenId}" ${
+                    isRemovalRequest ? `rejected` : `restored`
+                } by mod.`,
+            );
+
+            let msgChannel = callbackQuery.message?.chat?.id;
+            if (typeof msgChannel === 'undefined') {
+                msgChannel = callbackQuery.message?.sender_chat?.id;
+            }
+            if (
+                typeof msgId !== 'undefined' &&
+                typeof msgChannel !== 'undefined'
+            ) {
+                try {
+                    if (isRemovalRequest) {
+                        await telegramBot.api.sendMessage(
+                            msgChannel,
+                            'Icon denied and removed from server',
+                            {
+                                reply_to_message_id: msgId,
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [
+                                            {
+                                                text: 'Changed your mind? Approve it.',
+                                                callback_data: tokenId,
+                                            },
+                                        ],
+                                    ],
+                                },
+                            },
+                        );
+                    } else {
+                        await telegramBot.api.sendMessage(
+                            msgChannel,
+                            'Icon un-denied and restored to served endpoint',
+                            {
+                                reply_to_message_id: msgId,
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [
+                                            {
+                                                text: 'Changed your mind? Reject it again.',
+                                                callback_data: tokenId,
+                                            },
+                                        ],
+                                    ],
+                                },
+                            },
+                        );
+                    }
+                } catch (err) {
+                    logTelegramError(
+                        `sendMessage after token icon ${
+                            isRemovalRequest ? 'deny' : 'restore'
+                        } for ${tokenId}`,
+                        err,
+                    );
+                }
+            } else {
+                console.error(
+                    `Missing Telegram message context for token icon callback on ${tokenId} (msgId=${msgId}, msgChannel=${msgChannel})`,
+                );
+            }
+        } catch (err) {
+            logTelegramError(
+                `token icon ${isRemovalRequest ? 'deny' : 'restore'} for ${tokenId}`,
+                err,
+            );
+        }
     });
 
     // Return this bot with event handler
     return telegramBot;
+};
+
+/**
+ * Clear any webhook before long polling so updates are not split between consumers.
+ * @param bot initialized telegram bot
+ */
+export const prepareTelegramBotForPolling = async (bot: Bot): Promise<void> => {
+    try {
+        const webhookInfo = await bot.api.getWebhookInfo();
+        if (webhookInfo.url) {
+            console.warn(
+                `Telegram bot has webhook set to ${webhookInfo.url}; clearing it to use polling`,
+            );
+            await bot.api.deleteWebhook();
+        }
+    } catch (err) {
+        logTelegramError('getWebhookInfo on startup', err);
+        throw err;
+    }
+};
+
+/**
+ * Start long polling for Telegram updates.
+ * Logs startup failures from the polling loop.
+ * @param bot initialized telegram bot
+ */
+export const startTelegramBotPolling = (bot: Bot): void => {
+    bot.start({
+        allowed_updates: ['callback_query', 'message'],
+        onStart: botInfo => {
+            console.log(`Telegram bot @${botInfo.username} started polling`);
+        },
+    }).catch(err => {
+        logTelegramError('polling loop', err);
+    });
 };
 
 interface TokenInfo {
