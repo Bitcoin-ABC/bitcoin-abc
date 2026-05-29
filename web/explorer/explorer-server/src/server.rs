@@ -834,6 +834,9 @@ impl Server {
 
         let unknown_hash = Sha256d::from_be_hex(query)?;
 
+        if self.chronik.token(&unknown_hash).await.is_ok() {
+            return Ok(self.redirect(format!("/token/{}", query)));
+        }
         if self.chronik.tx(&unknown_hash).await.is_ok() {
             return Ok(self.redirect(format!("/tx/{}", query)));
         }
