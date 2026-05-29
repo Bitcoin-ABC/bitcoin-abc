@@ -14,7 +14,10 @@ use bitcoinsuite_chronik_client::test_runner::{
     handle_test_info, spin_child_process,
 };
 use bitcoinsuite_chronik_client::ChronikClient;
-use bitcoinsuite_core::tx::TxId;
+use bitcoinsuite_core::{
+    hash::{Hashed, Sha256d},
+    tx::TxId,
+};
 use serde_json::Value;
 use tokio::sync::Mutex;
 
@@ -34,9 +37,10 @@ struct TokenAlpIPC {
 
 async fn check_expected_history(
     chronik_url: String,
-    token_id: String,
+    id: String,
     mut expected_txids: Vec<String>,
 ) -> Result<(), abc_rust_error::Report> {
+    let token_id = Sha256d::from_be_hex(&id)?;
     let chronik = ChronikClient::new(vec![chronik_url])?;
     let history = chronik.token_history(&token_id, 0, 100).await?;
 

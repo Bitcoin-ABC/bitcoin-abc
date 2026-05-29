@@ -252,13 +252,15 @@ impl ChronikClient {
 
     pub async fn token_history(
         &self,
-        token_id: &str,
+        token_id: &Sha256d,
         page: usize,
         page_size: usize,
     ) -> Result<proto::TxHistoryPage> {
         self._get(&format!(
             "/token-id/{}/history?page={}&page_size={}",
-            token_id, page, page_size,
+            token_id.hex_be(),
+            page,
+            page_size,
         ))
         .await
     }

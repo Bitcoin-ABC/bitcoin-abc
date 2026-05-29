@@ -269,9 +269,11 @@ impl Server {
 
     pub async fn data_token_txs(
         &self,
-        token_id: &str,
+        id: &str,
         query: HashMap<String, String>,
     ) -> Result<JsonTxsResponse> {
+        let token_id = Sha256d::from_be_hex(id)?;
+
         let page: usize = query
             .get("page")
             .map(|s| s.as_str())
@@ -283,13 +285,12 @@ impl Server {
             .unwrap_or("200")
             .parse()?;
         let tx_history =
-            self.chronik.token_history(token_id, page, take).await?;
+            self.chronik.token_history(&token_id, page, take).await?;
 
-        let token_hash = Sha256d::from_be_hex(token_id)?;
-        let token = self.chronik.token(&token_hash).await?;
+        let token = self.chronik.token(&token_id).await?;
         let json_token =
-            tokens_to_json(&HashMap::from([(token_id.to_string(), token)]))?
-                .get(token_id)
+            tokens_to_json(&HashMap::from([(id.to_string(), token)]))?
+                .get(&id.to_string())
                 .cloned();
 
         let mut json_txs = Vec::new();
@@ -309,7 +310,7 @@ impl Server {
             for (entry_idx, token_entry) in tx.token_entries.iter().enumerate()
             {
                 let tid = token_entry.token_id.clone();
-                if tid != token_id {
+                if tid != id.to_string() {
                     continue;
                 }
 
@@ -917,7 +918,7 @@ impl Server {
             token_type_str_and_spec(token_type_inner)?;
 
         let tx_history_count =
-            self.chronik.token_history(&token.token_id, 0, 1).await?;
+            self.chronik.token_history(&token_id, 0, 1).await?;
         let num_txs = tx_history_count.num_pages as u32;
 
         let token_template = TokenTemplate {
