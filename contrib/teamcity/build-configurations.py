@@ -532,12 +532,12 @@ class UserBuild:
                 if match.is_file():
                     shutil.copy2(match, dest)
                 else:
-                    # FIXME after python => 3.8 is enforced,  avoid the
-                    # try/except block and use dirs_exist_ok=True instead.
-                    try:
-                        shutil.copytree(match, dest.joinpath(match.name))
-                    except FileExistsError:
-                        pass
+                    shutil.copytree(
+                        match,
+                        dest.joinpath(match.name),
+                        dirs_exist_ok=True,
+                        symlinks=True,
+                    )
 
         # Delete the .lock and .walletlock files, if any. This makes sure the CI
         # can close the artifact archive.
@@ -553,7 +553,14 @@ class UserBuild:
                 os.chmod(os.path.join(root, dirname), 0o777)
             for filename in files:
                 filepath = os.path.join(root, filename)
-                os.chmod(filepath, os.stat(filepath).st_mode | 0o666)
+                try:
+                    os.chmod(filepath, os.stat(filepath).st_mode | 0o666)
+                except OSError as e:
+                    # ELOOP - Too many levels of symbolic links
+                    # (some functional tests create recursive symlinks)
+                    if e.errno == 40:
+                        continue
+                    raise
 
     def print_line_to_logs(self, line):
         # Always print to the full log
