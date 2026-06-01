@@ -113,7 +113,14 @@ class NetTest(BitcoinTestFramework):
         for node, peer, field in product(
             range(self.num_nodes),
             range(2),
-            ["last_block", "last_transaction", "last_proof"],
+            [
+                "last_block",
+                "last_transaction",
+                "last_proof",
+                "lastsend",
+                "lastrecv",
+                "last_msg_start",
+            ],
         ):
             assert field in peer_info[node][peer].keys()
             if peer_info[node][peer][field] != 0:
@@ -146,7 +153,16 @@ class NetTest(BitcoinTestFramework):
         for node, peer, field in product(
             range(self.num_nodes),
             range(2),
-            ["startingheight", "synced_headers", "synced_blocks", "inflight"],
+            [
+                "startingheight",
+                "synced_headers",
+                "synced_blocks",
+                "inflight",
+                "bytessent",
+                "bytesrecv",
+                "bytesrecv",
+                "bytes_inflight",
+            ],
         ):
             assert field in peer_info[node][peer].keys()
 

@@ -133,6 +133,8 @@ static RPCHelpMan getpeerinfo() {
                      "The " + UNIX_EPOCH_TIME + " of the last send"},
                     {RPCResult::Type::NUM_TIME, "lastrecv",
                      "The " + UNIX_EPOCH_TIME + " of the last receive"},
+                    {RPCResult::Type::NUM_TIME, "last_msg_start",
+                     "The " + UNIX_EPOCH_TIME + " of the last message start"},
                     {RPCResult::Type::NUM_TIME, "last_transaction",
                      "The " + UNIX_EPOCH_TIME +
                          " of the last valid transaction received from this "
@@ -143,6 +145,8 @@ static RPCHelpMan getpeerinfo() {
                     {RPCResult::Type::NUM, "bytessent", "The total bytes sent"},
                     {RPCResult::Type::NUM, "bytesrecv",
                      "The total bytes received"},
+                    {RPCResult::Type::NUM, "bytes_inflight",
+                     "The current in-flight bytes from this peer"},
                     {RPCResult::Type::NUM_TIME, "conntime",
                      "The " + UNIX_EPOCH_TIME + " of the connection"},
                     {RPCResult::Type::NUM, "timeoffset",
@@ -248,6 +252,8 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("servicesnames", GetServicesNames(services));
                 obj.pushKV("lastsend", count_seconds(stats.m_last_send));
                 obj.pushKV("lastrecv", count_seconds(stats.m_last_recv));
+                obj.pushKV("last_msg_start",
+                           count_seconds(stats.m_last_msg_start));
                 obj.pushKV("last_transaction",
                            count_seconds(stats.m_last_tx_time));
                 if (node.avalanche) {
@@ -258,6 +264,7 @@ static RPCHelpMan getpeerinfo() {
                            count_seconds(stats.m_last_block_time));
                 obj.pushKV("bytessent", stats.nSendBytes);
                 obj.pushKV("bytesrecv", stats.nRecvBytes);
+                obj.pushKV("bytes_inflight", stats.nInflightBytes);
                 obj.pushKV("conntime", count_seconds(stats.m_connected));
                 obj.pushKV("timeoffset", stats.nTimeOffset);
                 if (stats.m_last_ping_time > 0us) {
