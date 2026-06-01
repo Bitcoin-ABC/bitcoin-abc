@@ -82,7 +82,7 @@ static const int MAX_BLOCK_RELAY_ONLY_CONNECTIONS = 2;
  * Maximum number of avalanche enabled outgoing connections by default.
  * Can be overridden with the -maxavalancheoutbound option.
  */
-static const int DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 300;
+static const int DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 150;
 /** Maximum number of feeler connections */
 static const int MAX_FEELER_CONNECTIONS = 1;
 /** -listen default */
@@ -92,7 +92,7 @@ static const bool DEFAULT_LISTEN = true;
  * This quantity might not be reachable on some systems, especially on platforms
  * that do not provide a working poll() interface.
  */
-static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 4096;
+static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 1024;
 /** The default for -maxuploadtarget. 0 = Unlimited */
 static constexpr uint64_t DEFAULT_MAX_UPLOAD_TARGET = 0;
 /** Default for blocks only*/
