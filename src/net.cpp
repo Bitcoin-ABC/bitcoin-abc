@@ -652,6 +652,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_network = ConnectedThroughNetwork();
     stats.m_last_send = m_last_send;
     stats.m_last_recv = m_last_recv;
+    stats.m_last_msg_start = m_last_msg_start;
     stats.m_last_tx_time = m_last_tx_time;
     stats.m_last_proof_time = m_last_proof_time;
     stats.m_last_block_time = m_last_block_time;
@@ -676,6 +677,7 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.mapRecvBytesPerMsgType = mapRecvBytesPerMsgType;
         stats.nRecvBytes = nRecvBytes;
     }
+    stats.nInflightBytes = nInflightBytes;
     stats.m_permission_flags = m_permission_flags;
 
     stats.m_last_ping_time = m_last_ping_time;
@@ -693,13 +695,34 @@ void CNode::copyStats(CNodeStats &stats) {
                                     : std::nullopt;
 }
 
+void CNode::pauseRecv(bool pause) {
+    bool wasPaused = fPauseRecv.exchange(pause);
+    if (wasPaused && !pause) {
+        // We were paused and are now unpaused, so update the last receive time
+        // to prevent us from being disconnected for inactivity.
+        const auto time = GetTime<std::chrono::microseconds>();
+        m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(time);
+        m_last_msg_start =
+            std::chrono::duration_cast<std::chrono::seconds>(time);
+    }
+}
+
 bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
                             bool &complete) {
     complete = false;
     const auto time = GetTime<std::chrono::microseconds>();
     LOCK(cs_vRecv);
     m_last_recv = std::chrono::duration_cast<std::chrono::seconds>(time);
+    if (!m_deserializer->HasData()) {
+        // If deserializer has no data, then we're starting to receive a new
+        // message. Record the time that we started receiving the message.
+        m_last_msg_start =
+            std::chrono::duration_cast<std::chrono::seconds>(time);
+    }
+
     nRecvBytes += msg_bytes.size();
+    nInflightBytes += msg_bytes.size();
+
     while (msg_bytes.size() > 0) {
         // Absorb network data.
         int handled = m_deserializer->Read(config, msg_bytes);
@@ -736,7 +759,15 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
             // push the message to the process queue,
             vRecvMsg.push_back(std::move(*result));
 
+            nInflightBytes -= result->m_raw_message_size;
             complete = true;
+
+            // If we completed a message but still have more bytes, then we
+            // started a new message.
+            if (m_deserializer->HasData()) {
+                m_last_msg_start =
+                    std::chrono::duration_cast<std::chrono::seconds>(time);
+            }
         }
     }
 
@@ -1268,6 +1299,7 @@ bool CConnman::InactivityCheck(const CNode &node) const {
     const auto now{GetTime<std::chrono::seconds>()};
     const auto last_send{node.m_last_send.load()};
     const auto last_recv{node.m_last_recv.load()};
+    const auto last_msg_start{node.m_last_msg_start.load()};
 
     if (!ShouldRunInactivityChecks(node, now)) {
         return false;
@@ -1291,6 +1323,32 @@ bool CConnman::InactivityCheck(const CNode &node) const {
         LogPrint(BCLog::NET, "socket receive timeout: %is peer=%d\n",
                  count_seconds(now - last_recv), node.GetId());
         return true;
+    }
+
+    uint64_t inflight_bytes = node.nInflightBytes.load();
+    if (inflight_bytes > 0 && !node.fPauseRecv) {
+        // First check if the peer started sending us a message, but then
+        // stalled without finishing it.
+        if (now > last_recv + m_peer_connect_timeout) {
+            LogPrint(BCLog::NET,
+                     "socket receive timeout: stalled message, last data "
+                     "received %i seconds ago, bytes=%d peer=%d\n",
+                     count_seconds(now - last_recv), inflight_bytes,
+                     node.GetId());
+            return true;
+        }
+
+        // Second check if the peer sent us a message, but is too slow to
+        // complete it in reasonable time (~2.13Mb/s for a 32MB block under
+        // default settings).
+        if (now > last_msg_start + 2 * m_peer_connect_timeout) {
+            LogPrint(BCLog::NET,
+                     "socket receive timeout: stalled message started %i "
+                     "seconds ago, bytes=%d peer=%d\n",
+                     count_seconds(now - last_msg_start), inflight_bytes,
+                     node.GetId());
+            return true;
+        }
     }
 
     if (!node.fSuccessfullyConnected) {
@@ -3053,7 +3111,7 @@ void CNode::MarkReceivedMsgsForProcessing() {
     LOCK(m_msg_process_queue_mutex);
     m_msg_process_queue.splice(m_msg_process_queue.end(), vRecvMsg);
     m_msg_process_queue_size += nSizeAdded;
-    fPauseRecv = m_msg_process_queue_size > m_recv_flood_size;
+    pauseRecv(m_msg_process_queue_size > m_recv_flood_size);
 }
 
 std::optional<std::pair<CNetMessage, bool>> CNode::PollMessage() {
@@ -3066,7 +3124,7 @@ std::optional<std::pair<CNetMessage, bool>> CNode::PollMessage() {
     // Just take one message
     msgs.splice(msgs.begin(), m_msg_process_queue, m_msg_process_queue.begin());
     m_msg_process_queue_size -= msgs.front().m_raw_message_size;
-    fPauseRecv = m_msg_process_queue_size > m_recv_flood_size;
+    pauseRecv(m_msg_process_queue_size > m_recv_flood_size);
 
     return std::make_pair(std::move(msgs.front()),
                           !m_msg_process_queue.empty());

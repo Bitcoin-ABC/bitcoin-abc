@@ -25,6 +25,7 @@
 #include <timedata.h>
 #include <util/strencodings.h>
 #include <util/string.h>
+#include <util/time.h>
 #include <util/translation.h> // for bilingual_str
 
 #include <test/util/setup_common.h>
@@ -113,6 +114,16 @@ struct CConnmanTest : public CConnman {
             // initialize semaphore
             semAddnode = std::make_unique<CSemaphore>(nMaxAddnode);
         }
+    }
+
+    CNode *GetNode(size_t index = 0) EXCLUSIVE_LOCKS_REQUIRED(!m_nodes_mutex) {
+        LOCK(m_nodes_mutex);
+        assert(index < m_nodes.size());
+        return m_nodes[index];
+    }
+
+    bool TestInactivityCheck(const CNode &node) const {
+        return InactivityCheck(node);
     }
 
     void openNetworkConnection(const CAddress &addrConnect,
@@ -1406,6 +1417,156 @@ BOOST_AUTO_TEST_CASE(already_connected_to_address) {
 
     // Same IP, different port
     BOOST_CHECK(connman.AlreadyConnectedToAddress(ip1port2));
+}
+
+BOOST_AUTO_TEST_CASE(inactivity_check) {
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(count_seconds(now));
+
+    CConnmanTest connman(m_node.chainman->GetConfig(), 0x1337, 0x1337,
+                         *m_node.addrman);
+    CConnman::Options options;
+    options.m_peer_connect_timeout = DEFAULT_PEER_CONNECT_TIMEOUT;
+    connman.Init(options);
+
+    auto addNode = [&]() -> CNode * {
+        connman.AddNode(ConnectionType::OUTBOUND_FULL_RELAY);
+        return connman.GetNode();
+    };
+
+    auto checkInactivity = [&](CNode *node, bool expect_disconnect) {
+        BOOST_CHECK_EQUAL(connman.TestInactivityCheck(*node),
+                          expect_disconnect);
+    };
+
+    auto bumpMockTime = [&](std::chrono::seconds offset) {
+        now += offset;
+        SetMockTime(count_seconds(now));
+    };
+
+    const std::chrono::seconds peer_timeout{DEFAULT_PEER_CONNECT_TIMEOUT};
+
+    // Peer timeout after connect
+    {
+        CNode *node = addNode();
+
+        bumpMockTime(peer_timeout);
+        checkInactivity(node, false);
+
+        bumpMockTime(1s);
+        // no message in first <peer_timeout> seconds
+        checkInactivity(node, true);
+
+        // We received some data, but did not send any
+        node->m_last_recv = now;
+        node->m_last_send = 0s;
+        checkInactivity(node, true);
+
+        // We sent some data, but did not receive any
+        node->m_last_recv = 0s;
+        node->m_last_send = now;
+        checkInactivity(node, true);
+
+        // No timeout
+        node->m_last_recv = now;
+        node->m_last_send = now;
+        checkInactivity(node, false);
+    }
+
+    connman.ClearNodes();
+
+    // Send/receive timeouts
+    {
+        CNode *node = addNode();
+        bumpMockTime(peer_timeout + 1s);
+        // Save for later
+        auto base_time = now;
+
+        node->m_last_send = now;
+        node->m_last_recv = now;
+
+        bumpMockTime(TIMEOUT_INTERVAL);
+        checkInactivity(node, false);
+
+        bumpMockTime(1s);
+
+        // Receive timeout
+        node->m_last_recv = base_time;
+        node->m_last_send = now;
+        checkInactivity(node, true);
+
+        // Send timeout
+        node->m_last_recv = now;
+        node->m_last_send = base_time;
+        checkInactivity(node, true);
+
+        // No timeout
+        node->m_last_send = now;
+        node->m_last_recv = now;
+        checkInactivity(node, false);
+    }
+
+    connman.ClearNodes();
+
+    // Stalled message timeouts
+    {
+        CNode *node = addNode();
+        bumpMockTime(peer_timeout + 1s);
+
+        // Save for later
+        auto base_time = now;
+        node->nInflightBytes = 1000;
+
+        node->m_last_msg_start = now;
+        node->m_last_recv = now;
+        node->m_last_send = now;
+        checkInactivity(node, false);
+
+        bumpMockTime(peer_timeout + 1s);
+
+        node->m_last_msg_start = base_time;
+        node->m_last_recv = base_time;
+        node->m_last_send = now;
+        // Message inflight but no data received for <peer_timeout> seconds
+        checkInactivity(node, true);
+
+        // Boundary check
+        node->m_last_msg_start = base_time;
+        node->m_last_recv = base_time + 1s;
+        node->m_last_send = now;
+        checkInactivity(node, false);
+
+        bumpMockTime(peer_timeout);
+
+        node->m_last_msg_start = base_time;
+        node->m_last_recv = now;
+        node->m_last_send = now;
+        // Message inflight but not completed for <2*peer_timeout> seconds
+        checkInactivity(node, true);
+
+        // Boundary check
+        node->m_last_msg_start = base_time + 1s;
+        node->m_last_recv = now;
+        node->m_last_send = now;
+        checkInactivity(node, false);
+    }
+
+    connman.ClearNodes();
+
+    // Handshake timeout
+    {
+        CNode *node = addNode();
+        bumpMockTime(peer_timeout + 1s);
+        node->m_last_recv = now;
+        node->m_last_send = now;
+        checkInactivity(node, false);
+
+        // No handshake
+        node->fSuccessfullyConnected = false;
+        checkInactivity(node, true);
+    }
+
+    connman.ClearNodes();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

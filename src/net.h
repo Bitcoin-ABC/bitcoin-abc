@@ -217,6 +217,7 @@ struct CNodeStats {
     NodeId nodeid;
     std::chrono::seconds m_last_send;
     std::chrono::seconds m_last_recv;
+    std::chrono::seconds m_last_msg_start;
     std::chrono::seconds m_last_tx_time;
     std::chrono::seconds m_last_proof_time;
     std::chrono::seconds m_last_block_time;
@@ -235,6 +236,7 @@ struct CNodeStats {
     mapMsgTypeSize mapSendBytesPerMsgType;
     uint64_t nRecvBytes;
     mapMsgTypeSize mapRecvBytesPerMsgType;
+    uint64_t nInflightBytes;
     NetPermissionFlags m_permission_flags;
     std::chrono::microseconds m_last_ping_time;
     std::chrono::microseconds m_min_ping_time;
@@ -293,6 +295,8 @@ public:
     // decomposes a message from the context
     virtual std::optional<CNetMessage>
     GetMessage(std::chrono::microseconds time, uint32_t &out_err) = 0;
+    virtual bool HasData() const = 0;
+
     virtual ~TransportDeserializer() {}
 };
 
@@ -356,6 +360,8 @@ public:
 
     std::optional<CNetMessage> GetMessage(std::chrono::microseconds time,
                                           uint32_t &out_err_raw_size) override;
+
+    bool HasData() const override { return in_data || nHdrPos > 0; }
 };
 
 /**
@@ -415,9 +421,12 @@ public:
     Mutex cs_vRecv;
 
     uint64_t nRecvBytes GUARDED_BY(cs_vRecv){0};
+    std::atomic<uint64_t> nInflightBytes{0};
 
     std::atomic<std::chrono::seconds> m_last_send{0s};
     std::atomic<std::chrono::seconds> m_last_recv{0s};
+    std::atomic<std::chrono::seconds> m_last_msg_start{0s};
+
     //! Unix epoch time at peer connection
     const std::chrono::seconds m_connected;
     std::atomic<int64_t> nTimeOffset{0};
@@ -726,6 +735,8 @@ public:
     std::string ConnectionTypeAsString() const {
         return ::ConnectionTypeAsString(m_conn_type);
     }
+
+    void pauseRecv(bool pause);
 
 private:
     const NodeId id;
