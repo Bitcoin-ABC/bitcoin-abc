@@ -1317,9 +1317,8 @@ private:
     /**
      * Block hash of chain tip the last time we reset m_recent_rejects and
      * m_recent_rejects_package_reconsiderable.
-     * FIXME: should be of BlockHash type
      */
-    uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
+    BlockHash hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
     /**
      * Filter for:
