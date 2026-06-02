@@ -19,8 +19,6 @@ folder.
     contrib/build-linux/appimage/build.sh
     ```
 
-    _Note:_ If you are using a MacOS host, run the above **without** `sudo`.
-
 3. The generated .AppImage binary is in `./dist`.
 
 

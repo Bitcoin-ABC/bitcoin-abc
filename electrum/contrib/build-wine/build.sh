@@ -41,11 +41,11 @@ GROUP_ID=$(id -g $USER)
 IMGNAME="ec-wine-builder-img_${USER_ID}_${GROUP_ID}"
 
 info "Creating docker image ..."
-sudo docker build -t $IMGNAME \
-            --build-arg USER_ID=$USER_ID \
-            --build-arg GROUP_ID=$GROUP_ID \
-            --build-arg UBUNTU_MIRROR=$UBUNTU_MIRROR \
-            contrib/build-wine/docker \
+docker build -t $IMGNAME \
+       --build-arg USER_ID=$USER_ID \
+       --build-arg GROUP_ID=$GROUP_ID \
+       --build-arg UBUNTU_MIRROR=$UBUNTU_MIRROR \
+       contrib/build-wine/docker \
     || fail "Failed to create docker image"
 
 MAPPED_DIR=/homedir/wine/drive_c/monorepo
