@@ -8,7 +8,7 @@ cmdline_name = os.environ.get("ELECTRUM_CMDLINE_NAME")
 if not cmdline_name:
     raise RuntimeError('no name')
 
-home = 'C:\\electrumabc\\'
+home = 'C:\\monorepo\\electrum\\'
 
 # see https://github.com/pyinstaller/pyinstaller/issues/2005
 hiddenimports = []
