@@ -3603,7 +3603,8 @@ void PeerManagerImpl::ProcessGetData(
     // Process as many TX or AVA_PROOF items from the front of the getdata
     // queue as possible, since they're common and it's efficient to batch
     // process them.
-    while (it != peer.m_getdata_requests.end()) {
+    while (it != peer.m_getdata_requests.end() &&
+           (it->IsMsgProof() || it->IsMsgTx())) {
         if (interruptMsgProc) {
             return;
         }
@@ -3613,12 +3614,11 @@ void PeerManagerImpl::ProcessGetData(
             break;
         }
 
-        const CInv &inv = *it;
+        const CInv &inv = *it++;
 
-        if (it->IsMsgProof()) {
+        if (inv.IsMsgProof()) {
             if (!m_avalanche) {
                 vNotFound.push_back(inv);
-                ++it;
                 continue;
             }
             const avalanche::ProofId proofid(inv.hash);
@@ -3632,11 +3632,10 @@ void PeerManagerImpl::ProcessGetData(
                 vNotFound.push_back(inv);
             }
 
-            ++it;
             continue;
         }
 
-        if (it->IsMsgTx()) {
+        if (inv.IsMsgTx()) {
             if (tx_relay == nullptr) {
                 // Ignore GETDATA requests for transactions from
                 // block-relay-only peers and peers that asked us not to
@@ -3682,7 +3681,6 @@ void PeerManagerImpl::ProcessGetData(
                 vNotFound.push_back(inv);
             }
 
-            ++it;
             continue;
         }
 
