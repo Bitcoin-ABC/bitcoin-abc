@@ -242,10 +242,21 @@ describe('<Token />', () => {
             screen.queryByText('No active offers for this token'),
         ).not.toBeInTheDocument();
 
-        // Sell form is NOT rendered (action bar hidden for blacklisted tokens)
+        // Buy/Sell buttons are NOT rendered
         expect(
-            screen.queryByPlaceholderText('Total qty'),
+            screen.queryByRole('button', { name: /Buy/ }),
         ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /Sell/ }),
+        ).not.toBeInTheDocument();
+
+        // Blacklisted tokens default to burn; send/mint/burn remain in the menu
+        expect(
+            await screen.findByPlaceholderText('Burn Amount'),
+        ).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: '⋯' }));
+        expect(screen.getByText('Send')).toBeInTheDocument();
+        expect(screen.getByText('Burn')).toBeInTheDocument();
     });
 
     it('Accepts a valid ecash: prefixed address', async () => {
