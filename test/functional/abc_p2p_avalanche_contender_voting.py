@@ -591,6 +591,8 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 # contenders until a block is mined.
                 "-avaminquorumconnectedstakeratio=0.47",
                 "-avaproofstakeutxoconfirmations=3",
+                "-avastalevotethreshold=4096",
+                "-avastalevotefactor=64",
             ],
         )
 
