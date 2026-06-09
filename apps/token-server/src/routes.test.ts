@@ -251,6 +251,64 @@ describe('routes.js', function () {
             .expect('Content-Type', 'text/html; charset=utf-8')
             .expect(/Not allowed by CORS/);
     });
+    it('We reject a /new request with an invalid tokenId', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field('tokenId', 'not-a-valid-token-id')
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Invalid tokenId: not-a-valid-token-id',
+            });
+    });
+    it('We reject a /new request with a path traversal tokenId', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        const traversalTokenId = '../../rejected/32/probe';
+
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field('tokenId', traversalTokenId)
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Invalid tokenId: ${traversalTokenId}`,
+            });
+    });
     it('If the token icon already exists on the server, the /new request is rejected', async function () {
         // Create a mock 512x512 png that sharp can process
         const semiTransparentRedPng = await sharp({

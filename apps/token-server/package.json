@@ -8,7 +8,6 @@
         "test": "mocha",
         "build": "tsc -p ./tsconfig.build.json",
         "prebuild": "tsx scripts/prepSecrets.ts",
-        "pretest": "tsx scripts/prepSecrets.ts",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },

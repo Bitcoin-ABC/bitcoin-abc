@@ -166,6 +166,12 @@ export const startExpressServer = (
             // For now, we only support automatically creating a tokenId on token creation in Cashtab
             // So, we get the token id from req.body.tokenId, from Cashtab
             const tokenId = req.body.tokenId;
+            if (typeof tokenId !== 'string' || !isValidTokenId(tokenId)) {
+                return res.status(400).json({
+                    status: 'error',
+                    msg: `Invalid tokenId: ${tokenId}`,
+                });
+            }
             if (typeof req.file === 'undefined') {
                 // Should never happen
                 console.log(`No file in "/new" token icon request`);
