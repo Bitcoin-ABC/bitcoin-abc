@@ -12,6 +12,14 @@ See the [BIP · eCash additions](https://github.com/Bitcoin-ABC/bitcoin-abc/blob
 
 If the wallet app is expected to return to the originating browser page after the payment, append `&b=1` to the link.
 
+## Wallet connect links (Android Cashtab)
+
+To connect a user's wallet address from your web app on Android:
+
+`https://pay.e.cash/?connect=1&return_url=<https-url>&b=1`
+
+Your page stays open while Cashtab opens. After approval, Cashtab opens `<return_url>#cashtab_connect=<ecash-address>` in the browser and exits. Parse the hash on load (see `parsePayEcashConnectCallback` in `cashtab-connect`).
+
 ## How to use pay.e.cash deep links in your App
 
 You can programmatically generate intended txs for your users and encode them in a link. A user clicking the link will open the tx for their review and approval in Cashtab.

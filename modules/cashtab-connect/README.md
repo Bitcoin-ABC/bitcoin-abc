@@ -402,6 +402,7 @@ npm run lint
 
 ## Changelog
 
+- 1.2.0 - Add Android pay.e.cash mobile connect helpers. Extension API unchanged. [D20094](https://reviews.bitcoinabc.org/D20094)
 - 1.1.0 - Add transaction approval/rejection support for transactions. Extension transactions send responses back to the originating webpage. [D18348](https://reviews.bitcoinabc.org/D18348)
 
 ## License

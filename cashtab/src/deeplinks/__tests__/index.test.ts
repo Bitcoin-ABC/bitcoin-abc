@@ -5,6 +5,8 @@
 import {
     paybuttonDeepLinkToBip21Uri,
     payecashDeepLinkToBip21Uri,
+    payecashDeepLinkToConnectRequest,
+    buildConnectCallbackUrl,
 } from 'deeplinks';
 
 describe('paybuttonDeepLinkToBip21Uri', () => {
@@ -294,5 +296,57 @@ describe('payecashDeepLinkToBip21Uri', () => {
             bip21Uri: null,
             returnToBrowser: false,
         });
+    });
+});
+
+describe('payecashDeepLinkToConnectRequest', () => {
+    it('parses a valid pay.e.cash connect link', () => {
+        const deepLink =
+            'https://pay.e.cash/?connect=1&return_url=https://blitzchips.com/&b=1';
+        expect(payecashDeepLinkToConnectRequest(deepLink)).toEqual({
+            isConnect: true,
+            returnUrl: 'https://blitzchips.com/',
+            returnToBrowser: true,
+        });
+    });
+
+    it('accepts connect=true without b', () => {
+        const deepLink =
+            'https://pay.e.cash/?connect=true&return_url=https://example.com/app';
+        expect(payecashDeepLinkToConnectRequest(deepLink)).toEqual({
+            isConnect: true,
+            returnUrl: 'https://example.com/app',
+            returnToBrowser: false,
+        });
+    });
+
+    it('rejects connect without return_url', () => {
+        const deepLink = 'https://pay.e.cash/?connect=1&b=1';
+        expect(payecashDeepLinkToConnectRequest(deepLink)).toEqual({
+            isConnect: false,
+            returnUrl: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('rejects when bip21 is also present', () => {
+        const deepLink =
+            'https://pay.e.cash/?connect=1&return_url=https://blitzchips.com/&bip21=ecash:qq';
+        expect(payecashDeepLinkToConnectRequest(deepLink)).toEqual({
+            isConnect: false,
+            returnUrl: null,
+            returnToBrowser: false,
+        });
+    });
+});
+
+describe('buildConnectCallbackUrl', () => {
+    it('appends address to return_url hash', () => {
+        const address = 'ecash:qp7g5uyxvun4r5afffs6pfy27eyhcqtj9cev06d8s5';
+        expect(
+            buildConnectCallbackUrl('https://blitzchips.com/', address),
+        ).toBe(
+            `https://blitzchips.com/#cashtab_connect=${encodeURIComponent(address)}`,
+        );
     });
 });

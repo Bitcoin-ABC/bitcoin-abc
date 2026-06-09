@@ -7,8 +7,9 @@ Static website for universal eCash payment links.
 Use query-parameter BIP21 links:
 
 - `https://pay.e.cash/?bip21=<bip21-uri>`
-- Example:
-    - `https://pay.e.cash/?bip21=ecash:qq...?token_id=...&token_decimalized_qty=1`
+    - Example:
+        - `https://pay.e.cash/?bip21=ecash:qq...?token_id=...&token_decimalized_qty=1`
+- `https://pay.e.cash/?connect=1&return_url=<https-url>&b=1` — wallet connect (native app opens callback URL with `#cashtab_connect=<address>`, then exits)
 
 With verified Android App Links in place:
 

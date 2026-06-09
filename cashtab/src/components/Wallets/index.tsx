@@ -3,6 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useContext, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import {
     TrashcanIcon,
@@ -49,6 +52,8 @@ import {
     BackIcon,
     StyledConfigure,
 } from 'components/Configure/Configure';
+import { buildConnectCallbackUrl, isValidHttpsReturnUrl } from 'deeplinks';
+import { openExternalUrl } from 'helpers/openExternalUrl';
 
 interface WalletsFormData {
     renamedWalletName: string;
@@ -108,9 +113,32 @@ const Wallets = () => {
         useState<boolean>(false);
     const [showAddressShareModal, setShowAddressShareModal] =
         useState<boolean>(false);
+    const [isConnectRequest, setIsConnectRequest] = useState<boolean>(false);
+    const [connectReturnUrl, setConnectReturnUrl] = useState<string | null>(
+        null,
+    );
+    const [connectReturnToBrowser, setConnectReturnToBrowser] =
+        useState<boolean>(false);
+    const [connectRequestOrigin, setConnectRequestOrigin] = useState<
+        string | null
+    >(null);
+    const [searchParams] = useSearchParams();
 
     // Check for address sharing URL parameter on component mount
     useEffect(() => {
+        const connect = searchParams.get('connect');
+        const returnUrl = searchParams.get('return_url');
+        if (connect === '1' && returnUrl && isValidHttpsReturnUrl(returnUrl)) {
+            setIsConnectRequest(true);
+            setConnectReturnUrl(returnUrl);
+            setConnectReturnToBrowser(
+                searchParams.get('returnToBrowser') === '1',
+            );
+            setConnectRequestOrigin(new URL(returnUrl).hostname);
+            setShowAddressShareModal(true);
+            return;
+        }
+
         if (
             !window.location ||
             !window.location.hash ||
@@ -136,7 +164,22 @@ const Wallets = () => {
             // If you can't parse this, forget about it
             return;
         }
-    }, []);
+    }, [searchParams]);
+
+    const closeAddressShareModal = () => {
+        setShowAddressShareModal(false);
+        setIsConnectRequest(false);
+        setConnectReturnUrl(null);
+        setConnectReturnToBrowser(false);
+        setConnectRequestOrigin(null);
+    };
+
+    const handleRejectedConnect = async () => {
+        closeAddressShareModal();
+        if (connectReturnToBrowser && Capacitor.isNativePlatform()) {
+            await CapacitorApp.exitApp();
+        }
+    };
 
     /**
      * Update formData with user input
@@ -425,32 +468,39 @@ const Wallets = () => {
     };
 
     /**
-     * Copy wallet address and close tab
+     * Share wallet address with a connected dApp or copy to clipboard (web flow).
      */
-    const copyWalletAddress = async (address: string, walletName: string) => {
-        if (navigator.clipboard) {
-            await navigator.clipboard.writeText(address);
-        }
-        toast.success(`"${address}" copied to clipboard`);
-
-        // Find the wallet that was copied
+    const shareWalletAddress = async (address: string, walletName: string) => {
         const copiedWallet = wallets.find(wallet => wallet.name === walletName);
 
-        // If the copied wallet is not the active wallet, activate it
         if (
             copiedWallet &&
             activeStoredWallet &&
             activeStoredWallet.mnemonic !== copiedWallet.mnemonic
         ) {
-            // Event("Category", "Action", "Label")
-            // Track number of times a different wallet is activated
             Event('Configure.js', 'Activate', '');
-
-            // Update activeWalletAddress in state (which also persists to storage)
             await updateCashtabState({
                 activeWalletAddress: copiedWallet.address,
             });
         }
+
+        if (isConnectRequest && connectReturnUrl) {
+            const callbackUrl = buildConnectCallbackUrl(
+                connectReturnUrl,
+                address,
+            );
+            closeAddressShareModal();
+            await openExternalUrl(callbackUrl);
+            if (connectReturnToBrowser && Capacitor.isNativePlatform()) {
+                await CapacitorApp.exitApp();
+            }
+            return;
+        }
+
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(address);
+        }
+        toast.success(`"${address}" copied to clipboard`);
 
         // Close the tab after copying - this works when the tab was opened by JavaScript
         window.close();
@@ -556,8 +606,12 @@ const Wallets = () => {
                 <Modal
                     height={400}
                     title="Connect Wallet"
-                    description="Select a wallet to connect"
-                    handleCancel={() => setShowAddressShareModal(false)}
+                    description={
+                        connectRequestOrigin
+                            ? `Wallet connect request from ${connectRequestOrigin}`
+                            : 'Select a wallet to connect'
+                    }
+                    handleCancel={closeAddressShareModal}
                     showCancelButton={false}
                     showButtons={false}
                 >
@@ -569,7 +623,11 @@ const Wallets = () => {
                             }}
                         >
                             <button
-                                onClick={() => setShowAddressShareModal(false)}
+                                onClick={() =>
+                                    isConnectRequest
+                                        ? handleRejectedConnect()
+                                        : closeAddressShareModal()
+                                }
                                 style={{
                                     padding: '8px 16px',
                                     backgroundColor: '#dc3545',
@@ -622,7 +680,7 @@ const Wallets = () => {
                                     </WalletInfo>
                                     <CopyButton
                                         onClick={() =>
-                                            copyWalletAddress(
+                                            shareWalletAddress(
                                                 wallet.address,
                                                 wallet.name,
                                             )

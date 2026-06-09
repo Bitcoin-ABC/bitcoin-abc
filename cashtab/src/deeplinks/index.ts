@@ -13,15 +13,42 @@
  *
  * pay.e.cash deep links: https://docs.e.cash/pay
  * - bip21=<bip21-uri> wraps the BIP21 URI in a query string
+ * - connect=1&return_url=<https-url> opens wallet connect (native app returns address via callback URL hash)
  *
  * For both:
- * - b=1: return to browser after send/reject
+ * - b=1: return to browser after send/reject/connect
  */
 
 export interface DeepLinkResult {
     bip21Uri: string | null;
     returnToBrowser: boolean;
 }
+
+export interface PayEcashConnectResult {
+    isConnect: boolean;
+    returnUrl: string | null;
+    returnToBrowser: boolean;
+}
+
+/** Hash param dApps read after Cashtab opens the connect callback URL. */
+export const PAY_ECASH_CONNECT_HASH_PARAM = 'cashtab_connect';
+
+export const isValidHttpsReturnUrl = (url: string): boolean => {
+    try {
+        return new URL(url).protocol === 'https:';
+    } catch {
+        return false;
+    }
+};
+
+export const buildConnectCallbackUrl = (
+    returnUrl: string,
+    address: string,
+): string => {
+    const callback = new URL(returnUrl);
+    callback.hash = `${PAY_ECASH_CONNECT_HASH_PARAM}=${encodeURIComponent(address)}`;
+    return callback.toString();
+};
 
 /**
  * Convert a PayButton deep link URL to a BIP21 URI
@@ -103,5 +130,50 @@ export function payecashDeepLinkToBip21Uri(deepLink: string): DeepLinkResult {
         };
     } catch {
         return { bip21Uri: null, returnToBrowser: false };
+    }
+}
+
+export function payecashDeepLinkToConnectRequest(
+    deepLink: string,
+): PayEcashConnectResult {
+    const empty: PayEcashConnectResult = {
+        isConnect: false,
+        returnUrl: null,
+        returnToBrowser: false,
+    };
+
+    try {
+        const url = new URL(deepLink);
+
+        if (
+            url.protocol !== 'https:' ||
+            url.hostname !== 'pay.e.cash' ||
+            (url.pathname !== '' && url.pathname !== '/')
+        ) {
+            return empty;
+        }
+
+        const connect = url.searchParams.get('connect');
+        if (connect !== '1' && connect !== 'true') {
+            return empty;
+        }
+
+        if (url.searchParams.get('bip21') !== null) {
+            return empty;
+        }
+
+        const returnUrl = url.searchParams.get('return_url');
+        if (!returnUrl || !isValidHttpsReturnUrl(returnUrl)) {
+            return empty;
+        }
+
+        const b = url.searchParams.get('b');
+        return {
+            isConnect: true,
+            returnUrl,
+            returnToBrowser: b === '1',
+        };
+    } catch {
+        return empty;
     }
 }

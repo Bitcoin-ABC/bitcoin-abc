@@ -42,6 +42,7 @@ import { parseAddressInput } from 'validation';
 import {
     paybuttonDeepLinkToBip21Uri,
     payecashDeepLinkToBip21Uri,
+    payecashDeepLinkToConnectRequest,
 } from 'deeplinks';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
@@ -140,14 +141,28 @@ const App = () => {
         }
     }, [navigate]);
 
-    // Handle BIP21 URIs when app is opened from an external intent
+    // Handle pay.e.cash / BIP21 URIs when app is opened from an external intent
     useEffect(() => {
         if (!Capacitor.isNativePlatform()) {
             return;
         }
 
-        const handleBip21Uri = (url: string) => {
+        const handleDeepLink = (url: string) => {
             const trimmedUrl = url.trim();
+
+            const connectResult = payecashDeepLinkToConnectRequest(trimmedUrl);
+            if (connectResult.isConnect && connectResult.returnUrl) {
+                const params = new URLSearchParams({
+                    connect: '1',
+                    return_url: connectResult.returnUrl,
+                });
+                if (connectResult.returnToBrowser) {
+                    params.set('returnToBrowser', '1');
+                }
+                navigate(`/wallets?${params.toString()}`);
+                return;
+            }
+
             let bip21Candidate = null;
             let returnToBrowser = false;
 
@@ -190,14 +205,14 @@ const App = () => {
             // Handle cold start - app launched from BIP21 URI
             const launchUrl = await CapacitorApp.getLaunchUrl();
             if (launchUrl?.url) {
-                handleBip21Uri(launchUrl.url);
+                handleDeepLink(launchUrl.url);
             }
 
             // Handle warm start - app receives BIP21 URI while running
             urlOpenListener = await CapacitorApp.addListener(
                 'appUrlOpen',
                 (event: { url: string }) => {
-                    handleBip21Uri(event.url);
+                    handleDeepLink(event.url);
                 },
             );
         };
@@ -207,7 +222,7 @@ const App = () => {
         return () => {
             urlOpenListener?.remove();
         };
-    }, []);
+    }, [navigate]);
 
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = hasWallet

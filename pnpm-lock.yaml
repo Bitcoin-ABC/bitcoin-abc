@@ -715,6 +715,9 @@ importers:
       '@capacitor/app':
         specifier: ^7.1.0
         version: 7.1.2(@capacitor/core@7.6.1)
+      '@capacitor/app-launcher':
+        specifier: ^7.0.2
+        version: 7.0.4(@capacitor/core@7.6.1)
       '@capacitor/barcode-scanner':
         specifier: ^2.2.0
         version: 2.2.6(@capacitor/core@7.6.1)
@@ -2480,6 +2483,11 @@ packages:
     resolution: {integrity: sha512-wjK2FloJSp5eVqy/DecRA4zBuGhe/pY8pkkU5+G1mfBFqrmmuXJJIBdKgd2/iqyWhsp89LRZMmHV8EEDXYPqPg==}
     peerDependencies:
       '@capacitor/core': ^7.6.0
+
+  '@capacitor/app-launcher@7.0.4':
+    resolution: {integrity: sha512-epTJ0g2K/wgfyqdQXtwTn12aVyAwnexzSCIh/Rh0VmUonTOT7SFMFoIOl5x5edv+4HDrYZstyTHPBVnXVTVtCA==}
+    peerDependencies:
+      '@capacitor/core': '>=7.0.0'
 
   '@capacitor/app@7.1.2':
     resolution: {integrity: sha512-d4I/oF/PRu4megL7/IGKYfe5j7yzSON1FRFgq6kH+m5kH6g7V+wyjHRLauCzGNjdRx4S+nWOumINds0qcRBtKg==}
@@ -14988,6 +14996,10 @@ snapshots:
       jeep-sqlite: 2.8.0
 
   '@capacitor/android@7.6.1(@capacitor/core@7.6.1)':
+    dependencies:
+      '@capacitor/core': 7.6.1
+
+  '@capacitor/app-launcher@7.0.4(@capacitor/core@7.6.1)':
     dependencies:
       '@capacitor/core': 7.6.1
 

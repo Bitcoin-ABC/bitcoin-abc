@@ -332,3 +332,90 @@ export class CashtabConnect {
         return this.checkExtensionAvailability();
     }
 }
+
+/** Hash param set on the connect callback URL after native Cashtab approval. */
+export const PAY_ECASH_CONNECT_HASH_PARAM = 'cashtab_connect';
+
+export const getDefaultConnectReturnUrl = (): string => {
+    if (typeof window === 'undefined') {
+        return '';
+    }
+    return `${window.location.origin}${window.location.pathname}`;
+};
+
+/** Open pay.e.cash without navigating the current tab (preserves dApp WebSocket). */
+export const openPayEcashAppLink = (url: string): void => {
+    if (typeof window === 'undefined') {
+        return;
+    }
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.rel = 'noopener noreferrer';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+};
+
+/**
+ * https://pay.e.cash/?connect=1&return_url=<https-url>&b=1
+ * return_url defaults to the current page (origin + pathname).
+ */
+export const buildPayEcashConnectUrl = (
+    returnUrl: string = getDefaultConnectReturnUrl(),
+    returnToBrowser = true,
+): string => {
+    const params = new URLSearchParams({
+        connect: '1',
+        return_url: returnUrl,
+    });
+    if (returnToBrowser) {
+        params.set('b', '1');
+    }
+    return `https://pay.e.cash/?${params.toString()}`;
+};
+
+export const parsePayEcashConnectCallback = (
+    locationLike: Pick<Location, 'hash'> = typeof window !== 'undefined'
+        ? window.location
+        : { hash: '' },
+): string | null => {
+    const match = locationLike.hash.match(
+        new RegExp(`${PAY_ECASH_CONNECT_HASH_PARAM}=([^&]+)`),
+    );
+    if (!match) {
+        return null;
+    }
+    try {
+        return decodeURIComponent(match[1]);
+    } catch {
+        return null;
+    }
+};
+
+export const clearPayEcashConnectCallback = (): void => {
+    if (typeof window === 'undefined') {
+        return;
+    }
+    const { pathname, search } = window.location;
+    window.history.replaceState(null, '', `${pathname}${search}`);
+};
+
+/**
+ * Open Cashtab on Android for wallet connect. The dApp tab stays open; Cashtab
+ * opens the callback URL with the address in the hash, then exits.
+ */
+export const openAndroidCashtabConnect = (returnUrl?: string): void => {
+    if (typeof window === 'undefined') {
+        return;
+    }
+    openPayEcashAppLink(
+        buildPayEcashConnectUrl(returnUrl ?? getDefaultConnectReturnUrl()),
+    );
+};
+
+export const isAndroidUserAgent = (): boolean => {
+    return (
+        typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+    );
+};

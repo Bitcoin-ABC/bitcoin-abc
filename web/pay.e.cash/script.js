@@ -3,8 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 const CASHTAB_WEB_SEND_BASE = 'https://cashtab.com/#/send';
+const CASHTAB_WEB_CONNECT_BASE =
+    'https://cashtab.com/#/wallets?shareAddresses=true';
 const homeViewEl = document.getElementById('home-view');
 const fallbackViewEl = document.getElementById('fallback-view');
+const fallbackTitleEl = document.getElementById('fallback-title');
 const paymentSummaryEl = document.getElementById('payment-summary');
 const fullBip21BoxEl = document.getElementById('full-bip21-box');
 const openWebLinkEl = document.getElementById('open-web-link');
@@ -43,11 +46,31 @@ const parseBip21FromQuery = () => {
     return `${bip21Param}${joiner}${trailingParams.join('&')}`;
 };
 
+const parseConnectFromQuery = () => {
+    const params = new URLSearchParams(window.location.search);
+    const connect = params.get('connect');
+    if (connect !== '1' && connect !== 'true') {
+        return null;
+    }
+    if (params.get('bip21')) {
+        return null;
+    }
+    const returnUrl = params.get('return_url');
+    if (!returnUrl) {
+        return null;
+    }
+    try {
+        return new URL(returnUrl).protocol === 'https:' ? returnUrl : null;
+    } catch {
+        return null;
+    }
+};
+
 /** Matches Cashtab web hash-route format (`#/send?bip21=ecash:...?...`), not %-encoded params */
 const buildCashtabWebSendUrl = bip21 =>
     `${CASHTAB_WEB_SEND_BASE}?bip21=${bip21}`;
 
-const showFallbackView = bip21 => {
+const showPaymentFallbackView = bip21 => {
     currentBip21 = bip21;
     const cashtabWebUrl = buildCashtabWebSendUrl(bip21);
     if (homeViewEl) {
@@ -56,14 +79,56 @@ const showFallbackView = bip21 => {
     if (fallbackViewEl) {
         fallbackViewEl.classList.remove('hidden');
     }
+    if (fallbackTitleEl) {
+        fallbackTitleEl.textContent =
+            'Open this payment in a supported eCash wallet';
+    }
     if (paymentSummaryEl) {
         paymentSummaryEl.textContent = 'BIP21 payment detected:';
     }
     if (fullBip21BoxEl) {
+        fullBip21BoxEl.classList.remove('hidden');
         fullBip21BoxEl.textContent = bip21;
     }
     if (openWebLinkEl) {
+        openWebLinkEl.textContent = 'Open in Cashtab Web';
         openWebLinkEl.href = cashtabWebUrl;
+    }
+    if (copyBip21ButtonEl) {
+        copyBip21ButtonEl.classList.remove('hidden');
+    }
+};
+
+const showConnectFallbackView = returnUrl => {
+    currentBip21 = null;
+    let origin = returnUrl;
+    try {
+        origin = new URL(returnUrl).hostname;
+    } catch {
+        // keep returnUrl
+    }
+    if (homeViewEl) {
+        homeViewEl.classList.add('hidden');
+    }
+    if (fallbackViewEl) {
+        fallbackViewEl.classList.remove('hidden');
+    }
+    if (fallbackTitleEl) {
+        fallbackTitleEl.textContent =
+            'Connect your wallet in a supported eCash app';
+    }
+    if (paymentSummaryEl) {
+        paymentSummaryEl.textContent = `Wallet connect for ${origin}. Install Cashtab on Android for one-tap connect, or use Cashtab Web and paste your address back in the app.`;
+    }
+    if (fullBip21BoxEl) {
+        fullBip21BoxEl.classList.add('hidden');
+    }
+    if (openWebLinkEl) {
+        openWebLinkEl.textContent = 'Open Cashtab Web to connect';
+        openWebLinkEl.href = CASHTAB_WEB_CONNECT_BASE;
+    }
+    if (copyBip21ButtonEl) {
+        copyBip21ButtonEl.classList.add('hidden');
     }
 };
 
@@ -87,11 +152,17 @@ const copyBip21 = async () => {
 };
 
 const run = () => {
+    const connectReturnUrl = parseConnectFromQuery();
+    if (connectReturnUrl) {
+        showConnectFallbackView(connectReturnUrl);
+        return;
+    }
+
     const bip21 = parseBip21FromQuery();
     if (!bip21) {
         return;
     }
-    showFallbackView(bip21);
+    showPaymentFallbackView(bip21);
 };
 
 run();
