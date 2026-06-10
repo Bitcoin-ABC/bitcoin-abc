@@ -86,6 +86,7 @@ node_modules/
 build/
 .next/
 .docusaurus/
+coverage/
 .nyc_output/
 test-results.xml
 test_results/

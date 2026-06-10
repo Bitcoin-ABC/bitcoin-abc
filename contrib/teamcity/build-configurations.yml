@@ -108,7 +108,7 @@ templates:
             }
             trap "move_junit_report" EXIT
 
-            pnpm exec nyc \
+            pnpm exec c8 \
               --reporter=text \
               --reporter=lcov \
               --reporter=teamcity \
@@ -172,7 +172,7 @@ templates:
             }
             trap "move_junit_report" EXIT
 
-            pnpm exec nyc \
+            pnpm exec c8 \
               --reporter=text \
               --reporter=lcov \
               --reporter=teamcity \

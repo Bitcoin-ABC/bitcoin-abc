@@ -192,15 +192,16 @@ corepack prepare pnpm@10.24.0 --activate
 pnpm install --frozen-lockfile
 ```
 
-Some repositories have a `.nvmrc` file which specifies the version of node expected.
-For example, to work in Cashtab,
+CI and the development Docker image pin Node in
+`contrib/utils/install-dependencies-bookworm.sh` (`NODE_VERSION` / `NODE_SHA256`).
+Use that version locally, for example:
 
 ```
-cd bitcoin-abc/cashtab
-nvm use
+nvm install 22.22.0
 ```
 
-The specified version of nodejs will be installed and used.
+Some app directories (e.g. `cashtab/`) still have their own `.nvmrc` for historical
+reasons; prefer the version in `install-dependencies-bookworm.sh` when they differ.
 
 Contributing to Electrum ABC
 ----------------------------

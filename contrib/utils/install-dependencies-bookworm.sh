@@ -161,18 +161,23 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 pip3 install ruff==0.14.4 mypy==0.910 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
-# Install nodejs v22.x (includes npm v10.x)
-wget https://deb.nodesource.com/setup_22.x -O nodesetup.sh
-echo "575583bbac2fccc0b5edd0dbc03e222d9f9dc8d724da996d22754d6411104fd1 nodesetup.sh" | sha256sum -c
-chmod +x nodesetup.sh
-./nodesetup.sh
-apt-get install -y nodejs
+# Install nodejs (pinned). Node patch releases can change tls.rootCertificates;
+# ecash-lib tests verify every bundled root, so bump only after P-521 support
+# lands in ecash-lib-wasm. When bumping, update NODE_VERSION and NODE_SHA256.
+# SHA256 from https://nodejs.org/dist/v<version>/SHASUMS256.txt (linux-x64 tarball)
+NODE_VERSION=22.22.0
+NODE_SHA256=9aa8e9d2298ab68c600bd6fb86a6c13bce11a4eca1ba9b39d79fa021755d7c37
+NODE_TARBALL=node-v${NODE_VERSION}-linux-x64.tar.xz
+curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}" -o "${NODE_TARBALL}"
+echo "${NODE_SHA256} ${NODE_TARBALL}" | sha256sum -c -
+tar -xJf "${NODE_TARBALL}" -C /usr/local --strip-components=1
+rm "${NODE_TARBALL}"
 
 # Enable corepack for pnpm
 corepack enable
 corepack prepare pnpm@10.24.0 --activate
 
-# nyc is installed as a dev dependency in the root package.json and accessed via pnpm exec
+# c8 is installed as a dev dependency in the root package.json and accessed via pnpm exec
 
 # Install Rust stable 1.87.0 and nightly from the 2023-12-29
 curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init

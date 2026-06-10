@@ -1,7 +1,8 @@
 # Dependency directories
 node_modules/
 
-# nyc test coverage
+# test coverage (c8, nyc)
+coverage/
 .nyc_output
 
 # npm run junit artifact

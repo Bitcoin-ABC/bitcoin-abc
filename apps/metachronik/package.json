@@ -36,7 +36,6 @@
         "eslint": "^9.39.4",
         "mocha": "^11.7.5",
         "mocha-junit-reporter": "^2.2.1",
-        "nyc": "^18.0.0",
         "ts-node": "^10.9.1",
         "tsx": "^4.20.3",
         "typescript": "^5.9.3"
