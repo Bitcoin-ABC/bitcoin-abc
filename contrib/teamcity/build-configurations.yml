@@ -786,6 +786,7 @@ builds:
 
     cashtab-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - cashtab/
             - modules/mock-chronik-client/
             - modules/ecashaddrjs/
@@ -849,6 +850,7 @@ builds:
 
     ecash-herald-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/ecash-herald/
             - modules/mock-chronik-client/
             - modules/ecashaddrjs/
@@ -869,6 +871,7 @@ builds:
 
     metachronik-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/metachronik/
             - modules/chronik-client/
         env:
@@ -881,6 +884,7 @@ builds:
 
     cashtab-faucet-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/cashtab-faucet/
             - modules/ecash-wallet/
             - modules/mock-chronik-client/
@@ -901,6 +905,7 @@ builds:
 
     token-server-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/token-server/
         env:
             JS_PROJECT_ROOT: apps/token-server
@@ -910,6 +915,7 @@ builds:
 
     mock-chronik-client-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/mock-chronik-client/
             - modules/ecashaddrjs/
         env:
@@ -921,6 +927,7 @@ builds:
 
     b58-ts-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/b58-ts/
         env:
             JS_PROJECT_ROOT: modules/b58-ts
@@ -930,6 +937,7 @@ builds:
 
     chronik-client-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/chronik-client/
             - modules/ecashaddrjs/
         env:
@@ -941,6 +949,7 @@ builds:
 
     ecash-lib-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
             - modules/ecashaddrjs/
@@ -958,6 +967,7 @@ builds:
 
     ecash-agora-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecash-agora/
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
@@ -979,6 +989,7 @@ builds:
         targets:
             - - all
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - chronik/
             - modules/chronik-client/
             - modules/ecash-agora/
@@ -1005,6 +1016,7 @@ builds:
         targets:
             - - all
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - chronik/
             - modules/chronik-client/
             - modules/ecash-lib/
@@ -1025,6 +1037,7 @@ builds:
 
     ecash-wallet-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecash-wallet/
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
@@ -1044,6 +1057,7 @@ builds:
         targets:
             - - all
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecash-wallet/
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
@@ -1065,6 +1079,7 @@ builds:
         targets:
             - - all
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - chronik/
             - modules/chronik-client/
             - modules/ecashaddrjs/
@@ -1079,6 +1094,7 @@ builds:
 
     ecashaddrjs-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecashaddrjs/
         env:
             JS_PROJECT_ROOT: modules/ecashaddrjs
@@ -1142,6 +1158,7 @@ builds:
 
     cashtab-connect-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/cashtab-connect/
         env:
             JS_PROJECT_ROOT: modules/cashtab-connect
@@ -1150,6 +1167,7 @@ builds:
 
     the-overmind-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/the-overmind/
             - modules/chronik-client/
             - modules/ecash-lib/
@@ -1178,6 +1196,7 @@ builds:
 
     ecash-price-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - modules/ecash-price/
         env:
             JS_PROJECT_ROOT: modules/ecash-price
@@ -1201,6 +1220,7 @@ builds:
 
     marlin-wallet-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/marlin-wallet/web/
         env:
             JS_PROJECT_ROOT: apps/marlin-wallet/web
@@ -1212,6 +1232,7 @@ builds:
 
     marlin-wallet-e2e-tests:
         runOnDiffRegex:
+            - pnpm-lock.yaml
             - apps/marlin-wallet/web/
         env:
             JS_PROJECT_ROOT: apps/marlin-wallet/web
