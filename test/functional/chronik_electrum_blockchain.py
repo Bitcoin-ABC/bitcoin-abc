@@ -1761,9 +1761,44 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             scriptPubKey=scriptpubkey,
             amount=1000,
         )
-        check_notification([self.client], other_scripthash)
-        last_status = check_notification(
-            [self.client, client3], scripthash, last_status
+
+        def check_notifications(
+            client,
+            scripthashes_or_addresses,
+            scripthash_for_last_status,
+            method="blockchain.scripthash.subscribe",
+        ):
+            expected = set(scripthashes_or_addresses)
+
+            assert scripthash_for_last_status in scripthashes_or_addresses
+            last_status = None
+
+            while len(expected) > 0:
+                notification = client.wait_for_notification(method)
+
+                # We should have exactly 2 items, the scripthash (or address)
+                # and the status
+                assert_equal(len(notification), 2)
+                (ret_scripthash_or_address, status) = notification
+                assert ret_scripthash_or_address in expected
+                # Status is some hash
+                assert_equal(len(status), 64)
+
+                expected.remove(ret_scripthash_or_address)
+
+                if ret_scripthash_or_address == scripthash_for_last_status:
+                    last_status = status
+
+            assert last_status is not None
+            return last_status
+
+        prev_last_status = last_status
+        last_status = check_notifications(
+            self.client, [other_scripthash, scripthash], scripthash
+        )
+        assert_equal(
+            check_notification([client3], scripthash, prev_last_status),
+            last_status,
         )
 
         # Unsubscribe the first client from the first scripthash
