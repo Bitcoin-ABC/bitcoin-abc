@@ -1429,6 +1429,10 @@ void CConnman::SocketHandlerConnected(
             return;
         }
 
+        // Always account for the node inflight bytes, even if the socket is
+        // paused.
+        nTotalInflightBytes += pnode->nInflightBytes;
+
         //
         // Receive
         //
@@ -1488,7 +1492,6 @@ void CConnman::SocketHandlerConnected(
                     pnode->CloseSocketDisconnect();
                 }
                 RecordBytesRecv(nBytes);
-                nTotalInflightBytes += pnode->nInflightBytes;
                 if (notify) {
                     pnode->MarkReceivedMsgsForProcessing();
                     WakeMessageHandler();
