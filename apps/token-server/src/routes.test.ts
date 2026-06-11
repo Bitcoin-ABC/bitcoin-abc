@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import * as assert from 'assert';
 import * as http from 'http';
 import request from 'supertest';
 import config from '../config';
@@ -9,43 +10,29 @@ import { startExpressServer } from '../src/routes';
 import { Bot } from 'grammy';
 import { createFsFromVolume, vol, IFs, DirectoryJSON } from 'memfs';
 import sharp from 'sharp';
-import { MongoClient, Db } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { initializeDb, initialBlacklist } from '../src/db';
+import { Pool } from 'pg';
+import { seedBlacklist, initialBlacklist, resetBlacklist } from '../src/db';
+import { createTestPool } from '../test/testDb';
 
-// Clone initialBlacklist before initializing the database
-// initializeDb(initialBlacklist) will modify the entries by adding an "_id" key
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
+const sortedMockTokenIds = mockBlacklist.map(entry => entry.tokenId).sort();
 
 describe('routes.js', function () {
-    let mongoServer: MongoMemoryServer, testMongoClient: MongoClient;
-    before(async () => {
-        // Start mongo memory server before running this suite of unit tests
-        mongoServer = await MongoMemoryServer.create();
-        const mongoUri = mongoServer.getUri();
-        testMongoClient = new MongoClient(mongoUri);
-    });
-
-    after(async () => {
-        // Shut down mongo memory server after running this suite of unit tests
-        await testMongoClient.close();
-        await mongoServer.stop();
-    });
-
+    let testPool: Pool;
     let app: http.Server;
     let badDbApp: http.Server;
 
-    // Mock a stub telegram bot
     const mockedTgBot = { api: { sendPhoto: () => Promise.resolve({}) } };
 
-    // Initialize fs, to be memfs in these tests
     let fs: IFs;
-    let testDb: Db;
+    const badDbPool = {
+        query: () => Promise.reject(new Error('Database error')),
+    } as unknown as Pool;
+
     beforeEach(async () => {
-        testDb = await initializeDb(testMongoClient, initialBlacklist);
-        // Mock expected file structure for fs
+        testPool = await createTestPool();
+        await seedBlacklist(testPool, initialBlacklist);
         const fileStructureJson: DirectoryJSON = {};
-        // Create mock empty directories for all supported sizes
         for (const size of config.iconSizes) {
             fileStructureJson[`${size}`] = null;
         }
@@ -54,7 +41,7 @@ describe('routes.js', function () {
         const TEST_PORT = 5000;
         app = startExpressServer(
             TEST_PORT,
-            testDb,
+            testPool,
             mockedTgBot as unknown as Bot,
             fs,
             'test-channel-id',
@@ -62,20 +49,18 @@ describe('routes.js', function () {
         const TEST_PORT_BAD_DB = 5001;
         badDbApp = startExpressServer(
             TEST_PORT_BAD_DB,
-            {} as unknown as Db,
+            badDbPool,
             mockedTgBot as unknown as Bot,
             fs,
             'test-channel-id',
         );
     });
     afterEach(async () => {
-        // Reset mocked fs
         vol.reset();
-        // Stop express server
         app.close();
         badDbApp.close();
-        // Wipe the database after each unit test
-        await testDb.dropDatabase();
+        await resetBlacklist(testPool);
+        await testPool.end();
     });
     it('/status returns expected status', function () {
         return request(app)
@@ -423,9 +408,9 @@ describe('routes.js', function () {
             .get(`/blacklist`)
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect({
-                status: 'success',
-                tokenIds: mockBlacklist.map(entry => entry.tokenId),
+            .expect(res => {
+                assert.deepEqual(res.body.status, 'success');
+                assert.deepEqual(res.body.tokenIds.sort(), sortedMockTokenIds);
             });
     });
     it('/blacklist returns expected error if tokenIds cannot be retrieved', function () {

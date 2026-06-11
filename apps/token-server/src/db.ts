@@ -2,17 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import {
-    MongoClient,
-    Db,
-    Collection,
-    CollectionInfo,
-    InsertOneResult,
-    DeleteResult,
-} from 'mongodb';
-import config from '../config';
+import { Pool } from 'pg';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-interface BlacklistEntry {
+export interface BlacklistEntry {
     /** tokenId of blacklisted token */
     tokenId: string;
     /** A short explanation of why this token was blacklisted, e.g. "impersonating tether" */
@@ -25,6 +19,20 @@ interface BlacklistEntry {
     /** string describing who added this token to the blacklist */
     addedBy: string;
 }
+
+interface BlacklistRow {
+    token_id: string;
+    reason: string;
+    timestamp: string | number;
+    added_by: string;
+}
+
+const rowToEntry = (row: BlacklistRow): BlacklistEntry => ({
+    tokenId: row.token_id,
+    reason: row.reason,
+    timestamp: Number(row.timestamp),
+    addedBy: row.added_by,
+});
 
 const initialBlacklistTokens = [
     {
@@ -105,113 +113,133 @@ const initialBlacklistTokens = [
 ];
 const initialBlacklist = initialBlacklistTokens.map(item => ({
     ...item,
-    // When added to this file
     timestamp: Math.round(new Date(1730090292122).getTime() / 1000),
     addedBy: 'Initial Setup',
 }));
 export { initialBlacklist };
 
-export const initializeDb = async (
-    client: MongoClient,
-    blacklist = initialBlacklist,
-): Promise<Db> => {
-    await client.connect();
-    console.log('Successfully connected to mongod database');
-    const db: Db = client.db(config.db.name);
-
-    const collections: CollectionInfo[] = await db.listCollections().toArray();
-
-    const blacklistCollectionName = config.db.collections.blacklist.name;
-
-    // Check if the collection exists in the list
-    const blacklistExists: boolean = collections.some(
-        collection => collection.name === blacklistCollectionName,
-    );
-
-    if (!blacklistExists) {
-        // If the blacklist does not exist, initialize it
-        const blacklistedTokenIds: Collection = db.collection(
-            blacklistCollectionName,
-        );
-        // Index by tokenId which is unique, ensuring we do not enter the same tokenId more than once
-        // This also improves query times
-        blacklistedTokenIds.createIndex({ tokenId: 1 }, { unique: true });
-
-        // Initialize blacklist
-        const result = await blacklistedTokenIds.insertMany(blacklist);
-        console.log(
-            `${result.insertedCount} tokens inserted into ${blacklistCollectionName}`,
-        );
-    } else {
-        // If the blacklist exists, log how many entries we have
-        const blacklistedTokenCount = await db
-            .collection(blacklistCollectionName)
-            .countDocuments();
-        console.log(
-            `Collection "${blacklistCollectionName}" exists and includes ${blacklistedTokenCount} tokens. Continuing token-server startup...`,
-        );
+/**
+ * Initialize Neon PostgreSQL database pool
+ *
+ * DATABASE_URL should include `sslmode=verify-full` for Neon (see env.sample).
+ */
+export const initDb = async (connectionString: string): Promise<Pool> => {
+    let pool: Pool | undefined;
+    try {
+        pool = new Pool({ connectionString });
+        await pool.query('SELECT NOW()');
+        console.log('Database connected.');
+        return pool;
+    } catch (err) {
+        console.error('Error connecting to database:', err);
+        if (pool) {
+            await pool.end();
+        }
+        throw err;
     }
-
-    return db;
 };
 
-export const getBlacklistedTokenIds = async (db: Db): Promise<string[]> => {
-    const collection = db.collection(config.db.collections.blacklist.name);
+/**
+ * Initialize database schema from schema.sql file
+ */
+export const initSchema = async (pool: Pool): Promise<void> => {
+    const schemaPath = join(process.cwd(), 'schema.sql');
+    const schemaSql = readFileSync(schemaPath, 'utf-8');
+    await pool.query(schemaSql);
+    console.log('Database schema initialized.');
+};
 
-    // Query only for tokenId fields
-    const projection = { _id: 0, tokenId: 1 };
-    const tokenIds = await collection
-        .find({}, { projection })
-        .map(doc => doc.tokenId)
-        .toArray();
+/**
+ * Seed the blacklist when the table is empty
+ */
+export const seedBlacklist = async (
+    pool: Pool,
+    blacklist = initialBlacklist,
+): Promise<void> => {
+    const countResult = await pool.query<{ count: string }>(
+        'SELECT COUNT(*)::text AS count FROM blacklist',
+    );
+    const blacklistedTokenCount = Number.parseInt(
+        countResult.rows[0].count,
+        10,
+    );
 
-    return tokenIds;
+    if (blacklistedTokenCount === 0) {
+        for (const entry of blacklist) {
+            await pool.query(
+                `INSERT INTO blacklist (token_id, reason, timestamp, added_by)
+                 VALUES ($1, $2, $3, $4)`,
+                [entry.tokenId, entry.reason, entry.timestamp, entry.addedBy],
+            );
+        }
+        console.log(`${blacklist.length} tokens inserted into blacklist`);
+    } else {
+        console.log(
+            `Blacklist table exists and includes ${blacklistedTokenCount} tokens. Continuing token-server startup...`,
+        );
+    }
+};
+
+/**
+ * Initialize schema and seed the blacklist when empty
+ */
+export const initializeDb = async (
+    pool: Pool,
+    blacklist = initialBlacklist,
+): Promise<Pool> => {
+    await initSchema(pool);
+    await seedBlacklist(pool, blacklist);
+    return pool;
+};
+
+export const getBlacklistedTokenIds = async (pool: Pool): Promise<string[]> => {
+    const result = await pool.query<{ token_id: string }>(
+        'SELECT token_id FROM blacklist ORDER BY token_id',
+    );
+    return result.rows.map(row => row.token_id);
 };
 
 export const getOneBlacklistEntry = async (
-    db: Db,
+    pool: Pool,
     tokenId: string,
 ): Promise<BlacklistEntry | null> => {
-    const collection = db.collection(config.db.collections.blacklist.name);
-    // Don't return _id
-    const projection = { _id: 0 };
+    const result = await pool.query<BlacklistRow>(
+        `SELECT token_id, reason, timestamp, added_by
+         FROM blacklist
+         WHERE token_id = $1`,
+        [tokenId],
+    );
 
-    // Query for a single document where tokenId matches
-    const result = await collection.findOne({ tokenId }, { projection });
+    if (result.rows.length === 0) {
+        return null;
+    }
 
-    return result as BlacklistEntry | null;
+    return rowToEntry(result.rows[0]);
 };
 
 export const insertBlacklistEntry = async (
-    db: Db,
+    pool: Pool,
     tokenId: string,
     entryData: Omit<BlacklistEntry, 'tokenId'>,
-): Promise<InsertOneResult<Document>> => {
-    const collection = db.collection(config.db.collections.blacklist.name);
-
-    // Prepare the document to insert
-    const documentToInsert: BlacklistEntry = {
-        tokenId,
-        ...entryData,
-    };
-
-    // Insert the document into the collection
-    const result = await collection.insertOne(documentToInsert);
-
-    return result;
+): Promise<void> => {
+    await pool.query(
+        `INSERT INTO blacklist (token_id, reason, timestamp, added_by)
+         VALUES ($1, $2, $3, $4)`,
+        [tokenId, entryData.reason, entryData.timestamp, entryData.addedBy],
+    );
 };
 
 export const removeBlacklistEntry = async (
-    db: Db,
+    pool: Pool,
     tokenId: string,
-): Promise<DeleteResult> => {
-    const collection = db.collection(config.db.collections.blacklist.name);
+): Promise<{ rowCount: number }> => {
+    const result = await pool.query(
+        'DELETE FROM blacklist WHERE token_id = $1',
+        [tokenId],
+    );
+    return { rowCount: result.rowCount ?? 0 };
+};
 
-    // Define the criteria to match the document for deletion
-    const filter = { tokenId };
-
-    // Delete the document that matches the filter
-    const result = await collection.deleteOne(filter);
-
-    return result;
+export const resetBlacklist = async (pool: Pool): Promise<void> => {
+    await pool.query('TRUNCATE blacklist');
 };

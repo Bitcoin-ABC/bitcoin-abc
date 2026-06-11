@@ -14,7 +14,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { Bot } from 'grammy';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
-import { Db } from 'mongodb';
+import { Pool } from 'pg';
 import { writeFileSync, existsSync } from 'fs';
 import { IFs } from 'memfs';
 
@@ -61,7 +61,7 @@ interface FsLikeRoutes {
 
 export const startExpressServer = (
     port: number,
-    db: Db,
+    pool: Pool,
     telegramBot: Bot,
     fs: FsLikeRoutes | IFs,
     telegramChannelId: string,
@@ -101,7 +101,7 @@ export const startExpressServer = (
     app.get('/blacklist', async function (req: Request, res: Response) {
         logIpInfo(req);
         try {
-            const tokenIds = await getBlacklistedTokenIds(db);
+            const tokenIds = await getBlacklistedTokenIds(pool);
             return res.status(200).json({ status: 'success', tokenIds });
         } catch (err) {
             console.error('Error retrieving tokenIds:', err);
@@ -126,7 +126,7 @@ export const startExpressServer = (
             }
             try {
                 // Check the blacklist
-                const entry = await getOneBlacklistEntry(db, tokenId);
+                const entry = await getOneBlacklistEntry(pool, tokenId);
                 console.log(`entry`, entry);
                 if (entry) {
                     return res.status(200).json({

@@ -12,6 +12,6 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 if (!process.env.TELEGRAM_CHANNEL_ID) {
     process.env.TELEGRAM_CHANNEL_ID = 'test-channel-id';
 }
-if (!process.env.MONGODB_URL) {
-    process.env.MONGODB_URL = 'mongodb://localhost:27017';
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgresql://localhost:5432/token_server';
 }

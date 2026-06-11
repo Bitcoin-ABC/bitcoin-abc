@@ -4,7 +4,7 @@
 
 import { Bot, Context, GrammyError, HttpError, InputFile } from 'grammy';
 import config from '../config';
-import { Db } from 'mongodb';
+import { Pool } from 'pg';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
 import { existsSync, renameSync } from 'fs';
 import { IFs } from 'memfs';
@@ -60,7 +60,7 @@ export const initializeTelegramBot = (
     botId: string,
     approvedMods: number[],
     fs: FsLikeTg | IFs,
-    db: Db,
+    pool: Pool,
 ): Bot => {
     // Initialize telegram bot
     const telegramBot = new Bot(botId);
@@ -143,7 +143,11 @@ export const initializeTelegramBot = (
                 };
 
                 try {
-                    await insertBlacklistEntry(db, tokenId, blacklistMetadata);
+                    await insertBlacklistEntry(
+                        pool,
+                        tokenId,
+                        blacklistMetadata,
+                    );
                     console.log(`${tokenId} added to blacklist by ${addedBy}`);
                 } catch (err) {
                     console.error(`Error adding ${tokenId} to blacklist`, err);
@@ -164,7 +168,7 @@ export const initializeTelegramBot = (
                 }
             } else {
                 try {
-                    await removeBlacklistEntry(db, tokenId);
+                    await removeBlacklistEntry(pool, tokenId);
                     console.log(
                         `${tokenId} removed from blacklist by ${addedBy}`,
                     );

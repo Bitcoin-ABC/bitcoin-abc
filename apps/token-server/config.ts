@@ -2,18 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-interface DbCollections {
-    blacklist: { name: string };
-}
-
-interface DatabaseConfig {
-    name: string;
-    collections: DbCollections;
-}
-
 interface TokenServerConfig {
     port: number;
-    db: DatabaseConfig;
     imageDir: string;
     rejectedDir: string;
     maxUploadSize: number;
@@ -23,10 +13,6 @@ interface TokenServerConfig {
 
 const config: TokenServerConfig = {
     port: 3333,
-    db: {
-        name: 'tokenServerDb',
-        collections: { blacklist: { name: 'blacklist' } },
-    },
     // Note: this must be the target= parameter for the --mount instruction of docker run
     // See Production Step 3 in README.md
     imageDir: '/token-server/token-icons',

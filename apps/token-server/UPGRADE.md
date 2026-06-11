@@ -19,7 +19,7 @@ Move all secrets and connection strings out of committed TypeScript files and in
 | `TELEGRAM_BOT_TOKEN`  | yes      | Telegram bot token from @BotFather                              |
 | `TELEGRAM_CHANNEL_ID` | yes      | Channel ID for new icon moderation alerts                       |
 | `APPROVED_MODS`       | no       | Comma-separated Telegram user IDs allowed to deny/restore icons |
-| `MONGODB_URL`         | yes      | MongoDB connection string (removed in Phase 1)                  |
+| `DATABASE_URL`        | yes      | Neon PostgreSQL connection string                               |
 
 Copy `env.sample` to `.env` and fill in values before running locally:
 
@@ -45,7 +45,7 @@ Map existing `secrets.ts` values to env vars:
 | `prod.botId`                                             | `TELEGRAM_BOT_TOKEN`              |
 | `prod.channelId`                                         | `TELEGRAM_CHANNEL_ID`             |
 | `prod.approvedMods`                                      | `APPROVED_MODS` (comma-separated) |
-| `mongodb://{username}:{password}@{containerName}:{port}` | `MONGODB_URL`                     |
+| `mongodb://{username}:{password}@{containerName}:{port}` | `DATABASE_URL` (Phase 1+)         |
 
 Pass env vars to the Docker container, e.g.:
 
@@ -55,30 +55,9 @@ docker run ... --env-file .env ...
 
 ---
 
-## Phase 1 — Replace MongoDB with Neon PostgreSQL
+## Phase 1 — Replace MongoDB with Neon PostgreSQL (done)
 
-### Current state
-
-MongoDB stores a single `blacklist` collection (`tokenServerDb.blacklist`):
-
-| Field       | Type                 | Notes                        |
-| ----------- | -------------------- | ---------------------------- |
-| `tokenId`   | string (64-char hex) | Unique                       |
-| `reason`    | string               |                              |
-| `timestamp` | number               | Unix seconds                 |
-| `addedBy`   | string               | Telegram username or user id |
-
-DB access is isolated in `src/db.ts` (5 functions). Icons remain on the filesystem.
-
-### Target state
-
-Follow the `the-overmind` pattern:
-
-- `pg` `Pool` with `DATABASE_URL` (Neon connection string, SSL enabled)
-- `schema.sql` applied at startup
-- Tests via `pg-mem`
-
-### Proposed schema
+### Schema
 
 ```sql
 CREATE TABLE IF NOT EXISTS blacklist (
@@ -89,21 +68,43 @@ CREATE TABLE IF NOT EXISTS blacklist (
 );
 ```
 
-### Work items
+### Files changed
 
-1. Add `pg`, `@types/pg`, `pg-mem`; remove `mongodb`, `mongodb-memory-server`
-2. Add `schema.sql`
-3. Rewrite `src/db.ts` for SQL queries via `Pool`
-4. Replace `MONGODB_URL` with `DATABASE_URL` in `env.sample` / `src/env.ts`
-5. Migrate tests from `mongodb-memory-server` to `pg-mem`
-6. One-off script to export prod Mongo blacklist and import into Neon
-7. Deploy with `DATABASE_URL`; decommission Mongo sidecar
+- Added `schema.sql`, `test/testDb.ts` (pg-mem helper)
+- Rewrote `src/db.ts` for `pg` `Pool`
+- Replaced `MONGODB_URL` with `DATABASE_URL` in `env.sample` / `src/env.ts`
+- Migrated tests to `pg-mem`
+- Added `scripts/migrateBlacklistFromMongo.ts` for prod data import
+- Removed `mongodb`, `mongodb-memory-server`, Mongo config from `config.ts`
 
-### Data migration
+### Production cutover (remaining ops)
 
-Export live prod blacklist (not just the 15 seed entries in code), load into Neon, verify `GET /blacklist` matches before cutover.
+1. Export live prod blacklist (includes Telegram-added entries, not just seed data).
 
-Estimated effort: ~1.5 days.
+**From the live API** (no Mongo required; same URL as Cashtab):
+
+```
+cd apps/token-server
+pnpm exec tsx scripts/exportBlacklistFromApi.ts blacklist.json
+```
+
+Uses `https://etokens.cash` by default. Override with `TOKEN_SERVER_URL=http://localhost:3333` for local.
+
+**Or from Mongo** (on the prod host, inside the Docker network):
+
+```
+mongoexport --uri="$MONGODB_URL" --db=tokenServerDb --collection=blacklist --out=blacklist.json --jsonArray
+```
+
+2. Create Neon project, set `DATABASE_URL` in deploy env
+3. Import (with `blacklist.json` in `apps/token-server/`):
+
+```
+DATABASE_URL='postgresql://...?sslmode=require' pnpm exec tsx scripts/migrateBlacklistFromMongo.ts
+```
+
+4. Deploy token-server with `DATABASE_URL`; verify `GET /blacklist`
+5. Decommission Mongo sidecar
 
 ---
 
@@ -131,7 +132,7 @@ Estimated effort: ~1.5 days.
 
 ## Recommended order
 
-1. **Phase 0** — dotenv
-2. **Phase 1** — PostgreSQL
+1. **Phase 0** — dotenv (done)
+2. **Phase 1** — PostgreSQL (done; prod cutover pending)
 3. **Phase 2** — 1024 icons
 4. **Phase 3** — signed uploads

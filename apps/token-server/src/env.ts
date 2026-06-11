@@ -6,7 +6,7 @@ export interface TokenServerEnv {
     telegramBotToken: string;
     telegramChannelId: string;
     approvedMods: number[];
-    mongodbUrl: string;
+    databaseUrl: string;
 }
 
 const parseApprovedMods = (value: string | undefined): number[] => {
@@ -37,15 +37,15 @@ export const getEnv = (): TokenServerEnv => {
         throw new Error('TELEGRAM_CHANNEL_ID environment variable is required');
     }
 
-    const mongodbUrl = process.env.MONGODB_URL;
-    if (!mongodbUrl) {
-        throw new Error('MONGODB_URL environment variable is required');
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+        throw new Error('DATABASE_URL environment variable is required');
     }
 
     return {
         telegramBotToken,
         telegramChannelId,
         approvedMods: parseApprovedMods(process.env.APPROVED_MODS),
-        mongodbUrl,
+        databaseUrl,
     };
 };
