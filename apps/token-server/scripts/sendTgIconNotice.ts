@@ -7,11 +7,14 @@
  * Send a test Telegram message to see what the icon notice msgs will look like
  */
 
-import secrets from '../secrets';
+import 'dotenv/config';
+
 import { Bot } from 'grammy';
-const telegramBot = new Bot(secrets.dev.botId);
-const channelId = secrets.dev.channelId;
 import { alertNewTokenIcon } from '../src/telegram';
+import { getEnv } from '../src/env';
+
+const env = getEnv();
+const telegramBot = new Bot(env.telegramBotToken);
 
 // Set defaults for testing message format
 const TOKEN_INFO = {
@@ -23,7 +26,7 @@ const TOKEN_INFO = {
     tokenId: '1111111111111111111111111111111111111111111111111111111111111111',
 };
 
-alertNewTokenIcon(telegramBot, channelId, TOKEN_INFO)
+alertNewTokenIcon(telegramBot, env.telegramChannelId, TOKEN_INFO)
     .then(result => {
         console.log(
             '\x1b[32m%s\x1b[0m',

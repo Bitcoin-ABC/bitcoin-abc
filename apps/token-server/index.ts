@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import config from './config';
-import secrets from './secrets';
 import 'dotenv/config';
+
+import config from './config';
 import { startExpressServer } from './src/routes';
 import {
     initializeTelegramBot,
@@ -14,11 +14,10 @@ import {
 import fs from 'fs';
 import { MongoClient } from 'mongodb';
 import { initializeDb } from './src/db';
+import { getEnv } from './src/env';
 
-// Connect to database
-// Connection URL (default)
-const MONGODB_URL = `mongodb://${secrets.prod.db.username}:${secrets.prod.db.password}@${secrets.prod.db.containerName}:${secrets.prod.db.port}`;
-const client = new MongoClient(MONGODB_URL);
+const env = getEnv();
+const client = new MongoClient(env.mongodbUrl);
 
 /**
  * Main startup function
@@ -31,8 +30,8 @@ async function main(): Promise<void> {
 
         // Initialize telegramBot
         const telegramBot = initializeTelegramBot(
-            secrets.prod.botId,
-            secrets.prod.approvedMods,
+            env.telegramBotToken,
+            env.approvedMods,
             fs,
             db,
         );
@@ -42,7 +41,13 @@ async function main(): Promise<void> {
         startTelegramBotPolling(telegramBot);
 
         // Start the express app to expose API endpoints
-        const server = startExpressServer(config.port, db, telegramBot, fs);
+        const server = startExpressServer(
+            config.port,
+            db,
+            telegramBot,
+            fs,
+            env.telegramChannelId,
+        );
         console.log(`Express server started on port ${config.port}`);
 
         // Graceful shutdown function

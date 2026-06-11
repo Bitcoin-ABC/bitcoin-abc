@@ -9,7 +9,6 @@ import multer from 'multer';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import config from '../config';
-import secrets from '../secrets';
 import { isTokenImageRequest, isValidTokenId } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Bot } from 'grammy';
@@ -65,6 +64,7 @@ export const startExpressServer = (
     db: Db,
     telegramBot: Bot,
     fs: FsLikeRoutes | IFs,
+    telegramChannelId: string,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
@@ -224,7 +224,7 @@ export const startExpressServer = (
                 // Send tg msg with approve/deny option
                 alertNewTokenIcon(
                     telegramBot,
-                    secrets.prod.channelId,
+                    telegramChannelId,
                     req.body,
                 ).catch(err => {
                     console.error(

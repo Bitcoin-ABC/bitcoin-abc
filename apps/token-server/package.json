@@ -7,7 +7,6 @@
         "start": "tsx index.ts",
         "test": "mocha",
         "build": "tsc -p ./tsconfig.build.json",
-        "prebuild": "tsx scripts/prepSecrets.ts",
         "coverage": "c8 mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },

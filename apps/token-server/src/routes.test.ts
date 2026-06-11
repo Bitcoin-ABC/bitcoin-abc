@@ -57,6 +57,7 @@ describe('routes.js', function () {
             testDb,
             mockedTgBot as unknown as Bot,
             fs,
+            'test-channel-id',
         );
         const TEST_PORT_BAD_DB = 5001;
         badDbApp = startExpressServer(
@@ -64,6 +65,7 @@ describe('routes.js', function () {
             {} as unknown as Db,
             mockedTgBot as unknown as Bot,
             fs,
+            'test-channel-id',
         );
     });
     afterEach(async () => {

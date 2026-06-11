@@ -4,21 +4,29 @@ Server to manage token-icons rendered in Cashtab. Also manages agora blacklist.
 
 ## Development
 
-`pnpm start` to run locally
+1. Copy the environment template and fill in your values:
 
-Note: you will have to adjust the `imageDir` param in `config` to test serving of static image files
+```
+cp env.sample .env
+```
 
-## Note on secrets.ts
+2. Start the server:
 
-You will need a secrets.ts file if you plan to run the server locally (or deployed). If you run `pnpm test` without a `secrets.ts` file, token-server will use `secrets.sample.ts`.
+```
+pnpm start
+```
 
-Some secrets are needed for integration testing. These are included in `secrets.sample.ts`. However, if you have your own `secrets.ts` file, then the tests will reference it (and fail if its `prod` key differs from `secrets.sample.ts`).
+Note: you will have to adjust the `imageDir` param in `config` to test serving of static image files.
+
+See `env.sample` for required environment variables. Tests use defaults from `test/setupEnv.ts` when `.env` is not present.
+
+For the full upgrade roadmap (PostgreSQL, 1024 icons, signed uploads), see [UPGRADE.md](./UPGRADE.md).
 
 ## Production
 
 Before running `token-server` in production, you must first set up the file system on your desired server (see "Setting up the file system", below).
 
-Fill out `secrets.ts` with your Telegram bot information.
+Set environment variables (via `--env-file` or your deployment platform). See `env.sample` for the full list.
 
 `token-server` is deployed with docker.
 
@@ -37,7 +45,10 @@ docker build -t token-server_local .
 Note: replace `/path/to/token-icons` below with your local absolute path
 
 ```
-docker run -p 3333:3333 --init --rm --name token-server --mount type=bind,source=/path/to/token-icons,target=/token-icons token-server_local
+docker run -p 3333:3333 --init --rm --name token-server \
+  --env-file .env \
+  --mount type=bind,source=/path/to/token-icons,target=/token-icons \
+  token-server_local
 ```
 
 4. Test from web browser, e.g. navigate to `localhost:3333/status`

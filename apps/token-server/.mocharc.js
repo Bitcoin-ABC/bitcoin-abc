@@ -4,7 +4,7 @@
 
 'use strict';
 module.exports = {
-    require: ['mocha-suppress-logs', 'ts-node/register'],
+    require: ['mocha-suppress-logs', 'ts-node/register', './test/setupEnv.ts'],
     extensions: ['ts'],
     spec: ['src/**/*.test.ts'],
     timeout: 30000, // 30 seconds per test (MongoDB memory server may need time to start)
