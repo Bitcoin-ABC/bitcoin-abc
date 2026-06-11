@@ -1228,4 +1228,53 @@ BOOST_AUTO_TEST_CASE(ccoins_emplace_duplicate_keeps_usage_balanced) {
     BOOST_CHECK(cache.AccessCoin(outpoint) == coin1);
 }
 
+BOOST_AUTO_TEST_CASE(get_spent_coins_test) {
+    CCoinsView root;
+    CCoinsViewCacheTest coins_cache(&root);
+
+    const COutPoint outpoint1{TxId{m_rng.rand256()}, 0};
+    const COutPoint outpoint2{TxId{m_rng.rand256()}, 1};
+    const Coin coin1{CTxOut{2 * COIN, CScript() << OP_TRUE}, 100,
+                     /*IsCoinbase=*/false};
+    const Coin coin2{CTxOut{3 * COIN, CScript() << OP_FALSE}, 200,
+                     /*IsCoinbase=*/false};
+    coins_cache.AddCoin(outpoint1, coin1, /*possible_overwrite=*/false);
+    coins_cache.AddCoin(outpoint2, coin2, /*possible_overwrite=*/false);
+
+    CMutableTransaction mtx;
+    mtx.vin.emplace_back(outpoint1);
+    mtx.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+    const CTransactionRef tx = MakeTransactionRef(mtx);
+
+    const auto spent_coins = GetSpentCoins(tx, coins_cache);
+    BOOST_REQUIRE(spent_coins.has_value());
+    BOOST_CHECK_EQUAL(spent_coins->size(), 1U);
+    BOOST_CHECK((*spent_coins)[0] == coin1);
+
+    CMutableTransaction mtx_multi;
+    mtx_multi.vin.emplace_back(outpoint1);
+    mtx_multi.vin.emplace_back(outpoint2);
+    mtx_multi.vout.emplace_back(4 * COIN, CScript() << OP_TRUE);
+    const CTransactionRef tx_multi = MakeTransactionRef(mtx_multi);
+
+    const auto spent_coins_multi = GetSpentCoins(tx_multi, coins_cache);
+    BOOST_REQUIRE(spent_coins_multi.has_value());
+    BOOST_CHECK_EQUAL(spent_coins_multi->size(), 2U);
+    BOOST_CHECK((*spent_coins_multi)[0] == coin1);
+    BOOST_CHECK((*spent_coins_multi)[1] == coin2);
+
+    CMutableTransaction mtx_missing;
+    mtx_missing.vin.emplace_back(TxId{m_rng.rand256()}, 0);
+    mtx_missing.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+    const CTransactionRef tx_missing = MakeTransactionRef(mtx_missing);
+    BOOST_CHECK(!GetSpentCoins(tx_missing, coins_cache).has_value());
+
+    CMutableTransaction mtx_partial;
+    mtx_partial.vin.emplace_back(outpoint1);
+    mtx_partial.vin.emplace_back(TxId{m_rng.rand256()}, 0);
+    mtx_partial.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+    const CTransactionRef tx_partial = MakeTransactionRef(mtx_partial);
+    BOOST_CHECK(!GetSpentCoins(tx_partial, coins_cache).has_value());
+}
+
 BOOST_AUTO_TEST_SUITE_END()

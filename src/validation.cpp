@@ -833,10 +833,15 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     auto entry = CTxMemPoolEntryRef::acquire(pentry);
     m_pool.addUnchecked(entry);
 
+    auto spentCoins = GetSpentCoins(ws.m_ptx, m_view);
+    Assume(spentCoins.has_value());
+
     GetMainSignals().TransactionAddedToMempool(
         ws.m_ptx,
-        std::make_shared<const std::vector<Coin>>(
-            GetSpentCoins(ws.m_ptx, m_view)),
+        // Spent coins should never be null, but better be safe than sorry.
+        spentCoins.has_value()
+            ? std::make_shared<const std::vector<Coin>>(std::move(*spentCoins))
+            : nullptr,
         m_pool.GetAndIncrementSequence());
 
     // Trim mempool and check if tx was trimmed.
@@ -1723,13 +1728,15 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
     AddCoins(view, tx, nHeight);
 }
 
-std::vector<Coin> GetSpentCoins(const CTransactionRef &ptx,
-                                const CCoinsViewCache &coins_view) {
+std::optional<std::vector<Coin>>
+GetSpentCoins(const CTransactionRef &ptx, const CCoinsViewCache &coins_view) {
     std::vector<Coin> spent_coins;
     spent_coins.reserve(ptx->vin.size());
     for (const CTxIn &input : ptx->vin) {
         auto coin{coins_view.GetCoin(input.prevout)};
-        Assume(coin.has_value());
+        if (!coin.has_value()) {
+            return std::nullopt;
+        }
         spent_coins.push_back(std::move(*coin));
     }
     return spent_coins;
