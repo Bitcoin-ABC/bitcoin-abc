@@ -14,6 +14,7 @@ import {
     activeCryptoTicker,
     activeQuoteCurrency,
     allowFiatForActiveAsset,
+    formatActiveAssetAmount,
     setActiveAsset as commitActiveAsset,
 } from '../active-asset';
 import { coinIconUrlForAssetKey } from '../coin-icon-url';
@@ -304,11 +305,7 @@ export class MainScreen {
         const displayText =
             this.params.appSettings.primaryBalanceType === 'XEC' ||
             pricePerXec === null
-                ? formatPrice(
-                      transitionalXec,
-                      this.params.primaryBalanceTicker,
-                      cryptoFormatOptions,
-                  )
+                ? formatActiveAssetAmount(transitionalXec, cryptoFormatOptions)
                 : formatPrice(
                       transitionalXec * pricePerXec,
                       this.params.appSettings.fiatCurrency,
@@ -470,14 +467,10 @@ export class MainScreen {
         const formatValue =
             pricePerXec === null
                 ? (value: number) => {
-                      return formatPrice(
-                          value,
-                          this.params.primaryBalanceTicker,
-                          {
-                              locale: this.params.appSettings.locale,
-                              decimals: this.params.primaryBalanceDecimals,
-                          },
-                      );
+                      return formatActiveAssetAmount(value, {
+                          locale: this.params.appSettings.locale,
+                          decimals: this.params.primaryBalanceDecimals,
+                      });
                   }
                 : (value: number) => {
                       return formatPrice(

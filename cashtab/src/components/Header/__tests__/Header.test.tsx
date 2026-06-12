@@ -205,7 +205,7 @@ describe('<Header />', () => {
         expect(screen.getByTitle('Balance XECX')).toHaveStyle(
             'text-shadow: 0 0 15px #FFFFFF',
         );
-        expect(screen.getByTitle('Balance FIRMA')).toHaveStyle(
+        expect(screen.getByTitle('Balance USD')).toHaveStyle(
             'text-shadow: 0 0 15px #FFFFFF',
         );
     });
@@ -237,9 +237,7 @@ describe('<Header />', () => {
         expect(
             screen.queryByTitle('Balance XECX Fiat'),
         ).not.toBeInTheDocument();
-        expect(
-            screen.queryByTitle('Balance FIRMA Fiat'),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
         expect(
             screen.queryByTitle('Price in Local Currency'),
         ).not.toBeInTheDocument();
@@ -403,8 +401,6 @@ describe('<Header />', () => {
         expect(
             screen.queryByTitle('Balance XECX Fiat'),
         ).not.toBeInTheDocument();
-        expect(
-            screen.queryByTitle('Balance FIRMA Fiat'),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
     });
 });

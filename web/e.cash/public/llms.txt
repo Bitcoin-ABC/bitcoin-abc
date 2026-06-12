@@ -43,7 +43,7 @@
 - [Cashtab](https://cashtab.com/): A user-friendly web wallet for eCash.
 - [PayButton](https://paybutton.cash/): A simple way to accept eCash payments on websites.
 - [XECx](https://stakedxec.com/): A token that makes it easy to get staking rewards by simply holding.
-- [Firma](https://firma.cash/): A stablecoin based on eCash.
+- [Firma Alpha](https://firmaprotocol.com/): A stablecoin based on eCash.
 - [Block Explorer](https://explorer.e.cash/): Explore transactions and blocks on the eCash blockchain.
 - [LocaleCash](https://localecash.com/): A peer-to-peer marketplace for eCash.
 

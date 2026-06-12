@@ -13,6 +13,7 @@ import {
 import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { applyDisplayOverridesToTokenCache } from 'constants/tokenDisplayOverrides';
 import { toSatoshis } from 'wallet';
 import {
     StoredCashtabState_Pre_3_42_0,
@@ -123,7 +124,9 @@ export const storedCashtabCacheToMap = (
 ): CashtabCache => {
     return {
         ...storedCashtabCache,
-        tokens: new Map(storedCashtabCache.tokens),
+        tokens: applyDisplayOverridesToTokenCache(
+            new Map(storedCashtabCache.tokens),
+        ),
     };
 };
 

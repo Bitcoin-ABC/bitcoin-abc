@@ -35,8 +35,8 @@ export const XEC_ASSET: AssetDefinition = {
 
 export const FIRMA_TOKEN: AssetDefinition = {
     key: 'firma',
-    ticker: 'FIRMA',
-    displayName: 'Firma',
+    ticker: 'Firma α',
+    displayName: 'Firma Alpha',
     decimals: 4,
     tokenId: '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
     tokenType: ALP_TOKEN_TYPE_STANDARD,

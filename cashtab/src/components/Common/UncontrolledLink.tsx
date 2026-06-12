@@ -82,6 +82,7 @@ const APPROVED_DOMAINS = [
     'agora.cash',
     'cashtab.com',
     'firma.cash',
+    'firmaprotocol.com',
     'proofofwriting.com',
     'stakedxec.com',
 ];

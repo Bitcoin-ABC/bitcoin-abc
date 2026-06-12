@@ -164,7 +164,7 @@ export const PayButtonIcon: React.FC = () => (
 );
 export const XecxIcon: React.FC = () => <img src={XecxSrc} alt="XECX reward" />;
 export const FirmaIcon: React.FC = () => (
-    <img src={FirmaSrc} alt="Firma reward" />
+    <img src={FirmaSrc} alt="Firma Alpha reward" />
 );
 export const SolIcon: React.FC = () => <img src={SolSrc} alt="SOL logo" />;
 export const UsdcIcon: React.FC = () => <img src={usdcSrc} alt="USDC logo" />;

@@ -21,11 +21,11 @@ import { buildAction, buildTokenSendAction } from '../wallet';
 import {
     activeAssetDefinition,
     activeAssetTicker,
-    activeCryptoTicker,
     activeAssetDecimals,
     activeTokenId,
     allowFiatForActiveAsset,
     activeQuoteCurrency,
+    formatActiveAssetAmount,
 } from '../active-asset';
 import { isValidECashAddress } from '../address';
 import { parseBip21Uri, Bip21ParseResult } from '../bip21';
@@ -440,7 +440,7 @@ export class SendScreen {
     private formatPrimary(primary: number): string {
         const cryptoDecimals = activeAssetDecimals();
         return this.useActiveAssetPrimary
-            ? formatPrice(primary, activeCryptoTicker(), {
+            ? formatActiveAssetAmount(primary, {
                   locale: this.params.appSettings.locale,
                   decimals: cryptoDecimals,
               })
@@ -461,7 +461,7 @@ export class SendScreen {
                   this.params.appSettings.fiatCurrency,
                   { locale: this.params.appSettings.locale },
               )
-            : formatPrice(cryptoAmount, activeCryptoTicker(), {
+            : formatActiveAssetAmount(cryptoAmount, {
                   locale: this.params.appSettings.locale,
                   decimals: cryptoDecimals,
               });

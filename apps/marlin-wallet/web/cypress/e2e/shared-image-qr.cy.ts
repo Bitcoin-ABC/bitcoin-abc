@@ -159,7 +159,7 @@ describe('Shared image QR (native bridge)', () => {
             });
 
             cy.get('#send-screen').should('not.have.class', 'hidden');
-            cy.get('#ticker-label').should('contain', 'FIRMA');
+            cy.get('#ticker-label').should('contain', 'Firma α');
             cy.get('#recipient-address').should(
                 'have.value',
                 firmaPaymentRecipient,

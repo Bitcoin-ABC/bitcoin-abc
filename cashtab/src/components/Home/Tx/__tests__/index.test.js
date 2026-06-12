@@ -3875,7 +3875,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
 
         // We see Firma icon
-        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+        expect(screen.getByAltText(`Firma Alpha reward`)).toBeInTheDocument();
 
         // We see Firma yield app action
         expect(screen.getByText(`Firma yield payment`)).toBeInTheDocument();
@@ -3918,7 +3918,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('$0.00')).toBeInTheDocument();
 
         // We see Firma icon
-        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+        expect(screen.getByAltText(`Firma Alpha reward`)).toBeInTheDocument();
 
         // We see Firma yield app action
         expect(screen.getByText(`Firma yield payment`)).toBeInTheDocument();
@@ -3961,7 +3961,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('-$0.00')).toBeInTheDocument();
 
         // We see Firma icon
-        expect(screen.getByAltText(`Firma reward`)).toBeInTheDocument();
+        expect(screen.getByAltText(`Firma Alpha reward`)).toBeInTheDocument();
 
         // We see the USDC icon
         expect(screen.getByAltText(`USDC logo`)).toBeInTheDocument();

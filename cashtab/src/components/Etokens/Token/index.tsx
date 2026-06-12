@@ -132,6 +132,11 @@ import {
     XECX_SWEEPER_ADDRESS,
     FIRMA_REDEEM_ADDRESS,
 } from 'constants/tokens';
+import {
+    FIRMA_DISPLAY_NAME,
+    FIRMA_DISPLAY_TICKER,
+    applyTokenDisplayOverrides,
+} from 'constants/tokenDisplayOverrides';
 import UncontrolledLink from 'components/Common/UncontrolledLink';
 
 const Token: React.FC = () => {
@@ -187,7 +192,11 @@ const Token: React.FC = () => {
         ({ tokenType, genesisInfo, genesisSupply } = cachedInfo);
         tokenType = tokenType as unknown as TokenType | undefined;
         ({ protocol } = tokenType as any);
-        ({ tokenName, tokenTicker, url, hash, decimals } = genesisInfo);
+        const displayGenesisInfo = applyTokenDisplayOverrides(
+            tokenId,
+            genesisInfo,
+        );
+        ({ tokenName, tokenTicker, url, hash, decimals } = displayGenesisInfo);
     }
 
     let isSupportedToken = false;
@@ -467,13 +476,13 @@ const Token: React.FC = () => {
 
     const firmaRedeemErrorMsg =
         maxFirmaRedeemSats === null
-            ? `Unable to fetch $FIRMA redeem hot wallet balance`
+            ? `Unable to fetch $${FIRMA_DISPLAY_TICKER} redeem hot wallet balance`
             : `Hot wallet balance cannot support redemptions of more than ${toXec(
                   maxFirmaRedeemSats,
               ).toLocaleString(userLocale, {
                   maximumFractionDigits: 2,
                   minimumFractionDigits: 2,
-              })} XEC worth of $FIRMA. Top-up pending.`;
+              })} XEC worth of $${FIRMA_DISPLAY_TICKER}. Top-up pending.`;
 
     /**
      * Convenience method to compartmentalize comparison of state
@@ -1084,7 +1093,7 @@ const Token: React.FC = () => {
                 ? xecxRedeemError
                     ? `Cannot redeem less than 5.46 XECX`
                     : firmaRedeemError
-                      ? `Cannot redeem less than ${FIRMA_MINIMUM_REDEMPTION} FIRMA`
+                      ? `Cannot redeem less than ${FIRMA_MINIMUM_REDEMPTION} ${FIRMA_DISPLAY_TICKER}`
                       : false
                 : isValidAmountOrErrorMsg,
         );
@@ -2389,7 +2398,7 @@ const Token: React.FC = () => {
                                 <Modal
                                     title={
                                         isRedeemingFirma
-                                            ? `Redeem $FIRMA for XEC?`
+                                            ? `Redeem $${FIRMA_DISPLAY_TICKER} for XEC?`
                                             : `List ${tokenTicker}?`
                                     }
                                     disabled={
@@ -2423,7 +2432,7 @@ const Token: React.FC = () => {
                                                             ),
                                                             userLocale,
                                                         )}{' '}
-                                                        $FIRMA
+                                                        ${FIRMA_DISPLAY_TICKER}
                                                     </AgoraPreviewCol>
                                                 </AgoraPreviewRow>
                                                 <AgoraPreviewRow>
@@ -2449,7 +2458,8 @@ const Token: React.FC = () => {
                                                 </AgoraPreviewRow>
                                                 <AgoraPreviewRow>
                                                     <AgoraPreviewLabel>
-                                                        $FIRMA price:{' '}
+                                                        ${FIRMA_DISPLAY_TICKER}{' '}
+                                                        price:{' '}
                                                     </AgoraPreviewLabel>
                                                     <AgoraPreviewCol>
                                                         {getAgoraPartialActualPrice()}
@@ -2552,7 +2562,9 @@ const Token: React.FC = () => {
                                                 {isListingFirmaBelowBid && (
                                                     <Alert noWordBreak>
                                                         ⚠️ Warning: You are
-                                                        listing FIRMA for{' '}
+                                                        listing{' '}
+                                                        {FIRMA_DISPLAY_TICKER}{' '}
+                                                        for{' '}
                                                         {(() => {
                                                             const minAcceptedTokenSatoshis =
                                                                 previewedAgoraPartial.minAcceptedAtoms();
@@ -2585,15 +2597,18 @@ const Token: React.FC = () => {
                                                             );
                                                         })()}{' '}
                                                         per token, which is
-                                                        below FIRMA's current
-                                                        buy price of{' '}
+                                                        below{' '}
+                                                        {FIRMA_DISPLAY_TICKER}'s
+                                                        current buy price of{' '}
                                                         {getAgoraSpotPriceXec(
                                                             firmaBidPrice as number,
                                                             userLocale,
                                                         )}{' '}
                                                         per token. You should
-                                                        redeem FIRMA instead to
-                                                        get the best price.
+                                                        redeem{' '}
+                                                        {FIRMA_DISPLAY_TICKER}{' '}
+                                                        instead to get the best
+                                                        price.
                                                     </Alert>
                                                 )}
                                             </AgoraPreviewTable>
@@ -3304,7 +3319,7 @@ const Token: React.FC = () => {
                                                         {isCalculatingRedeemFirma ? (
                                                             <InlineLoader />
                                                         ) : (
-                                                            `Redeem FIRMA for XEC`
+                                                            `Redeem ${FIRMA_DISPLAY_NAME} for XEC`
                                                         )}
                                                     </PrimaryButton>
                                                 </SendTokenFormRow>

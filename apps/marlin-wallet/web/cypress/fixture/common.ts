@@ -5,6 +5,33 @@
 /// <reference types="cypress" />
 
 import { DEFAULT_LOCALE } from '../../../i18n/locales';
+import {
+    CryptoTicker,
+    formatPrice,
+    type PriceFormatterConfig,
+} from 'ecash-price';
+import { FIRMA_TOKEN } from '../../src/supported-assets';
+
+/** Ticker shown in formatted Firma crypto amounts (preserves display casing). */
+export const FIRMA_FORMATTED_TICKER = FIRMA_TOKEN.ticker;
+
+export function formatFirmaAmount(
+    amount: number,
+    config?: PriceFormatterConfig,
+): string {
+    const cryptoTicker = new CryptoTicker(FIRMA_TOKEN.ticker.toLowerCase());
+    const formatted = formatPrice(amount, cryptoTicker, {
+        locale: DEFAULT_LOCALE,
+        decimals: FIRMA_TOKEN.decimals,
+        ...config,
+    });
+    const upperSuffix = ` ${cryptoTicker.toString().toUpperCase()}`;
+    const displaySuffix = ` ${FIRMA_TOKEN.ticker}`;
+    if (formatted.endsWith(upperSuffix)) {
+        return formatted.slice(0, -upperSuffix.length) + displaySuffix;
+    }
+    return formatted;
+}
 
 /**
  * Partial overrides for `ecashwallet.settings.1` (stored JSON in

@@ -42,7 +42,7 @@ const gettingStartedLinks: GettingStartedColumn[] = [
     links: [
       { text: "Get eCash", href: "/get-ecash" },
       { text: "XECx", href: "https://stakedxec.com/" },
-      { text: "Firma", href: "https://firma.cash/" },
+      { text: "Firma Alpha", href: "https://firmaprotocol.com/" },
       { text: "PayButton", href: "https://paybutton.org/" },
       { text: "LocaleCash", href: "https://localecash.com/" },
       { text: "Block Explorer", href: "https://explorer.e.cash/" },

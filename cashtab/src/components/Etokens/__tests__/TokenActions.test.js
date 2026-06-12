@@ -46,6 +46,10 @@ import {
     FIRMA_REDEEM_ADDRESS,
     XECX_SWEEPER_ADDRESS,
 } from 'constants/tokens';
+import {
+    FIRMA_DISPLAY_NAME,
+    FIRMA_DISPLAY_TICKER,
+} from 'constants/tokenDisplayOverrides';
 
 describe('<Token /> available actions rendered', () => {
     const ecc = new Ecc();
@@ -2372,7 +2376,7 @@ describe('<Token /> available actions rendered', () => {
             />,
         );
 
-        const { tokenName } = FIRMA.token.genesisInfo;
+        const { tokenName } = { tokenName: FIRMA_DISPLAY_NAME };
 
         // Wait for element to get token info and load
         expect(
@@ -2396,7 +2400,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The redeem button is disabled on load
         const redeemButton = await screen.findByRole('button', {
-            name: /Redeem FIRMA for XEC/,
+            name: /Redeem Firma Alpha for XEC/,
         });
 
         await waitFor(() => expect(redeemButton).toBeDisabled());
@@ -2416,7 +2420,7 @@ describe('<Token /> available actions rendered', () => {
 
         // This is below firma min redemption so we get an error
         expect(
-            screen.getByText('Cannot redeem less than 0.01 FIRMA'),
+            screen.getByText('Cannot redeem less than 0.01 FIRMA ALPHA'),
         ).toBeInTheDocument();
 
         // The redeem button is still disabled
@@ -2437,14 +2441,14 @@ describe('<Token /> available actions rendered', () => {
 
         // Async as we must wait for multiple partials
         expect(
-            await screen.findByText('Redeem $FIRMA for XEC?'),
+            await screen.findByText('Redeem $FIRMA ALPHA for XEC?'),
         ).toBeInTheDocument();
 
         // Offered qty (actual, calculated from AgoraOffer)
         const actualOfferedQty = '10.0000';
 
         expect(
-            screen.getByText(`${actualOfferedQty} $FIRMA`),
+            screen.getByText(`${actualOfferedQty} $${FIRMA_DISPLAY_TICKER}`),
         ).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
         const actualPricePerTokenForMinBuy = '40,000.00 XEC';
@@ -2462,21 +2466,21 @@ describe('<Token /> available actions rendered', () => {
 
         // The confirmation modal is gone
         expect(
-            screen.queryByText('Redeem $FIRMA for XEC?'),
+            screen.queryByText('Redeem $FIRMA ALPHA for XEC?'),
         ).not.toBeInTheDocument();
 
         // We change our mind and list it
         await userEvent.click(redeemButton);
 
         expect(
-            await screen.findByText('Redeem $FIRMA for XEC?'),
+            await screen.findByText('Redeem $FIRMA ALPHA for XEC?'),
         ).toBeInTheDocument();
         await userEvent.click(screen.getByText('OK'));
 
         // We see the expected toast notification for the successful listing tx
         expect(
             await screen.findByText(
-                `${actualOfferedQty} Firma listed for ${actualPricePerTokenForMinBuy} per token`,
+                `${actualOfferedQty} ${FIRMA_DISPLAY_NAME} listed for ${actualPricePerTokenForMinBuy} per token`,
             ),
         ).toBeInTheDocument();
     });
@@ -2525,7 +2529,7 @@ describe('<Token /> available actions rendered', () => {
             />,
         );
 
-        const { tokenName } = FIRMA.token.genesisInfo;
+        const { tokenName } = { tokenName: FIRMA_DISPLAY_NAME };
 
         // Wait for element to get token info and load
         expect(
@@ -2549,7 +2553,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The redeem button is disabled on load
         const redeemButton = await screen.findByRole('button', {
-            name: /Redeem FIRMA for XEC/,
+            name: /Redeem Firma Alpha for XEC/,
         });
 
         await waitFor(() => expect(redeemButton).toBeDisabled());
@@ -2575,14 +2579,14 @@ describe('<Token /> available actions rendered', () => {
 
         // Async as we must wait for multiple partials
         expect(
-            await screen.findByText('Redeem $FIRMA for XEC?'),
+            await screen.findByText('Redeem $FIRMA ALPHA for XEC?'),
         ).toBeInTheDocument();
 
         // Offered qty (actual, calculated from AgoraOffer)
         const actualOfferedQty = '10.0000';
 
         expect(
-            screen.getByText(`${actualOfferedQty} $FIRMA`),
+            screen.getByText(`${actualOfferedQty} $${FIRMA_DISPLAY_TICKER}`),
         ).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
         const actualPricePerTokenForMinBuy = '40,000.00 XEC';
@@ -2598,7 +2602,7 @@ describe('<Token /> available actions rendered', () => {
         // We see an alert as the hot wallet cannot cover this redemption
         expect(
             screen.getByText(
-                'Hot wallet balance cannot support redemptions of more than 1,000.00 XEC worth of $FIRMA. Top-up pending.',
+                `Hot wallet balance cannot support redemptions of more than 1,000.00 XEC worth of $${FIRMA_DISPLAY_TICKER}. Top-up pending.`,
             ),
         ).toBeInTheDocument();
 
@@ -2634,7 +2638,7 @@ describe('<Token /> available actions rendered', () => {
             />,
         );
 
-        const { tokenName } = FIRMA.token.genesisInfo;
+        const { tokenName } = { tokenName: FIRMA_DISPLAY_NAME };
 
         // Wait for element to get token info and load
         expect(
@@ -2658,7 +2662,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The redeem button is disabled on load
         const redeemButton = await screen.findByRole('button', {
-            name: /Redeem FIRMA for XEC/,
+            name: /Redeem Firma Alpha for XEC/,
         });
         expect(redeemButton).toBeDisabled();
 
@@ -2677,7 +2681,7 @@ describe('<Token /> available actions rendered', () => {
 
         // This is below firma min redemption so we get an error
         expect(
-            screen.getByText('Cannot redeem less than 0.01 FIRMA'),
+            screen.getByText('Cannot redeem less than 0.01 FIRMA ALPHA'),
         ).toBeInTheDocument();
 
         // The redeem button is still disabled
@@ -3019,7 +3023,7 @@ describe('<Token /> available actions rendered', () => {
             />,
         );
 
-        const { tokenName } = FIRMA.token.genesisInfo;
+        const { tokenName } = { tokenName: FIRMA_DISPLAY_NAME };
 
         // Wait for element to get token info and load
         expect(
@@ -3060,19 +3064,21 @@ describe('<Token /> available actions rendered', () => {
 
         // The redeem button is disabled on load
         const listButton = await screen.findByRole('button', {
-            name: /List Firma/,
+            name: /List Firma Alpha/,
         });
 
         // try to list
         await userEvent.click(listButton);
 
         // Async as we must wait for multiple partials
-        expect(await screen.findByText('List FIRMA?')).toBeInTheDocument();
+        expect(
+            await screen.findByText('List FIRMA ALPHA?'),
+        ).toBeInTheDocument();
 
         // We see a warning msg about the poorly selected price
         expect(
             await screen.findByText(
-                `⚠️ Warning: You are listing FIRMA for 1,000 XEC per token, which is below FIRMA's current buy price of 40,000 XEC per token. You should redeem FIRMA instead to get the best price.`,
+                `⚠️ Warning: You are listing FIRMA ALPHA for 1,000 XEC per token, which is below FIRMA ALPHA's current buy price of 40,000 XEC per token. You should redeem FIRMA ALPHA instead to get the best price.`,
             ),
         ).toBeInTheDocument();
 

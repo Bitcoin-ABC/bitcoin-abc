@@ -52,7 +52,11 @@ const projects: Project[] = [
     href: "https://paybutton.org",
   },
   { name: "XECX", logo: "/xecx-icon.png", href: "https://stakedxec.com" },
-  { name: "FIRMA", logo: "/firma-icon.png", href: "https://firma.cash" },
+  {
+    name: "FIRMA ALPHA",
+    logo: "/firma-icon.png",
+    href: "https://firmaprotocol.com",
+  },
   {
     name: "BlitzChips",
     logo: "/blitz-icon.png",

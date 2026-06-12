@@ -2776,7 +2776,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // We see the valid firma redeem tx info
-        expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
+        expect(screen.getByAltText('Firma Alpha reward')).toBeInTheDocument();
         expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
 
         await waitFor(() => {

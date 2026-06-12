@@ -8,6 +8,7 @@ import {
     selectFirmaAsset,
     visitWithWalletMnemonic,
     waitForMainLoaded,
+    FIRMA_FORMATTED_TICKER,
 } from '../fixture/common';
 import type { ChronikStub } from '../fixture/chronik-json-protobuf';
 import { runWithChronik, stubCoingeckoXecFiatPrices } from '../fixture/stubs';
@@ -233,7 +234,9 @@ describe('Transaction history', () => {
             selectFirmaAsset();
 
             cy.get('#primary-balance').should($el => {
-                expect(normalizeBalanceText($el.text())).to.eq('0.5000 FIRMA');
+                expect(normalizeBalanceText($el.text())).to.eq(
+                    `0.5000 ${FIRMA_FORMATTED_TICKER}`,
+                );
             });
 
             openHistoryFromMain();
@@ -252,7 +255,7 @@ describe('Transaction history', () => {
                 .find('.transaction-amount-primary')
                 .should($el => {
                     expect(normalizeBalanceText($el.text())).to.eq(
-                        '+0.5000 FIRMA',
+                        `+0.5000 ${FIRMA_FORMATTED_TICKER}`,
                     );
                 });
             cy.get('#transaction-list .transaction-item')
@@ -272,7 +275,9 @@ describe('Transaction history', () => {
             selectFirmaAsset();
 
             cy.get('#primary-balance').should($el => {
-                expect(normalizeBalanceText($el.text())).to.eq('0.5000 FIRMA');
+                expect(normalizeBalanceText($el.text())).to.eq(
+                    `0.5000 ${FIRMA_FORMATTED_TICKER}`,
+                );
             });
 
             openHistoryFromMain();
@@ -285,7 +290,7 @@ describe('Transaction history', () => {
                 .find('.transaction-amount-primary')
                 .should($el => {
                     expect(normalizeBalanceText($el.text())).to.eq(
-                        '+0.5000 FIRMA',
+                        `+0.5000 ${FIRMA_FORMATTED_TICKER}`,
                     );
                 });
             cy.get('#transaction-list .transaction-item')
@@ -320,7 +325,7 @@ describe('Transaction history', () => {
                 .find('.transaction-amount-secondary')
                 .should($el => {
                     expect(normalizeBalanceText($el.text())).to.eq(
-                        '+0.5000 FIRMA',
+                        `+0.5000 ${FIRMA_FORMATTED_TICKER}`,
                     );
                 });
         });
@@ -389,7 +394,7 @@ describe('Transaction history', () => {
                 .find('.transaction-amount-primary')
                 .should($el => {
                     expect(normalizeBalanceText($el.text())).to.eq(
-                        '+0.5000 FIRMA',
+                        `+0.5000 ${FIRMA_FORMATTED_TICKER}`,
                     );
                 });
         });

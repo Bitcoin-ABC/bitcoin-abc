@@ -10,6 +10,7 @@ import CashtabSettings, {
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
 import { FIRMA } from 'constants/tokens';
+import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 
 export const BalanceXec = styled.div`
     display: flex;
@@ -167,11 +168,13 @@ const BalanceHeader: React.FC<BalanceHeaderProps> = ({
                 {balanceFirma !== 0 && (
                     <BalanceRow
                         isXecx
-                        title="Balance FIRMA"
+                        title={`Balance ${FIRMA_BALANCE_LABEL}`}
                         hideBalance={settings.balanceVisible === false}
                     >
                         {formattedBalanceFirma}{' '}
-                        <a href={`#/token/${FIRMA.tokenId}`}>FIRMA</a>
+                        <a href={`#/token/${FIRMA.tokenId}`}>
+                            {FIRMA_BALANCE_LABEL}
+                        </a>
                     </BalanceRow>
                 )}
             </BalanceXec>

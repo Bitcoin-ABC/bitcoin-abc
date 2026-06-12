@@ -111,7 +111,7 @@ export default function DownloadSummary() {
               imageSrc="/marlin-wallet.png"
               imageAlt="Marlin Wallet"
               title="Marlin (Android)"
-              description="Simple eCash wallet for Android and Wear OS — QR, NFC, and Firma stablecoin support."
+              description="Simple eCash wallet for Android and Wear OS — QR, NFC, and Firma Alpha stablecoin support."
               cta="Google Play"
             />
             <DownloadCardLink

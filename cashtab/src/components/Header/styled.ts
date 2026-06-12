@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import styled from 'styled-components';
+import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 
 export const HeaderCtn = styled.div`
     display: flex;
@@ -226,7 +227,7 @@ export const BalanceCard = styled.div<{
     overflow: hidden;
     color: ${props => props.theme.primaryText};
     background: ${props =>
-        (props.tokenLabel === 'FIRMA'
+        (props.tokenLabel === FIRMA_BALANCE_LABEL
             ? props.theme.firmaAccent
             : props.tokenLabel === 'XECX'
               ? props.theme.secondaryAccent

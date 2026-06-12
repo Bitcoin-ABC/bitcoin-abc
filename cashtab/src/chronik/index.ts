@@ -22,6 +22,7 @@ import {
 } from 'wallet';
 import { ChronikClient, Tx, TokenTxType, GenesisInfo } from 'chronik-client';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { applyTokenDisplayOverrides } from 'constants/tokenDisplayOverrides';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { scriptOps } from 'ecash-agora';
@@ -1306,7 +1307,11 @@ export const getTokenGenesisInfo = async (
     const tokenInfo = await chronik.token(tokenId);
     const genesisTxInfo = await chronik.tx(tokenId);
 
-    const { timeFirstSeen, genesisInfo, tokenType } = tokenInfo;
+    const { timeFirstSeen, tokenType } = tokenInfo;
+    const genesisInfo = applyTokenDisplayOverrides(
+        tokenId,
+        tokenInfo.genesisInfo,
+    );
     const decimals = genesisInfo.decimals;
 
     // Initialize variables for determined quantities we want to cache

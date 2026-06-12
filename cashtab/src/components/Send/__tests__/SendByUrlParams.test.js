@@ -852,7 +852,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token mode UI and parsed tx to appear
-        const { tokenName, tokenTicker } = FIRMA.token.genesisInfo;
         const addressPreview = `${destinationAddress.slice(
             0,
             'ecash:'.length + 3,
@@ -861,7 +860,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             () =>
                 expect(
                     screen.getByText(
-                        `Sending ${token_decimalized_qty} ${tokenName} (${tokenTicker}) to ${addressPreview}`,
+                        `Sending ${token_decimalized_qty} Firma Alpha (FIRMA ALPHA) to ${addressPreview}`,
                     ),
                 ).toBeInTheDocument(),
             { timeout: 5000 },
@@ -938,7 +937,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for firma redeem tx UI to appear
         await waitFor(
             () => {
-                expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
+                expect(
+                    screen.getByAltText('Firma Alpha reward'),
+                ).toBeInTheDocument();
                 expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
             },
             { timeout: 5000 },
@@ -965,7 +966,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // We see the valid firma redeem tx info (full redeem qty as USDC)
-        expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
+        expect(screen.getByAltText('Firma Alpha reward')).toBeInTheDocument();
         expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
         // The text is split across multiple elements, so we check for parts of it
         expect(screen.getByText(/On tx finalized/)).toBeInTheDocument();
@@ -1115,7 +1116,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token mode UI and parsed tx to appear
-        const { tokenName, tokenTicker } = FIRMA.token.genesisInfo;
         const addressPreview = `${destinationAddress.slice(
             0,
             'ecash:'.length + 3,
@@ -1124,7 +1124,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             () =>
                 expect(
                     screen.getByText(
-                        `Sending ${token_decimalized_qty} ${tokenName} (${tokenTicker}) to ${addressPreview}`,
+                        `Sending ${token_decimalized_qty} Firma Alpha (FIRMA ALPHA) to ${addressPreview}`,
                     ),
                 ).toBeInTheDocument(),
             { timeout: 5000 },

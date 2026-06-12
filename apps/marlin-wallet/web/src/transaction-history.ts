@@ -11,11 +11,11 @@ import { AppSettings } from './settings';
 import { formatPrice } from 'ecash-price';
 import type { MarlinPriceFetcher } from './price';
 import {
-    activeCryptoTicker,
     activeAssetDecimals,
     activeTokenId,
     allowFiatForActiveAsset,
     activeQuoteCurrency,
+    formatActiveAssetAmount,
 } from './active-asset';
 
 // ============================================================================
@@ -249,7 +249,6 @@ export class TransactionHistoryManager {
             : null;
 
         const tokenId = activeTokenId();
-        const primaryTicker = activeCryptoTicker();
         const tokenDecimals = activeAssetDecimals();
 
         const xecFormatOptions = {
@@ -302,11 +301,7 @@ export class TransactionHistoryManager {
             const primaryAmount =
                 this.appSettings.primaryBalanceType === 'XEC' ||
                 pricePerXec === null
-                    ? formatPrice(
-                          amountPrimary,
-                          primaryTicker,
-                          xecFormatOptions,
-                      )
+                    ? formatActiveAssetAmount(amountPrimary, xecFormatOptions)
                     : formatPrice(
                           amountPrimary * pricePerXec,
                           this.appSettings.fiatCurrency,
@@ -322,9 +317,8 @@ export class TransactionHistoryManager {
                               this.appSettings.fiatCurrency,
                               fiatFormatOptions,
                           )
-                        : formatPrice(
+                        : formatActiveAssetAmount(
                               amountPrimary,
-                              primaryTicker,
                               xecFormatOptions,
                           );
             }

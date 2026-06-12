@@ -11,6 +11,7 @@ import appConfig from 'config/app';
 import PopOut from 'assets/popout.png';
 import { toXec } from 'wallet';
 import { FIRMA } from 'constants/tokens';
+import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 import { ReactComponent as EcashIcon } from 'assets/ecash-icon.svg';
 import { ReactComponent as StakeIcon } from 'assets/stake.svg';
 import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
@@ -181,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                     tokenLabel={tokenLabel}
                 >
                     {balanceAmount}{' '}
-                    {tokenLabel === 'FIRMA' ? (
+                    {tokenLabel === FIRMA_BALANCE_LABEL ? (
                         <a href={`#/token/${FIRMA.tokenId}`}>{tokenLabel}</a>
                     ) : tokenLabel === 'XECX' ? (
                         <a href={`#/token/${appConfig.vipTokens.xecx.tokenId}`}>
@@ -274,7 +275,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                         title="USD"
                         logo={<SavingsIcon />}
                         logoAlt="Savings"
-                        tokenLabel="FIRMA"
+                        tokenLabel={FIRMA_BALANCE_LABEL}
                         balanceAmount={formattedBalanceFirma}
                         fiatAmount={formattedFIRMABalanceFiat}
                         balanceVisible={settings.balanceVisible === false}

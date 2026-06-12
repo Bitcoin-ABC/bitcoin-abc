@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { CryptoTicker, Fiat, PriceFetcher, PricePair } from 'ecash-price';
-import { activeAssetTicker, activeQuoteCurrency } from './active-asset';
+import { activeAssetDefinition, activeQuoteCurrency } from './active-asset';
 
 export class MarlinPriceFetcher {
     private priceFetcher: PriceFetcher;
@@ -28,7 +28,7 @@ export class MarlinPriceFetcher {
         // can simply return 1.0 for the price if the user is using USD as the
         // quote currency.
         if (
-            activeAssetTicker() === 'FIRMA' &&
+            activeAssetDefinition().key === 'firma' &&
             pair.source.toString() === activeQuoteCurrency().toString() &&
             pair.quote.toString() === Fiat.USD.toString()
         ) {

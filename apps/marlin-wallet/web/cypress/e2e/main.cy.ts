@@ -8,6 +8,7 @@ import {
     selectFirmaAsset,
     visitFresh,
     waitForMainLoaded,
+    FIRMA_FORMATTED_TICKER,
 } from '../fixture/common';
 import { stubCoingeckoXecFiatPrices } from '../fixture/stubs';
 
@@ -189,7 +190,9 @@ describe('Main screen', () => {
         selectFirmaAsset();
 
         cy.get('#primary-balance').should($el => {
-            expect(normalizeBalanceText($el.text())).to.equal('0.0000 FIRMA');
+            expect(normalizeBalanceText($el.text())).to.equal(
+                `0.0000 ${FIRMA_FORMATTED_TICKER}`,
+            );
         });
 
         cy.get('#asset-picker-btn').click();
@@ -209,7 +212,9 @@ describe('Main screen', () => {
         selectFirmaAsset();
 
         cy.get('#primary-balance').should($el => {
-            expect(normalizeBalanceText($el.text())).to.equal('0.0000 FIRMA');
+            expect(normalizeBalanceText($el.text())).to.equal(
+                `0.0000 ${FIRMA_FORMATTED_TICKER}`,
+            );
         });
         cy.get('#secondary-balance').should($el => {
             expect(normalizeBalanceText($el.text())).to.equal('$0.00');
@@ -230,7 +235,7 @@ describe('Main screen', () => {
             .should('be.visible')
             .invoke('text')
             .then(t => normalizeBalanceText(t))
-            .should('eq', '0.0000 FIRMA');
+            .should('eq', `0.0000 ${FIRMA_FORMATTED_TICKER}`);
 
         openSettingsFromMain();
         cy.get('#primary-balance-toggle').uncheck({ force: true });
@@ -241,7 +246,7 @@ describe('Main screen', () => {
         cy.get('#primary-balance')
             .invoke('text')
             .then(t => normalizeBalanceText(t))
-            .should('eq', '0.0000 FIRMA');
+            .should('eq', `0.0000 ${FIRMA_FORMATTED_TICKER}`);
         cy.get('#secondary-balance')
             .invoke('text')
             .then(t => normalizeBalanceText(t))

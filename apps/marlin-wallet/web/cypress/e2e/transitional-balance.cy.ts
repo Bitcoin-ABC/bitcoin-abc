@@ -18,6 +18,7 @@ import {
     selectFirmaAsset,
     visitWithWalletMnemonic,
     waitForMainLoaded,
+    formatFirmaAmount,
 } from '../fixture/common';
 import {
     installChronikWebSocketStub,
@@ -273,16 +274,11 @@ describe('Transitional balance', () => {
             cy.get('#primary-balance').should($el => {
                 const t = normalizeBalanceText($el.text());
                 expect(t).to.equal(
-                    formatPrice(
+                    formatFirmaAmount(
                         atomsToUnit(
                             STUB_AVAILABLE_FIRMA_ATOMS,
                             FIRMA_TOKEN.decimals,
                         ),
-                        new CryptoTicker(FIRMA_TOKEN.ticker.toLowerCase()),
-                        {
-                            locale: DEFAULT_LOCALE,
-                            decimals: FIRMA_TOKEN.decimals,
-                        },
                     ),
                 );
             });
@@ -294,14 +290,9 @@ describe('Transitional balance', () => {
                 syntheticTxid,
                 String(receiveAtoms),
             );
-            const expectedTransitionalFirma = formatPrice(
+            const expectedTransitionalFirma = formatFirmaAmount(
                 atomsToUnit(receiveAtoms, FIRMA_TOKEN.decimals),
-                new CryptoTicker(FIRMA_TOKEN.ticker.toLowerCase()),
-                {
-                    locale: DEFAULT_LOCALE,
-                    decimals: FIRMA_TOKEN.decimals,
-                    alwaysShowSign: true,
-                },
+                { alwaysShowSign: true },
             );
 
             cy.window().then(win => {
@@ -331,16 +322,11 @@ describe('Transitional balance', () => {
             cy.get('#primary-balance').should($el => {
                 const t = normalizeBalanceText($el.text());
                 expect(t).to.equal(
-                    formatPrice(
+                    formatFirmaAmount(
                         atomsToUnit(
                             STUB_AVAILABLE_FIRMA_ATOMS + receiveAtoms,
                             FIRMA_TOKEN.decimals,
                         ),
-                        new CryptoTicker(FIRMA_TOKEN.ticker.toLowerCase()),
-                        {
-                            locale: DEFAULT_LOCALE,
-                            decimals: FIRMA_TOKEN.decimals,
-                        },
                     ),
                 );
             });
