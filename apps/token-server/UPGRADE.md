@@ -66,12 +66,31 @@ CREATE TABLE IF NOT EXISTS blacklist (
   timestamp  BIGINT NOT NULL,
   added_by   TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS cashtab_tokens (
+  token_id        TEXT PRIMARY KEY,
+  minter_address  TEXT NOT NULL,
+  token_type      TEXT NOT NULL,
+  supply_type     TEXT NOT NULL CHECK (supply_type IN ('FIXED', 'VARIABLE')),
+  is_verified     BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 ```
+
+`blacklist` is unchanged in purpose. `cashtab_tokens` tracks tokens with icons served by token-server. Blacklist status stays on `blacklist` (join on `token_id` when needed).
+
+### `cashtab_tokens` data flow
+
+- **New tokens:** Cashtab `POST /new` includes `minterAddress`, `tokenType`, and `supplyType` with the icon upload. token-server validates the minter address (`ecashaddrjs`), `tokenType`, and `supplyType`, then upserts a row after the icon files are written.
+- **Manual add:** `pnpm exec tsx scripts/addCashtabToken.ts <tokenId>` fetches metadata from Chronik and inserts if missing (`chronik-client` is a devDependency; not used at runtime).
+- **`is_verified`:** Reserved for future use; defaults to `false`.
 
 ### Files changed
 
 - Added `schema.sql`, `test/testDb.ts` (pg-mem helper)
 - Rewrote `src/db.ts` for `pg` `Pool`
+- Added `src/cashtabTokens.ts` — `upsertCashtabToken()` on `POST /new`
 - Replaced `MONGODB_URL` with `DATABASE_URL` in `env.sample` / `src/env.ts`
 - Migrated tests to `pg-mem`
 - Added `scripts/migrateBlacklistFromMongo.ts` for prod data import

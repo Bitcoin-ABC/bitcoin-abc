@@ -16,13 +16,19 @@ COPY pnpm-lock.yaml .
 COPY package.json .
 
 # Copy package.json files for dependency resolution
+COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
 COPY apps/token-server/package.json ./apps/token-server/
 
 # Fetch dependencies (pnpm best practice for Docker)
 RUN pnpm fetch --frozen-lockfile
 
 # Copy source files
+COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
 COPY apps/token-server/ ./apps/token-server/
+
+# Install and build ecashaddrjs (workspace dependency of token-server)
+RUN pnpm install --frozen-lockfile --offline --filter ecashaddrjs...
+RUN pnpm --filter ecashaddrjs run build
 
 # Install dependencies for token-server
 RUN pnpm install --frozen-lockfile --offline --filter token-server...

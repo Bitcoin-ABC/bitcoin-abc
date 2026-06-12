@@ -23,5 +23,17 @@ export const createTestPool = async (): Promise<Pool> => {
         );
     `);
 
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS cashtab_tokens (
+            token_id text UNIQUE,
+            minter_address text,
+            token_type text,
+            supply_type text,
+            created_at timestamptz,
+            updated_at timestamptz,
+            is_verified boolean
+        );
+    `);
+
     return pool as Pool;
 };

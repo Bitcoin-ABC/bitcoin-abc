@@ -9,11 +9,18 @@ import multer from 'multer';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import config from '../config';
-import { isTokenImageRequest, isValidTokenId } from './validation';
+import {
+    isTokenImageRequest,
+    isValidMinterAddress,
+    isValidSupplyType,
+    isValidTokenId,
+    isValidTokenType,
+} from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Bot } from 'grammy';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
+import { upsertCashtabToken } from './cashtabTokens';
 import { Pool } from 'pg';
 import { writeFileSync, existsSync } from 'fs';
 import { IFs } from 'memfs';
@@ -172,6 +179,33 @@ export const startExpressServer = (
                     msg: `Invalid tokenId: ${tokenId}`,
                 });
             }
+
+            const { minterAddress, tokenType, supplyType } = req.body;
+            if (
+                typeof minterAddress !== 'string' ||
+                !isValidMinterAddress(minterAddress)
+            ) {
+                return res.status(400).json({
+                    status: 'error',
+                    msg: `Invalid minterAddress: ${minterAddress}`,
+                });
+            }
+            if (typeof tokenType !== 'string' || !isValidTokenType(tokenType)) {
+                return res.status(400).json({
+                    status: 'error',
+                    msg: `Invalid tokenType: ${tokenType}`,
+                });
+            }
+            if (
+                typeof supplyType !== 'string' ||
+                !isValidSupplyType(supplyType)
+            ) {
+                return res.status(400).json({
+                    status: 'error',
+                    msg: `Invalid supplyType: ${supplyType}`,
+                });
+            }
+
             if (typeof req.file === 'undefined') {
                 // Should never happen
                 console.log(`No file in "/new" token icon request`);
@@ -218,6 +252,21 @@ export const startExpressServer = (
                     return res.status(500).json({
                         status: 'error',
                         msg: `Error resizing uploaded token icon`,
+                    });
+                }
+
+                try {
+                    await upsertCashtabToken(pool, {
+                        tokenId,
+                        minterAddress,
+                        tokenType,
+                        supplyType,
+                    });
+                } catch (err) {
+                    console.log(`Error saving cashtab_tokens row`, err);
+                    return res.status(500).json({
+                        status: 'error',
+                        msg: `Error saving token metadata`,
                     });
                 }
 

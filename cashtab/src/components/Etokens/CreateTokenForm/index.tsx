@@ -573,16 +573,44 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         formData.ticker !== '' &&
         (tokenIcon === null || tokenIcon.size <= ICON_MAX_UPLOAD_BYTES);
 
+    const getSelectedTokenType = (): TokenType => {
+        if (isNftMint) {
+            return SLP_TOKEN_TYPE_NFT1_CHILD;
+        }
+        if (createNftCollection) {
+            return SLP_TOKEN_TYPE_NFT1_GROUP;
+        }
+        if (tokenTypeSwitches.slp) {
+            return SLP_TOKEN_TYPE_FUNGIBLE;
+        }
+        return ALP_TOKEN_TYPE_STANDARD;
+    };
+
+    const getSupplyType = (): 'FIXED' | 'VARIABLE' => {
+        if (isNftMint) {
+            return 'FIXED';
+        }
+        return createWithMintBaton ? 'VARIABLE' : 'FIXED';
+    };
+
     interface TokenIconData {
         name: string;
         ticker: string;
         decimals: string;
         url: string;
         genesisQty: string;
+        minterAddress: string;
+        tokenType: string;
+        supplyType: string;
         tokenIcon: File;
     }
     const submitTokenIcon = async (tokenId: string) => {
+        if (!ecashWallet) {
+            throw new Error('Wallet not initialized');
+        }
+
         const submittedFormData = new FormData();
+        const selectedTokenType = getSelectedTokenType();
 
         const data: TokenIconData = {
             name: formData.name,
@@ -590,6 +618,9 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
             decimals: isNftMint ? NFT_DECIMALS.toString() : formData.decimals,
             url: formData.url,
             genesisQty: isNftMint ? NFT_GENESIS_QTY : formData.genesisQty,
+            minterAddress: ecashWallet.address,
+            tokenType: selectedTokenType.type,
+            supplyType: getSupplyType(),
             tokenIcon: tokenIcon as File,
         };
 
@@ -737,14 +768,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                 );
 
                 // Determine token type
-                let tokenType: TokenType;
-                if (createNftCollection) {
-                    tokenType = SLP_TOKEN_TYPE_NFT1_GROUP;
-                } else if (tokenTypeSwitches.slp) {
-                    tokenType = SLP_TOKEN_TYPE_FUNGIBLE;
-                } else {
-                    tokenType = ALP_TOKEN_TYPE_STANDARD;
-                }
+                const tokenType = getSelectedTokenType();
 
                 // Build outputs array
                 // Both ALP and SLP use the same output structure in Cashtab: qty at outIdx 1, mint baton at outIdx 2

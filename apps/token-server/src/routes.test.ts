@@ -17,6 +17,28 @@ import { createTestPool } from '../test/testDb';
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
 const sortedMockTokenIds = mockBlacklist.map(entry => entry.tokenId).sort();
 
+const TEST_TOKEN_ID =
+    '1111111111111111111111111111111111111111111111111111111111111111';
+const TEST_MINTER_ADDRESS = 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
+const TEST_TOKEN_TYPE = 'ALP_TOKEN_TYPE_STANDARD';
+const TEST_SUPPLY_TYPE = 'FIXED';
+
+const appendCashtabNewTokenFields = (
+    req: request.Test,
+    tokenId: string = TEST_TOKEN_ID,
+) => {
+    return req
+        .field('name', 'Test Token')
+        .field('ticker', 'TST')
+        .field('decimals', '3')
+        .field('url', 'https://cashtab.com/')
+        .field('genesisQty', '10000')
+        .field('tokenId', tokenId)
+        .field('minterAddress', TEST_MINTER_ADDRESS)
+        .field('tokenType', TEST_TOKEN_TYPE)
+        .field('supplyType', TEST_SUPPLY_TYPE);
+};
+
 describe('routes.js', function () {
     let testPool: Pool;
     let app: http.Server;
@@ -98,17 +120,7 @@ describe('routes.js', function () {
             });
     });
     it('We receive a 500 error if post has no file', function () {
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach(
                 'tokenIcon',
                 Buffer.alloc(config.maxUploadSize - 1, 1),
@@ -122,17 +134,7 @@ describe('routes.js', function () {
             });
     });
     it('We receive a 500 error if image upload exceeds server limit', function () {
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach(
                 'tokenIcon',
                 Buffer.alloc(config.maxUploadSize, 1),
@@ -155,17 +157,7 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
             .expect('Content-Type', /json/)
@@ -186,21 +178,14 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        return request(app)
-            .post(`/new`)
-            .set(
-                'Origin',
-                'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag',
-            )
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(
+            request(app)
+                .post(`/new`)
+                .set(
+                    'Origin',
+                    'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag',
+                ),
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
             .expect('Content-Type', /json/)
@@ -221,18 +206,9 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        return request(app)
-            .post(`/new`)
-            .set('Origin', 'https://notcashtab.com/')
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`).set('Origin', 'https://notcashtab.com/'),
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(500)
             .expect('Content-Type', 'text/html; charset=utf-8')
@@ -250,14 +226,10 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field('tokenId', 'not-a-valid-token-id')
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            'not-a-valid-token-id',
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(400)
             .expect('Content-Type', /json/)
@@ -280,14 +252,10 @@ describe('routes.js', function () {
 
         const traversalTokenId = '../../rejected/32/probe';
 
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field('tokenId', traversalTokenId)
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            traversalTokenId,
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(400)
             .expect('Content-Type', /json/)
@@ -310,17 +278,7 @@ describe('routes.js', function () {
             .toBuffer();
 
         // First request is ok
-        await request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        await appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
             .expect('Content-Type', /json/)
@@ -329,23 +287,13 @@ describe('routes.js', function () {
             });
 
         // Now an identical request will fail
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
                 status: 'error',
-                msg: `Token icon already exists for 1111111111111111111111111111111111111111111111111111111111111111`,
+                msg: `Token icon already exists for ${TEST_TOKEN_ID}`,
             });
     });
     it('We only accept pngs at the /new post endpoint', async function () {
@@ -360,17 +308,7 @@ describe('routes.js', function () {
             .jpeg()
             .toBuffer();
 
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach('tokenIcon', semiTransparentRedJpg, 'mockicon.jpg')
             .expect(403)
             .expect('Content-Type', /json/)
@@ -380,17 +318,7 @@ describe('routes.js', function () {
             });
     });
     it('Error in sharp resize is handled', async function () {
-        return request(app)
-            .post(`/new`)
-            .field('newTokenName', 'Test Token')
-            .field('newTokenTicker', 'TST')
-            .field('newTokenDecimals', 3)
-            .field('newTokenDocumentUrl', 'https://cashtab.com/')
-            .field('newTokenInitialQty', '10000')
-            .field(
-                'tokenId',
-                '1111111111111111111111111111111111111111111111111111111111111111',
-            )
+        return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach(
                 'tokenIcon',
                 Buffer.alloc(config.maxUploadSize - 1, 1),
@@ -402,6 +330,100 @@ describe('routes.js', function () {
                 status: 'error',
                 msg: 'Error resizing uploaded token icon',
             });
+    });
+    it('We reject a /new request with an invalid minterAddress', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('name', 'Test Token')
+            .field('ticker', 'TST')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', 'not-an-address')
+            .field('tokenType', TEST_TOKEN_TYPE)
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Invalid minterAddress: not-an-address',
+            });
+    });
+    it('We reject a /new request with invalid token metadata', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('name', 'Test Token')
+            .field('ticker', 'TST')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', TEST_MINTER_ADDRESS)
+            .field('tokenType', 'NOT_A_REAL_TOKEN_TYPE')
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Invalid tokenType: NOT_A_REAL_TOKEN_TYPE',
+            });
+    });
+    it('We save cashtab_tokens metadata on successful icon upload', async function () {
+        const tokenId =
+            '2222222222222222222222222222222222222222222222222222222222222222';
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 0, g: 255, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        await appendCashtabNewTokenFields(request(app).post(`/new`), tokenId)
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(200);
+
+        const result = await testPool.query(
+            `SELECT token_id, minter_address, token_type, supply_type
+             FROM cashtab_tokens WHERE token_id = $1`,
+            [tokenId],
+        );
+
+        assert.equal(result.rows.length, 1);
+        assert.deepEqual(result.rows[0], {
+            token_id: tokenId,
+            minter_address: TEST_MINTER_ADDRESS,
+            token_type: TEST_TOKEN_TYPE,
+            supply_type: TEST_SUPPLY_TYPE,
+        });
     });
     it('/blacklist returns tokenIds of the blacklist', function () {
         return request(app)

@@ -910,6 +910,8 @@ builds:
         env:
             JS_PROJECT_ROOT: apps/token-server
             RUN_NPM_BUILD: 'true'
+        depends:
+            - ecashaddrjs
         templates:
             - js-mocha
 

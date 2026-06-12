@@ -42,6 +42,7 @@
         "mocha-suppress-logs": "^0.6.0",
         "pg-mem": "^3.0.5",
         "c8": "^10.1.3",
+        "chronik-client": "workspace:^",
         "supertest": "^7.2.2",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
@@ -52,6 +53,7 @@
         "bip39": "^3.1.0",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
+        "ecashaddrjs": "workspace:^",
         "ecpair": "^2.1.0",
         "ethereum-blockies-base64": "^1.0.2",
         "express": "^5.2.1",
