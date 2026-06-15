@@ -92,6 +92,13 @@ export default {
                 returned: '1T',
             },
             {
+                description:
+                    'Balance just under 1 trillion XEC rounds to 1T, not 1,000B',
+                satoshis: 99999999999999,
+                userLocale: 'en-US',
+                returned: '1T',
+            },
+            {
                 description: 'Balance exceeding 1 billion XEC (10 billion)',
                 satoshis: 1000000000000,
                 userLocale: 'en-US',
@@ -104,6 +111,13 @@ export default {
                 returned: '1B',
             },
             {
+                description:
+                    'Balance just under 1 billion XEC rounds to 1B, not 1,000M',
+                satoshis: 99999999999,
+                userLocale: 'en-US',
+                returned: '1B',
+            },
+            {
                 description: 'Balance exceeding 1 million XEC (10 million)',
                 satoshis: 1000000000,
                 userLocale: 'en-US',
@@ -112,6 +126,13 @@ export default {
             {
                 description: 'Balance of exactly 1 million XEC',
                 satoshis: 100000000,
+                userLocale: 'en-US',
+                returned: '1M',
+            },
+            {
+                description:
+                    'Balance just under 1 million XEC rounds to 1M, not 1,000k',
+                satoshis: 99999999,
                 userLocale: 'en-US',
                 returned: '1M',
             },

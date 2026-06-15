@@ -109,8 +109,8 @@ export const toFormattedXec = (
     satoshis: number,
     userLocale: string,
 ): string => {
-    // Get XEC balance
-    let xecAmount = toXec(satoshis);
+    const xecAmountRaw = toXec(satoshis);
+    let xecAmount = xecAmountRaw;
     // Format up to max supply
     const trillion = 1e12;
     const billion = 1e9;
@@ -133,6 +133,19 @@ export const toFormattedXec = (
         units = '';
         // Always display with 2 decimals, e.g. 42 XEC is displayed as 42.00 XEC
         minimumFractionDigits = 2;
+    }
+    // Avoid "1,000k" when rounding would hit the next unit, e.g. 999,999.99 XEC
+    if (units !== '' && Number(xecAmount.toFixed(2)) >= 1000) {
+        if (units === 'k') {
+            xecAmount = xecAmountRaw / million;
+            units = 'M';
+        } else if (units === 'M') {
+            xecAmount = xecAmountRaw / billion;
+            units = 'B';
+        } else if (units === 'B') {
+            xecAmount = xecAmountRaw / trillion;
+            units = 'T';
+        }
     }
     return `${xecAmount.toLocaleString(userLocale, {
         maximumFractionDigits: 2,
