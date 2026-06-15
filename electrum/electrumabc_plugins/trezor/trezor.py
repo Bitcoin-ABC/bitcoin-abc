@@ -5,6 +5,7 @@ import traceback
 from binascii import unhexlify
 from typing import TYPE_CHECKING, Any, NamedTuple, Optional, Tuple
 
+from electrumabc.address import Address
 from electrumabc.avalanche.primitives import PublicKey
 from electrumabc.avalanche.proof import Stake
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
@@ -621,16 +622,16 @@ class TrezorPlugin(HWPluginBase):
                 ui_addr_fmt = address.FMT_UI
                 if (
                     not self.has_native_ecash_support
-                    and ui_addr_fmt == address.FMT_CASHADDR
+                    and ui_addr_fmt == Address.Format.CASHADDR
                 ):
-                    ui_addr_fmt = address.FMT_CASHADDR_BCH
+                    ui_addr_fmt = Address.Format.CASHADDR_BCH
 
-                addr_format = address.FMT_LEGACY
+                addr_format = Address.Format.LEGACY
                 if client.get_trezor_model() == "T":
                     if client.atleast_version(2, 0, 8):
                         addr_format = ui_addr_fmt
                     elif client.atleast_version(2, 0, 7):
-                        addr_format = address.FMT_CASHADDR_BCH
+                        addr_format = Address.Format.CASHADDR_BCH
                 else:
                     if client.atleast_version(1, 6, 2):
                         addr_format = ui_addr_fmt

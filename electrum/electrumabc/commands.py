@@ -213,9 +213,9 @@ class Commands:
         except Exception as e:
             raise AddressError(f"Invalid address: {address}") from e
         return {
-            "cashaddr": addr.to_full_string(Address.FMT_CASHADDR),
-            "bitcoincashaddr": addr.to_full_string(Address.FMT_CASHADDR_BCH),
-            "legacy": addr.to_full_string(Address.FMT_LEGACY),
+            "cashaddr": addr.to_full_string(Address.Format.CASHADDR),
+            "bitcoincashaddr": addr.to_full_string(Address.Format.CASHADDR_BCH),
+            "legacy": addr.to_full_string(Address.Format.LEGACY),
         }
 
     @command("")

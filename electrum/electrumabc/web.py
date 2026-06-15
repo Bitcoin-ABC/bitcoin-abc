@@ -51,7 +51,7 @@ class ExplorerUrlParts(enum.Enum):
 class BlockchainExplorer:
     name: str = ""
     url_base: str = ""
-    addr_fmt: str = Address.FMT_CASHADDR
+    addr_fmt: Address.Format = Address.Format.CASHADDR
     tx_part: str = "tx"
     addr_part: str = "address"
     block_part: str = "block"

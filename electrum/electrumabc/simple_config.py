@@ -8,7 +8,6 @@ from decimal import Decimal as PyDecimal
 from typing import Any, Optional, Union
 
 from . import util
-from .address import Address
 from .constants import XEC
 from .printerror import PrintError, print_error
 from .util import get_user_dir, make_dir
@@ -17,6 +16,12 @@ FINAL_CONFIG_VERSION = 2
 
 PLUGIN_USE_PREFIX = "use_"
 EXT_PLUGIN_USE_PREFIX = "use_external_"
+
+
+class AddressFormats:
+    CASHADDR = "CashAddr"
+    LEGACY = "Legacy"
+    CASHADDR_BCH = "CashAddr BCH"
 
 
 @dataclass
@@ -29,7 +34,7 @@ class ConfigKey:
 
 
 class ConfigKeys:
-    ADDRESS_FORMAT = ConfigKey("address_format", Address.FMT_CASHADDR)
+    ADDRESS_FORMAT = ConfigKey("address_format", AddressFormats.CASHADDR)
     ALIAS = ConfigKey("alias", "")
     ALLOW_LEGACY_P2SH = ConfigKey("allow_legacy_p2sh", False)
     AUTO_CONNECT = ConfigKey("auto_connect", True)

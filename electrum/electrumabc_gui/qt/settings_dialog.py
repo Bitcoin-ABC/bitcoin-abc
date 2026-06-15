@@ -426,10 +426,10 @@ class SettingsDialog(WindowModalDialog):
         hbox = QtWidgets.QHBoxLayout(address_w)
         self.cashaddr_cbox = QtWidgets.QComboBox()
         self.cashaddr_cbox.addItem(
-            QIcon(":icons/tab_converter.svg"), _("CashAddr"), Address.FMT_CASHADDR
+            QIcon(":icons/tab_converter.svg"), _("CashAddr"), Address.Format.CASHADDR
         )
         self.cashaddr_cbox.addItem(
-            QIcon(":icons/tab_converter_bw.svg"), _("Legacy"), Address.FMT_LEGACY
+            QIcon(":icons/tab_converter_bw.svg"), _("Legacy"), Address.Format.LEGACY
         )
         self.cashaddr_cbox.setCurrentIndex(0 if self.gui_object.is_cashaddr() else 1)
 
@@ -839,7 +839,7 @@ class SettingsDialog(WindowModalDialog):
         self.need_restart = True
 
     def cashaddr_cbox_handler(self, ignored_param):
-        fmt = self.cashaddr_cbox.currentData()
+        fmt: Address.Format = self.cashaddr_cbox.currentData()
         self.gui_object.set_address_format(fmt)
 
     def on_set_updatecheck(self, v):

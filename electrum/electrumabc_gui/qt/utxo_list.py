@@ -347,14 +347,14 @@ class UTXOList(MyTreeWidget, PrintError):
             elif col == self.Col.address:
                 # Determine the "alt copy text" "Legacy Address" or "Cash Address"
                 copy_text = coin.address.to_ui_string()
-                if Address.FMT_UI == Address.FMT_LEGACY:
+                if Address.FMT_UI == Address.Format.LEGACY:
                     alt_copy_text, alt_column_title = (
-                        coin.address.to_full_string(Address.FMT_CASHADDR),
+                        coin.address.to_full_string(Address.Format.CASHADDR),
                         _("Cash Address"),
                     )
                 else:
                     alt_copy_text, alt_column_title = (
-                        coin.address.to_full_string(Address.FMT_LEGACY),
+                        coin.address.to_full_string(Address.Format.LEGACY),
                         _("Legacy Address"),
                     )
             else:
@@ -499,7 +499,7 @@ class UTXOList(MyTreeWidget, PrintError):
         for utxo in utxos:
             utxo_for_json = utxo.copy()
             addr = utxo["address"]
-            utxo_for_json["address"] = addr.to_full_string(Address.FMT_CASHADDR)
+            utxo_for_json["address"] = addr.to_full_string(Address.Format.CASHADDR)
 
             wallet_types_without_index = (ImportedAddressWallet, ImportedPrivkeyWallet)
             if not isinstance(self.wallet, wallet_types_without_index):

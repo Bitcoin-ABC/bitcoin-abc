@@ -116,7 +116,9 @@ class LedgerAuthDialog(QtWidgets.QDialog):
                 address = self.txdata["address"]
 
                 # Always generate the mainnet address as the code is generated from mainnet address
-                addressstr = address.to_string(Address.FMT_LEGACY, net=networks.MainNet)
+                addressstr = address.to_string(
+                    Address.Format.LEGACY, net=networks.MainNet
+                )
                 addressstr = (
                     addressstr[:i]
                     + "<u><b>"
@@ -126,7 +128,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
                 )
 
                 # We also show the UI address if it is different
-                if networks.net.TESTNET or not Address.FMT_UI == Address.FMT_LEGACY:
+                if networks.net.TESTNET or not Address.FMT_UI == Address.Format.LEGACY:
                     addressstr = address.to_ui_string() + "\n" + addressstr
 
                 self.addrtext.setHtml(str(addressstr))

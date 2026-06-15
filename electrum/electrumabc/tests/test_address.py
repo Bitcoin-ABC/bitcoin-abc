@@ -43,13 +43,13 @@ class TestAddressFromString(unittest.TestCase):
             else BCH_CASHADDR_WITH_PREFIX_TESTNET
         )
         self.assertEqual(
-            addr.to_full_string(fmt=Address.FMT_LEGACY, net=net), legacy_addr
+            addr.to_full_string(fmt=Address.Format.LEGACY, net=net), legacy_addr
         )
         self.assertEqual(
-            addr.to_full_string(fmt=Address.FMT_CASHADDR_BCH, net=net), bchaddr
+            addr.to_full_string(fmt=Address.Format.CASHADDR_BCH, net=net), bchaddr
         )
         self.assertEqual(
-            addr.to_full_string(fmt=Address.FMT_CASHADDR, net=net), ecashaddr
+            addr.to_full_string(fmt=Address.Format.CASHADDR, net=net), ecashaddr
         )
 
     def test_from_legacy(self):

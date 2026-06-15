@@ -68,7 +68,7 @@ from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError, print_error
-from electrumabc.simple_config import ConfigKeys, SimpleConfig
+from electrumabc.simple_config import AddressFormats, ConfigKeys, SimpleConfig
 from electrumabc.util import (
     BitcoinException,
     Handlers,
@@ -76,6 +76,7 @@ from electrumabc.util import (
     WalletFileException,
     Weak,
     get_new_wallet_name,
+    inv_dict,
     standardize_path,
 )
 from electrumabc.wallet import AbstractWallet, Wallet
@@ -178,6 +179,17 @@ def init_qapplication(config: SimpleConfig):
         app = QtWidgets.QApplication(sys.argv)
     finally:
         call_after_app()
+
+
+# enum to config string map
+ADDRESS_FORMAT_CONFIG_VALUES: dict[Address.Format, str] = {
+    Address.Format.CASHADDR: AddressFormats.CASHADDR,
+    Address.Format.LEGACY: AddressFormats.LEGACY,
+}
+
+ADDRESS_FORMAT_ENUM_VALUES: dict[str, Address.Format] = inv_dict(
+    ADDRESS_FORMAT_CONFIG_VALUES
+)
 
 
 class ElectrumGui(QtCore.QObject, PrintError):
@@ -1048,20 +1060,26 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 )
 
     def is_cashaddr(self) -> bool:
-        return bool(self.get_config_addr_format() == Address.FMT_CASHADDR)
+        return bool(self.get_config_addr_format() == Address.Format.CASHADDR)
 
-    def get_config_addr_format(self) -> str:
-        return self.config.get(ConfigKeys.ADDRESS_FORMAT)
+    def get_config_addr_format(self) -> Address.Format:
+        return ADDRESS_FORMAT_ENUM_VALUES.get(
+            self.config.get(ConfigKeys.ADDRESS_FORMAT), Address.Format.CASHADDR
+        )
 
     def toggle_cashaddr(self):
         """cycle between available address formats"""
         Address.toggle_address_format()
-        self.config.set_key(ConfigKeys.ADDRESS_FORMAT, Address.FMT_UI)
+        self.config.set_key(
+            ConfigKeys.ADDRESS_FORMAT, ADDRESS_FORMAT_CONFIG_VALUES[Address.FMT_UI]
+        )
         self.addr_fmt_changed.emit()
 
-    def set_address_format(self, fmt):
+    def set_address_format(self, fmt: Address.Format):
         """Specify which address format to use."""
-        self.config.set_key(ConfigKeys.ADDRESS_FORMAT, fmt)
+        self.config.set_key(
+            ConfigKeys.ADDRESS_FORMAT, ADDRESS_FORMAT_CONFIG_VALUES[fmt]
+        )
         Address.set_address_format(fmt)
         self.addr_fmt_changed.emit()
 

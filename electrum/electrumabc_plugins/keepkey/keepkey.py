@@ -531,7 +531,7 @@ class KeepKeyPlugin(HWPluginBase):
             elif _type == TYPE_ADDRESS:
                 txoutputtype.script_type = self.types.PAYTOADDRESS
                 txoutputtype.address = address.to_full_string(
-                    Address.FMT_CASHADDR_BCH, net=networks.MainNet
+                    Address.Format.CASHADDR_BCH, net=networks.MainNet
                 )
             return txoutputtype
 

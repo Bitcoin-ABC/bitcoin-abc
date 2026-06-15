@@ -315,14 +315,14 @@ class AddressList(MyTreeWidget):
             alt_copy_text, alt_column_title = None, None
             if col == 0:
                 copy_text = addr.to_ui_string()
-                if Address.FMT_UI == Address.FMT_LEGACY:
+                if Address.FMT_UI == Address.Format.LEGACY:
                     alt_copy_text, alt_column_title = (
-                        addr.to_full_string(Address.FMT_CASHADDR),
+                        addr.to_full_string(Address.Format.CASHADDR),
                         _("Cash Address"),
                     )
                 else:
                     alt_copy_text, alt_column_title = (
-                        addr.to_full_string(Address.FMT_LEGACY),
+                        addr.to_full_string(Address.Format.LEGACY),
                         _("Legacy Address"),
                     )
             else:

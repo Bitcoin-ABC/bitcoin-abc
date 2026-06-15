@@ -1738,7 +1738,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # Special case hack -- see #1473. Omit ecash: prefix from
         # legacy address if no other params present in receive request.
         if (
-            Address.FMT_UI == Address.FMT_LEGACY
+            Address.FMT_UI == Address.Format.LEGACY
             and not kwargs
             and not amount
             and not message
@@ -1851,9 +1851,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         legacy_address.setReadOnly(True)
 
         widgets = [
-            (cash_address, Address.FMT_CASHADDR),
-            (cash_address_bch, Address.FMT_CASHADDR_BCH),
-            (legacy_address, Address.FMT_LEGACY),
+            (cash_address, Address.Format.CASHADDR),
+            (cash_address_bch, Address.Format.CASHADDR_BCH),
+            (legacy_address, Address.Format.LEGACY),
         ]
 
         def convert_address():

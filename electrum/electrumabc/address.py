@@ -29,6 +29,7 @@ import abc
 import hashlib
 import struct
 from collections import namedtuple
+from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 from . import cashaddr, networks
@@ -352,24 +353,23 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script"), DestinationType):
 
 # A namedtuple for easy comparison and unique hashing
 class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
+    class Format(Enum):
+        CASHADDR = 0
+        LEGACY = 1
+        # We keep this for now for the address converter tool and hw wallets, but it
+        # can no longer be shown in the rest of the UI and is no longer supported in
+        # the "Pay to" field.
+        CASHADDR_BCH = 2
+
     # Address kinds
     ADDR_P2PKH = 0
     ADDR_P2SH = 1
 
-    # Address formats
-    FMT_CASHADDR = "CashAddr"
-    FMT_LEGACY = "Legacy"
-
-    # We keep this for now for the address converter tool and hw wallets, but it
-    # can no longer be shown in the rest of the UI and is no longer supported in
-    # the "Pay to" field.
-    FMT_CASHADDR_BCH = "CashAddr BCH"
-
     # Default to CashAddr
-    FMT_UI = FMT_CASHADDR
+    FMT_UI = Format.CASHADDR
     """Current address format used in the UI"""
 
-    FMTS_UI = [FMT_CASHADDR, FMT_LEGACY]
+    FMTS_UI = [Format.CASHADDR, Format.LEGACY]
     """All address formats that can be used in the UI"""
 
     FMT_UI_IDX = FMTS_UI.index(FMT_UI)
@@ -381,14 +381,14 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         assert len(hash160) == 20, "hash must be 20 bytes"
         ret = super().__new__(cls, hash160, kind)
         ret._addr2str_cache = {
-            cls.FMT_CASHADDR: None,
-            cls.FMT_CASHADDR_BCH: None,
-            cls.FMT_LEGACY: None,
+            cls.Format.CASHADDR: None,
+            cls.Format.CASHADDR_BCH: None,
+            cls.Format.LEGACY: None,
         }
         return ret
 
     @classmethod
-    def set_address_format(cls, fmt):
+    def set_address_format(cls, fmt: Address.Format):
         cls.FMT_UI = fmt
         cls.FMT_UI_IDX = cls.FMTS_UI.index(cls.FMT_UI)
 
@@ -526,13 +526,6 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     def from_multisig_script(cls, script):
         return cls(hash_160(script), cls.ADDR_P2SH)
 
-    @classmethod
-    def to_strings(cls, fmt, addrs, *, net=None):
-        """Construct a list of strings from an iterable of Address objects."""
-        if net is None:
-            net = networks.net
-        return [addr.to_string(fmt, net=net) for addr in addrs]
-
     @staticmethod
     def is_legacy(address: str, net=None) -> bool:
         """Find if the string of the address is in legacy format"""
@@ -569,7 +562,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             kind = cashaddr.SCRIPT_TYPE
         return cashaddr.encode(net.CASHADDR_PREFIX_BCH, kind, self.hash160)
 
-    def to_string(self, fmt, *, net=None) -> str:
+    def to_string(self, fmt: Address.Format, *, net=None) -> str:
         """Converts to a string of the given format.
         CashAddr formats are produced without prefix.
         """
@@ -585,15 +578,15 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
 
         cached = None
         try:
-            if fmt == self.FMT_CASHADDR:
+            if fmt == self.Format.CASHADDR:
                 cached = self.to_cashaddr(net=net)
                 return cached
 
-            if fmt == self.FMT_CASHADDR_BCH:
+            if fmt == self.Format.CASHADDR_BCH:
                 cached = self.to_cashaddr_bch(net=net)
                 return cached
 
-            if fmt == self.FMT_LEGACY:
+            if fmt == self.Format.LEGACY:
                 if self.kind == self.ADDR_P2PKH:
                     verbyte = net.ADDRTYPE_P2PKH
                 else:
@@ -608,14 +601,14 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             if cached is not None and net is networks.net:
                 self._addr2str_cache[fmt] = cached
 
-    def to_full_string(self, fmt, *, net=None) -> str:
+    def to_full_string(self, fmt: Address.Format, *, net=None) -> str:
         """Convert to text, with a URI prefix for cashaddr format."""
         if net is None:
             net = networks.net
         text = self.to_string(fmt, net=net)
-        if fmt == self.FMT_CASHADDR:
+        if fmt == self.Format.CASHADDR:
             text = f"{net.CASHADDR_PREFIX}:{text}"
-        if fmt == self.FMT_CASHADDR_BCH:
+        if fmt == self.Format.CASHADDR_BCH:
             text = f"{net.CASHADDR_PREFIX_BCH}:{text}"
         return text
 
@@ -644,7 +637,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         """Convert to text in the storage format."""
         if net is None:
             net = networks.net
-        return self.to_string(self.FMT_LEGACY, net=net)
+        return self.to_string(self.Format.LEGACY, net=net)
 
     def to_script(self):
         """Return a binary script to pay to the address."""

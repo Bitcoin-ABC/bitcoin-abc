@@ -638,7 +638,7 @@ class LedgerKeyStore(HardwareKeyStore):
             inputIndex = 0
             if self.get_client_electrum().operationModeSupported:
                 client_ledger.enableAlternate2fa(False)
-            cashaddr = Address.FMT_UI == Address.FMT_CASHADDR
+            cashaddr = Address.FMT_UI == Address.Format.CASHADDR
             if cashaddr and client_electrum.supports_cashaddr():
                 # For now the Ledger will show a bitcoincash: CashAddr
                 client_ledger.startUntrustedTransaction(
@@ -732,7 +732,7 @@ class LedgerKeyStore(HardwareKeyStore):
         self.handler.show_message(_("Showing address on {}...").format(self.device))
         try:
             if (
-                Address.FMT_UI == Address.FMT_CASHADDR
+                Address.FMT_UI == Address.Format.CASHADDR
                 and self.get_client_electrum().supports_cashaddr()
             ):
                 # For now the Ledger will show a bitcoincash: CashAddr
