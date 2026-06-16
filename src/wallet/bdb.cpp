@@ -75,8 +75,10 @@ bool WalletDatabaseFileId::operator==(const WalletDatabaseFileId &rhs) const {
  * @param[out] database_filename Filename of berkeley btree data file inside the
  * wallet directory.
  * @return A shared pointer to the BerkeleyEnvironment object for the wallet
- * directory, never empty because ~BerkeleyEnvironment erases the weak pointer
- * from the g_dbenvs map.
+ * directory. May be a nullptr in rare cases if the wallet is in the process of
+ * being unloaded, its reference was already dropped but the
+ * BerkeleyEnvironment destructor is not yet done removing the environment from
+ * g_dbenvs.
  * @post A new BerkeleyEnvironment weak pointer is inserted into g_dbenvs if the
  * directory path key was not already in the map.
  */
@@ -909,6 +911,14 @@ MakeBerkeleyDatabase(const fs::path &path, const DatabaseOptions &options,
         std::string data_filename;
         std::shared_ptr<BerkeleyEnvironment> env =
             GetWalletEnv(path, data_filename);
+        if (!env) {
+            error = Untranslated(
+                strprintf("Failed to load database. Data file '%s' is in the "
+                          "process of being unloaded. Try again later.",
+                          fs::PathToString(env->Directory() / data_filename)));
+            status = DatabaseStatus::FAILED_LOAD;
+            return nullptr;
+        }
         if (env->m_databases.count(data_filename)) {
             error = Untranslated(strprintf(
                 "Refusing to load database. Data file '%s' is already loaded.",
