@@ -34,7 +34,7 @@
         "ecash-lib": "workspace:^",
         "ecash-price": "workspace:^",
         "ecashaddrjs": "workspace:^",
-        "grammy": "^1.39.2"
+        "grammy": "^1.44.0"
     },
     "devDependencies": {
         "@sinonjs/fake-timers": "^11.2.2",

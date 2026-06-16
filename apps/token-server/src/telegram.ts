@@ -2,7 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Bot, Context, GrammyError, HttpError, InputFile } from 'grammy';
+import {
+    Bot,
+    Context,
+    GrammyError,
+    HttpError,
+    InlineKeyboard,
+    InputFile,
+} from 'grammy';
 import config from '../config';
 import { Pool } from 'pg';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
@@ -83,7 +90,7 @@ export const initializeTelegramBot = (
     });
 
     // Add event handler for admin actions
-    telegramBot.on('callback_query:data', async ctx => {
+    telegramBot.on('callback_query', async ctx => {
         const callbackQuery = ctx.callbackQuery;
         const msgId = callbackQuery.message?.message_id;
         const tokenId = callbackQuery.data;
@@ -210,39 +217,29 @@ export const initializeTelegramBot = (
             ) {
                 try {
                     if (isRemovalRequest) {
+                        const restoreKeyboard = new InlineKeyboard().text(
+                            'Changed your mind? Approve it.',
+                            tokenId,
+                        );
                         await telegramBot.api.sendMessage(
                             msgChannel,
                             'Icon denied and removed from server',
                             {
                                 reply_to_message_id: msgId,
-                                reply_markup: {
-                                    inline_keyboard: [
-                                        [
-                                            {
-                                                text: 'Changed your mind? Approve it.',
-                                                callback_data: tokenId,
-                                            },
-                                        ],
-                                    ],
-                                },
+                                reply_markup: restoreKeyboard,
                             },
                         );
                     } else {
+                        const rejectKeyboard = new InlineKeyboard().text(
+                            'Changed your mind? Reject it again.',
+                            tokenId,
+                        );
                         await telegramBot.api.sendMessage(
                             msgChannel,
                             'Icon un-denied and restored to served endpoint',
                             {
                                 reply_to_message_id: msgId,
-                                reply_markup: {
-                                    inline_keyboard: [
-                                        [
-                                            {
-                                                text: 'Changed your mind? Reject it again.',
-                                                callback_data: tokenId,
-                                            },
-                                        ],
-                                    ],
-                                },
+                                reply_markup: rejectKeyboard,
                             },
                         );
                     }
@@ -335,6 +332,8 @@ export const alertNewTokenIcon = async (
         ticker !== '' ? ` (${ticker})` : ''
     }`;
 
+    const denyKeyboard = new InlineKeyboard().text('Deny', tokenId);
+
     return bot.api.sendPhoto(
         channel,
         new InputFile(
@@ -345,9 +344,7 @@ export const alertNewTokenIcon = async (
         {
             caption: msg,
             parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [[{ text: 'Deny', callback_data: tokenId }]],
-            },
+            reply_markup: denyKeyboard,
         },
     );
 };
