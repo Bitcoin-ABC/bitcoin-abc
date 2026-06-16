@@ -46,6 +46,9 @@ import type {
 } from '../app/page';
 import React from 'react';
 
+const formatTooltipDateLabel = (label: React.ReactNode) =>
+    format(new Date(String(label)), 'MMM dd, yyyy');
+
 // Define a union type for all possible chart data
 export type ChartData =
     | { completeDays: DailyStats[] }
@@ -194,6 +197,29 @@ const LEGEND_LABELS: Record<string, string> = {
     tx_count_slp_token_type_nft1_child: 'SLP NFT1 Child',
     app_txs_count: 'App Transactions',
     non_token_txs: 'Non-token Transactions',
+};
+
+const toTooltipNumber = (value: unknown): number | undefined => {
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+        return value;
+    }
+    if (typeof value === 'string' && value !== '') {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? undefined : parsed;
+    }
+    return undefined;
+};
+
+const tooltipLegendLabel = (name: unknown): string => {
+    if (typeof name !== 'string') {
+        return '';
+    }
+    return LEGEND_LABELS[name] || name;
+};
+
+const formatTooltipXECValue = (value: unknown) => {
+    const n = toTooltipNumber(value);
+    return n !== undefined ? formatXECValue(n) : '0 XEC';
 };
 
 // Custom legend component
@@ -402,11 +428,9 @@ export default function ChartRenderer({
                             allowDataOverflow={true}
                         />
                         <Tooltip
-                            labelFormatter={(value: string) =>
-                                format(new Date(value), 'MMM dd, yyyy')
-                            }
-                            formatter={(value: number | undefined) => [
-                                value?.toLocaleString() ?? '0',
+                            labelFormatter={formatTooltipDateLabel}
+                            formatter={value => [
+                                toTooltipNumber(value)?.toLocaleString() ?? '0',
                                 'Transactions',
                             ]}
                             contentStyle={{
@@ -474,11 +498,9 @@ export default function ChartRenderer({
                             allowDataOverflow={true}
                         />
                         <Tooltip
-                            labelFormatter={(value: string) =>
-                                format(new Date(value), 'MMM dd, yyyy')
-                            }
-                            formatter={(value: number | undefined) => [
-                                value?.toLocaleString() ?? '0',
+                            labelFormatter={formatTooltipDateLabel}
+                            formatter={value => [
+                                toTooltipNumber(value)?.toLocaleString() ?? '0',
                                 'Blocks',
                             ]}
                             contentStyle={{
@@ -552,11 +574,9 @@ export default function ChartRenderer({
                             allowDataOverflow={true}
                         />
                         <Tooltip
-                            labelFormatter={(value: string) =>
-                                format(new Date(value), 'MMM dd, yyyy')
-                            }
-                            formatter={(value: number | undefined) => [
-                                `${value?.toFixed(1) ?? '0.0'} KB`,
+                            labelFormatter={formatTooltipDateLabel}
+                            formatter={value => [
+                                `${toTooltipNumber(value)?.toFixed(1) ?? '0.0'} KB`,
                                 'Average Block Size',
                             ]}
                             contentStyle={{
@@ -625,13 +645,9 @@ export default function ChartRenderer({
                             allowDataOverflow={true}
                         />
                         <Tooltip
-                            labelFormatter={(value: string) =>
-                                format(new Date(value), 'MMM dd, yyyy')
-                            }
-                            formatter={(value: number | undefined) => [
-                                value !== undefined
-                                    ? formatXECValue(value)
-                                    : '0 XEC',
+                            labelFormatter={formatTooltipDateLabel}
+                            formatter={value => [
+                                formatTooltipXECValue(value),
                                 'Coinbase Output',
                             ]}
                             contentStyle={{
@@ -725,17 +741,10 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value !== undefined
-                                            ? formatXECValue(value)
-                                            : '0 XEC',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        formatTooltipXECValue(value),
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -840,15 +849,12 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value?.toLocaleString() ?? '0',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        toTooltipNumber(
+                                            value,
+                                        )?.toLocaleString() ?? '0',
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -942,15 +948,12 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value?.toLocaleString() ?? '0',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        toTooltipNumber(
+                                            value,
+                                        )?.toLocaleString() ?? '0',
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1051,39 +1054,25 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => {
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => {
+                                        const n = toTooltipNumber(value);
+                                        const label = tooltipLegendLabel(name);
                                         if (name === 'withdrawal_sats') {
                                             return [
-                                                value !== undefined
-                                                    ? formatBinanceM(value)
+                                                n !== undefined
+                                                    ? formatBinanceM(n)
                                                     : '0',
-                                                name
-                                                    ? LEGEND_LABELS[name] ||
-                                                      name
-                                                    : '',
+                                                label,
                                             ];
                                         }
                                         if (name === 'withdrawal_count') {
                                             return [
-                                                value?.toLocaleString() ?? '0',
-                                                name
-                                                    ? LEGEND_LABELS[name] ||
-                                                      name
-                                                    : '',
+                                                n?.toLocaleString() ?? '0',
+                                                label,
                                             ];
                                         }
-                                        return [
-                                            value?.toString() ?? '0',
-                                            name
-                                                ? LEGEND_LABELS[name] || name
-                                                : '',
-                                        ];
+                                        return [n?.toString() ?? '0', label];
                                     }}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1175,17 +1164,10 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value !== undefined
-                                            ? formatXECValue(value)
-                                            : '0 XEC',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        formatTooltipXECValue(value),
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1286,17 +1268,10 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value !== undefined
-                                            ? formatXECValue(value)
-                                            : '0 XEC',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        formatTooltipXECValue(value),
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1394,17 +1369,10 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value !== undefined
-                                            ? formatXECValue(value)
-                                            : '0 XEC',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        formatTooltipXECValue(value),
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1504,17 +1472,10 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value !== undefined
-                                            ? formatXECValue(value)
-                                            : '0 XEC',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        formatTooltipXECValue(value),
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1620,15 +1581,12 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value?.toLocaleString() ?? '0',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        toTooltipNumber(
+                                            value,
+                                        )?.toLocaleString() ?? '0',
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1773,15 +1731,12 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value?.toLocaleString() ?? '0',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        toTooltipNumber(
+                                            value,
+                                        )?.toLocaleString() ?? '0',
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -1910,15 +1865,12 @@ export default function ChartRenderer({
                                     allowDataOverflow={true}
                                 />
                                 <Tooltip
-                                    labelFormatter={(value: string) =>
-                                        format(new Date(value), 'MMM dd, yyyy')
-                                    }
-                                    formatter={(
-                                        value: number | undefined,
-                                        name: string | undefined,
-                                    ) => [
-                                        value?.toLocaleString() ?? '0',
-                                        name ? LEGEND_LABELS[name] || name : '',
+                                    labelFormatter={formatTooltipDateLabel}
+                                    formatter={(value, name) => [
+                                        toTooltipNumber(
+                                            value,
+                                        )?.toLocaleString() ?? '0',
+                                        tooltipLegendLabel(name),
                                     ]}
                                     contentStyle={{
                                         backgroundColor: '#1a1a1a',
@@ -2028,11 +1980,9 @@ export default function ChartRenderer({
                             allowDataOverflow={true}
                         />
                         <Tooltip
-                            labelFormatter={(value: string) =>
-                                format(new Date(value), 'MMM dd, yyyy')
-                            }
-                            formatter={(value: number | undefined) => [
-                                `$${value?.toFixed(5) ?? '0.00000'}`,
+                            labelFormatter={formatTooltipDateLabel}
+                            formatter={value => [
+                                `$${toTooltipNumber(value)?.toFixed(5) ?? '0.00000'}`,
                                 'Price',
                             ]}
                             contentStyle={{
