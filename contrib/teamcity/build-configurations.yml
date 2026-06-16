@@ -912,6 +912,7 @@ builds:
             RUN_NPM_BUILD: 'true'
         depends:
             - ecashaddrjs
+            - ecash-lib
         templates:
             - js-mocha
 

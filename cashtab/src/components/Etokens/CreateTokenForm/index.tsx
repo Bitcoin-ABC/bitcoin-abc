@@ -66,6 +66,7 @@ import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import {
     toHex,
+    signMsg,
     SLP_TOKEN_TYPE_NFT1_CHILD,
     SLP_TOKEN_TYPE_FUNGIBLE,
     SLP_TOKEN_TYPE_NFT1_GROUP,
@@ -542,6 +543,11 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
 
         // This function is called after the genesis tx is broadcast, using tokenId as a calling param
         submittedFormData.append('tokenId', tokenId);
+        const iconHashHex = await hashFile(tokenIcon as File);
+        submittedFormData.append(
+            'signature',
+            signMsg(iconHashHex, ecashWallet.sk),
+        );
 
         try {
             const tokenIconApprovalResponse = await fetch(

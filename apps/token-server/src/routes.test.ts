@@ -13,20 +13,46 @@ import sharp from 'sharp';
 import { Pool } from 'pg';
 import { seedBlacklist, initialBlacklist, resetBlacklist } from '../src/db';
 import { createTestPool } from '../test/testDb';
+import { hashTokenIcon } from '../src/iconAuth';
+import { signMsg, Ecc, Address, shaRmd160, toHex, fromHex } from 'ecash-lib';
+
+const TEST_SECRET_KEY = fromHex(
+    '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+);
+const TEST_MINTER_ADDRESS = Address.p2pkh(
+    toHex(shaRmd160(new Ecc().derivePubkey(TEST_SECRET_KEY))),
+).toString();
 
 const mockBlacklist = initialBlacklist.map(entry => ({ ...entry }));
 const sortedMockTokenIds = mockBlacklist.map(entry => entry.tokenId).sort();
 
 const TEST_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
-const TEST_MINTER_ADDRESS = 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
 const TEST_TOKEN_TYPE = 'ALP_TOKEN_TYPE_STANDARD';
 const TEST_SUPPLY_TYPE = 'FIXED';
+
+// Mirrors Cashtab submitTokenIcon: signMsg(hashFile(icon), wallet.sk)
+const getTestIconUploadSignature = (iconBuffer: Buffer) => {
+    return signMsg(hashTokenIcon(iconBuffer), TEST_SECRET_KEY);
+};
+
+interface AppendCashtabNewTokenFieldsOptions {
+    signature?: string;
+    iconBuffer?: Buffer;
+}
 
 const appendCashtabNewTokenFields = (
     req: request.Test,
     tokenId: string = TEST_TOKEN_ID,
+    options: AppendCashtabNewTokenFieldsOptions = {},
 ) => {
+    const { signature, iconBuffer } = options;
+    const resolvedSignature =
+        signature ??
+        (iconBuffer !== undefined
+            ? getTestIconUploadSignature(iconBuffer)
+            : 'unsigned');
+
     return req
         .field('name', 'Test Token')
         .field('ticker', 'TST')
@@ -36,7 +62,8 @@ const appendCashtabNewTokenFields = (
         .field('tokenId', tokenId)
         .field('minterAddress', TEST_MINTER_ADDRESS)
         .field('tokenType', TEST_TOKEN_TYPE)
-        .field('supplyType', TEST_SUPPLY_TYPE);
+        .field('supplyType', TEST_SUPPLY_TYPE)
+        .field('signature', resolvedSignature);
 };
 
 describe('routes.js', function () {
@@ -157,7 +184,13 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        return appendCashtabNewTokenFields(request(app).post(`/new`))
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
             .expect('Content-Type', /json/)
@@ -185,6 +218,8 @@ describe('routes.js', function () {
                     'Origin',
                     'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag',
                 ),
+            TEST_TOKEN_ID,
+            { iconBuffer: semiTransparentRedPng },
         )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
@@ -208,6 +243,8 @@ describe('routes.js', function () {
 
         return appendCashtabNewTokenFields(
             request(app).post(`/new`).set('Origin', 'https://notcashtab.com/'),
+            TEST_TOKEN_ID,
+            { iconBuffer: semiTransparentRedPng },
         )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(500)
@@ -229,6 +266,7 @@ describe('routes.js', function () {
         return appendCashtabNewTokenFields(
             request(app).post(`/new`),
             'not-a-valid-token-id',
+            { iconBuffer: semiTransparentRedPng },
         )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(400)
@@ -255,6 +293,7 @@ describe('routes.js', function () {
         return appendCashtabNewTokenFields(
             request(app).post(`/new`),
             traversalTokenId,
+            { iconBuffer: semiTransparentRedPng },
         )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(400)
@@ -278,7 +317,13 @@ describe('routes.js', function () {
             .toBuffer();
 
         // First request is ok
-        await appendCashtabNewTokenFields(request(app).post(`/new`))
+        await appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200)
             .expect('Content-Type', /json/)
@@ -287,7 +332,13 @@ describe('routes.js', function () {
             });
 
         // Now an identical request will fail
-        return appendCashtabNewTokenFields(request(app).post(`/new`))
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(500)
             .expect('Content-Type', /json/)
@@ -318,12 +369,15 @@ describe('routes.js', function () {
             });
     });
     it('Error in sharp resize is handled', async function () {
-        return appendCashtabNewTokenFields(request(app).post(`/new`))
-            .attach(
-                'tokenIcon',
-                Buffer.alloc(config.maxUploadSize - 1, 1),
-                'mockicon.png',
-            )
+        const invalidPng = Buffer.alloc(config.maxUploadSize - 1, 1);
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: invalidPng,
+            },
+        )
+            .attach('tokenIcon', invalidPng, 'mockicon.png')
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
@@ -385,12 +439,75 @@ describe('routes.js', function () {
             .field('minterAddress', TEST_MINTER_ADDRESS)
             .field('tokenType', 'NOT_A_REAL_TOKEN_TYPE')
             .field('supplyType', TEST_SUPPLY_TYPE)
+            .field(
+                'signature',
+                getTestIconUploadSignature(semiTransparentRedPng),
+            )
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(400)
             .expect('Content-Type', /json/)
             .expect({
                 status: 'error',
                 msg: 'Invalid tokenType: NOT_A_REAL_TOKEN_TYPE',
+            });
+    });
+    it('We reject a /new request with a missing signature', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('name', 'Test Token')
+            .field('ticker', 'TST')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', TEST_MINTER_ADDRESS)
+            .field('tokenType', TEST_TOKEN_TYPE)
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Missing signature',
+            });
+    });
+    it('We reject a /new request with an invalid signature', async function () {
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                signature: 'not-a-valid-signature',
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Invalid signature for token icon upload',
             });
     });
     it('We save cashtab_tokens metadata on successful icon upload', async function () {
@@ -407,7 +524,9 @@ describe('routes.js', function () {
             .png()
             .toBuffer();
 
-        await appendCashtabNewTokenFields(request(app).post(`/new`), tokenId)
+        await appendCashtabNewTokenFields(request(app).post(`/new`), tokenId, {
+            iconBuffer: semiTransparentRedPng,
+        })
             .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
             .expect(200);
 

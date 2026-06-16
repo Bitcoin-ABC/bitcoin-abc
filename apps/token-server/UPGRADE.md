@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS cashtab_tokens (
 - Added `scripts/migrateBlacklistFromMongo.ts` for prod data import
 - Removed `mongodb`, `mongodb-memory-server`, Mongo config from `config.ts`
 
-### Production cutover (remaining ops)
+### Production cutover (done)
 
 1. Export live prod blacklist (includes Telegram-added entries, not just seed data).
 
@@ -127,7 +127,9 @@ DATABASE_URL='postgresql://...?sslmode=require' pnpm exec tsx scripts/migrateBla
 
 ---
 
-## Phase 2 — Support 1024×1024 icons
+## Phase 2 — Support 1024×1024 icons (deferred)
+
+Nice-to-have; not required for the PostgreSQL or signature-validation upgrades.
 
 ### Work items
 
@@ -138,20 +140,32 @@ DATABASE_URL='postgresql://...?sslmode=require' pnpm exec tsx scripts/migrateBla
 
 ---
 
-## Phase 3 — Validate icon uploads with genesis-address signature
+## Phase 3 — Validate icon uploads with genesis-address signature (done)
 
-### Work items
+Require a signed message from the token genesis address (`minterAddress`) on `POST /new`. Cashtab signs with `ecash-lib` `signMsg`; token-server verifies with `verifyMsg`.
 
-1. Require a signed message from the token genesis address on `POST /new`
-2. Verify signature with `ecash-lib` (or existing Cashtab signing conventions)
-3. Update Cashtab (and any other upload clients) to include the signature
-4. Optional: store auth metadata in Postgres if needed later
+### Signed message format
+
+Cashtab signs the sha256 hex hash of the uploaded PNG bytes (the same hash shown as the token document hash in the create form). token-server hashes `req.file.buffer` before sharp processing and verifies the signature against `minterAddress`.
+
+The signature is base64 (same format as Cashtab Sign/Verify Message) and sent as form field `signature`.
+
+### Files changed
+
+- Added `src/iconAuth.ts` — `hashTokenIcon()` and `verifyTokenIconUploadSignature()`
+- Updated `src/routes.ts` — require and verify `signature` on `POST /new`
+- Updated `cashtab/.../CreateTokenForm/index.tsx` — sign icon hash and submit `signature`
+- Added `ecash-lib` dependency to token-server
+
+### Production deployment (Phase 3)
+
+Deploy token-server and Cashtab together. Uploads without a valid genesis-address signature are rejected with HTTP 403.
 
 ---
 
 ## Recommended order
 
 1. **Phase 0** — dotenv (done)
-2. **Phase 1** — PostgreSQL (done; prod cutover pending)
-3. **Phase 2** — 1024 icons
-4. **Phase 3** — signed uploads
+2. **Phase 1** — PostgreSQL (done)
+3. **Phase 3** — signed uploads (done)
+4. **Phase 2** — 1024 icons (deferred, nice-to-have)

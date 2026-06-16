@@ -21,6 +21,7 @@ import { Bot } from 'grammy';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
 import { upsertCashtabToken } from './cashtabTokens';
+import { verifyTokenIconUploadSignature } from './iconAuth';
 import { Pool } from 'pg';
 import { writeFileSync, existsSync } from 'fs';
 import { IFs } from 'memfs';
@@ -205,6 +206,14 @@ export const startExpressServer = (
                 });
             }
 
+            const { signature } = req.body;
+            if (typeof signature !== 'string' || signature.length === 0) {
+                return res.status(400).json({
+                    status: 'error',
+                    msg: 'Missing signature',
+                });
+            }
+
             if (typeof req.file === 'undefined') {
                 // Should never happen
                 console.log(`No file in "/new" token icon request`);
@@ -214,82 +223,7 @@ export const startExpressServer = (
                 });
             }
 
-            if (req.file.mimetype === 'image/png') {
-                // If the upload is a png (our only supported file type)
-
-                if (
-                    fs.existsSync(
-                        `${config.imageDir}/${config.iconSizes[0]}/${tokenId}.png`,
-                    )
-                ) {
-                    // If the icon already exists, send an error response
-                    return res.status(500).json({
-                        status: 'error',
-                        msg: `Token icon already exists for ${tokenId}`,
-                    });
-                }
-
-                // Create token icon png files at all supported sizes
-                const resizePromises = [];
-
-                for (const size of config.iconSizes) {
-                    const resizePromise = sharp(req.file.buffer)
-                        .resize(size)
-                        .toBuffer()
-                        .then(img => {
-                            fs.writeFileSync(
-                                `${config.imageDir}/${size}/${tokenId}.png`,
-                                img,
-                            );
-                        });
-                    resizePromises.push(resizePromise);
-                }
-                try {
-                    await Promise.all(resizePromises);
-                } catch (err) {
-                    console.log(`Error resizing image`, err);
-                    return res.status(500).json({
-                        status: 'error',
-                        msg: `Error resizing uploaded token icon`,
-                    });
-                }
-
-                try {
-                    await upsertCashtabToken(pool, {
-                        tokenId,
-                        minterAddress,
-                        tokenType,
-                        supplyType,
-                    });
-                } catch (err) {
-                    console.log(`Error saving cashtab_tokens row`, err);
-                    return res.status(500).json({
-                        status: 'error',
-                        msg: `Error saving token metadata`,
-                    });
-                }
-
-                // Send tg msg with approve/deny option
-                alertNewTokenIcon(telegramBot, telegramChannelId, pool, {
-                    tokenId,
-                    name: req.body.name,
-                    ticker: req.body.ticker,
-                    decimals: req.body.decimals,
-                    url: req.body.url,
-                    genesisQty: req.body.genesisQty,
-                    minterAddress,
-                    tokenType,
-                    supplyType,
-                }).catch(err => {
-                    console.error(
-                        `Failed to send Telegram alert for new token icon ${tokenId}:`,
-                        err,
-                    );
-                });
-                return res.status(200).json({
-                    status: 'ok',
-                });
-            } else {
+            if (req.file.mimetype !== 'image/png') {
                 // Note: Cashtab front-end already converts to png and restricts accept types
                 // to png or jpg
                 // TODO support SVG and other types, you can convert more readily here than in Cashtab
@@ -300,6 +234,92 @@ export const startExpressServer = (
                     msg: 'Only .png files are allowed.',
                 });
             }
+
+            if (
+                !verifyTokenIconUploadSignature(
+                    req.file.buffer,
+                    minterAddress,
+                    signature,
+                )
+            ) {
+                return res.status(403).json({
+                    status: 'error',
+                    msg: 'Invalid signature for token icon upload',
+                });
+            }
+
+            if (
+                fs.existsSync(
+                    `${config.imageDir}/${config.iconSizes[0]}/${tokenId}.png`,
+                )
+            ) {
+                // If the icon already exists, send an error response
+                return res.status(500).json({
+                    status: 'error',
+                    msg: `Token icon already exists for ${tokenId}`,
+                });
+            }
+
+            // Create token icon png files at all supported sizes
+            const resizePromises = [];
+
+            for (const size of config.iconSizes) {
+                const resizePromise = sharp(req.file.buffer)
+                    .resize(size)
+                    .toBuffer()
+                    .then(img => {
+                        fs.writeFileSync(
+                            `${config.imageDir}/${size}/${tokenId}.png`,
+                            img,
+                        );
+                    });
+                resizePromises.push(resizePromise);
+            }
+            try {
+                await Promise.all(resizePromises);
+            } catch (err) {
+                console.log(`Error resizing image`, err);
+                return res.status(500).json({
+                    status: 'error',
+                    msg: `Error resizing uploaded token icon`,
+                });
+            }
+
+            try {
+                await upsertCashtabToken(pool, {
+                    tokenId,
+                    minterAddress,
+                    tokenType,
+                    supplyType,
+                });
+            } catch (err) {
+                console.log(`Error saving cashtab_tokens row`, err);
+                return res.status(500).json({
+                    status: 'error',
+                    msg: `Error saving token metadata`,
+                });
+            }
+
+            // Send tg msg with approve/deny option
+            alertNewTokenIcon(telegramBot, telegramChannelId, pool, {
+                tokenId,
+                name: req.body.name,
+                ticker: req.body.ticker,
+                decimals: req.body.decimals,
+                url: req.body.url,
+                genesisQty: req.body.genesisQty,
+                minterAddress,
+                tokenType,
+                supplyType,
+            }).catch(err => {
+                console.error(
+                    `Failed to send Telegram alert for new token icon ${tokenId}:`,
+                    err,
+                );
+            });
+            return res.status(200).json({
+                status: 'ok',
+            });
         },
     );
 
