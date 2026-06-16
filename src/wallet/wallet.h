@@ -55,12 +55,9 @@ using LoadWalletFn =
 
 struct bilingual_str;
 
-//! Explicitly unload and delete the wallet.
-//! Blocks the current thread after signaling the unload intent so that all
-//! wallet clients release the wallet.
-//! Note that, when blocking is not required, the wallet is implicitly unloaded
-//! by the shared pointer deleter.
-void UnloadWallet(std::shared_ptr<CWallet> &&wallet);
+//! Explicitly delete the wallet.
+//! Blocks the current thread until the wallet is destructed.
+void WaitForDeleteWallet(std::shared_ptr<CWallet> &&wallet);
 
 bool AddWallet(WalletContext &context, const std::shared_ptr<CWallet> &wallet);
 bool RemoveWallet(WalletContext &context,

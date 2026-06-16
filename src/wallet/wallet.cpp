@@ -201,9 +201,9 @@ static std::set<std::string>
     g_unloading_wallet_set GUARDED_BY(g_wallet_release_mutex);
 
 // Custom deleter for shared_ptr<CWallet>.
-static void ReleaseWallet(CWallet *wallet) {
+static void FlushAndDeleteWallet(CWallet *wallet) {
     const std::string name = wallet->GetName();
-    wallet->WalletLogPrintf("Releasing wallet\n");
+    wallet->WalletLogPrintf("Releasing wallet %s..\n", name);
     wallet->Flush();
     delete wallet;
     // Wallet is now released, notify UnloadWallet, if any.
@@ -217,7 +217,7 @@ static void ReleaseWallet(CWallet *wallet) {
     g_wallet_release_cv.notify_all();
 }
 
-void UnloadWallet(std::shared_ptr<CWallet> &&wallet) {
+void WaitForDeleteWallet(std::shared_ptr<CWallet> &&wallet) {
     // Mark wallet for unloading.
     const std::string name = wallet->GetName();
     {
@@ -227,7 +227,7 @@ void UnloadWallet(std::shared_ptr<CWallet> &&wallet) {
         // Multiple threads could simultaneously be waiting for deletion.
     }
 
-    // Time to ditch our shared_ptr and wait for ReleaseWallet call.
+    // Time to ditch our shared_ptr and wait for FlushAndDeleteWallet call.
     wallet.reset();
     {
         WAIT_LOCK(g_wallet_release_mutex, lock);
@@ -2784,7 +2784,7 @@ CWallet::Create(WalletContext &context, const std::string &name,
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(chain, name, std::move(database)), ReleaseWallet);
+        new CWallet(chain, name, std::move(database)), FlushAndDeleteWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet();
     if (nLoadWalletRet != DBErrors::LOAD_OK) {
         if (nLoadWalletRet == DBErrors::CORRUPT) {

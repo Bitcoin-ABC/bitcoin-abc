@@ -195,6 +195,6 @@ void UnloadWallets(WalletContext &context) {
         wallets.pop_back();
         std::vector<bilingual_str> warnings;
         RemoveWallet(context, wallet, /*load_on_start=*/std::nullopt, warnings);
-        UnloadWallet(std::move(wallet));
+        WaitForDeleteWallet(std::move(wallet));
     }
 }

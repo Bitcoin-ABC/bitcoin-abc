@@ -56,7 +56,7 @@ static std::shared_ptr<CWallet> TestLoadWallet(WalletContext &context) {
 static void TestUnloadWallet(std::shared_ptr<CWallet> &&wallet) {
     SyncWithValidationInterfaceQueue();
     wallet->m_chain_notifications_handler.reset();
-    UnloadWallet(std::move(wallet));
+    WaitForDeleteWallet(std::move(wallet));
 }
 
 static CMutableTransaction TestSimpleSpend(const CTransaction &from,
@@ -899,7 +899,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWalletWithoutChain, BasicTestingSetup) {
     WalletContext context;
     auto wallet = TestLoadWallet(context);
     BOOST_CHECK(wallet);
-    UnloadWallet(std::move(wallet));
+    WaitForDeleteWallet(std::move(wallet));
 }
 
 BOOST_FIXTURE_TEST_CASE(ZapSelectTx, TestChain100Setup) {
