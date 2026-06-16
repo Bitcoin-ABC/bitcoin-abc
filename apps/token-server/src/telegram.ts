@@ -12,6 +12,10 @@ import {
 } from 'grammy';
 import config from '../config';
 import { Pool } from 'pg';
+import {
+    countBlacklistedTokensByMinterAddress,
+    countTokensByMinterAddress,
+} from './cashtabTokens';
 import { insertBlacklistEntry, removeBlacklistEntry } from './db';
 import { existsSync, renameSync } from 'fs';
 import { IFs } from 'memfs';
@@ -303,34 +307,74 @@ export const startTelegramBotPolling = (bot: Bot): void => {
     });
 };
 
-interface TokenInfo {
+export interface TokenInfo {
     name: string;
     ticker: string;
     decimals: number;
     url: string;
     genesisQty: string;
     tokenId: string;
+    minterAddress: string;
+    tokenType: string;
+    supplyType: string;
 }
+
+export interface TokenIconAlertStats {
+    tokensMinted: number;
+    blacklistedTokens: number;
+}
+
+const EXPLORER_BASE_URL = 'https://explorer.e.cash';
+
+/**
+ * Build the Telegram caption for a new token icon moderation alert.
+ */
+export const buildNewTokenIconCaption = (
+    tokenInfo: TokenInfo,
+    stats: TokenIconAlertStats,
+): string => {
+    const { tokenId, name, ticker, minterAddress, tokenType, supplyType } =
+        tokenInfo;
+
+    const tokenLine = `[${name}](${EXPLORER_BASE_URL}/tx/${tokenId})${
+        ticker !== '' ? ` (${ticker})` : ''
+    }`;
+
+    return [
+        tokenLine,
+        `Minter: [${minterAddress}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
+        `Tokens minted: ${stats.tokensMinted}`,
+        `Blacklisted tokens: ${stats.blacklistedTokens}`,
+        `Token type: ${tokenType}`,
+        `Supply type: ${supplyType}`,
+    ].join('\n');
+};
 
 /**
  * Send a msg to the admin when a new token icon is uploaded
  * token icons are auto-approved but may be rejected by a moderator
  * @param bot listening telegram bot
  * @param channel destination channelID for msg
+ * @param pool database pool for minter stats
  * @param tokenInfo
  */
 export const alertNewTokenIcon = async (
     bot: Bot,
     channel: string,
+    pool: Pool,
     tokenInfo: TokenInfo,
 ) => {
-    const { tokenId, name, ticker } = tokenInfo;
+    const { tokenId, minterAddress } = tokenInfo;
 
-    // Tg msg markdown
-    // TODO add token type (may need to pass more info from Cashtab)
-    const msg = `[${name}](https://explorer.e.cash/tx/${tokenId})${
-        ticker !== '' ? ` (${ticker})` : ''
-    }`;
+    const [tokensMinted, blacklistedTokens] = await Promise.all([
+        countTokensByMinterAddress(pool, minterAddress),
+        countBlacklistedTokensByMinterAddress(pool, minterAddress),
+    ]);
+
+    const caption = buildNewTokenIconCaption(tokenInfo, {
+        tokensMinted,
+        blacklistedTokens,
+    });
 
     const denyKeyboard = new InlineKeyboard().text('Deny', tokenId);
 
@@ -342,7 +386,7 @@ export const alertNewTokenIcon = async (
             }/${tokenId}.png`,
         ),
         {
-            caption: msg,
+            caption,
             parse_mode: 'Markdown',
             reply_markup: denyKeyboard,
         },

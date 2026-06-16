@@ -15,15 +15,18 @@ import {
 } from '../src/db';
 import {
     alertNewTokenIcon,
+    buildNewTokenIconCaption,
     initializeTelegramBot,
     prepareTelegramBotForPolling,
 } from '../src/telegram';
+import { upsertCashtabToken } from '../src/cashtabTokens';
 import { createTestPool } from '../test/testDb';
 
 const APPROVED_MOD_ID = 111111;
 const UNAUTHORIZED_MOD_ID = 999999;
 const TEST_TOKEN_ID =
     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const TEST_MINTER_ADDRESS = 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
 const TEST_CHANNEL_ID = '-1001234567890';
 
 interface RecordedTelegramApiCall {
@@ -522,6 +525,13 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
         it('sends a moderation photo with deny button to the channel', async function () {
             writeIconFiles(fs, config.imageDir, TEST_TOKEN_ID);
 
+            await upsertCashtabToken(testPool, {
+                tokenId: TEST_TOKEN_ID,
+                minterAddress: TEST_MINTER_ADDRESS,
+                tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                supplyType: 'FIXED',
+            });
+
             const bot = initializeTelegramBot(
                 'test-bot-token',
                 [APPROVED_MOD_ID],
@@ -534,6 +544,7 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             await alertNewTokenIcon(
                 bot as Parameters<typeof alertNewTokenIcon>[0],
                 TEST_CHANNEL_ID,
+                testPool,
                 {
                     tokenId: TEST_TOKEN_ID,
                     name: 'Test Token',
@@ -541,6 +552,9 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                     decimals: 2,
                     url: 'https://cashtab.com',
                     genesisQty: '1000',
+                    minterAddress: TEST_MINTER_ADDRESS,
+                    tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                    supplyType: 'FIXED',
                 },
             );
 
@@ -559,7 +573,23 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.equal(sendPhotoPayload.chat_id, TEST_CHANNEL_ID);
             assert.equal(
                 sendPhotoPayload.caption,
-                `[Test Token](https://explorer.e.cash/tx/${TEST_TOKEN_ID}) (TST)`,
+                buildNewTokenIconCaption(
+                    {
+                        tokenId: TEST_TOKEN_ID,
+                        name: 'Test Token',
+                        ticker: 'TST',
+                        decimals: 2,
+                        url: 'https://cashtab.com',
+                        genesisQty: '1000',
+                        minterAddress: TEST_MINTER_ADDRESS,
+                        tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                        supplyType: 'FIXED',
+                    },
+                    {
+                        tokensMinted: 1,
+                        blacklistedTokens: 0,
+                    },
+                ),
             );
             assert.equal(sendPhotoPayload.parse_mode, 'Markdown');
             assert.deepEqual(
@@ -569,6 +599,67 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                     callback_data: TEST_TOKEN_ID,
                 },
             );
+        });
+
+        it('includes blacklisted token count for the minter', async function () {
+            writeIconFiles(fs, config.imageDir, TEST_TOKEN_ID);
+
+            const blacklistedTokenId =
+                'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+            await upsertCashtabToken(testPool, {
+                tokenId: blacklistedTokenId,
+                minterAddress: TEST_MINTER_ADDRESS,
+                tokenType: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                supplyType: 'VARIABLE',
+            });
+            await insertBlacklistEntry(testPool, blacklistedTokenId, {
+                reason: 'test blacklist',
+                timestamp: 1,
+                addedBy: 'test',
+            });
+            await upsertCashtabToken(testPool, {
+                tokenId: TEST_TOKEN_ID,
+                minterAddress: TEST_MINTER_ADDRESS,
+                tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                supplyType: 'FIXED',
+            });
+
+            const bot = initializeTelegramBot(
+                'test-bot-token',
+                [APPROVED_MOD_ID],
+                fs,
+                testPool,
+            );
+            const recorder = installTelegramApiTestDouble(bot);
+            await (bot as { init: () => Promise<void> }).init();
+
+            await alertNewTokenIcon(
+                bot as Parameters<typeof alertNewTokenIcon>[0],
+                TEST_CHANNEL_ID,
+                testPool,
+                {
+                    tokenId: TEST_TOKEN_ID,
+                    name: 'Test Token',
+                    ticker: 'TST',
+                    decimals: 2,
+                    url: 'https://cashtab.com',
+                    genesisQty: '1000',
+                    minterAddress: TEST_MINTER_ADDRESS,
+                    tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                    supplyType: 'FIXED',
+                },
+            );
+
+            const sendPhotoCall = findApiCall(recorder.calls, 'sendPhoto');
+            assert.ok(sendPhotoCall);
+            const sendPhotoPayload = sendPhotoCall.payload as {
+                caption?: string;
+            };
+            assert.match(
+                sendPhotoPayload.caption ?? '',
+                /Blacklisted tokens: 1/,
+            );
+            assert.match(sendPhotoPayload.caption ?? '', /Tokens minted: 2/);
         });
     });
 });

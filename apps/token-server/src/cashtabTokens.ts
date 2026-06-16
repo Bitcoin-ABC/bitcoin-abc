@@ -71,3 +71,36 @@ export const insertCashtabToken = async (
         ],
     );
 };
+
+/**
+ * Count cashtab_tokens rows for a minter address.
+ */
+export const countTokensByMinterAddress = async (
+    pool: Queryable,
+    minterAddress: string,
+): Promise<number> => {
+    const result = await pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count
+         FROM cashtab_tokens
+         WHERE minter_address = $1`,
+        [minterAddress],
+    );
+    return Number.parseInt(result.rows[0].count, 10);
+};
+
+/**
+ * Count blacklisted tokens minted by a minter address.
+ */
+export const countBlacklistedTokensByMinterAddress = async (
+    pool: Queryable,
+    minterAddress: string,
+): Promise<number> => {
+    const result = await pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count
+         FROM cashtab_tokens ct
+         INNER JOIN blacklist b ON b.token_id = ct.token_id
+         WHERE ct.minter_address = $1`,
+        [minterAddress],
+    );
+    return Number.parseInt(result.rows[0].count, 10);
+};

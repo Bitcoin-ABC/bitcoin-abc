@@ -271,11 +271,17 @@ export const startExpressServer = (
                 }
 
                 // Send tg msg with approve/deny option
-                alertNewTokenIcon(
-                    telegramBot,
-                    telegramChannelId,
-                    req.body,
-                ).catch(err => {
+                alertNewTokenIcon(telegramBot, telegramChannelId, pool, {
+                    tokenId,
+                    name: req.body.name,
+                    ticker: req.body.ticker,
+                    decimals: req.body.decimals,
+                    url: req.body.url,
+                    genesisQty: req.body.genesisQty,
+                    minterAddress,
+                    tokenType,
+                    supplyType,
+                }).catch(err => {
                     console.error(
                         `Failed to send Telegram alert for new token icon ${tokenId}:`,
                         err,
