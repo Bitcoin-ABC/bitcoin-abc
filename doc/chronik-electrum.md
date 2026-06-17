@@ -21,7 +21,7 @@ A minimum command line is:
 bitcoind -chronik -chronikelectrumbind=127.0.0.1:50001:t
 ```
 
-The `-chronikelectrumbind` is used to bind the Electrum server to the target network `ip:port:protocol`, where protocol can be either:
+The `-chronikelectrumbind` option is used to bind the Electrum server to the target network `ip:port:protocol`, where protocol can be either:
  - `t` for TCP
  - `s` for TLS (formerly refered to as SSL in the protocol documentation)
  - `w` for WS
@@ -39,12 +39,74 @@ echo '{"jsonrpc": "2.0", "method": "server.version", "params": [], "id": 0}' | n
 ## Exposing the server via TLS/WSS
 
 It is recommended to prefer the TLS transport over TCP when exposing the server to the internet (the same applies for WSS vs WS).
+Using the `-chronikelectrumbind` option with protocol `s` is considered experimental and unstable for now, so the recommended way is to run Chronik Electrum on a local plaintext port and use nginx as a TLS reverse proxy.
 
-First you need to get a certificate for your server FQDN; if your hosting provider doesn't provide one you can use [Let's Encrypt](https://letsencrypt.org/). You will need the full certificate chain in PEM format as well as the private key in PEM format.
+
+### Configure bitcoind for Chronik Electrum
+
+Below is an example `bitcoin.conf` configuration file for the FQDN `electrum.example.com` using the port `50001` for plaintext TCP:
+
+```
+chronik=1
+chronikelectrumbind=127.0.0.1:50001:t
+chronikelectrumurl=electrum.example.com
+```
+
+### Get a certicate
+
+Before setting up the reverse proxy, you need to get a certificate for your server FQDN; if your hosting provider doesn't provide one you can use [Let's Encrypt](https://letsencrypt.org/). You will need the full certificate chain in PEM format as well as the private key in PEM format.
 When using Let's Encrypt these files are named `fullchain.pem` and `privkey.pem`.
 
-Then you can bind to all the available network interfaces using `0.0.0.0` as an IP. Below is an example `bitcoin.conf` configuration file for the FQDN `electrum.example.com` using the port `50002` (the de-facto standard for Electrum over TLS):
+### Install and configure nginx
 
+For Debian/Ubuntu, you can run:
+
+```
+sudo apt update
+sudo apt install nginx libnginx-mod-stream
+```
+
+Create the nginx configuration file `/etc/nginx/stream.d/chronik.conf`:
+
+```
+upstream chronik_backend {
+    server 127.0.0.1:50001;
+}
+
+server {
+    listen 50002 ssl;
+
+    ssl_certificate     /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    proxy_pass          chronik_backend;
+}
+```
+
+And add this to your nginx configuration file `/etc/nginx/nginx.conf`:
+
+```
+stream {
+    include /etc/nginx/stream.d/*.conf;
+}
+```
+
+Then run the following commands to test the configuration and enable nginx:
+```
+# Test configuration
+sudo nginx -t
+
+# Enable and start the service
+sudo systemctl enable nginx
+sudo systemctl restart nginx
+```
+
+### Alternative without reverse proxy
+
+Add this to your `bitcoin.conf` file to use the builtin TLS options (experimental):
 ```
 chronik=1
 chronikelectrumbind=0.0.0.0:50002:s
@@ -53,12 +115,16 @@ chronikelectrumcert=/path/to/fullchain.pem
 chronikelectrumprivkey=/path/to/privkey.pem
 ```
 
+The  `0.0.0.0` IP  binds to all the available network interfaces.
+
 You can also repeat the `-chronikelectrumbind` option for binding to several interfaces. Use the options below to get both a convenient TCP access on localhost and a TLS access on all interfaces:
 
 ```
 chronikelectrumbind=127.0.0.1:50001:t
 chronikelectrumbind=0.0.0.0:50002:s
 ```
+
+### Logging
 
 You might also want to enable logging for the Chronik messages for easier debugging:
 
