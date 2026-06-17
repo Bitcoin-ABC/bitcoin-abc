@@ -662,4 +662,48 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.match(sendPhotoPayload.caption ?? '', /Tokens minted: 2/);
         });
     });
+
+    describe('buildNewTokenIconCaption', () => {
+        const baseTokenInfo = {
+            tokenId: TEST_TOKEN_ID,
+            name: 'Lazy Carl',
+            ticker: 'LCRL',
+            decimals: 0,
+            url: 'https://cashtab.com',
+            genesisQty: '50',
+            minterAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+            supplyType: 'VARIABLE',
+        };
+
+        it('escapes underscores in token type for Telegram Markdown', () => {
+            const caption = buildNewTokenIconCaption(baseTokenInfo, {
+                tokensMinted: 50,
+                blacklistedTokens: 0,
+            });
+
+            assert.match(caption, /Token type: ALP\\_TOKEN\\_TYPE\\_STANDARD/);
+            assert.doesNotMatch(caption, /Token type: ALP_TOKEN_TYPE_STANDARD/);
+        });
+
+        it('escapes markdown characters in token name and ticker', () => {
+            const caption = buildNewTokenIconCaption(
+                {
+                    ...baseTokenInfo,
+                    name: 'Token_with_underscores',
+                    ticker: 'T_ST',
+                },
+                {
+                    tokensMinted: 1,
+                    blacklistedTokens: 0,
+                },
+            );
+
+            assert.match(
+                caption,
+                /\[Token\\_with\\_underscores\]\(https:\/\/explorer\.e\.cash\/tx\//,
+            );
+            assert.match(caption, /\(T\\_ST\)/);
+        });
+    });
 });

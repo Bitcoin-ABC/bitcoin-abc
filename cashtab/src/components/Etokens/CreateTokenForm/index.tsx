@@ -28,9 +28,8 @@ import CropperComponent, { Area, Point } from 'react-easy-crop';
 // Type assertion for Cropper to fix TypeScript issues with pnpm's module resolution
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Cropper = CropperComponent as unknown as React.ComponentType<any>;
-import getCroppedImg, {
-    ReaderResult,
-} from 'components/Etokens/icons/cropImage';
+import getCroppedImg from 'components/Etokens/icons/cropImage';
+import { hashFile } from 'components/Etokens/icons/hashFile';
 import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
@@ -67,7 +66,6 @@ import { getUserLocale } from 'helpers';
 import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
 import {
     toHex,
-    sha256,
     SLP_TOKEN_TYPE_NFT1_CHILD,
     SLP_TOKEN_TYPE_FUNGIBLE,
     SLP_TOKEN_TYPE_NFT1_GROUP,
@@ -273,14 +271,21 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                 imageToResize = croppedResult;
             }
 
-            await getResizedImage(
+            const resizedResult = await getResizedImage(
                 imageToResize.url,
-                (resizedResult: ReaderResult) => {
-                    setTokenIcon(resizedResult.file);
-                    setImageUrl(resizedResult.url);
-                },
                 fileName,
             );
+            setTokenIcon(resizedResult.file);
+            setImageUrl(resizedResult.url);
+
+            // Hash the same File that is uploaded in submitTokenIcon()
+            const hashHex = await hashFile(resizedResult.file);
+            handleInput({
+                target: {
+                    name: 'hash',
+                    value: hashHex,
+                },
+            } as React.ChangeEvent<HTMLInputElement>);
         } catch (e) {
             console.error(e);
         } finally {
@@ -292,137 +297,37 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         setShowCropModal(false);
     }, []);
 
-    const handleTokenIconImage = (
-        imgFile: File,
-        callback: (file: string) => void,
-    ) =>
-        new Promise((_resolve, reject) => {
-            setLoading(true);
-            try {
-                // Get the sha256 hash of the user's original uploaded file
-                // For an NFT, this will be set as the document hash
-                // Note that this will not match the hash of the image on the token server due to resizing
-                // and renaming
-                // The hash should be of the creator's original file
-                const hashreader = new FileReader();
-                hashreader.readAsArrayBuffer(imgFile);
-                hashreader.addEventListener('load', () => {
-                    // Handle Input expects an event with key target
-                    // target to have keys name and hash
-                    // Convert ArrayBuffer to Uint8Array for ecash-lib sha256
-                    const uint8Array = new Uint8Array(
-                        hashreader.result as ArrayBuffer,
-                    );
-                    const hashBytes = sha256(uint8Array);
-                    const hashHex = toHex(hashBytes);
-                    handleInput({
-                        target: {
-                            name: 'hash',
-                            value: hashHex,
-                        },
-                    } as React.ChangeEvent<HTMLInputElement>);
-                });
+    const handleTokenIconImage = async (imgFile: File) => {
+        setLoading(true);
+        try {
+            const fileNameParts = imgFile.name.split('.');
+            fileNameParts.pop();
+            const fileNamePng = fileNameParts.join('.') + '.png';
+            setFileName(fileNamePng);
 
+            const dataUrl = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
-
-                const width = 512;
-                const height = 512;
-                reader.readAsDataURL(imgFile);
-
-                reader.addEventListener('load', () =>
-                    setRawImageUrl(reader.result as string),
-                );
-
-                reader.onload = event => {
-                    const img = new Image();
-                    if (typeof event.target?.result !== 'string') {
-                        // Should never happen
-                        return toast.error('Error loading icon');
+                reader.addEventListener('load', () => {
+                    if (typeof reader.result !== 'string') {
+                        reject(new Error('Error loading icon'));
+                        return;
                     }
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const elem = document.createElement('canvas');
-                        elem.width = width;
-                        elem.height = height;
-                        const ctx = elem.getContext('2d');
-                        if (ctx === null) {
-                            // Should never happen
-                            return toast.error('Error drawing image');
-                        }
-                        // img.width and img.height will contain the original dimensions
-                        ctx.drawImage(img, 0, 0, width, height);
-                        if (!HTMLCanvasElement.prototype.toBlob) {
-                            Object.defineProperty(
-                                HTMLCanvasElement.prototype,
-                                'toBlob',
-                                {
-                                    value: function (
-                                        callback: (blob: Blob) => void,
-                                        type: string,
-                                        quality: number,
-                                    ) {
-                                        const dataURL = this.toDataURL(
-                                            type,
-                                            quality,
-                                        ).split(',')[1];
-                                        setTimeout(function () {
-                                            const binStr = atob(dataURL),
-                                                len = binStr.length,
-                                                arr = new Uint8Array(len);
-                                            for (let i = 0; i < len; i++) {
-                                                arr[i] = binStr.charCodeAt(i);
-                                            }
-                                            callback(
-                                                new Blob([arr], {
-                                                    type: type || 'image/png',
-                                                }),
-                                            );
-                                        });
-                                    },
-                                },
-                            );
-                        }
-                        return new Promise<void>((resolve, reject) => {
-                            ctx.canvas.toBlob(
-                                blob => {
-                                    if (blob === null) {
-                                        return toast.error(
-                                            'Error rendering blob',
-                                        );
-                                        reject();
-                                    }
-                                    const fileNameParts =
-                                        imgFile.name.split('.');
-                                    fileNameParts.pop();
-                                    const fileNamePng =
-                                        fileNameParts.join('.') + '.png';
+                    resolve(reader.result);
+                });
+                reader.addEventListener('error', () => reject(reader.error));
+                reader.readAsDataURL(imgFile);
+            });
 
-                                    const file = new File([blob], fileNamePng, {
-                                        type: 'image/png',
-                                    });
-                                    setFileName(fileNamePng);
-                                    const resultReader = new FileReader();
-
-                                    resultReader.readAsDataURL(file);
-                                    setTokenIcon(file);
-                                    resultReader.addEventListener('load', () =>
-                                        callback(resultReader.result as string),
-                                    );
-                                    setLoading(false);
-                                    setShowCropModal(true);
-                                    resolve();
-                                },
-                                'image/png',
-                                1,
-                            );
-                        });
-                    };
-                };
-            } catch (err) {
-                console.error(`Error in handleTokenIconImage()`, err);
-                reject(err);
-            }
-        });
+            setRawImageUrl(dataUrl);
+            setShowCropModal(true);
+        } catch (err) {
+            console.error(`Error in handleTokenIconImage()`, err);
+            toast.error('Error loading icon');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const validateTokenIconUpload = (file: File) => {
         const approvedFileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
@@ -430,8 +335,15 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
             if (!approvedFileTypes.includes(file.type)) {
                 throw new Error('Only jpg or png image files are accepted');
             }
-            setLoading(true);
-            handleTokenIconImage(file, imageUrl => setImageUrl(imageUrl));
+            setTokenIcon(null);
+            setImageUrl('');
+            handleInput({
+                target: {
+                    name: 'hash',
+                    value: '',
+                },
+            } as React.ChangeEvent<HTMLInputElement>);
+            handleTokenIconImage(file);
         } catch (e) {
             console.error(`icon error`, e);
             toast.error(
@@ -1175,7 +1087,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                             showCroppedImage();
                             onClose();
                         }}
-                        height={400}
+                        height={520}
                     >
                         <IconModalForm>
                             <CropperContainer>

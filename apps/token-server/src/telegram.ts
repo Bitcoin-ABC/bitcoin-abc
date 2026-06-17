@@ -327,6 +327,14 @@ export interface TokenIconAlertStats {
 const EXPLORER_BASE_URL = 'https://explorer.e.cash';
 
 /**
+ * Escape text for Telegram legacy Markdown (parse_mode: 'Markdown').
+ * Underscores in values like ALP_TOKEN_TYPE_STANDARD must be escaped or
+ * Telegram treats them as unclosed italic entities.
+ */
+export const escapeTelegramMarkdown = (text: string): string =>
+    text.replace(/([[_*`])/g, '\\$1');
+
+/**
  * Build the Telegram caption for a new token icon moderation alert.
  */
 export const buildNewTokenIconCaption = (
@@ -336,17 +344,17 @@ export const buildNewTokenIconCaption = (
     const { tokenId, name, ticker, minterAddress, tokenType, supplyType } =
         tokenInfo;
 
-    const tokenLine = `[${name}](${EXPLORER_BASE_URL}/tx/${tokenId})${
-        ticker !== '' ? ` (${ticker})` : ''
+    const tokenLine = `[${escapeTelegramMarkdown(name)}](${EXPLORER_BASE_URL}/tx/${tokenId})${
+        ticker !== '' ? ` (${escapeTelegramMarkdown(ticker)})` : ''
     }`;
 
     return [
         tokenLine,
-        `Minter: [${minterAddress}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
+        `Minter: [${escapeTelegramMarkdown(minterAddress)}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
         `Tokens minted: ${stats.tokensMinted}`,
         `Blacklisted tokens: ${stats.blacklistedTokens}`,
-        `Token type: ${tokenType}`,
-        `Supply type: ${supplyType}`,
+        `Token type: ${escapeTelegramMarkdown(tokenType)}`,
+        `Supply type: ${escapeTelegramMarkdown(supplyType)}`,
     ].join('\n');
 };
 

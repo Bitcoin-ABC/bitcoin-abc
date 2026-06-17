@@ -4,25 +4,30 @@
 
 import { createImage, ReaderResult } from './cropImage';
 
+export const TOKEN_ICON_SIZE = 512;
+
+/**
+ * Resize an image to the token icon dimensions.
+ * The returned File is the final 512x512 PNG posted to token-server and hashed
+ * for NFT documentHash. Do not hash earlier pipeline stages.
+ */
 export default async function getResizedImg(
     imageSrc: string,
-    callback: (result: ReaderResult) => void,
     fileName: string,
-): Promise<void> {
+): Promise<ReaderResult> {
     const image = await createImage(imageSrc);
 
-    const width = 512;
-    const height = 512;
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = TOKEN_ICON_SIZE;
+    canvas.height = TOKEN_ICON_SIZE;
     const ctx = canvas.getContext('2d');
 
     if (ctx === null) {
         throw new Error('no ctx');
     }
 
-    ctx.drawImage(image, 0, 0, width, height);
+    ctx.drawImage(image, 0, 0, TOKEN_ICON_SIZE, TOKEN_ICON_SIZE);
+
     if (!HTMLCanvasElement.prototype.toBlob) {
         Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
             value: function (
@@ -44,26 +49,30 @@ export default async function getResizedImg(
         });
     }
 
-    return new Promise(resolve => {
+    const file = await new Promise<File>((resolve, reject) => {
         ctx.canvas.toBlob(
             blob => {
                 if (blob === null) {
-                    throw new Error('blob is null');
+                    reject(new Error('blob is null'));
+                    return;
                 }
-                const file = new File([blob], fileName, {
-                    type: 'image/png',
-                });
-                const resultReader = new FileReader();
-
-                resultReader.readAsDataURL(file);
-
-                resultReader.addEventListener('load', () =>
-                    callback({ file, url: resultReader.result as string }),
-                );
-                resolve();
+                resolve(new File([blob], fileName, { type: 'image/png' }));
             },
             'image/png',
             1,
         );
     });
+
+    const url = await new Promise<string>((resolve, reject) => {
+        const resultReader = new FileReader();
+        resultReader.addEventListener('load', () =>
+            resolve(resultReader.result as string),
+        );
+        resultReader.addEventListener('error', () =>
+            reject(resultReader.error),
+        );
+        resultReader.readAsDataURL(file);
+    });
+
+    return { file, url };
 }
