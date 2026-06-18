@@ -47,6 +47,7 @@ import {
 import { CoinDanceStaker } from './events';
 import lokadMap from '../constants/lokad';
 import { scriptOps } from 'ecash-agora';
+import { parseAgoraTx, AgoraAction } from './agora';
 import {
     ChronikClient,
     CoinbaseData,
@@ -91,6 +92,12 @@ interface TokenSendInfo {
     tokenReceivingOutputs?: Map<string, BigNumber>;
     tokenSendingOutputScripts?: Set<string>;
 }
+interface HeraldAgoraInfo {
+    tokenId: string;
+    action: AgoraAction;
+    atoms: bigint;
+    price?: bigint;
+}
 interface HeraldParsedTx {
     txid: string;
     genesisInfo: false | { tokenId: string };
@@ -100,6 +107,7 @@ interface HeraldParsedTx {
     xecReceivingOutputs: Map<string, bigint>;
     totalSatsSent: bigint;
     tokenSendInfo: false | TokenSendInfo;
+    agoraInfo: false | HeraldAgoraInfo;
     tokenBurnInfo:
         | false
         | {
@@ -994,6 +1002,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
      * an object containing info about the token send for token send txs
      */
     let tokenSendInfo: false | TokenSendInfo = false;
+    let agoraInfo: false | HeraldAgoraInfo = false;
     const tokenSendingOutputScripts: Set<string> = new Set();
     const tokenReceivingOutputs = new Map();
     const tokenChangeOutputs = new Map();
@@ -1179,6 +1188,15 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
         tokenSendInfo.tokenChangeOutputs = tokenChangeOutputs;
         tokenSendInfo.tokenReceivingOutputs = tokenReceivingOutputs;
         tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
+
+        const parsedAgora = parseAgoraTx(tx);
+        if (
+            typeof parsedAgora !== 'undefined' &&
+            parsedAgora.tokenId === tokenSendInfo.tokenId
+        ) {
+            agoraInfo = parsedAgora;
+            tokenSendInfo = false;
+        }
     }
 
     // If this tx sent XEC to itself, reassign changeAmountSats to totalSatsSent
@@ -1196,6 +1214,7 @@ export const parseTx = (tx: Tx): HeraldParsedTx => {
         xecReceivingOutputs,
         totalSatsSent,
         tokenSendInfo,
+        agoraInfo,
         tokenBurnInfo,
     };
 };
@@ -1253,6 +1272,9 @@ export const parseBlockTxs = (
         }
         if (thisParsedTx.tokenBurnInfo) {
             tokenIds.add(thisParsedTx.tokenBurnInfo.tokenId);
+        }
+        if (thisParsedTx.agoraInfo) {
+            tokenIds.add(thisParsedTx.agoraInfo.tokenId);
         }
         // Some OP_RETURN txs also have token IDs we need to parse
         // SWaP txs, (TODO: airdrop txs)
@@ -1647,6 +1669,24 @@ export const getBlockTgMessage = (
     // So, we organize token send txs by tokenId
     const tokenSendTxMap = new Map();
 
+    // Organize agora txs by tokenId
+    const agoraTxMap = new Map<
+        string,
+        {
+            listTxs: number;
+            relistTxs: number;
+            buyTxs: number;
+            cancelTxs: number;
+            listAtoms: BigNumber;
+            buyAtoms: BigNumber;
+            buyVolumeSats: bigint;
+            tokenName: string;
+            tokenTicker: string;
+            decimals: number;
+            exampleTxid: string;
+        }
+    >();
+
     // Iterate over parsedTxs to find anything newsworthy
     for (let i = 0; i < parsedTxs.length; i += 1) {
         const thisParsedTx = parsedTxs[i];
@@ -1658,6 +1698,7 @@ export const getBlockTgMessage = (
             xecSendingOutputScripts,
             xecReceivingOutputs,
             tokenSendInfo,
+            agoraInfo,
             tokenBurnInfo,
             totalSatsSent,
         } = thisParsedTx;
@@ -1824,6 +1865,69 @@ export const getBlockTgMessage = (
                     : { kind: 'other', line: opReturnLineText },
             );
             // This parsed tx has a tg msg line. Move on to the next one.
+            continue;
+        }
+
+        if (agoraInfo && tokenInfoMap) {
+            const { tokenId, action, atoms, price } = agoraInfo;
+            const thisTokenInfo = tokenInfoMap.get(tokenId);
+            if (typeof thisTokenInfo === 'undefined') {
+                continue;
+            }
+
+            let { tokenTicker, tokenName } = thisTokenInfo;
+            const { decimals } = thisTokenInfo;
+            tokenName = prepareStringForTelegramHTML(tokenName);
+            tokenTicker = prepareStringForTelegramHTML(tokenTicker);
+
+            const existingAgoraInfo = agoraTxMap.get(tokenId);
+            if (typeof existingAgoraInfo === 'undefined') {
+                agoraTxMap.set(tokenId, {
+                    listTxs: action === 'OFFER' ? 1 : 0,
+                    relistTxs: action === 'RELIST' ? 1 : 0,
+                    buyTxs: action === 'BUY' ? 1 : 0,
+                    cancelTxs: action === 'CANCEL' ? 1 : 0,
+                    listAtoms:
+                        action === 'OFFER' || action === 'RELIST'
+                            ? new BigNumber(atoms.toString())
+                            : new BigNumber(0),
+                    buyAtoms:
+                        action === 'BUY'
+                            ? new BigNumber(atoms.toString())
+                            : new BigNumber(0),
+                    buyVolumeSats: price ?? 0n,
+                    tokenName,
+                    tokenTicker,
+                    decimals,
+                    exampleTxid: txid,
+                });
+            } else {
+                agoraTxMap.set(tokenId, {
+                    ...existingAgoraInfo,
+                    listTxs:
+                        existingAgoraInfo.listTxs +
+                        (action === 'OFFER' ? 1 : 0),
+                    relistTxs:
+                        existingAgoraInfo.relistTxs +
+                        (action === 'RELIST' ? 1 : 0),
+                    buyTxs:
+                        existingAgoraInfo.buyTxs + (action === 'BUY' ? 1 : 0),
+                    cancelTxs:
+                        existingAgoraInfo.cancelTxs +
+                        (action === 'CANCEL' ? 1 : 0),
+                    listAtoms:
+                        action === 'OFFER' || action === 'RELIST'
+                            ? existingAgoraInfo.listAtoms.plus(atoms.toString())
+                            : existingAgoraInfo.listAtoms,
+                    buyAtoms:
+                        action === 'BUY'
+                            ? existingAgoraInfo.buyAtoms.plus(atoms.toString())
+                            : existingAgoraInfo.buyAtoms,
+                    buyVolumeSats:
+                        existingAgoraInfo.buyVolumeSats + (price ?? 0n),
+                    exampleTxid: txid,
+                });
+            }
             continue;
         }
 
@@ -2214,6 +2318,74 @@ export const getBlockTgMessage = (
         });
 
         tgMsg = tgMsg.concat(tokenSendTxTgMsgLines);
+    }
+
+    if (agoraTxMap.size > 0) {
+        tgMsg.push('');
+        tgMsg.push(`<b>${emojis.agora}${emojis.token} Agora</b>`);
+
+        agoraTxMap.forEach((agoraInfo, tokenId) => {
+            const {
+                listTxs,
+                relistTxs,
+                buyTxs,
+                cancelTxs,
+                listAtoms,
+                buyAtoms,
+                buyVolumeSats,
+                tokenName,
+                tokenTicker,
+                decimals,
+                exampleTxid,
+            } = agoraInfo;
+
+            const tokenLink = `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName} (${tokenTicker})</a>`;
+            const txLink = `<a href="${config.blockExplorer}/tx/${exampleTxid}">`;
+
+            if (listTxs > 0) {
+                const decimalizedListAmount = bigNumberAmountToLocaleString(
+                    listAtoms.toString(),
+                    decimals,
+                );
+                tgMsg.push(
+                    `${emojis.agoraList}${listTxs} tx${
+                        listTxs > 1 ? 's' : ''
+                    } listed ${decimalizedListAmount} ${tokenLink}`,
+                );
+            }
+            if (relistTxs > 0) {
+                const decimalizedRelistAmount = bigNumberAmountToLocaleString(
+                    listAtoms.toString(),
+                    decimals,
+                );
+                tgMsg.push(
+                    `${emojis.agoraList}${relistTxs} tx${
+                        relistTxs > 1 ? 's' : ''
+                    } relisted ${decimalizedRelistAmount} ${tokenLink}`,
+                );
+            }
+            if (buyTxs > 0) {
+                const decimalizedBuyAmount = bigNumberAmountToLocaleString(
+                    buyAtoms.toString(),
+                    decimals,
+                );
+                tgMsg.push(
+                    `${emojis.agoraBuy}${buyTxs} tx${
+                        buyTxs > 1 ? 's' : ''
+                    } sold ${decimalizedBuyAmount} ${tokenLink} for ${txLink}${satsToFormattedValue(
+                        buyVolumeSats,
+                        xecPrice,
+                    )}</a>`,
+                );
+            }
+            if (cancelTxs > 0) {
+                tgMsg.push(
+                    `${emojis.agoraCancel}${cancelTxs} tx${
+                        cancelTxs > 1 ? 's' : ''
+                    } canceled ${tokenLink}`,
+                );
+            }
+        });
     }
 
     // eToken burn txs
@@ -3172,6 +3344,52 @@ export const summarizeTxHistory = (
                             const existingAgoraActions =
                                 agoraActions.get(tokenId);
 
+                            const parsedAgoraTx = parseAgoraTx(tx);
+                            if (
+                                typeof parsedAgoraTx !== 'undefined' &&
+                                parsedAgoraTx.tokenId === tokenId
+                            ) {
+                                switch (parsedAgoraTx.action) {
+                                    case 'OFFER':
+                                    case 'RELIST':
+                                        initializeOrIncrementTokenData(
+                                            agoraActions,
+                                            existingAgoraActions,
+                                            tokenId,
+                                            TrackedTokenAction.List,
+                                        );
+                                        break;
+                                    case 'BUY': {
+                                        const volumeSatoshisThisBuy =
+                                            parsedAgoraTx.price ?? 0n;
+                                        if (volumeSatoshisThisBuy > 0n) {
+                                            partialVolumeSatoshis +=
+                                                volumeSatoshisThisBuy;
+                                        }
+                                        initializeOrIncrementTokenData(
+                                            agoraActions,
+                                            existingAgoraActions,
+                                            tokenId,
+                                            TrackedTokenAction.Buy,
+                                            {
+                                                volume: volumeSatoshisThisBuy,
+                                            },
+                                        );
+                                        break;
+                                    }
+                                    case 'CANCEL':
+                                        initializeOrIncrementTokenData(
+                                            agoraActions,
+                                            existingAgoraActions,
+                                            tokenId,
+                                            TrackedTokenAction.Cancel,
+                                        );
+                                        break;
+                                }
+                                agoraTxs += 1;
+                                continue;
+                            }
+
                             // For now, we assume that any p2sh token input is agora buy/cancel
                             // and any p2sh token output is an ad setup tx
                             // No other known cases of p2sh for token txs on ecash today
@@ -3295,57 +3513,6 @@ export const summarizeTxHistory = (
                                 agoraTxs += 1;
                                 // We have already processed this token tx
                                 continue;
-                            }
-
-                            // Check for ALP listing
-                            // ALP agora listing txs have
-                            // - p2pkh input
-                            // - p2sh output
-                            // - agora plugin info in output
-                            if (
-                                type === 'ALP_TOKEN_TYPE_STANDARD' &&
-                                !isAgoraBuySellList
-                            ) {
-                                for (const output of outputs) {
-                                    if (typeof output.token !== 'undefined') {
-                                        // Is it a p2sh output?
-                                        const { outputScript } = output;
-                                        // We assume a p2sh token output for SLP 1 fungible is an ad setup tx
-                                        // No other known use cases at the moment
-                                        try {
-                                            const addrType =
-                                                getTypeAndHashFromOutputScript(
-                                                    outputScript,
-                                                ).type;
-                                            if (addrType === 'p2sh') {
-                                                // Is it agora?
-                                                if (
-                                                    typeof output.plugins !==
-                                                        'undefined' &&
-                                                    typeof output.plugins
-                                                        .agora !== 'undefined'
-                                                ) {
-                                                    agoraTxs += 1;
-                                                    // Agora listing
-                                                    initializeOrIncrementTokenData(
-                                                        agoraActions,
-                                                        existingAgoraActions,
-                                                        tokenId,
-                                                        TrackedTokenAction.List,
-                                                    );
-                                                    isAgoraBuySellList = true;
-                                                    break;
-                                                }
-                                            }
-                                        } catch (err) {
-                                            console.error(
-                                                `Error getting addrType while checking for ALP list tx: ${tx.txid}`,
-                                                err,
-                                            );
-                                            // no action
-                                        }
-                                    }
-                                }
                             }
 
                             // Check for ad prep tx

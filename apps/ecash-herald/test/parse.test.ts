@@ -69,10 +69,17 @@ describe('parse.js functions', function () {
             outputScriptInfoMap,
             blockSummaryTgMsgs,
         } = thisBlock;
-        assert.deepEqual(
-            parseBlockTxs(parsedBlock.hash, parsedBlock.height, blockTxs),
-            parsedBlock,
+        const actualParsedBlock = parseBlockTxs(
+            parsedBlock.hash,
+            parsedBlock.height,
+            blockTxs,
         );
+        for (let i = 0; i < parsedBlock.parsedTxs.length; i += 1) {
+            if (!('agoraInfo' in parsedBlock.parsedTxs[i])) {
+                parsedBlock.parsedTxs[i].agoraInfo = false;
+            }
+        }
+        assert.deepEqual(actualParsedBlock, parsedBlock);
         assert.deepEqual(
             getBlockTgMessage(
                 parsedBlock,
@@ -536,7 +543,7 @@ describe('parse.js functions', function () {
                     '\n' +
                     '🪙 <b><i>16 token txs from 4 tokens</i></b>\n' +
                     '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪🔥🔨\n' +
                     '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
                     '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
                     '\n' +
@@ -627,7 +634,7 @@ describe('parse.js functions', function () {
                     '\n' +
                     '🪙 <b><i>16 token txs from 4 tokens</i></b>\n' +
                     '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">040...103</a>: 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">116...33f</a>: 🧪🔥🔨\n' +
                     '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">cdc...145</a>: ➡️\n' +
                     '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">20a...6f8</a>: ➡️\n' +
                     '\n' +
@@ -703,7 +710,7 @@ describe('parse.js functions', function () {
                     '\n' +
                     '🪙 <b><i>16 token txs from 4 tokens</i></b>\n' +
                     '<a href="https://cashtab.com/#/token/04009a8be347f21a1122964c3226b99c36a9bd755c5a450a53848471a2466103">Perpetua</a> (PRP): 🧪➡️🔥🔨\n' +
-                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪➡️🔥🔨\n' +
+                    '🗻<a href="https://cashtab.com/#/token/116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f">Tiberium</a> (TB): 🧪🔥🔨\n' +
                     '🗻<a href="https://cashtab.com/#/token/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">Credo In Unum Deo</a> (CRD): ➡️\n' +
                     '<a href="https://cashtab.com/#/token/20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8">Vespene Gas</a> (VSP): ➡️\n' +
                     '\n' +
