@@ -16,6 +16,7 @@ import {
 import {
     alertNewTokenIcon,
     buildNewTokenIconCaption,
+    formatTokenTypeLabel,
     initializeTelegramBot,
     prepareTelegramBotForPolling,
 } from '../src/telegram';
@@ -657,9 +658,8 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             };
             assert.match(
                 sendPhotoPayload.caption ?? '',
-                /Blacklisted tokens: 1/,
+                /2 tokens minted, 1 blacklisted/,
             );
-            assert.match(sendPhotoPayload.caption ?? '', /Tokens minted: 2/);
         });
     });
 
@@ -676,14 +676,78 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             supplyType: 'VARIABLE',
         };
 
-        it('escapes underscores in token type for Telegram Markdown', () => {
-            const caption = buildNewTokenIconCaption(baseTokenInfo, {
-                tokensMinted: 50,
-                blacklistedTokens: 0,
-            });
+        it('formats the Sleepy Carl moderation alert caption', () => {
+            const caption = buildNewTokenIconCaption(
+                {
+                    tokenId:
+                        '67e4cb702558fe815efb15dacf3f68a3f2c662bb9d73c3f8682fc3cbb9a47993',
+                    name: 'Sleepy Carl',
+                    ticker: 'SCRL',
+                    decimals: 0,
+                    url: 'https://cashtab.com',
+                    genesisQty: '50',
+                    minterAddress:
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+                    supplyType: 'VARIABLE',
+                },
+                {
+                    tokensMinted: 51,
+                    blacklistedTokens: 0,
+                },
+            );
 
-            assert.match(caption, /Token type: ALP\\_TOKEN\\_TYPE\\_STANDARD/);
-            assert.doesNotMatch(caption, /Token type: ALP_TOKEN_TYPE_STANDARD/);
+            assert.equal(
+                caption,
+                [
+                    '[Sleepy Carl](https://explorer.e.cash/tx/67e4cb702558fe815efb15dacf3f68a3f2c662bb9d73c3f8682fc3cbb9a47993) (SCRL)',
+                    'Minter: [qz...035](https://explorer.e.cash/address/ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035)',
+                    '51 tokens minted, 0 blacklisted',
+                    'ALP, variable supply',
+                ].join('\n'),
+            );
+        });
+
+        it('uses fixed supply label when supply type is FIXED', () => {
+            const caption = buildNewTokenIconCaption(
+                {
+                    ...baseTokenInfo,
+                    supplyType: 'FIXED',
+                },
+                {
+                    tokensMinted: 1,
+                    blacklistedTokens: 0,
+                },
+            );
+
+            assert.match(caption, /ALP, fixed supply/);
+        });
+
+        it('maps token types to human-readable labels', () => {
+            assert.equal(
+                formatTokenTypeLabel('ALP_TOKEN_TYPE_STANDARD'),
+                'ALP',
+            );
+            assert.equal(
+                formatTokenTypeLabel('SLP_TOKEN_TYPE_FUNGIBLE'),
+                'SLP',
+            );
+            assert.equal(
+                formatTokenTypeLabel('SLP_TOKEN_TYPE_NFT1_GROUP'),
+                'NFT Group',
+            );
+            assert.equal(
+                formatTokenTypeLabel('SLP_TOKEN_TYPE_NFT1_CHILD'),
+                'NFT',
+            );
+            assert.equal(
+                formatTokenTypeLabel('SLP_TOKEN_TYPE_MINT_VAULT'),
+                'Mint Vault',
+            );
+            assert.equal(
+                formatTokenTypeLabel('SLP_TOKEN_TYPE_UNKNOWN'),
+                'Other',
+            );
         });
 
         it('escapes markdown characters in token name and ticker', () => {

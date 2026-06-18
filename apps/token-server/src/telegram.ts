@@ -335,6 +335,49 @@ export const escapeTelegramMarkdown = (text: string): string =>
     text.replace(/([[_*`])/g, '\\$1');
 
 /**
+ * Abbreviate a minter address for display in Telegram captions.
+ */
+export const previewMinterAddress = (address: string): string => {
+    const addressWithoutPrefix = address.includes(':')
+        ? address.split(':')[1]
+        : address;
+
+    return `${addressWithoutPrefix.slice(0, 2)}...${addressWithoutPrefix.slice(
+        -3,
+    )}`;
+};
+
+const formatSupplyTypeLabel = (supplyType: string): string => {
+    if (supplyType === 'VARIABLE') {
+        return 'variable supply';
+    }
+    if (supplyType === 'FIXED') {
+        return 'fixed supply';
+    }
+    return supplyType.toLowerCase();
+};
+
+/**
+ * Map protocol token type strings to human-readable labels for Telegram captions.
+ */
+export const formatTokenTypeLabel = (tokenType: string): string => {
+    switch (tokenType) {
+        case 'ALP_TOKEN_TYPE_STANDARD':
+            return 'ALP';
+        case 'SLP_TOKEN_TYPE_FUNGIBLE':
+            return 'SLP';
+        case 'SLP_TOKEN_TYPE_NFT1_GROUP':
+            return 'NFT Group';
+        case 'SLP_TOKEN_TYPE_NFT1_CHILD':
+            return 'NFT';
+        case 'SLP_TOKEN_TYPE_MINT_VAULT':
+            return 'Mint Vault';
+        default:
+            return 'Other';
+    }
+};
+
+/**
  * Build the Telegram caption for a new token icon moderation alert.
  */
 export const buildNewTokenIconCaption = (
@@ -348,13 +391,13 @@ export const buildNewTokenIconCaption = (
         ticker !== '' ? ` (${escapeTelegramMarkdown(ticker)})` : ''
     }`;
 
+    const minterPreview = previewMinterAddress(minterAddress);
+
     return [
         tokenLine,
-        `Minter: [${escapeTelegramMarkdown(minterAddress)}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
-        `Tokens minted: ${stats.tokensMinted}`,
-        `Blacklisted tokens: ${stats.blacklistedTokens}`,
-        `Token type: ${escapeTelegramMarkdown(tokenType)}`,
-        `Supply type: ${escapeTelegramMarkdown(supplyType)}`,
+        `Minter: [${escapeTelegramMarkdown(minterPreview)}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
+        `${stats.tokensMinted} tokens minted, ${stats.blacklistedTokens} blacklisted`,
+        `${escapeTelegramMarkdown(formatTokenTypeLabel(tokenType))}, ${formatSupplyTypeLabel(supplyType)}`,
     ].join('\n');
 };
 
