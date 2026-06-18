@@ -22,6 +22,7 @@ from test_framework.messages import AvalancheProofVoteResponse, AvalancheVote
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
+    assert_dicts_almost_equal,
     assert_equal,
     assert_raises_rpc_error,
     try_rpc,
@@ -872,16 +873,10 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         # Invalidate the local proof by avalanche vote
         wait_for_invalidated_proof(proof.proofid)
 
-        # Let's count how many proofs have been finalized during the last rounds
-        # of voting
-        num_finalized = sum(
-            [
-                node.getrawavalancheproof(uint256_hex(peer.proof.proofid))["finalized"]
-                for peer in quorum
-            ]
-        )
-
-        assert_equal(
+        # We can't know exactly how many proofs got finalized at this point and don't
+        # want to wait for all of them, so exclude finalized_proof_count from the
+        # comparison.
+        assert_dicts_almost_equal(
             node.getavalancheinfo(),
             {
                 "ready_to_poll": True,
@@ -898,7 +893,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "proof_count": QUORUM_NODE_COUNT,
                     "connected_proof_count": QUORUM_NODE_COUNT,
                     "dangling_proof_count": 0,
-                    "finalized_proof_count": num_finalized,
                     "conflicting_proof_count": 0,
                     "immature_proof_count": 0,
                     "total_stake_amount": QUORUM_NODE_COUNT * coinbase_amount,
@@ -910,6 +904,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "pending_node_count": 0,
                 },
             },
+            exclude_path=["network", "finalized_proof_count"],
         )
 
 

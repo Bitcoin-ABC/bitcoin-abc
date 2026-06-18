@@ -16,6 +16,8 @@ import sys
 import time
 import unittest
 from base64 import b64encode
+from collections.abc import Hashable, Mapping
+from copy import deepcopy
 from decimal import ROUND_DOWN, Decimal
 from functools import lru_cache
 from subprocess import CalledProcessError
@@ -231,6 +233,43 @@ def assert_recv_all_any_order(ws, expected_msgs):
         raise AssertionError(
             f"Expected {expected_msgs} to be received, but got {actual_msgs}"
         )
+
+
+def assert_dicts_almost_equal(
+    actual: dict, expected: dict, exclude_path: list[Hashable]
+):
+    """Compare two (possibly nested) dicts for equality, but allow one field to differ.
+    Specify the path to the unchecked field as a list of keys.
+
+    For instance, if `exclude_path = ["network", "finalized_proof_count"]`, then
+    `actual["network"]["finalized_proof_count"]` is dropped before comparing for
+    equality.
+
+    We still require the field to exist in `actual` before dropping it.
+    The excluded field must not exist in `expected`.
+    """
+    # Work on a copy so we don't alter the original
+    a = deepcopy(actual)
+
+    # Check that nested path to the item to exclude exists
+    subdict_a = a
+    for key in exclude_path[:-1]:
+        try:
+            subdict_a = subdict_a[key]
+        except KeyError:
+            raise AssertionError(f"Key {key} not found in actual dict")
+        if not isinstance(subdict_a, Mapping):
+            raise AssertionError(f"Key {key} does not point to a subdict in actual")
+
+    # Check existence of the final leaf and remove it
+    key = exclude_path[-1]
+    try:
+        subdict_a.pop(key)
+    except KeyError:
+        raise AssertionError(f"Key to exclude {key} not found in actual dict")
+
+    # Finally compare the rest of the data
+    assert_equal(a, expected)
 
 
 # Utility functions
