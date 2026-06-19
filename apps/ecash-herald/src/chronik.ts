@@ -9,6 +9,7 @@ import {
     GenesisInfo,
     ScriptUtxo,
 } from 'chronik-client';
+import { applyTokenDisplayOverrides } from '../constants/tokenDisplayOverrides';
 import { getEmojiFromBalanceSats } from './utils';
 import { getTypeAndHashFromOutputScript } from 'ecashaddrjs';
 
@@ -29,8 +30,13 @@ export const getTokenInfoMap = async (
                     response => {
                         // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
                         try {
-                            const genesisInfo = response.genesisInfo;
-                            tokenInfoMap.set(tokenId, genesisInfo);
+                            tokenInfoMap.set(
+                                tokenId,
+                                applyTokenDisplayOverrides(
+                                    tokenId,
+                                    response.genesisInfo,
+                                ),
+                            );
                             resolve();
                         } catch (err) {
                             console.log(

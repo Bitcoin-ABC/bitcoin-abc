@@ -439,7 +439,7 @@ describe('agora tx parsing', function () {
 
         assert.match(msg, /🏛🪙 Agora/);
         assert.match(msg, /🏷1 tx relisted 10,000\.0000/);
-        assert.match(msg, /Firma \(FIRMA\)/);
+        assert.match(msg, /Firma Alpha \(FIRMA α\)/);
         assert.match(msg, /💰1 tx sold 3,932,555\.22/);
         assert.match(msg, /Staked XEC \(XECX\)/);
         assert.doesNotMatch(msg, / sent /);
