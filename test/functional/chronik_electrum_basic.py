@@ -179,18 +179,20 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         )
 
         self.wait_until(
-            lambda: self.client.server.peers.subscribe().result
-            == [
-                [
-                    "127.0.0.1",
-                    "localhost",
+            lambda: (
+                self.client.server.peers.subscribe().result
+                == [
                     [
-                        "v1.4.5",
-                        "p1000",
-                        f"t{self.chronik_port[0]}",
+                        "127.0.0.1",
+                        "localhost",
+                        [
+                            "v1.4.5",
+                            "p1000",
+                            f"t{self.chronik_port[0]}",
+                        ],
                     ],
-                ],
-            ],
+                ]
+            ),
         )
 
         # Re-submitting is forbidden
@@ -219,26 +221,28 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             True,
         )
         self.wait_until(
-            lambda: self.client.server.peers.subscribe().result
-            == [
-                [
-                    "127.0.0.1",
-                    "localhost",
+            lambda: (
+                self.client.server.peers.subscribe().result
+                == [
                     [
-                        "v1.4.5",
-                        "p1000",
-                        f"t{self.chronik_port[0]}",
+                        "127.0.0.1",
+                        "localhost",
+                        [
+                            "v1.4.5",
+                            "p1000",
+                            f"t{self.chronik_port[0]}",
+                        ],
                     ],
-                ],
-                [
-                    "127.0.0.1",
-                    "127.0.0.1",
                     [
-                        "v1.4.5",
-                        f"t{self.chronik_port[1]}",
+                        "127.0.0.1",
+                        "127.0.0.1",
+                        [
+                            "v1.4.5",
+                            f"t{self.chronik_port[1]}",
+                        ],
                     ],
-                ],
-            ],
+                ]
+            ),
         )
 
         # No host

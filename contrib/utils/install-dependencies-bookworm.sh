@@ -158,7 +158,7 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-hw.txt"
 
 # Required python linters
-pip3 install ruff==0.14.4 mypy==0.910 djlint==1.34.1
+pip3 install ruff==0.15.8 mypy==0.910 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
 # Install nodejs (pinned). Node patch releases can change tls.rootCertificates;

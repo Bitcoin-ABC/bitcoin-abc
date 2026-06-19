@@ -103,8 +103,9 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
             node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
             self.wait_until(
-                lambda: set(get_proof_ids(node))
-                == {proof.proofid for proof in proofs[:6]},
+                lambda: (
+                    set(get_proof_ids(node)) == {proof.proofid for proof in proofs[:6]}
+                ),
                 timeout=5,
             )
 
@@ -137,8 +138,11 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         avanode = get_ava_p2p_interface(self, node)
         avanode.wait_until(
-            lambda: avanode.last_message.get("getdata")
-            and avanode.last_message["getdata"].inv[-1].hash == avanode.proof.proofid
+            lambda: (
+                avanode.last_message.get("getdata")
+                and avanode.last_message["getdata"].inv[-1].hash
+                == avanode.proof.proofid
+            )
         )
 
         avanode.send_avaproof(avanode.proof)

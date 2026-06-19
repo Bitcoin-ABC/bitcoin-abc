@@ -304,8 +304,9 @@ class HistoryList(MyTreeWidget):
             # We grab a fresh reference to the current item, as it has been deleted in a reported issue.
             menu.addAction(
                 _("&Edit {}").format(column_title),
-                lambda: self.currentItem()
-                and self.editItem(self.currentItem(), column),
+                lambda: (
+                    self.currentItem() and self.editItem(self.currentItem(), column)
+                ),
             )
         label = self.wallet.get_label(tx_hash) or None
         menu.addAction(

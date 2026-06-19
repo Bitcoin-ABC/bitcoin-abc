@@ -226,9 +226,11 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
         self.copy_button = b = CopyButton(
             lambda: str(weakSelfRef() and weakSelfRef().tx),
-            callback=lambda: weakSelfRef()
-            and weakSelfRef().show_message(
-                _("Transaction raw hex copied to clipboard.")
+            callback=lambda: (
+                weakSelfRef()
+                and weakSelfRef().show_message(
+                    _("Transaction raw hex copied to clipboard.")
+                )
             ),
         )
         b.setToolTip(_("Copy transaction raw hex to the clipboard"))

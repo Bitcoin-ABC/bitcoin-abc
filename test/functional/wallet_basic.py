@@ -583,8 +583,10 @@ class WalletTest(BitcoinTestFramework):
             if m == "-reindex":
                 # reindex will leave rpc warm up "early"; Wait for it to finish
                 self.wait_until(
-                    lambda: [block_count] * 3
-                    == [self.nodes[i].getblockcount() for i in range(3)]
+                    lambda: (
+                        [block_count] * 3
+                        == [self.nodes[i].getblockcount() for i in range(3)]
+                    )
                 )
             assert_equal(balance_nodes, [self.nodes[i].getbalance() for i in range(3)])
 

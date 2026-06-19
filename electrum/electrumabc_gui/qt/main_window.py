@@ -300,9 +300,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             QtWidgets.QShortcut(
                 QKeySequence("Ctrl+PgUp"),
                 self,
-                lambda: wrtabs()
-                and wrtabs().setCurrentIndex(
-                    (wrtabs().currentIndex() - 1) % wrtabs().count()
+                lambda: (
+                    wrtabs()
+                    and wrtabs().setCurrentIndex(
+                        (wrtabs().currentIndex() - 1) % wrtabs().count()
+                    )
                 ),
             )
         )
@@ -310,9 +312,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             QtWidgets.QShortcut(
                 QKeySequence("Ctrl+PgDown"),
                 self,
-                lambda: wrtabs()
-                and wrtabs().setCurrentIndex(
-                    (wrtabs().currentIndex() + 1) % wrtabs().count()
+                lambda: (
+                    wrtabs()
+                    and wrtabs().setCurrentIndex(
+                        (wrtabs().currentIndex() + 1) % wrtabs().count()
+                    )
                 ),
             )
         )

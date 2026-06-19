@@ -18,7 +18,7 @@
         },
         "ruff-format": {
             "type": "ruff-format",
-            "version": ">=0.14.0",
+            "version": ">=0.15.0",
             "include": [
                 "(\\.py$)",
                 "(^electrum/electrum-abc$)"
@@ -33,7 +33,7 @@
         },
         "ruff-check": {
             "type": "ruff-check",
-            "version": ">=0.14.0",
+            "version": ">=0.15.0",
             "include": [
                 "(\\.py$)",
                 "(^electrum/electrum-abc$)"

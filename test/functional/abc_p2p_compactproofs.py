@@ -195,8 +195,10 @@ class CompactProofsTest(BitcoinTestFramework):
         num_outbound_avapeers = len(outbound_avapeers)
         node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
         self.wait_until(
-            lambda: count_outbounds_getavaproofs()
-            == outbounds_getavaproofs + num_outbound_avapeers
+            lambda: (
+                count_outbounds_getavaproofs()
+                == outbounds_getavaproofs + num_outbound_avapeers
+            )
         )
         outbounds_getavaproofs += num_outbound_avapeers
 

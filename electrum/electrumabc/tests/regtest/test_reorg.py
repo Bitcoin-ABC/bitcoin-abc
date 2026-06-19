@@ -125,10 +125,12 @@ class TestReorg(ElectrumABCTestCase):
         # Note that the "confirmations" field in the history is the number of confirmations
         # for the tx, not for the block. The block containing the tx counts for +1.
         wait_until(
-            lambda: poll_for_answer(EC_DAEMON_RPC_URL, request("history"))[0][
-                "confirmations"
-            ]
-            == COINBASE_MATURITY + 1
+            lambda: (
+                poll_for_answer(EC_DAEMON_RPC_URL, request("history"))[0][
+                    "confirmations"
+                ]
+                == COINBASE_MATURITY + 1
+            )
         )
 
         # Mine 2 empty blocks. The first one will be invalidated

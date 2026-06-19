@@ -221,8 +221,9 @@ class AvalancheProofTest(BitcoinTestFramework):
         # Mine another block to make the proof mature
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         self.wait_until(
-            lambda: self.nodes[1].getrawavalancheproof(proofid_hex)["boundToPeer"]
-            is True
+            lambda: (
+                self.nodes[1].getrawavalancheproof(proofid_hex)["boundToPeer"] is True
+            )
         )
 
         self.log.info("Generate delegations for the proof, verify and decode them")

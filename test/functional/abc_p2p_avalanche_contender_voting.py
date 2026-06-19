@@ -121,10 +121,12 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
                 # the next block arrives, so we wait until that happens.
                 blockhash = node.getbestblockhash()
                 self.wait_until(
-                    lambda: node.getstakecontendervote(
-                        blockhash, uint256_hex(peer.proof.proofid)
+                    lambda: (
+                        node.getstakecontendervote(
+                            blockhash, uint256_hex(peer.proof.proofid)
+                        )
+                        == AvalancheContenderVoteError.PENDING
                     )
-                    == AvalancheContenderVoteError.PENDING
                 )
 
                 return peer

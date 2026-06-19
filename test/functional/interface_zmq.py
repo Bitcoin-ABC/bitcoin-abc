@@ -489,10 +489,12 @@ class ZMQTest(BitcoinTestFramework):
             # but immediately reflective of the time they were gathered.
             ensure_for(
                 duration=2,
-                f=lambda: self.nodes[0].getrawmempool(mempool_sequence=True)[
-                    "mempool_sequence"
-                ]
-                > seq_num,
+                f=lambda: (
+                    self.nodes[0].getrawmempool(mempool_sequence=True)[
+                        "mempool_sequence"
+                    ]
+                    > seq_num
+                ),
             )
 
             assert_equal((payment_txid_2, "R", seq_num), seq.receive_sequence())

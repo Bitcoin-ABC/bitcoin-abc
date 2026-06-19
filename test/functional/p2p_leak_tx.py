@@ -57,8 +57,10 @@ class P2PLeakTxTest(BitcoinTestFramework):
         inbound_peer.last_message.pop("inv", None)
         txid = self.miniwallet.send_self_transfer(from_node=self.gen_node)["txid"]
         inbound_peer.wait_until(
-            lambda: "inv" in inbound_peer.last_message
-            and inbound_peer.last_message.get("inv").inv[0].hash == int(txid, 16)
+            lambda: (
+                "inv" in inbound_peer.last_message
+                and inbound_peer.last_message.get("inv").inv[0].hash == int(txid, 16)
+            )
         )
         want_tx = msg_getdata(inv=inbound_peer.last_message.get("inv").inv)
         blockhash = self.generate(self.gen_node, 1)[0]

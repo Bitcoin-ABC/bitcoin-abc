@@ -576,8 +576,10 @@ class PruneTest(BitcoinTestFramework):
         peers = node.getpeerinfo()
         node.getblockfrompeer(fetch_block, peers[0]["id"])
         self.wait_until(
-            lambda: not try_rpc(
-                -1, "Block not available (pruned data)", node.getblock, fetch_block
+            lambda: (
+                not try_rpc(
+                    -1, "Block not available (pruned data)", node.getblock, fetch_block
+                )
             ),
             timeout=5,
         )

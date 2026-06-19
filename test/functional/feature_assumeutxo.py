@@ -447,14 +447,16 @@ class AssumeutxoTest(BitcoinTestFramework):
         default_value = {"status": ""}  # No status
         headers_tip_hash = miner.getbestblockhash()
         self.wait_until(
-            lambda: next(
-                filter(
-                    lambda x: x["hash"] == headers_tip_hash,
-                    snapshot_node.getchaintips(),
-                ),
-                default_value,
-            )["status"]
-            == "headers-only"
+            lambda: (
+                next(
+                    filter(
+                        lambda x: x["hash"] == headers_tip_hash,
+                        snapshot_node.getchaintips(),
+                    ),
+                    default_value,
+                )["status"]
+                == "headers-only"
+            )
         )
         snapshot_node.disconnect_p2ps()
 
@@ -465,13 +467,16 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.connect_nodes(ibd_node.index, snapshot_node.index)
         snapshot_block_hash = snapshot["base_hash"]
         self.wait_until(
-            lambda: next(
-                filter(
-                    lambda x: x["hash"] == snapshot_block_hash, ibd_node.getchaintips()
-                ),
-                default_value,
-            )["status"]
-            == "headers-only"
+            lambda: (
+                next(
+                    filter(
+                        lambda x: x["hash"] == snapshot_block_hash,
+                        ibd_node.getchaintips(),
+                    ),
+                    default_value,
+                )["status"]
+                == "headers-only"
+            )
         )
 
         # Once the headers-chain is synced, the ibd_node must avoid requesting historical blocks from the snapshot_node.
@@ -488,8 +493,10 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.sync_blocks(nodes=(miner, snapshot_node))
         # Check the base snapshot block was stored and ensure node signals full-node service support
         self.wait_until(
-            lambda: not try_rpc(
-                -1, "Block not found", snapshot_node.getblock, snapshot_block_hash
+            lambda: (
+                not try_rpc(
+                    -1, "Block not found", snapshot_node.getblock, snapshot_block_hash
+                )
             )
         )
         self.wait_until(

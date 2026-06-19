@@ -255,7 +255,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         loaded = n2.loadtxoutset(dump_output["path"])
         self.connect_nodes(0, 2)
         self.wait_until(lambda: len(n2.getchainstates()["chainstates"]) == 1)
-        ensure_for(duration=1, f=lambda: (n2.getbalance() == 34_000_000))
+        ensure_for(duration=1, f=lambda: n2.getbalance() == 34_000_000)
 
         if self.options.descriptors:
             self.log.info("Ensuring descriptors can be loaded after background sync")

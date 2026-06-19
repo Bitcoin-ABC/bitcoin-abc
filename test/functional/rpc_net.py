@@ -175,13 +175,17 @@ class NetTest(BitcoinTestFramework):
         peer_info_before = self.nodes[0].getpeerinfo()
         self.nodes[0].ping()
         self.wait_until(
-            lambda: self.nodes[0].getnettotals()["totalbytessent"]
-            >= net_totals_before["totalbytessent"] + 32 * 2,
+            lambda: (
+                self.nodes[0].getnettotals()["totalbytessent"]
+                >= net_totals_before["totalbytessent"] + 32 * 2
+            ),
             timeout=10,
         )
         self.wait_until(
-            lambda: self.nodes[0].getnettotals()["totalbytesrecv"]
-            >= net_totals_before["totalbytesrecv"] + 32 * 2,
+            lambda: (
+                self.nodes[0].getnettotals()["totalbytesrecv"]
+                >= net_totals_before["totalbytesrecv"] + 32 * 2
+            ),
             timeout=10,
         )
 
@@ -195,13 +199,17 @@ class NetTest(BitcoinTestFramework):
                 )
 
             self.wait_until(
-                lambda: peer_after()["bytesrecv_per_msg"].get("pong", 0)
-                >= peer_before["bytesrecv_per_msg"].get("pong", 0) + 32,
+                lambda: (
+                    peer_after()["bytesrecv_per_msg"].get("pong", 0)
+                    >= peer_before["bytesrecv_per_msg"].get("pong", 0) + 32
+                ),
                 timeout=10,
             )
             self.wait_until(
-                lambda: peer_after()["bytessent_per_msg"].get("ping", 0)
-                >= peer_before["bytessent_per_msg"].get("ping", 0) + 32,
+                lambda: (
+                    peer_after()["bytessent_per_msg"].get("ping", 0)
+                    >= peer_before["bytessent_per_msg"].get("ping", 0) + 32
+                ),
                 timeout=10,
             )
 

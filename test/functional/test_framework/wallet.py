@@ -210,8 +210,10 @@ class MiniWallet:
         blocks_height = self._test_node.getblockchaininfo()["blocks"]
         mature_coins = list(
             filter(
-                lambda utxo: not utxo["coinbase"]
-                or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"],
+                lambda utxo: (
+                    not utxo["coinbase"]
+                    or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"]
+                ),
                 self._utxos,
             )
         )
@@ -242,8 +244,10 @@ class MiniWallet:
         if not include_immature_coinbase:
             blocks_height = self._test_node.getblockchaininfo()["blocks"]
             utxo_filter = filter(
-                lambda utxo: not utxo["coinbase"]
-                or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"],
+                lambda utxo: (
+                    not utxo["coinbase"]
+                    or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"]
+                ),
                 self._utxos,
             )
         else:

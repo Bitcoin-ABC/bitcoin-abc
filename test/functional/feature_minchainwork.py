@@ -88,8 +88,10 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         peer.send_and_ping(msg)
         ensure_for(
             duration=5,
-            f=lambda: "headers" not in peer.last_message
-            or len(peer.last_message["headers"].headers) == 0,
+            f=lambda: (
+                "headers" not in peer.last_message
+                or len(peer.last_message["headers"].headers) == 0
+            ),
         )
 
         self.log.info("Generating one more block")

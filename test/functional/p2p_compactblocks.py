@@ -270,8 +270,9 @@ class CompactBlocksTest(BitcoinTestFramework):
         check_announcement_of_new_block(
             node,
             test_node,
-            lambda p: "cmpctblock" not in p.last_message
-            and "headers" in p.last_message,
+            lambda p: (
+                "cmpctblock" not in p.last_message and "headers" in p.last_message
+            ),
         )
 
     # This test actually causes bitcoind to (reasonably!) disconnect us, so do
