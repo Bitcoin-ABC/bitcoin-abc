@@ -134,7 +134,6 @@ export const startExpressServer = (
             try {
                 // Check the blacklist
                 const entry = await getOneBlacklistEntry(pool, tokenId);
-                console.log(`entry`, entry);
                 if (entry) {
                     return res.status(200).json({
                         status: 'success',
