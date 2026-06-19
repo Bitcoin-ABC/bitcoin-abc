@@ -139,7 +139,7 @@ enum TrackedTokenAction {
 interface TokenAction {
     count: number;
 }
-interface AgoraAction extends TokenAction {
+interface AgoraBuyActionStats extends TokenAction {
     volume: bigint;
 }
 interface TokenActions {
@@ -148,7 +148,7 @@ interface TokenActions {
     mint?: TokenAction;
     burn?: TokenAction;
     adPrep?: TokenAction;
-    buy?: AgoraAction;
+    buy?: AgoraBuyActionStats;
     list?: TokenAction;
     cancel?: TokenAction;
     genesis?:
