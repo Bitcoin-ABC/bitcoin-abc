@@ -638,7 +638,7 @@ class UserBuild:
                 )
                 if return_code != 0:
                     message = f"Build {self.configuration.name} failed with exit code {return_code}"
-                    return
+                    break
 
         except asyncio.TimeoutError:
             message = f"Build {self.configuration.name} timed out after {round(timeout, 1):.1f}s"
@@ -666,7 +666,7 @@ class UserBuild:
 
             self.copy_artifacts(artifacts)
 
-            return (return_code, message)
+        return (return_code, message)
 
     def run(self, args=None):
         args = args if args is not None else []
