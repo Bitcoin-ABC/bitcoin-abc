@@ -49,3 +49,20 @@ export const isValidSupplyType = (
 ): supplyType is SupplyType => {
     return supplyType === 'FIXED' || supplyType === 'VARIABLE';
 };
+
+// PNG file signature: 89 50 4E 47 0D 0A 1A 0A
+const PNG_MAGIC_BYTES = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
+
+/**
+ * Validate upload content by PNG magic bytes, not client-provided MIME type.
+ */
+export const isValidPngBuffer = (data: Buffer | Uint8Array): boolean => {
+    if (data.length < PNG_MAGIC_BYTES.length) {
+        return false;
+    }
+    return PNG_MAGIC_BYTES.equals(
+        Buffer.from(data.subarray(0, PNG_MAGIC_BYTES.length)),
+    );
+};

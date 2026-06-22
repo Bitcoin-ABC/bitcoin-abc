@@ -12,6 +12,7 @@ import config from '../config';
 import {
     isTokenImageRequest,
     isValidMinterAddress,
+    isValidPngBuffer,
     isValidSupplyType,
     isValidTokenId,
     isValidTokenType,
@@ -224,11 +225,14 @@ export const startExpressServer = (
             }
 
             if (req.file.mimetype !== 'image/png') {
-                // Note: Cashtab front-end already converts to png and restricts accept types
-                // to png or jpg
-                // TODO support SVG and other types, you can convert more readily here than in Cashtab
+                return res.status(403).json({
+                    status: 'error',
+                    msg: 'Only .png files are allowed.',
+                });
+            }
 
-                // Send an error response
+            // Do not trust mimetype alone; validate PNG magic bytes on the buffer.
+            if (!isValidPngBuffer(req.file.buffer)) {
                 return res.status(403).json({
                     status: 'error',
                     msg: 'Only .png files are allowed.',

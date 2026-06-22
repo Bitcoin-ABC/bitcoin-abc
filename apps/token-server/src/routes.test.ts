@@ -368,8 +368,36 @@ describe('routes.js', function () {
                 msg: 'Only .png files are allowed.',
             });
     });
+    it('We reject uploads whose bytes are not a png even if the filename is .png', async function () {
+        const semiTransparentRedJpg = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .jpeg()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            { iconBuffer: semiTransparentRedJpg },
+        )
+            .attach('tokenIcon', semiTransparentRedJpg, 'mockicon.png')
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Only .png files are allowed.',
+            });
+    });
     it('Error in sharp resize is handled', async function () {
-        const invalidPng = Buffer.alloc(config.maxUploadSize - 1, 1);
+        const invalidPng = Buffer.concat([
+            Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+            Buffer.alloc(100, 1),
+        ]);
         return appendCashtabNewTokenFields(
             request(app).post(`/new`),
             TEST_TOKEN_ID,
