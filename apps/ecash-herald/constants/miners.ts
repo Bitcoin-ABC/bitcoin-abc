@@ -231,6 +231,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '68697461626c6f636b2e636f6d', // "hitablock.com" ASCII
             },
         ],
+        [
+            '76a914cdf7359f087a578ad33853520af27e4c904f867288ac',
+            {
+                miner: 'SoloFury',
+                coinbaseHexFragment: '536f6c6f46757279', // "SoloFury" ASCII
+            },
+        ],
     ],
 };
 

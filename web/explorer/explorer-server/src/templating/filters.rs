@@ -153,6 +153,7 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "btccore.tech",
         "Himpool",
         "hitablock.com",
+        "SoloFury",
         // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
@@ -548,6 +549,12 @@ mod tests {
             render_miner(hitablock_coinbase_hex).unwrap(),
             "hitablock.com"
         );
+
+        // SoloFury 953772
+        let solofury_coinbase_hex =
+            b"\x03\xac\x8d\x0e\x00\x04\xe1{1j\x04\x08\xdc?)\x0c\xaeK+j\n\x00\
+            x00\x00\x00\x00\x00\x00\nckpool\x08SoloFury";
+        assert_eq!(render_miner(solofury_coinbase_hex).unwrap(), "SoloFury");
 
         // Unknown miner
         // genesis block 0

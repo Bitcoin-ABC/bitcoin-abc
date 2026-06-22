@@ -540,6 +540,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'hitablock.com',
     },
+    // SoloFury - parsed from payout script
+    {
+        height: '953772',
+        coinbaseHex:
+            '03ac8d0e0004e17b316a0408dc3f290cae4b2b6a0a000000000000000a636b706f6f6c08536f6c6f46757279',
+        payoutOutputScript:
+            '76a914cdf7359f087a578ad33853520af27e4c904f867288ac',
+        parsed: 'SoloFury',
+    },
+    // SoloFury - parsed from coinbase hex fragment
+    {
+        height: '953772',
+        coinbaseHex:
+            '03ac8d0e0004e17b316a0408dc3f290cae4b2b6a0a000000000000000a636b706f6f6c08536f6c6f46757279',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'SoloFury',
+    },
 ];
 
 export default minerTestFixtures;
