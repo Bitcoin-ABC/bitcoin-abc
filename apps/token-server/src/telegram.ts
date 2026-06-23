@@ -16,9 +16,14 @@ import {
     countBlacklistedTokensByMinterAddress,
     countTokensByMinterAddress,
 } from './cashtabTokens';
-import { insertBlacklistEntry, removeBlacklistEntry } from './db';
-import { existsSync, renameSync } from 'fs';
+import {
+    denyTokenIcon,
+    FsLikeModeration,
+    iconExistsInServedDir,
+    restoreTokenIcon,
+} from './iconModeration';
 import { IFs } from 'memfs';
+import { isValidTokenId } from './validation';
 
 const logTelegramError = (context: string, err: unknown): void => {
     console.error(`Telegram bot error (${context}):`, err);
@@ -51,10 +56,19 @@ const safeAnswerCallbackQuery = async (
  * We need a type for Fs because it is a param
  * It needs to be a param because we use memfs in testing
  */
-interface FsLikeTg {
-    existsSync: typeof existsSync;
-    renameSync: typeof renameSync;
-}
+type FsLikeTg = FsLikeModeration;
+
+const modAddedBy = (user: { id: number; username?: string }): string =>
+    typeof user.username !== 'undefined' ? user.username : user.id.toString();
+
+const parseCommandTokenId = (text: string): string | undefined => {
+    const parts = text.trim().split(/\s+/);
+    if (parts.length < 2) {
+        return undefined;
+    }
+    const tokenId = parts[1];
+    return isValidTokenId(tokenId) ? tokenId : undefined;
+};
 
 /**
  * Initialize telegram bot for token-server
@@ -116,11 +130,7 @@ export const initializeTelegramBot = (
             return;
         }
 
-        const isRemovalRequest = fs.existsSync(
-            `${config.imageDir}/${
-                config.iconSizes[config.iconSizes.length - 1]
-            }/${tokenId}.png`,
-        );
+        const isRemovalRequest = iconExistsInServedDir(fs, tokenId);
 
         if (!approvedMods.includes(approvingUser)) {
             console.error(
@@ -135,137 +145,162 @@ export const initializeTelegramBot = (
             return;
         }
 
-        const addedBy =
-            typeof callbackQuery.from.username !== 'undefined'
-                ? callbackQuery.from.username
-                : approvingUser.toString();
+        const addedBy = modAddedBy(callbackQuery.from);
 
         // Answer immediately so Telegram does not expire the callback query
         await safeAnswerCallbackQuery(ctx, 'acknowledged', {
             text: `Processing token icon ${isRemovalRequest ? 'deny' : 'restore'} for ${tokenId}`,
         });
 
-        try {
-            if (isRemovalRequest) {
-                const blacklistMetadata = {
-                    reason: 'report from icon archon',
-                    timestamp: Math.round(new Date().getTime() / 1000),
-                    addedBy,
-                };
-
-                try {
-                    await insertBlacklistEntry(
-                        pool,
-                        tokenId,
-                        blacklistMetadata,
-                    );
-                    console.log(`${tokenId} added to blacklist by ${addedBy}`);
-                } catch (err) {
-                    console.error(`Error adding ${tokenId} to blacklist`, err);
-                }
-
-                for (const size of config.iconSizes) {
-                    const sourcePath = `${config.imageDir}/${size}/${tokenId}.png`;
-                    const destPath = `${config.rejectedDir}/${size}/${tokenId}.png`;
-                    try {
-                        fs.renameSync(sourcePath, destPath);
-                    } catch (err) {
-                        console.error(
-                            `Error moving token icon from ${sourcePath} to ${destPath}`,
-                            err,
-                        );
-                        throw err;
-                    }
-                }
-            } else {
-                try {
-                    await removeBlacklistEntry(pool, tokenId);
-                    console.log(
-                        `${tokenId} removed from blacklist by ${addedBy}`,
-                    );
-                } catch (err) {
-                    console.error(
-                        `Error removing ${tokenId} from blacklist`,
-                        err,
-                    );
-                }
-
-                for (const size of config.iconSizes) {
-                    const sourcePath = `${config.rejectedDir}/${size}/${tokenId}.png`;
-                    const destPath = `${config.imageDir}/${size}/${tokenId}.png`;
-                    try {
-                        fs.renameSync(sourcePath, destPath);
-                    } catch (err) {
-                        console.error(
-                            `Error moving token icon from ${sourcePath} to ${destPath}`,
-                            err,
-                        );
-                        throw err;
-                    }
-                }
-            }
-
-            console.log(
-                `Token icon for "${tokenId}" ${
-                    isRemovalRequest ? `rejected` : `restored`
-                } by mod.`,
+        let moderationSucceeded = false;
+        if (isRemovalRequest) {
+            moderationSucceeded = await denyTokenIcon(
+                pool,
+                fs,
+                tokenId,
+                addedBy,
             );
-
-            let msgChannel = callbackQuery.message?.chat?.id;
-            if (typeof msgChannel === 'undefined') {
-                msgChannel = callbackQuery.message?.sender_chat?.id;
+            if (moderationSucceeded) {
+                console.log(`${tokenId} added to blacklist by ${addedBy}`);
+            } else {
+                console.error(`Failed to deny token icon ${tokenId}`);
             }
-            if (
-                typeof msgId !== 'undefined' &&
-                typeof msgChannel !== 'undefined'
-            ) {
-                try {
-                    if (isRemovalRequest) {
-                        const restoreKeyboard = new InlineKeyboard().text(
-                            'Changed your mind? Approve it.',
-                            tokenId,
-                        );
-                        await telegramBot.api.sendMessage(
-                            msgChannel,
-                            'Icon denied and removed from server',
-                            {
-                                reply_to_message_id: msgId,
-                                reply_markup: restoreKeyboard,
-                            },
-                        );
-                    } else {
-                        const rejectKeyboard = new InlineKeyboard().text(
-                            'Changed your mind? Reject it again.',
-                            tokenId,
-                        );
-                        await telegramBot.api.sendMessage(
-                            msgChannel,
-                            'Icon un-denied and restored to served endpoint',
-                            {
-                                reply_to_message_id: msgId,
-                                reply_markup: rejectKeyboard,
-                            },
-                        );
-                    }
-                } catch (err) {
-                    logTelegramError(
-                        `sendMessage after token icon ${
-                            isRemovalRequest ? 'deny' : 'restore'
-                        } for ${tokenId}`,
-                        err,
+        } else {
+            moderationSucceeded = await restoreTokenIcon(pool, fs, tokenId);
+            if (moderationSucceeded) {
+                console.log(`${tokenId} removed from blacklist by ${addedBy}`);
+            } else {
+                console.error(`Failed to restore token icon ${tokenId}`);
+            }
+        }
+
+        if (!moderationSucceeded) {
+            return;
+        }
+
+        console.log(
+            `Token icon for "${tokenId}" ${
+                isRemovalRequest ? `rejected` : `restored`
+            } by mod.`,
+        );
+
+        let msgChannel = callbackQuery.message?.chat?.id;
+        if (typeof msgChannel === 'undefined') {
+            msgChannel = callbackQuery.message?.sender_chat?.id;
+        }
+        if (typeof msgId !== 'undefined' && typeof msgChannel !== 'undefined') {
+            try {
+                if (isRemovalRequest) {
+                    const restoreKeyboard = new InlineKeyboard().text(
+                        'Changed your mind? Approve it.',
+                        tokenId,
+                    );
+                    await telegramBot.api.sendMessage(
+                        msgChannel,
+                        'Icon denied and removed from server',
+                        {
+                            reply_to_message_id: msgId,
+                            reply_markup: restoreKeyboard,
+                        },
+                    );
+                } else {
+                    const rejectKeyboard = new InlineKeyboard().text(
+                        'Changed your mind? Reject it again.',
+                        tokenId,
+                    );
+                    await telegramBot.api.sendMessage(
+                        msgChannel,
+                        'Icon un-denied and restored to served endpoint',
+                        {
+                            reply_to_message_id: msgId,
+                            reply_markup: rejectKeyboard,
+                        },
                     );
                 }
-            } else {
-                console.error(
-                    `Missing Telegram message context for token icon callback on ${tokenId} (msgId=${msgId}, msgChannel=${msgChannel})`,
+            } catch (err) {
+                logTelegramError(
+                    `sendMessage after token icon ${
+                        isRemovalRequest ? 'deny' : 'restore'
+                    } for ${tokenId}`,
+                    err,
                 );
             }
-        } catch (err) {
-            logTelegramError(
-                `token icon ${isRemovalRequest ? 'deny' : 'restore'} for ${tokenId}`,
-                err,
+        } else {
+            console.error(
+                `Missing Telegram message context for token icon callback on ${tokenId} (msgId=${msgId}, msgChannel=${msgChannel})`,
             );
         }
+    });
+
+    const handleModerationCommand = async (
+        ctx: Context,
+        action: 'deny' | 'restore',
+    ): Promise<void> => {
+        const message = ctx.message;
+        if (!message || !('text' in message)) {
+            return;
+        }
+
+        const userId = message.from?.id;
+        if (typeof userId === 'undefined') {
+            return;
+        }
+
+        const text = message.text;
+        if (typeof text !== 'string') {
+            return;
+        }
+
+        const tokenId = parseCommandTokenId(text);
+        console.log(
+            `Telegram /${action} from user ${userId} for tokenId ${tokenId ?? '(missing or invalid)'}`,
+        );
+
+        if (!approvedMods.includes(userId)) {
+            console.error(
+                `Unauthorized /${action} for ${tokenId ?? '(missing)'} from telegram user ${userId}`,
+            );
+            await ctx.reply('You are not authorized to moderate token icons.');
+            return;
+        }
+
+        if (!tokenId) {
+            await ctx.reply(`Usage: /${action} <tokenId>`);
+            return;
+        }
+
+        const addedBy = modAddedBy(message.from ?? { id: userId });
+
+        if (action === 'deny') {
+            const denied = await denyTokenIcon(pool, fs, tokenId, addedBy);
+            if (!denied) {
+                await ctx.reply(
+                    `Failed to deny ${tokenId}. Icon may not exist on server.`,
+                );
+                return;
+            }
+            console.log(`${tokenId} denied by ${addedBy} via /deny`);
+            await ctx.reply('Icon denied and removed from server');
+            return;
+        }
+
+        const restored = await restoreTokenIcon(pool, fs, tokenId);
+        if (!restored) {
+            await ctx.reply(
+                `Failed to restore ${tokenId}. Icon may not be in rejected storage.`,
+            );
+            return;
+        }
+        console.log(`${tokenId} restored by ${addedBy} via /restore`);
+        await ctx.reply('Icon un-denied and restored to served endpoint');
+    };
+
+    telegramBot.command('deny', async ctx => {
+        await handleModerationCommand(ctx, 'deny');
+    });
+
+    telegramBot.command('restore', async ctx => {
+        await handleModerationCommand(ctx, 'restore');
     });
 
     // Return this bot with event handler

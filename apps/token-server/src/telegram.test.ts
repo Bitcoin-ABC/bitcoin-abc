@@ -163,6 +163,56 @@ const findApiCall = (
     return calls.find(call => call.method === method);
 };
 
+const createCommandMessageUpdate = (options: {
+    command: 'deny' | 'restore';
+    tokenId?: string;
+    userId: number;
+    username?: string;
+    messageId?: number;
+    chatId?: number;
+    updateId?: number;
+}) => {
+    const {
+        command,
+        tokenId,
+        userId,
+        username,
+        messageId = 43,
+        chatId = -1001234567890,
+        updateId = 1,
+    } = options;
+
+    const text =
+        typeof tokenId === 'string' ? `/${command} ${tokenId}` : `/${command}`;
+
+    return {
+        update_id: updateId,
+        message: {
+            message_id: messageId,
+            date: Math.floor(Date.now() / 1000),
+            chat: {
+                id: chatId,
+                type: 'supergroup',
+                title: 'Token Icons',
+            },
+            from: {
+                id: userId,
+                is_bot: false,
+                first_name: 'Mod',
+                ...(typeof username === 'string' ? { username } : {}),
+            },
+            text,
+            entities: [
+                {
+                    type: 'bot_command',
+                    offset: 0,
+                    length: command.length + 1,
+                },
+            ],
+        },
+    };
+};
+
 const createCallbackQueryUpdate = (options: {
     tokenId: string;
     userId: number;
@@ -470,6 +520,155 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             );
             assert.ok(blacklistEntry);
             assert.equal(blacklistEntry.addedBy, APPROVED_MOD_ID.toString());
+        });
+    });
+
+    describe('/deny and /restore commands', function () {
+        it('denies a token icon for an authorized mod', async function () {
+            writeIconFiles(fs, config.imageDir, TEST_TOKEN_ID);
+
+            const bot = initializeTelegramBot(
+                'test-bot-token',
+                [APPROVED_MOD_ID],
+                fs,
+                testPool,
+            );
+            const recorder = installTelegramApiTestDouble(bot);
+            await (bot as { init: () => Promise<void> }).init();
+
+            await (
+                bot as { handleUpdate: (u: unknown) => Promise<void> }
+            ).handleUpdate(
+                createCommandMessageUpdate({
+                    command: 'deny',
+                    tokenId: TEST_TOKEN_ID,
+                    userId: APPROVED_MOD_ID,
+                    username: 'iconarchon',
+                }),
+            );
+
+            const blacklistEntry = await getOneBlacklistEntry(
+                testPool,
+                TEST_TOKEN_ID,
+            );
+            assert.ok(blacklistEntry);
+            assert.equal(blacklistEntry.addedBy, 'iconarchon');
+
+            for (const size of config.iconSizes) {
+                assert.equal(
+                    iconExistsAt(fs, config.rejectedDir, TEST_TOKEN_ID, size),
+                    true,
+                );
+            }
+
+            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
+            assert.ok(sendMessageCall);
+            assert.equal(
+                (sendMessageCall.payload as { text?: string }).text,
+                'Icon denied and removed from server',
+            );
+        });
+
+        it('restores a token icon for an authorized mod', async function () {
+            writeIconFiles(fs, config.rejectedDir, TEST_TOKEN_ID);
+            await insertBlacklistEntry(testPool, TEST_TOKEN_ID, {
+                reason: 'report from icon archon',
+                timestamp: 1,
+                addedBy: 'iconarchon',
+            });
+
+            const bot = initializeTelegramBot(
+                'test-bot-token',
+                [APPROVED_MOD_ID],
+                fs,
+                testPool,
+            );
+            const recorder = installTelegramApiTestDouble(bot);
+            await (bot as { init: () => Promise<void> }).init();
+
+            await (
+                bot as { handleUpdate: (u: unknown) => Promise<void> }
+            ).handleUpdate(
+                createCommandMessageUpdate({
+                    command: 'restore',
+                    tokenId: TEST_TOKEN_ID,
+                    userId: APPROVED_MOD_ID,
+                }),
+            );
+
+            assert.equal(
+                await getOneBlacklistEntry(testPool, TEST_TOKEN_ID),
+                null,
+            );
+
+            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
+            assert.ok(sendMessageCall);
+            assert.equal(
+                (sendMessageCall.payload as { text?: string }).text,
+                'Icon un-denied and restored to served endpoint',
+            );
+        });
+
+        it('rejects /deny from an unauthorized user', async function () {
+            writeIconFiles(fs, config.imageDir, TEST_TOKEN_ID);
+
+            const bot = initializeTelegramBot(
+                'test-bot-token',
+                [APPROVED_MOD_ID],
+                fs,
+                testPool,
+            );
+            const recorder = installTelegramApiTestDouble(bot);
+            await (bot as { init: () => Promise<void> }).init();
+
+            await (
+                bot as { handleUpdate: (u: unknown) => Promise<void> }
+            ).handleUpdate(
+                createCommandMessageUpdate({
+                    command: 'deny',
+                    tokenId: TEST_TOKEN_ID,
+                    userId: UNAUTHORIZED_MOD_ID,
+                }),
+            );
+
+            assert.equal(
+                await getOneBlacklistEntry(testPool, TEST_TOKEN_ID),
+                null,
+            );
+
+            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
+            assert.ok(sendMessageCall);
+            assert.equal(
+                (sendMessageCall.payload as { text?: string }).text,
+                'You are not authorized to moderate token icons.',
+            );
+        });
+
+        it('replies with usage when tokenId is missing', async function () {
+            const bot = initializeTelegramBot(
+                'test-bot-token',
+                [APPROVED_MOD_ID],
+                fs,
+                testPool,
+            );
+            const recorder = installTelegramApiTestDouble(bot);
+            await (bot as { init: () => Promise<void> }).init();
+
+            await (
+                bot as { handleUpdate: (u: unknown) => Promise<void> }
+            ).handleUpdate(
+                createCommandMessageUpdate({
+                    command: 'deny',
+                    userId: APPROVED_MOD_ID,
+                }),
+            );
+
+            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
+            assert.ok(sendMessageCall);
+            assert.equal(
+                (sendMessageCall.payload as { text?: string }).text,
+                'Usage: /deny <tokenId>',
+            );
         });
     });
 
