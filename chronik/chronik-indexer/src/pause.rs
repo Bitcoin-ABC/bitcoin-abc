@@ -7,7 +7,7 @@
 use abc_rust_error::Result;
 use chronik_util::log;
 use thiserror::Error;
-use tokio::{runtime::Runtime, sync::watch};
+use tokio::{runtime::Handle, sync::watch};
 
 use crate::pause::PauseNotifyError::*;
 
@@ -65,7 +65,7 @@ impl Pause {
 
     /// If we are paused, block until resumed by our corresponding
     /// [`PauseNotify`]. Otherwise, do nothing.
-    pub fn block_if_paused(&self, runtime: &Runtime) {
+    pub fn block_if_paused(&self, handle: &Handle) {
         if *self.pause_recv.borrow() == PauseMsg::Pause {
             log!(
                 "Chronik is paused, resume by calling /resume. To disallow \
@@ -74,7 +74,7 @@ impl Pause {
             let mut pause_recv = self.pause_recv.clone();
             // Ignore RecvError here, this only means PauseNotify has been
             // dropped, which in this case we treat as a "resume".
-            let _ = runtime
+            let _ = handle
                 .block_on(pause_recv.wait_for(|&msg| msg == PauseMsg::Resume));
         }
     }

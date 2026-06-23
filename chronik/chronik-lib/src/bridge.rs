@@ -7,7 +7,7 @@
 use std::{
     net::{AddrParseError, IpAddr, SocketAddr},
     path::PathBuf,
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::Duration,
 };
 
@@ -33,7 +33,7 @@ use chronik_indexer::{
 use chronik_plugin::{context::PluginContext, params::PluginParams};
 use chronik_util::{log, log_chronik, mount_loggers, Loggers};
 use thiserror::Error;
-use tokio::sync::RwLock;
+use tokio::{runtime::Runtime, sync::RwLock};
 
 use crate::ffi::{self, StartChronikValidationInterface};
 
@@ -205,7 +205,7 @@ fn try_setup_chronik(
         node: Arc::clone(&node),
         indexer,
         pause,
-        runtime,
+        runtime: Mutex::new(Some(runtime)),
     });
     StartChronikValidationInterface(node_context, chronik);
     Ok(())
@@ -274,9 +274,11 @@ pub struct Chronik {
     node: Arc<Node>,
     indexer: Arc<RwLock<ChronikIndexer>>,
     pause: Pause,
-    // Having this here ensures HTTP server, outstanding requests etc. will get
-    // stopped when `Chronik` is dropped.
-    runtime: tokio::runtime::Runtime,
+    /// Tokio runtime driving HTTP and Electrum. Wrapped so [`Chronik::stop`]
+    /// can shut it down before closing RocksDB, ensuring no async task touches
+    /// the DB during teardown. The Option is needed to allow for the runtime
+    /// to be consumed before the Chronik struct is dropped.
+    runtime: Mutex<Option<Runtime>>,
 }
 
 impl Chronik {
@@ -376,7 +378,16 @@ impl Chronik {
     }
 
     /// Stop Chronik to prepare for shutdown.
+    ///
+    /// Shuts down the tokio runtime first so HTTP and Electrum tasks (including
+    /// detached `tokio::spawn` work) cannot access RocksDB, then flushes the
+    /// DB. RocksDB background work cancellation happens when the DB is
+    /// dropped.
     pub fn stop(&self) -> Result<()> {
+        let mut runtime_guard = self.runtime.lock().unwrap();
+        if let Some(runtime) = runtime_guard.take() {
+            runtime.shutdown_timeout(Duration::from_secs(60));
+        }
         let indexer = self.indexer.blocking_write();
         indexer.stop()?;
         Ok(())
@@ -499,7 +510,13 @@ impl Chronik {
     }
 
     fn block_if_paused(&self) {
-        self.pause.block_if_paused(&self.runtime);
+        let handle = {
+            let guard = self.runtime.lock().unwrap();
+            guard.as_ref().map(|runtime| runtime.handle().clone())
+        };
+        if let Some(handle) = handle {
+            self.pause.block_if_paused(&handle);
+        }
     }
 }
 

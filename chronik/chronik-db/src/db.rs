@@ -260,7 +260,6 @@ impl Db {
     /// Stop the database, e.g. to prepare for shutdown.
     pub fn close(&self) -> Result<()> {
         self.db.flush().map_err(RocksDb)?;
-        self.db.cancel_all_background_work(/* wait= */ true);
         Ok(())
     }
 }
