@@ -791,7 +791,7 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                     },
                 ),
             );
-            assert.equal(sendPhotoPayload.parse_mode, 'Markdown');
+            assert.equal(sendPhotoPayload.parse_mode, 'HTML');
             assert.deepEqual(
                 sendPhotoPayload.reply_markup?.inline_keyboard[0][0],
                 {
@@ -899,10 +899,11 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.equal(
                 caption,
                 [
-                    '[Sleepy Carl](https://explorer.e.cash/tx/67e4cb702558fe815efb15dacf3f68a3f2c662bb9d73c3f8682fc3cbb9a47993) (SCRL)',
-                    'Minter: [qz...035](https://explorer.e.cash/address/ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035)',
+                    '<a href="https://explorer.e.cash/tx/67e4cb702558fe815efb15dacf3f68a3f2c662bb9d73c3f8682fc3cbb9a47993">Sleepy Carl</a> (SCRL)',
+                    'Minter: <a href="https://explorer.e.cash/address/ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035">qz...035</a>',
                     '51 tokens minted, 0 blacklisted',
                     'ALP, variable supply',
+                    '<code>67e4cb702558fe815efb15dacf3f68a3f2c662bb9d73c3f8682fc3cbb9a47993</code>',
                 ].join('\n'),
             );
         });
@@ -949,12 +950,12 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             );
         });
 
-        it('escapes markdown characters in token name and ticker', () => {
+        it('escapes HTML characters in token name and ticker', () => {
             const caption = buildNewTokenIconCaption(
                 {
                     ...baseTokenInfo,
-                    name: 'Token_with_underscores',
-                    ticker: 'T_ST',
+                    name: 'Token<with>tags',
+                    ticker: 'T&ST',
                 },
                 {
                     tokensMinted: 1,
@@ -962,11 +963,10 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                 },
             );
 
-            assert.match(
-                caption,
-                /\[Token\\_with\\_underscores\]\(https:\/\/explorer\.e\.cash\/tx\//,
-            );
-            assert.match(caption, /\(T\\_ST\)/);
+            assert.match(caption, /<a href="https:\/\/explorer\.e\.cash\/tx\//);
+            assert.match(caption, /Token&lt;with&gt;tags/);
+            assert.match(caption, /\(T&amp;ST\)/);
+            assert.match(caption, new RegExp(`<code>${TEST_TOKEN_ID}</code>$`));
         });
     });
 });

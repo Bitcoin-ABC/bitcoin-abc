@@ -362,12 +362,10 @@ export interface TokenIconAlertStats {
 const EXPLORER_BASE_URL = 'https://explorer.e.cash';
 
 /**
- * Escape text for Telegram legacy Markdown (parse_mode: 'Markdown').
- * Underscores in values like ALP_TOKEN_TYPE_STANDARD must be escaped or
- * Telegram treats them as unclosed italic entities.
+ * Escape text for Telegram HTML (parse_mode: 'HTML').
  */
-export const escapeTelegramMarkdown = (text: string): string =>
-    text.replace(/([[_*`])/g, '\\$1');
+export const escapeTelegramHtml = (text: string): string =>
+    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
  * Abbreviate a minter address for display in Telegram captions.
@@ -422,17 +420,18 @@ export const buildNewTokenIconCaption = (
     const { tokenId, name, ticker, minterAddress, tokenType, supplyType } =
         tokenInfo;
 
-    const tokenLine = `[${escapeTelegramMarkdown(name)}](${EXPLORER_BASE_URL}/tx/${tokenId})${
-        ticker !== '' ? ` (${escapeTelegramMarkdown(ticker)})` : ''
+    const tokenLine = `<a href="${EXPLORER_BASE_URL}/tx/${tokenId}">${escapeTelegramHtml(name)}</a>${
+        ticker !== '' ? ` (${escapeTelegramHtml(ticker)})` : ''
     }`;
 
     const minterPreview = previewMinterAddress(minterAddress);
 
     return [
         tokenLine,
-        `Minter: [${escapeTelegramMarkdown(minterPreview)}](${EXPLORER_BASE_URL}/address/${minterAddress})`,
+        `Minter: <a href="${EXPLORER_BASE_URL}/address/${minterAddress}">${escapeTelegramHtml(minterPreview)}</a>`,
         `${stats.tokensMinted} tokens minted, ${stats.blacklistedTokens} blacklisted`,
-        `${escapeTelegramMarkdown(formatTokenTypeLabel(tokenType))}, ${formatSupplyTypeLabel(supplyType)}`,
+        `${escapeTelegramHtml(formatTokenTypeLabel(tokenType))}, ${formatSupplyTypeLabel(supplyType)}`,
+        `<code>${tokenId}</code>`,
     ].join('\n');
 };
 
@@ -473,7 +472,7 @@ export const alertNewTokenIcon = async (
         ),
         {
             caption,
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             reply_markup: denyKeyboard,
         },
     );
