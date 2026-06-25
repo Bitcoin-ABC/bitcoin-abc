@@ -4,14 +4,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First set up the mandatory environment variables:
+Copy `env.sample` to `.env` before running the dev server or building. Edit values as needed.
 
 ```bash
 # Run from the /web/e.cash/ directory
-echo NEXT_PUBLIC_SITE_URL=https://e.cash > .env
-echo NEXT_PUBLIC_STRAPI_URL=https://strapi.e.cash >> .env
-echo NEXT_PUBLIC_STRAPI_SCORECARD_URL=https://api.scorecard.cash >> .env
-echo NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX >> .env
+cp env.sample .env
 ```
 
 Then, run the development server:
@@ -28,4 +25,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Build
 
-To create an optimized production build: `pnpm --filter e.cash run build`
+Ensure `.env` exists (copy from `env.sample` if you have not already), then create an optimized production build:
+
+```bash
+pnpm --filter e.cash run build
+```
