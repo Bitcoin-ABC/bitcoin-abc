@@ -180,6 +180,16 @@ export default function MiningContent() {
                       Mining Dutch
                     </a>
                   </li>
+                  <li>
+                    <a
+                      href="https://solofury.com/start/?coin=XEC"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 transition-colors hover:text-blue-300"
+                    >
+                      Solo Fury
+                    </a>
+                  </li>
                 </ul>
               </div>
 
