@@ -168,6 +168,7 @@ int secp256k1_multiset_finalize(const secp256k1_context* ctx, unsigned char *res
     secp256k1_gej gej;
     secp256k1_ge ge;
 
+    (void)ctx;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(resultHash != NULL);
     ARG_CHECK(multiset != NULL);
@@ -200,6 +201,7 @@ int secp256k1_multiset_finalize(const secp256k1_context* ctx, unsigned char *res
 int secp256k1_multiset_init(const secp256k1_context* ctx, secp256k1_multiset *multiset) {
     const secp256k1_gej inf = SECP256K1_GEJ_CONST_INFINITY;
 
+    (void)ctx;
     VERIFY_CHECK(ctx != NULL);
 
     multiset_from_gej_var(multiset, &inf);
