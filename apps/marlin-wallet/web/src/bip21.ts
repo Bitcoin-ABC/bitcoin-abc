@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { config } from './config';
-import { isValidECashAddress } from './address';
+import { isValidECashAddress } from './address-manager';
 import { atomsToUnit, unitToAtoms } from './amount';
 import { SUPPORTED_ASSETS, XEC_ASSET } from './supported-assets';
 import { t } from './i18n';

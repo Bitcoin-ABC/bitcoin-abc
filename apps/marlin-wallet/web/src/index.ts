@@ -34,7 +34,8 @@ import {
     activeTokenId,
     allowFiatForActiveAsset,
 } from './active-asset';
-import { getAddress, WalletData } from './wallet';
+import { WalletData } from './wallet';
+import { AddressManager } from './address-manager';
 import { storeMnemonic, loadMnemonic, generateMnemonic } from './mnemonic';
 import { config } from './config';
 import { parseBip21Uri } from './bip21';
@@ -77,6 +78,7 @@ let navigation: Navigation;
 // Wallet state
 let wallet: WalletData | null = null;
 let ecashWallet: Wallet | null = null;
+let addressManager: AddressManager | null = null;
 let wsEndpoint: any = null;
 
 let chronik: ChronikClient;
@@ -175,7 +177,13 @@ async function loadWalletFromMnemonic(mnemonic: string) {
     // Create wallet using ecash-wallet library
     ecashWallet = Wallet.fromMnemonic(mnemonic, chronik);
 
-    const address = getAddress(ecashWallet);
+    if (!addressManager) {
+        addressManager = new AddressManager(ecashWallet);
+    } else {
+        addressManager.updateWallet(ecashWallet);
+    }
+
+    const address = addressManager.getCurrentReceiveAddress();
     if (!address) {
         // This should never happen
         webViewError('Cannot get address from wallet');
@@ -202,6 +210,7 @@ async function loadWalletFromMnemonic(mnemonic: string) {
     } else {
         transactionHistory = new TransactionHistoryManager(
             ecashWallet,
+            addressManager,
             chronik,
             appSettings,
             priceFetcher,
@@ -236,7 +245,7 @@ async function loadWalletFromMnemonic(mnemonic: string) {
         );
     }
 
-    subscribeToAddress(address);
+    await subscribeToAddresses(addressManager.getSubscribeAddresses());
 
     // Send address and BIP21 prefix to watch
     sendMessageToBackend('SEND_ADDRESS_TO_WATCH', {
@@ -299,10 +308,14 @@ async function loadWallet(forceReload: boolean = false) {
 
 // Subscribe to address notifications via Chronik WebSocket.
 // This is where the main wallet update logic happens.
-async function subscribeToAddress(address: string) {
+async function subscribeToAddresses(addresses: string[]) {
     try {
         // Close existing connection if any
         unsubscribeFromAddress();
+
+        if (addresses.length === 0) {
+            return;
+        }
 
         // Create WebSocket connection using chronik-client
         wsEndpoint = chronik.ws({
@@ -468,8 +481,10 @@ async function subscribeToAddress(address: string) {
         // Wait for WebSocket to be connected
         await wsEndpoint.waitForOpen();
 
-        wsEndpoint.subscribeToAddress(address);
-        webViewLog('Subscribed to address notifications for:', address);
+        for (const address of addresses) {
+            wsEndpoint.subscribeToAddress(address);
+            webViewLog('Subscribed to address notifications for:', address);
+        }
     } catch (error) {
         webViewError('Failed to subscribe to address notifications:', error);
     }
@@ -694,10 +709,11 @@ async function initializeApp() {
         return;
     }
 
-    // At this point the wallet is loaded
+    // At this point the wallet is loaded and the address manager is initialized
 
     mainScreen = new MainScreen({
         ecashWallet,
+        addressManager,
         navigation,
         appSettings,
         priceFetcher,
@@ -956,14 +972,13 @@ async function handlePaymentRequest(event: any) {
         } else if (message.type === 'SYNC_WALLET') {
             // Sync wallet and reconnect WebSocket
             try {
-                if (ecashWallet) {
+                if (ecashWallet && addressManager) {
                     // Sync wallet first to update balance
                     await syncWallet();
-                    // Then reconnect WebSocket and resubscribe to address
-                    const address = getAddress(ecashWallet);
-                    if (address) {
-                        await subscribeToAddress(address);
-                    }
+                    // Then reconnect WebSocket and resubscribe to addresses
+                    await subscribeToAddresses(
+                        addressManager.getSubscribeAddresses(),
+                    );
                 }
             } catch (error) {
                 webViewError('Failed to sync wallet:', error);

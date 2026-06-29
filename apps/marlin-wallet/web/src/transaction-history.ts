@@ -6,7 +6,7 @@ import { webViewLog, webViewError } from './common';
 import { calculateTransactionAmountAtomsFromTx, atomsToUnit } from './amount';
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient, type Tx } from 'chronik-client';
-import { getAddress } from './wallet';
+import { AddressManager } from './address-manager';
 import { AppSettings } from './settings';
 import { formatPrice } from 'ecash-price';
 import type { MarlinPriceFetcher } from './price';
@@ -35,29 +35,33 @@ export class TransactionHistoryManager {
     private isLoadingTransactions = false;
     private allTransactions: Tx[] = [];
     private ecashWallet: Wallet;
-    private chronik: ChronikClient;
+    private addressManager: AddressManager;
     private address: string;
+    private chronik: ChronikClient;
     private appSettings: AppSettings;
     private priceFetcher: MarlinPriceFetcher | null;
 
     constructor(
         wallet: Wallet,
+        addressManager: AddressManager,
         chronik: ChronikClient,
         appSettings: AppSettings,
         priceFetcher: MarlinPriceFetcher | null,
     ) {
         this.ecashWallet = wallet;
+        this.addressManager = addressManager;
         this.chronik = chronik;
         this.appSettings = appSettings;
         this.priceFetcher = priceFetcher;
 
-        this.address = getAddress(this.ecashWallet);
+        this.address = addressManager.getCurrentReceiveAddress() ?? '';
     }
 
     // Update wallet reference (called when wallet is reloaded)
     updateWallet(wallet: Wallet): void {
         this.ecashWallet = wallet;
-        this.address = getAddress(this.ecashWallet);
+        this.addressManager.updateWallet(wallet);
+        this.address = this.addressManager.getCurrentReceiveAddress() ?? '';
     }
 
     // Getters

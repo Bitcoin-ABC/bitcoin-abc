@@ -6,14 +6,13 @@ import * as chai from 'chai';
 import { Address, OP_RETURN } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { MockChronikClient } from 'mock-chronik-client';
-import { getAddress, buildAction } from '../src/wallet';
+import { buildAction } from '../src/wallet';
 
 const expect = chai.expect;
 
 // Known mnemonic for deterministic testing
 const TEST_MNEMONIC =
     'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-const TEST_ADDRESS_ECASH = 'ecash:qrwzys2q6xq98vwz0kjn6ulu5m6yljr5fyc909kalg';
 
 describe('wallet.ts', function () {
     let mockChronik: MockChronikClient;
@@ -50,25 +49,6 @@ describe('wallet.ts', function () {
 
         // Sync the wallet to load UTXOs
         await wallet.sync();
-    });
-
-    describe('getAddress', function () {
-        it('Should return address with correct prefix', function () {
-            const address = getAddress(wallet);
-            expect(address).to.be.equal(TEST_ADDRESS_ECASH);
-        });
-
-        it('Should return null for null wallet', function () {
-            expect(getAddress(null as unknown as Wallet)).to.be.equal(null);
-        });
-
-        it('Should return null for wallet without address', function () {
-            const walletWithoutAddress = {
-                address: null,
-            } as unknown as Wallet;
-
-            expect(getAddress(walletWithoutAddress)).to.be.equal(null);
-        });
     });
 
     describe('buildTx', function () {

@@ -24,8 +24,7 @@ import {
     type AssetDefinition,
 } from '../supported-assets';
 import { atomsToUnit } from '../amount';
-import { copyAddress, isValidECashAddress } from '../address';
-import { getAddress } from '../wallet';
+import { AddressManager, isValidECashAddress } from '../address-manager';
 import {
     generateQRCode,
     startQRScanner,
@@ -37,6 +36,7 @@ import { webViewError, webViewLog } from '../common';
 
 export interface MainScreenParams {
     ecashWallet: Wallet | null;
+    addressManager: AddressManager;
     navigation: Navigation;
     appSettings: AppSettings;
     priceFetcher: MarlinPriceFetcher | null;
@@ -205,6 +205,7 @@ export class MainScreen {
         transitionalBalanceSats: number,
     ): Promise<void> {
         this.params.ecashWallet = newWallet;
+        this.params.addressManager.updateWallet(newWallet);
 
         if (!newWallet) {
             return;
@@ -229,7 +230,7 @@ export class MainScreen {
     }
 
     updateAddressDisplay(): void {
-        const address = getAddress(this.params.ecashWallet);
+        const address = this.params.addressManager.getCurrentReceiveAddress();
         if (!address) {
             webViewError('Cannot get address from wallet');
             return;
@@ -375,9 +376,7 @@ export class MainScreen {
     private initializeEventListeners(): void {
         // Address click listener for copying
         this.ui.address.addEventListener('click', () => {
-            if (this.params.ecashWallet) {
-                copyAddress(this.params.ecashWallet);
-            }
+            void this.params.addressManager.copyReceiveAddress();
         });
 
         // Scan button click listener

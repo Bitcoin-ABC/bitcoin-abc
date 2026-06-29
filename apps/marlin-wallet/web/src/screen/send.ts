@@ -27,7 +27,7 @@ import {
     activeQuoteCurrency,
     formatActiveAssetAmount,
 } from '../active-asset';
-import { isValidECashAddress } from '../address';
+import { isValidECashAddress } from '../address-manager';
 import { parseBip21Uri, Bip21ParseResult } from '../bip21';
 import { isPayButtonTransaction } from '../deeplink';
 import { config } from '../config';

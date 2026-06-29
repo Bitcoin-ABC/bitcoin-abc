@@ -4,24 +4,12 @@
 
 import { Wallet } from 'ecash-wallet';
 import { Address, Script, DEFAULT_DUST_SATS, OP_RETURN } from 'ecash-lib';
-import { config } from './config';
 import type { AssetDefinition } from './supported-assets';
 
 // Wallet date that we can't retrieve from ecash-wallet.
 // For now it's just the mnemonic.
 export interface WalletData {
     mnemonic: string;
-}
-
-// Return the eCash address string for this wallet
-export function getAddress(wallet: Wallet): string | null {
-    if (!wallet || !wallet.address) {
-        return null;
-    }
-
-    return Address.parse(wallet.address)
-        .withPrefix(config.addressPrefix)
-        .toString();
 }
 
 // Build a wallet action with the given parameters

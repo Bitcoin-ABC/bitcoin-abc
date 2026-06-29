@@ -4,7 +4,6 @@
 
 import { Navigation, Screen } from '../navigation';
 import { TransactionHistoryManager } from '../transaction-history';
-import { getAddress } from '../wallet';
 import { config } from '../config';
 import { sendMessageToBackend, webViewError } from '../common';
 
@@ -49,8 +48,7 @@ export class HistoryScreen {
         this.params.navigation.showScreen(Screen.History);
 
         // Load transaction history when showing the screen (reset to first page)
-        const address = getAddress(this.params.transactionHistory.wallet);
-        if (address) {
+        if (this.params.transactionHistory.wallet) {
             this.params.transactionHistory.loadTransactionHistory(true);
         }
 
