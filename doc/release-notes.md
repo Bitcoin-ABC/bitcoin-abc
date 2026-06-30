@@ -1,8 +1,7 @@
-# Bitcoin ABC 0.33.6 Release Notes
+# Bitcoin ABC 0.33.7 Release Notes
 
-Bitcoin ABC version 0.33.6 is now available from:
+Bitcoin ABC version 0.33.7 is now available from:
 
-  <https://download.bitcoinabc.org/0.33.6/>
+  <https://download.bitcoinabc.org/0.33.7/>
 
-This release includes the following features and fixes:
- - Fix a potential Chronik crash that could occur under rare circumstances.
+This is a maintenance release with no user-visible change.
