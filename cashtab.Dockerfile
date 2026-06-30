@@ -76,6 +76,7 @@ COPY modules/b58-ts/package.json ./modules/b58-ts/
 COPY modules/ecash-lib/package.json ./modules/ecash-lib/
 COPY modules/ecash-wallet/package.json ./modules/ecash-wallet/
 COPY modules/ecash-agora/package.json ./modules/ecash-agora/
+COPY modules/ecash-parse/package.json ./modules/ecash-parse/
 COPY cashtab/package.json ./cashtab/
 
 # Fetch dependencies (pnpm best practice for Docker)
@@ -89,6 +90,7 @@ COPY modules/b58-ts/ ./modules/b58-ts/
 COPY modules/ecash-lib/ ./modules/ecash-lib/
 COPY modules/ecash-wallet/ ./modules/ecash-wallet/
 COPY modules/ecash-agora/ ./modules/ecash-agora/
+COPY modules/ecash-parse/ ./modules/ecash-parse/
 COPY cashtab/ ./cashtab/
 
 # Install dependencies for local modules first
@@ -99,6 +101,7 @@ RUN pnpm install --frozen-lockfile --offline --filter mock-chronik-client...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-lib...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-wallet...
 RUN pnpm install --frozen-lockfile --offline --filter ecash-agora...
+RUN pnpm install --frozen-lockfile --offline --filter ecash-parse...
 
 # Build local modules
 RUN pnpm --filter b58-ts run build
@@ -108,6 +111,7 @@ RUN pnpm --filter mock-chronik-client run build
 RUN pnpm --filter ecash-lib run build
 RUN pnpm --filter ecash-wallet run build
 RUN pnpm --filter ecash-agora run build
+RUN pnpm --filter ecash-parse run build
 
 # Install dependencies for cashtab (now that local modules are built)
 # Include devDependencies since we need them for the build

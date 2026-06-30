@@ -1,0 +1,38 @@
+{
+    "name": "ecash-parse",
+    "version": "1.0.0",
+    "description": "Parse eCash transactions and build notification messages",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./fixtures": {
+            "types": "./src/fixtures/vectors.ts",
+            "default": "./src/fixtures/vectors.ts"
+        }
+    },
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc && tsc -p ./tsconfig.build.json",
+        "test": "mocha"
+    },
+    "dependencies": {
+        "b58-ts": "workspace:^",
+        "chronik-client": "workspace:^",
+        "ecash-agora": "workspace:^",
+        "ecash-lib": "workspace:^",
+        "ecashaddrjs": "workspace:^"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^25.0.3",
+        "mocha": "^11.7.5",
+        "mocha-suppress-logs": "^0.6.0",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    }
+}

@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "5.9.3",
+    "version": "5.9.4",
     "private": true,
     "type": "module",
     "scripts": {
@@ -45,6 +45,7 @@
         "chronik-client": "workspace:^",
         "ecash-agora": "workspace:^",
         "ecash-lib": "workspace:^",
+        "ecash-parse": "workspace:^",
         "ecash-wallet": "workspace:^",
         "ecashaddrjs": "workspace:^",
         "localforage": "^1.9.0",

@@ -794,6 +794,7 @@ builds:
             - modules/ecash-lib/
             - modules/ecash-lib-wasm/
             - modules/ecash-wallet/
+            - modules/ecash-parse/
             - modules/b58-ts
             - src/secp256k1/
         artifacts:
@@ -812,6 +813,7 @@ builds:
             - mock-chronik-client
             - ecash-lib
             - ecash-agora
+            - ecash-parse
             - ecash-wallet
         script: |
             corepack enable
@@ -913,6 +915,43 @@ builds:
         depends:
             - ecashaddrjs
             - ecash-lib
+        templates:
+            - js-mocha
+
+    ecash-parse:
+        runOnDiffRegex:
+            - pnpm-lock.yaml
+            - modules/ecash-parse/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-agora/
+            - modules/b58-ts/
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - ecash-lib
+            - ecash-agora
+        script: |
+            corepack enable
+            corepack prepare pnpm@10.24.0 --activate
+            pushd "${TOPLEVEL}"
+            pnpm install --frozen-lockfile --filter ecash-parse...
+            pnpm --filter ecash-parse run build
+
+    ecash-parse-tests:
+        runOnDiffRegex:
+            - pnpm-lock.yaml
+            - modules/ecash-parse/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-agora/
+            - modules/b58-ts/
+        env:
+            JS_PROJECT_ROOT: modules/ecash-parse
+        depends:
+            - ecash-parse
         templates:
             - js-mocha
 

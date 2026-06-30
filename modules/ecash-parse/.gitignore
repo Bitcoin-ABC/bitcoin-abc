@@ -1,0 +1,5 @@
+# Build artifacts
+dist/
+
+# Dependencies
+node_modules/

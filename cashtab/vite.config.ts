@@ -88,6 +88,7 @@ export default defineConfig({
     optimizeDeps: {
         include: [
             'ecash-lib',
+            'ecash-parse',
             'ecash-wallet',
             'ecash-agora',
             'b58-ts',
@@ -115,6 +116,7 @@ export default defineConfig({
                 /node_modules\/.*/,
                 /.*[/\\]modules[/\\].*/,
                 /.*[/\\]ecash-lib[/\\].*/,
+                /.*[/\\]ecash-parse[/\\].*/,
                 /.*[/\\]ecash-wallet[/\\].*/,
                 /.*[/\\]ecash-agora[/\\].*/,
                 /.*[/\\]b58-ts[/\\].*/,
