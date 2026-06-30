@@ -83,6 +83,7 @@ contrib/devtools/split-debug.sh
 
 # JS artifacts at every level
 node_modules/
+.pnpm-store/
 build/
 .next/
 .docusaurus/
