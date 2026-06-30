@@ -557,6 +557,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'SoloFury',
     },
+    // HashedMax - parsed from payout script
+    {
+        height: '955275',
+        coinbaseHex:
+            '038b930e4861736865644d61782d5845432d506f6f6c18e8c5d861270500',
+        payoutOutputScript:
+            '76a9145cc7b972a15ae485f84e14e0e33e4759b0d112d988ac',
+        parsed: 'HashedMax',
+    },
+    // HashedMax - parsed from coinbase hex fragment
+    {
+        height: '955275',
+        coinbaseHex:
+            '038b930e4861736865644d61782d5845432d506f6f6c18e8c5d861270500',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'HashedMax',
+    },
 ];
 
 export default minerTestFixtures;

@@ -154,6 +154,7 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "Himpool",
         "hitablock.com",
         "SoloFury",
+        "HashedMax",
         // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
@@ -555,6 +556,11 @@ mod tests {
             b"\x03\xac\x8d\x0e\x00\x04\xe1{1j\x04\x08\xdc?)\x0c\xaeK+j\n\x00\
             x00\x00\x00\x00\x00\x00\nckpool\x08SoloFury";
         assert_eq!(render_miner(solofury_coinbase_hex).unwrap(), "SoloFury");
+
+        // HashedMax 955275
+        let hashedmax_coinbase_hex =
+            b"\x03\x8b\x93\x0eHashedMax-XEC-Pool\x18\xe8\xc5\xd8a'\x05\x00";
+        assert_eq!(render_miner(hashedmax_coinbase_hex).unwrap(), "HashedMax");
 
         // Unknown miner
         // genesis block 0

@@ -238,6 +238,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '536f6c6f46757279', // "SoloFury" ASCII
             },
         ],
+        [
+            '76a9145cc7b972a15ae485f84e14e0e33e4759b0d112d988ac',
+            {
+                miner: 'HashedMax',
+                coinbaseHexFragment: '4861736865644d6178', // "HashedMax" ASCII
+            },
+        ],
     ],
 };
 
