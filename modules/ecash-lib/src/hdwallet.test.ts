@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
 import { HdNode } from './hdwallet.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip32/blob/master/test/fixtures/index.json
 

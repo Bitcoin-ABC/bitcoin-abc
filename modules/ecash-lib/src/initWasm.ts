@@ -8,6 +8,12 @@ import { __setEcc } from './ecc.js';
 import { __setHashes } from './hash.js';
 import { __setPkc } from './publicKeyCrypto.js';
 
+/**
+ * Initialize WASM from an embedded base64 payload at import time.
+ *
+ * Works in Node.js, browsers, and bundlers (e.g. Next.js) without a separate
+ * `.wasm` file or `fs.readFileSync` at import time.
+ */
 const wasmRaw = Uint8Array.from(atob(ECASH_LIB_WASM_BASE64), c =>
     c.charCodeAt(0),
 );

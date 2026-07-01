@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
 import { Ecc, EccDummy } from './ecc.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 describe('Ecc', () => {
     it('EccWasm', () => {

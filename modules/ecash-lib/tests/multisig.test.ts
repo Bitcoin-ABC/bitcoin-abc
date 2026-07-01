@@ -14,7 +14,7 @@ import { TestRunner } from '../src/test/testRunner.js';
 import { flagSignature, signWithSigHash } from '../src/signatories.js';
 import { TxBuilder } from '../src/txBuilder.js';
 import { UnsignedTxInput } from '../src/unsignedTx.js';
-import '../src/initNodeJs.js';
+import '../src/initWasm.js';
 
 describe('Multisig', () => {
     let runner: TestRunner;

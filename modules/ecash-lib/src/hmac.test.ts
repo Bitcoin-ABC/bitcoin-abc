@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import { fromHex, toHex } from './io/hex.js';
 import { hmacSha256, hmacSha512 } from './hmac.js';
 import { strToBytes } from './io/str.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 // Tests are based on https://github.com/paulmillr/noble-hashes/blob/main/test/hmac.test.js
 

@@ -14,7 +14,7 @@
 import { expect } from 'chai';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import './initNodeJs.js';
+import './initWasm.js';
 import { Psbt } from './psbt.js';
 import { fromHex, toHex } from './io/hex.js';
 

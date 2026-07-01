@@ -48,6 +48,20 @@ module.exports = {
                                 // import.meta.env -> process.env
                                 path.replaceWithSourceString('process.env');
                             }
+                            return;
+                        }
+
+                        // ecash-lib wasm-bindgen glue references import.meta.url in an
+                        // unused async init path; initSync + embedded base64 is used instead.
+                        if (
+                            node.object.type === 'MetaProperty' &&
+                            node.object.meta?.name === 'import' &&
+                            node.object.property?.name === 'meta' &&
+                            node.property?.name === 'url'
+                        ) {
+                            path.replaceWithSourceString(
+                                '"file:///ecash_lib_wasm_bg_browser.wasm"',
+                            );
                         }
                     },
                 },

@@ -8,7 +8,7 @@ import { toHex } from './io/hex.js';
 import { strToBytes } from './io/str.js';
 import { sha256Hasher } from './hash.js';
 import { pbkdf2 } from './pbkdf2.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 // Tests are based on https://github.com/paulmillr/noble-hashes/blob/main/test/kdf.test.js
 

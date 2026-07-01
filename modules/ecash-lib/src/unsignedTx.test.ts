@@ -27,7 +27,7 @@ import {
 } from './sigHashType.js';
 import { Ecc } from './ecc.js';
 import { signWithSigHash } from './signatories.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 const TX = new Tx({
     version: 0xfacefeed,

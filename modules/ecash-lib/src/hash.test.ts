@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { fromHex, toHex, toHexRev } from './io/hex.js';
 import { sha256, sha256d, sha512, shaRmd160 } from './hash.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 const GENESIS_HEADER_HEX =
     '01000000' +

@@ -355,3 +355,7 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 # 5.5.0
 
 - Add optional support for waiting on txs to finalize by using chronik-client exposed `broadcastAndFinalizeTxs` [D20014](https://reviews.bitcoinabc.org/D20014)
+
+# 5.5.1 [D20201](https://reviews.bitcoinabc.org/D20201)
+
+- Upgrade to `ecash-lib` 4.13.0 for Next.js-friendly WASM loading (embedded base64 on Node.js as well as the browser)

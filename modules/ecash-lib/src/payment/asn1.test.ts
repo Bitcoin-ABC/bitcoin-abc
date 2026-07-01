@@ -10,7 +10,7 @@ import { Ecc } from '../ecc.js';
 import { toHex } from '../io/hex.js';
 import { sha256 } from '../hash.js';
 import { PkcAlgo } from '../publicKeyCrypto.js';
-import '../initNodeJs.js';
+import '../initWasm.js';
 
 /*
 key.pem:

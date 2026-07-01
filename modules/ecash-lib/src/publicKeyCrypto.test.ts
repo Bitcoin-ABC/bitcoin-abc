@@ -18,7 +18,7 @@ import {
     OID_SECP384R1,
 } from './payment/x509.js';
 import { strToBytes } from './io/str.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 const TESTKEYS_PATH = './testkeys/';
 

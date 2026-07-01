@@ -39,7 +39,7 @@ import { UnsignedTxInput } from '../src/unsignedTx.js';
 import { Tx } from '../src/tx.js';
 import { TxBuilder } from '../src/txBuilder.js';
 import { encodeCashAddress } from 'ecashaddrjs';
-import '../src/initNodeJs.js';
+import '../src/initWasm.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000n;

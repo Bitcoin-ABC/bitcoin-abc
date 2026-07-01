@@ -14,6 +14,10 @@ Library for [eCash](https://e.cash) transaction building.
 
 This library works for both browser and NodeJS.
 
+WASM is embedded as base64 and initialized synchronously at import time, so no
+separate `.wasm` file needs to be copied or served. This works in bundlers such
+as webpack and Next.js without extra webpack plugins.
+
 ### Installation
 
 `npm install --save ecash-lib`
@@ -112,3 +116,4 @@ console.log(toHex(rawTx));
 - 4.10.0 - Support for multisig scripts: Script.multisig, Script.multisigSpend, Script.parseP2shMultisigSpend, Script.parseBareMultisigSpend. Both ECDSA and Schnorr multisig formats supported. [D19663](https://reviews.bitcoinabc.org/D19663)
 - 4.11.0 - Implement `PSBT` to pass in-node and electrum-abc tests. [D19712](https://reviews.bitcoinabc.org/D19712)
 - 4.12.0 - Add multisig support to `TxBuilder` (bare and P2SH signatories, ECDSA and Schnorr), partial signing via `Tx.addMultisigSignature` and `Tx.isFullySignedMultisig`, and BIP 174 `Psbt` (`Psbt.fromTx` / `Psbt.fromBytes` / `Psbt.toBytes`, `Psbt.addMultisigSignature`, `Psbt.isFullySignedMultisig`) for passing partially signed transactions between signers. [D19688](https://reviews.bitcoinabc.org/D19688)
+- 4.13.0 - Load WASM from an embedded base64 payload via a single `initWasm` entry point (Node.js, browser, and bundlers like Next.js). Remove separate Node.js WASM files and dual `indexBrowser` / `indexNodeJs` package entries. [D20201](https://reviews.bitcoinabc.org/D20201)

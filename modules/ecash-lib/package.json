@@ -1,11 +1,14 @@
 {
     "name": "ecash-lib",
-    "version": "4.12.0",
+    "version": "4.13.0",
     "description": "Library for eCash transaction building",
-    "main": "./dist/indexNodeJs.js",
-    "browser": "./dist/indexBrowser.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "sideEffects": [
+        "./dist/initWasm.js"
+    ],
     "scripts": {
-        "build": "tsc && tsc -p ./tsconfig.build.json && cp -r ./src/ffi ./dist",
+        "build": "tsc && tsc -p ./tsconfig.build.json && rm -rf ./dist/ffi && cp -r ./src/ffi ./dist",
         "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
         "integration-tests": "mocha --import=tsx ./tests/*.test.ts --timeout 60000",
         "coverage": "c8 --all npm run test",

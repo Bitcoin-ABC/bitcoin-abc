@@ -11,7 +11,7 @@ import {
     mnemonicToEntropy,
     mnemonicToSeed,
 } from './mnemonic.js';
-import './initNodeJs.js';
+import './initWasm.js';
 
 // Tests are based on https://github.com/bitcoinjs/bip39/blob/master/test/vectors.json
 

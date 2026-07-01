@@ -340,3 +340,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.0
 
 - Add optional `finalizationTimeoutSecs` to `AgoraOffer.take()`, `cancel()`, and `relist()`, and to `AgoraPartial.list()` and `AgoraOneshot.list()`, forwarding to ecash-wallet `BuiltAction.broadcast()` / Chronik `broadcastAndFinalizeTx(s)` [D20025](https://reviews.bitcoinabc.org/D20025)
+
+### 4.2.1 [D20201](https://reviews.bitcoinabc.org/D20201)
+
+- Upgrade to `ecash-lib` 4.13.0 for Next.js-friendly WASM loading (embedded base64 on Node.js as well as the browser)

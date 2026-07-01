@@ -4,7 +4,7 @@
 
 import { expect } from 'chai';
 import { Ecc } from './ecc.js';
-import './initNodeJs.js';
+import './initWasm.js';
 import { sha256d, shaRmd160 } from './hash.js';
 import { fromHex } from './io/hex.js';
 import { Psbt, txToUnsigned } from './psbt.js';
