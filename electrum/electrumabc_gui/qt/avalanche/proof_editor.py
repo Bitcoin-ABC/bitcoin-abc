@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import struct
+from enum import IntEnum
 from typing import List, Optional, Union
 
 from qtpy import QtCore, QtGui, QtWidgets
@@ -73,6 +74,13 @@ def proof_to_rich_text(proof: Proof) -> str:
     return rich_text + colored_text(proof.signature.hex(), TextColor.BAD_SIG)
 
 
+class StakesWidgetCols(IntEnum):
+    TXID = 0
+    VOUT = 1
+    AMOUNT = 2
+    HEIGHT = 3
+
+
 class StakesWidget(QtWidgets.QTableWidget):
     """A table widget to display basic info about UTXOs, color coded to highlight
     immature stakes or stakes below the dust threshold.
@@ -117,8 +125,8 @@ class StakesWidget(QtWidgets.QTableWidget):
         self._red_cross_icon = QtGui.QIcon(":icons/red_cross.svg")
 
     def get_stake_index_by_ui_row(self, row_index: int) -> int:
-        txid = self.item(row_index, 0).text()
-        vout = self.item(row_index, 1).text()
+        txid = self.item(row_index, StakesWidgetCols.TXID).text()
+        vout = self.item(row_index, StakesWidgetCols.VOUT).text()
         stake_index = None
         for i, s in enumerate(self.stakes):
             if s.stake.outpoint == OutPoint.from_str(f"{txid}:{vout}"):
@@ -192,10 +200,10 @@ class StakesWidget(QtWidgets.QTableWidget):
 
             row_index = previous_utxo_count + i
             txid_item = QtWidgets.QTableWidgetItem(stake.outpoint.txid.get_hex())
-            self.setItem(row_index, 0, txid_item)
+            self.setItem(row_index, StakesWidgetCols.TXID, txid_item)
 
             vout_item = QtWidgets.QTableWidgetItem(str(stake.outpoint.n))
-            self.setItem(row_index, 1, vout_item)
+            self.setItem(row_index, StakesWidgetCols.VOUT, vout_item)
 
             amount_item = QtWidgets.QTableWidgetItem(
                 format_satoshis(
@@ -217,7 +225,7 @@ class StakesWidget(QtWidgets.QTableWidget):
                         f"{format_satoshis(PROOF_DUST_THRESHOLD)} XEC."
                     )
                 )
-            self.setItem(row_index, 2, amount_item)
+            self.setItem(row_index, StakesWidgetCols.AMOUNT, amount_item)
 
             height_item = QtWidgets.QTableWidgetItem(str(height))
             utxo_validity_height = height + STAKE_UTXO_CONFIRMATIONS
@@ -231,7 +239,7 @@ class StakesWidget(QtWidgets.QTableWidget):
                     + f"\nCurrent known block height is {self.blockchain_height}.\n"
                     f"Your proof will be valid after block {utxo_validity_height}."
                 )
-            self.setItem(row_index, 3, height_item)
+            self.setItem(row_index, StakesWidgetCols.HEIGHT, height_item)
 
             del_button = QtWidgets.QPushButton()
             del_button.setIcon(self._red_cross_icon)
