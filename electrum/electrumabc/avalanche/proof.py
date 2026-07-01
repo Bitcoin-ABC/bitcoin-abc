@@ -117,6 +117,9 @@ class Stake(SerializableObject):
         pubkey = PublicKey.deserialize(stream)
         return Stake(utxo, amount, height_ser >> 1, height_ser & 1, pubkey)
 
+    def __repr__(self):
+        return f"Stake({self.outpoint}, {self.amount} sats)"
+
 
 class ProofId(UInt256):
     pass

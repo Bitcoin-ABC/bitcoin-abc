@@ -116,15 +116,28 @@ class StakesWidget(QtWidgets.QTableWidget):
 
         self._red_cross_icon = QtGui.QIcon(":icons/red_cross.svg")
 
+    def get_stake_index_by_ui_row(self, row_index: int) -> int:
+        txid = self.item(row_index, 0).text()
+        vout = self.item(row_index, 1).text()
+        stake_index = None
+        for i, s in enumerate(self.stakes):
+            if s.stake.outpoint == OutPoint.from_str(f"{txid}:{vout}"):
+                stake_index = i
+                break
+        assert stake_index is not None
+        return stake_index
+
     def create_menu(self, position):
         menu = QtWidgets.QMenu()
         selected_rows = [index.row() for index in self.selectionModel().selectedRows()]
         if not selected_rows:
             return
 
-        # Sort in descending order so we can simply delete the stakes one by one
-        # by index from the self.stakes list
+        selected_stakes = [self.get_stake_index_by_ui_row(r) for r in selected_rows]
+        # Sort in descending order so we can simply delete the stakes from the end of
+        # the list and table widget in a loop without affecting earlier indices
         selected_rows.sort(reverse=True)
+        selected_stakes.sort(reverse=True)
 
         def remove_coins():
             ret = QtWidgets.QMessageBox.question(
@@ -137,7 +150,10 @@ class StakesWidget(QtWidgets.QTableWidget):
             if ret != QtWidgets.QMessageBox.Yes:
                 return
             for idx in selected_rows:
-                self.remove_stake_by_row_index(idx)
+                self.removeRow(idx)
+            for idx in selected_stakes:
+                del self.stakes[idx]
+            self.update_total_amount()
 
         menu.addAction(
             _("Remove coins"),
@@ -149,11 +165,9 @@ class StakesWidget(QtWidgets.QTableWidget):
         # This method must be triggered by a signal emitted by a widget in a cell
         # of this table.
         row = self.indexAt(self.sender().pos()).row()
-        self.remove_stake_by_row_index(row)
-
-    def remove_stake_by_row_index(self, row_index: int):
-        self.removeRow(row_index)
-        del self.stakes[row_index]
+        stake_index = self.get_stake_index_by_ui_row(row)
+        self.removeRow(row)
+        del self.stakes[stake_index]
         self.update_total_amount()
 
     def update_total_amount(self):
