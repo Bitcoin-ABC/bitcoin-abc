@@ -71,6 +71,9 @@ describe('address-manager', function () {
             expect(addressManager.getSubscribeAddresses()).to.deep.equal([
                 TEST_ADDRESS_ECASH,
             ]);
+            expect(addressManager.getHistoryAddresses()).to.deep.equal([
+                TEST_ADDRESS_ECASH,
+            ]);
         });
 
         it('Should update wallet reference', function () {
@@ -78,6 +81,7 @@ describe('address-manager', function () {
             expect(addressManager.wallet).to.be.equal(null);
             expect(addressManager.getCurrentReceiveAddress()).to.be.equal(null);
             expect(addressManager.getSubscribeAddresses()).to.deep.equal([]);
+            expect(addressManager.getHistoryAddresses()).to.deep.equal([]);
 
             addressManager.updateWallet(wallet);
             expect(addressManager.wallet).to.be.equal(wallet);
@@ -92,6 +96,7 @@ describe('address-manager', function () {
             expect(addressManager.wallet).to.be.equal(null);
             expect(addressManager.getCurrentReceiveAddress()).to.be.equal(null);
             expect(addressManager.getSubscribeAddresses()).to.deep.equal([]);
+            expect(addressManager.getHistoryAddresses()).to.deep.equal([]);
         });
     });
 });

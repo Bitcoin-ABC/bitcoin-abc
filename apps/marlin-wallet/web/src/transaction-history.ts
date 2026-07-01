@@ -24,19 +24,161 @@ import {
 
 /** Visible rows to collect per initial load or scroll (token-filtered). */
 export const VISIBLE_BATCH_TARGET = 25;
-/** Larger fetch pages in token mode to cut round-trips (Chronik max). */
-const TOKEN_HISTORY_FETCH_PAGE_SIZE = 200;
+/** Chronik max page size for address history fetches. */
+const HISTORY_FETCH_PAGE_SIZE = 200;
+
+/** Head of a sorted tx stream for k-way merge. */
+export interface HistoryMergeStream {
+    txs: Tx[];
+    index: number;
+}
+
+/** Per-address Chronik history stream (pages are merged newest-first). */
+export interface AddressHistoryStream {
+    address: string;
+    page: number;
+    exhausted: boolean;
+    merge: HistoryMergeStream;
+}
+
+/** Newest first; lower txid first when timeFirstSeen and block timestamp tie. */
+export function compareHistoryTransactions(a: Tx, b: Tx): number {
+    const timeFirstSeenDiff = b.timeFirstSeen - a.timeFirstSeen;
+    if (timeFirstSeenDiff !== 0) {
+        return timeFirstSeenDiff;
+    }
+
+    const blockTimestampDiff =
+        (b.block?.timestamp ?? 0) - (a.block?.timestamp ?? 0);
+    if (blockTimestampDiff !== 0) {
+        return blockTimestampDiff;
+    }
+
+    return a.txid.localeCompare(b.txid);
+}
+
+export function createHistoryStreams(
+    addresses: string[],
+): AddressHistoryStream[] {
+    return addresses.map(address => ({
+        address,
+        page: 0,
+        exhausted: false,
+        merge: { txs: [], index: 0 },
+    }));
+}
+
+export function createHistoryCursors(
+    addresses: string[],
+): Pick<AddressHistoryStream, 'address' | 'page' | 'exhausted'>[] {
+    return createHistoryStreams(addresses);
+}
+
+export function hasMoreHistoryPages(
+    streams: Pick<AddressHistoryStream, 'exhausted'>[],
+): boolean {
+    return streams.some(stream => !stream.exhausted);
+}
+
+/**
+ * Pop the globally newest tx from k sorted stream heads, skipping seen txids.
+ * Advances the winning stream past duplicates at its head.
+ */
+export function popNextKWayMergedTx(
+    streams: HistoryMergeStream[],
+    seenTxids: Set<string>,
+): Tx | null {
+    let bestStreamIndex = -1;
+    let bestTx: Tx | null = null;
+
+    for (let i = 0; i < streams.length; i++) {
+        const stream = streams[i];
+        while (stream.index < stream.txs.length) {
+            const tx = stream.txs[stream.index];
+            if (seenTxids.has(tx.txid)) {
+                stream.index++;
+                continue;
+            }
+            if (bestTx === null || compareHistoryTransactions(tx, bestTx) < 0) {
+                bestTx = tx;
+                bestStreamIndex = i;
+            }
+            break;
+        }
+    }
+
+    if (bestTx === null || bestStreamIndex < 0) {
+        return null;
+    }
+
+    streams[bestStreamIndex].index++;
+    seenTxids.add(bestTx.txid);
+    return bestTx;
+}
+
+/**
+ * K-way merge sorted per-address streams, stopping after `targetCount` txs
+ * that satisfy `isCounted` (default: every merged tx).
+ */
+export function kWayMergeWithEarlyStop(
+    streamTxLists: Tx[][],
+    targetCount: number,
+    isCounted: (tx: Tx) => boolean = () => true,
+): Tx[] {
+    const streams: HistoryMergeStream[] = streamTxLists.map(txs => ({
+        txs,
+        index: 0,
+    }));
+    const seenTxids = new Set<string>();
+    const merged: Tx[] = [];
+    let counted = 0;
+
+    while (counted < targetCount) {
+        const tx = popNextKWayMergedTx(streams, seenTxids);
+        if (tx === null) {
+            break;
+        }
+        merged.push(tx);
+        if (isCounted(tx)) {
+            counted++;
+        }
+    }
+
+    return merged;
+}
+
+export function advanceHistoryCursors(
+    activeCursors: Pick<AddressHistoryStream, 'page' | 'exhausted'>[],
+    responses: { txs: Tx[]; numPages: number }[],
+): void {
+    for (let i = 0; i < activeCursors.length; i++) {
+        const cursor = activeCursors[i];
+        const response = responses[i];
+        const txs = response.txs ?? [];
+        if (txs.length === 0 || cursor.page >= response.numPages - 1) {
+            cursor.exhausted = true;
+        } else {
+            cursor.page++;
+        }
+    }
+}
+
+function compactHistoryStreamBuffer(stream: AddressHistoryStream): void {
+    if (stream.merge.index > 0) {
+        stream.merge.txs = stream.merge.txs.slice(stream.merge.index);
+        stream.merge.index = 0;
+    }
+}
 
 // Transaction History Manager
 export class TransactionHistoryManager {
-    private currentPage = 0;
-    private totalPages = 0;
     private hasMoreTransactions = true;
     private isLoadingTransactions = false;
     private allTransactions: Tx[] = [];
+    private seenTxids = new Set<string>();
+    private addressStreams: AddressHistoryStream[] = [];
     private ecashWallet: Wallet;
     private addressManager: AddressManager;
-    private address: string;
     private chronik: ChronikClient;
     private appSettings: AppSettings;
     private priceFetcher: MarlinPriceFetcher | null;
@@ -54,14 +196,47 @@ export class TransactionHistoryManager {
         this.appSettings = appSettings;
         this.priceFetcher = priceFetcher;
 
-        this.address = addressManager.getCurrentReceiveAddress() ?? '';
+        this.initHistoryStreams();
     }
 
     // Update wallet reference (called when wallet is reloaded)
     updateWallet(wallet: Wallet): void {
         this.ecashWallet = wallet;
         this.addressManager.updateWallet(wallet);
-        this.address = this.addressManager.getCurrentReceiveAddress() ?? '';
+    }
+
+    private initHistoryStreams(): void {
+        this.addressStreams = createHistoryStreams(
+            this.addressManager.getHistoryAddresses(),
+        );
+        this.hasMoreTransactions = this.hasMergeableHistory();
+    }
+
+    private hasBufferedHistory(): boolean {
+        return this.addressStreams.some(
+            stream => stream.merge.index < stream.merge.txs.length,
+        );
+    }
+
+    private hasMergeableHistory(): boolean {
+        return (
+            this.hasBufferedHistory() ||
+            this.addressStreams.some(stream => !stream.exhausted)
+        );
+    }
+
+    private isVisibleTransaction(tx: Tx): boolean {
+        const tokenId = activeTokenId();
+        if (tokenId === null) {
+            return true;
+        }
+        return (
+            calculateTransactionAmountAtomsFromTx(
+                this.ecashWallet,
+                tx,
+                tokenId,
+            ) !== 0
+        );
     }
 
     // Getters
@@ -83,11 +258,11 @@ export class TransactionHistoryManager {
 
     // Reset state for new history load
     reset(): void {
-        this.currentPage = 0;
-        this.totalPages = 0;
         this.hasMoreTransactions = true;
         this.isLoadingTransactions = false;
         this.allTransactions = [];
+        this.seenTxids.clear();
+        this.initHistoryStreams();
     }
 
     /**
@@ -115,64 +290,86 @@ export class TransactionHistoryManager {
     }
 
     /**
-     * Fetches the next page of history.
-     *
-     * @returns true if more transactions are available.
+     * Fetch the next Chronik page for streams whose buffers are fully consumed.
      */
-    private async fetchNextHistoryPage(): Promise<boolean> {
-        // For XEC, simply fetch the first page of the target number of txs we
-        // want to display. For tokens, we need to fetch until we have enough
-        // relevant txs, so it makes sense to use the max page size and cache
-        // the transactions to reduce the number of round-trips.
-        const txHistoryResponse = await this.chronik
-            .address(this.address)
-            .history(
-                this.currentPage,
-                activeTokenId() === null
-                    ? VISIBLE_BATCH_TARGET
-                    : TOKEN_HISTORY_FETCH_PAGE_SIZE,
-            );
-
-        const txHistory = txHistoryResponse.txs;
-        this.totalPages = txHistoryResponse.numPages;
-
-        if (!txHistory || txHistory.length === 0) {
-            return false;
+    private async refillEmptyStreamBuffers(): Promise<void> {
+        const streamsToFetch = this.addressStreams.filter(
+            stream =>
+                !stream.exhausted &&
+                stream.merge.index >= stream.merge.txs.length,
+        );
+        if (streamsToFetch.length === 0) {
+            return;
         }
 
-        this.allTransactions = [...this.allTransactions, ...txHistory];
+        const responses = await Promise.all(
+            streamsToFetch.map(stream =>
+                this.chronik
+                    .address(stream.address)
+                    .history(stream.page, HISTORY_FETCH_PAGE_SIZE),
+            ),
+        );
 
-        if (this.currentPage >= this.totalPages - 1) {
-            return false;
+        for (let i = 0; i < streamsToFetch.length; i++) {
+            const stream = streamsToFetch[i];
+            const response = responses[i];
+            const txs = response.txs ?? [];
+            compactHistoryStreamBuffer(stream);
+            stream.merge.txs.push(...txs);
+            if (txs.length === 0 || stream.page >= response.numPages - 1) {
+                stream.exhausted = true;
+            } else {
+                stream.page++;
+            }
         }
-
-        this.currentPage++;
-        return true;
     }
 
     /**
-     * Address history mixes all assets. In token mode, keep fetching pages
-     * until enough visible rows exist or history is exhausted.
+     * K-way merge from address streams until `targetAdditionalVisible` more
+     * displayable txs are cached or history is exhausted.
      */
     private async fetchMoreTxsToDisplay(
         targetAdditionalVisible: number,
     ): Promise<number> {
-        const visibleBefore = this.countVisibleTransactions(
-            this.allTransactions,
-        );
-        let visibleNow = visibleBefore;
+        let visibleAdded = 0;
 
-        // fetchNextHistoryPage() updates this.allTransactions
-        do {
-            this.hasMoreTransactions = await this.fetchNextHistoryPage();
-            visibleNow = this.countVisibleTransactions(this.allTransactions);
-            if (visibleNow - visibleBefore >= targetAdditionalVisible) {
-                // We have enough transactions to display, so stop fetching.
+        while (
+            visibleAdded < targetAdditionalVisible &&
+            this.hasMergeableHistory()
+        ) {
+            await this.refillEmptyStreamBuffers();
+
+            let progressed = false;
+            while (
+                visibleAdded < targetAdditionalVisible &&
+                this.hasBufferedHistory()
+            ) {
+                const mergeStreams = this.addressStreams.map(
+                    stream => stream.merge,
+                );
+                const tx = popNextKWayMergedTx(mergeStreams, this.seenTxids);
+                if (tx === null) {
+                    break;
+                }
+
+                this.allTransactions.push(tx);
+                progressed = true;
+                if (this.isVisibleTransaction(tx)) {
+                    visibleAdded++;
+                }
+            }
+
+            if (!progressed) {
                 break;
             }
-        } while (this.hasMoreTransactions);
+        }
 
-        return visibleNow;
+        for (const stream of this.addressStreams) {
+            compactHistoryStreamBuffer(stream);
+        }
+
+        this.hasMoreTransactions = this.hasMergeableHistory();
+        return this.countVisibleTransactions(this.allTransactions);
     }
 
     // Load more transactions

@@ -62,6 +62,15 @@ export class AddressManager {
         return [address];
     }
 
+    /** Addresses to query when loading transaction history. */
+    getHistoryAddresses(): string[] {
+        const address = this.getCurrentReceiveAddress();
+        if (!address) {
+            return [];
+        }
+        return [address];
+    }
+
     /** Copy the current receive address to the clipboard. */
     async copyReceiveAddress(): Promise<void> {
         const address = this.getCurrentReceiveAddress();
