@@ -12,9 +12,7 @@
 import localforage from 'localforage';
 import { getChromeAPI } from '../types/chrome';
 import { SUPPORTED_CASHTAB_STORAGE_KEYS } from 'config/storage';
-import type { LegacyCashtabWallet, StoredCashtabWallet } from 'wallet';
-
-// Use the canonical storage keys list that includes legacy keys (savedWallets, wallet)
+import type { StoredCashtabWallet } from 'wallet';
 
 /**
  * Type definition for migration result
@@ -29,7 +27,7 @@ export interface MigrationResult {
  * Type definition for storage values that can be migrated
  */
 type StorageValue =
-    | (StoredCashtabWallet | LegacyCashtabWallet)[]
+    | StoredCashtabWallet[]
     | Record<string, unknown>
     | unknown[]
     | string
@@ -117,7 +115,6 @@ export const migrateFromLocalforageIfNeeded =
 
 /**
  * Migrate data from localforage to chrome.storage.local
- * Note we do not migrate legacy keys
  * Note we do not do any JSON revival; we store in chrome local same as localforage
  */
 export const migrateExtensionStorage = async (): Promise<MigrationResult> => {
@@ -128,14 +125,7 @@ export const migrateExtensionStorage = async (): Promise<MigrationResult> => {
         const chrome = getChromeAPI();
         console.info('Starting extension storage migration...');
 
-        // Migrate all non-legacy keys
-        const LEGACY_KEYS = ['wallet', 'savedWallets'];
-
         for (const key of SUPPORTED_CASHTAB_STORAGE_KEYS) {
-            if (LEGACY_KEYS.includes(key)) {
-                // We do not migrate legacy keys
-                continue;
-            }
             try {
                 const value = await localforage.getItem<StorageValue>(key);
                 if (value !== null) {

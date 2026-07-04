@@ -3,84 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { MockChronikClient } from '../../../../../modules/mock-chronik-client';
-import CashtabSettings from 'config/CashtabSettings';
-import CashtabCache from 'config/CashtabCache';
-import { cashtabCacheToJSON, cashtabWalletToJSON } from 'helpers';
-
-/**
- * Get expected mock values for chronik client for a given mock wallet
- * Used to support integration testing in Cashtab
- * Default methods may be overwritten in individual unit tests to test special conditions
- * @param {array | object | boolean} wallets Array of wallets, either legacy or activeWallet
- * If object, convert to array of length 1.
- * False if user has not yet created a wallet.
- * @param {object} localforage the localforage instance used in your test
- * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
- * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
- */
-export const initializeCashtabStateForTests_pre_3_41_0 = async (
-    wallets,
-    localforage,
-    apiError = false,
-    // Not all tests require tx history mocks, default to empty
-    history = [],
-) => {
-    // Mock successful utxos calls in chronik
-    const chronikClient = new MockChronikClient();
-
-    if (wallets === false) {
-        // No info to give to chronik, do not populate mocks
-        return chronikClient;
-        // We do not expect anything in localforage for this case
-    }
-
-    wallets = Array.isArray(wallets) ? wallets : [wallets];
-
-    // Set wallets in localforage
-
-    let localforageWallets = [];
-    for (const wallet of wallets) {
-        // JSON convert legacy, otherwise push without state
-
-        // test for non-legacy
-        if ('sk' in wallet) {
-            // Push all but state
-            console.log('pushing non-legacy wallet', wallet);
-            localforageWallets.push({
-                name: wallet.name,
-                mnemonic: wallet.mnemonic,
-                address: wallet.address,
-                sk: wallet.sk,
-                pk: wallet.pk,
-                hash: wallet.hash,
-            });
-        } else {
-            console.log('pushing legacy wallet', wallet);
-            localforageWallets.push(cashtabWalletToJSON(wallet));
-        }
-    }
-
-    await localforage.setItem('wallets', localforageWallets);
-
-    // All other localforage items will be unset unless the user has customized them
-    // Cashtab will use defaults
-    // localforage may be modified in individual test cases to test cases of user with
-    // non-default settings, cashtabCache, or contactList
-
-    // Mock returns for chronik calls expected in useWallet's update routine for all wallets
-    for (const wallet of wallets) {
-        // Keep using parsedTxHistory for legacy wallets that have it available
-        const historyToMock = wallet.state.parsedTxHistory ?? history;
-        prepareMockedChronikCallsForWallet(
-            chronikClient,
-            wallet,
-            apiError,
-            historyToMock,
-        );
-    }
-
-    return chronikClient;
-};
 
 /**
  * Get expected mock values for chronik client for a given mock wallet
@@ -153,191 +75,7 @@ export const initializeCashtabStateForTests = async (
 };
 
 /**
- * Get expected mock values for chronik client for a given mock wallet created before Cashtab 2.9.0
- * Used to support integration testing in Cashtab
- * Default methods may be overwritten in individual unit tests to test special conditions
- * @param {array | object | boolean} wallets Array of wallets stored in localforage.
- * If object, convert to array of length 1.
- * False if user has not yet created a wallet.
- * @param {object} localforage the localforage instance used in your test
- * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
- * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
- */
-export const initializeCashtabStateAtPre2_9_0ForTests = async (
-    wallets,
-    localforage,
-    apiError = false,
-) => {
-    // Mock successful utxos calls in chronik
-    const chronikClient = new MockChronikClient();
-
-    if (wallets === false) {
-        // No info to give to chronik, do not populate mocks
-        return chronikClient;
-        // We do not expect anything in localforage for this case
-    }
-
-    wallets = Array.isArray(wallets) ? wallets : [wallets];
-
-    // Set wallets in localforage
-    await localforage.setItem('wallets', wallets);
-
-    // All other localforage items will be unset unless the user has customized them
-    // Cashtab will use defaults
-    // localforage may be modified in individual test cases to test cases of user with
-    // non-default settings, cashtabCache, or contactList
-
-    // Mock returns for chronik calls expected in useWallet's update routine for all wallets
-    for (const wallet of wallets) {
-        prepareMockedChronikCallsForPre_2_9_0Wallet(
-            chronikClient,
-            wallet,
-            apiError,
-        );
-    }
-
-    return chronikClient;
-};
-
-/**
- * Get expected mock values for chronik client for a given mock wallet for a pre 2.0.0 Cashtab user
- * Used to support integration testing in Cashtab
- * Default methods may be overwritten in individual unit tests to test special conditions
- * @param {object | boolean} wallet A mock Cashtab wallet
- * @param {object} localforage the localforage instance used in your test
- * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
- * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
- */
-export const initializeCashtabStateAtLegacyWalletKeysForTests = async (
-    wallet,
-    localforage,
-    apiError = false,
-) => {
-    // Mock successful utxos calls in chronik
-    const chronikClient = new MockChronikClient();
-
-    if (wallet === false) {
-        // No info to give to chronik, do not populate mocks
-        return chronikClient;
-        // We do not expect anything in localforage for this case
-    }
-
-    // Set localforage items. All defaults may be overwritten in a test for
-    // specific purposes of the test.
-    await localforage.setItem(
-        'cashtabCache',
-        cashtabCacheToJSON(new CashtabCache()),
-    );
-    await localforage.setItem('settings', new CashtabSettings());
-    // 'contactList' key will be empty if user has never added contacts
-    await localforage.setItem('savedWallets', [wallet]);
-    await localforage.setItem('wallet', wallet);
-
-    // Mock returns for chronik calls expected in useWallet's update routine
-    prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
-
-    return chronikClient;
-};
-
-/**
- *
- * @param {object} chronikClient a mockedChronikClient object
- * @param {object} wallet a valid cashtab wallet object
- * @param {boolean} apiError true if we want to set api errors in mocked chronik
- * @returns modifies chronikClient in place to have expected API calls for wallet loading available
- */
-export const prepareMockedChronikCallsForLegacyWallet = (
-    chronikClient,
-    wallet,
-    apiError = false,
-) => {
-    // mock chronik endpoint returns
-    const walletAddress = wallet.address || wallet.Path1899?.cashAddress;
-    if (!walletAddress) {
-        throw new Error(`Wallet fixture missing address.`);
-    }
-    if (apiError) {
-        chronikClient.setBlockchainInfo(
-            new Error('Error fetching blockchainInfo'),
-        );
-        chronikClient.setUtxosByAddress(
-            walletAddress,
-            new Error('Error fetching utxos'),
-        );
-        chronikClient.setTxHistoryByAddress(
-            walletAddress,
-            new Error('Error fetching history'),
-        );
-    } else {
-        const allUtxos = wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos);
-        chronikClient.setUtxosByAddress(walletAddress, allUtxos);
-        chronikClient.setTxHistoryByAddress(
-            walletAddress,
-            wallet.state.parsedTxHistory,
-        );
-    }
-};
-
-/**
- *
- * @param {object} chronikClient a mockedChronikClient object
- * @param {object} wallet a valid cashtab wallet object from before cashtab 2.9.0 and after 2.1.0
- * @param {boolean} apiError true if we want to set api errors in mocked chronik
- * @returns modifies chronikClient in place to have expected API calls for wallet loading available
- */
-export const prepareMockedChronikCallsForPre_2_9_0Wallet = (
-    chronikClient,
-    wallet,
-    apiError = false,
-) => {
-    // mock chronik endpoint returns
-    const CASHTAB_TESTS_TIPHEIGHT = 800000;
-    if (apiError) {
-        chronikClient.setBlockchainInfo(
-            new Error('Error fetching blockchainInfo'),
-        );
-    } else {
-        chronikClient.setBlockchainInfo({ tipHeight: CASHTAB_TESTS_TIPHEIGHT });
-    }
-
-    // If you are mocking a legacy wallet to test a migration, return prepareMockedChronikCallsForLegacyWallet
-    if (!('paths' in wallet)) {
-        return prepareMockedChronikCallsForLegacyWallet(
-            chronikClient,
-            wallet,
-            apiError,
-        );
-    }
-
-    // Iterate over paths to create chronik mocks
-    for (const path of wallet.paths) {
-        // Mock scriptutxos to match context
-        if (apiError) {
-            chronikClient.setUtxosByAddress(
-                path.address,
-                new Error('Error fetching utxos'),
-            );
-            chronikClient.setTxHistoryByAddress(
-                path.address,
-                new Error('Error fetching history'),
-            );
-        } else {
-            if (path.path === 1899) {
-                chronikClient.setUtxosByAddress(
-                    path.address,
-                    wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-                );
-                chronikClient.setTxHistoryByAddress(
-                    path.address,
-                    wallet.state.parsedTxHistory,
-                );
-            }
-        }
-    }
-};
-
-/**
- * Prepare chronik calls for a wallet of Cashtab version >= 2.9.0
+ * Prepare chronik calls for a modern wallet
  * @param {object} chronikClient a mockedChronikClient object
  * @param {object} wallet
  * @param {boolean} apiError true if we want to set api errors in mocked chronik
@@ -368,7 +106,6 @@ export const prepareMockedChronikCallsForWallet = (
     }
 
     // Mock token calls
-    // This info is same shape for all wallets supported in these functions
     // Get tokenIds you need chronik.tx(tokenId) and chronik.token(tokenId) calls for
     // These can come from tx history and slpUtxos
     const tokenIdsToMock = new Set();
@@ -496,76 +233,22 @@ export const prepareMockedChronikCallsForWallet = (
         chronikClient.setTx(tokenId, mockedTxResponse);
     }
 
-    // SuperLegacy A, no paths key
-    if ('Path1899' in wallet) {
-        return prepareMockedChronikCallsForLegacyWallet(
-            chronikClient,
-            wallet,
-            apiError,
-        );
-    }
-
-    // Legacy, paths array
-    if ('paths' in wallet && Array.isArray(wallet.paths)) {
-        return prepareMockedChronikCallsForPre_2_9_0Wallet(
-            chronikClient,
-            wallet,
-            apiError,
-        );
-    }
-
-    // Legacy, paths Map
-    if ('paths' in wallet && wallet.paths instanceof Map) {
-        // 1899 only
-        const pathInfo = wallet.paths.get(1899);
-        if (!pathInfo) {
-            throw new Error(`Wallet fixture missing path 1899 in paths Map`);
-        }
-
-        // Mock scriptutxos to match context
-        if (apiError) {
-            chronikClient.setUtxosByAddress(
-                pathInfo.address,
-                new Error('Error fetching utxos'),
-            );
-            chronikClient.setTxHistoryByAddress(
-                pathInfo.address,
-                new Error('Error fetching history'),
-            );
-        } else {
-            chronikClient.setUtxosByAddress(
-                pathInfo.address,
-                wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
-            );
-            chronikClient.setTxHistoryByAddress(pathInfo.address, history);
-        }
-        return;
-    }
-
-    // Modern wallet - determine wallet address
-    const walletAddress = wallet.address || wallet.Path1899?.cashAddress;
-    if (!walletAddress) {
-        throw new Error(
-            `Wallet fixture missing address. Has address: ${!!wallet.address}, Has Path1899: ${!!wallet.Path1899}`,
-        );
-    }
-
-    // Current
+    // Modern wallet
     if (apiError) {
         chronikClient.setUtxosByAddress(
-            walletAddress,
+            wallet.address,
             new Error('Error fetching utxos'),
         );
         chronikClient.setTxHistoryByAddress(
-            walletAddress,
+            wallet.address,
             new Error('Error fetching history'),
         );
     } else {
         chronikClient.setUtxosByAddress(
-            walletAddress,
+            wallet.address,
             wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
         );
-        chronikClient.setTxHistoryByAddress(walletAddress, history);
+        chronikClient.setTxHistoryByAddress(wallet.address, history);
     }
 };
 

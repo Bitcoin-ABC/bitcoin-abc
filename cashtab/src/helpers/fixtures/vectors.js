@@ -2,13 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import {
-    mockCashtabCache,
-    emptyCashtabWallet,
-    emptyCashtabWalletJson,
-    emptyCashtabWalletMultiPathJson,
-    cashtabWalletMultiPathWithTokensJson,
-} from 'helpers/fixtures/mocks';
+import { mockCashtabCache } from 'helpers/fixtures/mocks';
 import CashtabCache, {
     UNKNOWN_TOKEN_ID,
     UNKNOWN_TOKEN_CACHED_INFO,
@@ -16,9 +10,6 @@ import CashtabCache, {
 import {
     mockCacheWalletWithXecAndTokens,
     mockCachedInfoCashtabDark,
-    walletWithXecAndTokens_pre_2_1_0,
-    walletWithXecAndTokens_pre_2_9_0,
-    walletWithXecAndTokens_pre_2_55_0,
 } from 'components/App/fixtures/mocks';
 import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
@@ -154,69 +145,6 @@ export default {
                 cashtabCacheJson: {
                     tokens: [[UNKNOWN_TOKEN_ID, UNKNOWN_TOKEN_CACHED_INFO]],
                 },
-            },
-        ],
-    },
-    cashtabWalletToJSON: {
-        expectedReturns: [
-            {
-                description: 'Newly created Cashtab wallet',
-                cashtabWallet: emptyCashtabWallet,
-                cashtabWalletJSON: emptyCashtabWalletJson,
-            },
-            {
-                description: 'Pre-2.1.0 wallet is unchanged',
-                cashtabWallet: walletWithXecAndTokens_pre_2_1_0,
-                cashtabWalletJSON: walletWithXecAndTokens_pre_2_1_0,
-            },
-            {
-                description: 'Pre-2.9.0 wallet is unchanged',
-                cashtabWallet: walletWithXecAndTokens_pre_2_9_0,
-                cashtabWalletJSON: walletWithXecAndTokens_pre_2_9_0,
-            },
-            {
-                description:
-                    '2.9.0 <= version < 2.55.0 wallet is stored without sk or pk',
-                cashtabWallet: walletWithXecAndTokens_pre_2_55_0,
-                cashtabWalletJSON: {
-                    ...walletWithXecAndTokens_pre_2_55_0,
-                    paths: Array.from(walletWithXecAndTokens_pre_2_55_0.paths),
-                    state: {
-                        ...walletWithXecAndTokens_pre_2_55_0.state,
-                        tokens: Array.from(
-                            walletWithXecAndTokens_pre_2_55_0.state.tokens,
-                        ),
-                    },
-                },
-            },
-            {
-                description: 'Cashtab wallet with multiple paths',
-                cashtabWallet: {
-                    ...emptyCashtabWalletMultiPathJson,
-                    paths: new Map(emptyCashtabWalletMultiPathJson.paths),
-                    state: {
-                        ...emptyCashtabWalletMultiPathJson.state,
-                        tokens: new Map(
-                            emptyCashtabWalletMultiPathJson.state.tokens,
-                        ),
-                    },
-                },
-                cashtabWalletJSON: emptyCashtabWalletMultiPathJson,
-            },
-            {
-                description:
-                    'Cashtab wallet with multiple paths and tokens in state',
-                cashtabWallet: {
-                    ...cashtabWalletMultiPathWithTokensJson,
-                    paths: new Map(cashtabWalletMultiPathWithTokensJson.paths),
-                    state: {
-                        ...cashtabWalletMultiPathWithTokensJson.state,
-                        tokens: new Map(
-                            cashtabWalletMultiPathWithTokensJson.state.tokens,
-                        ),
-                    },
-                },
-                cashtabWalletJSON: cashtabWalletMultiPathWithTokensJson,
             },
         ],
     },

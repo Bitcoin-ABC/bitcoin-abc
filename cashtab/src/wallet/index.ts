@@ -17,12 +17,6 @@ import {
 import * as englishWordlist from 'ecash-lib/wordlists/english.json';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
 import { ParsedTx, getTokenBalances } from 'chronik';
-import {
-    CashtabWallet_Pre_2_1_0,
-    CashtabWallet_Pre_2_9_0,
-    CashtabWallet_Pre_2_55_0,
-    PathInfo_Pre_2_55_0,
-} from 'components/App/fixtures/mocks';
 import { previewAddress, TxJson, TokenJson } from 'helpers';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -61,27 +55,11 @@ export interface StoredCashtabPathInfo {
      */
     sk: number[];
 }
-export interface CashtabWalletState_Pre_3_42_0 {
-    balanceSats: number;
-    nonSlpUtxos: NonTokenUtxo[];
-    slpUtxos: TokenUtxo[];
-    tokens: Map<string, string>;
-    parsedTxHistory: CashtabTx[];
-}
-
 export interface CashtabWalletState {
     balanceSats: number;
     nonSlpUtxos: NonTokenUtxo[];
     slpUtxos: TokenUtxo[];
     tokens: Map<string, string>;
-}
-export interface StoredCashtabState_Pre_3_42_0 extends Omit<
-    CashtabWalletState_Pre_3_42_0,
-    'tokens' | 'slpUtxos' | 'nonSlpUtxos'
-> {
-    tokens: [string, string][];
-    slpUtxos: object[];
-    nonSlpUtxos: object[];
 }
 export interface ScriptUtxoWithToken extends ScriptUtxo {
     token: Token;
@@ -98,17 +76,6 @@ export interface TokenUtxo extends NonTokenUtxo {
 
 export interface TokenUtxoJson extends Omit<NonTokenUtxoJson, 'token'> {
     token: TokenJson;
-}
-
-export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
-    amount: string;
-}
-export interface LegacyTokenUtxoJson extends Omit<
-    TokenUtxoJson,
-    'sats' | 'token'
-> {
-    value: number;
-    token: LegacyTokenJson;
 }
 
 export interface CashtabUtxo extends NonTokenUtxo {
@@ -130,23 +97,6 @@ export interface CashtabWalletPaths extends Map<number, CashtabPathInfo> {
     get(key: 1899): CashtabPathInfo;
     // For all other keys, it might return undefined
     get(key: number): CashtabPathInfo | undefined;
-}
-export interface CashtabWallet_Pre_3_41_0 {
-    name: string;
-    mnemonic: string;
-    // Path 1899 is always defined
-    paths: CashtabWalletPaths;
-    state: CashtabWalletState_Pre_3_42_0;
-}
-export interface StoredCashtabWallet_Pre_3_41_0 {
-    name: string;
-    mnemonic: string;
-    paths: [number, StoredCashtabPathInfo][];
-    state: StoredCashtabState_Pre_3_42_0;
-}
-
-export interface LegacyTokenJson extends Omit<TokenJson, 'atoms'> {
-    amount: string;
 }
 /**
  * Minimal storage interface for a wallet
@@ -350,23 +300,6 @@ export const fiatToSatoshis = (
 ): number => {
     return Math.floor((Number(sendAmountFiat) / fiatPrice) * SATOSHIS_PER_XEC);
 };
-
-/**
- * A user who has not opened Cashtab in some time may have a legacy wallet
- * The wallet shape has changed a few times
- * Cashtab is designed so that a user starting up the app with legacy wallet(s)
- * in storage will have them all migrated on startup
- * So, if cashtabWalletFromJSON is called with a legacy wallet, it returns the
- * wallet as-is so it can be invalidated and recreated
- */
-export interface LegacyPathInfo extends PathInfo_Pre_2_55_0 {
-    path: number;
-}
-
-export type LegacyCashtabWallet =
-    | CashtabWallet_Pre_2_1_0
-    | CashtabWallet_Pre_2_9_0
-    | CashtabWallet_Pre_2_55_0;
 
 /**
  * Convert a token amount like one from an in-node chronik utxo to a decimalized string

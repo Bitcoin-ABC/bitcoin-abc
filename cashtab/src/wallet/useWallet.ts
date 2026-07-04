@@ -28,10 +28,8 @@ import {
     cashtabCacheToJSON,
 } from 'helpers';
 import {
-    createCashtabWallet,
     StoredCashtabWallet,
     generateTokensFromWalletUtxos,
-    LegacyCashtabWallet,
     CashtabTx,
 } from 'wallet';
 import { toast } from 'react-toastify';
@@ -766,29 +764,6 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // Load wallets if present
 
-        /**
-         * Five possibilities
-         *
-         * 1 - SuperLegacy user
-         *     - No activeWallet key
-         *     - activeWallet at the "wallet" key
-         *     - wallets, including activeWallet, at the "savedWallets" key
-         *     All wallets legacy format and must be recreated
-         * 2 - Legacy user
-         *     - No "activeWallet" key
-         *     - wallets at the "wallets" key
-         *     - No "savedWallets" key
-         * 3 - New user
-         *     - No "activeWallet" key
-         *     - No "wallets" key
-         *     - No "savedWallets" key
-         * 4 - Returning user
-         *     - "activeWallet" key
-         *     - "wallets" key
-         * 5 - Corrupted wallet data, user must wipe and reboot
-         */
-
-        // As of 3.41.0, we should have an activeWalletAddress key, which stores the address of the active wallet
         const activeWalletAddress: null | string = await storage.get<string>(
             'activeWalletAddress',
         );
@@ -801,106 +776,32 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         if (storedTokens !== null) {
             cashtabState.tokens = new Map(storedTokens);
         }
-        // Otherwise it will populate on update
 
         if (activeWalletAddress !== null && wallets !== null) {
-            // Normal startup
-            // We do not validate wallets as, if we have these keys in place, we know structure is the latest
+            // Returning user
             const storedActiveWallet = wallets.find(
                 wallet => wallet.address === activeWalletAddress,
             );
             if (!storedActiveWallet) {
-                // Would reflect corrupted storage
                 throw new Error(
                     'Corrupted storage: Active wallet not found in wallets',
                 );
             }
             cashtabState.wallets = wallets;
             cashtabState.activeWalletAddress = activeWalletAddress;
-        } else if (wallets !== null) {
-            // Legacy user
-            console.info('Legacy user found in storage, migrating wallets');
-
-            // Migrate all wallets
-            const migratedLegacyWallets: StoredCashtabWallet[] = [];
-            for (const wallet of wallets) {
-                migratedLegacyWallets.push(
-                    createCashtabWallet(wallet.mnemonic, wallet.name),
-                );
-            }
-            cashtabState.wallets = migratedLegacyWallets;
-            // Set activeWalletAddress in cashtabState so it's available immediately
-            cashtabState.activeWalletAddress = migratedLegacyWallets[0].address;
-
-            // Set first wallet as active
-            await storage.set(
-                'activeWalletAddress',
-                migratedLegacyWallets[0].address,
+        } else if (wallets === null && activeWalletAddress === null) {
+            // New user
+            console.info(
+                `No wallets found in storage, initializing for new user`,
             );
-
-            // For migrating users, we must update the wallets key and activeWalletAddress
-            await updateCashtabState({
-                wallets: migratedLegacyWallets,
-                activeWalletAddress: migratedLegacyWallets[0].address,
-            });
+            setInitialUtxoSyncComplete(true);
+            cashtabState.wallets = [];
         } else {
-            // Test for superLegacy user
-            const wallet: null | StoredCashtabWallet =
-                await storage.get<StoredCashtabWallet>('wallet');
-            const savedWallets: null | LegacyCashtabWallet[] =
-                await storage.get<LegacyCashtabWallet[]>('savedWallets');
-
-            if (wallet === null && savedWallets === null) {
-                // A new user
-                console.info(
-                    `No wallets found in storage, initializing for new user`,
-                );
-                // For this case, there is no need to sync utxos
-                setInitialUtxoSyncComplete(true);
-                cashtabState.wallets = [];
-                // We leave activeWallet undefined to denote a new user
-                // This will trigger rendering the OnBoarding screen
-            } else if (wallet !== null && savedWallets !== null) {
-                // SuperLegacy
-                console.info(
-                    `SuperLegacy user found in storage, migrating wallets`,
-                );
-                const migratedSuperLegacyWallets: StoredCashtabWallet[] = [];
-
-                // superLegacy stored the active wallet at the 'wallet' key
-                const migratedActiveWallet = createCashtabWallet(
-                    wallet.mnemonic,
-                    wallet.name,
-                );
-
-                for (const wallet of savedWallets) {
-                    migratedSuperLegacyWallets.push(
-                        createCashtabWallet(wallet.mnemonic, wallet.name),
-                    );
-                }
-                cashtabState.wallets = migratedSuperLegacyWallets;
-                // Set activeWalletAddress in cashtabState so it's available immediately
-                cashtabState.activeWalletAddress = migratedActiveWallet.address;
-
-                // Set migrated active wallet as active
-                await storage.set(
-                    'activeWalletAddress',
-                    migratedActiveWallet.address,
-                );
-
-                // For migrating users, we must update the wallets key and activeWalletAddress
-                await updateCashtabState({
-                    wallets: migratedSuperLegacyWallets,
-                    activeWalletAddress: migratedActiveWallet.address,
-                });
-            } else {
-                // Corrupt storage
-                toast.error(
-                    'Corrupted storage: Cashtab was unable to load wallets from storage',
-                );
-                // Load as new user
-                cashtabState.wallets = [];
-            }
+            // Corrupted storage (partial data)
+            toast.error(
+                'Corrupted storage: Cashtab was unable to load wallets from storage',
+            );
+            cashtabState.wallets = [];
         }
 
         setCashtabState(cashtabState);

@@ -13,17 +13,8 @@ import CashtabCache from 'config/CashtabCache';
 import {
     mockCashtabCache,
     mockCashtabCacheNoBlocks,
-    mockCashtabCache_pre_2_9_0,
 } from 'helpers/fixtures/mocks';
-import {
-    validWalletJson,
-    validWalletJsonMultiPath,
-    invalidWalletBadSkType,
-} from 'validation/fixtures/mocks';
-import {
-    walletWithXecAndTokens_pre_2_9_0,
-    walletWithXecAndTokens_pre_2_55_0,
-} from 'components/App/fixtures/mocks';
+import { validWalletJson } from 'validation/fixtures/mocks';
 import { toXec } from 'wallet';
 import { tokenTestWallet } from 'components/Etokens/fixtures/mocks';
 import {
@@ -1518,11 +1509,6 @@ export default {
                 isValid: false,
             },
             {
-                description: 'Returns false for cashtabCache before 2.9.0',
-                cashtabCache: mockCashtabCache_pre_2_9_0,
-                isValid: false,
-            },
-            {
                 description:
                     'Returns false for current version cashtabCache if it is missing the unknown token id',
                 cashtabCache: { tokens: new Map() },
@@ -1552,30 +1538,6 @@ export default {
                 description: 'Returns true for a valid stored Cashtab wallet',
                 wallet: validWalletJson,
                 returned: true,
-            },
-            {
-                description:
-                    'Returns false for a JSON-loaded pre-2.9.0 Cashtab wallet',
-                wallet: walletWithXecAndTokens_pre_2_9_0,
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false for a JSON-loaded pre-2.55.0 Cashtab wallet',
-                wallet: walletWithXecAndTokens_pre_2_55_0,
-
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false for a Cashtab wallet with sk as string instead of uint8array',
-                wallet: invalidWalletBadSkType,
-                returned: false,
-            },
-            {
-                description: 'Returns false for a pre-2.9.0 Cashtab wallet',
-                wallet: walletWithXecAndTokens_pre_2_9_0,
-                returned: false,
             },
             {
                 description: 'Returns false if not an object',
@@ -1622,11 +1584,6 @@ export default {
             {
                 description: 'Returns false if wallet is missing pk ',
                 wallet: cloneObjectWithDeletedKey(validWalletJson, 'pk'),
-                returned: false,
-            },
-            {
-                description: 'Returns false for a pathed wallet',
-                wallet: validWalletJsonMultiPath,
                 returned: false,
             },
             // Wallets used for various tests in Cashtab are valid
