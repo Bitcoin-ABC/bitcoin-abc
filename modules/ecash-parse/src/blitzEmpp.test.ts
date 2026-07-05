@@ -200,4 +200,78 @@ describe('Blitz EMPP parseTx', () => {
         assert.strictEqual(rollAction.action.roll, 87389273);
         assert.strictEqual(rollAction.action.result, 'W');
     });
+
+    it('ROLL payout transaction with standalone OP_RETURN (XEC payout)', () => {
+        const rollPayoutTx = {
+            txid: 'f46f7395a8fc0a5ca94d41f5f3bcce21946a7ab38415f2fb7526179de7922a31',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '8ed99528a0442d87a047827a9593cfec5e196bc94ef90e937add92111dc40eef',
+                        outIdx: 1,
+                    },
+                    inputScript:
+                        '414e9d3e3e62cd835454dd8d19ff65cb3119cdaac1298ba9d44588b91189d97942ad18da696d2a9adfa5bccd0d50c18be05243d61b48448cacdbde2730272bbda1412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: 1100n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+                {
+                    prevOut: {
+                        txid: '61b2819585ad02457e6c15d7ec2b5f44d88c728f669551f750a84a7828c8c16b',
+                        outIdx: 3,
+                    },
+                    inputScript:
+                        '41040adca20cd57985fc43b74214347a0e057e008a61f2fb22a99db42ef9404b69119a3e4544005bda2eca094e30bd534d5c3b1398736c5faf98187a8a8392e1ed412103c0dd6557e064d59c93eed1e7930de34f1bff01946c12a9d38f4d74cd6ffc0672',
+                    sats: 401392n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript:
+                        '6a04524f4c4c0100208ed99528a0442d87a047827a9593cfec5e196bc94ef90e937add92111dc40eef04b6574d0320abcebcc827f16a55afc825c7f2948cf95cfedc56eea0d4cc31988c59948d45560157',
+                },
+                {
+                    sats: 1173n,
+                    outputScript:
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                },
+                {
+                    sats: 400869n,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1783139863,
+            size: 450,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            isFinal: true,
+        };
+        const walletHash = '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d';
+        const parsed = parseTx(rollPayoutTx, [walletHash]);
+        const rollAction = parsed.appActions.find(
+            action => action.app === 'ROLL Payout',
+        );
+
+        assert.ok(rollAction);
+        assert.strictEqual(rollAction.isValid, true);
+        assert.strictEqual(
+            rollAction.action.betTxid,
+            '8ed99528a0442d87a047827a9593cfec5e196bc94ef90e937add92111dc40eef',
+        );
+        assert.strictEqual(rollAction.action.roll, 55400374);
+        assert.strictEqual(rollAction.action.result, 'W');
+        assert.strictEqual(parsed.xecTxType, 'Received');
+        assert.strictEqual(parsed.satoshisSent, 1173);
+    });
 });

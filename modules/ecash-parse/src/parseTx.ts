@@ -507,6 +507,15 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 }
                 break;
             }
+            case opReturn.appPrefixesHex.dice:
+            case opReturn.appPrefixesHex.roll: {
+                // Blitzchips DICE/ROLL in standalone OP_RETURN (not EMPP)
+                const emppAction = getEmppAppAction(stackArray.join(''));
+                if (typeof emppAction !== 'undefined') {
+                    appActions.push(emppAction);
+                }
+                break;
+            }
             default: {
                 // Test for some sort of lokad id
                 const LOKAD_BYTES_STR_LENGTH = 8;

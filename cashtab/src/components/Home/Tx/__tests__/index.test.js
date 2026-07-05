@@ -82,6 +82,7 @@ import {
     cachetReceiveWithP2shInputDataTx,
     cachetBlitzDiceTx,
     cachetPayoutTx,
+    blitzRollPayoutTx,
     edjSendTx,
     edjPayoutTx,
     edjFirmaPayoutTx,
@@ -4052,6 +4053,35 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-received')).toBeInTheDocument();
         expect(screen.getAllByTitle('Blitz play').length).toBeGreaterThan(0);
         expect(screen.getByText(/Received .* CACHET/)).toBeInTheDocument();
+    });
+    it('XEC payout with ROLL in OP_RETURN (Blitzchips payout)', () => {
+        const thisMock = blitzRollPayoutTx;
+        const parsed = parseTx(thisMock.tx, [thisMock.receivingHash]);
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed }}
+                        hashes={[thisMock.receivingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                    />
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+        expect(screen.getByTitle('Blitz play')).toBeInTheDocument();
+        expect(screen.getByText(/Win \| Roll: 55,400,374/)).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', {
+                name: '8ed...eef',
+            }),
+        ).toHaveAttribute(
+            'href',
+            'https://explorer.e.cash/tx/8ed99528a0442d87a047827a9593cfec5e196bc94ef90e937add92111dc40eef',
+        );
     });
     it('CACHET receive with p2sh input data (Blitzchips payout)', () => {
         const thisMock = cachetReceiveWithP2shInputDataTx;
