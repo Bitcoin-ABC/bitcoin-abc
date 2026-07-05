@@ -14,7 +14,8 @@
         "debug": "DEBUG=true node scripts/test.cjs",
         "test:coverage": "CI=true npm run test --coverage",
         "extension": "VITE_BUILD_ENV=extension ./scripts/extension.sh",
-        "extension:tsc": "tsc -p extension/tsconfig.json"
+        "extension:tsc": "tsc -p extension/tsconfig.json",
+        "version": "node scripts/sync-manifest-version.cjs"
     },
     "browserslist": {
         "production": [
