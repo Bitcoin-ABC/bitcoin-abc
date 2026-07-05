@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { Link, useParams } from 'react-router';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, {
@@ -278,6 +278,35 @@ const Token: React.FC = () => {
     const [isBlacklisted, setIsBlacklisted] = useState<null | boolean>(null);
     const [chronikQueryError, setChronikQueryError] = useState<boolean>(false);
     const [nftTokenIds, setNftTokenIds] = useState<string[]>([]);
+    const ownedNftTokenIdsInCollection = useMemo(() => {
+        if (!isNftParent) {
+            return [];
+        }
+        const ownedNftTokenIds = new Set<string>();
+        tokens.forEach((balance, ownedTokenId) => {
+            if (new BigNumber(balance).lte(0)) {
+                return;
+            }
+            const cachedTokenInfo = cashtabCache.tokens.get(ownedTokenId);
+            if (
+                cachedTokenInfo?.tokenType.type ===
+                    'SLP_TOKEN_TYPE_NFT1_CHILD' &&
+                cachedTokenInfo.groupTokenId === tokenId
+            ) {
+                ownedNftTokenIds.add(ownedTokenId);
+            }
+        });
+        for (const childNftTokenId of nftTokenIds) {
+            const balance = tokens.get(childNftTokenId);
+            if (
+                typeof balance !== 'undefined' &&
+                new BigNumber(balance).gt(0)
+            ) {
+                ownedNftTokenIds.add(childNftTokenId);
+            }
+        }
+        return [...ownedNftTokenIds];
+    }, [isNftParent, tokenId, tokens, nftTokenIds, cashtabCache.tokens]);
     const [availableNftInputs, setAvailableNftInputs] = useState<number>(0);
     const [showTokenTypeInfo, setShowTokenTypeInfo] = useState<boolean>(false);
     const [showAgoraPartialInfo, setShowAgoraPartialInfo] =
@@ -2072,6 +2101,55 @@ const Token: React.FC = () => {
         setPreviewedAgoraPartial(null);
     };
 
+    const renderNftCollectionGrid = (collectionNftTokenIds: string[]) => (
+        <NftTable>
+            {collectionNftTokenIds.map(nftTokenId => {
+                const cachedNftInfo = cashtabCache.tokens.get(nftTokenId);
+                return (
+                    <NftCol key={nftTokenId}>
+                        <NftRow>
+                            <TokenIconExpandButton
+                                onClick={() => setShowLargeNftIcon(nftTokenId)}
+                            >
+                                <TokenIcon size={64} tokenId={nftTokenId} />
+                            </TokenIconExpandButton>
+                        </NftRow>
+                        <NftRow>
+                            <NftTokenIdAndCopyIcon>
+                                <a
+                                    href={`#/token/${nftTokenId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {nftTokenId.slice(0, 3)}...
+                                    {nftTokenId.slice(-3)}
+                                </a>
+                                <CopyIconButton
+                                    name={`Copy Token ID`}
+                                    data={nftTokenId}
+                                    showToast
+                                    customMsg={`NFT Token ID "${nftTokenId}" copied to clipboard`}
+                                />
+                            </NftTokenIdAndCopyIcon>
+                        </NftRow>
+                        {typeof cachedNftInfo !== 'undefined' && (
+                            <NftRow>
+                                {typeof tokens.get(nftTokenId) !==
+                                'undefined' ? (
+                                    <Link to={`/token/${nftTokenId}`}>
+                                        {cachedNftInfo.genesisInfo.tokenName}
+                                    </Link>
+                                ) : (
+                                    cachedNftInfo.genesisInfo.tokenName
+                                )}
+                            </NftRow>
+                        )}
+                    </NftCol>
+                );
+            })}
+        </NftTable>
+    );
+
     return (
         <OuterCtn>
             {typeof cashtabCache.tokens.get(tokenId) === 'undefined' ? (
@@ -2634,7 +2712,7 @@ const Token: React.FC = () => {
                                     cachedInfo.groupTokenId,
                                 ) !== 'undefined' && (
                                     <NftCollectionTitle>
-                                        NFT from collection &quot;
+                                        NFT from collection &ldquo;
                                         <Link
                                             to={`/token/${cachedInfo.groupTokenId}`}
                                         >
@@ -2646,7 +2724,7 @@ const Token: React.FC = () => {
                                                 ).genesisInfo.tokenName
                                             }
                                         </Link>
-                                        &quot;
+                                        &rdquo;
                                     </NftCollectionTitle>
                                 )}
                         </>
@@ -2860,39 +2938,6 @@ const Token: React.FC = () => {
                             Cashtab does not support trading this token
                         </Alert>
                     )}
-                    {isSupportedToken &&
-                        isBlacklisted !== null &&
-                        !isBlacklisted &&
-                        isNftChild && (
-                            <>
-                                {nftActiveOffer === null &&
-                                !nftOfferAgoraQueryError ? (
-                                    <InlineLoader />
-                                ) : nftOfferAgoraQueryError ? (
-                                    <Alert>Error querying NFT offers</Alert>
-                                ) : // Note that nftActiveOffer will not be null here
-                                (nftActiveOffer as unknown as OneshotOffer[])
-                                      .length === 0 ? (
-                                    <NftOfferWrapper>
-                                        <Info>This NFT is not for sale</Info>
-                                    </NftOfferWrapper>
-                                ) : (
-                                    <NftOfferWrapper>
-                                        <OneshotSwiper
-                                            offers={
-                                                nftActiveOffer as unknown as OneshotOffer[]
-                                            }
-                                            ecashWallet={ecashWallet}
-                                            cashtabCache={cashtabCache}
-                                            userLocale={userLocale}
-                                            fiatPrice={fiatPrice}
-                                            settings={settings}
-                                            setOffers={setNftActiveOffer}
-                                        />
-                                    </NftOfferWrapper>
-                                )}
-                            </>
-                        )}
                     {isSupportedToken && isBlacklisted !== null && (
                         <>
                             <TokenActionBar>
@@ -3078,6 +3123,39 @@ const Token: React.FC = () => {
                                     </TokenActionDropdown>
                                 </TokenActionMoreWrap>
                             </TokenActionBar>
+                            {isBlacklisted === false && isNftChild && (
+                                <>
+                                    {nftActiveOffer === null &&
+                                    !nftOfferAgoraQueryError ? (
+                                        <InlineLoader />
+                                    ) : nftOfferAgoraQueryError ? (
+                                        <Alert>Error querying NFT offers</Alert>
+                                    ) : // Note that nftActiveOffer will not be null here
+                                    (
+                                          nftActiveOffer as unknown as OneshotOffer[]
+                                      ).length === 0 ? (
+                                        <NftOfferWrapper>
+                                            <Info>
+                                                This NFT is not for sale
+                                            </Info>
+                                        </NftOfferWrapper>
+                                    ) : (
+                                        <NftOfferWrapper>
+                                            <OneshotSwiper
+                                                offers={
+                                                    nftActiveOffer as unknown as OneshotOffer[]
+                                                }
+                                                ecashWallet={ecashWallet}
+                                                cashtabCache={cashtabCache}
+                                                userLocale={userLocale}
+                                                fiatPrice={fiatPrice}
+                                                settings={settings}
+                                                setOffers={setNftActiveOffer}
+                                            />
+                                        </NftOfferWrapper>
+                                    )}
+                                </>
+                            )}
                             {isBlacklisted === false &&
                                 activeTokenAction === 'buy' &&
                                 !isNftParent &&
@@ -3091,88 +3169,38 @@ const Token: React.FC = () => {
                                 )}
                         </>
                     )}
-                    {isNftParent && nftTokenIds.length > 0 && (
+                    {isNftParent && (
                         <>
-                            <NftTitle>NFTs in this Collection</NftTitle>
-                            <NftTable>
-                                {nftTokenIds.map(nftTokenId => {
-                                    const cachedNftInfo =
-                                        cashtabCache.tokens.get(nftTokenId);
-                                    return (
-                                        <NftCol key={nftTokenId}>
-                                            <NftRow>
-                                                <TokenIconExpandButton
-                                                    onClick={() =>
-                                                        setShowLargeNftIcon(
-                                                            nftTokenId,
-                                                        )
-                                                    }
-                                                >
-                                                    <TokenIcon
-                                                        size={64}
-                                                        tokenId={nftTokenId}
-                                                    />
-                                                </TokenIconExpandButton>
-                                            </NftRow>
-                                            <NftRow>
-                                                <NftTokenIdAndCopyIcon>
-                                                    <a
-                                                        href={`#/token/${nftTokenId}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        {nftTokenId.slice(0, 3)}
-                                                        ...
-                                                        {nftTokenId.slice(-3)}
-                                                    </a>
-                                                    <CopyIconButton
-                                                        name={`Copy Token ID`}
-                                                        data={nftTokenId}
-                                                        showToast
-                                                        customMsg={`NFT Token ID "${nftTokenId}" copied to clipboard`}
-                                                    />
-                                                </NftTokenIdAndCopyIcon>
-                                            </NftRow>
-                                            {typeof cachedNftInfo !==
-                                                'undefined' && (
-                                                <>
-                                                    <NftRow>
-                                                        {typeof tokens.get(
-                                                            nftTokenId,
-                                                        ) !== 'undefined' ? (
-                                                            <Link
-                                                                to={`/token/${nftTokenId}`}
-                                                            >
-                                                                {
-                                                                    cachedNftInfo
-                                                                        .genesisInfo
-                                                                        .tokenName
-                                                                }
-                                                            </Link>
-                                                        ) : (
-                                                            cachedNftInfo
-                                                                .genesisInfo
-                                                                .tokenName
-                                                        )}
-                                                    </NftRow>
-                                                </>
-                                            )}
-                                        </NftCol>
-                                    );
-                                })}
-                            </NftTable>
-                            <NftTitle>Listings in this Collection</NftTitle>
-                            <Collection
-                                groupTokenId={tokenId as string}
-                                agora={agora}
-                                chronik={chronik}
-                                cashtabCache={cashtabCache}
-                                settings={settings}
-                                fiatPrice={fiatPrice}
-                                userLocale={userLocale}
-                                ecashWallet={ecashWallet}
-                                noCollectionInfo
-                            />
+                            <NftTitle>Your NFTs in this Collection</NftTitle>
+                            {ownedNftTokenIdsInCollection.length > 0 ? (
+                                renderNftCollectionGrid(
+                                    ownedNftTokenIdsInCollection,
+                                )
+                            ) : (
+                                <Info>
+                                    You do not own any NFTs in this collection.
+                                </Info>
+                            )}
+                            {nftTokenIds.length > 0 && (
+                                <>
+                                    <NftTitle>NFTs in this Collection</NftTitle>
+                                    {renderNftCollectionGrid(nftTokenIds)}
+                                    <NftTitle>
+                                        Listings in this Collection
+                                    </NftTitle>
+                                    <Collection
+                                        groupTokenId={tokenId as string}
+                                        agora={agora}
+                                        chronik={chronik}
+                                        cashtabCache={cashtabCache}
+                                        settings={settings}
+                                        fiatPrice={fiatPrice}
+                                        userLocale={userLocale}
+                                        ecashWallet={ecashWallet}
+                                        noCollectionInfo
+                                    />
+                                </>
+                            )}
                         </>
                     )}
                     {apiError && <ApiError />}

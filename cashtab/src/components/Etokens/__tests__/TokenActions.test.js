@@ -858,15 +858,53 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // A child NFT is rendered
+        expect(
+            screen.getByText('Your NFTs in this Collection'),
+        ).toBeInTheDocument();
         expect(screen.getByText('NFTs in this Collection')).toBeInTheDocument();
 
-        // NFT image is rendered
+        // NFT image is rendered in both owned and all-NFT sections
         expect(
-            screen.getByAltText(`icon for ${slp1NftChildMocks.tokenId}`),
+            screen.getAllByAltText(`icon for ${slp1NftChildMocks.tokenId}`),
+        ).toHaveLength(2);
+
+        // NFT name is rendered in both owned and all-NFT sections
+        expect(screen.getAllByText('Gordon Chen')).toHaveLength(2);
+
+        expect(
+            screen.queryByText('You do not own any NFTs in this collection.'),
+        ).not.toBeInTheDocument();
+    });
+    it('NFT collection page shows empty owned section when wallet has no child NFTs', async () => {
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+                route={`/token/${slp1NftParentMocks.tokenId}`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const { tokenName } = slp1NftParentMocks.token.genesisInfo;
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
         ).toBeInTheDocument();
 
-        // NFT name is rendered
-        expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
+        expect(
+            screen.getByText('Your NFTs in this Collection'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText('You do not own any NFTs in this collection.'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('NFTs in this Collection'),
+        ).not.toBeInTheDocument();
     });
     it('We can list an SLP1 NFT', async () => {
         const mockedAgora = new MockAgora();
@@ -1225,14 +1263,22 @@ describe('<Token /> available actions rendered', () => {
 
         // We see what collection this NFT is from
         expect(screen.getByText(/NFT from collection/)).toBeInTheDocument();
+        expect(screen.getByText(/NFT from collection/).textContent).toMatch(
+            /\u201CThe Four Half-Coins of Jin-qua\u201D/,
+        );
         expect(
             screen.getByText('The Four Half-Coins of Jin-qua'),
         ).toBeInTheDocument();
 
-        // Token actions are available for NFTs
+        // "This NFT is not for sale" is below the token action bar
+        const buyButton = await screen.findByRole('button', { name: '+ Buy' });
+        const notForSaleMsg = await screen.findByText(
+            'This NFT is not for sale',
+        );
         expect(
-            await screen.findByRole('button', { name: '+ Buy' }),
-        ).toBeInTheDocument();
+            buyButton.compareDocumentPosition(notForSaleMsg) &
+                Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
 
         // Click Sell to show the NFT list form
         await userEvent.click(screen.getByRole('button', { name: '− Sell' }));
