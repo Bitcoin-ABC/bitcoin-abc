@@ -46,9 +46,9 @@ if [ "$BUILD_TYPE" = "wine" ] ; then
     binary="tor.exe"
 fi
 host_strip "$pkgbuilddir/dist/bin/$binary"
-mkdir -p "$here/../electrumabc/tor/bin"
-cp -fpv "$pkgbuilddir/dist/bin/$binary" "$here/../electrumabc/tor/bin/." || fail "Could not copy the $pkgname binary to its destination"
+mkdir -p "$DISTDIR"
+cp -fpv "$pkgbuilddir/dist/bin/$binary" "$DISTDIR/." || fail "Could not copy the $pkgname binary to its destination"
 $SHA256_PROG "$pkgbuilddir/dist/bin/$binary"
-info "$binary has been placed in the 'electrumabc' folder."
+info "$binary has been placed in the 'dist' folder."
 popd_pkg
 rm -Rf "$here"/tor

@@ -34,7 +34,7 @@ verify_hash "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" $PYTHON_SRC_TARBALL_HASH
 
 (
     cd "${ELECTRUM_ROOT}"
-    for pkg in secp zbar ; do
+    for pkg in secp zbar openssl libevent zlib tor ; do
         "$CONTRIB"/make_$pkg || fail "Could not build $pkg"
     done
 )

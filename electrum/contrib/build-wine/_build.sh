@@ -35,7 +35,7 @@ mkdir -p /tmp/electrum-build
 
 (
     cd "$ELECTRUM_ROOT"
-    for pkg in secp zbar ; do
+    for pkg in secp zbar openssl libevent zlib tor ; do
         "$here"/../make_$pkg || fail "Could not build $pkg"
     done
 )

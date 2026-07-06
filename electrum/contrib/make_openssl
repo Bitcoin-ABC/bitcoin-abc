@@ -30,7 +30,12 @@ if ! [ -d dist ] ; then
                 ./Configure darwin64-$(uname -m)-cc --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
                 ;;
             wine)
-                ./Configure --cross-compile-prefix=${GCC_TRIPLET_HOST}- mingw --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
+                case "${GCC_TRIPLET_HOST_ARCH:-${GCC_TRIPLET_HOST%%-*}}" in
+                    x86_64) OPENSSL_TARGET="mingw64" ;;
+                    i686)   OPENSSL_TARGET="mingw" ;;
+                    *)      fail "Unknown architecture for OpenSSL: $GCC_TRIPLET_HOST" ;;
+                esac
+                ./Configure --cross-compile-prefix="$GCC_TRIPLET_HOST"- $OPENSSL_TARGET --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
                 ;;
         esac
     ) || fail "Could not configure $pkgname. Please make sure you have a C compiler installed and try again."
