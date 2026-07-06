@@ -5,6 +5,7 @@
 import React from 'react';
 import {
     EtokensWalletMock,
+    EtokensNftOnlyWalletMock,
     EtokensStoredCashtabCache,
 } from 'components/Etokens/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -172,6 +173,37 @@ describe('<Etokens />', () => {
         expect(screen.getAllByTitle('Token List Item')).toHaveLength(1);
         expect(screen.getByTitle('Token List Item')).toHaveTextContent(
             'MASCOTS',
+        );
+    });
+    it('Collections filter shows parent collection when user holds NFT but not collection token', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            EtokensNftOnlyWalletMock,
+            localforage,
+        );
+
+        await localforage.setItem('cashtabCache', EtokensStoredCashtabCache);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/etokens" />);
+
+        expect(await screen.findByTitle('Wallet Tokens')).toBeInTheDocument();
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading tokens'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // User holds the NFT but not the collection token in "All" view
+        expect(screen.getAllByTitle('Token List Item')).toHaveLength(56);
+        expect(screen.queryByText('MASCOTS')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTitle('Toggle Collections'));
+
+        await waitFor(() =>
+            expect(screen.getAllByTitle('Token List Item')).toHaveLength(1),
+        );
+        expect(screen.getByTitle('Token List Item')).toHaveTextContent(
+            /MASCOTS/,
         );
     });
 });

@@ -3441,6 +3441,27 @@ export const EtokensWalletMock: ActiveCashtabWallet = {
     pk: '034f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa',
     name: 'Etokens Test',
 };
+
+const mascotsCollectionTokenId =
+    '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620';
+
+/** Wallet with an NFT but not the parent collection token */
+export const EtokensNftOnlyWalletMock: ActiveCashtabWallet = {
+    ...EtokensWalletMock,
+    name: 'Etokens NFT Only Test',
+    state: {
+        ...EtokensWalletMock.state,
+        slpUtxos: EtokensWalletMock.state.slpUtxos.filter(
+            utxo => utxo.token?.tokenId !== mascotsCollectionTokenId,
+        ),
+        tokens: new Map(
+            [...EtokensWalletMock.state.tokens].filter(
+                ([tokenId]) => tokenId !== mascotsCollectionTokenId,
+            ),
+        ),
+    },
+};
+
 export const EtokensStoredCashtabCache = {
     tokens: [
         [
@@ -5526,6 +5547,8 @@ export const EtokensStoredCashtabCache = {
                     '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
                 ],
                 genesisMintBatons: 0,
+                groupTokenId:
+                    '5a9d91ae2730dffbd0795dd2f8bfda5a6ad905f374158c8df303ca5cc82f8620',
             },
         ],
     ],

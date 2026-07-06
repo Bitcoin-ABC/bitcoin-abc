@@ -13,7 +13,8 @@ import { getUserLocale } from 'helpers';
 import { PrimaryLink, SecondaryLink } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
-import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { getTokenGenesisInfo } from 'chronik';
 
 const EtokensCtn = styled.div`
     color: ${props => props.theme.primaryText};
@@ -51,6 +52,66 @@ export const SwitchCol = styled.div`
     margin: 12px 3px;
 `;
 
+/**
+ * Get all NFT collection tokenIds associated with tokens in the wallet,
+ * including collections inferred from owned NFT child tokens.
+ */
+const getGroupTokenIdsFromWallet = (
+    walletTokens: TokenInfoKv[],
+): Set<string> => {
+    const groupTokenIds = new Set<string>();
+    for (const [tokenId, tokenInfo] of walletTokens) {
+        if (tokenInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_GROUP') {
+            groupTokenIds.add(tokenId);
+        } else if (
+            tokenInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD' &&
+            typeof tokenInfo.groupTokenId !== 'undefined'
+        ) {
+            groupTokenIds.add(tokenInfo.groupTokenId);
+        }
+    }
+    return groupTokenIds;
+};
+
+/**
+ * Build a sorted list of collection tokens for the Collections filter.
+ * Includes collections held directly and collections inferred from owned NFTs.
+ */
+const buildCollectionTokensList = (
+    groupTokenIds: Set<string>,
+    walletTokens: TokenInfoKv[],
+    cashtabCache: CashtabCache,
+    tokenBalances: Map<string, string>,
+): TokenInfoKv[] => {
+    const walletTokenMap = new Map(walletTokens);
+    const collectionTokens: TokenInfoKv[] = [];
+
+    for (const groupTokenId of groupTokenIds) {
+        const walletToken = walletTokenMap.get(groupTokenId);
+        if (typeof walletToken !== 'undefined') {
+            collectionTokens.push([groupTokenId, walletToken]);
+            continue;
+        }
+        const cachedInfo = cashtabCache.tokens.get(groupTokenId);
+        if (typeof cachedInfo !== 'undefined') {
+            collectionTokens.push([
+                groupTokenId,
+                {
+                    ...cachedInfo,
+                    balance: tokenBalances.get(groupTokenId) ?? '0',
+                },
+            ]);
+        }
+    }
+
+    collectionTokens.sort((a, b) =>
+        a[1].genesisInfo.tokenTicker.localeCompare(
+            b[1].genesisInfo.tokenTicker,
+        ),
+    );
+    return collectionTokens;
+};
+
 const Etokens = () => {
     const userLocale = getUserLocale(navigator);
     const ContextValue = useContext(WalletContext);
@@ -58,7 +119,8 @@ const Etokens = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { loading, cashtabState, ecashWallet } = ContextValue;
+    const { loading, cashtabState, ecashWallet, chronik, updateCashtabState } =
+        ContextValue;
     const { cashtabCache, tokens } = cashtabState;
 
     if (!tokens || !ecashWallet) {
@@ -139,7 +201,7 @@ const Etokens = () => {
 
         // Initialize rendered tokens as all tokens
         setRenderedTokens(walletTokensKeyValueArray);
-    }, [tokens]);
+    }, [tokens, cashtabCache]);
 
     useEffect(() => {
         if (tokensInWallet === null) {
@@ -159,8 +221,11 @@ const Etokens = () => {
                 break;
             }
             case 'showCollections': {
-                renderedTokensAfterSwitch = tokensInWallet.filter(
-                    kv => kv[1].tokenType.type === 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                renderedTokensAfterSwitch = buildCollectionTokensList(
+                    getGroupTokenIdsFromWallet(tokensInWallet),
+                    tokensInWallet,
+                    cashtabCache,
+                    tokens,
                 );
                 break;
             }
@@ -185,7 +250,74 @@ const Etokens = () => {
         }
 
         return setUserFilteredTokens(renderedTokensAfterSwitch);
-    }, [switches]);
+    }, [switches, tokensInWallet, cashtabCache, tokens]);
+
+    useEffect(() => {
+        if (tokensInWallet === null) {
+            return;
+        }
+
+        const cacheUncachedCollectionInfo = async () => {
+            let cacheUpdated = false;
+            const groupTokenIds = new Set<string>();
+
+            for (const [tokenId, tokenInfo] of tokensInWallet) {
+                if (tokenInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_GROUP') {
+                    groupTokenIds.add(tokenId);
+                } else if (
+                    tokenInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD'
+                ) {
+                    let groupTokenId = tokenInfo.groupTokenId;
+                    if (typeof groupTokenId === 'undefined') {
+                        try {
+                            const cachedInfo = await getTokenGenesisInfo(
+                                chronik,
+                                tokenId,
+                            );
+                            cashtabCache.tokens.set(tokenId, cachedInfo);
+                            cacheUpdated = true;
+                            groupTokenId = cachedInfo.groupTokenId;
+                        } catch (err) {
+                            console.error(
+                                `Error getting NFT info for ${tokenId}`,
+                                err,
+                            );
+                        }
+                    }
+                    if (typeof groupTokenId !== 'undefined') {
+                        groupTokenIds.add(groupTokenId);
+                    }
+                }
+            }
+
+            for (const groupTokenId of groupTokenIds) {
+                if (
+                    typeof cashtabCache.tokens.get(groupTokenId) !== 'undefined'
+                ) {
+                    continue;
+                }
+                try {
+                    const cachedInfo = await getTokenGenesisInfo(
+                        chronik,
+                        groupTokenId,
+                    );
+                    cashtabCache.tokens.set(groupTokenId, cachedInfo);
+                    cacheUpdated = true;
+                } catch (err) {
+                    console.error(
+                        `Error getting collection info for ${groupTokenId}`,
+                        err,
+                    );
+                }
+            }
+
+            if (cacheUpdated) {
+                updateCashtabState({ cashtabCache });
+            }
+        };
+
+        cacheUncachedCollectionInfo();
+    }, [tokensInWallet, chronik, cashtabCache, updateCashtabState]);
 
     useEffect(() => {
         if (userFilteredTokens === null) {
