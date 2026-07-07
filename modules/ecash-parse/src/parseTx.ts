@@ -29,6 +29,7 @@ import {
     ParsedTx,
     XecTxType,
     AirdropAction,
+    PowAction,
 } from './types';
 
 export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
@@ -513,6 +514,111 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 const emppAction = getEmppAppAction(stackArray.join(''));
                 if (typeof emppAction !== 'undefined') {
                     appActions.push(emppAction);
+                }
+                break;
+            }
+            case opReturn.appPrefixesHex.pow: {
+                const app = 'Proof of Writing';
+
+                // stackArray[1] = version (bare OP_0 -> "00"), [2] = action (bare OP_N),
+                // [3]/[4] = 32-byte pushes per the action table.
+                if (stackArray[1] !== '00') {
+                    appActions.push({ lokadId, app, isValid: false });
+                    break;
+                }
+
+                const TYPES: Record<string, PowAction['type']> = {
+                    '51': 'post', // OP_1
+                    '52': 'reply', // OP_2
+                    '53': 'quote', // OP_3
+                    '54': 'repost', // OP_4
+                    '55': 'like', // OP_5
+                    '56': 'publish', // OP_6
+                    '57': 'unlock', // OP_7
+                    '58': 'auth', // OP_8
+                    '59': 'handle', // OP_9
+                };
+                const type = TYPES[stackArray[2]];
+                if (typeof type === 'undefined') {
+                    appActions.push({ lokadId, app, isValid: false });
+                    break;
+                }
+
+                const is32 = (s?: string): s is string =>
+                    typeof s === 'string' && s.length === 64;
+                const is36 = (s?: string): s is string =>
+                    typeof s === 'string' && s.length === 72;
+
+                switch (type) {
+                    case 'post':
+                    case 'publish': {
+                        if (!is32(stackArray[3])) {
+                            appActions.push({ lokadId, app, isValid: false });
+                            break;
+                        }
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: { type, contentHash: stackArray[3] },
+                        });
+                        break;
+                    }
+                    case 'reply':
+                    case 'quote': {
+                        if (!is32(stackArray[3]) || !is32(stackArray[4])) {
+                            appActions.push({ lokadId, app, isValid: false });
+                            break;
+                        }
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: {
+                                type,
+                                targetTxid: stackArray[3],
+                                contentHash: stackArray[4],
+                            },
+                        });
+                        break;
+                    }
+                    case 'repost':
+                    case 'like': {
+                        if (!is32(stackArray[3])) {
+                            appActions.push({ lokadId, app, isValid: false });
+                            break;
+                        }
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: { type, targetTxid: stackArray[3] },
+                        });
+                        break;
+                    }
+                    case 'unlock': {
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: { type },
+                        });
+                        break;
+                    }
+                    case 'auth':
+                    case 'handle': {
+                        if (!is36(stackArray[3])) {
+                            appActions.push({ lokadId, app, isValid: false });
+                            break;
+                        }
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: { type, nonce: stackArray[3] },
+                        });
+                        break;
+                    }
                 }
                 break;
             }

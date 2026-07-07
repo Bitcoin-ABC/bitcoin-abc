@@ -187,6 +187,11 @@ export const getTxNotificationMsg = (
                     }
                     return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
                 }
+                case opReturn.appPrefixesHex.pow: {
+                    const verb =
+                        action && 'type' in action ? action.type : 'activity';
+                    return `Proof of Writing | ${xecTxType} ${renderedAmount} | ${verb}`;
+                }
                 default: {
                     if (app === 'unknown') {
                         // Then it has a lokadId, just not one we recognize

@@ -274,3 +274,22 @@ export const BlitsPayoutIcon: React.FC = () => (
     <BlitsPayout title="Blitz play" />
 );
 export const EdjIcon: React.FC = () => <Edj title="everydayjackpot.com" />;
+export const PowIcon: React.FC = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path
+            d="M4 20l1.2-4L15 6.2l2.8 2.8L8 18.8 4 20z"
+            fill="#00ff9c"
+            stroke="#00ff9c"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+        />
+        <path d="M5.2 16L8 18.8" stroke="#0a0f0d" strokeWidth="1.2" />
+        <path
+            d="M15 6.2l2-2a2 2 0 012.8 2.8l-2 2"
+            fill="#00ff9c"
+            stroke="#00ff9c"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+        />
+    </svg>
+);

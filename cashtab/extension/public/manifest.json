@@ -2,17 +2,11 @@
     "manifest_version": 3,
     "name": "Cashtab",
     "description": "A browser-integrated eCash wallet from Bitcoin ABC",
-    "version": "5.9.8",
+    "version": "5.9.9",
     "content_scripts": [
         {
-            "matches": [
-                "file://*/*",
-                "http://*/*",
-                "https://*/*"
-            ],
-            "js": [
-                "contentscript.js"
-            ],
+            "matches": ["file://*/*", "http://*/*", "https://*/*"],
+            "js": ["contentscript.js"],
             "run_at": "document_idle",
             "all_frames": true
         }
@@ -31,22 +25,14 @@
         "192": "ecash192.png",
         "512": "ecash512.png"
     },
-    "permissions": [
-        "storage",
-        "unlimitedStorage",
-        "tabs"
-    ],
+    "permissions": ["storage", "unlimitedStorage", "tabs"],
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
     },
     "web_accessible_resources": [
         {
-            "resources": [
-                "script.js"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
+            "resources": ["script.js"],
+            "matches": ["<all_urls>"]
         }
     ]
 }

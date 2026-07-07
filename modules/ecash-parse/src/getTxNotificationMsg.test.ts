@@ -5,9 +5,13 @@
 import * as assert from 'assert';
 import { getTxNotificationMsg } from './getTxNotificationMsg';
 import { notificationFixtures } from './fixtures/vectors';
+import { powNotificationFixtures } from './fixtures/powFixtures';
 
 describe('getTxNotificationMsg', () => {
-    for (const fixture of notificationFixtures) {
+    for (const fixture of [
+        ...notificationFixtures,
+        ...powNotificationFixtures,
+    ]) {
         it(fixture.description, () => {
             assert.strictEqual(
                 getTxNotificationMsg(

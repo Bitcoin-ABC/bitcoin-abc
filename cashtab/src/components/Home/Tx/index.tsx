@@ -71,6 +71,7 @@ import {
     PayoutWinIcon,
     BlitsPayoutIcon,
     EdjIcon,
+    PowIcon,
     GenesisIcon,
     MintIcon,
     MintNftIcon,
@@ -824,6 +825,43 @@ const Tx: React.FC<TxProps> = ({
                     );
                 }
 
+                break;
+            }
+            case opReturn.appPrefixesHex.pow: {
+                if (
+                    !isValid ||
+                    typeof action === 'undefined' ||
+                    !('type' in action)
+                ) {
+                    renderedAppActions.push(
+                        <IconAndLabel>
+                            <PowIcon />
+                            <AppDescLabel>Invalid {app}</AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                    break;
+                }
+
+                const LABEL: Record<string, string> = {
+                    post: 'Post',
+                    reply: 'Reply',
+                    quote: 'Quote',
+                    repost: 'Repost',
+                    like: 'Like',
+                    publish: 'Article Published',
+                    unlock: 'Article Unlocked',
+                    auth: 'Login',
+                    handle: 'Handle Mint',
+                };
+
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <PowIcon />
+                        <AppDescLabel>
+                            {app} · {LABEL[action.type]}
+                        </AppDescLabel>
+                    </IconAndLabel>,
+                );
                 break;
             }
             case opReturn.appPrefixesHex.solAddr: {

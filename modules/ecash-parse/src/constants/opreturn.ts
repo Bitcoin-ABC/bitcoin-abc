@@ -28,6 +28,7 @@ export const opReturn = {
         dice: '44494345',
         roll: '524f4c4c',
         trophy: 'f09f8f86',
+        pow: '504f5752', // ASCII "POWR" — Proof of Writing
     },
     cashtabMsgByteLimit: 215,
     airdropMsgByteLimit: 182,

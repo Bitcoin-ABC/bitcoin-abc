@@ -78,6 +78,24 @@ export interface TrophyPayoutAction {
     winnerOddsBps: number;
     winnerTxid: string;
 }
+export interface PowAction {
+    type:
+        | 'post'
+        | 'reply'
+        | 'quote'
+        | 'repost'
+        | 'like'
+        | 'publish'
+        | 'unlock'
+        | 'auth'
+        | 'handle';
+    /** referenced feed tx (hex txid); present for reply/quote/repost/like */
+    targetTxid?: string;
+    /** sha256 of stored content (hex); present for post/reply/quote/publish */
+    contentHash?: string;
+    /** server-issued nonce (hex of 36-byte ASCII UUID); present for auth/handle */
+    nonce?: string;
+}
 export interface AppAction {
     lokadId: string;
     app: string;
@@ -96,6 +114,7 @@ export interface AppAction {
         | DiceBetAction
         | RollPayoutAction
         | TrophyPayoutAction
+        | PowAction
         | UnknownAction;
 }
 
