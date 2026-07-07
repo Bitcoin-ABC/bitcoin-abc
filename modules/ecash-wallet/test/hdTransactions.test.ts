@@ -24,7 +24,6 @@ import {
     TxOutput,
     SLP_MAX_SEND_OUTPUTS,
     ALP_POLICY_MAX_OUTPUTS,
-    OP_RETURN_MAX_BYTES,
     payment,
     decodeInputData,
     pushBytesOp,
@@ -44,7 +43,11 @@ import {
 } from 'ecash-lib';
 import * as wordlist from 'ecash-lib/wordlists/english.json';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-import { Wallet, CONSOLIDATE_UTXOS_BATCHSIZE } from '../src/wallet';
+import {
+    Wallet,
+    CONSOLIDATE_UTXOS_BATCHSIZE,
+    MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT,
+} from '../src/wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
 use(chaiAsPromised);
@@ -1874,16 +1877,17 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Build and broadcast
-        // Looks like this should work. After all, we will have 29 outputs.
-        // But it won't, because we still have to push the 0 atoms into two atomsArrays
-        // So we exceed the OP_RETURN
-        expect(() =>
-            alpWallet.clone().action(alpSendAction).build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Specified action results in OP_RETURN of 434 bytes, vs max allowed of ${OP_RETURN_MAX_BYTES}.`,
-        );
+        // This action SENDs two tokenIds to 27 outputs. It cannot fit in a
+        // single tx because the combined OP_RETURN would exceed 223 bytes, so
+        // ecash-wallet auto-chains one send per tokenId (2 txs).
+        // NB we build on a clone and do not broadcast, so we do not disturb the
+        // wallet state the rest of this test depends on. The full broadcast
+        // flow is covered by the dedicated multi-tokenId chaining tests.
+        const multiTokenChained = alpWallet
+            .clone()
+            .action(alpSendAction)
+            .build(ALL_BIP143);
+        expect(multiTokenChained.txs.length).to.equal(2);
 
         // Ok let's cull some outputs
         // Take the first 9 outputs. NB this will give us an OP_RETURN of 218 bytes
@@ -3590,6 +3594,250 @@ describe('HD Wallet can build and broadcast on regtest', () => {
         expect(
             chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
         ).to.equal(DEFAULT_DUST_SATS);
+    });
+    it('We can auto-chain a multi-tokenId ALP send with per-tokenId chains (HD wallet)', async () => {
+        /**
+         * HD wallet variant: multi-tokenId ALP sends that cannot fit in a single tx
+         * are split into independent chains, one per tokenId.
+         */
+        const multiChainWallet = createHDWallet(10, chronik);
+
+        const inputSats = 1_000_000_00n;
+        const receiveAddress = multiChainWallet.getReceiveAddress(0);
+        await runner.sendToScript(
+            inputSats,
+            Script.fromAddress(receiveAddress),
+        );
+        await multiChainWallet.sync();
+
+        const genesisMintQty = 100_000n;
+
+        const genesisAAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: {
+                        tokenTicker: 'HDMA',
+                        tokenName: 'HD Multi Chain A',
+                        url: 'cashtab.com',
+                        decimals: 0,
+                        authPubkey: toHex(multiChainWallet.pk),
+                    },
+                },
+            ],
+        };
+
+        const tokenIdA = (
+            await multiChainWallet.action(genesisAAction).build().broadcast()
+        ).broadcasted[0];
+
+        const genesisBAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.getChangeScript(),
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: {
+                        tokenTicker: 'HDMB',
+                        tokenName: 'HD Multi Chain B',
+                        url: 'cashtab.com',
+                        decimals: 0,
+                        authPubkey: toHex(multiChainWallet.pk),
+                    },
+                },
+            ],
+        };
+
+        const tokenIdB = (
+            await multiChainWallet.action(genesisBAction).build().broadcast()
+        ).broadcasted[0];
+
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+
+        for (let i = 0; i < 42; i++) {
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script: Script.p2pkh(fromHex(i.toString(16).padStart(40, '0'))),
+                tokenId: tokenIdA,
+                atoms: 100n,
+                isMintBaton: false,
+            });
+        }
+
+        for (let i = 0; i < 3; i++) {
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script: Script.p2pkh(
+                    fromHex((i + 1000).toString(16).padStart(40, '0')),
+                ),
+                tokenId: tokenIdB,
+                atoms: 100n,
+                isMintBaton: false,
+            });
+        }
+
+        const multiSendResp = await multiChainWallet
+            .action({
+                outputs: [{ sats: 0n }, ...recipientOutputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenIdA,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: tokenIdB,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                ],
+            })
+            .build()
+            .broadcast();
+
+        expect(multiSendResp.broadcasted.length).to.equal(3);
+
+        const txsByTokenId = new Map<string, number>();
+        for (const txid of multiSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            const tid = tx.tokenEntries[0].tokenId;
+            txsByTokenId.set(tid, (txsByTokenId.get(tid) ?? 0) + 1);
+        }
+
+        expect(txsByTokenId.get(tokenIdA)).to.equal(2);
+        expect(txsByTokenId.get(tokenIdB)).to.equal(1);
+    });
+    it('ALP multi-tokenId unchained tx fits exactly 3 tokenIds (OP_RETURN max); 4 chains (HD wallet)', async () => {
+        const maxTokenIds = MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT;
+        const wallet = createHDWallet(11, chronik);
+
+        const receiveScript = Script.fromAddress(wallet.getReceiveAddress(0));
+        await runner.sendToScript(1_000_000_00n, receiveScript);
+        await wallet.sync();
+
+        const mintQty = 50_000n;
+        const tokenIds: string[] = [];
+
+        for (let i = 0; i < maxTokenIds + 1; i += 1) {
+            const genesisResp = await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.getChangeScript(),
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.getChangeScript(),
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `H${i}`,
+                                tokenName: `HD Multi ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            tokenIds.push(genesisResp.broadcasted[0]);
+        }
+
+        const makeExactMultiSend = (ids: string[]): payment.Action => ({
+            outputs: [
+                { sats: 0n },
+                ...ids.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 300).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: ids.map(tokenId => ({
+                type: 'SEND' as const,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            })),
+        });
+
+        const maxIds = tokenIds.slice(0, maxTokenIds);
+        expect(
+            wallet.clone().action(makeExactMultiSend(maxIds)).build().txs
+                .length,
+        ).to.equal(1);
+        expect(
+            wallet.clone().action(makeExactMultiSend(tokenIds)).build().txs
+                .length,
+        ).to.equal(maxTokenIds + 1);
+
+        const overSendResp = await wallet
+            .clone()
+            .action(makeExactMultiSend(tokenIds))
+            .build()
+            .broadcast();
+        expect(overSendResp.broadcasted.length).to.equal(maxTokenIds + 1);
     });
     it('We can send a chained token tx to 42 recipients for an SLP SLP_TOKEN_TYPE_FUNGIBLE token', async () => {
         // Init the HD wallet

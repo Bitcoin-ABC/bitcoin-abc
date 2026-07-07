@@ -23,7 +23,6 @@ import {
     TxOutput,
     SLP_MAX_SEND_OUTPUTS,
     ALP_POLICY_MAX_OUTPUTS,
-    OP_RETURN_MAX_BYTES,
     payment,
     decodeInputData,
     pushBytesOp,
@@ -41,7 +40,11 @@ import {
     OP_EQUALVERIFY,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-import { Wallet, CONSOLIDATE_UTXOS_BATCHSIZE } from '../src/wallet';
+import {
+    Wallet,
+    CONSOLIDATE_UTXOS_BATCHSIZE,
+    MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT,
+} from '../src/wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
 
 use(chaiAsPromised);
@@ -1804,16 +1807,17 @@ describe('Wallet can build and broadcast on regtest', () => {
             ],
         };
 
-        // Build and broadcast
-        // Looks like this should work. After all, we will have 29 outputs.
-        // But it won't, because we still have to push the 0 atoms into two atomsArrays
-        // So we exceed the OP_RETURN
-        expect(() =>
-            alpWallet.clone().action(alpSendAction).build(ALL_BIP143),
-        ).to.throw(
-            Error,
-            `Specified action results in OP_RETURN of 434 bytes, vs max allowed of ${OP_RETURN_MAX_BYTES}.`,
-        );
+        // This action SENDs two tokenIds to 27 outputs. It cannot fit in a
+        // single tx because the combined OP_RETURN would exceed 223 bytes, so
+        // ecash-wallet auto-chains one send per tokenId (2 txs).
+        // NB we build on a clone and do not broadcast, so we do not disturb the
+        // wallet state the rest of this test depends on. The full broadcast
+        // flow is covered by the dedicated multi-tokenId chaining tests.
+        const multiTokenChained = alpWallet
+            .clone()
+            .action(alpSendAction)
+            .build(ALL_BIP143);
+        expect(multiTokenChained.txs.length).to.equal(2);
 
         // Ok let's cull some outputs
         // Take the first 9 outputs. NB this will give us an OP_RETURN of 218 bytes
@@ -3340,6 +3344,807 @@ describe('Wallet can build and broadcast on regtest', () => {
             chainedTxOmega.outputs[chainedTxOmega.outputs.length - 1].sats,
         ).to.equal(DEFAULT_DUST_SATS);
     });
+    it('We can auto-chain a multi-tokenId ALP send with per-tokenId chains', async () => {
+        /**
+         * When an ALP action SENDs multiple tokenIds and cannot fit in a single tx,
+         * ecash-wallet builds an independent chain per tokenId.
+         *
+         * This test sends 42 outputs to token A (requires a 2-tx chain for that token
+         * alone) and 3 outputs to token B (fits in 1 tx). Expect 3 broadcast txs total.
+         */
+        const multiChainWallet = Wallet.fromSk(
+            fromHex('1a'.repeat(32)),
+            chronik,
+        );
+
+        const inputSats = 1_000_000_00n;
+        await runner.sendToScript(inputSats, multiChainWallet.script);
+        await multiChainWallet.sync();
+
+        const genesisMintQty = 100_000n;
+
+        const alpGenesisInfoA = {
+            tokenTicker: 'MCHA',
+            tokenName: 'Multi Chain Token A',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(multiChainWallet.pk),
+        };
+        const alpGenesisInfoB = {
+            tokenTicker: 'MCHB',
+            tokenName: 'Multi Chain Token B',
+            url: 'cashtab.com',
+            decimals: 0,
+            authPubkey: toHex(multiChainWallet.pk),
+        };
+
+        const genesisAAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfoA,
+                },
+            ],
+        };
+
+        const genesisAResp = await multiChainWallet
+            .action(genesisAAction)
+            .build()
+            .broadcast();
+        const tokenIdA = genesisAResp.broadcasted[0];
+
+        const genesisBAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    atoms: genesisMintQty,
+                },
+                {
+                    sats: 546n,
+                    script: multiChainWallet.script,
+                    tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                    isMintBaton: true,
+                    atoms: 0n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'GENESIS',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    genesisInfo: alpGenesisInfoB,
+                },
+            ],
+        };
+
+        const genesisBResp = await multiChainWallet
+            .action(genesisBAction)
+            .build()
+            .broadcast();
+        const tokenIdB = genesisBResp.broadcasted[0];
+
+        const numRecipientsA = 42;
+        const numRecipientsB = 3;
+        const atomsPerRecipient = 100n;
+
+        const recipientOutputs: payment.PaymentTokenOutput[] = [];
+
+        for (let i = 0; i < numRecipientsA; i++) {
+            const hex = i.toString(16).padStart(40, '0');
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script: Script.p2pkh(fromHex(hex)),
+                tokenId: tokenIdA,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        for (let i = 0; i < numRecipientsB; i++) {
+            const hex = (i + 1000).toString(16).padStart(40, '0');
+            recipientOutputs.push({
+                sats: DEFAULT_DUST_SATS,
+                script: Script.p2pkh(fromHex(hex)),
+                tokenId: tokenIdB,
+                atoms: atomsPerRecipient,
+                isMintBaton: false,
+            });
+        }
+
+        const multiTokenSendAction: payment.Action = {
+            outputs: [{ sats: 0n }, ...recipientOutputs],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdA,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdB,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        const multiSendResp = await multiChainWallet
+            .action(multiTokenSendAction)
+            .build()
+            .broadcast();
+
+        // Token A: 2-tx chain (42 recipients). Token B: 1 tx (3 recipients).
+        expect(multiSendResp.broadcasted.length).to.equal(3);
+
+        const txsByTokenId = new Map<string, string[]>();
+        for (const txid of multiSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            expect(tx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+            const tid = tx.tokenEntries[0].tokenId;
+            if (!txsByTokenId.has(tid)) {
+                txsByTokenId.set(tid, []);
+            }
+            txsByTokenId.get(tid)!.push(txid);
+        }
+
+        expect(txsByTokenId.get(tokenIdA)!.length).to.equal(2);
+        expect(txsByTokenId.get(tokenIdB)!.length).to.equal(1);
+
+        // Token A chain: second tx spends chained output from first
+        const tokenAChain = txsByTokenId.get(tokenIdA)!;
+        const txAlpha = await chronik.tx(tokenAChain[0]);
+        const txOmega = await chronik.tx(tokenAChain[1]);
+        expect(txOmega.inputs.length).to.equal(1);
+        expect(txOmega.inputs[0].prevOut.txid).to.equal(txAlpha.txid);
+    });
+    it('ALP multi-tokenId unchained tx fits exactly 3 tokenIds (OP_RETURN max); 4 chains', async () => {
+        /**
+         * OP_RETURN size is the binding limit for distinct tokenIds in one ALP tx.
+         * With one send output per tokenId and exact atoms (no token change), 3 fit
+         * in 223 bytes; 4 exceeds and ecash-wallet chains one tx per tokenId.
+         *
+         * Use separate wallets for broadcast so spending tokens in one scenario does
+         * not invalidate UTXOs for the other.
+         */
+        const maxTokenIds = MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT;
+        const mintQty = 50_000n;
+
+        const mintAlpTokens = async (
+            wallet: Wallet,
+            count: number,
+        ): Promise<string[]> => {
+            const ids: string[] = [];
+            for (let i = 0; i < count; i += 1) {
+                const genesisResp = await wallet
+                    .action({
+                        outputs: [
+                            { sats: 0n },
+                            {
+                                sats: 546n,
+                                script: wallet.script,
+                                tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                atoms: mintQty,
+                            },
+                            {
+                                sats: 546n,
+                                script: wallet.script,
+                                tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                                isMintBaton: true,
+                                atoms: 0n,
+                            },
+                        ],
+                        tokenActions: [
+                            {
+                                type: 'GENESIS',
+                                tokenType: {
+                                    protocol: 'ALP',
+                                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                                    number: 0,
+                                },
+                                genesisInfo: {
+                                    tokenTicker: `M${i}`,
+                                    tokenName: `Multi Token ${i}`,
+                                    url: 'cashtab.com',
+                                    decimals: 0,
+                                    authPubkey: toHex(wallet.pk),
+                                },
+                            },
+                        ],
+                    })
+                    .build()
+                    .broadcast();
+                ids.push(genesisResp.broadcasted[0]);
+            }
+            return ids;
+        };
+
+        const makeExactMultiSend = (ids: string[]): payment.Action => ({
+            outputs: [
+                { sats: 0n },
+                ...ids.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 200).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: ids.map(tokenId => ({
+                type: 'SEND' as const,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            })),
+        });
+
+        const maxWallet = Wallet.fromSk(fromHex('1c'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, maxWallet.script);
+        await maxWallet.sync();
+        const maxTokenIdList = await mintAlpTokens(maxWallet, maxTokenIds);
+
+        expect(
+            maxWallet.clone().action(makeExactMultiSend(maxTokenIdList)).build()
+                .txs.length,
+        ).to.equal(1);
+
+        const maxSendResp = await maxWallet
+            .action(makeExactMultiSend(maxTokenIdList))
+            .build()
+            .broadcast();
+        expect(maxSendResp.broadcasted.length).to.equal(1);
+
+        const maxTx = await chronik.tx(maxSendResp.broadcasted[0]);
+        expect(maxTx.tokenEntries).to.have.length(maxTokenIds);
+        for (const entry of maxTx.tokenEntries) {
+            expect(entry.txType).to.equal('SEND');
+            expect(entry.actualBurnAtoms).to.equal(0n);
+        }
+        expect(maxTx.tokenStatus).to.equal('TOKEN_STATUS_NORMAL');
+
+        const chainWallet = Wallet.fromSk(fromHex('1d'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, chainWallet.script);
+        await chainWallet.sync();
+        const chainTokenIdList = await mintAlpTokens(
+            chainWallet,
+            maxTokenIds + 1,
+        );
+
+        expect(
+            chainWallet
+                .clone()
+                .action(makeExactMultiSend(chainTokenIdList))
+                .build().txs.length,
+        ).to.equal(maxTokenIds + 1);
+
+        const overSendResp = await chainWallet
+            .action(makeExactMultiSend(chainTokenIdList))
+            .build()
+            .broadcast();
+        expect(overSendResp.broadcasted.length).to.equal(maxTokenIds + 1);
+
+        const tokenIdsInChain = new Set<string>();
+        for (const txid of overSendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            tokenIdsInChain.add(tx.tokenEntries[0].tokenId);
+        }
+        for (const tokenId of chainTokenIdList) {
+            expect(tokenIdsInChain.has(tokenId)).to.equal(true);
+        }
+    });
+    it('ALP multi-tokenId SEND with DATA fits in one tx when OP_RETURN allows', async () => {
+        const mintQty = 50_000n;
+        const dataWallet = Wallet.fromSk(fromHex('24'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, dataWallet.script);
+        await dataWallet.sync();
+
+        const tokenIds: string[] = [];
+        for (let i = 0; i < 2; i += 1) {
+            const genesisResp = await dataWallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: dataWallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: dataWallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `D${i}`,
+                                tokenName: `Data Token ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(dataWallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            tokenIds.push(genesisResp.broadcasted[0]);
+        }
+        await dataWallet.sync();
+
+        const multiData = strToBytes('multi2');
+        const twoTokenDataAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                ...tokenIds.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 900).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: [
+                ...tokenIds.map(tokenId => ({
+                    type: 'SEND' as const,
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                })),
+                { type: 'DATA' as const, data: multiData },
+            ],
+        };
+
+        expect(
+            dataWallet.clone().action(twoTokenDataAction).build().txs.length,
+        ).to.equal(1);
+
+        const dataSendResp = await dataWallet
+            .action(twoTokenDataAction)
+            .build()
+            .broadcast();
+        expect(dataSendResp.broadcasted.length).to.equal(1);
+        const dataTx = await chronik.tx(dataSendResp.broadcasted[0]);
+        expect(dataTx.tokenEntries).to.have.length(2);
+        expect(dataTx.outputs[0].outputScript).to.include(toHex(multiData));
+    });
+    it('ALP chained multi-tokenId SEND uses one tx per tokenId (5 tokenIds -> 5 txs, never batched)', async () => {
+        /**
+         * Once chaining is required, _buildMultiTokenSend splits one sub-action per
+         * SEND tokenId. We never pack tokenIds that would fit together (e.g. 3+2).
+         */
+        const mintQty = 50_000n;
+        const wallet = Wallet.fromSk(fromHex('1e'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, wallet.script);
+        await wallet.sync();
+
+        const tokenIds: string[] = [];
+        for (let i = 0; i < 5; i += 1) {
+            const genesisResp = await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `F${i}`,
+                                tokenName: `Five Token ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            tokenIds.push(genesisResp.broadcasted[0]);
+        }
+
+        const multiSendAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                ...tokenIds.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 500).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: tokenIds.map(tokenId => ({
+                type: 'SEND' as const,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            })),
+        };
+
+        expect(
+            wallet.clone().action(multiSendAction).build().txs.length,
+        ).to.equal(5);
+
+        const sendResp = await wallet
+            .action(multiSendAction)
+            .build()
+            .broadcast();
+        expect(sendResp.broadcasted.length).to.equal(5);
+
+        const tokenIdsInChain = new Set<string>();
+        for (const txid of sendResp.broadcasted) {
+            const tx = await chronik.tx(txid);
+            expect(tx.tokenEntries).to.have.length(1);
+            expect(tx.tokenEntries[0].txType).to.equal('SEND');
+            expect(tx.tokenEntries[0].actualBurnAtoms).to.equal(0n);
+            tokenIdsInChain.add(tx.tokenEntries[0].tokenId);
+        }
+        expect(tokenIdsInChain.size).to.equal(5);
+        for (const tokenId of tokenIds) {
+            expect(tokenIdsInChain.has(tokenId)).to.equal(true);
+        }
+    });
+    it('SEND+BURN is not supported with multi-tokenId SEND', async () => {
+        const mintQty = 50_000n;
+        const burnQty = 1_000n;
+        const sendQty = mintQty - burnQty;
+        const wallet = Wallet.fromSk(fromHex('1f'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, wallet.script);
+        await wallet.sync();
+
+        const tokenIds: string[] = [];
+        for (let i = 0; i < 5; i += 1) {
+            const genesisResp = await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `B${i}`,
+                                tokenName: `Burn Token ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            tokenIds.push(genesisResp.broadcasted[0]);
+        }
+
+        const burnTokenIds = new Set([tokenIds[1], tokenIds[3]]);
+        const multiSendBurnAction: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                ...tokenIds.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 600).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: burnTokenIds.has(tokenId) ? sendQty : mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: [
+                ...tokenIds.map(tokenId => ({
+                    type: 'SEND' as const,
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                })),
+                ...[...burnTokenIds].map(tokenId => ({
+                    type: 'BURN' as const,
+                    tokenId,
+                    burnAtoms: burnQty,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                })),
+            ],
+        };
+
+        expect(() =>
+            wallet.clone().action(multiSendBurnAction).build(),
+        ).to.throw(
+            Error,
+            'Only SEND actions are supported when ALP multi-tokenId sends require chained txs.',
+        );
+    });
+    it('MINT is not supported with multi-tokenId SEND', async () => {
+        const mintQty = 50_000n;
+        const wallet = Wallet.fromSk(fromHex('20'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, wallet.script);
+        await wallet.sync();
+
+        const sendTokenIds: string[] = [];
+        for (let i = 0; i < 4; i += 1) {
+            const genesisResp = await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `S${i}`,
+                                tokenName: `Send Token ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            sendTokenIds.push(genesisResp.broadcasted[0]);
+        }
+
+        const mintTokenId = (
+            await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: 'MT',
+                                tokenName: 'Mint Only Token',
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast()
+        ).broadcasted[0];
+
+        const action: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                ...sendTokenIds.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 700).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+                {
+                    sats: 546n,
+                    script: wallet.script,
+                    tokenId: mintTokenId,
+                    atoms: 100n,
+                },
+            ],
+            tokenActions: [
+                ...sendTokenIds.map(tokenId => ({
+                    type: 'SEND' as const,
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                })),
+                {
+                    type: 'MINT',
+                    tokenId: mintTokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        expect(() => wallet.clone().action(action).build()).to.throw(
+            Error,
+            'Only SEND actions are supported when ALP multi-tokenId sends require chained txs.',
+        );
+    });
+    it('BURN without SEND is not supported with multi-tokenId SEND', async () => {
+        const mintQty = 50_000n;
+        const wallet = Wallet.fromSk(fromHex('21'.repeat(32)), chronik);
+        await runner.sendToScript(1_000_000_00n, wallet.script);
+        await wallet.sync();
+
+        const tokenIds: string[] = [];
+        for (let i = 0; i < 6; i += 1) {
+            const genesisResp = await wallet
+                .action({
+                    outputs: [
+                        { sats: 0n },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            atoms: mintQty,
+                        },
+                        {
+                            sats: 546n,
+                            script: wallet.script,
+                            tokenId: payment.GENESIS_TOKEN_ID_PLACEHOLDER,
+                            isMintBaton: true,
+                            atoms: 0n,
+                        },
+                    ],
+                    tokenActions: [
+                        {
+                            type: 'GENESIS',
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            genesisInfo: {
+                                tokenTicker: `X${i}`,
+                                tokenName: `Mixed Token ${i}`,
+                                url: 'cashtab.com',
+                                decimals: 0,
+                                authPubkey: toHex(wallet.pk),
+                            },
+                        },
+                    ],
+                })
+                .build()
+                .broadcast();
+            tokenIds.push(genesisResp.broadcasted[0]);
+        }
+
+        const burnOnlyTokenId = tokenIds[5];
+        const sendTokenIds = tokenIds.slice(0, 5);
+        const action: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                ...sendTokenIds.map((tokenId, idx) => ({
+                    sats: DEFAULT_DUST_SATS,
+                    script: Script.p2pkh(
+                        fromHex((idx + 800).toString(16).padStart(40, '0')),
+                    ),
+                    tokenId,
+                    atoms: mintQty,
+                    isMintBaton: false,
+                })),
+            ],
+            tokenActions: [
+                ...sendTokenIds.map(tokenId => ({
+                    type: 'SEND' as const,
+                    tokenId,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                })),
+                {
+                    type: 'BURN',
+                    tokenId: burnOnlyTokenId,
+                    burnAtoms: 1_000n,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        expect(() => wallet.clone().action(action).build()).to.throw(
+            Error,
+            'Only SEND actions are supported when ALP multi-tokenId sends require chained txs.',
+        );
+    });
     it('We can send an ALP tx to 29 recipients as 1 tx, but data actions are not supported in chained token send transactions', async () => {
         /**
          * Data actions are not currently supported in chained token send transactions.
@@ -4790,10 +5595,20 @@ describe('Wallet can build and broadcast on regtest', () => {
         }
 
         const satsPerXecUtxo = 100_000n;
-        await runner.sendToScript(
-            Array(n).fill(satsPerXecUtxo),
-            testWallet.script,
+        // Fan out XEC from wallet balance (not runner) so this test does not depend
+        // on TestRunner lastUsedOutIdx ordering relative to other tests.
+        const xecFanoutOutputs: payment.PaymentOutput[] = Array.from(
+            { length: n },
+            () => ({
+                sats: satsPerXecUtxo,
+                script: testWallet.script,
+            }),
         );
+        const xecFanoutResp = await testWallet
+            .action({ outputs: xecFanoutOutputs })
+            .build()
+            .broadcast();
+        expect(xecFanoutResp.success).to.equal(true);
         await testWallet.sync();
 
         expect(

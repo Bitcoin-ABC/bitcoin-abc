@@ -60,6 +60,8 @@ import {
     removeSpentUtxos,
     batchTokenSendOutputs,
     checkTokenSendExceedsMaxOutputs,
+    alpMultiSendExceedsOpReturn,
+    getAlpMultiSendTokenIdsNeedingChange,
     RequiredTokenInputs,
     getTokenUtxosWithExactAtoms,
     WalletUtxo,
@@ -7714,6 +7716,344 @@ describe('checkTokenSendExceedsMaxOutputs', () => {
                 checkTokenSendExceedsMaxOutputs(action, tokenType, tokens),
             ).to.equal(false);
         });
+    });
+});
+
+describe('alpMultiSendExceedsOpReturn', () => {
+    const tokenId1 = '11'.repeat(32);
+    const tokenId2 = '22'.repeat(32);
+    const tokenId3 = '33'.repeat(32);
+    const DUMMY_SCRIPT = Script.p2pkh(fromHex('00'.repeat(20)));
+
+    const createSendOutput = (
+        tokenId: string,
+        atoms: bigint,
+    ): payment.PaymentTokenOutput => ({
+        sats: 546n,
+        script: DUMMY_SCRIPT,
+        tokenId,
+        atoms,
+        isMintBaton: false,
+    });
+
+    const createSingleTokenAlpSendAction = (
+        numSendOutputs: number,
+    ): payment.Action => ({
+        outputs: [
+            { sats: 0n },
+            ...Array.from({ length: numSendOutputs }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i + 1)),
+            ),
+        ],
+        tokenActions: [
+            {
+                type: 'SEND',
+                tokenId: tokenId1,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            },
+        ],
+    });
+
+    const createInterleavedTwoTokenSendAction = (
+        numSendOutputs: number,
+    ): payment.Action => ({
+        outputs: [
+            { sats: 0n },
+            ...Array.from({ length: numSendOutputs }, (_, i) =>
+                createSendOutput(
+                    (i + 1) % 2 === 0 ? tokenId1 : tokenId2,
+                    BigInt(i + 1),
+                ),
+            ),
+        ],
+        tokenActions: [
+            {
+                type: 'SEND',
+                tokenId: tokenId1,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            },
+            {
+                type: 'SEND',
+                tokenId: tokenId2,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            },
+        ],
+    });
+
+    const createInterleavedThreeTokenSendAction = (
+        numSendOutputs: number,
+    ): payment.Action => {
+        const tokenIds = [tokenId1, tokenId2, tokenId3];
+        return {
+            outputs: [
+                { sats: 0n },
+                ...Array.from({ length: numSendOutputs }, (_, i) =>
+                    createSendOutput(tokenIds[i % 3], BigInt(i + 1)),
+                ),
+            ],
+            tokenActions: tokenIds.map(tokenId => ({
+                type: 'SEND' as const,
+                tokenId,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+            })),
+        };
+    };
+
+    const createOneOutputPerTokenIdAction = (
+        tokenIds: string[],
+    ): payment.Action => ({
+        outputs: [
+            { sats: 0n },
+            ...tokenIds.map(tokenId => createSendOutput(tokenId, 100n)),
+        ],
+        tokenActions: tokenIds.map(tokenId => ({
+            type: 'SEND' as const,
+            tokenId,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
+        })),
+    });
+
+    context('single tokenId ALP SEND', () => {
+        it('Returns false at 29 send outputs (221 bytes, last that fits)', () => {
+            expect(
+                alpMultiSendExceedsOpReturn(createSingleTokenAlpSendAction(29)),
+            ).to.equal(false);
+        });
+
+        it('Returns true at 30 send outputs (227 bytes, first that exceeds)', () => {
+            expect(
+                alpMultiSendExceedsOpReturn(createSingleTokenAlpSendAction(30)),
+            ).to.equal(true);
+        });
+    });
+
+    context('two tokenIds with interleaved send outputs', () => {
+        it('Returns false at 11 send outputs (218 bytes, last that fits)', () => {
+            expect(
+                alpMultiSendExceedsOpReturn(
+                    createInterleavedTwoTokenSendAction(11),
+                ),
+            ).to.equal(false);
+        });
+
+        it('Returns true at 12 send outputs (230 bytes, first that exceeds)', () => {
+            expect(
+                alpMultiSendExceedsOpReturn(
+                    createInterleavedTwoTokenSendAction(12),
+                ),
+            ).to.equal(true);
+        });
+    });
+
+    context(
+        'multiple tokenIds with one send output each and no token change',
+        () => {
+            it('Returns false at 3 tokenIds (170 bytes, last that fits)', () => {
+                const tokenIds = [tokenId1, tokenId2, tokenId3];
+                expect(
+                    alpMultiSendExceedsOpReturn(
+                        createOneOutputPerTokenIdAction(tokenIds),
+                        [],
+                    ),
+                ).to.equal(false);
+            });
+
+            it('Returns true at 4 tokenIds (238 bytes, first that exceeds)', () => {
+                const tokenIds = ['11', '22', '33', '44'].map(t =>
+                    t.repeat(32),
+                );
+                expect(
+                    alpMultiSendExceedsOpReturn(
+                        createOneOutputPerTokenIdAction(tokenIds),
+                        [],
+                    ),
+                ).to.equal(true);
+            });
+        },
+    );
+
+    context('three tokenIds with one send output each and token change', () => {
+        const tokenIds = [tokenId1, tokenId2, tokenId3];
+        const action = createOneOutputPerTokenIdAction(tokenIds);
+
+        it('Returns false when 2 of 3 tokenIds need change (206 bytes, last that fits)', () => {
+            expect(
+                alpMultiSendExceedsOpReturn(action, [tokenId1, tokenId2]),
+            ).to.equal(false);
+        });
+
+        it('Returns true when all 3 tokenIds need change (225 bytes, first that exceeds)', () => {
+            expect(alpMultiSendExceedsOpReturn(action, tokenIds)).to.equal(
+                true,
+            );
+        });
+    });
+
+    context(
+        'three tokenIds with interleaved send outputs and no token change',
+        () => {
+            it('Returns false at 5 send outputs (206 bytes, last that fits)', () => {
+                expect(
+                    alpMultiSendExceedsOpReturn(
+                        createInterleavedThreeTokenSendAction(5),
+                    ),
+                ).to.equal(false);
+            });
+
+            it('Returns true at 6 send outputs (225 bytes, first that exceeds)', () => {
+                expect(
+                    alpMultiSendExceedsOpReturn(
+                        createInterleavedThreeTokenSendAction(6),
+                    ),
+                ).to.equal(true);
+            });
+        },
+    );
+
+    context('non-ALP or no SEND actions', () => {
+        it('Returns false for SLP (not checked here)', () => {
+            const outputs = Array.from({ length: 30 }, (_, i) =>
+                createSendOutput(tokenId1, BigInt(i + 1)),
+            );
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }, ...outputs],
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId1,
+                        tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: tokenId2,
+                        tokenType: SLP_TOKEN_TYPE_FUNGIBLE,
+                    },
+                ],
+            };
+            expect(alpMultiSendExceedsOpReturn(action)).to.equal(false);
+        });
+
+        it('Returns false when there are no send actions', () => {
+            const action: payment.Action = {
+                outputs: [{ sats: 0n }],
+                tokenActions: [],
+            };
+            expect(alpMultiSendExceedsOpReturn(action)).to.equal(false);
+        });
+    });
+});
+
+describe('getAlpMultiSendTokenIdsNeedingChange', () => {
+    const tokenId1 = '11'.repeat(32);
+    const tokenId2 = '22'.repeat(32);
+    const tokenId3 = '33'.repeat(32);
+    const DUMMY_SCRIPT = Script.p2pkh(fromHex('00'.repeat(20)));
+
+    const createSendOutput = (
+        tokenId: string,
+        atoms: bigint,
+    ): payment.PaymentTokenOutput => ({
+        sats: 546n,
+        script: DUMMY_SCRIPT,
+        tokenId,
+        atoms,
+        isMintBaton: false,
+    });
+
+    const createMultiSendAction = (
+        tokenIds: string[],
+        atomsPerOutput: bigint,
+    ): payment.Action => ({
+        outputs: [
+            { sats: 0n },
+            ...tokenIds.map(tokenId =>
+                createSendOutput(tokenId, atomsPerOutput),
+            ),
+        ],
+        tokenActions: tokenIds.map(tokenId => ({
+            type: 'SEND' as const,
+            tokenId,
+            tokenType: ALP_TOKEN_TYPE_STANDARD,
+        })),
+    });
+
+    it('Returns [] for fewer than 2 SEND tokenIds', () => {
+        const action = createMultiSendAction([tokenId1], 100n);
+        const utxos = [getDummyAlpUtxo(200n, tokenId1)];
+        expect(
+            getAlpMultiSendTokenIdsNeedingChange(action, utxos),
+        ).to.deep.equal([]);
+    });
+
+    it('Returns [] when inputs exactly match outputs for all tokenIds', () => {
+        const action = createMultiSendAction([tokenId1, tokenId2], 100n);
+        const utxos = [
+            getDummyAlpUtxo(100n, tokenId1),
+            getDummyAlpUtxo(100n, tokenId2),
+        ];
+        expect(
+            getAlpMultiSendTokenIdsNeedingChange(action, utxos),
+        ).to.deep.equal([]);
+    });
+
+    it('Returns all tokenIds when every tokenId needs change', () => {
+        const tokenIds = [tokenId1, tokenId2, tokenId3];
+        const action = createMultiSendAction(tokenIds, 100n);
+        const utxos = tokenIds.map(tokenId => getDummyAlpUtxo(200n, tokenId));
+        expect(
+            getAlpMultiSendTokenIdsNeedingChange(action, utxos),
+        ).to.deep.equal(tokenIds);
+    });
+
+    it('Returns only tokenIds with input atoms exceeding output atoms (partial change)', () => {
+        const tokenIds = [tokenId1, tokenId2, tokenId3];
+        const action = createMultiSendAction(tokenIds, 100n);
+        const utxos = [
+            getDummyAlpUtxo(200n, tokenId1),
+            getDummyAlpUtxo(100n, tokenId2),
+            getDummyAlpUtxo(150n, tokenId3),
+        ];
+        expect(
+            getAlpMultiSendTokenIdsNeedingChange(action, utxos),
+        ).to.deep.equal([tokenId1, tokenId3]);
+    });
+
+    it('Ignores mint baton utxos when summing input atoms', () => {
+        const action = createMultiSendAction([tokenId1, tokenId2], 100n);
+        const utxos = [
+            getDummyAlpUtxo(100n, tokenId1),
+            {
+                ...getDummyAlpUtxo(0n, tokenId2),
+                token: {
+                    tokenId: tokenId2,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 0n,
+                    isMintBaton: true,
+                },
+            },
+            getDummyAlpUtxo(100n, tokenId2),
+        ];
+        expect(
+            getAlpMultiSendTokenIdsNeedingChange(action, utxos),
+        ).to.deep.equal([]);
+    });
+
+    it('Partial change tokenIds yield unchained OP_RETURN that fits', () => {
+        const tokenIds = [tokenId1, tokenId2, tokenId3];
+        const action = createMultiSendAction(tokenIds, 100n);
+        const utxos = [
+            getDummyAlpUtxo(200n, tokenId1),
+            getDummyAlpUtxo(100n, tokenId2),
+            getDummyAlpUtxo(150n, tokenId3),
+        ];
+        const tokenIdsNeedingChange = getAlpMultiSendTokenIdsNeedingChange(
+            action,
+            utxos,
+        );
+        expect(tokenIdsNeedingChange).to.deep.equal([tokenId1, tokenId3]);
+        expect(
+            alpMultiSendExceedsOpReturn(action, tokenIdsNeedingChange),
+        ).to.equal(false);
     });
 });
 

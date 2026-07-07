@@ -344,3 +344,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.1 [D20201](https://reviews.bitcoinabc.org/D20201)
 
 - Upgrade to `ecash-lib` 4.13.0 for Next.js-friendly WASM loading (embedded base64 on Node.js as well as the browser)
+
+### 4.2.2 [D20222](https://reviews.bitcoinabc.org/D20222)
+
+- Upgrade to `ecash-wallet` 5.6.0

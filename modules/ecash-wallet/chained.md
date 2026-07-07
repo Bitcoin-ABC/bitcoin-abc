@@ -34,6 +34,7 @@ We do not, for now, handle the case of a user needing to consolidate utxos. This
 - Every tx in the chain should use the same feePerKb
 - For a non-token tx with an OP_RETURN, the OP_RETURN should occur at minimum in the first tx. For a token tx with a data push in the EMPP, this data push should occur at minimum in the first tx. To support indexing or facilitate tracking chained txs, a user may wish to modify OP_RETURN or EMPP data pushes for each tx in a chain. This is beyond the scope of chained txs and such uses should define their own spec.
 - A chained tx must be either XEC-only or for a single token.
+- ALP actions that SEND multiple tokenIds and exceed per-tx limits are completed as a sequence of independent single-token chains (one sub-action per tokenId), not as one chain spanning multiple token types.
 
 ## Definitions
 

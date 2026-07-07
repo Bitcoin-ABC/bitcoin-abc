@@ -359,3 +359,10 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 # 5.5.1 [D20201](https://reviews.bitcoinabc.org/D20201)
 
 - Upgrade to `ecash-lib` 4.13.0 for Next.js-friendly WASM loading (embedded base64 on Node.js as well as the browser)
+
+# 5.6.0 [D20222](https://reviews.bitcoinabc.org/D20222)
+
+- Support ALP SEND actions with multiple token IDs and multiple token outputs in a single user action
+- Use a single tx when all specified outputs fit within protocol limits (including the 223-byte OP_RETURN limit for multi-tokenId sends); DATA actions may be combined with multi-tokenId sends in the same tx when it fits
+- Auto-chain one ALP send per tokenId when outputs or OP_RETURN size require it; chained multi-tokenId ALP sends support SEND actions only (MINT, BURN, etc. are not supported in this path)
+- SLP actions remain limited to a single tokenId per action (unchanged)

@@ -718,6 +718,57 @@ export class Wallet extends WalletBase<KeypairData> {
 }
 
 /**
+ * Reject non-SEND token actions when an ALP action SENDs multiple tokenIds
+ * and must be split into chained txs ({@link WalletAction._buildMultiTokenSend}).
+ * Unchained multi-tokenId sends (including DATA actions) are unaffected.
+ */
+function validateChainedAlpMultiTokenSendOnly(action: payment.Action): void {
+    const hasNonSend = (action.tokenActions ?? []).some(
+        ta => ta.type !== 'SEND',
+    );
+    if (hasNonSend) {
+        throw new Error(
+            'Only SEND actions are supported when ALP multi-tokenId sends require chained txs.',
+        );
+    }
+}
+
+/**
+ * True when an ALP action SENDs multiple tokenIds and cannot fit in one tx
+ * (per-tx output limit and/or OP_RETURN size with selected inputs).
+ */
+function wouldRequireAlpMultiTokenChainedSend(
+    action: payment.Action,
+    spendableUtxos: WalletUtxo[],
+): boolean {
+    const sendActions = (action.tokenActions?.filter(a => a.type === 'SEND') ??
+        []) as payment.SendAction[];
+    if (sendActions.length < 2) {
+        return false;
+    }
+    if (sendActions.some(a => a.tokenType.protocol !== 'ALP')) {
+        return false;
+    }
+
+    const actionTotals = getActionTotals(action);
+    const { tokens } = actionTotals;
+    const tokenType = getTokenType(action);
+    if (typeof tokenType === 'undefined') {
+        return false;
+    }
+
+    if (checkTokenSendExceedsMaxOutputs(action, tokenType, tokens)) {
+        return true;
+    }
+
+    const tokenIdsNeedingChange = getAlpMultiSendTokenIdsNeedingChange(
+        action,
+        spendableUtxos,
+    );
+    return alpMultiSendExceedsOpReturn(action, tokenIdsNeedingChange);
+}
+
+/**
  * Preprocess action to infer SEND actions for ALP-only-burn cases.
  * For ALP burns without SEND actions, if exact atoms are not available but sufficient
  * total atoms exist, automatically add a SEND action to allow change handling.
@@ -833,6 +884,15 @@ export class WalletAction {
             spendableUtxos,
         );
 
+        if (
+            wouldRequireAlpMultiTokenChainedSend(
+                preprocessedAction,
+                spendableUtxos,
+            )
+        ) {
+            validateChainedAlpMultiTokenSendOnly(preprocessedAction);
+        }
+
         const selectUtxosResult = selectUtxos(
             preprocessedAction,
             spendableUtxos,
@@ -859,12 +919,13 @@ export class WalletAction {
      * Incrementally add to this method to cover them all
      * [x] Intentional SLP burn where we do not have exact atoms available
      * [x] SLP_TOKEN_TYPE_NFT1_CHILD mints where we do not have a qty-1 input
-     * [] Token txs with outputs exceeding spec per-tx limits, or ALP txs where outputs and data pushes exceed OP_RETURN limits
+     * [x] Token txs with outputs exceeding spec per-tx limits, or ALP txs where outputs and data pushes exceed OP_RETURN limits
      * [] XEC or XEC-and-token txs where outputs would cause tx to exceed 100kb broadcast limit
      */
     private _buildChained(sighash = ALL_BIP143): BuiltAction {
+        const { chainedTxType } = this.selectUtxosResult;
         // Check the specific chained transaction type
-        switch (this.selectUtxosResult.chainedTxType) {
+        switch (chainedTxType) {
             case ChainedTxType.INTENTIONAL_BURN:
                 return this._buildIntentionalBurnChained(sighash);
             case ChainedTxType.NFT_MINT_FANOUT:
@@ -1274,6 +1335,95 @@ export class WalletAction {
     }
 
     /**
+     * Build token sends for an ALP action that SENDs multiple tokenIds and
+     * cannot fit in a single tx (because the combined OP_RETURN would exceed
+     * {@link OP_RETURN_MAX_BYTES}, and/or the total token outputs would exceed
+     * the protocol per-tx output limit).
+     *
+     * Per chained.md, a chained tx must be for a single token. So we split the
+     * action into one sub-action per SEND tokenId and build each independently.
+     * Each sub-action may itself resolve to a single tx (if that token's outputs
+     * fit) or to its own chain of txs (if that token alone exceeds the per-tx
+     * limits). We build sequentially so the wallet utxo set is updated between
+     * builds, which prevents double-spending fuel/change utxos across chains.
+     *
+     * Technically, when only some tokenIds force chaining, we could still try to
+     * pack the remainder into a single multi-tokenId tx and chain only the
+     * overflow. That would minimize tx count in edge cases (e.g. 3 tokenIds fit
+     * in one tx but a 4th does not). We do not do this: once chaining is required,
+     * splitting one sub-action per tokenId is simpler and makes fulfillment of
+     * the user action predictable; that optimization is deemed less valuable than
+     * clear, uniform behavior.
+     *
+     * Non-token (XEC) outputs from the original action, if any, are attached to
+     * the first tokenId's sub-action so they are not dropped.
+     *
+     * Non-SEND token actions are rejected by
+     * {@link validateChainedAlpMultiTokenSendOnly} at build time.
+     */
+    private _buildMultiTokenSend(sighash = ALL_BIP143): BuiltAction {
+        validateChainedAlpMultiTokenSendOnly(this.action);
+
+        const { tokenActions, outputs } = this.action;
+
+        const sendActions = (tokenActions?.filter(
+            action => action.type === 'SEND',
+        ) ?? []) as payment.SendAction[];
+
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        // Non-token (XEC) outputs, excluding the blank OP_RETURN placeholder at
+        // index 0. Attach these to the first sub-action so they are not lost.
+        const nonTokenOutputs = outputs
+            .slice(1)
+            .filter(output => !('tokenId' in output));
+
+        const allTxs: Tx[] = [];
+        for (let i = 0; i < sendActions.length; i += 1) {
+            const sendAction = sendActions[i];
+            const { tokenId } = sendAction;
+
+            // This token's send outputs, preserving their relative order
+            const tokenOutputs = outputs.filter(
+                output =>
+                    'tokenId' in output &&
+                    output.tokenId === tokenId &&
+                    typeof (output as payment.PaymentTokenOutput).atoms !==
+                        'undefined',
+            );
+
+            const tokenTokenActions = (tokenActions ?? []).filter(
+                (action): action is payment.SendAction =>
+                    action.type === 'SEND' && action.tokenId === tokenId,
+            );
+
+            const subOutputs: payment.PaymentOutput[] = [
+                { sats: 0n },
+                ...tokenOutputs,
+            ];
+            if (i === 0 && nonTokenOutputs.length > 0) {
+                subOutputs.push(...nonTokenOutputs);
+            }
+
+            const subAction: payment.Action = {
+                outputs: subOutputs,
+                tokenActions: tokenTokenActions,
+                dustSats,
+                feePerKb,
+                ...(typeof this.action.maxTxSersize !== 'undefined'
+                    ? { maxTxSersize: this.action.maxTxSersize }
+                    : {}),
+            };
+
+            const built = this._wallet.action(subAction).build(sighash);
+            allTxs.push(...built.txs);
+        }
+
+        return new BuiltAction(this._wallet, allTxs, feePerKb, this);
+    }
+
+    /**
      * Build a chained token send tx to handle sending token atoms to
      * more outputs than could be handled by a single tx
      *
@@ -1294,11 +1444,16 @@ export class WalletAction {
             );
         }
 
-        // For now, we only support chained txs for a single tokenId
+        // ALP multi-tokenId: build an independent chain per tokenId.
+        // Per chained.md, a chained tx must be for a single token, so we split
+        // the action into one sub-action per tokenId and build each separately.
         if (sendActions.length > 1) {
-            throw new Error(
-                'Chained token sends are only supported for a single tokenId',
-            );
+            if (sendActions.some(a => a.tokenType.protocol !== 'ALP')) {
+                throw new Error(
+                    'Chained multi-tokenId sends are only supported for ALP tokens.',
+                );
+            }
+            return this._buildMultiTokenSend(sighash);
         }
 
         // Check for DATA actions - not supported in chained token send transactions
@@ -4096,6 +4251,145 @@ export const checkTokenSendExceedsMaxOutputs = (
     return totalSendOutputs + 1 > maxOutputs;
 };
 
+/**
+ * Check if an ALP multi-tokenId SEND action would exceed the OP_RETURN byte
+ * limit if we tried to build it as a single tx.
+ *
+ * When we SEND more than one tokenId in a single ALP tx, each tokenId requires
+ * its own `alpSend` EMPP push. Each push includes the 32-byte tokenId plus a
+ * fixed 6-byte amount for every output index up to that token's last colored
+ * output. Interleaving tokenIds and appending token change outputs both inflate
+ * these atoms arrays, so the {@link OP_RETURN_MAX_BYTES} (223-byte) limit — not
+ * the {@link ALP_POLICY_MAX_OUTPUTS} output-count limit — becomes the binding
+ * constraint, often well before we reach 29 outputs.
+ *
+ * We conservatively assume a token change output only for tokenIds listed in
+ * {@link tokenIdsNeedingChange} (when the caller knows selected inputs exceed
+ * outputs). When omitted, only user-specified outputs are counted — callers
+ * that need chaining detection after UTXO selection should pass change tokenIds
+ * from {@link getAlpMultiSendTokenIdsNeedingChange}.
+ *
+ * Applies to all ALP SEND actions (one or more tokenIds). SLP is not checked
+ * here. For a single tokenId, {@link ALP_POLICY_MAX_OUTPUTS} usually binds
+ * before OP_RETURN bytes ({@link checkTokenSendExceedsMaxOutputs}); multi-tokenId
+ * sends often hit OP_RETURN first.
+ *
+ * @param action - The payment action to check
+ * @param tokenIdsNeedingChange - tokenIds for which token change outputs will be
+ *   appended in finalizeOutputs. Omit or pass [] when inputs exactly match outputs.
+ * @returns true if a single tx would exceed OP_RETURN_MAX_BYTES, false otherwise
+ */
+export const getAlpMultiSendTokenIdsNeedingChange = (
+    action: payment.Action,
+    selectedUtxos: WalletUtxo[],
+): string[] => {
+    const sendActions = action.tokenActions?.filter(a => a.type === 'SEND') as
+        | payment.SendAction[]
+        | undefined;
+
+    if (!sendActions || sendActions.length < 2) {
+        return [];
+    }
+
+    const tokenIdsNeedingChange: string[] = [];
+    for (const { tokenId } of sendActions) {
+        const outputAtoms = action.outputs
+            .filter(
+                o =>
+                    'tokenId' in o &&
+                    o.tokenId === tokenId &&
+                    typeof (o as payment.PaymentTokenOutput).atoms !==
+                        'undefined',
+            )
+            .reduce(
+                (sum, o) =>
+                    sum + ((o as payment.PaymentTokenOutput).atoms ?? 0n),
+                0n,
+            );
+
+        const inputAtoms = selectedUtxos
+            .filter(u => u.token?.tokenId === tokenId && !u.token?.isMintBaton)
+            .reduce((sum, u) => sum + (u.token?.atoms ?? 0n), 0n);
+
+        if (inputAtoms > outputAtoms) {
+            tokenIdsNeedingChange.push(tokenId);
+        }
+    }
+    return tokenIdsNeedingChange;
+};
+
+export const alpMultiSendExceedsOpReturn = (
+    action: payment.Action,
+    tokenIdsNeedingChange: string[] = [],
+): boolean => {
+    const sendActions = action.tokenActions?.filter(a => a.type === 'SEND') as
+        | payment.SendAction[]
+        | undefined;
+
+    if (!sendActions || sendActions.length === 0) {
+        return false;
+    }
+    if (sendActions.some(a => a.tokenType.protocol !== 'ALP')) {
+        return false;
+    }
+
+    // Append placeholder change outputs only for tokenIds that will need change
+    const estimateOutputs: (string | undefined)[] = [
+        // index 0 is the blank OP_RETURN placeholder; it is never colored
+        ...action.outputs.map(o =>
+            'tokenId' in o ? (o.tokenId as string) : undefined,
+        ),
+        ...tokenIdsNeedingChange,
+    ];
+
+    const emppPushes: Uint8Array[] = [];
+    for (const sendAction of sendActions) {
+        const { tokenId, tokenType } = sendAction;
+
+        // Last output index colored for this tokenId
+        let lastAtomsOutIdx = 0;
+        for (let i = 1; i < estimateOutputs.length; i += 1) {
+            if (estimateOutputs[i] === tokenId) {
+                lastAtomsOutIdx = i;
+            }
+        }
+
+        // atomsArray covers indices 1..lastAtomsOutIdx. Values do not affect the
+        // encoded size (each ALP amount is a fixed 6 bytes), so use 1n for
+        // colored outputs and 0n for uncolored.
+        if (lastAtomsOutIdx === 0) {
+            continue;
+        }
+        if (lastAtomsOutIdx > 255) {
+            // ALP encodes atomsArray.length as u8; longer arrays always exceed limits
+            return true;
+        }
+        const atomsArray: bigint[] = [];
+        for (let i = 1; i <= lastAtomsOutIdx; i += 1) {
+            atomsArray.push(estimateOutputs[i] === tokenId ? 1n : 0n);
+        }
+        emppPushes.push(alpSend(tokenId, tokenType.number, atomsArray));
+    }
+
+    // Include any DATA pushes so the estimate stays accurate (multi-token + DATA
+    // is allowed unchained; including DATA here does not hurt).
+    for (const a of action.tokenActions ?? []) {
+        if (a.type === 'DATA') {
+            emppPushes.push((a as payment.DataAction).data);
+        }
+    }
+
+    return emppScript(emppPushes).bytecode.length > OP_RETURN_MAX_BYTES;
+};
+
+/**
+ * Max distinct ALP tokenIds in a single unchained SEND tx when each tokenId has
+ * one send output and inputs exactly match outputs (no token change).
+ * With token change outputs the limit is 2. More than this OP_RETURN bytes
+ * exceed {@link OP_RETURN_MAX_BYTES} (223).
+ */
+export const MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT = 3;
+
 export interface SelectUtxosConfig {
     /**
      * Strategy for selecting satoshis
@@ -4136,6 +4430,33 @@ export const selectUtxos = (
 
     const actionTotals = getActionTotals(action);
     const { sats, tokens, groupTokenId } = actionTotals;
+
+    const hasIgnoredTokenIds =
+        typeof ignoredTokenIds !== 'undefined' && ignoredTokenIds.length > 0;
+
+    const withMultiTokenOpReturnChaining = (
+        result: SelectUtxosResult,
+    ): SelectUtxosResult => {
+        if (
+            !result.success ||
+            typeof result.utxos === 'undefined' ||
+            hasIgnoredTokenIds ||
+            result.chainedTxType !== ChainedTxType.NONE
+        ) {
+            return result;
+        }
+        const tokenIdsNeedingChange = getAlpMultiSendTokenIdsNeedingChange(
+            action,
+            result.utxos,
+        );
+        if (alpMultiSendExceedsOpReturn(action, tokenIdsNeedingChange)) {
+            return {
+                ...result,
+                chainedTxType: ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+            };
+        }
+        return result;
+    };
 
     // Clone spendableUtxos so that we can mutate it in this function without mutating the original
     const clonedSpendableUtxos = structuredClone(spendableUtxos);
@@ -4352,7 +4673,7 @@ export const selectUtxos = (
                 satsStrategy === SatsSelectionStrategy.NO_SATS) &&
             tokenIdsWithRequiredUtxos.length === 0
         ) {
-            return {
+            return withMultiTokenOpReturnChaining({
                 success: true,
                 utxos: selectedUtxos,
                 // Only expected to be > 0n if satsStrategy is NO_SATS
@@ -4360,7 +4681,7 @@ export const selectUtxos = (
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
                 chainedTxType,
                 config: normalizedConfig,
-            };
+            });
         }
     }
 
@@ -4396,7 +4717,7 @@ export const selectUtxos = (
                     satsStrategy === SatsSelectionStrategy.NO_SATS) &&
                 tokenIdsWithRequiredUtxos.length === 0
             ) {
-                return {
+                return withMultiTokenOpReturnChaining({
                     success: true,
                     utxos: selectedUtxos,
                     // Only expected to be > 0n if satsStrategy is NO_SATS
@@ -4406,7 +4727,7 @@ export const selectUtxos = (
                             : sats - selectedUtxosSats,
                     chainedTxType,
                     config: normalizedConfig,
-                };
+                });
             }
         }
     }
@@ -4478,7 +4799,7 @@ export const selectUtxos = (
             tokenIdsWithRequiredUtxos.length === 0
         ) {
             // If selectedUtxos fulfill the requirements of this Action, return them
-            return {
+            return withMultiTokenOpReturnChaining({
                 success: true,
                 utxos: selectedUtxos,
                 // Only expected to be > 0n if satsStrategy is NO_SATS
@@ -4486,7 +4807,7 @@ export const selectUtxos = (
                     selectedUtxosSats >= sats ? 0n : sats - selectedUtxosSats,
                 chainedTxType,
                 config: normalizedConfig,
-            };
+            });
         }
     }
 
@@ -4530,7 +4851,7 @@ export const selectUtxos = (
                             satsStrategy === SatsSelectionStrategy.NO_SATS) &&
                         tokenIdsWithRequiredUtxos.length === 0
                     ) {
-                        return {
+                        return withMultiTokenOpReturnChaining({
                             success: true,
                             utxos: selectedUtxos,
                             // Only expected to be > 0n if satsStrategy is NO_SATS
@@ -4540,7 +4861,7 @@ export const selectUtxos = (
                                     : sats - selectedUtxosSats,
                             chainedTxType,
                             config: normalizedConfig,
-                        };
+                        });
                     }
                 } else if (
                     !utxo.token.isMintBaton &&
@@ -4580,7 +4901,7 @@ export const selectUtxos = (
                         tokenIdsWithRequiredUtxos.length === 0
                     ) {
                         // If selectedUtxos fulfill the requirements of this Action, return them
-                        return {
+                        return withMultiTokenOpReturnChaining({
                             success: true,
                             utxos: selectedUtxos,
                             // Only expected to be > 0n if satsStrategy is NO_SATS
@@ -4590,7 +4911,7 @@ export const selectUtxos = (
                                     : sats - selectedUtxosSats,
                             chainedTxType,
                             config: normalizedConfig,
-                        };
+                        });
                     }
                 }
             }
@@ -4619,14 +4940,14 @@ export const selectUtxos = (
             tokenIdsWithRequiredUtxos.length === 0 &&
             !needsNftMintInput
         ) {
-            return {
+            return withMultiTokenOpReturnChaining({
                 success: true,
                 utxos: selectedUtxos,
                 // Always 0 here, determined by condition of this if block
                 missingSats: 0n,
                 chainedTxType,
                 config: normalizedConfig,
-            };
+            });
         }
     }
 
@@ -4723,14 +5044,14 @@ export const selectUtxos = (
 
     // For ATTEMPT_SATS and NO_SATS strategies, return what we have even if incomplete
     // Do not include errors field for missing sats if returning success
-    return {
+    return withMultiTokenOpReturnChaining({
         success: true,
         utxos: selectedUtxos,
         missingSats,
         // NB we do not have errors for missingSats with these strategies
         chainedTxType,
         config: normalizedConfig,
-    };
+    });
 };
 
 /**
