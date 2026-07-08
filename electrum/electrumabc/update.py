@@ -4,11 +4,13 @@ changed.
 """
 
 import glob
+import hashlib
 import logging
 import os
 import shutil
 
 from .simple_config import SimpleConfig, read_user_config, save_user_config
+from .tor_downloader import TOR_BINARY_PATH, TOR_BINARY_SHA256S
 from .util import get_user_dir
 from .version import PACKAGE_VERSION, VERSION_TUPLE
 
@@ -94,6 +96,16 @@ def update_config():
     if "downloaded_tor_path" in config:
         _logger.info("Deleting downloaded_tor_path from configuration file")
         del config["downloaded_tor_path"]
+
+    # Delete tor binaries that are outdated or compromised
+    if TOR_BINARY_PATH is not None and os.path.isfile(TOR_BINARY_PATH):
+        with open(TOR_BINARY_PATH, "rb") as f:
+            sha256sum = hashlib.sha256(f.read()).hexdigest()
+        if sha256sum not in TOR_BINARY_SHA256S.values():
+            _logger.info(
+                f"Deleting tor binary with unexpected checksum {sha256sum} from user data directory"
+            )
+            safe_rm(TOR_BINARY_PATH)
 
     # update version number, to avoid doing this again for this version
     config["latest_version_used"] = VERSION_TUPLE

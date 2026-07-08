@@ -22,10 +22,14 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
+import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+from .. import update
 from ..simple_config import SimpleConfig
+from ..tor_downloader import TOR_BINARY_SHA256
 from ..update import update_config
 from ..version import VERSION_TUPLE
 
@@ -167,18 +171,63 @@ class TestUpdate(unittest.TestCase):
 
     @patch("electrumabc.update.read_user_config")
     @patch("electrumabc.update.save_user_config", side_effect=mock_save_user_config)
-    def test_tor_path_update(self, mock_save, mock_read):
-        """After 5.5.0, we no longer store the downloaded_tor_path in the config file"""
+    def test_tor_update(self, mock_save, mock_read):
+        """After 5.5.0, we no longer store the downloaded_tor_path in the config file
+        and we delete the previous tor binary from the data directory so users are
+        prompted to download the new tor 4.9.11.
+        """
         config = {
             "latest_version_used": VERY_OLD_VERSION,
             "downloaded_tor_path": "/foo/bar",
         }
         mock_read.return_value = config
 
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmpdir.cleanup)
+
+        tor_path = os.path.join(self.tmpdir.name, "tor", "tor")
+
+        os.mkdir(os.path.dirname(tor_path))
+        with open(tor_path, "wb") as f:
+            f.write(b"")
+
+        # patch TOR_BINARY_PATH so update will use our temp dir
+        bck_tor_binary_path = update.TOR_BINARY_PATH
+        update.TOR_BINARY_PATH = tor_path
+
         update_config()
 
         self.assertNotIn("downloaded_tor_path", saved_config)
         self.assertEqual(saved_config["latest_version_used"], VERSION_TUPLE)
+
+        # The file is deleted
+        self.assertFalse(os.path.isfile(tor_path))
+
+        # Recreate it
+        with open(tor_path, "wb") as f:
+            f.write(b"")
+
+        # Now patch hashlib so the update process thinks the tor binary is up to date
+        with patch("hashlib.sha256") as mock_sha256:
+            fake_hash = Mock()
+            fake_hash.hexdigest.return_value = TOR_BINARY_SHA256
+            mock_sha256.return_value = fake_hash
+
+            config = {
+                "latest_version_used": VERY_OLD_VERSION,
+            }
+            mock_read.return_value = config
+            self.assertTrue(os.path.isfile(update.TOR_BINARY_PATH))
+
+            update_config()
+
+            self.assertEqual(saved_config["latest_version_used"], VERSION_TUPLE)
+
+            # The file was not  deleted
+            self.assertTrue(os.path.isfile(tor_path))
+
+        # Restore TOR_BINARY_PATH
+        update.TOR_BINARY_PATH = bck_tor_binary_path
 
 
 if __name__ == "__main__":
