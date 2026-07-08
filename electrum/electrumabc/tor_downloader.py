@@ -34,9 +34,9 @@ from electrumabc.util import get_user_dir
 
 # dict keys are sys.platform string
 TOR_BINARY_URLS = {
-    "linux": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor-linux",
-    "win32": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor.exe",
-    "darwin": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor-macos",
+    "linux": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v2.0/tor-linux",
+    "win32": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v2.0/tor.exe",
+    "darwin": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v2.0/tor-macos",
 }
 TOR_BINARY_URL = TOR_BINARY_URLS.get(sys.platform)
 TOR_BINARY_NAMES = {
@@ -51,9 +51,9 @@ if sys.platform in TOR_BINARY_URLS:
     TOR_BINARY_PATH = os.path.join(DOWNLOAD_DIR, TOR_BINARY_NAMES[sys.platform])
 
 TOR_BINARY_SHA256S = {
-    "linux": "f88b318a72a8b1f7b4c6fb288887d9f7f44b731596399ae658074b1b7b4f9fb1",
-    "win32": "e3ec0b9ed4e22149751309916483e2ef7cfd90d1c864c8dc6709d36cd0cb404b",
-    "darwin": "804c30e3837793d800f82361ed2c240859fba26cdb1cb5c895691dfca2b4571d",
+    "linux": "40618a8eb57add4becbeb487e90ac75da66fa34199129c10c2af0566fc2a1d7a",
+    "win32": "782a090b3ba536784170d3a9fac4363387b178cf77ad4716c70aa053e0725e4e",
+    "darwin": "57ac2b31a568dddfdf6ce0e01585239f452fb160ed90178295ccd321ac405b84",
 }
 TOR_BINARY_SHA256 = TOR_BINARY_SHA256S[sys.platform]
 
