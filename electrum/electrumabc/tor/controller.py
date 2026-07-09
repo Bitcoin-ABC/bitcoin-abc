@@ -39,6 +39,7 @@ import stem.socket
 from .. import version
 from ..printerror import PrintError, is_verbose
 from ..simple_config import ConfigKeys, SimpleConfig
+from ..tor_downloader import TOR_BINARY_PATH
 from ..utils import Event
 
 # Python 3.10 workaround for stem package which is using collections.Iterable
@@ -199,9 +200,8 @@ class TorController(PrintError):
             return res, TorController.BinaryType.SYSTEM
 
         # Use the automatically downloaded tor
-        res = self._config.get("downloaded_tor_path")
-        if res and os.path.isfile(res):
-            return res, TorController.BinaryType.DOWNLOADED
+        if os.path.isfile(TOR_BINARY_PATH):
+            return TOR_BINARY_PATH, TorController.BinaryType.DOWNLOADED
 
         return "", TorController.BinaryType.MISSING
 

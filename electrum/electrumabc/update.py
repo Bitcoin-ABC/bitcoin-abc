@@ -89,6 +89,12 @@ def update_config():
         _logger.info("Updating the block explorer from ViaWallet to CoinEx")
         config["block_explorer"] = "CoinEx"
 
+    # After 5.5.0, the downloaded tor binary path is considered a constant, no need
+    # to keep it as a config value. We never supported saving tor to an arbitrary path.
+    if "downloaded_tor_path" in config:
+        _logger.info("Deleting downloaded_tor_path from configuration file")
+        del config["downloaded_tor_path"]
+
     # update version number, to avoid doing this again for this version
     config["latest_version_used"] = VERSION_TUPLE
     save_user_config(config, get_user_dir())

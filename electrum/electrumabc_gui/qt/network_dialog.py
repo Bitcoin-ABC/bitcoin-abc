@@ -1411,7 +1411,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         return False
 
     def _show_download_tor_dialog(self):
-        dialog = DownloadTorDialog(self.config, self.parent())
+        dialog = DownloadTorDialog(self.parent())
         dialog.exec_()
         # Let TorController know about the new binary
         if dialog.was_download_successful:

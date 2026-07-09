@@ -717,7 +717,7 @@ class Plugin(FusionPlugin, QObject):
             defaultButton=QtWidgets.QMessageBox.Yes,
         )
         if answer:
-            dialog = DownloadTorDialog(self.config, window)
+            dialog = DownloadTorDialog(window)
             dialog.exec_()
 
         # Check Tor availability no matter if the download succeeded, as the user

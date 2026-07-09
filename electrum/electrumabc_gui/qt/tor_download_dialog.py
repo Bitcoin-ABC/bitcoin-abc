@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import multiprocessing
 import sys
-from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, QTimer
@@ -38,13 +37,9 @@ from electrumabc.tor_downloader import (
     Downloader,
 )
 
-if TYPE_CHECKING:
-    from electrumabc.simple_config import SimpleConfig
-
 
 class DownloadTorDialog(QtWidgets.QDialog):
-    def __init__(self, config: SimpleConfig, parent=None):
-        self.config = config
+    def __init__(self, parent=None):
         self.was_download_successful = False
 
         super().__init__(parent)
@@ -112,7 +107,6 @@ class DownloadTorDialog(QtWidgets.QDialog):
                 self.on_download_complete()
 
     def on_download_complete(self):
-        self.config.set_key("downloaded_tor_path", TOR_BINARY_PATH)
         self.timer.stop()
         QtWidgets.QApplication.restoreOverrideCursor()
         self.label.setText(
