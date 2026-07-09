@@ -65,6 +65,7 @@ import {
     RequiredTokenInputs,
     getTokenUtxosWithExactAtoms,
     WalletUtxo,
+    DEFAULT_GAP_LIMIT,
 } from './wallet';
 import { WalletBase } from './walletBase';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
@@ -9195,6 +9196,414 @@ describe('HD Wallet', () => {
             { ...DUMMY_UTXO, address: wallet.address },
         ]);
         expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+    });
+
+    it('syncAndDiscoverAddresses throws on non-HD wallet', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        await expect(wallet.syncAndDiscoverAddresses()).to.be.rejectedWith(
+            'syncAndDiscoverAddresses can only be called on HD wallets',
+        );
+    });
+
+    it('syncAndDiscoverAddresses rejects invalid gapLimit', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        await expect(
+            wallet.syncAndDiscoverAddresses({ gapLimit: 0 }),
+        ).to.be.rejectedWith('receiveGapLimit must be a positive integer');
+        await expect(
+            wallet.syncAndDiscoverAddresses({ gapLimit: -1 }),
+        ).to.be.rejectedWith('receiveGapLimit must be a positive integer');
+        await expect(
+            wallet.syncAndDiscoverAddresses({ gapLimit: 1.5 }),
+        ).to.be.rejectedWith('receiveGapLimit must be a positive integer');
+        await expect(
+            wallet.syncAndDiscoverAddresses({ receiveGapLimit: 0 }),
+        ).to.be.rejectedWith('receiveGapLimit must be a positive integer');
+        await expect(
+            wallet.syncAndDiscoverAddresses({ changeGapLimit: -2 }),
+        ).to.be.rejectedWith('changeGapLimit must be a positive integer');
+        await expect(
+            wallet.syncAndDiscoverAddresses({ startReceiveIndex: -1 }),
+        ).to.be.rejectedWith(
+            'startReceiveIndex must be a non-negative integer',
+        );
+    });
+
+    it('syncAndDiscoverAddresses finds funded receive and change indices', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        // Fund receive index 3 and change index 2; leave others empty
+        const receive3 = wallet.getReceiveAddress(3);
+        const change2 = wallet.getChangeAddress(2);
+        const utxoReceive: WalletUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+            sats: 1000n,
+        };
+        const utxoChange: WalletUtxo = {
+            ...DUMMY_UTXO,
+            outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+            sats: 2000n,
+        };
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(receive3, [utxoReceive]);
+        mockChronik.setUtxosByAddress(change2, [utxoChange]);
+
+        // Fresh wallet with unknown indices (defaults 0, 0)
+        const restored = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        expect(restored.receiveIndex).to.equal(0);
+        expect(restored.changeIndex).to.equal(0);
+
+        await restored.syncAndDiscoverAddresses({ gapLimit: 5 });
+
+        // Next unused after highest used
+        expect(restored.receiveIndex).to.equal(4);
+        expect(restored.changeIndex).to.equal(3);
+        expect(restored.utxos.length).to.equal(2);
+        expect(restored.balanceSats).to.equal(3000n);
+        expect(restored.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+    });
+
+    it('syncAndDiscoverAddresses treats spent-empty addresses as used via history', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        // Receive index 4 has history but no UTXOs (fully spent)
+        const receive4 = wallet.getReceiveAddress(4);
+        const minimalTx = {
+            txid: DUMMMY_TXID,
+            version: 2,
+            inputs: [],
+            outputs: [],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 100,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as const,
+        };
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setTxHistoryByAddress(receive4, [minimalTx as ChronikTx]);
+        // No UTXOs at receive4 (spent)
+
+        const restored = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        await restored.syncAndDiscoverAddresses({ gapLimit: 5 });
+
+        expect(restored.receiveIndex).to.equal(5);
+        expect(restored.changeIndex).to.equal(0);
+        expect(restored.utxos.length).to.equal(0);
+        expect(restored.balanceSats).to.equal(0n);
+    });
+
+    it('syncAndDiscoverAddresses does not decrease existing indices', async () => {
+        const mockChronik = new MockChronikClient();
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Wallet already knows higher indices than on-chain activity
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true, receiveIndex: 10, changeIndex: 8 },
+        );
+
+        // Only fund receive 1 — discovery would set receive to 2 if starting from 0
+        const receive1 = wallet.getReceiveAddress(1);
+        mockChronik.setUtxosByAddress(receive1, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                sats: 500n,
+            },
+        ]);
+
+        await wallet.syncAndDiscoverAddresses({ gapLimit: 5 });
+
+        expect(wallet.receiveIndex).to.equal(10);
+        expect(wallet.changeIndex).to.equal(8);
+        expect(wallet.balanceSats).to.equal(500n);
+    });
+
+    it('syncAndDiscoverAddresses with empty wallet leaves indices at 0', async () => {
+        const mockChronik = new MockChronikClient();
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        await wallet.syncAndDiscoverAddresses({ gapLimit: 3 });
+
+        expect(wallet.receiveIndex).to.equal(0);
+        expect(wallet.changeIndex).to.equal(0);
+        expect(wallet.utxos.length).to.equal(0);
+        expect(wallet.balanceSats).to.equal(0n);
+        // DEFAULT_GAP_LIMIT is exported for callers
+        expect(DEFAULT_GAP_LIMIT).to.equal(20);
+    });
+
+    it('sync alone does not discover addresses beyond current indices', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const receive5 = wallet.getReceiveAddress(5);
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(receive5, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                sats: 9999n,
+            },
+        ]);
+
+        // Reset to a fresh wallet that only knows index 0
+        const unaware = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        await unaware.sync();
+
+        expect(unaware.receiveIndex).to.equal(0);
+        expect(unaware.balanceSats).to.equal(0n);
+        expect(unaware.utxos.length).to.equal(0);
+    });
+
+    it('sync after discovery does not sync UTXOs on gap-lookahead addresses', async () => {
+        const mockChronik = new MockChronikClient();
+        const probe = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        // Fund receive 0; also place a UTXO on a gap-lookahead address (index 3)
+        // that discovery will cache while scanning but must not treat as in-wallet
+        // for the post-discovery UTXO sync (indices stop at 1).
+        const receive0 = probe.getReceiveAddress(0);
+        const receive3 = probe.getReceiveAddress(3);
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(receive0, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                sats: 1000n,
+            },
+        ]);
+        mockChronik.setUtxosByAddress(receive3, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+                sats: 99999n,
+            },
+        ]);
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        // gapLimit 2: used at 0, unused at 1, unused at 2 → stop; receiveIndex=1
+        // Index 3 is beyond the gap and never queried during discovery.
+        await wallet.syncAndDiscoverAddresses({ gapLimit: 2 });
+
+        expect(wallet.receiveIndex).to.equal(1);
+        expect(wallet.balanceSats).to.equal(1000n);
+        expect(wallet.utxos.length).to.equal(1);
+
+        // Manually cache receive3 (as discovery would for a larger gap) and
+        // confirm a subsequent sync still ignores it.
+        wallet.getReceiveAddress(3);
+        expect(wallet.keypairs.size).to.be.greaterThan(
+            wallet.receiveIndex + 1 + wallet.changeIndex + 1,
+        );
+        await wallet.sync();
+        expect(wallet.balanceSats).to.equal(1000n);
+        expect(wallet.utxos.length).to.equal(1);
+    });
+
+    it('syncAndDiscoverAddresses throws when Chronik is unreachable', async () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        const chronikError = new Error('Chronik unavailable');
+        mockChronik.batchSummary = async () => {
+            throw chronikError;
+        };
+        // Concurrent receive+change discovery may query many scripts; make all
+        // per-script fallbacks fail rather than return undefined mocks.
+        mockChronik.script = () => ({
+            history: async () => {
+                throw chronikError;
+            },
+            utxos: async () => {
+                throw chronikError;
+            },
+        });
+
+        await expect(
+            wallet.syncAndDiscoverAddresses({ gapLimit: 1 }),
+        ).to.be.rejectedWith('Chronik unavailable');
+    });
+
+    it('syncAndDiscoverAddresses batches aggressively for high used indexes', async function () {
+        // HD-derives a large scan batch; keep above mocha's default 2s for CI.
+        this.timeout(10000);
+
+        const mockChronik = new MockChronikClient();
+        const probe = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        // Mark receive 0..30 as used so the gap never completes early (BIP44).
+        // Old gap-sized batches would need many RTTs to reach index 30.
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        for (let i = 0; i <= 30; i++) {
+            const addr = probe.getReceiveAddress(i);
+            mockChronik.setUtxosByAddress(addr, [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: i },
+                    sats: 1n,
+                },
+            ]);
+        }
+
+        let batchSummaryCalls = 0;
+        let maxBatchSize = 0;
+        const originalBatchSummary = mockChronik.batchSummary.bind(mockChronik);
+        mockChronik.batchSummary = async scripts => {
+            batchSummaryCalls++;
+            maxBatchSize = Math.max(maxBatchSize, scripts.length);
+            return originalBatchSummary(scripts);
+        };
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        const gapLimit = 5;
+        await wallet.syncAndDiscoverAddresses({ gapLimit });
+
+        expect(wallet.receiveIndex).to.equal(31);
+        expect(wallet.balanceSats).to.equal(31n);
+        // First scan batches use Chronik's max script count (not gap-sized RTTs).
+        expect(maxBatchSize).to.equal(500);
+        // One batchSummary per chain (receive + change); gap completes mid-batch.
+        expect(batchSummaryCalls).to.equal(2);
+    });
+
+    it('syncAndDiscoverAddresses respects startReceiveIndex and separate gap limits', async () => {
+        const mockChronik = new MockChronikClient();
+        const probe = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+
+        // Persist knowledge that receive scanning can start at 8; fund 8 and 9.
+        const receive8 = probe.getReceiveAddress(8);
+        const receive9 = probe.getReceiveAddress(9);
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(receive8, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                sats: 400n,
+            },
+        ]);
+        mockChronik.setUtxosByAddress(receive9, [
+            {
+                ...DUMMY_UTXO,
+                outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+                sats: 377n,
+            },
+        ]);
+
+        const wallet = Wallet.fromMnemonic(
+            testMnemonic,
+            mockChronik as unknown as ChronikClient,
+            { hd: true },
+        );
+        await wallet.syncAndDiscoverAddresses({
+            startReceiveIndex: 8,
+            receiveGapLimit: 3,
+            changeGapLimit: 2,
+        });
+
+        expect(wallet.receiveIndex).to.equal(10);
+        expect(wallet.changeIndex).to.equal(0);
+        expect(wallet.balanceSats).to.equal(777n);
+        expect(wallet.keypairs.has(receive8)).to.equal(true);
+        expect(wallet.keypairs.has(receive9)).to.equal(true);
     });
 
     describe('addReceivedTx', () => {

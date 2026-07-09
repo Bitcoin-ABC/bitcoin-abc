@@ -540,6 +540,63 @@ describe('WatchOnlyWallet', () => {
             // All addresses should now be cached
             expect(wallet.keypairs.size).to.equal(4); // 2 receive + 2 change
         });
+
+        it('syncAndDiscoverAddresses finds funded receive and change indices', async () => {
+            const mockChronik = new MockChronikClient();
+            const seed = mnemonicToSeed(testMnemonic);
+            const master = HdNode.fromSeed(seed);
+            const baseNode = master.derivePath("m/44'/1899'/0'");
+            const xpub = baseNode.xpub();
+
+            const probe = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+            );
+            const receive3 = probe.getReceiveAddress(3);
+            const change1 = probe.getChangeAddress(1);
+
+            mockChronik.setBlockchainInfo({
+                tipHash: DUMMY_TIPHASH,
+                tipHeight: DUMMY_TIPHEIGHT,
+            });
+            mockChronik.setUtxosByAddress(receive3, [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                    sats: 1500n,
+                },
+            ]);
+            mockChronik.setUtxosByAddress(change1, [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+                    sats: 2500n,
+                },
+            ]);
+
+            const wallet = WatchOnlyWallet.fromXpub(
+                xpub,
+                mockChronik as unknown as ChronikClient,
+            );
+            await wallet.syncAndDiscoverAddresses({ gapLimit: 5 });
+
+            expect(wallet.receiveIndex).to.equal(4);
+            expect(wallet.changeIndex).to.equal(2);
+            expect(wallet.balanceSats).to.equal(4000n);
+            expect(wallet.tipHeight).to.equal(DUMMY_TIPHEIGHT);
+        });
+
+        it('syncAndDiscoverAddresses throws on non-HD watch-only wallet', async () => {
+            const mockChronik = new MockChronikClient();
+            const wallet = WatchOnlyWallet.fromAddress(
+                DUMMY_ADDRESS,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            await expect(wallet.syncAndDiscoverAddresses()).to.be.rejectedWith(
+                'syncAndDiscoverAddresses can only be called on HD wallets',
+            );
+        });
     });
 
     describe('Testnet (ectest prefix) support', () => {

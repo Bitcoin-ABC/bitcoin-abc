@@ -303,11 +303,13 @@ Based on the Bitcoin-ABC and Electrum-ABC implementations, we use:
 
 ### Address Discovery with Gap Limit
 
-- [ ] Add method `syncAndDiscoverAddresses(): Promise<void>`
+- [x] Add method `syncAndDiscoverAddresses(options?): Promise<void>`
     - Manual method for wallet restoration/discovery scenarios
-    - Syncs all known addresses first
-    - Checks addresses sequentially from index 0 with gap limit (e.g., 20 consecutive unused addresses)
-    - Checks for funds at addresses with indices < current index
-    - Automatically discovers and adds addresses that have received funds
-    - Updates indices accordingly
+    - Scans receive and change chains concurrently (optional per-chain gap limits)
+    - Optional `startReceiveIndex` / `startChangeIndex` to skip re-scanning from zero
+    - An address is "used" if Chronik reports any tx history or any UTXOs
+    - Uses `batchSummary` in large Chronik batches while scanning (falls back to per-script history/utxos)
+    - Updates indices to `highestUsed + 1` (never decreases existing indices)
+    - Then syncs UTXOs for all addresses at or below the discovered indices
+    - Available on `Wallet` and `WatchOnlyWallet` (via `WalletBase`)
     - Note: Normal `sync()` assumes indices are accurate and does not perform gap limit checking

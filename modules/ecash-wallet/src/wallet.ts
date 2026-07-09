@@ -54,6 +54,7 @@ import {
 } from 'ecash-lib';
 import type { TokenType as EcashTokenType } from 'ecash-lib';
 import { WalletBase } from './walletBase';
+export { DEFAULT_GAP_LIMIT, type SyncAndDiscoverOptions } from './walletBase';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
 const eccDummy = new EccDummy();
@@ -318,7 +319,9 @@ export class Wallet extends WalletBase<KeypairData> {
      * are spendable when we build txs
      *
      * For HD wallets, syncs all addresses at or below current indices
-     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex)
+     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex).
+     * Assumes indices are already correct; use {@link syncAndDiscoverAddresses}
+     * when restoring a wallet with unknown receive/change indices.
      */
     public async sync(): Promise<void> {
         if (!this.isHD) {
@@ -337,10 +340,8 @@ export class Wallet extends WalletBase<KeypairData> {
         }
 
         // HD wallet: sync all addresses at or below current indices
+        // tipHeight is updated inside _syncHDWallet
         await this._syncHDWallet();
-        // Update tipHeight after HD sync
-        const tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
-        this.tipHeight = tipHeight;
     }
 
     /**

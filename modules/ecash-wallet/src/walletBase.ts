@@ -12,6 +12,7 @@ import {
     COINBASE_MATURITY,
 } from 'ecash-lib';
 import {
+    BatchSummaryRow,
     ChronikClient,
     ScriptRef,
     ScriptUtxo,
@@ -20,8 +21,46 @@ import {
 } from 'chronik-client';
 import { WalletUtxo } from './wallet';
 
-/** Chronik HTTP batch limit for `/script/batch/utxos`. */
+/** Chronik HTTP batch limit for `/script/batch/utxos` and `/script/batch/summary`. */
 const CHRONIK_BATCH_UTXOS_MAX_SCRIPTS = 500;
+
+/**
+ * BIP44-style default gap limit for HD address discovery.
+ * Matches Electrum-ABC (`GAP_LIMIT = 20`).
+ */
+export const DEFAULT_GAP_LIMIT = 20;
+
+/** Options for {@link WalletBase.syncAndDiscoverAddresses}. */
+export interface SyncAndDiscoverOptions {
+    /**
+     * Stop scanning each chain after this many consecutive unused addresses.
+     * Used when {@link receiveGapLimit} / {@link changeGapLimit} are omitted.
+     * Defaults to {@link DEFAULT_GAP_LIMIT}.
+     */
+    gapLimit?: number;
+    /**
+     * Gap limit for the receive chain (`0/`).
+     * Defaults to {@link gapLimit} or {@link DEFAULT_GAP_LIMIT}.
+     */
+    receiveGapLimit?: number;
+    /**
+     * Gap limit for the change chain (`1/`).
+     * Defaults to {@link gapLimit} or {@link DEFAULT_GAP_LIMIT}.
+     * Apps that distribute many receive addresses but rarely send may want a
+     * larger receive gap than change gap.
+     */
+    changeGapLimit?: number;
+    /**
+     * First receive index to scan (inclusive). Defaults to `0`.
+     * Pass a persisted next-receive index to avoid re-scanning from zero.
+     */
+    startReceiveIndex?: number;
+    /**
+     * First change index to scan (inclusive). Defaults to `0`.
+     * Pass a persisted next-change index to avoid re-scanning from zero.
+     */
+    startChangeIndex?: number;
+}
 
 /**
  * Subset of coinbase outputs that are allowed as transaction inputs: `isCoinbase` and buried
@@ -339,33 +378,278 @@ export abstract class WalletBase<
     }
 
     /**
-     * Sync HD wallet: query UTXOs for all addresses at or below current indices
-     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex)
+     * Whether a Chronik batch-summary row indicates the script has been used
+     * (any history and/or any UTXOs). History matters so spent-but-empty
+     * addresses still advance the gap scan.
      */
-    protected async _syncHDWallet(): Promise<void> {
-        // Expected number of addresses based on indices
-        const expectedAddressCount =
-            this.receiveIndex + 1 + this.changeIndex + 1;
+    private _isScriptUsedFromSummary(row: BatchSummaryRow): boolean {
+        return row.numTxs > 0 || row.numUtxos > 0;
+    }
 
-        // Ensure all addresses are cached (derive if needed)
-        // If keypairs.size matches expected count, we can use cached addresses
-        // Otherwise, derive missing addresses by calling getReceiveAddress/getChangeAddress
-        // NB we assume the receive and change indices are correct; we will implement
-        // a method of "discovering" these indices if they are unknown later
-        if (this.keypairs.size < expectedAddressCount) {
-            // Derive all receive addresses from 0 to receiveIndex
-            for (let i = 0; i <= this.receiveIndex; i++) {
-                this.getReceiveAddress(i); // This will cache if not already cached
+    /**
+     * Query Chronik for whether a single script has been used (history or UTXOs).
+     * Throws if Chronik cannot be queried — never treats transport errors as unused.
+     */
+    private async _queryScriptUsed(script: ScriptRef): Promise<boolean> {
+        let historyError: unknown;
+        try {
+            const history = await this.chronik
+                .script(script.scriptType, script.payload)
+                .history(0, 1);
+            if (history.numTxs > 0) {
+                return true;
             }
-
-            // Derive all change addresses from 0 to changeIndex
-            for (let i = 0; i <= this.changeIndex; i++) {
-                this.getChangeAddress(i); // This will cache if not already cached
-            }
+        } catch (err) {
+            historyError = err;
         }
 
-        // Get all scripts to sync (now guaranteed to be cached)
-        const allScripts = this.getAllScripts();
+        try {
+            const utxos = await this.chronik
+                .script(script.scriptType, script.payload)
+                .utxos();
+            return utxos.utxos.length > 0;
+        } catch (utxoError) {
+            // Prefer the history error if both failed; never report "unused"
+            // when Chronik is unreachable — that would truncate gap discovery.
+            throw historyError ?? utxoError;
+        }
+    }
+
+    /**
+     * Query Chronik for whether each script has been used.
+     * Prefers `batchSummary`; falls back to per-script `history` (+ utxos) if
+     * the batch endpoint is unavailable.
+     *
+     * @param scripts - Scripts to check (order preserved in the result)
+     * @returns Parallel boolean array: true if the script has history or UTXOs
+     */
+    private async _queryScriptsUsed(scripts: ScriptRef[]): Promise<boolean[]> {
+        if (scripts.length === 0) {
+            return [];
+        }
+
+        try {
+            const rows: BatchSummaryRow[] = [];
+            const remaining = [...scripts];
+            const batchPromises: Promise<BatchSummaryRow[]>[] = [];
+            while (remaining.length > 0) {
+                batchPromises.push(
+                    this.chronik.batchSummary(
+                        remaining.splice(0, CHRONIK_BATCH_UTXOS_MAX_SCRIPTS),
+                    ),
+                );
+            }
+            const chunks = await Promise.all(batchPromises);
+            for (const chunk of chunks) {
+                rows.push(...chunk);
+            }
+            return rows.map(row => this._isScriptUsedFromSummary(row));
+        } catch {
+            // Fallback when batch/summary is unsupported or errors.
+            // Promise.all preserves input order, so usedFlags[i] matches scripts[i].
+            return Promise.all(
+                scripts.map(script => this._queryScriptUsed(script)),
+            );
+        }
+    }
+
+    /**
+     * Scan one HD chain (receive or change) with a BIP44 gap limit.
+     * Updates `receiveIndex` / `changeIndex` to at least `highestUsed + 1`
+     * (never decreases an already-higher index).
+     *
+     * @param forChange - true for change chain (1/), false for receive (0/)
+     * @param gapLimit - consecutive unused addresses required to stop
+     * @param startIndex - first index to scan (inclusive); treat
+     *   `startIndex - 1` as already known-used for gap purposes
+     */
+    protected async _discoverHDChain(
+        forChange: boolean,
+        gapLimit: number,
+        startIndex: number = 0,
+    ): Promise<void> {
+        let highestUsed = startIndex - 1;
+        let index = startIndex;
+        let consecutiveUnused = 0;
+
+        while (consecutiveUnused < gapLimit) {
+            // Always use Chronik's max batch size. HD derive is ~0.27ms/addr
+            // locally, so filling 500 scripts is cheaper than an extra RTT —
+            // important for large wallets with long used prefixes.
+            const batchCount = CHRONIK_BATCH_UTXOS_MAX_SCRIPTS;
+            const scripts: ScriptRef[] = [];
+            for (let i = 0; i < batchCount; i++) {
+                const address = forChange
+                    ? this.getChangeAddress(index + i)
+                    : this.getReceiveAddress(index + i);
+                const keypair = this.keypairs.get(address);
+                if (!keypair) {
+                    throw new Error(
+                        `Missing keypair for discovered address ${address}`,
+                    );
+                }
+                scripts.push({
+                    scriptType: 'p2pkh',
+                    payload: toHex(keypair.pkh),
+                });
+            }
+
+            const usedFlags = await this._queryScriptsUsed(scripts);
+            let processed = 0;
+            for (let i = 0; i < usedFlags.length; i++) {
+                processed++;
+                if (usedFlags[i]) {
+                    highestUsed = index + i;
+                    consecutiveUnused = 0;
+                } else {
+                    consecutiveUnused++;
+                    if (consecutiveUnused >= gapLimit) {
+                        break;
+                    }
+                }
+            }
+            // Advance only by addresses actually considered (not the full
+            // derived batch when we stop mid-batch on a completed gap).
+            index += processed;
+        }
+
+        const nextIndex = highestUsed + 1;
+        if (forChange) {
+            this.changeIndex = Math.max(this.changeIndex, nextIndex);
+        } else {
+            this.receiveIndex = Math.max(this.receiveIndex, nextIndex);
+        }
+    }
+
+    /**
+     * Discover receive and change indices via gap-limit scanning.
+     * Does not fetch the full UTXO set; call {@link _syncHDWallet} after.
+     * Receive and change chains are scanned concurrently.
+     */
+    protected async _discoverHDIndices(
+        receiveGapLimit: number,
+        changeGapLimit: number,
+        startReceiveIndex: number,
+        startChangeIndex: number,
+    ): Promise<void> {
+        await Promise.all([
+            this._discoverHDChain(false, receiveGapLimit, startReceiveIndex),
+            this._discoverHDChain(true, changeGapLimit, startChangeIndex),
+        ]);
+    }
+
+    /**
+     * Discover HD receive/change indices with a gap limit, then sync UTXOs.
+     *
+     * Use when restoring a wallet with unknown indices (e.g. from mnemonic or
+     * xpub only). Scans each chain from the start index until the chain's gap
+     * limit of consecutive unused addresses is found (BIP44 / Electrum-ABC
+     * style). An address is "used" if Chronik reports any tx history or any
+     * UTXOs.
+     *
+     * Gap lookahead addresses derived during the scan (the unused addresses
+     * past the highest used index, and any extras from large Chronik batches)
+     * remain cached in `keypairs`. That is intentional: once derived, keep
+     * them. UTXO sync still only queries addresses at or below the discovered
+     * `receiveIndex` / `changeIndex`.
+     *
+     * Normal {@link sync} assumes indices are already correct and does not
+     * perform gap-limit discovery.
+     *
+     * @param options - Gap limits and optional start indexes
+     * @throws Error if the wallet is not HD, or if options are invalid
+     */
+    public async syncAndDiscoverAddresses(
+        options?: SyncAndDiscoverOptions,
+    ): Promise<void> {
+        if (!this.isHD) {
+            throw new Error(
+                'syncAndDiscoverAddresses can only be called on HD wallets',
+            );
+        }
+
+        const receiveGapLimit =
+            options?.receiveGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
+        const changeGapLimit =
+            options?.changeGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
+        const startReceiveIndex = options?.startReceiveIndex ?? 0;
+        const startChangeIndex = options?.startChangeIndex ?? 0;
+
+        const assertPositiveInt = (name: string, value: number) => {
+            if (!Number.isInteger(value) || value < 1) {
+                throw new Error(`${name} must be a positive integer`);
+            }
+        };
+        const assertNonNegativeInt = (name: string, value: number) => {
+            if (!Number.isInteger(value) || value < 0) {
+                throw new Error(`${name} must be a non-negative integer`);
+            }
+        };
+        assertPositiveInt('receiveGapLimit', receiveGapLimit);
+        assertPositiveInt('changeGapLimit', changeGapLimit);
+        assertNonNegativeInt('startReceiveIndex', startReceiveIndex);
+        assertNonNegativeInt('startChangeIndex', startChangeIndex);
+
+        await this._discoverHDIndices(
+            receiveGapLimit,
+            changeGapLimit,
+            startReceiveIndex,
+            startChangeIndex,
+        );
+        await this._syncHDWallet();
+    }
+
+    /**
+     * Scripts for addresses at or below current HD indices only.
+     * Ignores any gap-lookahead addresses cached in `keypairs` beyond the
+     * active receive/change indices (e.g. after {@link syncAndDiscoverAddresses}).
+     */
+    private _scriptsAtOrBelowIndices(): ScriptRef[] {
+        const scripts: ScriptRef[] = [];
+        for (let i = 0; i <= this.receiveIndex; i++) {
+            const address = this.getReceiveAddress(i);
+            const keypair = this.keypairs.get(address);
+            if (!keypair) {
+                throw new Error(
+                    `Missing keypair for receive address ${address}`,
+                );
+            }
+            scripts.push({
+                scriptType: 'p2pkh',
+                payload: toHex(keypair.pkh),
+            });
+        }
+        for (let i = 0; i <= this.changeIndex; i++) {
+            const address = this.getChangeAddress(i);
+            const keypair = this.keypairs.get(address);
+            if (!keypair) {
+                throw new Error(
+                    `Missing keypair for change address ${address}`,
+                );
+            }
+            scripts.push({
+                scriptType: 'p2pkh',
+                payload: toHex(keypair.pkh),
+            });
+        }
+        return scripts;
+    }
+
+    /**
+     * Sync HD wallet: query UTXOs for all addresses at or below current indices
+     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex).
+     *
+     * Assumes receiveIndex and changeIndex are already correct. Use
+     * {@link syncAndDiscoverAddresses} when indices are unknown.
+     *
+     * Ignores any gap-lookahead addresses cached in `keypairs` beyond the
+     * active indices (e.g. after discovery).
+     */
+    protected async _syncHDWallet(): Promise<void> {
+        // Derive and sync only addresses at or below current indices.
+        // Do not use getAllScripts(): discovery may have cached unused gap
+        // lookahead addresses beyond receiveIndex/changeIndex.
+        const allScripts = this._scriptsAtOrBelowIndices();
 
         if (allScripts.length === 0) {
             // No script no utxo.
@@ -379,10 +663,15 @@ export abstract class WalletBase<
         let utxoResults: ScriptUtxos[];
         try {
             const batchUtxosPromises = [];
-            while (allScripts.length > 0) {
+            // Copy so splice does not mutate allScripts (needed for fallback).
+            const scriptsToBatch = [...allScripts];
+            while (scriptsToBatch.length > 0) {
                 batchUtxosPromises.push(
                     this.chronik.batchUtxos(
-                        allScripts.splice(0, CHRONIK_BATCH_UTXOS_MAX_SCRIPTS),
+                        scriptsToBatch.splice(
+                            0,
+                            CHRONIK_BATCH_UTXOS_MAX_SCRIPTS,
+                        ),
                     ),
                 );
             }
@@ -391,11 +680,9 @@ export abstract class WalletBase<
             utxoResults = batchRowsChunks.flat().map(row => row.utxos);
         } catch {
             // Fallback to a non-batch request if the batch request failed (aka
-            // is not available from the connected Chronik instance). For
-            // improved resilience, we rebuild the list of scripts: the batch
-            // loop is consuming the list so we could be missing some scripts.
+            // is not available from the connected Chronik instance).
             utxoResults = await Promise.all(
-                this.getAllScripts().map(script =>
+                allScripts.map(script =>
                     this.chronik
                         .script(script.scriptType, script.payload)
                         .utxos(),
@@ -419,6 +706,7 @@ export abstract class WalletBase<
         // Update wallet state
         this.utxos = allUtxos;
         this.updateBalance();
+        this.tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
     }
 
     /**

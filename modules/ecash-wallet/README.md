@@ -366,3 +366,7 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 - Use a single tx when all specified outputs fit within protocol limits (including the 223-byte OP_RETURN limit for multi-tokenId sends); DATA actions may be combined with multi-tokenId sends in the same tx when it fits
 - Auto-chain one ALP send per tokenId when outputs or OP_RETURN size require it; chained multi-tokenId ALP sends support SEND actions only (MINT, BURN, etc. are not supported in this path)
 - SLP actions remain limited to a single tokenId per action (unchanged)
+
+# 5.7.0 [D20231](https://reviews.bitcoinabc.org/D20231)
+
+- Add `syncAndDiscoverAddresses()` for HD wallets (`Wallet` and `WatchOnlyWallet`): BIP44-style gap-limit scanning to discover receive/change indices when restoring from mnemonic or xpub with no prior index knowledge. Supports shared or per-chain gap limits (`gapLimit` / `receiveGapLimit` / `changeGapLimit`, default 20 via `DEFAULT_GAP_LIMIT`) and optional `startReceiveIndex` / `startChangeIndex`. Normal `sync()` is unchanged and still assumes indices are already correct.

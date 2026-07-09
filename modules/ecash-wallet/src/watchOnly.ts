@@ -105,7 +105,9 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
      * - Set utxos to latest from chronik
      *
      * For HD wallets, syncs all addresses at or below current indices
-     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex)
+     * (receive addresses 0 to receiveIndex, change addresses 0 to changeIndex).
+     * Assumes indices are already correct; use {@link syncAndDiscoverAddresses}
+     * when restoring a wallet with unknown receive/change indices.
      */
     public async sync(): Promise<void> {
         if (!this.isHD) {
@@ -126,8 +128,8 @@ export class WatchOnlyWallet extends WalletBase<WatchOnlyKeypairData> {
         }
 
         // HD wallet: sync all addresses at or below current indices
+        // tipHeight is updated inside _syncHDWallet
         await this._syncHDWallet();
-        this.tipHeight = (await this.chronik.blockchainInfo()).tipHeight;
     }
 
     /**
