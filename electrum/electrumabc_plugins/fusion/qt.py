@@ -46,7 +46,7 @@ from electrumabc_gui.qt.amountedit import XECAmountEdit
 from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
 from electrumabc_gui.qt.statusbar import StatusBarButton
-from electrumabc_gui.qt.tor_downloader import DownloadTorDialog
+from electrumabc_gui.qt.tor_download_dialog import DownloadTorDialog
 from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,

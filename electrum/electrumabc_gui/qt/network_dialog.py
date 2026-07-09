@@ -50,7 +50,7 @@ from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.tor import TorController
 from electrumabc.util import Weak, in_main_thread
 
-from .tor_downloader import DownloadTorDialog
+from .tor_download_dialog import DownloadTorDialog
 from .util import (
     Buttons,
     CloseButton,

@@ -1,6 +1,6 @@
 #
 # Electrum ABC - lightweight eCash client
-# Copyright (C) 2023 The Electrum ABC developers
+# Copyright (C) 2026-present The Electrum ABC developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -21,24 +21,16 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from __future__ import annotations
 
 import hashlib
 import multiprocessing
 import os
 import stat
 import sys
-from typing import TYPE_CHECKING
 
 import requests
-from qtpy import QtWidgets
-from qtpy.QtCore import Qt, QTimer
 
-from electrumabc.i18n import _
 from electrumabc.util import get_user_dir
-
-if TYPE_CHECKING:
-    from electrumabc.simple_config import SimpleConfig
 
 # dict keys are sys.platform string
 TOR_BINARY_URLS = {
@@ -47,8 +39,6 @@ TOR_BINARY_URLS = {
     "darwin": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor-macos",
 }
 TOR_BINARY_URL = TOR_BINARY_URLS.get(sys.platform)
-
-
 TOR_BINARY_NAMES = {
     "linux": "tor",
     "win32": "tor.exe",
@@ -66,10 +56,6 @@ TOR_BINARY_SHA256S = {
     "darwin": "804c30e3837793d800f82361ed2c240859fba26cdb1cb5c895691dfca2b4571d",
 }
 TOR_BINARY_SHA256 = TOR_BINARY_SHA256S[sys.platform]
-
-WRONG_CHECKSUM_MSG = "@wrong sha256sum@"
-FAILED_TO_SAVE_MSG = "@failed to save file@"
-FINISHED_MSG = "@finished@"
 
 
 class Downloader:
@@ -90,6 +76,10 @@ class Downloader:
       - "@wrong sha256sum@ {expected} {actual}"   (failure)
       - "@finished@"   (success)
     """
+
+    WRONG_CHECKSUM_MSG = "@wrong sha256sum@"
+    FAILED_TO_SAVE_MSG = "@failed to save file@"
+    FINISHED_MSG = "@finished@"
 
     def __init__(
         self,
@@ -114,7 +104,7 @@ class Downloader:
             actual_sha256sum = hashlib.sha256(r.content).hexdigest()
             if self.expected_sha256sum != actual_sha256sum:
                 self.queue.put(
-                    f"{WRONG_CHECKSUM_MSG} {self.expected_sha256sum} {actual_sha256sum}"
+                    f"{self.WRONG_CHECKSUM_MSG} {self.expected_sha256sum} {actual_sha256sum}"
                 )
                 return
         try:
@@ -124,100 +114,6 @@ class Downloader:
                 st = os.stat(self.filename)
                 os.chmod(self.filename, st.st_mode | stat.S_IEXEC)
         except OSError as e:
-            self.queue.put(f"{FAILED_TO_SAVE_MSG} {e}")
+            self.queue.put(f"{self.FAILED_TO_SAVE_MSG} {e}")
         else:
-            self.queue.put(FINISHED_MSG)
-
-
-class DownloadTorDialog(QtWidgets.QDialog):
-    def __init__(self, config: SimpleConfig, parent=None):
-        self.config = config
-        self.was_download_successful = False
-
-        super().__init__(parent)
-        self.setWindowTitle("Tor downloader")
-        self.setMinimumWidth(650)
-        self.setMinimumHeight(200)
-
-        layout = QtWidgets.QVBoxLayout()
-        self.setLayout(layout)
-
-        self.label = QtWidgets.QLabel(_("Downloading Tor..."))
-        layout.addWidget(self.label)
-
-        buttons_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(buttons_layout)
-        self.ok_button = QtWidgets.QPushButton("OK")
-        self.ok_button.setVisible(False)
-        buttons_layout.addWidget(self.ok_button)
-        self.cancel_button = QtWidgets.QPushButton("Cancel")
-        buttons_layout.addWidget(self.cancel_button)
-
-        if TOR_BINARY_PATH is None or TOR_BINARY_URL is None:
-            raise NotImplementedError(
-                f"No Tor binary available for platform {sys.platform}."
-            )
-        self.downloader = Downloader(
-            TOR_BINARY_URL,
-            TOR_BINARY_PATH,
-            make_executable=True,
-            sha256sum=TOR_BINARY_SHA256,
-        )
-        self.download_process = multiprocessing.Process(
-            target=self.downloader.run_download
-        )
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.read_queue)
-
-        self.ok_button.clicked.connect(self.accept)
-        self.cancel_button.clicked.connect(self.reject)
-
-        self.start_download()
-
-    def start_download(self):
-        QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.download_process.start()
-        self.timer.start(1000)
-
-    def read_queue(self):
-        while not self.downloader.queue.empty():
-            msg = self.downloader.queue.get()
-            error = "<b>Error:</b> "
-            if msg.startswith(FAILED_TO_SAVE_MSG):
-                error += "Failed to save file<br><br>"
-                error += f"{msg[len(FAILED_TO_SAVE_MSG) + 1 :]}"
-                self.on_error(error)
-            if msg.startswith(WRONG_CHECKSUM_MSG):
-                expected, actual = msg[len(WRONG_CHECKSUM_MSG) + 1 :].split()
-                error += (
-                    "Download failed: File has wrong checksum<br>"
-                    f"<br>Expected sha256sum:<br>    {expected}"
-                    f"<br>Actual sha256sum:<br>    {actual}"
-                )
-                self.on_error(error)
-            if msg == FINISHED_MSG:
-                self.on_download_complete()
-
-    def on_download_complete(self):
-        self.config.set_key("downloaded_tor_path", TOR_BINARY_PATH)
-        self.timer.stop()
-        QtWidgets.QApplication.restoreOverrideCursor()
-        self.label.setText(
-            _("Tor was successfully downloaded and saved to")
-            + f"\n{TOR_BINARY_PATH}\n\n"
-        )
-        self.cancel_button.setVisible(False)
-        self.ok_button.setVisible(True)
-        self.was_download_successful = True
-
-    def on_error(self, error: str):
-        self.label.setText(error)
-        self.timer.stop()
-        self.cancel_button.setText("Quit")
-        QtWidgets.QApplication.restoreOverrideCursor()
-
-    def reject(self):
-        self.timer.stop()
-        self.download_process.kill()
-        QtWidgets.QApplication.restoreOverrideCursor()
-        super().reject()
+            self.queue.put(self.FINISHED_MSG)
