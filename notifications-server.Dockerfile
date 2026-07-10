@@ -95,4 +95,4 @@ RUN pnpm \
 EXPOSE 3020
 
 WORKDIR /app/apps/notifications-server
-CMD [ "pnpm", "start" ]
+CMD [ "node", "dist/index.js" ]

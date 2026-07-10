@@ -10,6 +10,9 @@ import createPushRoutes from './routes/push';
 export const createApp = (pool: Pool): Express => {
     const app = express();
 
+    // Behind token-server-proxy (nginx); trust one hop for X-Forwarded-For
+    app.set('trust proxy', 1);
+
     app.use(helmet());
     app.use(express.json({ limit: '32kb' }));
 
