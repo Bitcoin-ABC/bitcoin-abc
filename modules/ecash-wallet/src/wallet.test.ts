@@ -66,6 +66,7 @@ import {
     getTokenUtxosWithExactAtoms,
     WalletUtxo,
     DEFAULT_GAP_LIMIT,
+    PostageChain,
 } from './wallet';
 import { WalletBase } from './walletBase';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
@@ -11038,5 +11039,251 @@ describe('Testnet (ectest prefix) support', () => {
             expect(wallet.prefix).to.equal('ecash');
             expect(wallet.address).to.include('ecash:');
         });
+    });
+});
+
+describe('buildPostage', () => {
+    const destScript = (i: number) => {
+        const byte = (i % 256).toString(16).padStart(2, '0');
+        return Script.p2pkh(fromHex(byte.repeat(20)));
+    };
+
+    it('wraps a single-tx NO_SATS action as a 1-step chain', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        wallet.utxos = [getDummyAlpUtxo(1000n)];
+        wallet.updateBalance();
+
+        const action: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 10n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        const chains = wallet
+            .action(action, { satsStrategy: SatsSelectionStrategy.NO_SATS })
+            .buildPostage();
+
+        expect(chains.length).to.equal(1);
+        const chain = chains[0];
+        expect(chain).to.be.instanceOf(PostageChain);
+        expect(chain.stepCount).to.equal(1);
+        expect(chain.chainedTxType).to.equal(ChainedTxType.NONE);
+        expect(chain.tokenId).to.equal(DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD);
+
+        const step0 = chain.buildStepPostage(0);
+        expect(step0.txBuilder.inputs.length).to.be.greaterThan(0);
+        expect(() => chain.buildStepPostage(1)).to.throw(
+            'Invalid postage chain stepIndex 1',
+        );
+    });
+
+    it('plans multiple steps when the action requires chaining', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        // Enough atoms for 42 outputs of 1 atom each
+        wallet.utxos = [getDummyAlpUtxo(100n)];
+        wallet.updateBalance();
+
+        const outputs: payment.PaymentOutput[] = [{ sats: 0n }];
+        for (let i = 0; i < 42; i += 1) {
+            outputs.push({
+                sats: 546n,
+                script: destScript(i),
+                tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                atoms: 1n,
+            });
+        }
+
+        const action: payment.Action = {
+            outputs,
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        const walletAction = wallet.action(action, {
+            satsStrategy: SatsSelectionStrategy.NO_SATS,
+        });
+        expect(walletAction.selectUtxosResult.chainedTxType).to.equal(
+            ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+        );
+
+        const chains = walletAction.buildPostage();
+        expect(chains.length).to.equal(1);
+        const chain = chains[0];
+        expect(chain.stepCount).to.be.greaterThan(1);
+        expect(chain.chainedTxType).to.equal(
+            ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+        );
+
+        // Step 0 does not need prevTxid
+        const step0 = chain.buildStepPostage(0);
+        expect(step0.txBuilder.inputs.length).to.equal(1);
+
+        // Step 1 requires fuel-completed prev txid
+        expect(() => chain.buildStepPostage(1)).to.throw(
+            'requires prevFuelCompletedTxid',
+        );
+
+        const fakePrevTxid = 'aa'.repeat(32);
+        const step1 = chain.buildStepPostage(1, fakePrevTxid);
+        expect(step1.txBuilder.inputs.length).to.equal(1);
+        expect(step1.txBuilder.inputs[0].input.prevOut.txid).to.equal(
+            fakePrevTxid,
+        );
+        expect(step1.txBuilder.inputs[0].input.prevOut.outIdx).to.equal(
+            chain.steps[0].chainedOutIdx,
+        );
+    });
+
+    it('returns one chain per tokenId for multi-token ALP sends that require chaining', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        const tokenIdA = DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD;
+        const tokenIdB = toHex(strToBytes('SLP3')).repeat(8);
+        const utxoA = getDummyAlpUtxo(100n, tokenIdA);
+        const utxoB = {
+            ...getDummyAlpUtxo(50n, tokenIdB),
+            outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+        };
+        wallet.utxos = [utxoA, utxoB];
+        wallet.updateBalance();
+
+        // 42 outputs of A + 3 of B → chaining (and multi-token split)
+        const outputs: payment.PaymentOutput[] = [{ sats: 0n }];
+        for (let i = 0; i < 42; i += 1) {
+            outputs.push({
+                sats: 546n,
+                script: destScript(i),
+                tokenId: tokenIdA,
+                atoms: 1n,
+            });
+        }
+        for (let i = 0; i < 3; i += 1) {
+            outputs.push({
+                sats: 546n,
+                script: destScript(100 + i),
+                tokenId: tokenIdB,
+                atoms: 1n,
+            });
+        }
+
+        const action: payment.Action = {
+            outputs,
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdA,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdB,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        const walletAction = wallet.action(action, {
+            satsStrategy: SatsSelectionStrategy.NO_SATS,
+        });
+
+        const chains = walletAction.buildPostage();
+        expect(chains.length).to.equal(2);
+        expect(chains[0].tokenId).to.equal(tokenIdA);
+        expect(chains[1].tokenId).to.equal(tokenIdB);
+        expect(chains[0].stepCount).to.be.greaterThan(1);
+        expect(chains[1].stepCount).to.equal(1);
+    });
+
+    it('is a 1-step chain for an unchained 2-tokenId ALP multisend', () => {
+        const mockChronik = new MockChronikClient();
+        const wallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        const tokenIdA = DUMMY_TOKENID_ALP_TOKEN_TYPE_STANDARD;
+        const tokenIdB = toHex(strToBytes('SLP3')).repeat(8);
+        wallet.utxos = [
+            getDummyAlpUtxo(10n, tokenIdA),
+            {
+                ...getDummyAlpUtxo(10n, tokenIdB),
+                outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+            },
+        ];
+        wallet.updateBalance();
+
+        const action: payment.Action = {
+            outputs: [
+                { sats: 0n },
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: tokenIdA,
+                    atoms: 1n,
+                },
+                {
+                    sats: 546n,
+                    script: MOCK_DESTINATION_SCRIPT,
+                    tokenId: tokenIdB,
+                    atoms: 1n,
+                },
+            ],
+            tokenActions: [
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdA,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+                {
+                    type: 'SEND',
+                    tokenId: tokenIdB,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                },
+            ],
+        };
+
+        const walletAction = wallet.action(action, {
+            satsStrategy: SatsSelectionStrategy.NO_SATS,
+        });
+        expect(walletAction.selectUtxosResult.chainedTxType).to.equal(
+            ChainedTxType.NONE,
+        );
+
+        const chains = walletAction.buildPostage();
+        expect(chains.length).to.equal(1);
+        const chain = chains[0];
+        expect(chain.stepCount).to.equal(1);
+        expect(chain.chainedTxType).to.equal(ChainedTxType.NONE);
+        expect(
+            chain.buildStepPostage(0).txBuilder.inputs.length,
+        ).to.be.greaterThan(0);
     });
 });

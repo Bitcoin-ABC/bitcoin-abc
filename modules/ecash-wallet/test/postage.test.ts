@@ -26,7 +26,18 @@ import {
     Tx,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-import { Wallet, SatsSelectionStrategy, PostageTx } from '../src/wallet';
+import {
+    Wallet,
+    SatsSelectionStrategy,
+    PostageTx,
+    ChainedTxType,
+} from '../src/wallet';
+import {
+    setupPostageWallets,
+    genesisAlpToken,
+    buildMultiTokenSendAction,
+    prepareAndBroadcastPostageChains,
+} from './postageChainHelpers';
 
 use(chaiAsPromised);
 
@@ -175,7 +186,8 @@ describe('Postage mechanism for eCash transactions', () => {
             .action(postageAction, {
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
             })
-            .buildPostage();
+            .buildPostage()[0]
+            .buildStepPostage(0);
 
         // The postage tx has only 1 input
         expect(postageTx.txBuilder.inputs.length).to.equal(1);
@@ -342,7 +354,8 @@ describe('Postage mechanism for eCash transactions', () => {
             .action(postageAction, {
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
             })
-            .buildPostage();
+            .buildPostage()[0]
+            .buildStepPostage(0);
 
         // The postage tx has only 1 input
         expect(postageTx.txBuilder.inputs.length).to.equal(1);
@@ -559,7 +572,8 @@ describe('Postage mechanism for eCash transactions', () => {
             .action(postageAction, {
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
             })
-            .buildPostage();
+            .buildPostage()[0]
+            .buildStepPostage(0);
 
         // The postage tx has only 1 input
         expect(postageTx.txBuilder.inputs.length).to.equal(1);
@@ -764,7 +778,8 @@ describe('Postage mechanism for eCash transactions', () => {
             .action(postageAction, {
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
             })
-            .buildPostage();
+            .buildPostage()[0]
+            .buildStepPostage(0);
 
         // The postage tx has 5 inputs, as we need all the qty-1 minted token inputs to cover the qty-5 token output
         expect(postageTx.txBuilder.inputs.length).to.equal(5);
@@ -808,5 +823,137 @@ describe('Postage mechanism for eCash transactions', () => {
 
         // We have our original 5 token inputs
         expect(tx.inputs.length).to.equal(5);
+    });
+
+    it('We can prepare a chained ALP postage send (fuel-complete all steps, then broadcast)', async () => {
+        // Token wallet has tokens but no spare XEC for fees; fuel wallet pays postage.
+        // Prepare every chain step before broadcasting any (no partial on-chain payout).
+        const tokenWallet = Wallet.fromSk(fromHex('25'.repeat(32)), chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('26'.repeat(32)), chronik);
+        await setupPostageWallets(runner, tokenWallet, fuelWallet, {
+            tokenWalletSats: 1_000_000_00n,
+            fuelWalletSats: 500_000n,
+        });
+
+        const tokenId = await genesisAlpToken(tokenWallet, 'PCHAIN', 100n);
+        // 42 recipients → exceeds ALP_POLICY_MAX_OUTPUTS (29) → chained
+        const postageAction = buildMultiTokenSendAction([tokenId], 42);
+
+        const chain = tokenWallet
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
+            .buildPostage()[0];
+
+        expect(chain.stepCount).to.be.greaterThan(1);
+        expect(chain.chainedTxType).to.equal(
+            ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+        );
+
+        const txids = await prepareAndBroadcastPostageChains(
+            [chain],
+            fuelWallet,
+            chronik,
+        );
+        expect(txids.length).to.equal(chain.stepCount);
+
+        // Subsequent txs spend the previous fuel-completed txid
+        for (let i = 1; i < txids.length; i += 1) {
+            const tx = await chronik.tx(txids[i]);
+            expect(tx.inputs[0].prevOut.txid).to.equal(txids[i - 1]);
+        }
+    });
+
+    it('buildPostage wraps an unchained 2-tokenId ALP multisend as a single 1-step chain', async () => {
+        const tokenWallet = Wallet.fromSk(fromHex('27'.repeat(32)), chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('28'.repeat(32)), chronik);
+        await setupPostageWallets(runner, tokenWallet, fuelWallet, {
+            tokenWalletSats: 2_000_000_00n,
+            fuelWalletSats: 200_000n,
+        });
+
+        const tokenIdA = await genesisAlpToken(tokenWallet, 'P2A', 100n);
+        const tokenIdB = await genesisAlpToken(tokenWallet, 'P2B', 100n);
+
+        // 1 output each → fits in one unchained multi-tokenId ALP tx
+        const postageAction = buildMultiTokenSendAction(
+            [tokenIdA, tokenIdB],
+            1,
+        );
+
+        const walletAction = tokenWallet.action(postageAction, {
+            satsStrategy: SatsSelectionStrategy.NO_SATS,
+        });
+        expect(walletAction.selectUtxosResult.chainedTxType).to.equal(
+            ChainedTxType.NONE,
+        );
+
+        const chains = walletAction.buildPostage();
+        expect(chains.length).to.equal(1);
+        const chain = chains[0];
+        expect(chain.stepCount).to.equal(1);
+        expect(chain.chainedTxType).to.equal(ChainedTxType.NONE);
+        expect(
+            chain.buildStepPostage(0).txBuilder.inputs.length,
+        ).to.be.greaterThan(0);
+
+        const txids = await prepareAndBroadcastPostageChains(
+            chains,
+            fuelWallet,
+            chronik,
+        );
+        expect(txids.length).to.equal(1);
+
+        const tx = await chronik.tx(txids[0]);
+        // Two ALP SEND pushes in one OP_RETURN
+        expect(tx.tokenEntries.length).to.equal(2);
+    });
+
+    it('buildPostage prepares 42 outputs each of 3 ALP tokenIds (one chain per tokenId)', async () => {
+        const tokenWallet = Wallet.fromSk(fromHex('29'.repeat(32)), chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('2a'.repeat(32)), chronik);
+        await setupPostageWallets(runner, tokenWallet, fuelWallet, {
+            tokenWalletSats: 5_000_000_00n,
+            fuelWalletSats: 2_000_000n,
+        });
+
+        const tokenIdA = await genesisAlpToken(tokenWallet, 'P3A', 100n);
+        const tokenIdB = await genesisAlpToken(tokenWallet, 'P3B', 100n);
+        const tokenIdC = await genesisAlpToken(tokenWallet, 'P3C', 100n);
+
+        const postageAction = buildMultiTokenSendAction(
+            [tokenIdA, tokenIdB, tokenIdC],
+            42,
+        );
+
+        const chains = tokenWallet
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
+            .buildPostage();
+
+        expect(chains.length).to.equal(3);
+        expect(chains.map(c => c.tokenId)).to.deep.equal([
+            tokenIdA,
+            tokenIdB,
+            tokenIdC,
+        ]);
+        for (const chain of chains) {
+            expect(chain.stepCount).to.be.greaterThan(1);
+            expect(chain.chainedTxType).to.equal(
+                ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+            );
+        }
+
+        const txids = await prepareAndBroadcastPostageChains(
+            chains,
+            fuelWallet,
+            chronik,
+        );
+        // 3 independent chains, each with >1 step
+        expect(txids.length).to.equal(
+            chains.reduce((sum, c) => sum + c.stepCount, 0),
+        );
+        expect(txids.length).to.be.greaterThan(3);
     });
 });

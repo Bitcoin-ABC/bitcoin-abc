@@ -60,3 +60,20 @@ Every `chainedTx` will have exactly 1 input and the maximum number of outputs po
 - No change
 
 This spec can be applied to XEC or token transactions on SLP. Note that, for token transactions, the token change output used in the next tx's input could also include sufficient satoshis to cover token dust and fees for subsequent txs, minimizing the required outputs of each tx.
+
+## Postage chains
+
+Normal `build()` chains sign every link locally (txid of tx _i_ is known before signing tx _i+1_), then broadcast.
+
+Postage is different: a postage server adds fuel inputs after the user partial-signs, so the **fuel-completed** txid differs from the partial postage txid. Downstream links must reference the fuel-completed txid.
+
+Use `WalletAction.buildPostage()` with `SatsSelectionStrategy.NO_SATS` (postage analogue of `build()`):
+
+1. `buildPostage()` → `PostageChain[]` (unchained Actions: one 1-step chain; chained: one or more multi-step chains).
+2. For each chain, for each step: `buildStepPostage(i, prevFuelCompletedTxid?)` → `PostageTx` → fuel-complete via the postage server **without** broadcasting.
+3. Pass the fuel-completed txid into the next step.
+4. After every step of every chain is prepared, broadcast all hexes in order (within each chain; independent chains may be interleaved).
+
+ALP multi-tokenId sends that require chaining yield **one postage chain per tokenId**. Independent chains may be prepared in any order; order only matters within a chain.
+
+Unchained multi-tokenId ALP sends that fit in one tx are exposed as a single 1-step chain (same payload as a former singular `buildPostage()`).

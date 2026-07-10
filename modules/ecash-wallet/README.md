@@ -370,3 +370,10 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 # 5.7.0 [D20231](https://reviews.bitcoinabc.org/D20231)
 
 - Add `syncAndDiscoverAddresses()` for HD wallets (`Wallet` and `WatchOnlyWallet`): BIP44-style gap-limit scanning to discover receive/change indices when restoring from mnemonic or xpub with no prior index knowledge. Supports shared or per-chain gap limits (`gapLimit` / `receiveGapLimit` / `changeGapLimit`, default 20 via `DEFAULT_GAP_LIMIT`) and optional `startReceiveIndex` / `startChangeIndex`. Normal `sync()` is unchanged and still assumes indices are already correct.
+
+# 6.0.0 **BREAKING CHANGE** [D20233](https://reviews.bitcoinabc.org/D20233)
+
+- Unify postage with the funded `build()` shape: `buildPostage()` always returns `PostageChain[]`
+- Unchained `NO_SATS` Actions yield one 1-step chain; chained token sends yield one or more multi-step chains (ALP multi-tokenId: one chain per SEND tokenId)
+- Per link: `chain.buildStepPostage(i, prevFuelCompletedTxid?)` → partial `PostageTx` for a postage server to fuel-complete before any broadcast
+- **_BREAKING CHANGE_** Removes the old singular `buildPostage(): PostageTx` return type; callers must use `buildPostage()[0].buildStepPostage(0)` for single-tx postage (or iterate chains/steps for chained sends)

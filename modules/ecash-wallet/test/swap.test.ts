@@ -223,7 +223,8 @@ describe('Atomic swap mechanism using ignoredTokenIds', () => {
                 satsStrategy: SatsSelectionStrategy.NO_SATS,
                 ignoredTokenIds: [tokenThetaId],
             })
-            .buildPostage();
+            .buildPostage()[0]
+            .buildStepPostage(0);
 
         // The postage tx has only the buyer's TokenGamma input
         expect(postageTx.txBuilder.inputs.length).to.equal(1);

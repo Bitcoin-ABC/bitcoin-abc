@@ -47,8 +47,16 @@ import {
     Wallet,
     CONSOLIDATE_UTXOS_BATCHSIZE,
     MAX_ALP_UNCHAINED_MULTI_TOKEN_IDS_EXACT,
+    SatsSelectionStrategy,
+    ChainedTxType,
 } from '../src/wallet';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
+import {
+    setupPostageWallets,
+    genesisAlpToken,
+    buildMultiTokenSendAction,
+    prepareAndBroadcastPostageChains,
+} from './postageChainHelpers';
 
 use(chaiAsPromised);
 
@@ -4411,5 +4419,97 @@ describe('HD Wallet can build and broadcast on regtest', () => {
             // They are broadcasted but not finalized
             expect(tx.isFinal).to.equal(false);
         }
+    });
+
+    it('HD: buildPostage wraps an unchained 2-tokenId ALP multisend as a 1-step chain', async () => {
+        const tokenWallet = createHDWallet(301, chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('b1'.repeat(32)), chronik);
+        const receiveScript = Script.fromAddress(
+            tokenWallet.getReceiveAddress(0),
+        );
+        await setupPostageWallets(runner, tokenWallet, fuelWallet, {
+            tokenWalletSats: 2_000_000_00n,
+            fuelWalletSats: 200_000n,
+            tokenFundScript: receiveScript,
+        });
+
+        const tokenIdA = await genesisAlpToken(tokenWallet, 'HD2A', 100n);
+        const tokenIdB = await genesisAlpToken(tokenWallet, 'HD2B', 100n);
+        const postageAction = buildMultiTokenSendAction(
+            [tokenIdA, tokenIdB],
+            1,
+        );
+
+        const walletAction = tokenWallet.action(postageAction, {
+            satsStrategy: SatsSelectionStrategy.NO_SATS,
+        });
+        expect(walletAction.selectUtxosResult.chainedTxType).to.equal(
+            ChainedTxType.NONE,
+        );
+
+        const chains = walletAction.buildPostage();
+        expect(chains.length).to.equal(1);
+        const chain = chains[0];
+        expect(chain.stepCount).to.equal(1);
+        expect(chain.chainedTxType).to.equal(ChainedTxType.NONE);
+
+        const txids = await prepareAndBroadcastPostageChains(
+            chains,
+            fuelWallet,
+            chronik,
+        );
+        expect(txids.length).to.equal(1);
+        const tx = await chronik.tx(txids[0]);
+        expect(tx.tokenEntries.length).to.equal(2);
+    });
+
+    it('HD: buildPostage prepares 42 outputs each of 3 ALP tokenIds', async () => {
+        const tokenWallet = createHDWallet(302, chronik);
+        const fuelWallet = Wallet.fromSk(fromHex('b2'.repeat(32)), chronik);
+        const receiveScript = Script.fromAddress(
+            tokenWallet.getReceiveAddress(0),
+        );
+        await setupPostageWallets(runner, tokenWallet, fuelWallet, {
+            tokenWalletSats: 5_000_000_00n,
+            fuelWalletSats: 2_000_000n,
+            tokenFundScript: receiveScript,
+        });
+
+        const tokenIdA = await genesisAlpToken(tokenWallet, 'HD3A', 100n);
+        const tokenIdB = await genesisAlpToken(tokenWallet, 'HD3B', 100n);
+        const tokenIdC = await genesisAlpToken(tokenWallet, 'HD3C', 100n);
+        const postageAction = buildMultiTokenSendAction(
+            [tokenIdA, tokenIdB, tokenIdC],
+            42,
+        );
+
+        const chains = tokenWallet
+            .action(postageAction, {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+            })
+            .buildPostage();
+
+        expect(chains.length).to.equal(3);
+        expect(chains.map(c => c.tokenId)).to.deep.equal([
+            tokenIdA,
+            tokenIdB,
+            tokenIdC,
+        ]);
+        for (const chain of chains) {
+            expect(chain.stepCount).to.be.greaterThan(1);
+            expect(chain.chainedTxType).to.equal(
+                ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+            );
+        }
+
+        const txids = await prepareAndBroadcastPostageChains(
+            chains,
+            fuelWallet,
+            chronik,
+        );
+        expect(txids.length).to.equal(
+            chains.reduce((sum, c) => sum + c.stepCount, 0),
+        );
+        expect(txids.length).to.be.greaterThan(3);
     });
 });

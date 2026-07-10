@@ -352,3 +352,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.3 [D20231](https://reviews.bitcoinabc.org/D20231)
 
 - Upgrade to `ecash-wallet` 5.7.0
+
+### 4.2.4 [D20233](https://reviews.bitcoinabc.org/D20233)
+
+- Upgrade to `ecash-wallet` 6.0.0

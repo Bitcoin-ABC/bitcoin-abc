@@ -2841,10 +2841,33 @@ export class WalletAction {
     }
 
     /**
-     * Build a postage transaction that is structurally valid but financially insufficient
-     * This is used for postage scenarios where fuel inputs will be added later
+     * Build postage chain(s) for this Action (postage analogue of {@link build}).
+     *
+     * Always returns {@link PostageChain}`[]`. Unchained Actions yield one chain
+     * with `stepCount === 1`. Token sends that exceed per-tx limits yield one or
+     * more chains (ALP multi-tokenId: one chain per SEND tokenId, same split as
+     * {@link _buildMultiTokenSend}).
+     *
+     * Caller flow (prepare whole plan before any broadcast):
+     * 1. For each chain, for step `i = 0 .. stepCount-1`:
+     *    - `buildStepPostage(i, prevFuelCompletedTxid?)` → partial {@link PostageTx}
+     *    - Fuel-complete via a postage server (`PostageTx.addFuelAndSign`) **without**
+     *      broadcasting
+     *    - Use the fuel-completed txid as `prevTxid` for step `i+1`
+     * 2. After every step of every chain is fuel-completed, broadcast all hexes
+     *    in order (within each chain; independent chains may be interleaved).
+     *
+     * Step `i>0` must use the **fuel-completed** txid of step `i-1`, not the
+     * partial postage txid (adding fuel inputs changes the txid).
+     *
+     * Does not mutate the wallet UTXO set. Planning may advance HD change indices
+     * when passthrough/token-change scripts are allocated (same as chained
+     * {@link build}).
+     *
+     * Use with {@link SatsSelectionStrategy.NO_SATS}. Calling {@link build} with
+     * `NO_SATS` throws and points here.
      */
-    public buildPostage(sighash = ALL_ANYONECANPAY_BIP143): PostageTx {
+    public buildPostage(sighash = ALL_ANYONECANPAY_BIP143): PostageChain[] {
         if (this.action.noChange) {
             throw new Error('noChange param is not supported for postage txs');
         }
@@ -2852,29 +2875,64 @@ export class WalletAction {
             this.selectUtxosResult.success === false ||
             typeof this.selectUtxosResult.utxos === 'undefined'
         ) {
-            // Use the errors field if available, otherwise construct a generic error
             if (
                 this.selectUtxosResult.errors &&
                 this.selectUtxosResult.errors.length > 0
             ) {
                 throw new Error(this.selectUtxosResult.errors.join('; '));
             }
-
             throw new Error(`Unable to select required UTXOs for this Action.`);
         }
+        if (this._wallet.isMultisig) {
+            throw new Error(
+                'MultisigWallet does not support postage chain transactions',
+            );
+        }
 
-        const selectedUtxos = this.selectUtxosResult.utxos;
+        const chainedTxType = this.selectUtxosResult.chainedTxType;
+
+        // Unchained: one 1-step chain (same payload as a single partial postage tx)
+        if (chainedTxType === ChainedTxType.NONE) {
+            const postageTx = this._buildSinglePostageTx(sighash);
+            return [
+                new PostageChain({
+                    chainedTxType: ChainedTxType.NONE,
+                    tokenId: getSendTokenIdOrUndefined(this.action),
+                    steps: [
+                        {
+                            inputs: postageTx.txBuilder.inputs,
+                            outputs: postageTx.txBuilder.outputs,
+                            chainedOutIdx: undefined,
+                            chainedAtoms: undefined,
+                        },
+                    ],
+                    feePerKb: this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB,
+                    dustSats: this.action.dustSats || DEFAULT_DUST_SATS,
+                    wallet: this._wallet,
+                    sighash,
+                }),
+            ];
+        }
+
+        if (chainedTxType !== ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS) {
+            throw new Error(
+                `buildPostage() does not yet support chainedTxType ${chainedTxType}`,
+            );
+        }
+
+        return this._planTokenSendPostageChains(sighash);
+    }
+
+    /**
+     * Build a single partially signed postage tx (no chaining).
+     * Used by {@link buildPostage} for unchained Actions and by multi-token
+     * sub-plans that fit in one tx.
+     */
+    private _buildSinglePostageTx(sighash: SigHashType): PostageTx {
+        const selectedUtxos = this.selectUtxosResult.utxos!;
         const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
         const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
 
-        /**
-         * Validate outputs AND add token-required generated outputs
-         * i.e. token change or burn-adjusted token change
-         *
-         * We pass a function to finalizeOutputs that will be called only when
-         * a change output is actually needed. This ensures we only increment
-         * changeIndex when we actually use a change address.
-         */
         const { txOutputs } = finalizeOutputs(
             this.action,
             selectedUtxos,
@@ -2883,32 +2941,10 @@ export class WalletAction {
             this.selectUtxosResult.config.ignoredTokenIds,
         );
 
-        /**
-         * NB we DO NOT currently add a change output to the txOutputs
-         * It would need to be properly sized to cover the fee, according to
-         * the fuel utxo that the payer will be using
-         * So, if this info is known, we could accept it as a param
-         *
-         * Possible approaches
-         * - buildPostage could accept fuelUtxoSats and fuelScript as params, if the
-         *   size of the fuelUtxos is known and the script is known
-         * - Stick with no change and the fuel server has discretely-sized
-         *   small utxos, say 1000 sats, and there is never change
-         */
-
-        // Create inputs with the specified sighash
         const finalizedInputs = selectedUtxos.map(utxo =>
             this._wallet.utxoToBuilderInput(utxo, sighash),
         );
 
-        // NB we could remove these utxos from the wallet's utxo set, but this would
-        // only partially match the API of the build() method
-        // In build(), we know the txid of the tx, so we can also add the change utxos created
-        // by the tx
-        // In this case, we cannot know the txid until after the tx is broadcast. So, we must
-        // let the app dev handle this problem
-
-        // Create a signed tx, missing fuel inputs
         const txBuilder = new TxBuilder({
             inputs: finalizedInputs,
             outputs: txOutputs,
@@ -2918,8 +2954,400 @@ export class WalletAction {
             dustSats,
         });
 
-        // Create a PostageTx (structurally valid but financially insufficient)
         return new PostageTx(partiallySignedTx);
+    }
+
+    /**
+     * Plan postage chains for TOKEN_SEND_EXCEEDS_MAX_OUTPUTS (and ALP multi-token
+     * splits that use the same chainedTxType).
+     */
+    private _planTokenSendPostageChains(sighash: SigHashType): PostageChain[] {
+        const { tokenActions } = this.action;
+        const sendActions = tokenActions?.filter(
+            action => action.type === 'SEND',
+        ) as payment.SendAction[] | undefined;
+
+        if (!sendActions || sendActions.length === 0) {
+            throw new Error(
+                'No SEND action found for token send postage chain',
+            );
+        }
+
+        if (sendActions.length > 1) {
+            if (sendActions.some(a => a.tokenType.protocol !== 'ALP')) {
+                throw new Error(
+                    'Chained multi-tokenId sends are only supported for ALP tokens.',
+                );
+            }
+            validateChainedAlpMultiTokenSendOnly(this.action);
+            return this._planMultiTokenPostageChains(sighash);
+        }
+
+        const dataActions = tokenActions?.filter(
+            action => action.type === 'DATA',
+        ) as payment.DataAction[] | undefined;
+        if (dataActions && dataActions.length > 0) {
+            throw new Error(
+                'Data actions are not supported in chained token send transactions.',
+            );
+        }
+
+        const plan = this._planSingleTokenSendPostageChain(
+            sendActions[0],
+            this.selectUtxosResult.utxos!,
+            sighash,
+        );
+        return [plan];
+    }
+
+    /**
+     * One postage chain per SEND tokenId (same split as {@link _buildMultiTokenSend}).
+     * Non-token outputs attach to the first tokenId's chain.
+     */
+    private _planMultiTokenPostageChains(sighash: SigHashType): PostageChain[] {
+        const { tokenActions, outputs } = this.action;
+        const sendActions = (tokenActions?.filter(
+            action => action.type === 'SEND',
+        ) ?? []) as payment.SendAction[];
+
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        const nonTokenOutputs = outputs
+            .slice(1)
+            .filter(output => !('tokenId' in output));
+
+        const chains: PostageChain[] = [];
+        for (let i = 0; i < sendActions.length; i += 1) {
+            const sendAction = sendActions[i];
+            const { tokenId } = sendAction;
+
+            const tokenOutputs = outputs.filter(
+                output =>
+                    'tokenId' in output &&
+                    output.tokenId === tokenId &&
+                    typeof (output as payment.PaymentTokenOutput).atoms !==
+                        'undefined',
+            );
+
+            const tokenTokenActions = (tokenActions ?? []).filter(
+                (action): action is payment.SendAction =>
+                    action.type === 'SEND' && action.tokenId === tokenId,
+            );
+
+            const subOutputs: payment.PaymentOutput[] = [
+                { sats: 0n },
+                ...tokenOutputs,
+            ];
+            if (i === 0 && nonTokenOutputs.length > 0) {
+                subOutputs.push(...nonTokenOutputs);
+            }
+
+            const subAction: payment.Action = {
+                outputs: subOutputs,
+                tokenActions: tokenTokenActions,
+                dustSats,
+                feePerKb,
+                ...(typeof this.action.maxTxSersize !== 'undefined'
+                    ? { maxTxSersize: this.action.maxTxSersize }
+                    : {}),
+            };
+
+            // Plan each sub-action with NO_SATS so we only select that token's UTXOs
+            const subWalletAction = WalletAction.fromAction(
+                this._wallet,
+                subAction,
+                { satsStrategy: SatsSelectionStrategy.NO_SATS },
+            );
+            if (
+                subWalletAction.selectUtxosResult.success === false ||
+                typeof subWalletAction.selectUtxosResult.utxos === 'undefined'
+            ) {
+                throw new Error(
+                    `Unable to select UTXOs for postage chain tokenId ${tokenId}`,
+                );
+            }
+
+            if (
+                subWalletAction.selectUtxosResult.chainedTxType ===
+                ChainedTxType.NONE
+            ) {
+                const postageTx =
+                    subWalletAction._buildSinglePostageTx(sighash);
+                chains.push(
+                    new PostageChain({
+                        chainedTxType: ChainedTxType.NONE,
+                        tokenId,
+                        steps: [
+                            {
+                                inputs: postageTx.txBuilder.inputs,
+                                outputs: postageTx.txBuilder.outputs,
+                                chainedOutIdx: undefined,
+                                chainedAtoms: undefined,
+                            },
+                        ],
+                        feePerKb,
+                        dustSats,
+                        wallet: this._wallet,
+                        sighash,
+                    }),
+                );
+            } else {
+                chains.push(
+                    subWalletAction._planSingleTokenSendPostageChain(
+                        sendAction,
+                        subWalletAction.selectUtxosResult.utxos,
+                        sighash,
+                    ),
+                );
+            }
+        }
+        return chains;
+    }
+
+    /**
+     * Plan a single-token TOKEN_SEND postage chain.
+     *
+     * Layout matches {@link _buildTokenSendChained}, except:
+     * - TxAlpha uses only token UTXOs (no local fuel); a postage server adds fuel later
+     * - Subsequent steps keep a placeholder prevOut until {@link PostageChain.buildStepPostage}
+     *   receives the fuel-completed prevTxid
+     * - Does not update the wallet UTXO set
+     */
+    private _planSingleTokenSendPostageChain(
+        sendAction: payment.SendAction,
+        selectedUtxos: WalletUtxo[],
+        sighash: SigHashType,
+    ): PostageChain {
+        const { tokenId, tokenType } = sendAction;
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
+        const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
+
+        const tokenSendOutputs = this.action.outputs.filter(
+            output =>
+                'tokenId' in output &&
+                output.tokenId === tokenId &&
+                typeof (output as payment.PaymentTokenOutput).atoms !==
+                    'undefined',
+        ) as payment.PaymentTokenOutput[];
+
+        const maxOutputsPerTx =
+            tokenType.protocol === 'SLP'
+                ? SLP_MAX_SEND_OUTPUTS
+                : ALP_POLICY_MAX_OUTPUTS;
+
+        const tokenUtxos = selectedUtxos.filter(
+            utxo =>
+                'token' in utxo &&
+                utxo.token?.tokenId === tokenId &&
+                !utxo.token?.isMintBaton,
+        );
+
+        const totalInputAtoms = tokenUtxos.reduce(
+            (sum, utxo) => sum + (utxo.token?.atoms || 0n),
+            0n,
+        );
+        const totalOutputAtoms = tokenSendOutputs.reduce(
+            (sum, output) => sum + (output.atoms || 0n),
+            0n,
+        );
+        const tokenChange = totalInputAtoms - totalOutputAtoms;
+        if (tokenChange > 0n) {
+            tokenSendOutputs.push({
+                isMintBaton: false,
+                sats: dustSats,
+                script: this._wallet.getChangeScript(),
+                tokenId,
+                atoms: tokenChange,
+            });
+        }
+
+        const batchedOutputs = batchTokenSendOutputs(
+            tokenSendOutputs,
+            maxOutputsPerTx,
+        );
+        if (batchedOutputs.length === 0) {
+            throw new Error('No token send outputs to batch');
+        }
+
+        // If everything fits in one batch, use normal single-tx postage layout
+        if (batchedOutputs.length === 1) {
+            const { txOutputs } = finalizeOutputs(
+                this.action,
+                selectedUtxos,
+                () => this._wallet.getChangeScript(),
+                dustSats,
+            );
+            const finalizedInputs = selectedUtxos.map(utxo =>
+                this._wallet.utxoToBuilderInput(utxo, sighash),
+            );
+            const txBuilder = new TxBuilder({
+                inputs: finalizedInputs,
+                outputs: txOutputs,
+            });
+            const partiallySignedTx = txBuilder.sign({
+                feePerKb,
+                dustSats,
+            });
+            const postageTx = new PostageTx(partiallySignedTx);
+            return new PostageChain({
+                chainedTxType: ChainedTxType.NONE,
+                tokenId,
+                steps: [
+                    {
+                        inputs: postageTx.txBuilder.inputs,
+                        outputs: postageTx.txBuilder.outputs,
+                        chainedOutIdx: undefined,
+                        chainedAtoms: undefined,
+                    },
+                ],
+                feePerKb,
+                dustSats,
+                wallet: this._wallet,
+                sighash,
+            });
+        }
+
+        const preliminaryTxs: {
+            inputs: TxBuilderInput[];
+            outputs: TxBuilderOutput[];
+            chainedOutIdx: number | undefined;
+            chainedAtoms: bigint | undefined;
+        }[] = [];
+
+        let requiredAtomsInSubsequentTxs = 0n;
+        let requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs = 0n;
+
+        for (let i = batchedOutputs.length - 1; i >= 0; i -= 1) {
+            const batch = batchedOutputs[i];
+            const sendAmountsThisBatch = batch.map(
+                output => output.atoms || 0n,
+            );
+            if (requiredAtomsInSubsequentTxs !== 0n) {
+                sendAmountsThisBatch.push(requiredAtomsInSubsequentTxs);
+            }
+
+            let opReturnScript: Script;
+            if (tokenType.protocol === 'ALP') {
+                opReturnScript = emppScript([
+                    alpSend(tokenId, tokenType.number, sendAmountsThisBatch),
+                ]);
+            } else {
+                opReturnScript = slpSend(
+                    tokenId,
+                    tokenType.number,
+                    sendAmountsThisBatch,
+                );
+            }
+
+            const outputsThisBatch: TxBuilderOutput[] = [
+                { sats: 0n, script: opReturnScript },
+            ];
+            for (const output of batch) {
+                if (!output.script) {
+                    throw new Error(
+                        'Token send output must have a script defined',
+                    );
+                }
+                outputsThisBatch.push({
+                    sats: dustSats,
+                    script: output.script,
+                });
+            }
+
+            // Sum dust outputs only (before the chained passthrough output)
+            const satoshisToCoverDustTokenOutputs = outputsThisBatch.reduce(
+                (sum, output) => {
+                    if ('sats' in output) {
+                        return sum + output.sats;
+                    }
+                    return sum;
+                },
+                0n,
+            );
+
+            let chainedOutIdx: number | undefined;
+            let chainedAtoms: bigint | undefined;
+            if (requiredAtomsInSubsequentTxs !== 0n) {
+                chainedOutIdx = outputsThisBatch.length;
+                chainedAtoms = requiredAtomsInSubsequentTxs;
+                outputsThisBatch.push({
+                    sats: requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs,
+                    script: this._wallet.getChangeScript(),
+                });
+            }
+
+            if (i === 0) {
+                // TxAlpha: token inputs only (postage); no local fuel, no XEC change
+                const inputs = tokenUtxos.map(utxo =>
+                    this._wallet.utxoToBuilderInput(utxo, sighash),
+                );
+                preliminaryTxs.unshift({
+                    inputs,
+                    outputs: outputsThisBatch,
+                    chainedOutIdx,
+                    chainedAtoms,
+                });
+            } else {
+                const inputThisTx: TxBuilderInput = {
+                    input: {
+                        prevOut: {
+                            txid: DUMMY_PRELIMINARY_TXID,
+                            outIdx: maxOutputsPerTx,
+                        },
+                        signData: {
+                            sats: dustSats,
+                            outputScript: DUMMY_P2PKH,
+                        },
+                    },
+                    signatory: P2PKHSignatory(DUMMY_SK, DUMMY_PK, sighash),
+                };
+
+                const dummyTxBuilder = new TxBuilder({
+                    inputs: [inputThisTx],
+                    outputs: outputsThisBatch,
+                });
+                const dummyTxSigned = dummyTxBuilder.sign({
+                    ecc: eccDummy,
+                    feePerKb,
+                    dustSats,
+                });
+                const feeThisTx = calcTxFee(dummyTxSigned.serSize(), feePerKb);
+
+                const requiredInputValue =
+                    feeThisTx +
+                    satoshisToCoverDustTokenOutputs +
+                    requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs;
+
+                inputThisTx.input.signData!.sats = requiredInputValue;
+
+                requiredSatoshisToCoverFeesAndOutputsOfAllSubsequentTxs +=
+                    feeThisTx + satoshisToCoverDustTokenOutputs;
+
+                const batchAtoms = batch.reduce(
+                    (sum, output) => sum + (output.atoms || 0n),
+                    0n,
+                );
+                requiredAtomsInSubsequentTxs += batchAtoms;
+
+                preliminaryTxs.unshift({
+                    inputs: [inputThisTx],
+                    outputs: outputsThisBatch,
+                    chainedOutIdx,
+                    chainedAtoms,
+                });
+            }
+        }
+
+        return new PostageChain({
+            chainedTxType: ChainedTxType.TOKEN_SEND_EXCEEDS_MAX_OUTPUTS,
+            tokenId,
+            steps: preliminaryTxs,
+            feePerKb,
+            dustSats,
+            wallet: this._wallet,
+            sighash,
+        });
     }
 
     /**
@@ -3508,6 +3936,159 @@ export class PostageTx {
             `Insufficient fuel: insufficient sats in impliedInputSats (${inputSats}) to cover output sats (${outputSats}) + fee (${thisTxNeededFee}) with available fuel UTXOs`,
         );
     }
+}
+
+/**
+ * One planned step in a {@link PostageChain}.
+ *
+ * `chainedOutIdx` / `chainedAtoms` describe the passthrough output that funds
+ * the next step (undefined on the last step / single-tx chains).
+ */
+export interface PostageChainStep {
+    inputs: TxBuilderInput[];
+    outputs: TxBuilderOutput[];
+    chainedOutIdx: number | undefined;
+    chainedAtoms: bigint | undefined;
+}
+
+/**
+ * A planned postage chain for one tokenId (or a single unchained postage tx).
+ *
+ * Use {@link buildStepPostage} to produce a {@link PostageTx} per step. For
+ * step `i > 0`, pass the **fuel-completed** txid of step `i - 1` (not the
+ * partial postage txid). Prepare every step before broadcasting any.
+ */
+export class PostageChain {
+    public readonly chainedTxType: ChainedTxType;
+    public readonly tokenId: string | undefined;
+    public readonly steps: PostageChainStep[];
+    public readonly feePerKb: bigint;
+    public readonly dustSats: bigint;
+    private readonly _wallet: ActionableWallet;
+    private readonly _sighash: SigHashType;
+
+    constructor(params: {
+        chainedTxType: ChainedTxType;
+        tokenId: string | undefined;
+        steps: PostageChainStep[];
+        feePerKb: bigint;
+        dustSats: bigint;
+        wallet: ActionableWallet;
+        sighash: SigHashType;
+    }) {
+        this.chainedTxType = params.chainedTxType;
+        this.tokenId = params.tokenId;
+        this.steps = params.steps;
+        this.feePerKb = params.feePerKb;
+        this.dustSats = params.dustSats;
+        this._wallet = params.wallet;
+        this._sighash = params.sighash;
+    }
+
+    /** Number of txs in this chain (1 if the action fits in a single postage tx). */
+    get stepCount(): number {
+        return this.steps.length;
+    }
+
+    /**
+     * Build a partially signed postage tx for `stepIndex`.
+     *
+     * @param stepIndex - 0-based step index
+     * @param prevFuelCompletedTxid - Required for `stepIndex > 0`: txid of the
+     *   previous step **after** fuel was added (and before broadcast)
+     */
+    public buildStepPostage(
+        stepIndex: number,
+        prevFuelCompletedTxid?: string,
+    ): PostageTx {
+        if (stepIndex < 0 || stepIndex >= this.steps.length) {
+            throw new Error(
+                `Invalid postage chain stepIndex ${stepIndex}; chain has ${this.steps.length} step(s)`,
+            );
+        }
+        if (stepIndex > 0) {
+            if (
+                typeof prevFuelCompletedTxid !== 'string' ||
+                prevFuelCompletedTxid.length === 0
+            ) {
+                throw new Error(
+                    `buildStepPostage(${stepIndex}) requires prevFuelCompletedTxid from the fuel-completed previous step`,
+                );
+            }
+        }
+
+        const step = this.steps[stepIndex];
+        let inputs = step.inputs;
+        const outputs = step.outputs;
+
+        if (stepIndex > 0) {
+            const prevStep = this.steps[stepIndex - 1];
+            if (typeof prevStep.chainedOutIdx === 'undefined') {
+                throw new Error(
+                    `Previous postage chain step ${stepIndex - 1} has no chained output`,
+                );
+            }
+            const chainedOutput = prevStep.outputs[prevStep.chainedOutIdx];
+            if (
+                typeof chainedOutput === 'undefined' ||
+                !('sats' in chainedOutput) ||
+                !(chainedOutput.script instanceof Script)
+            ) {
+                throw new Error(
+                    `Chained output at outIdx ${prevStep.chainedOutIdx} is missing or invalid`,
+                );
+            }
+
+            const chainedOutputAddress = Address.fromScriptHex(
+                chainedOutput.script.toHex(),
+                this._wallet.prefix,
+            ).toString();
+            const keypair =
+                this._wallet.getKeypairForAddress(chainedOutputAddress);
+            if (!keypair?.sk) {
+                throw new Error(
+                    `Could not get keypair for chained output address ${chainedOutputAddress}`,
+                );
+            }
+
+            inputs = [
+                {
+                    input: {
+                        prevOut: {
+                            txid: prevFuelCompletedTxid!,
+                            outIdx: prevStep.chainedOutIdx,
+                        },
+                        signData: {
+                            sats: chainedOutput.sats,
+                            outputScript: chainedOutput.script,
+                        },
+                    },
+                    signatory: P2PKHSignatory(
+                        keypair.sk,
+                        keypair.pk,
+                        this._sighash,
+                    ),
+                },
+            ];
+        }
+
+        const txBuilder = new TxBuilder({ inputs, outputs });
+        const partiallySignedTx = txBuilder.sign({
+            feePerKb: this.feePerKb,
+            dustSats: this.dustSats,
+        });
+        return new PostageTx(partiallySignedTx);
+    }
+}
+
+/**
+ * First SEND tokenId on an action, if any (for postage chain metadata).
+ */
+function getSendTokenIdOrUndefined(action: payment.Action): string | undefined {
+    const send = action.tokenActions?.find(a => a.type === 'SEND') as
+        | payment.SendAction
+        | undefined;
+    return send?.tokenId;
 }
 
 /**
