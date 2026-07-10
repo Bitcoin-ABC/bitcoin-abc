@@ -1,0 +1,4 @@
+dist/
+.env
+cashtab-push-firebase-adminsdk-*.json
+firebase-service-account.json

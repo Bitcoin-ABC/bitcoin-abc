@@ -918,6 +918,29 @@ builds:
         templates:
             - js-mocha
 
+    notifications-server-tests:
+        runOnDiffRegex:
+            - pnpm-lock.yaml
+            - apps/notifications-server/
+            - notifications-server.Dockerfile
+            - modules/ecash-parse/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-agora/
+            - modules/b58-ts/
+        env:
+            JS_PROJECT_ROOT: apps/notifications-server
+            RUN_NPM_BUILD: 'true'
+        depends:
+            - ecash-parse
+            - ecashaddrjs
+            - chronik-client
+            - ecash-lib
+            - ecash-agora
+        templates:
+            - js-mocha
+
     ecash-parse:
         runOnDiffRegex:
             - pnpm-lock.yaml

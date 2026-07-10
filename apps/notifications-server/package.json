@@ -1,0 +1,56 @@
+{
+    "name": "notifications-server",
+    "version": "1.0.0",
+    "description": "Push notification service for Cashtab wallets",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc -p ./tsconfig.build.json",
+        "start": "node dist/index.js",
+        "dev": "tsx watch index.ts",
+        "test": "mocha",
+        "coverage": "c8 mocha",
+        "junit": "mocha test --reporter mocha-junit-reporter",
+        "send-push": "tsx scripts/sendPushNotification.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "apps/notifications-server"
+    },
+    "keywords": [
+        "ecash",
+        "cashtab",
+        "push",
+        "notifications"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "dependencies": {
+        "chronik-client": "workspace:^",
+        "dotenv": "^16.4.5",
+        "ecash-lib": "workspace:^",
+        "ecash-parse": "workspace:^",
+        "ecashaddrjs": "workspace:^",
+        "express": "^5.2.1",
+        "firebase-admin": "^13.6.0",
+        "helmet": "^7.1.0",
+        "pg": "^8.16.3"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^20.11.29",
+        "@types/pg": "^8.15.5",
+        "@types/supertest": "^6.0.3",
+        "c8": "^10.1.3",
+        "mocha": "^11.7.5",
+        "mocha-junit-reporter": "^2.2.1",
+        "mocha-suppress-logs": "^0.6.0",
+        "supertest": "^7.2.2",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
