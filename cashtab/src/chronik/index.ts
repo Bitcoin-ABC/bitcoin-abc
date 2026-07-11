@@ -31,25 +31,6 @@ export {
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
 
-interface Alias {
-    alias: string;
-}
-export const isAliasRegistered = (
-    registeredAliases: Alias[],
-    alias: string,
-): boolean => {
-    for (let i = 0; i < registeredAliases.length; i++) {
-        if (
-            registeredAliases[i].alias.toString().toLowerCase() ===
-            alias.toLowerCase()
-        ) {
-            console.error(`Alias (${alias}) is registered`);
-            return true;
-        }
-    }
-    return false;
-};
-
 export const getTransactionHistory = async (
     chronik: ChronikClient,
     address: string,
