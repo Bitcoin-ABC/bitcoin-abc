@@ -2694,7 +2694,7 @@ export const summarizeTxHistory = (
     }
 
     // Throw out any unconfirmed txs
-    txs.filter(tx => typeof tx.block !== 'undefined');
+    txs = txs.filter(tx => typeof tx.block !== 'undefined');
 
     // Sort by blockheight
     txs.sort((a, b) => a.block!.height - b.block!.height);

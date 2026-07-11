@@ -739,4 +739,31 @@ describe('parse.js functions', function () {
             ],
         );
     });
+    it('summarizeTxHistory ignores unconfirmed txs', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        const unconfirmedTx = {
+            ...dailyTxs[0],
+            txid: 'unconfirmed'.padEnd(64, '0'),
+            block: undefined,
+        };
+        const withUnconfirmed = [unconfirmedTx, ...dailyTxs];
+        assert.deepEqual(
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                withUnconfirmed,
+                tokenInfoMap,
+                10,
+                10,
+                null,
+            ),
+            summarizeTxHistory(
+                mockUtcNewDayTimestampSeconds,
+                dailyTxs,
+                tokenInfoMap,
+                10,
+                10,
+                null,
+            ),
+        );
+    });
 });
