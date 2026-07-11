@@ -95,7 +95,7 @@ import { config } from './config';
         const now = Date.now();
         for (const [address, lastRequestTimeMs] of addressMap) {
             if (
-                lastRequestTimeMs + config.requestDelayHours * 3600 * 1000 >=
+                lastRequestTimeMs + config.requestDelayHours * 3600 * 1000 <=
                 now
             ) {
                 // The address is now eligible for another request and
@@ -106,7 +106,7 @@ import { config } from './config';
         for (const address of eligibleAddresses) {
             addressMap.delete(address);
         }
-    }, config.addressEligibilityCheckIntervalSeconds);
+    }, config.addressEligibilityCheckIntervalSeconds * 1000);
 
     console.log(`Starting the faucet service on port ${config.port} ...`);
     const faucet: Express = express();
@@ -188,7 +188,7 @@ import { config } from './config';
                 const chronikResponse = await chronik
                     .address(walletAddress)
                     .utxos();
-                const balance = await getBalanceSats(chronikResponse.utxos);
+                const balance = getBalanceSats(chronikResponse.utxos);
                 if (balance < config.amount) {
                     console.log(
                         `Balance is too low (${Number(balance) / 100} ${
@@ -291,7 +291,7 @@ import { config } from './config';
                 });
             }
 
-            const balance = await getBalanceSats(utxos);
+            const balance = getBalanceSats(utxos);
             return res.status(200).json({
                 address: walletAddress,
                 balance: Number(balance),
