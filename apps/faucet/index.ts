@@ -181,6 +181,14 @@ import { config } from './config';
                 return tooManyRequests(res);
             }
 
+            // Reject before broadcasting once the in-memory address map is full
+            if (addressMap.size >= config.addressMapLimit) {
+                return res.status(429).json({
+                    error: 'Too many requests',
+                    msg: `The faucet reached its address limit, please try again later`,
+                });
+            }
+
             // Build and send the faucet transaction
             let txid;
             try {
@@ -243,15 +251,6 @@ import { config } from './config';
                 return res.status(500).json({
                     error: 'Unable to send the faucet transaction',
                     msg: (err as Error).message,
-                });
-            }
-
-            // The max number of transaction is reached, reject further
-            // attempts.
-            if (addressMap.size >= config.addressMapLimit) {
-                return res.status(429).json({
-                    error: 'Too many requests',
-                    msg: `The faucet reached its address limit, please try again later`,
                 });
             }
 
