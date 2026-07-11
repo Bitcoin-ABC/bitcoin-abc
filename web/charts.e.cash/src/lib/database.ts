@@ -172,9 +172,8 @@ export class DatabaseService {
 
     // Get daily statistics for charts
     async getDailyStats(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
         try {
-            const client = await this.pool.connect();
-
             let query = `
                 SELECT 
                     to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
@@ -204,11 +203,12 @@ export class DatabaseService {
             query += ' ORDER BY date';
 
             const result = await client.query(query, params);
-            client.release();
             return result.rows as DailyStatsRow[];
         } catch (error) {
             console.error('[DB] Error in getDailyStats:', error);
             throw error;
+        } finally {
+            client.release();
         }
     }
 
