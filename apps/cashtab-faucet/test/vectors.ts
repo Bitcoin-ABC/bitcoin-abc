@@ -533,6 +533,27 @@ const vectors: TestVectors = {
                     { ...MOCK_TX, timeFirstSeen: 10 },
                 ],
             },
+            {
+                description:
+                    'Exactly numPages of history are walked without requesting a past-the-end page',
+                mocks: {
+                    history: [
+                        { ...MOCK_TX, timeFirstSeen: 15 },
+                        { ...MOCK_TX, timeFirstSeen: 14 },
+                        { ...MOCK_TX, timeFirstSeen: 13 },
+                        { ...MOCK_TX, timeFirstSeen: 12 },
+                    ],
+                },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [
+                    { ...MOCK_TX, timeFirstSeen: 15 },
+                    { ...MOCK_TX, timeFirstSeen: 14 },
+                    { ...MOCK_TX, timeFirstSeen: 13 },
+                    { ...MOCK_TX, timeFirstSeen: 12 },
+                ],
+            },
         ],
         errors: [
             {

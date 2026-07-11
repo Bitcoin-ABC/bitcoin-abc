@@ -34,8 +34,8 @@ export async function getHistoryAfterTimestamp(
     // Intialize your return object
     const txsAfterTimestamp = [];
 
-    // Iterate over available pages in tx history
-    for (let i = 0; i <= firstPageHistory.numPages; i += 1) {
+    // Iterate over available pages in tx history (0-indexed: 0 .. numPages-1)
+    for (let i = 0; i < firstPageHistory.numPages; i += 1) {
         let txs;
         if (i > 0) {
             // If i > 0, get the next page
