@@ -73,6 +73,7 @@ export interface HeraldConfig {
         airdrop: string;
         paywall: string;
         authentication: string;
+        pow: string;
         unknown: string;
         memo: string;
         bigWhale: string;
@@ -166,6 +167,7 @@ const config: HeraldConfig = {
         airdrop: '🪂',
         paywall: '💸',
         authentication: '🔓',
+        pow: '✍️',
         unknown: '❓',
         memo: '🗞',
         bigWhale: '🐋',

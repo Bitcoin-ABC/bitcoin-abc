@@ -46,6 +46,7 @@ const opReturnConstants: OpReturnConstants = {
         alias: { prefix: '2e786563', app: 'Alias (beta)' },
         payButton: { prefix: '50415900', app: 'PayButton' },
         paywall: { prefix: '70617977', app: 'Paywall' },
+        pow: { prefix: '504f5752', app: 'Proof of Writing' },
     },
     memo: {
         'prefix': '6d',

@@ -740,6 +740,91 @@ export const parseMemoOutputScript = (
     return { app, msg };
 };
 
+const POW_ACTION_TYPES: Record<string, string> = {
+    '51': 'post',
+    '52': 'reply',
+    '53': 'quote',
+    '54': 'repost',
+    '55': 'like',
+    '56': 'publish',
+    '57': 'unlock',
+    '58': 'auth',
+    '59': 'handle',
+};
+
+const POW_ACTION_LABELS: Record<string, string> = {
+    post: 'Post',
+    reply: 'Reply',
+    quote: 'Quote',
+    repost: 'Repost',
+    like: 'Like',
+    publish: 'Article Published',
+    unlock: 'Article Unlocked',
+    auth: 'Login',
+    handle: 'Handle Mint',
+};
+
+/**
+ * Build a Telegram-friendly msg for a Proof of Writing (POWR) OP_RETURN stack.
+ * Spec: doc/standards/proofofwriting.md
+ * stackArray[0] = POWR, [1] = version (bare OP_0 -> "00"), [2] = action (bare OP_N),
+ * [3]/[4] = payload pushes per action.
+ */
+export const parsePowMsg = (stackArray: string[]): string => {
+    if (stackArray[1] !== '00') {
+        return `Invalid ${opReturn.knownApps.pow.app}`;
+    }
+
+    const type = POW_ACTION_TYPES[stackArray[2]];
+    if (typeof type === 'undefined') {
+        return `Invalid ${opReturn.knownApps.pow.app}`;
+    }
+
+    const is32 = (s?: string): s is string =>
+        typeof s === 'string' && s.length === 64;
+    const is36 = (s?: string): s is string =>
+        typeof s === 'string' && s.length === 72;
+    const label = POW_ACTION_LABELS[type];
+    const txLink = (txid: string): string =>
+        `<a href="${config.blockExplorer}/tx/${txid}">${txid.slice(0, 8)}...</a>`;
+
+    switch (type) {
+        case 'post':
+        case 'publish': {
+            if (!is32(stackArray[3])) {
+                return `Invalid ${opReturn.knownApps.pow.app}`;
+            }
+            return label;
+        }
+        case 'reply':
+        case 'quote': {
+            if (!is32(stackArray[3]) || !is32(stackArray[4])) {
+                return `Invalid ${opReturn.knownApps.pow.app}`;
+            }
+            return `${label} to ${txLink(stackArray[3])}`;
+        }
+        case 'repost':
+        case 'like': {
+            if (!is32(stackArray[3])) {
+                return `Invalid ${opReturn.knownApps.pow.app}`;
+            }
+            return `${label} ${txLink(stackArray[3])}`;
+        }
+        case 'unlock': {
+            return label;
+        }
+        case 'auth':
+        case 'handle': {
+            if (!is36(stackArray[3])) {
+                return `Invalid ${opReturn.knownApps.pow.app}`;
+            }
+            return label;
+        }
+        default:
+            return `Invalid ${opReturn.knownApps.pow.app}`;
+    }
+};
+
 /**
  *
  * @param {string} opReturnHex an OP_RETURN outputScript with '6a' removed
@@ -941,6 +1026,13 @@ export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
             } else {
                 msg = '[off spec eCashChat authentication]';
             }
+            break;
+        }
+        case opReturn.knownApps.pow.prefix: {
+            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/proofofwriting.md
+            // <POWR> <OP_0 version> <OP_N action> [payload pushes]
+            app = opReturn.knownApps.pow.app;
+            msg = parsePowMsg(stackArray);
             break;
         }
         default: {
@@ -1754,6 +1846,10 @@ export const getBlockTgMessage = (
                 }
                 case opReturn.knownApps.authentication.app: {
                     appEmoji = emojis.authentication;
+                    break;
+                }
+                case opReturn.knownApps.pow.app: {
+                    appEmoji = emojis.pow;
                     break;
                 }
                 case opReturn.knownApps.cashtabMsg.app: {

@@ -81,6 +81,11 @@ interface AuthTxVector {
     stackArray: string[];
     msg: string;
 }
+interface PowTxVector {
+    hex: string;
+    stackArray: string[];
+    msg: string;
+}
 interface AppTxSamples {
     swaps: SwapMock[];
     airdrops: AirdropMock[];
@@ -92,6 +97,7 @@ interface AppTxSamples {
     payButtonTxs: PayButtonTx[];
     paywallTxs: PaywallTxVector[];
     authenticationTxs: AuthTxVector[];
+    powTxs: PowTxVector[];
 }
 
 const BASE_GENESIS_INFO: GenesisInfo = {
@@ -726,6 +732,111 @@ const appTxSamples: AppTxSamples = {
             hex: '0461757468',
             stackArray: ['61757468'],
             msg: '[off spec eCashChat authentication]',
+        },
+    ],
+    // Real POWR OP_RETURN payloads from ecash-parse powFixtures
+    powTxs: [
+        {
+            hex: '04504f5752005120532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            stackArray: [
+                '504f5752',
+                '00',
+                '51',
+                '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            ],
+            msg: 'Post',
+        },
+        {
+            hex: '04504f575200522027a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae5020aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+            stackArray: [
+                '504f5752',
+                '00',
+                '52',
+                '27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50',
+                'aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+            ],
+            msg: 'Reply to <a href="https://explorer.e.cash/tx/27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50">27a3bc4c...</a>',
+        },
+        {
+            hex: '04504f57520053207938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e520de3bbd0fd7945e42581643b18cdf28dd3ed61d9c3d541b7b016081564b65a3f3',
+            stackArray: [
+                '504f5752',
+                '00',
+                '53',
+                '7938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e5',
+                'de3bbd0fd7945e42581643b18cdf28dd3ed61d9c3d541b7b016081564b65a3f3',
+            ],
+            msg: 'Quote to <a href="https://explorer.e.cash/tx/7938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e5">7938be00...</a>',
+        },
+        {
+            hex: '04504f5752005420c3f0d2e61ebea964480373ccd13885689b0086e9da8c781209a37cf8ff6e699b',
+            stackArray: [
+                '504f5752',
+                '00',
+                '54',
+                'c3f0d2e61ebea964480373ccd13885689b0086e9da8c781209a37cf8ff6e699b',
+            ],
+            msg: 'Repost <a href="https://explorer.e.cash/tx/c3f0d2e61ebea964480373ccd13885689b0086e9da8c781209a37cf8ff6e699b">c3f0d2e6...</a>',
+        },
+        {
+            hex: '04504f57520055207938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e5',
+            stackArray: [
+                '504f5752',
+                '00',
+                '55',
+                '7938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e5',
+            ],
+            msg: 'Like <a href="https://explorer.e.cash/tx/7938be0085fae6a9e81b10bf1410aa766c892c3caa181d03c5f6666741be72e5">7938be00...</a>',
+        },
+        {
+            hex: '04504f5752005620a4ac8f1b29e923b294eeb5705b516fa347039a12ad295b2c6660ea06b487d32b',
+            stackArray: [
+                '504f5752',
+                '00',
+                '56',
+                'a4ac8f1b29e923b294eeb5705b516fa347039a12ad295b2c6660ea06b487d32b',
+            ],
+            msg: 'Article Published',
+        },
+        {
+            hex: '04504f57520057',
+            stackArray: ['504f5752', '00', '57'],
+            msg: 'Article Unlocked',
+        },
+        {
+            hex: '04504f575200582432623335633765362d366431362d343463352d626338312d363036363838383131396639',
+            stackArray: [
+                '504f5752',
+                '00',
+                '58',
+                '32623335633765362d366431362d343463352d626338312d363036363838383131396639',
+            ],
+            msg: 'Login',
+        },
+        {
+            hex: '04504f575200592432316532306534332d643261392d343439662d396164312d373133376664303065663162',
+            stackArray: [
+                '504f5752',
+                '00',
+                '59',
+                '32316532306534332d643261392d343439662d396164312d373133376664303065663162',
+            ],
+            msg: 'Handle Mint',
+        },
+        {
+            hex: '04504f5752515120532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            stackArray: [
+                '504f5752',
+                '51',
+                '51',
+                '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            ],
+            msg: 'Invalid Proof of Writing',
+        },
+        {
+            hex: '04504f57520059',
+            stackArray: ['504f5752', '00', '59'],
+            msg: 'Invalid Proof of Writing',
         },
     ],
 };

@@ -49,6 +49,7 @@ const {
     payButtonTxs,
     paywallTxs,
     authenticationTxs,
+    powTxs,
 } = appTxSamples;
 
 const block: StoredMock = JSON.parse(
@@ -257,6 +258,17 @@ describe('parse.js functions', function () {
             assert.deepEqual(parseOpReturn(hex), {
                 app: opReturn.knownApps.authentication.app,
                 msg: msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles Proof of Writing (POWR) txs', function () {
+        for (let i = 0; i < powTxs.length; i += 1) {
+            const { hex, stackArray, msg } = powTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.pow.app,
+                msg,
                 stackArray,
                 tokenId: false,
             });

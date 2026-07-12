@@ -53,5 +53,10 @@ lokadMap.set('524f4c4c', {
     blockMsg: 'ROLL payout',
     batchUnder: 'Blitzchips',
 });
+lokadMap.set('504f5752', {
+    name: 'Proof of Writing tx',
+    emoji: '✍️',
+    url: 'https://proofofwriting.com/',
+});
 
 export default lokadMap;
