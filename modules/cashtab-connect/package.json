@@ -1,6 +1,6 @@
 {
     "name": "cashtab-connect",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "A developer-friendly API for integrating with the Cashtab browser extension",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",

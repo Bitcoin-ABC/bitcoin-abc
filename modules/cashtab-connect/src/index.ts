@@ -153,7 +153,6 @@ export class CashtabConnect {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 this.messageListeners.delete('address');
-                this.messageListeners.delete('transaction');
                 reject(new CashtabTimeoutError());
             }, this.timeout);
 

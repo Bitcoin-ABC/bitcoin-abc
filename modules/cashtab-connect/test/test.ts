@@ -180,6 +180,28 @@ describe('CashtabConnect', () => {
 
             shortTimeoutConnect.destroy();
         });
+
+        it('should not clear an in-flight transaction listener on address timeout', async () => {
+            const shortTimeoutConnect = new CashtabConnect(100);
+            const listeners = (shortTimeoutConnect as any)
+                .messageListeners as Map<string, (response: any) => void>;
+            let transactionResolved = false;
+            listeners.set('transaction', () => {
+                transactionResolved = true;
+            });
+
+            try {
+                await shortTimeoutConnect.requestAddress();
+                expect.fail('Should have thrown a timeout error');
+            } catch (error) {
+                expect(error).to.be.instanceOf(CashtabTimeoutError);
+            }
+
+            expect(listeners.has('transaction')).to.equal(true);
+            expect(transactionResolved).to.equal(false);
+
+            shortTimeoutConnect.destroy();
+        });
     });
 
     describe('sendXec', () => {
