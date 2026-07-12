@@ -11,11 +11,14 @@ project(':aparajita-capacitor-secure-storage').projectDir = new File('../../node
 include ':capacitor-community-sqlite'
 project(':capacitor-community-sqlite').projectDir = new File('../../node_modules/.pnpm/@capacitor-community+sqlite@7.0.3_@capacitor+core@7.6.1/node_modules/@capacitor-community/sqlite/android')
 
-include ':capacitor-app-launcher'
-project(':capacitor-app-launcher').projectDir = new File('../../node_modules/.pnpm/@capacitor+app-launcher@7.0.4_@capacitor+core@7.6.1/node_modules/@capacitor/app-launcher/android')
+include ':capacitor-firebase-messaging'
+project(':capacitor-firebase-messaging').projectDir = new File('../../node_modules/.pnpm/@capacitor-firebase+messaging@7.5.0_@capacitor+core@7.6.1_firebase@11.10.0/node_modules/@capacitor-firebase/messaging/android')
 
 include ':capacitor-app'
 project(':capacitor-app').projectDir = new File('../../node_modules/.pnpm/@capacitor+app@7.1.2_@capacitor+core@7.6.1/node_modules/@capacitor/app/android')
+
+include ':capacitor-app-launcher'
+project(':capacitor-app-launcher').projectDir = new File('../../node_modules/.pnpm/@capacitor+app-launcher@7.0.4_@capacitor+core@7.6.1/node_modules/@capacitor/app-launcher/android')
 
 include ':capacitor-barcode-scanner'
 project(':capacitor-barcode-scanner').projectDir = new File('../../node_modules/.pnpm/@capacitor+barcode-scanner@2.2.6_@capacitor+core@7.6.1/node_modules/@capacitor/barcode-scanner/android')

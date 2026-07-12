@@ -50,6 +50,7 @@ import Header from 'components/Header';
 import { Bounce, ToastContainer } from 'react-toastify';
 import PullToRefresh from 'components/Common/PullToRefresh';
 import BiometricStartupGate from 'components/App/BiometricStartupGate';
+import PushNotificationRegistrar from 'components/App/PushNotificationRegistrar';
 import {
     ExtensionFrame,
     GlobalStyle,
@@ -273,6 +274,7 @@ const App = () => {
                     transition={Bounce}
                     aria-label="Notifications"
                 />
+                <PushNotificationRegistrar />
                 <BiometricStartupGate
                     isCashtabLoaded={cashtabLoaded}
                     biometricLockEnabled={

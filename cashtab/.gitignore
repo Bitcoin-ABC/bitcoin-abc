@@ -34,3 +34,6 @@ dist/
 # Android keystore files
 *.jks
 *.keystore
+
+# Firebase (kept local; required for Android push)
+android/app/google-services.json

@@ -3,12 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Plugin, loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, join } from 'path';
 import { createRequire } from 'module';
+import fs from 'fs';
 
 const require = createRequire(import.meta.url);
 
@@ -35,8 +36,66 @@ function shimResolver(): Plugin {
     };
 }
 
+function firebaseServiceWorkerEnv(mode: string): Plugin {
+    const replacements: Record<string, string> = {
+        __VITE_FIREBASE_API_KEY__: 'VITE_FIREBASE_API_KEY',
+        __VITE_FIREBASE_AUTH_DOMAIN__: 'VITE_FIREBASE_AUTH_DOMAIN',
+        __VITE_FIREBASE_PROJECT_ID__: 'VITE_FIREBASE_PROJECT_ID',
+        __VITE_FIREBASE_MESSAGING_SENDER_ID__:
+            'VITE_FIREBASE_MESSAGING_SENDER_ID',
+        __VITE_FIREBASE_APP_ID__: 'VITE_FIREBASE_APP_ID',
+        __VITE_TOKEN_ICONS_URL__: 'VITE_TOKEN_ICONS_URL',
+    };
+
+    const envDefaults: Record<string, string> = {
+        VITE_TOKEN_ICONS_URL: 'https://icons.etokens.cash',
+    };
+
+    const injectEnv = (source: string): string => {
+        const env = loadEnv(mode, process.cwd(), '');
+        let output = source;
+        for (const [placeholder, envKey] of Object.entries(replacements)) {
+            output = output
+                .split(placeholder)
+                .join(env[envKey] ?? envDefaults[envKey] ?? '');
+        }
+        return output;
+    };
+
+    return {
+        name: 'firebase-service-worker-env',
+        configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+                if (req.url !== '/firebase-messaging-sw.js') {
+                    next();
+                    return;
+                }
+                const filePath = join(
+                    process.cwd(),
+                    'public/firebase-messaging-sw.js',
+                );
+                const source = fs.readFileSync(filePath, 'utf8');
+                res.setHeader('Content-Type', 'application/javascript');
+                res.end(injectEnv(source));
+            });
+        },
+        generateBundle() {
+            const filePath = join(
+                process.cwd(),
+                'public/firebase-messaging-sw.js',
+            );
+            const source = fs.readFileSync(filePath, 'utf8');
+            this.emitFile({
+                type: 'asset',
+                fileName: 'firebase-messaging-sw.js',
+                source: injectEnv(source),
+            });
+        },
+    };
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [
         // Resolve shims before other plugins (must be first)
         shimResolver(),
@@ -67,6 +126,7 @@ export default defineConfig({
                 namedExport: 'ReactComponent',
             },
         }),
+        firebaseServiceWorkerEnv(mode),
     ],
     resolve: {
         alias: {
@@ -172,4 +232,4 @@ export default defineConfig({
             allow: ['..'],
         },
     },
-});
+}));

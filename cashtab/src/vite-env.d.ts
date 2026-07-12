@@ -13,6 +13,14 @@ interface ImportMetaEnv {
     readonly VITE_RECAPTCHA_V3_SITE_KEY?: string;
     readonly VITE_VERSION?: string;
     readonly VITE_TESTNET?: string;
+    readonly VITE_NOTIFICATIONS_SERVER_URL?: string;
+    readonly VITE_FIREBASE_API_KEY?: string;
+    readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
+    readonly VITE_FIREBASE_PROJECT_ID?: string;
+    readonly VITE_FIREBASE_MESSAGING_SENDER_ID?: string;
+    readonly VITE_FIREBASE_APP_ID?: string;
+    readonly VITE_FIREBASE_VAPID_KEY?: string;
+    readonly VITE_TOKEN_ICONS_URL?: string;
 }
 
 interface ImportMeta {

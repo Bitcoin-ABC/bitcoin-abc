@@ -23,6 +23,11 @@ import { ReactComponent as BackIconSvg } from 'assets/back.svg';
 import { ReactComponent as RightIconSvg } from 'assets/right.svg';
 import { toast } from 'react-toastify';
 import { authenticateToEnableBiometricLock } from 'services/biometricLockService';
+import {
+    disablePushNotifications,
+    isPushNotificationsSupported,
+    registerPushNotifications,
+} from 'services/pushNotificationService';
 
 const VersionContainer = styled.div`
     color: ${props => props.theme.primaryText};
@@ -152,11 +157,14 @@ const Configure: React.FC = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { updateCashtabState, cashtabState } = ContextValue;
+    const { updateCashtabState, cashtabState, ecashWallet } = ContextValue;
     const { settings, tokens } = cashtabState;
     const isNativeMobile =
         Capacitor.isNativePlatform() &&
         ['android', 'ios'].includes(Capacitor.getPlatform());
+    const showPushNotifications =
+        isPushNotificationsSupported() &&
+        import.meta.env.VITE_BUILD_ENV !== 'extension';
 
     return (
         <StyledConfigure title="Settings">
@@ -253,6 +261,79 @@ const Configure: React.FC = () => {
                                             biometricLockEnabled: enabling,
                                         },
                                     });
+                                }}
+                            />
+                        </SettingsRowControl>
+                    </SettingsRow>
+                )}
+                {showPushNotifications && (
+                    <SettingsRow>
+                        <SettingsRowLabel>Push Notifications</SettingsRowLabel>
+                        <SettingsRowControl>
+                            <SegmentedControl
+                                name="Push Notifications"
+                                options={[
+                                    { value: 'on', label: 'On' },
+                                    { value: 'off', label: 'Off' },
+                                ]}
+                                value={
+                                    settings.pushNotificationsEnabled
+                                        ? 'on'
+                                        : 'off'
+                                }
+                                onChange={async v => {
+                                    const enabling = v === 'on';
+                                    if (!enabling) {
+                                        try {
+                                            await disablePushNotifications();
+                                            updateCashtabState({
+                                                settings: {
+                                                    ...settings,
+                                                    pushNotificationsEnabled: false,
+                                                },
+                                            });
+                                        } catch (err) {
+                                            toast.error(
+                                                err instanceof Error
+                                                    ? err.message
+                                                    : 'Could not turn off push notifications.',
+                                            );
+                                        }
+                                        return;
+                                    }
+                                    if (
+                                        ecashWallet === null ||
+                                        !ecashWallet.address ||
+                                        !ecashWallet.sk
+                                    ) {
+                                        toast.error('Wallet not ready.');
+                                        return;
+                                    }
+                                    try {
+                                        const granted =
+                                            await registerPushNotifications(
+                                                ecashWallet.address,
+                                                ecashWallet.sk,
+                                            );
+                                        if (!granted) {
+                                            toast.error(
+                                                'Notification permission was not granted. Enable notifications in device settings.',
+                                            );
+                                            return;
+                                        }
+                                        updateCashtabState({
+                                            settings: {
+                                                ...settings,
+                                                pushNotificationsEnabled: true,
+                                            },
+                                        });
+                                    } catch (err) {
+                                        toast.error(
+                                            err instanceof Error
+                                                ? err.message
+                                                : 'Could not enable push notifications.',
+                                        );
+                                    }
                                 }}
                             />
                         </SettingsRowControl>

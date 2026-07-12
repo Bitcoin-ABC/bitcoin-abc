@@ -287,6 +287,7 @@ export const migrateLegacyCashtabSettings = (
         settings.balanceVisible,
         settings.satsPerKb,
         settings.biometricLockEnabled,
+        settings.pushNotificationsEnabled,
     );
 };
 

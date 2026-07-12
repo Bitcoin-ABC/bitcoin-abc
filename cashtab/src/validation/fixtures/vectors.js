@@ -1358,6 +1358,7 @@ export default {
                     balanceVisible: true,
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
                 },
             },
             {
@@ -1373,6 +1374,7 @@ export default {
                     balanceVisible: true,
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
                 },
             },
             {
@@ -1399,6 +1401,7 @@ export default {
                     balanceVisible: true,
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
                 },
             },
         ],
@@ -1417,7 +1420,8 @@ export default {
                 isValid: false,
             },
             {
-                description: 'A 1.5.0 settings object is valid',
+                description:
+                    'A settings object with biometric but without pushNotificationsEnabled is invalid',
                 settings: {
                     fiatCurrency: 'usd',
                     sendModal: false,
@@ -1426,6 +1430,20 @@ export default {
                     balanceVisible: true,
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
+                },
+                isValid: false,
+            },
+            {
+                description: 'A current settings object is valid',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
+                    biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
                 },
                 isValid: true,
             },

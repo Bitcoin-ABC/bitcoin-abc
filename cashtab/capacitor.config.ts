@@ -8,6 +8,11 @@ const config: CapacitorConfig = {
     appId: 'com.cashtab.app',
     appName: 'Cashtab',
     webDir: 'build',
+    plugins: {
+        FirebaseMessaging: {
+            presentationOptions: ['alert', 'badge', 'sound'],
+        },
+    },
 };
 
 export default config;

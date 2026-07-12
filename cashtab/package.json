@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "5.9.10",
+    "version": "5.10.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -35,9 +35,10 @@
         "@aparajita/capacitor-biometric-auth": "^9.1.2",
         "@aparajita/capacitor-secure-storage": "^7.1.3",
         "@capacitor-community/sqlite": "^7.0.1",
+        "@capacitor-firebase/messaging": "^7.5.0",
         "@capacitor/android": "^7.4.2",
-        "@capacitor/app-launcher": "^7.0.2",
         "@capacitor/app": "^7.1.0",
+        "@capacitor/app-launcher": "^7.0.2",
         "@capacitor/barcode-scanner": "^2.2.0",
         "@capacitor/core": "^7.4.2",
         "@capacitor/ios": "^7.4.3",
@@ -49,6 +50,7 @@
         "ecash-parse": "workspace:^",
         "ecash-wallet": "workspace:^",
         "ecashaddrjs": "workspace:^",
+        "firebase": "^11.10.0",
         "localforage": "^1.9.0",
         "lodash.debounce": "^4.0.8",
         "qrcode.react": "^4.2.0",

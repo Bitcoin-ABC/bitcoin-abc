@@ -47,6 +47,9 @@ Object.defineProperty(globalThis, 'import', {
                     'mock-recaptcha-v3-site-key',
                 VITE_VERSION: process.env.VITE_VERSION || '',
                 VITE_TESTNET: process.env.VITE_TESTNET || 'false',
+                VITE_NOTIFICATIONS_SERVER_URL:
+                    process.env.VITE_NOTIFICATIONS_SERVER_URL ||
+                    'https://push.etokens.cash',
             },
         },
     },

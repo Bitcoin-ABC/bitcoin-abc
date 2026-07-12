@@ -15,6 +15,7 @@ interface CashtabSettingsInterface {
     balanceVisible: boolean;
     satsPerKb: number;
     biometricLockEnabled: boolean;
+    pushNotificationsEnabled: boolean;
 }
 
 // Default settings which can be modified within Cashtab
@@ -26,6 +27,7 @@ class CashtabSettings implements CashtabSettingsInterface {
     balanceVisible: boolean;
     satsPerKb: number;
     biometricLockEnabled: boolean;
+    pushNotificationsEnabled: boolean;
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,
@@ -34,6 +36,7 @@ class CashtabSettings implements CashtabSettingsInterface {
         balanceVisible = true,
         satsPerKb = FEE_SATS_PER_KB_XEC_MINIMUM,
         biometricLockEnabled = false,
+        pushNotificationsEnabled = true,
     ) {
         this.fiatCurrency = fiatCurrency;
         this.sendModal = sendModal;
@@ -42,6 +45,7 @@ class CashtabSettings implements CashtabSettingsInterface {
         this.balanceVisible = balanceVisible;
         this.satsPerKb = satsPerKb;
         this.biometricLockEnabled = biometricLockEnabled;
+        this.pushNotificationsEnabled = pushNotificationsEnabled;
     }
 }
 export default CashtabSettings;
@@ -93,6 +97,7 @@ export interface CashtabSettingsValidation {
     hideMessagesFromUnknownSenders: boolean[];
     balanceVisible: boolean[];
     biometricLockEnabled: boolean[];
+    pushNotificationsEnabled: boolean[];
     satsPerKb: {
         min: number;
         max: number;
@@ -107,6 +112,7 @@ export const cashtabSettingsValidation: CashtabSettingsValidation = {
     hideMessagesFromUnknownSenders: [true, false],
     balanceVisible: [true, false],
     biometricLockEnabled: [true, false],
+    pushNotificationsEnabled: [true, false],
     // Note: satsPerKb is not currently exposed to users in the UI
     satsPerKb: {
         min: FEE_SATS_PER_KB_XEC_MINIMUM,
