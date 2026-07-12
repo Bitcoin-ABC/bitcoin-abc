@@ -59,6 +59,7 @@ COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
 COPY modules/chronik-client/package.json ./modules/chronik-client/
 COPY modules/b58-ts/package.json ./modules/b58-ts/
 COPY modules/ecash-lib/package.json ./modules/ecash-lib/
+COPY modules/ecash-wallet/package.json ./modules/ecash-wallet/
 COPY modules/ecash-agora/package.json ./modules/ecash-agora/
 COPY modules/ecash-parse/package.json ./modules/ecash-parse/
 COPY apps/notifications-server/package.json ./apps/notifications-server/
@@ -69,6 +70,7 @@ COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
 COPY modules/chronik-client/ ./modules/chronik-client/
 COPY modules/b58-ts/ ./modules/b58-ts/
 COPY modules/ecash-lib/ ./modules/ecash-lib/
+COPY modules/ecash-wallet/ ./modules/ecash-wallet/
 COPY modules/ecash-agora/ ./modules/ecash-agora/
 COPY modules/ecash-parse/ ./modules/ecash-parse/
 COPY apps/notifications-server/ ./apps/notifications-server/
@@ -78,6 +80,7 @@ RUN pnpm install --frozen-lockfile --offline \
   --filter ecashaddrjs... \
   --filter chronik-client... \
   --filter ecash-lib... \
+  --filter ecash-wallet... \
   --filter ecash-agora... \
   --filter ecash-parse... \
   --filter notifications-server...
@@ -87,6 +90,7 @@ RUN pnpm \
   --filter ecashaddrjs \
   --filter chronik-client \
   --filter ecash-lib \
+  --filter ecash-wallet \
   --filter ecash-agora \
   --filter ecash-parse \
   --filter notifications-server \
