@@ -127,3 +127,113 @@ export const hasWithdrawnInLast24Hours = async (
         return false;
     }
 };
+
+/**
+ * Check if the bot has sent a RESPAWN payout to this user in the last 24 hours.
+ * Parses EMPP like hasWithdrawnInLast24Hours so peer LIKE/DISLIKE token sends
+ * (and other non-respawn bot activity) are not mistaken for a respawn.
+ * @param userAddress - User's address
+ * @param botWalletAddress - Bot hot wallet address
+ * @param chronik - Chronik client for querying blockchain
+ * @returns true if a RESPAWN EMPP payout from the bot is found in the last 24 hours
+ */
+export const hasRespawnedInLast24Hours = async (
+    userAddress: string,
+    botWalletAddress: string,
+    chronik: ChronikClient,
+): Promise<boolean> => {
+    try {
+        const timeOfRequest = Math.ceil(Date.now() / 1000);
+        const timestamp24HoursAgo = timeOfRequest - 86400;
+
+        const botOutputScript = getOutputScriptFromAddress(botWalletAddress);
+
+        let page = 0;
+        const pageSize = 25;
+
+        while (true) {
+            const history = await chronik
+                .address(userAddress)
+                .history(page, pageSize);
+            const { txs, numPages } = history;
+            let foundOldTx = false;
+
+            for (const tx of txs) {
+                const txTimestamp =
+                    tx.timeFirstSeen !== 0
+                        ? tx.timeFirstSeen
+                        : tx.block?.timestamp || -1;
+
+                if (txTimestamp < timestamp24HoursAgo && txTimestamp !== -1) {
+                    foundOldTx = true;
+                    break;
+                }
+
+                // Respawn is paid from the bot hot wallet, not a peer user wallet
+                let hasBotInput = false;
+                for (const input of tx.inputs) {
+                    if (input.outputScript === botOutputScript) {
+                        hasBotInput = true;
+                        break;
+                    }
+                }
+
+                if (!hasBotInput) {
+                    continue;
+                }
+
+                let opReturnOutput = null;
+                if (tx.outputs && tx.outputs.length > 0) {
+                    for (const output of tx.outputs) {
+                        if (
+                            output.outputScript &&
+                            output.outputScript.startsWith('6a')
+                        ) {
+                            opReturnOutput = output;
+                            break;
+                        }
+                    }
+                }
+
+                if (!opReturnOutput || !opReturnOutput.outputScript) {
+                    continue;
+                }
+
+                try {
+                    const script = new Script(
+                        fromHex(opReturnOutput.outputScript as string),
+                    );
+                    const emppPushes = parseEmppScript(script);
+
+                    if (!emppPushes || emppPushes.length === 0) {
+                        continue;
+                    }
+
+                    for (const push of emppPushes) {
+                        const actionCode = parseEmppActionCode(push);
+                        if (actionCode === EmppAction.RESPAWN) {
+                            return true;
+                        }
+                    }
+                } catch {
+                    continue;
+                }
+            }
+
+            if (foundOldTx) {
+                break;
+            }
+
+            page++;
+            if (page >= numPages) {
+                break;
+            }
+        }
+
+        return false;
+    } catch (err) {
+        // Fail open so Chronik errors do not permanently block respawns
+        console.error('Error checking respawn history:', err);
+        return false;
+    }
+};

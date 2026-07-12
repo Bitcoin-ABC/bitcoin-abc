@@ -1920,9 +1920,11 @@ describe('bot', () => {
             const botOutputScript = getOutputScriptFromAddress(wallet.address);
             const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
 
-            // Create a mock transaction from bot to user with tokens (within last 24 hours)
+            // Create a mock transaction from bot to user with RESPAWN EMPP (within last 24 hours)
             const timeOfRequest = Math.ceil(Date.now() / 1000);
             const respawnTxTimestamp = timeOfRequest - 3600; // 1 hour ago (within 24 hours)
+            const respawnEmppData = getOvermindEmpp(EmppAction.RESPAWN);
+            const respawnOpReturnScript = emppScript([respawnEmppData]);
 
             const mockRespawnTx: Tx = {
                 txid: '0000000000000000000000000000000000000000000000000000000000000004',
@@ -1940,6 +1942,10 @@ describe('bot', () => {
                     },
                 ],
                 outputs: [
+                    {
+                        outputScript: toHex(respawnOpReturnScript.bytecode),
+                        sats: 0n,
+                    },
                     {
                         outputScript: userOutputScript,
                         sats: DEFAULT_DUST_SATS,
@@ -2014,9 +2020,11 @@ describe('bot', () => {
             const botOutputScript = getOutputScriptFromAddress(wallet.address);
             const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
 
-            // Create a mock transaction from bot to user with tokens (more than 24 hours ago)
+            // Create a mock transaction from bot to user with RESPAWN EMPP (more than 24 hours ago)
             const timeOfRequest = Math.ceil(Date.now() / 1000);
             const respawnTxTimestamp = timeOfRequest - 90000; // 25 hours ago (more than 24 hours)
+            const respawnEmppData = getOvermindEmpp(EmppAction.RESPAWN);
+            const respawnOpReturnScript = emppScript([respawnEmppData]);
 
             const mockRespawnTx: Tx = {
                 txid: '0000000000000000000000000000000000000000000000000000000000000004',
@@ -2034,6 +2042,10 @@ describe('bot', () => {
                     },
                 ],
                 outputs: [
+                    {
+                        outputScript: toHex(respawnOpReturnScript.bytecode),
+                        sats: 0n,
+                    },
                     {
                         outputScript: userOutputScript,
                         sats: DEFAULT_DUST_SATS,

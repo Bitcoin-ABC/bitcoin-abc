@@ -16,7 +16,10 @@ import {
 } from 'ecash-lib';
 import { getOvermindEmpp, EmppAction } from './empp';
 import { REWARDS_TOKEN_ID } from './constants';
-import { hasWithdrawnInLast24Hours } from './chronik';
+import {
+    hasRespawnedInLast24Hours,
+    hasWithdrawnInLast24Hours,
+} from './chronik';
 
 const expect = chai.expect;
 
@@ -451,6 +454,276 @@ describe('chronik', () => {
 
             const result = await hasWithdrawnInLast24Hours(
                 USER_ADDRESS,
+                errorChronik,
+            );
+
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe('hasRespawnedInLast24Hours', () => {
+        let mockChronik: MockChronikClient;
+        const USER_ADDRESS = 'ecash:qrfm48gr3zdgph6dt593hzlp587002ec4ysl59mavw';
+        const BOT_ADDRESS = 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2';
+        const OTHER_ADDRESS =
+            'ecash:qr689ree3wukyetgqv6xld9vghthvpq69cg04xjp57';
+
+        beforeEach(() => {
+            mockChronik = new MockChronikClient();
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should return false when user has no transaction history', async () => {
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, []);
+
+            const result = await hasRespawnedInLast24Hours(
+                USER_ADDRESS,
+                BOT_ADDRESS,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            expect(result).to.equal(false);
+        });
+
+        it('should return true when a respawn payout is only on page 1', async () => {
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const txTimestamp = timeOfRequest - 3600;
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+            const botOutputScript = getOutputScriptFromAddress(BOT_ADDRESS);
+            const otherOutputScript = getOutputScriptFromAddress(OTHER_ADDRESS);
+
+            const txs: Tx[] = [];
+
+            // Fill page 0 with unrelated recent txs so a first-page-only check would miss the respawn
+            for (let i = 0; i < 25; i++) {
+                txs.push({
+                    txid: `00000000000000000000000000000000000000000000000000000000000000${i
+                        .toString(16)
+                        .padStart(2, '0')}`,
+                    version: 2,
+                    inputs: [
+                        {
+                            outputScript: otherOutputScript,
+                            prevOut: {
+                                txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                                outIdx: 0,
+                            },
+                            inputScript: '',
+                            sats: 1000n,
+                            sequenceNo: 0,
+                        },
+                    ],
+                    outputs: [
+                        {
+                            outputScript: userOutputScript,
+                            sats: DEFAULT_DUST_SATS,
+                        },
+                    ],
+                    lockTime: 0,
+                    timeFirstSeen: txTimestamp,
+                    size: 200,
+                    isCoinbase: false,
+                    isFinal: true,
+                    tokenEntries: [],
+                    tokenFailedParsings: [],
+                    tokenStatus: 'TOKEN_STATUS_NORMAL',
+                });
+            }
+
+            // Page 1: bot paid the user with RESPAWN EMPP
+            const respawnEmppData = getOvermindEmpp(EmppAction.RESPAWN);
+            const respawnOpReturnScript = emppScript([respawnEmppData]);
+            txs.push({
+                txid: '00000000000000000000000000000000000000000000000000000000000000ff',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: botOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000003',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: toHex(respawnOpReturnScript.bytecode),
+                        sats: 0n,
+                    },
+                    {
+                        outputScript: userOutputScript,
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 100n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: txTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
+            });
+
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, txs);
+
+            const result = await hasRespawnedInLast24Hours(
+                USER_ADDRESS,
+                BOT_ADDRESS,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            expect(result).to.equal(true);
+        });
+
+        it('should return false for a peer LIKE even when reward tokens are received', async () => {
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const txTimestamp = timeOfRequest - 3600;
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+            const otherOutputScript = getOutputScriptFromAddress(OTHER_ADDRESS);
+
+            const likeEmppData = getOvermindEmpp(EmppAction.LIKE, 12345);
+            const likeOpReturnScript = emppScript([likeEmppData]);
+
+            const mockTx: Tx = {
+                txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: otherOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: toHex(likeOpReturnScript.bytecode),
+                        sats: 0n,
+                    },
+                    {
+                        outputScript: userOutputScript,
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 1n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: txTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
+            };
+
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, [mockTx]);
+
+            const result = await hasRespawnedInLast24Hours(
+                USER_ADDRESS,
+                BOT_ADDRESS,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            expect(result).to.equal(false);
+        });
+
+        it('should return false when bot sends tokens without RESPAWN EMPP', async () => {
+            const timeOfRequest = Math.ceil(Date.now() / 1000);
+            const txTimestamp = timeOfRequest - 3600;
+            const userOutputScript = getOutputScriptFromAddress(USER_ADDRESS);
+            const botOutputScript = getOutputScriptFromAddress(BOT_ADDRESS);
+
+            // Registration CLAIM from bot — not a respawn
+            const claimEmppData = getOvermindEmpp(EmppAction.CLAIM);
+            const claimOpReturnScript = emppScript([claimEmppData]);
+
+            const mockTx: Tx = {
+                txid: '0000000000000000000000000000000000000000000000000000000000000001',
+                version: 2,
+                inputs: [
+                    {
+                        outputScript: botOutputScript,
+                        prevOut: {
+                            txid: '0000000000000000000000000000000000000000000000000000000000000002',
+                            outIdx: 0,
+                        },
+                        inputScript: '',
+                        sats: 1000n,
+                        sequenceNo: 0,
+                    },
+                ],
+                outputs: [
+                    {
+                        outputScript: toHex(claimOpReturnScript.bytecode),
+                        sats: 0n,
+                    },
+                    {
+                        outputScript: userOutputScript,
+                        sats: DEFAULT_DUST_SATS,
+                        token: {
+                            tokenId: REWARDS_TOKEN_ID,
+                            tokenType: ALP_TOKEN_TYPE_STANDARD,
+                            atoms: 100n,
+                            isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: txTimestamp,
+                size: 200,
+                isCoinbase: false,
+                isFinal: true,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
+            };
+
+            mockChronik.setTxHistoryByAddress(USER_ADDRESS, [mockTx]);
+
+            const result = await hasRespawnedInLast24Hours(
+                USER_ADDRESS,
+                BOT_ADDRESS,
+                mockChronik as unknown as ChronikClient,
+            );
+
+            expect(result).to.equal(false);
+        });
+
+        it('should return false on chronik error (fail open)', async () => {
+            const errorChronik = {
+                address: () => ({
+                    history: () => Promise.reject(new Error('Chronik error')),
+                }),
+            } as unknown as ChronikClient;
+
+            const result = await hasRespawnedInLast24Hours(
+                USER_ADDRESS,
+                BOT_ADDRESS,
                 errorChronik,
             );
 

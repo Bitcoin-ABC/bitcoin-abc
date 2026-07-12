@@ -14,11 +14,7 @@ import {
     shaRmd160,
     toHex,
 } from 'ecash-lib';
-import {
-    encodeCashAddress,
-    getOutputScriptFromAddress,
-    isValidCashAddress,
-} from 'ecashaddrjs';
+import { encodeCashAddress, isValidCashAddress } from 'ecashaddrjs';
 import { Wallet } from 'ecash-wallet';
 import { ChronikClient } from 'chronik-client';
 import {
@@ -30,7 +26,10 @@ import {
     CHILI_REPLY_HP_AMOUNT,
 } from './constants';
 import { getOvermindEmpp, EmppAction } from './empp';
-import { hasWithdrawnInLast24Hours } from './chronik';
+import {
+    hasRespawnedInLast24Hours,
+    hasWithdrawnInLast24Hours,
+} from './chronik';
 import { createUserActionTable } from './db';
 
 /**
@@ -389,87 +388,6 @@ export const register = async (
             txMessage,
         { parse_mode: 'Markdown' },
     );
-};
-
-/**
- * Check if user has respawned in the last 24 hours by checking transaction history
- * @param userAddress - User's address
- * @param botWalletAddress - Bot wallet address
- * @param chronik - Chronik client for querying blockchain
- * @returns true if user has respawned in last 24 hours, false otherwise
- */
-const hasRespawnedInLast24Hours = async (
-    userAddress: string,
-    botWalletAddress: string,
-    chronik: ChronikClient,
-): Promise<boolean> => {
-    try {
-        // Get timestamp 24 hours ago (in seconds)
-        const timeOfRequest = Math.ceil(Date.now() / 1000);
-        const timestamp24HoursAgo = timeOfRequest - 86400; // 24 hours in seconds
-
-        // Get user's transaction history
-        const userOutputScript = getOutputScriptFromAddress(userAddress);
-        const botOutputScript = getOutputScriptFromAddress(botWalletAddress);
-
-        // Get transaction history (first page, should be enough for recent txs)
-        const history = await chronik.address(userAddress).history(0, 25);
-
-        // Check each transaction in history
-        for (const tx of history.txs) {
-            // Get transaction timestamp
-            const txTimestamp =
-                tx.timeFirstSeen !== 0
-                    ? tx.timeFirstSeen
-                    : tx.block?.timestamp || -1;
-
-            // Skip if transaction is older than 24 hours
-            if (txTimestamp < timestamp24HoursAgo && txTimestamp !== -1) {
-                // Transactions are in reverse chronological order, so we can stop here
-                break;
-            }
-
-            // Check if bot wallet sent this transaction (has inputs from bot wallet)
-            let hasBotInput = false;
-            for (const input of tx.inputs) {
-                if (input.outputScript === botOutputScript) {
-                    hasBotInput = true;
-                    break;
-                }
-            }
-
-            if (!hasBotInput) {
-                continue;
-            }
-
-            // Check if user received REWARDS_TOKEN_ID tokens in this transaction
-            let receivedRewardToken = false;
-            for (const output of tx.outputs) {
-                if (
-                    output.outputScript === userOutputScript &&
-                    typeof output.token !== 'undefined' &&
-                    output.token.tokenId === REWARDS_TOKEN_ID
-                ) {
-                    receivedRewardToken = true;
-                    break;
-                }
-            }
-
-            if (receivedRewardToken) {
-                // This is likely a respawn transaction (bot sent reward tokens to user)
-                // Note: This could also be a registration, but registration only happens once
-                // and users can't respawn until they're registered, so this check is valid
-                return true;
-            }
-        }
-
-        return false;
-    } catch (err) {
-        // If we can't check history, allow the respawn (fail open)
-        // This prevents blocking users due to chronik errors
-        console.error('Error checking respawn history:', err);
-        return false;
-    }
 };
 
 /**
