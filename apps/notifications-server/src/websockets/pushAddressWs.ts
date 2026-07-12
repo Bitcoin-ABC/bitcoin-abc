@@ -86,6 +86,22 @@ export const subscribePushActiveAddress = (
     );
 };
 
+export const unsubscribePushActiveAddress = (
+    ws: WsEndpoint,
+    activeAddress: string,
+): void => {
+    if (!subscribedAddresses.has(activeAddress)) {
+        return;
+    }
+    subscribedAddresses.delete(activeAddress);
+    ws.unsubscribeFromAddress(activeAddress);
+    console.info(
+        `${LOG_PREFIX} unsubscribed from ${safeEncodeActiveAddress(
+            activeAddress,
+        )}`,
+    );
+};
+
 export const syncPushAddressSubscriptions = async (
     pool: Pool,
 ): Promise<void> => {
@@ -94,11 +110,17 @@ export const syncPushAddressSubscriptions = async (
     }
 
     const desired = await listPushActiveAddresses(pool);
+    const desiredSet = new Set(desired);
     console.info(
         `${LOG_PREFIX} syncing ${desired.length} subscribed address(es)`,
     );
     for (const address of desired) {
         subscribePushActiveAddress(pushWs, address);
+    }
+    for (const address of [...subscribedAddresses]) {
+        if (!desiredSet.has(address)) {
+            unsubscribePushActiveAddress(pushWs, address);
+        }
     }
 };
 

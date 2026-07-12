@@ -152,6 +152,7 @@ const createPushRoutes = (pool: Pool): Router => {
                 active_address,
                 fcm_token.trim(),
             );
+            await syncPushAddressSubscriptions(pool);
 
             res.status(200).json({
                 success: true,
