@@ -574,6 +574,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'HashedMax',
     },
+    // AlphaSoloPool.com - parsed from payout script
+    {
+        height: '957716',
+        coinbaseHex:
+            '03149d0e00047b46556a04b249172e0c2234556a62b83cdc7ecc8b010a636b706f6f6c132f416c706861536f6c6f506f6f6c2e636f6d2f',
+        payoutOutputScript:
+            '76a91451a25ab5d664a76b1f5c7033f8fe0dc1a7b59e6288ac',
+        parsed: 'AlphaSoloPool.com',
+    },
+    // AlphaSoloPool.com - parsed from coinbase hex fragment
+    {
+        height: '957716',
+        coinbaseHex:
+            '03149d0e00047b46556a04b249172e0c2234556a62b83cdc7ecc8b010a636b706f6f6c132f416c706861536f6c6f506f6f6c2e636f6d2f',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'AlphaSoloPool.com',
+    },
 ];
 
 export default minerTestFixtures;

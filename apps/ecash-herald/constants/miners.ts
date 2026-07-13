@@ -245,6 +245,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '4861736865644d6178', // "HashedMax" ASCII
             },
         ],
+        [
+            '76a91451a25ab5d664a76b1f5c7033f8fe0dc1a7b59e6288ac',
+            {
+                miner: 'AlphaSoloPool.com',
+                coinbaseHexFragment: '416c706861536f6c6f506f6f6c2e636f6d', // ascii AlphaSoloPool.com
+            },
+        ],
     ],
 };
 
