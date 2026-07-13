@@ -158,12 +158,11 @@ describe('<Wallets />', () => {
             }),
         );
 
-        // Confirm copy success notification is triggered
+        // Confirm copy success swaps the icon to a check
         await waitFor(() => {
+            expect(screen.getByTitle('check')).toBeInTheDocument();
             expect(
-                screen.getByText(
-                    `"ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep" copied to clipboard`,
-                ),
+                screen.getByRole('button', { name: 'Copied' }),
             ).toBeInTheDocument();
         });
     });

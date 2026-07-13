@@ -118,8 +118,6 @@ const BackupWallet = () => {
                 <FlexRow>
                     <CopyToClipboard
                         data={storedActiveWallet.mnemonic}
-                        showToast
-                        customMsg={'Copied seed phrase'}
                     >
                         <Seed mnemonic={storedActiveWallet.mnemonic} />
                     </CopyToClipboard>

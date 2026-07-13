@@ -11,6 +11,7 @@ import FirmaSrc from 'assets/firma-icon.png';
 import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
 import { ReactComponent as CopyPaste } from 'assets/copy.svg';
+import { ReactComponent as Check } from 'assets/check.svg';
 import { ReactComponent as AddContact } from 'assets/addcontact.svg';
 import { ReactComponent as Unknown } from 'assets/unknown.svg';
 import { ReactComponent as Reply } from 'assets/reply.svg';
@@ -188,6 +189,7 @@ export const IsMintAddressIcon: React.FC = () => (
     <IsMintAddress title="Listed by token creator" />
 );
 export const CopyPasteIcon: React.FC = () => <CopyPaste title="copy-paste" />;
+export const CheckIcon: React.FC = () => <Check title="check" />;
 export const AddContactIcon: React.FC = () => (
     <AddContact title="add-contact" />
 );

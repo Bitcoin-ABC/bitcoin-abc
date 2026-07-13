@@ -135,12 +135,7 @@ export const TokenIdPreview: React.FC<TokenIdPreviewProps> = ({ tokenId }) => {
                 ...
                 {tokenId.slice(-3)}
             </a>
-            <CopyIconButton
-                name={`Copy Token ID`}
-                data={tokenId}
-                showToast
-                customMsg={`Token ID "${tokenId}" copied to clipboard`}
-            />
+            <CopyIconButton name={`Copy Token ID`} data={tokenId} />
         </TokenIdAndCopyIcon>
     );
 };
@@ -194,12 +189,7 @@ export const CopyTokenId: React.FC<CopyTokenIdProps> = ({ tokenId }) => {
             {tokenId.slice(0, 3)}
             ...
             {tokenId.slice(-3)}
-            <CopyIconButton
-                name={`Copy Token ID`}
-                data={tokenId}
-                showToast
-                customMsg={`Token ID "${tokenId}" copied to clipboard`}
-            />
+            <CopyIconButton name={`Copy Token ID`} data={tokenId} />
         </CopyTokenIdWrapper>
     );
 };

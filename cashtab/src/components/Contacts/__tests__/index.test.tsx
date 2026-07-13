@@ -126,12 +126,11 @@ describe('<Contacts />', () => {
             }),
         );
 
-        // Confirm copy success notification is triggered
+        // Confirm copy success swaps the icon to a check
         await waitFor(() => {
+            expect(screen.getByTitle('check')).toBeInTheDocument();
             expect(
-                screen.getByText(
-                    `"ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6" copied to clipboard`,
-                ),
+                screen.getByRole('button', { name: 'Copied' }),
             ).toBeInTheDocument();
         });
 

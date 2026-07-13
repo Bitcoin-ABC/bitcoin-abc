@@ -54,7 +54,6 @@ import {
     ChatIcon,
     UnknownIcon,
     CashtabMsgIcon,
-    CopyPasteIcon,
     ThemedPdfSolid,
     ThemedLinkSolid,
     AddContactIcon,
@@ -84,7 +83,6 @@ import {
     FanOutIcon,
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { explorer } from 'config/explorer';
 import { ParsedTokenTxType, XecxAction, SolAddrAction } from 'chronik';
 import { toFormattedXec, decimalizedTokenQtyToLocaleFormat } from 'formatting';
@@ -877,7 +875,6 @@ const Tx: React.FC<TxProps> = ({
                             <CopyIconButton
                                 name="Sol Addr"
                                 data={(action as SolAddrAction).solAddr}
-                                showToast
                             />
                         )}
                     </IconAndLabel>,
@@ -1254,7 +1251,6 @@ const Tx: React.FC<TxProps> = ({
         if (navigator.clipboard) {
             navigator.clipboard.writeText(data);
         }
-        toast.success(`"${data}" copied to clipboard`);
     };
     return (
         <>
@@ -1449,15 +1445,7 @@ const Tx: React.FC<TxProps> = ({
                 </Collapse>
                 <Expand showPanel={showPanel}>
                     <ExpandButtonPanel>
-                        <CopyToClipboard
-                            data={txid}
-                            showToast
-                            customMsg={`Txid "${txid}" copied to clipboard`}
-                        >
-                            <PanelButton>
-                                <CopyPasteIcon />
-                            </PanelButton>
-                        </CopyToClipboard>
+                        <CopyIconButton name="Copy txid" data={txid} />
                         <PanelLink
                             to={`${explorer.blockExplorerUrl}/tx/${txid}`}
                             target="_blank"

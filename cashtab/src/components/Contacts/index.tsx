@@ -330,7 +330,6 @@ const Contacts = () => {
                                     <CopyIconButton
                                         name={`Copy ${contact.name}`}
                                         data={contact.address}
-                                        showToast
                                     />
                                     <IconButton
                                         name={`Rename ${contact.name}`}

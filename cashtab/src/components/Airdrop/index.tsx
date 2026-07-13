@@ -6,8 +6,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router';
 import BigNumber from 'bignumber.js';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
-import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
+import PrimaryButton, {
+    CopyIconButton,
+    SecondaryLink,
+} from 'components/Common/Buttons';
 import {
     isValidTokenId,
     isValidXecAirdrop,
@@ -25,7 +27,6 @@ import { toast } from 'react-toastify';
 import CashtabSwitch from 'components/Common/Switch';
 import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
 import ActionButtonRow from 'components/Common/ActionButtonRow';
-import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { getTokenGenesisInfo } from 'chronik';
 import { encodeOutputScript } from 'ecashaddrjs';
 import Spinner from 'components/Common/Spinner';
@@ -567,15 +568,10 @@ const Airdrop = () => {
                         <FormRow>
                             <AirdropTitle>
                                 One to Many Airdrop Payment Outputs
-                                <CopyToClipboard
+                                <CopyIconButton
+                                    name="Copy airdrop recipients"
                                     data={airdropRecipients}
-                                    showToast
-                                    customMsg={
-                                        'Airdrop recipients copied to clipboard'
-                                    }
-                                >
-                                    <CopyPasteIcon />
-                                </CopyToClipboard>
+                                />
                             </AirdropTitle>
                             <TextArea
                                 name="airdropRecipients"

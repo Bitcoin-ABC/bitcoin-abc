@@ -2127,8 +2127,6 @@ const Token: React.FC = () => {
                                 <CopyIconButton
                                     name={`Copy Token ID`}
                                     data={nftTokenId}
-                                    showToast
-                                    customMsg={`NFT Token ID "${nftTokenId}" copied to clipboard`}
                                 />
                             </NftTokenIdAndCopyIcon>
                         </NftRow>
@@ -2824,8 +2822,6 @@ const Token: React.FC = () => {
                                             <CopyIconButton
                                                 name={`Copy Token ID`}
                                                 data={tokenId as string}
-                                                showToast
-                                                customMsg={`Token ID "${tokenId}" copied to clipboard`}
                                             />
                                         </div>
                                     </TokenStatsTableRow>
@@ -2925,8 +2921,6 @@ const Token: React.FC = () => {
                                         <CopyIconButton
                                             name={`Copy Token ID`}
                                             data={hash}
-                                            showToast
-                                            customMsg={`Token document hash "${hash}" copied to clipboard`}
                                         />
                                     </div>
                                 </TokenStatsTableRow>

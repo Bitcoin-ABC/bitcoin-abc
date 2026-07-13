@@ -175,7 +175,6 @@ export const Receive: React.FC = () => {
                     <CopyIconButton
                         name="Copy Cashtab URL"
                         data={`https://cashtab.com/#/send?bip21=${queryString}`}
-                        showToast
                     />
                 </Row>
             </ReceiveFormFlex>

@@ -500,7 +500,6 @@ const Wallets = () => {
         if (navigator.clipboard) {
             await navigator.clipboard.writeText(address);
         }
-        toast.success(`"${address}" copied to clipboard`);
 
         // Close the tab after copying - this works when the tab was opened by JavaScript
         window.close();
@@ -754,7 +753,6 @@ const Wallets = () => {
                                         <CopyIconButton
                                             name={`Copy address of ${wallet.name}`}
                                             data={wallet.address}
-                                            showToast
                                         />
                                     </SvgButtonPanel>
                                 </Wallet>

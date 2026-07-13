@@ -3644,7 +3644,6 @@ const SendXec: React.FC = () => {
                                                                 data={
                                                                     parsedFirma.data
                                                                 }
-                                                                showToast
                                                             />
                                                         </FirmaRedeemTextAndCopy>
                                                     </ParsedTokenSend>
@@ -3978,7 +3977,6 @@ const SendXec: React.FC = () => {
                                                     <CopyIconButton
                                                         name="Copy SOL addr"
                                                         data={parsedFirma.data}
-                                                        showToast
                                                     />
                                                 </FirmaRedeemTextAndCopy>
                                             </ParsedTokenSend>

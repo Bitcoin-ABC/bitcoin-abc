@@ -227,7 +227,6 @@ const SignVerifyMsg = () => {
                             <Row>
                                 <CopyToClipboard
                                     data={messageSignature}
-                                    showToast
                                 >
                                     <SignatureHolder>
                                         {messageSignature}

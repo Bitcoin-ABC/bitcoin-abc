@@ -1,12 +1,28 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { ReactNode } from 'react';
-import styled, { css } from 'styled-components';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import styled, { css, keyframes } from 'styled-components';
 import { Link } from 'react-router';
-import { CopyPasteIcon } from 'components/Common/CustomIcons';
-import { toast } from 'react-toastify';
+import { CheckIcon, CopyPasteIcon } from 'components/Common/CustomIcons';
+
+const COPY_FEEDBACK_MS = 2000;
+
+const checkPop = keyframes`
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+`;
 
 const BaseButtonOrLinkCss = css<{ disabled?: boolean }>`
     font-size: var(--text-lg);
@@ -119,17 +135,24 @@ const SecondaryLink = styled(CashtabBaseLink)`
     }
 `;
 
-const SvgButtonOrLinkCss = css`
+const SvgButtonOrLinkCss = css<{ copied?: boolean }>`
     border: none;
     background: none;
     cursor: pointer;
     svg {
         height: 22px;
         width: 22px;
-        fill: ${props => props.theme.primaryText};
+        fill: ${props =>
+            props.copied ? props.theme.accent : props.theme.primaryText};
+        ${props =>
+            props.copied &&
+            css`
+                animation: ${checkPop} 0.25s ease-out;
+            `}
 
         path {
-            stroke: ${props => props.theme.primaryText};
+            stroke: ${props =>
+                props.copied ? props.theme.accent : props.theme.primaryText};
         }
     }
     @media (hover: hover) {
@@ -144,7 +167,7 @@ const SvgButtonOrLinkCss = css`
         }
     }
 `;
-const HeaderCopyButtonCss = css`
+const HeaderCopyButtonCss = css<{ copied?: boolean }>`
     border: none;
     flex-shrink: 0;
     height: 100%;
@@ -157,8 +180,14 @@ const HeaderCopyButtonCss = css`
     svg {
         height: 20px;
         width: 25px;
+        ${props =>
+            props.copied &&
+            css`
+                animation: ${checkPop} 0.25s ease-out;
+            `}
         path {
-            fill: ${props => props.theme.primaryText};
+            fill: ${props =>
+                props.copied ? props.theme.accent : props.theme.primaryText};
         }
     }
     @media (hover: hover) {
@@ -172,7 +201,7 @@ const HeaderCopyButtonCss = css`
     }
 `;
 
-const SvgButton = styled.button<{ isHeader?: boolean }>`
+const SvgButton = styled.button<{ isHeader?: boolean; copied?: boolean }>`
     ${({ isHeader }) => (isHeader ? HeaderCopyButtonCss : SvgButtonOrLinkCss)}
 `;
 
@@ -209,35 +238,46 @@ const IconLink: React.FC<IconLinkProps> = ({ name, icon, to, state }) => (
 interface CopyIconButtonProps {
     name: string;
     data: string;
-    customMsg?: string;
-    showToast?: boolean;
     isHeader?: boolean;
 }
 const CopyIconButton: React.FC<CopyIconButtonProps> = ({
     name,
     data,
-    customMsg,
-    showToast = false,
     isHeader = false,
 }) => {
+    const [copied, setCopied] = useState(false);
+    const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (copiedTimeoutRef.current !== null) {
+                clearTimeout(copiedTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const handleCopy = () => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(data);
+        }
+        if (copiedTimeoutRef.current !== null) {
+            clearTimeout(copiedTimeoutRef.current);
+        }
+        setCopied(true);
+        copiedTimeoutRef.current = setTimeout(() => {
+            copiedTimeoutRef.current = null;
+            setCopied(false);
+        }, COPY_FEEDBACK_MS);
+    };
+
     return (
         <SvgButton
-            aria-label={name}
+            aria-label={copied ? 'Copied' : name}
             isHeader={isHeader}
-            onClick={() => {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(data);
-                }
-                if (showToast) {
-                    const toastMsg =
-                        typeof customMsg !== 'undefined'
-                            ? customMsg
-                            : `"${data}" copied to clipboard`;
-                    toast.success(toastMsg);
-                }
-            }}
+            copied={copied}
+            onClick={handleCopy}
         >
-            <CopyPasteIcon />
+            {copied ? <CheckIcon /> : <CopyPasteIcon />}
         </SvgButton>
     );
 };

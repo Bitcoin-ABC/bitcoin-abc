@@ -62,7 +62,6 @@ const WalletHeaderActions: React.FC<WalletHeaderActionsProps> = ({
             <CopyIconButton
                 name={`Copy ${address}`}
                 data={address}
-                showToast
                 isHeader
             />
             <SettingsLink to="/configure" aria-label="Settings">

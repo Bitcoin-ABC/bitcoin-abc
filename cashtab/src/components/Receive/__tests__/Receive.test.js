@@ -16,7 +16,6 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { FIRMA } from 'constants/tokens';
 
 describe('<Receive />', () => {
     let user;
@@ -140,10 +139,9 @@ describe('<Receive />', () => {
             screen.getByRole('button', { name: 'Copy Cashtab URL' }),
         );
         expect(
-            await screen.findByText(
-                `"https://cashtab.com/#/send?bip21=ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g?amount=55123.33" copied to clipboard`,
-            ),
+            await screen.findByRole('button', { name: 'Copied' }),
         ).toBeInTheDocument();
+        expect(screen.getByTitle('check')).toBeInTheDocument();
 
         // We can hit the switch to send in Firma
         await user.click(screen.getByTitle('Toggle Firma'));
@@ -158,12 +156,10 @@ describe('<Receive />', () => {
         );
         // We can get a FIRMA receive bip21 string
         await user.click(
-            screen.getByRole('button', { name: 'Copy Cashtab URL' }),
+            screen.getByRole('button', { name: /Copy Cashtab URL|Copied/ }),
         );
         expect(
-            await screen.findByText(
-                `"https://cashtab.com/#/send?bip21=ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g?token_id=${FIRMA.tokenId}&token_decimalized_qty=12.1234" copied to clipboard`,
-            ),
+            await screen.findByRole('button', { name: 'Copied' }),
         ).toBeInTheDocument();
 
         // If we switch back to XEC, form validation catches 4 decimal places
