@@ -14,9 +14,9 @@ export const createApp = (pool: Pool): Express => {
     // Behind token-server-proxy (nginx); trust one hop for X-Forwarded-For
     app.set('trust proxy', 1);
 
-    // Capacitor Android WebViews default to origin https://localhost
-    // (server.androidScheme "https" + server.hostname "localhost"). That makes
-    // fetch() to push.etokens.cash cross-origin, so CORS is required.
+    // Cashtab web (cashtab.com) and Capacitor Android WebViews
+    // (https://localhost) call push.etokens.cash cross-origin, so CORS is
+    // required.
     app.use(
         helmet({
             crossOriginResourcePolicy: { policy: 'cross-origin' },

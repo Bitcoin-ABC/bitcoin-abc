@@ -4,8 +4,11 @@
 
 import { Request, Response, NextFunction } from 'express';
 
-/** Origins used by Capacitor Android/iOS WebViews. */
-const CAPACITOR_ORIGINS = new Set([
+/** Origins allowed to call the push API from a browser / WebView. */
+const ALLOWED_ORIGINS = new Set([
+    // Production Cashtab web app
+    'https://cashtab.com',
+    'https://www.cashtab.com',
     // Capacitor Android default: androidScheme "https" + hostname "localhost"
     // (Cap 6+). That is a real WebView origin, not a browser-on-desktop URL.
     'https://localhost',
@@ -15,16 +18,17 @@ const CAPACITOR_ORIGINS = new Set([
 ]);
 
 const isAllowedOrigin = (origin: string): boolean =>
-    CAPACITOR_ORIGINS.has(origin);
+    ALLOWED_ORIGINS.has(origin);
 
 /**
- * CORS for Capacitor WebViews calling the push API.
+ * CORS for Cashtab web and Capacitor WebViews calling the push API.
  *
  * This is not auth. Push register/unregister is gated by address signature.
- * Browsers/WebViews refuse cross-origin fetch responses without ACAO; Capacitor
- * apps use origins like https://localhost, so we allow those (same idea as
- * Firma's exchange CORS). Non-browser clients can set any Origin — that does
- * not matter here; they still need a valid signature.
+ * Browsers/WebViews refuse cross-origin fetch responses without ACAO; Cashtab
+ * web (cashtab.com) and Capacitor apps (https://localhost, etc.) need those
+ * origins allowlisted (same idea as Firma's exchange CORS). Non-browser
+ * clients can set any Origin — that does not matter here; they still need a
+ * valid signature.
  */
 export const corsMiddleware = (
     req: Request,

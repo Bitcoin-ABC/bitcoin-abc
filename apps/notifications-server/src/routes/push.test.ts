@@ -115,6 +115,20 @@ describe('Push routes', () => {
         );
     });
 
+    it('allows cashtab.com for CORS preflight', async () => {
+        const response = await request(app)
+            .options('/api/push/register')
+            .set('Origin', 'https://cashtab.com')
+            .set('Access-Control-Request-Method', 'POST')
+            .set('Access-Control-Request-Headers', 'content-type');
+
+        assert.strictEqual(response.status, 204);
+        assert.strictEqual(
+            response.headers['access-control-allow-origin'],
+            'https://cashtab.com',
+        );
+    });
+
     it('rejects disallowed origins', async () => {
         const response = await request(app)
             .post('/api/push/register')
