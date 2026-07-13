@@ -475,10 +475,9 @@ export abstract class WalletBase<
         gapLimit: number,
         startIndex: number = 0,
     ): Promise<void> {
-        let highestUsed = startIndex - 1;
-        let index = startIndex;
         let consecutiveUnused = 0;
 
+        let index = startIndex;
         while (consecutiveUnused < gapLimit) {
             // Always use Chronik's max batch size. HD derive is ~0.27ms/addr
             // locally, so filling 500 scripts is cheaper than an extra RTT —
@@ -502,25 +501,22 @@ export abstract class WalletBase<
             }
 
             const usedFlags = await this._queryScriptsUsed(scripts);
-            let processed = 0;
             for (let i = 0; i < usedFlags.length; i++) {
-                processed++;
                 if (usedFlags[i]) {
-                    highestUsed = index + i;
                     consecutiveUnused = 0;
                 } else {
                     consecutiveUnused++;
-                    if (consecutiveUnused >= gapLimit) {
-                        break;
-                    }
                 }
+
+                if (consecutiveUnused >= gapLimit) {
+                    break;
+                }
+
+                index++;
             }
-            // Advance only by addresses actually considered (not the full
-            // derived batch when we stop mid-batch on a completed gap).
-            index += processed;
         }
 
-        const nextIndex = highestUsed + 1;
+        const nextIndex = index - gapLimit + 1;
         if (forChange) {
             this.changeIndex = Math.max(this.changeIndex, nextIndex);
         } else {
