@@ -100,4 +100,33 @@ describe('Push routes', () => {
         assert.strictEqual(response.status, 400);
         assert.match(response.body.error, /signature is required/);
     });
+
+    it('allows Capacitor WebView origins for CORS preflight', async () => {
+        const response = await request(app)
+            .options('/api/push/register')
+            .set('Origin', 'https://localhost')
+            .set('Access-Control-Request-Method', 'POST')
+            .set('Access-Control-Request-Headers', 'content-type');
+
+        assert.strictEqual(response.status, 204);
+        assert.strictEqual(
+            response.headers['access-control-allow-origin'],
+            'https://localhost',
+        );
+    });
+
+    it('rejects disallowed origins', async () => {
+        const response = await request(app)
+            .post('/api/push/register')
+            .set('Origin', 'https://evil.example')
+            .send({
+                active_address: ACTIVE_ADDRESS,
+                signature: signPushRegister(),
+                platform: 'android',
+                fcm_token: 'fcm-token-abc',
+            });
+
+        assert.strictEqual(response.status, 403);
+        assert.match(response.body.error, /Origin not allowed/);
+    });
 });
