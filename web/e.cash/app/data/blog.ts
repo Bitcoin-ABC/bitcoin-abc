@@ -43,20 +43,37 @@ export interface BlogPost {
 }
 
 export async function getPageCount(): Promise<number> {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts",
-  ).then((res) => res.json());
-  return response.meta.pagination.pageCount;
+  const res = await fetch(process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts");
+  if (!res.ok) {
+    throw new Error(`Failed to fetch blog page count: ${res.statusText}`);
+  }
+  const response = await res.json();
+  const pageCount = response?.meta?.pagination?.pageCount;
+  if (typeof pageCount !== "number") {
+    throw new Error("Failed to fetch blog page count: missing pagination");
+  }
+  return pageCount;
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
   const pageCount = await getPageCount();
   let posts: BlogPost[] = [];
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
-    const response = await fetch(
+    const res = await fetch(
       process.env.NEXT_PUBLIC_STRAPI_URL +
         `/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`,
-    ).then((res) => res.json());
+    );
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch blog posts (page ${pageNumber}): ${res.statusText}`,
+      );
+    }
+    const response = await res.json();
+    if (!Array.isArray(response?.data)) {
+      throw new Error(
+        `Failed to fetch blog posts (page ${pageNumber}): missing data`,
+      );
+    }
     posts = [...posts, ...response.data];
   }
   return posts;
