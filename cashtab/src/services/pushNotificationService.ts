@@ -21,7 +21,8 @@ import {
     isFirebaseWebConfigured,
 } from 'config/notifications';
 
-const PUSH_TOKEN_ICON_SIZE = 192 as const;
+/** Token-server sizes: 512 / 256 / 128 / 64 / 32 — 128 for inline push icons. */
+const PUSH_TOKEN_ICON_SIZE = 128 as const;
 
 type PushPlatform = 'ios' | 'android' | 'web';
 
@@ -79,9 +80,9 @@ const getTokenNotificationIconUrl = (tokenId: string): string =>
     `${tokenConfig.tokenIconsUrl}/${PUSH_TOKEN_ICON_SIZE}/${tokenId}.png`;
 
 /**
- * Icon URL for browser Notification / service-worker display only.
- * Android uses a local white drawable (`ic_cashtab_notification`) via FCM;
- * remote token/XEC icons are not applied on mobile yet.
+ * Icon URL for browser Notification / service-worker display (inline left).
+ * Android uses a local white drawable (`ic_cashtab_notification`) for the
+ * status-bar icon, and FCM `imageUrl` (token icon) when `token_id` is present.
  */
 const getPushNotificationIconUrl = (data?: Record<string, string>): string => {
     const tokenId = data?.token_id;

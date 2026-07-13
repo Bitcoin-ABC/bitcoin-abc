@@ -6,8 +6,12 @@ import { Pool } from 'pg';
 import { getPushMessagingClient } from './pushFirebase';
 import { listPushTokensForActiveAddress } from './pushTokenStore';
 
-/** Drawable name in the Cashtab Android app (`res/drawable/`). */
+/** Drawable name in the Cashtab Android app (`res/drawable/`). Status-bar icon. */
 const ANDROID_NOTIFICATION_ICON = 'ic_cashtab_notification';
+
+/** Token-server serves /512 /256 /128 /64 /32; 128 fits inline notification icons. */
+const TOKEN_ICONS_BASE_URL = 'https://icons.etokens.cash';
+const TOKEN_ICON_SIZE = 128;
 
 export type PushNotificationType = 'tx_received' | 'manual';
 
@@ -27,6 +31,9 @@ export type SendPushResult = {
     skippedNoFirebase: boolean;
     invalidTokensRemoved: number;
 };
+
+const getTokenNotificationImageUrl = (tokenId: string): string =>
+    `${TOKEN_ICONS_BASE_URL}/${TOKEN_ICON_SIZE}/${tokenId}.png`;
 
 const isInvalidFcmTokenError = (error: unknown): boolean => {
     if (typeof error !== 'object' || error === null) {
@@ -70,6 +77,10 @@ export const sendPushToActiveAddress = async (
         active_address: params.activeAddress,
         ...(params.data ?? {}),
     };
+    const tokenImageUrl =
+        typeof data.token_id === 'string' && data.token_id.length > 0
+            ? getTokenNotificationImageUrl(data.token_id)
+            : undefined;
 
     for (const row of tokens) {
         const channelId =
@@ -94,13 +105,21 @@ export const sendPushToActiveAddress = async (
                     notification: {
                         title: params.title,
                         body: params.body,
+                        ...(tokenImageUrl !== undefined
+                            ? { imageUrl: tokenImageUrl }
+                            : {}),
                     },
                     data,
                     android: {
                         priority: 'high',
                         notification: {
                             channelId,
+                            // Small status-bar icon must be a local white drawable.
                             icon: ANDROID_NOTIFICATION_ICON,
+                            // Token icon beside the notification text (FCM large icon).
+                            ...(tokenImageUrl !== undefined
+                                ? { imageUrl: tokenImageUrl }
+                                : {}),
                         },
                     },
                 });

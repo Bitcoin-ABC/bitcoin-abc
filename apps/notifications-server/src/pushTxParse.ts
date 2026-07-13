@@ -7,6 +7,7 @@ import { decodeCashAddress } from 'ecashaddrjs';
 import {
     getTxNotificationMsg,
     parseTx,
+    ParsedTokenTxType,
     XecTxType,
     type ParsedTx,
 } from 'ecash-parse';
@@ -14,7 +15,10 @@ import {
 export type PushTxSummary = {
     title: string;
     body: string;
-    /** Set for incoming token txs; used by web clients for push notification icons. */
+    /**
+     * Set for incoming token txs; used as the push notification icon
+     * (web Notification icon / Android FCM imageUrl).
+     */
     tokenId?: string;
 };
 
@@ -23,6 +27,38 @@ export type SummarizePushTxOptions = {
     fiatPrice?: number | null;
     fiatTicker?: string;
     genesisInfoByTokenId?: Map<string, GenesisInfo>;
+};
+
+const DEFAULT_PUSH_TITLE = 'Payment received';
+
+const getTokenTickerForPush = (
+    tokenId: string,
+    genesisInfo?: GenesisInfo,
+): string => {
+    if (typeof genesisInfo === 'undefined') {
+        return `${tokenId.slice(0, 5)}...${tokenId.slice(-5)}`;
+    }
+    if (genesisInfo.tokenTicker !== '') {
+        return genesisInfo.tokenTicker;
+    }
+    if (genesisInfo.tokenName !== '') {
+        return genesisInfo.tokenName;
+    }
+    return `${tokenId.slice(0, 5)}...${tokenId.slice(-5)}`;
+};
+
+const getPushTitle = (
+    parsedTx: ParsedTx,
+    genesisInfo?: GenesisInfo,
+): string => {
+    if (parsedTx.parsedTokenEntries.length === 0) {
+        return DEFAULT_PUSH_TITLE;
+    }
+    const { tokenId, renderedTxType } = parsedTx.parsedTokenEntries[0];
+    if (renderedTxType === ParsedTokenTxType.AgoraSale) {
+        return `${getTokenTickerForPush(tokenId, genesisInfo)} Sold`;
+    }
+    return DEFAULT_PUSH_TITLE;
 };
 
 const buildPushSummary = (
@@ -58,7 +94,7 @@ const buildPushSummary = (
     }
 
     return {
-        title: 'Payment received',
+        title: getPushTitle(parsedTx, genesisInfo),
         body,
         ...(tokenId !== undefined ? { tokenId } : {}),
     };

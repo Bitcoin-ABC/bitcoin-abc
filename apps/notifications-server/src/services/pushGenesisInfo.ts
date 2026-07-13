@@ -3,11 +3,17 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { ChronikClient, type GenesisInfo } from 'chronik-client';
+import { HOT_TOKEN_GENESIS_INFO } from '../constants/hotTokenGenesisInfo';
 
 export const getGenesisInfoForTokenId = async (
     chronik: ChronikClient,
     tokenId: string,
 ): Promise<GenesisInfo | undefined> => {
+    const hot = HOT_TOKEN_GENESIS_INFO.get(tokenId);
+    if (hot !== undefined) {
+        return hot;
+    }
+
     try {
         const tokenInfo = await chronik.token(tokenId);
         return tokenInfo.genesisInfo;

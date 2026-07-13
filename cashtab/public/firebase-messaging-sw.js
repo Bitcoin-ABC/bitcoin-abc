@@ -24,12 +24,13 @@ const tokenIconsBaseUrl = '__VITE_TOKEN_ICONS_URL__';
 const notificationIconUrl = `${self.location.origin}/ecash192.png`;
 const notificationBadgeUrl = `${self.location.origin}/ecash48.png`;
 
-// Web/service-worker display only. Android FCM uses the local
-// ic_cashtab_notification drawable (not these remote icon URLs).
+// Web/service-worker display (inline left). Android FCM uses the local
+// ic_cashtab_notification drawable for the status-bar icon and, for token
+// txs, icons.etokens.cash/128 via android.notification.imageUrl.
 const getPushNotificationIconUrl = data => {
     const tokenId = data?.token_id;
     if (tokenId) {
-        return `${tokenIconsBaseUrl}/192/${tokenId}.png`;
+        return `${tokenIconsBaseUrl}/128/${tokenId}.png`;
     }
     return notificationIconUrl;
 };

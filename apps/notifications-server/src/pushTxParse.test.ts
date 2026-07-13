@@ -4,7 +4,7 @@
 
 import * as assert from 'assert';
 import { notificationFixtures } from 'ecash-parse/fixtures';
-import { XecTxType } from 'ecash-parse';
+import { ParsedTokenTxType, XecTxType } from 'ecash-parse';
 import { summarizePushTxForWalletHash } from './pushTxParse';
 
 /**
@@ -27,6 +27,19 @@ const normalizeWalletHash = (hashOrScript: string): string => {
     throw new Error(`Cannot normalize wallet hash: ${hashOrScript}`);
 };
 
+const expectedPushTitle = (fixture: (typeof notificationFixtures)[number]) => {
+    const entry = fixture.parsedTx.parsedTokenEntries[0];
+    if (entry?.renderedTxType === ParsedTokenTxType.AgoraSale) {
+        const genesisInfo = fixture.genesisInfo;
+        const ticker =
+            genesisInfo?.tokenTicker ||
+            genesisInfo?.tokenName ||
+            `${entry.tokenId.slice(0, 5)}...${entry.tokenId.slice(-5)}`;
+        return `${ticker} Sold`;
+    }
+    return 'Payment received';
+};
+
 describe('summarizePushTxForAddress', () => {
     for (const fixture of notificationFixtures) {
         if (
@@ -39,13 +52,9 @@ describe('summarizePushTxForAddress', () => {
         }
 
         it(fixture.description, () => {
+            const tokenId = fixture.parsedTx.parsedTokenEntries[0]?.tokenId;
             const genesisInfoByTokenId = fixture.genesisInfo
-                ? new Map([
-                      [
-                          fixture.parsedTx.parsedTokenEntries[0]?.tokenId ?? '',
-                          fixture.genesisInfo,
-                      ],
-                  ])
+                ? new Map([[tokenId ?? '', fixture.genesisInfo]])
                 : undefined;
 
             const matchingHash = fixture.walletHashes!.find(hash => {
@@ -66,6 +75,23 @@ describe('summarizePushTxForAddress', () => {
                 matchingHash,
                 `expected a wallet hash to produce notification: ${fixture.expected}`,
             );
+
+            const summary = summarizePushTxForWalletHash(
+                fixture.tx!,
+                normalizeWalletHash(matchingHash!),
+                {
+                    fiatPrice: fixture.fiatPrice,
+                    locale: fixture.userLocale,
+                    fiatTicker: fixture.selectedFiatTicker,
+                    genesisInfoByTokenId,
+                },
+            );
+            assert.strictEqual(summary?.title, expectedPushTitle(fixture));
+            if (typeof tokenId === 'string' && tokenId.length > 0) {
+                assert.strictEqual(summary?.tokenId, tokenId);
+            } else {
+                assert.strictEqual(summary?.tokenId, undefined);
+            }
         });
     }
 });
