@@ -148,10 +148,15 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
+            // Chronik.history() returns one page of txs plus the wallet's total
+            // tx count (numTxs). We must store that total: websocket handlers
+            // later do prev.numTxs +/- 1 to recompute numPages. Storing
+            // result.txs.length (page size, e.g. 10) made pagination think a
+            // 250-tx wallet only had ~1 page of history.
             const newTransactionHistory: TransactionHistory = {
                 firstPageTxs: result.txs,
                 numPages: result.numPages,
-                numTxs: result.txs.length,
+                numTxs: result.numTxs,
             };
 
             setTransactionHistory(newTransactionHistory);
