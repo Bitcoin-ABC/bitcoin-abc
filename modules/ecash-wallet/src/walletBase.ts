@@ -62,6 +62,13 @@ export interface SyncAndDiscoverOptions {
     startChangeIndex?: number;
 }
 
+interface ResolvedGapSearchOptions {
+    receiveGapLimit: number;
+    changeGapLimit: number;
+    startReceiveIndex: number;
+    startChangeIndex: number;
+}
+
 /**
  * Subset of coinbase outputs that are allowed as transaction inputs: `isCoinbase` and buried
  * under at least {@link COINBASE_MATURITY} blocks relative to `tipHeight`.
@@ -522,6 +529,45 @@ export abstract class WalletBase<
     }
 
     /**
+     * Resolve and validate gap-discovery options.
+     *
+     * @param options - Raw {@link SyncAndDiscoverOptions}
+     * @throws Error if any option value is invalid
+     */
+    private _resolveGapSearchOptions(
+        options?: SyncAndDiscoverOptions,
+    ): ResolvedGapSearchOptions {
+        const receiveGapLimit =
+            options?.receiveGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
+        const changeGapLimit =
+            options?.changeGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
+        const startReceiveIndex = options?.startReceiveIndex ?? 0;
+        const startChangeIndex = options?.startChangeIndex ?? 0;
+
+        const assertPositiveInt = (name: string, value: number) => {
+            if (!Number.isInteger(value) || value < 1) {
+                throw new Error(`${name} must be a positive integer`);
+            }
+        };
+        const assertNonNegativeInt = (name: string, value: number) => {
+            if (!Number.isInteger(value) || value < 0) {
+                throw new Error(`${name} must be a non-negative integer`);
+            }
+        };
+        assertPositiveInt('receiveGapLimit', receiveGapLimit);
+        assertPositiveInt('changeGapLimit', changeGapLimit);
+        assertNonNegativeInt('startReceiveIndex', startReceiveIndex);
+        assertNonNegativeInt('startChangeIndex', startChangeIndex);
+
+        return {
+            receiveGapLimit,
+            changeGapLimit,
+            startReceiveIndex,
+            startChangeIndex,
+        };
+    }
+
+    /**
      * Discover receive and change indices via gap-limit scanning.
      * Does not fetch the full UTXO set; call {@link _syncHDWallet} after.
      * Receive and change chains are scanned concurrently.
@@ -568,27 +614,12 @@ export abstract class WalletBase<
             );
         }
 
-        const receiveGapLimit =
-            options?.receiveGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
-        const changeGapLimit =
-            options?.changeGapLimit ?? options?.gapLimit ?? DEFAULT_GAP_LIMIT;
-        const startReceiveIndex = options?.startReceiveIndex ?? 0;
-        const startChangeIndex = options?.startChangeIndex ?? 0;
-
-        const assertPositiveInt = (name: string, value: number) => {
-            if (!Number.isInteger(value) || value < 1) {
-                throw new Error(`${name} must be a positive integer`);
-            }
-        };
-        const assertNonNegativeInt = (name: string, value: number) => {
-            if (!Number.isInteger(value) || value < 0) {
-                throw new Error(`${name} must be a non-negative integer`);
-            }
-        };
-        assertPositiveInt('receiveGapLimit', receiveGapLimit);
-        assertPositiveInt('changeGapLimit', changeGapLimit);
-        assertNonNegativeInt('startReceiveIndex', startReceiveIndex);
-        assertNonNegativeInt('startChangeIndex', startChangeIndex);
+        const {
+            receiveGapLimit,
+            changeGapLimit,
+            startReceiveIndex,
+            startChangeIndex,
+        } = this._resolveGapSearchOptions(options);
 
         await this._discoverHDIndices(
             receiveGapLimit,
