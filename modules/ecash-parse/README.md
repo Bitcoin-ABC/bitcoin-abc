@@ -22,13 +22,13 @@ New consumers should depend on `ecash-parse` rather than copying parsing code fr
 
 ## What it provides
 
-| Export                                   | Role                                                                                                    |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `parseTx`                                | Chronik `Tx` + wallet hash(es) → structured `ParsedTx` (direction, amounts, token entries, app actions) |
-| `getTxNotificationMsg`                   | `ParsedTx` → short notification string (XEC, tokens, Agora, Cashtab msg, EMPP apps, etc.)               |
-| `getEmppAppActions` / `getEmppAppAction` | EMPP stack parsing                                                                                      |
-| Types                                    | `ParsedTx`, `XecTxType`, `AppAction`, token entry shapes, …                                             |
-| Helpers                                  | `previewAddress`, `toXec`, token amount formatting, LOKAD constants                                     |
+| Export                                   | Role                                                                                                                        |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `parseTx`                                | Chronik `Tx` + wallet hash(es) → structured `ParsedTx` (direction, amounts, token entries, app actions)                     |
+| `getTxNotificationMsg`                   | `ParsedTx` → short notification string (XEC, tokens, Agora, Cashtab msg, EMPP apps, etc.); amounts use compact k/M/B/T form |
+| `getEmppAppActions` / `getEmppAppAction` | EMPP stack parsing                                                                                                          |
+| Types                                    | `ParsedTx`, `XecTxType`, `AppAction`, token entry shapes, …                                                                 |
+| Helpers                                  | `previewAddress`, `toXec`, `toFormattedXec` / `toFormattedTokenQty`, LOKAD constants                                        |
 
 All LOKAD prefixes and app-specific constants live under `src/constants/` inside this package — no Cashtab config imports.
 

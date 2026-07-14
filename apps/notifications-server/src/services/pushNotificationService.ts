@@ -9,6 +9,12 @@ import { listPushTokensForActiveAddress } from './pushTokenStore';
 /** Drawable name in the Cashtab Android app (`res/drawable/`). Status-bar icon. */
 const ANDROID_NOTIFICATION_ICON = 'ic_cashtab_notification';
 
+/**
+ * Must match an intent-filter action on MainActivity so tapping a system
+ * notification opens / focuses the app.
+ */
+const ANDROID_NOTIFICATION_CLICK_ACTION = 'OPEN_CASHTAB';
+
 /** Token-server serves /512 /256 /128 /64 /32; 128 fits inline notification icons. */
 const TOKEN_ICONS_BASE_URL = 'https://icons.etokens.cash';
 const TOKEN_ICON_SIZE = 128;
@@ -116,6 +122,8 @@ export const sendPushToActiveAddress = async (
                             channelId,
                             // Small status-bar icon must be a local white drawable.
                             icon: ANDROID_NOTIFICATION_ICON,
+                            // Open MainActivity (OPEN_CASHTAB intent-filter) on tap.
+                            clickAction: ANDROID_NOTIFICATION_CLICK_ACTION,
                             // Token icon beside the notification text (FCM large icon).
                             ...(tokenImageUrl !== undefined
                                 ? { imageUrl: tokenImageUrl }

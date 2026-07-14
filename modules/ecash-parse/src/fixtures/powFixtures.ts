@@ -966,7 +966,7 @@ export const powNotificationFixtures: NotificationFixture[] = [
         fiatPrice: null,
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
-        expected: 'Proof of Writing | Sent 10,000.00 XEC | handle',
+        expected: 'Proof of Writing | Sent 10k XEC | handle',
     },
     {
         description: 'Proof of Writing comment notification',

@@ -101,13 +101,17 @@ const showWebPushNotification = (
     if (Notification.permission !== 'granted') {
         return;
     }
-    new Notification(title, {
+    const notification = new Notification(title, {
         body,
         icon: getPushNotificationIconUrl(data),
         badge: getXecNotificationBadgeUrl(),
         tag: data?.txid,
         data,
     });
+    notification.onclick = () => {
+        notification.close();
+        window.focus();
+    };
 };
 
 const postPushEndpoint = async (

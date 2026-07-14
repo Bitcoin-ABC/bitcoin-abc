@@ -3,11 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { GenesisInfo } from 'chronik-client';
-import appConfig from './constants/app';
 import { opReturn } from './constants/opreturn';
 import { previewAddress } from './address';
 import { decimalizeTokenAmount, SlpDecimals, toXec } from './amounts';
-import { decimalizedTokenQtyToLocaleFormat } from './formatting';
+import {
+    toFormattedFiatNotification,
+    toFormattedTokenQty,
+    toFormattedXec,
+} from './formatting';
 import { RenderedTokenType } from './tokenProtocol';
 import {
     AirdropAction,
@@ -38,23 +41,16 @@ export const getTxNotificationMsg = (
         appActions,
     } = parsedTx;
 
-    // Prices in notifications
-    // We want full precision
-    // We want locale formatting
-    // We want fiat price if available
+    // Prices in notifications: compact (k/M/B/T) for human readability
     const xecSent = toXec(satoshisSent);
     const fiatSent = fiatPrice !== null ? xecSent * fiatPrice : null;
-    const renderedAmount = `${xecSent.toLocaleString(userLocale, {
-        maximumFractionDigits: appConfig.cashDecimals,
-        minimumFractionDigits: appConfig.cashDecimals,
-    })} XEC${
+    const renderedAmount = `${toFormattedXec(satoshisSent, userLocale)} XEC${
         fiatSent !== null
-            ? ` (${`${new Intl.NumberFormat(userLocale, {
-                  style: 'currency',
-                  currency: selectedFiatTicker,
-                  minimumFractionDigits: appConfig.cashDecimals,
-                  maximumFractionDigits: appConfig.cashDecimals,
-              }).format(fiatSent)} ${selectedFiatTicker}`})`
+            ? ` (${toFormattedFiatNotification(
+                  fiatSent,
+                  userLocale,
+                  selectedFiatTicker,
+              )})`
             : ''
     }`;
 
@@ -218,7 +214,7 @@ export const getTxNotificationMsg = (
 
         const renderedTokenQty =
             typeof genesisInfo !== 'undefined'
-                ? `${decimalizedTokenQtyToLocaleFormat(
+                ? `${toFormattedTokenQty(
                       decimalizeTokenAmount(
                           String(tokenSatoshis),
                           genesisInfo.decimals as SlpDecimals,

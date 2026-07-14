@@ -288,7 +288,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'New staking reward: 625,008.97 XEC ($20.63 USD)',
+        expected: 'New staking reward: 625.01k XEC ($20.63 USD)',
     },
     {
         description: 'Handles missing fiat price',
@@ -365,7 +365,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'New staking reward: 625,008.97 XEC',
+        expected: 'New staking reward: 625.01k XEC',
     },
     {
         description: 'Handles non-decimal locale',
@@ -442,7 +442,7 @@ export const notificationFixtures = [
         userLocale: 'fr-FR',
         selectedFiatTicker: 'EUR',
         genesisInfo: undefined,
-        expected: 'New staking reward: 625 008,97 XEC (20,63 € EUR)',
+        expected: 'New staking reward: 625,01k XEC (20,63 € EUR)',
     },
     {
         description: 'Incoming XEC tx',
@@ -2897,7 +2897,7 @@ export const notificationFixtures = [
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
         expected:
-            '🪂Airdrop: Sent 1,999.75 XEC to holders of fb423...f87aa | ATTENTION GRUMPY PEOPLE! 😾 You can now deposit $GRP to the eToken bot at t.me/eCashPlay to top up your Casino Credits! 1m $GRP = 1 Credit. Play Casino games and win XEC! ',
+            '🪂Airdrop: Sent 2k XEC to holders of fb423...f87aa | ATTENTION GRUMPY PEOPLE! 😾 You can now deposit $GRP to the eToken bot at t.me/eCashPlay to top up your Casino Credits! 1m $GRP = 1 Credit. Play Casino games and win XEC! ',
     },
     {
         description: 'Off spec airdrop tx',
@@ -3616,7 +3616,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'Sent 1,999.75 XEC | Invalid 🪂Airdrop',
+        expected: 'Sent 2k XEC | Invalid 🪂Airdrop',
     },
     {
         description: 'PayButton tx with data and payment id',
@@ -3706,7 +3706,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'PayButton: Sent 34,015.92 XEC | 😂👍',
+        expected: 'PayButton: Sent 34.02k XEC | 😂👍',
     },
     {
         description: 'PayButton tx with unsupported version number',
@@ -3792,7 +3792,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'Sent 34,015.92 XEC | Invalid PayButton',
+        expected: 'Sent 34.02k XEC | Invalid PayButton',
     },
     {
         description: 'External msg received from Electrum',
@@ -4893,7 +4893,7 @@ export const notificationFixtures = [
             decimals: 0,
             hash: 'f09ec0e8e5f37ab8aebe8e701a476b6f2085f8d9ea10ddc8ef8d64e7ad377df3',
         },
-        expected: 'Sold 1 NK for 720,668.78 XEC',
+        expected: 'Sold 1 NK for 720.67k XEC',
     },
     {
         description: 'Agora partial listing cancellation',
@@ -5455,7 +5455,7 @@ export const notificationFixtures = [
             decimals: 0,
             hash: '',
         },
-        expected: 'Sold 375 BULL for 28,126.72 XEC',
+        expected: 'Sold 375 BULL for 28.13k XEC',
     },
     {
         description: 'Another agora partial cancel',
@@ -6103,7 +6103,7 @@ export const notificationFixtures = [
             decimals: 4,
             hash: '',
         },
-        expected: 'Sold 14.0667 BUX for 431,445.79 XEC',
+        expected: 'Sold 14.0667 BUX for 431.45k XEC',
     },
     {
         description: 'SLP1 NFT Parent mint tx',
@@ -7574,7 +7574,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'XECX | Received 312,503.71 XEC',
+        expected: 'XECX | Received 312.5k XEC',
     },
     {
         description: 'invalid xecx tx',
@@ -7822,7 +7822,7 @@ export const notificationFixtures = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         genesisInfo: undefined,
-        expected: 'Received 312,503.71 XEC | Invalid XECX',
+        expected: 'Received 312.5k XEC | Invalid XECX',
     },
     {
         description: 'Firma yield tx (send)',

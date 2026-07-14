@@ -7,6 +7,12 @@ export { getTxNotificationMsg } from './getTxNotificationMsg';
 export { getEmppAppAction, getEmppAppActions } from './empp';
 export { previewAddress } from './address';
 export { toXec, decimalizeTokenAmount, type SlpDecimals } from './amounts';
-export { decimalizedTokenQtyToLocaleFormat } from './formatting';
+export {
+    decimalizedTokenQtyToLocaleFormat,
+    toFormattedCompactAmount,
+    toFormattedFiatNotification,
+    toFormattedTokenQty,
+    toFormattedXec,
+} from './formatting';
 export { getRenderedTokenType, RenderedTokenType } from './tokenProtocol';
 export * from './types';
