@@ -246,7 +246,6 @@ const Contacts = () => {
             <ActionButtonRow variant="tools" activeIndex={0} />
             {contactToBeRenamed !== null && (
                 <Modal
-                    height={180}
                     title={`Rename "${contactToBeRenamed.name}"?`}
                     handleOk={renameContact}
                     handleCancel={() => setContactToBeRenamed(null)}
@@ -267,7 +266,6 @@ const Contacts = () => {
             )}
             {contactToBeDeleted !== null && (
                 <Modal
-                    height={210}
                     title={`Delete ${contactToBeDeleted.name}?`}
                     handleOk={deleteContact}
                     handleCancel={() => setContactToBeDeleted(null)}
@@ -288,7 +286,6 @@ const Contacts = () => {
             )}
             {showAddNewContactModal && (
                 <Modal
-                    height={250}
                     title={`Add new contact`}
                     handleOk={addNewContact}
                     handleCancel={() => setShowAddNewContactModal(false)}

@@ -513,35 +513,6 @@ const Token: React.FC = () => {
                   minimumFractionDigits: 2,
               })} XEC worth of $${FIRMA_DISPLAY_TICKER}. Top-up pending.`;
 
-    /**
-     * Convenience method to compartmentalize comparison of state
-     * variables that require calculations
-     *
-     * TODO dynamically size modals
-     */
-    const getRedeemXecxModalHeight = () => {
-        const askedQtyStr = Number(agoraPartialTokenQty).toFixed(2);
-        const actualQtyStr = decimalizeTokenAmount(
-            previewedAgoraPartial!.offeredAtoms().toString(),
-            decimals as SlpDecimals,
-        );
-        const offeredXecxSats = previewedAgoraPartial!.offeredAtoms();
-
-        let baseHeight = 175;
-        if (
-            xecxSweeperBalanceSats !== null &&
-            offeredXecxSats > xecxSweeperBalanceSats
-        ) {
-            // If we need to show the "redemption may take 24 hrs" notice
-            baseHeight += 125;
-        }
-        if (askedQtyStr !== actualQtyStr) {
-            // If we need to show the "agora values differ" notice
-            baseHeight += 125;
-        }
-        return baseHeight;
-    };
-
     const getAgoraPartialActualPrice = () => {
         if (previewedAgoraPartial === null) {
             return;
@@ -2189,7 +2160,6 @@ const Token: React.FC = () => {
                     )}
                     {showLargeIconModal && (
                         <Modal
-                            height={275}
                             showButtons={false}
                             handleCancel={() => setShowLargeIconModal(false)}
                         >
@@ -2198,7 +2168,6 @@ const Token: React.FC = () => {
                     )}
                     {showLargeNftIcon !== '' && (
                         <Modal
-                            height={275}
                             showButtons={false}
                             handleCancel={() => setShowLargeNftIcon('')}
                         >
@@ -2243,7 +2212,6 @@ const Token: React.FC = () => {
                                 !isBurning && setShowConfirmBurnEtoken(false)
                             }
                             showCancelButton
-                            height={250}
                             isConfirmLoading={isBurning}
                         >
                             <ModalInput
@@ -2298,7 +2266,6 @@ const Token: React.FC = () => {
                                 }
                                 showCancelButton
                                 description={`This will create a sell offer. Your NFT is only transferred if your full price is paid. The price is fixed in XEC. If your NFT is not purchased, you can cancel or renew your listing at any time.`}
-                                height={275}
                             />
                         )}
                     {showConfirmListPartialSlp &&
@@ -2321,7 +2288,6 @@ const Token: React.FC = () => {
                                     setPreviewedAgoraPartial(null);
                                 }}
                                 showCancelButton
-                                height={getRedeemXecxModalHeight()}
                             >
                                 {decimalizeTokenAmount(
                                     previewedAgoraPartial
@@ -2489,7 +2455,6 @@ const Token: React.FC = () => {
                                         setPreviewedAgoraPartial(null)
                                     }
                                     showCancelButton
-                                    height={isRedeemingFirma ? 290 : 450}
                                 >
                                     {isRedeemingFirma ? (
                                         <>

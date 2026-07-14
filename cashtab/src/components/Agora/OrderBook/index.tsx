@@ -1058,7 +1058,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
         <>
             {showLargeIconModal && (
                 <Modal
-                    height={275}
                     showButtons={false}
                     handleCancel={() => setShowLargeIconModal(false)}
                 >
@@ -1068,7 +1067,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
             {showAcceptedQtyInfo && (
                 <Modal
                     title={`Accepted Qty`}
-                    height={250}
                     description={`The amount you are able to accept depends on how the offer was created. This slider allows you to accept all possible amounts.`}
                     handleOk={() => setShowAcceptedQtyInfo(false)}
                     handleCancel={() => setShowAcceptedQtyInfo(false)}
@@ -1077,7 +1075,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
             {showConfirmBuyModal && typeof decimals !== 'undefined' && (
                 <Modal
                     title={`Execute this trade?`}
-                    height={470}
                     showCancelButton
                     handleOk={() => acceptOffer(selectedOffer as PartialOffer)}
                     handleCancel={() => setShowConfirmBuyModal(false)}
@@ -1246,7 +1243,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                   )
                         } each?`}
                         description={`Note that canceling an offer will cancel the entire offer`}
-                        height={250}
                         showCancelButton
                         handleOk={() =>
                             cancelOffer(selectedOffer as PartialOffer)

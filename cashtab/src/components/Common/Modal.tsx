@@ -9,21 +9,17 @@ import { InlineLoader } from './Spinner';
 import { ReactComponent as CloseIcon } from 'assets/close.svg';
 
 const ModalContainer = styled.div<{
-    width: number;
-    height: number;
     paddingPx?: number;
 }>`
-    width: ${props => props.width}px;
-    height: ${props => props.height}px;
-    transition: height 1s ease-in-out;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-width: 100%;
-    max-height: 100%;
     width: 100%;
     max-width: 500px;
+    max-height: calc(100% - 32px);
+    display: flex;
+    flex-direction: column;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.8);
     padding: ${props =>
@@ -47,20 +43,11 @@ const ModalTitle = styled.div`
     margin-bottom: 20px;
 `;
 
-const MODAL_HEIGHT_DELTA = 68;
-const ModalBody = styled.div<{
-    showButtons: boolean;
-    height: number;
-    noScroll?: boolean;
-}>`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: ${props =>
-        props.showButtons ? props.height - MODAL_HEIGHT_DELTA : props.height}px;
-    transition: height 1s ease-in-out;
-    overflow: ${props => (props.noScroll ? 'hidden' : 'auto')};
+const ModalBody = styled.div`
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding: 6px;
     word-wrap: break-word;
     ${CashtabScroll}
@@ -73,16 +60,12 @@ const ModalDescription = styled.div`
     text-align: center;
 `;
 const ButtonHolder = styled.div`
+    flex-shrink: 0;
     width: 100%;
-    position: fixed;
-    left: 50%;
-    bottom: 0;
     display: flex;
     justify-content: center;
     gap: 24px;
-    left: 50%;
-    bottom: 0;
-    transform: translate(-50%, -50%);
+    padding-top: 16px;
 `;
 const ModalBaseButton = styled.button`
     font-size: var(--text-sm);
@@ -166,11 +149,8 @@ interface ModalProps {
     handleCancel: () => void;
     showCancelButton?: boolean;
     children?: React.ReactNode;
-    width?: number;
-    height?: number;
     showButtons?: boolean;
     disabled?: boolean;
-    noScroll?: boolean;
     paddingPx?: number;
     isConfirmLoading?: boolean;
 }
@@ -181,17 +161,14 @@ export const Modal: React.FC<ModalProps> = ({
     handleCancel,
     showCancelButton = false,
     children,
-    width = 320,
-    height = 210,
     showButtons = true,
     disabled = false,
-    noScroll = false,
     paddingPx,
     isConfirmLoading = false,
 }) => {
     return (
         <>
-            <ModalContainer width={width} height={height} paddingPx={paddingPx}>
+            <ModalContainer paddingPx={paddingPx}>
                 <ModalExit onClick={handleCancel}>
                     <CloseIcon
                         title="Close"
@@ -200,11 +177,7 @@ export const Modal: React.FC<ModalProps> = ({
                         fill="currentColor"
                     />
                 </ModalExit>
-                <ModalBody
-                    height={height}
-                    showButtons={showButtons}
-                    noScroll={noScroll}
-                >
+                <ModalBody>
                     {typeof title !== 'undefined' && (
                         <ModalTitle>{title}</ModalTitle>
                     )}

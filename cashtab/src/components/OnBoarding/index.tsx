@@ -77,7 +77,6 @@ const OnBoarding = () => {
         <>
             {showImportWalletModal && (
                 <Modal
-                    height={265}
                     title={`Import wallet`}
                     handleOk={importWallet}
                     handleCancel={() => {

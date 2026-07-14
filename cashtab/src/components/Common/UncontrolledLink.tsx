@@ -132,7 +132,6 @@ const UncontrolledLink: React.FC<UncontrolledLinkProps> = ({ url }) => {
                         setShowModal(false);
                     }}
                     handleCancel={() => setShowModal(false)}
-                    height={420}
                     showCancelButton
                 >
                     <ModalContent>

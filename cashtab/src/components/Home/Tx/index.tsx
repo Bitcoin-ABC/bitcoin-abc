@@ -1258,7 +1258,6 @@ const Tx: React.FC<TxProps> = ({
         <>
             {showAddNewContactModal && (
                 <Modal
-                    height={180}
                     title={`Add new contact`}
                     handleOk={
                         xecTxType === 'Sent' &&
@@ -1283,7 +1282,6 @@ const Tx: React.FC<TxProps> = ({
                     title="Airdrop Message"
                     handleOk={() => setShowAirdropInfo(false)}
                     handleCancel={() => setShowAirdropInfo(false)}
-                    height={400}
                 >
                     <Alert>Beware of scams in links!</Alert>
                     <TxInfoModalParagraph>

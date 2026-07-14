@@ -805,7 +805,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                     handleOk={createPreviewedToken}
                     handleCancel={() => setShowConfirmCreateToken(false)}
                     showCancelButton
-                    height={260}
                 >
                     <TokenCreationSummaryTable>
                         {!createNftCollection && (
@@ -874,7 +873,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
             {showTypeInfoSlp && (
                 <Modal
                     title={`SLP Tokens`}
-                    height={300}
                     handleOk={() => setShowTypeInfoSlp(false)}
                     handleCancel={() => setShowTypeInfoSlp(false)}
                 >
@@ -897,7 +895,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
             {showTypeInfoAlp && (
                 <Modal
                     title={`ALP Tokens`}
-                    height={475}
                     handleOk={() => setShowTypeInfoAlp(false)}
                     handleCancel={() => setShowTypeInfoAlp(false)}
                 >
@@ -1093,7 +1090,6 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                             showCroppedImage();
                             onClose();
                         }}
-                        height={520}
                     >
                         <IconModalForm>
                             <CropperContainer>

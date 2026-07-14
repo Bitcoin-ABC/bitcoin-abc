@@ -536,7 +536,6 @@ const Wallets = () => {
             </SettingsPageHeaderLink>
             {walletToBeRenamed !== null && (
                 <Modal
-                    height={180}
                     title={`Rename "${walletToBeRenamed.name}"?`}
                     handleOk={renameWallet}
                     handleCancel={() => setWalletToBeRenamed(null)}
@@ -557,7 +556,6 @@ const Wallets = () => {
             )}
             {walletToBeDeleted !== null && (
                 <Modal
-                    height={210}
                     title={`Delete "${walletToBeDeleted.name}"?`}
                     handleOk={deleteWallet}
                     handleCancel={() => setWalletToBeDeleted(null)}
@@ -578,7 +576,6 @@ const Wallets = () => {
             )}
             {showImportWalletModal && (
                 <Modal
-                    height={265}
                     title={`Import wallet`}
                     handleOk={importNewWallet}
                     handleCancel={() => setShowImportWalletModal(false)}
@@ -603,7 +600,6 @@ const Wallets = () => {
             )}
             {showAddressShareModal && (
                 <Modal
-                    height={400}
                     title="Connect Wallet"
                     description={
                         connectRequestOrigin

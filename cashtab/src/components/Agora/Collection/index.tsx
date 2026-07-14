@@ -309,7 +309,6 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
 
         return (
             <Modal
-                height={325}
                 title={`${isMaker ? 'Cancel' : 'Buy'} this listing?`}
                 handleOk={
                     isMaker

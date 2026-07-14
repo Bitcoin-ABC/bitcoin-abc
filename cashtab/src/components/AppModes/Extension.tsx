@@ -142,7 +142,6 @@ const Extension: React.FC = () => {
         <>
             {showApproveAddressShareModal && (
                 <Modal
-                    height={400}
                     title="Connect Wallet"
                     description={`Wallet connect request from ${
                         new URL(addressRequestTabUrl).hostname
