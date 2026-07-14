@@ -49,6 +49,7 @@
 #include <txmempool.h>
 #include <txorphanage.h>
 #include <util/check.h>
+#include <util/hasher.h>
 #include <util/strencodings.h>
 #include <util/trace.h>
 #include <validation.h>
@@ -1162,6 +1163,12 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex);
 
     FastRandomContext m_rng GUARDED_BY(NetEventsInterface::g_msgproc_mutex);
+
+    /**
+     * Copied into short-lived tx INV deduplication sets to avoid generating
+     * salts per message.
+     */
+    const SaltedTxIdHasher m_txid_hasher;
 
     FeeFilterRounder
         m_fee_filter_rounder GUARDED_BY(NetEventsInterface::g_msgproc_mutex);
@@ -5227,6 +5234,7 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         const bool reject_tx_invs{RejectIncomingTxs(pfrom)};
+        std::unordered_set<TxId, SaltedTxIdHasher> seen_txids{0, m_txid_hasher};
 
         const auto current_time{GetTime<std::chrono::microseconds>()};
         std::optional<BlockHash> best_block;
@@ -5299,6 +5307,10 @@ void PeerManagerImpl::ProcessMessage(
                              txid.ToString(), pfrom.GetId());
                     pfrom.fDisconnect = true;
                     return;
+                }
+
+                if (!seen_txids.insert(txid).second) {
+                    continue;
                 }
 
                 if (!m_chainman.IsInitialBlockDownload()) {

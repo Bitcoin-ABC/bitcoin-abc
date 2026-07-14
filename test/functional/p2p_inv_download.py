@@ -381,6 +381,55 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer.wait_until(lambda: peer.getdata_count == max_peer_announcements)
         peer.sync_with_ping()
 
+    @skip(PROOF_TEST_CONTEXT)
+    @skip(STAKE_CONTENDER_TEST_CONTEXT)
+    def test_duplicate_tx_inv(self, context):
+        self.log.info(
+            "Check that duplicate transaction identifiers in one inv message are processed once"
+        )
+        node = self.nodes[0]
+
+        def send_invs_and_read_log(peer, invs):
+            log_start = node.debug_log_size(encoding="utf-8")
+            peer.send_and_ping(msg_inv(invs))
+            with open(
+                node.debug_log_path, encoding="utf-8", errors="replace"
+            ) as debug_log:
+                debug_log.seek(log_start)
+                return debug_log.read()
+
+        for txid_a, txid_b in [
+            (0xAABBCC, 0xDDEEFF),
+            (0x112233, 0x445566),
+        ]:
+            peer = node.add_p2p_connection(TestP2PConn(inv_type=MSG_TX))
+            inv_a_log = f"got inv: tx {txid_a:064x}"
+            inv_b_log = f"got inv: tx {txid_b:064x}"
+
+            log = send_invs_and_read_log(
+                peer,
+                [
+                    CInv(t=MSG_TX, h=txid_a),
+                    CInv(t=MSG_TX, h=txid_a),
+                    CInv(t=MSG_TX, h=txid_b),
+                    CInv(t=MSG_TX, h=txid_a),
+                    CInv(t=MSG_TX, h=txid_b),
+                ],
+            )
+            assert_equal(log.count(inv_a_log), 1)
+            assert_equal(log.count(inv_b_log), 1)
+
+            # The duplicate filter is scoped to a single INV message.
+            log = send_invs_and_read_log(
+                peer,
+                [
+                    CInv(t=MSG_TX, h=txid_a),
+                    CInv(t=MSG_TX, h=txid_a),
+                ],
+            )
+            assert_equal(log.count(inv_a_log), 1)
+            assert_equal(log.count(inv_b_log), 0)
+
     def test_spurious_notfound(self, context):
         self.log.info("Check that spurious notfound is ignored")
         self.nodes[0].p2ps[0].send_without_ping(
@@ -523,6 +572,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             self.test_preferred_inv(context)
             self.test_preferred_inv(context, True)
             self.test_large_inv_batch(context)
+            self.test_duplicate_tx_inv(context)
             self.test_spurious_notfound(context)
 
             # Run each test against new bitcoind instances, as setting mocktimes has long-term effects on when
