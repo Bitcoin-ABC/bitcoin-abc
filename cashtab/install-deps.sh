@@ -1,52 +1,50 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# Cashtab Dependency Installation Script
-# This script builds and installs all local dependencies required for Cashtab
+# Build and install local workspace dependencies required for Cashtab.
+# Keep in sync with the module install/build order in cashtab.Dockerfile.
 
 export LC_ALL=C.UTF-8
-set -e  # Exit on any error
+set -euo pipefail
 
-echo "🚀 Installing Cashtab dependencies..."
-
-# Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
-echo "📍 Repository root: $REPO_ROOT"
+echo "Installing Cashtab dependencies..."
+echo "Repository root: $REPO_ROOT"
 
-# Install all workspace dependencies
-echo "📦 Installing workspace dependencies..."
-pushd "$REPO_ROOT" > /dev/null
-pnpm install --frozen-lockfile
-popd > /dev/null
-
-# Build ecash-lib-wasm (special case - uses Docker, not a pnpm package)
-echo "📦 Building ecash-lib-wasm..."
+echo "Building ecash-lib-wasm..."
 pushd "$REPO_ROOT/modules/ecash-lib-wasm" > /dev/null
-if [ -f "dockerbuild.sh" ]; then
-    echo "  Running Docker build..."
-    ./dockerbuild.sh
-else
-    echo "❌ Error: dockerbuild.sh not found in ecash-lib-wasm"
-    echo "   This script is required to build the WASM module."
-    exit 1
-fi
+./dockerbuild.sh
 popd > /dev/null
-echo "✅ ecash-lib-wasm complete"
 
-# Install and build mock-chronik-client (needed for tests)
-echo "📦 Installing and building mock-chronik-client..."
 pushd "$REPO_ROOT" > /dev/null
+
+echo "Installing workspace dependencies..."
+pnpm fetch --frozen-lockfile
+pnpm install --frozen-lockfile --filter b58-ts...
+pnpm install --frozen-lockfile --filter ecashaddrjs...
+pnpm install --frozen-lockfile --filter chronik-client...
 pnpm install --frozen-lockfile --filter mock-chronik-client...
+pnpm install --frozen-lockfile --filter ecash-lib...
+pnpm install --frozen-lockfile --filter ecash-wallet...
+pnpm install --frozen-lockfile --filter ecash-agora...
+pnpm install --frozen-lockfile --filter ecash-parse...
+pnpm install --frozen-lockfile --filter cashtab... --include-workspace-root
+
+echo "Building local modules..."
+pnpm --filter b58-ts run build
+pnpm --filter ecashaddrjs run build
+pnpm --filter chronik-client run build
 pnpm --filter mock-chronik-client run build
-popd > /dev/null
-echo "✅ mock-chronik-client complete"
+pnpm --filter ecash-lib run build
+pnpm --filter ecash-wallet run build
+pnpm --filter ecash-agora run build
+pnpm --filter ecash-parse run build
 
-# Build cashtab and all its dependencies using pnpm workspace
-echo "📦 Building Cashtab and all dependencies..."
-pushd "$REPO_ROOT" > /dev/null
-pnpm --filter cashtab... run build
 popd > /dev/null
 
-echo "✅ All dependencies installed and built successfully!"
-echo "🎉 You can now run 'pnpm start' from the cashtab directory"
+echo "All dependencies installed and built successfully!"
+echo "You can now run 'pnpm start' from the cashtab directory"
