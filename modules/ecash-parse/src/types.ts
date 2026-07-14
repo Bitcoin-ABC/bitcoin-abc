@@ -88,10 +88,12 @@ export interface PowAction {
         | 'publish'
         | 'unlock'
         | 'auth'
-        | 'handle';
-    /** referenced feed tx (hex txid); present for reply/quote/repost/like */
+        | 'handle'
+        | 'comment'
+        | 'comment_reply';
+    /** referenced tx (hex txid); present for reply/quote/repost/like/comment_reply */
     targetTxid?: string;
-    /** sha256 of stored content (hex); present for post/reply/quote/publish */
+    /** sha256 of stored content (hex); present for post/reply/quote/publish/comment/comment_reply */
     contentHash?: string;
     /** server-issued nonce (hex of 36-byte ASCII UUID); present for auth/handle */
     nonce?: string;

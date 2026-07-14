@@ -850,6 +850,8 @@ const Tx: React.FC<TxProps> = ({
                     unlock: 'Article Unlocked',
                     auth: 'Login',
                     handle: 'Handle Mint',
+                    comment: 'Comment',
+                    comment_reply: 'Comment Reply',
                 };
 
                 renderedAppActions.push(

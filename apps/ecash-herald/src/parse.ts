@@ -750,6 +750,8 @@ const POW_ACTION_TYPES: Record<string, string> = {
     '57': 'unlock',
     '58': 'auth',
     '59': 'handle',
+    '5a': 'comment',
+    '5b': 'comment_reply',
 };
 
 const POW_ACTION_LABELS: Record<string, string> = {
@@ -762,6 +764,8 @@ const POW_ACTION_LABELS: Record<string, string> = {
     unlock: 'Article Unlocked',
     auth: 'Login',
     handle: 'Handle Mint',
+    comment: 'Comment',
+    comment_reply: 'Comment Reply',
 };
 
 /**
@@ -790,14 +794,16 @@ export const parsePowMsg = (stackArray: string[]): string => {
 
     switch (type) {
         case 'post':
-        case 'publish': {
+        case 'publish':
+        case 'comment': {
             if (!is32(stackArray[3])) {
                 return `Invalid ${opReturn.knownApps.pow.app}`;
             }
             return label;
         }
         case 'reply':
-        case 'quote': {
+        case 'quote':
+        case 'comment_reply': {
             if (!is32(stackArray[3]) || !is32(stackArray[4])) {
                 return `Invalid ${opReturn.knownApps.pow.app}`;
             }

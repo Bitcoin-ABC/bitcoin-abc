@@ -824,6 +824,27 @@ const appTxSamples: AppTxSamples = {
             msg: 'Handle Mint',
         },
         {
+            hex: '04504f5752005a20532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            stackArray: [
+                '504f5752',
+                '00',
+                '5a',
+                '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            ],
+            msg: 'Comment',
+        },
+        {
+            hex: '04504f5752005b2027a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae5020aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+            stackArray: [
+                '504f5752',
+                '00',
+                '5b',
+                '27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50',
+                'aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+            ],
+            msg: 'Comment Reply to <a href="https://explorer.e.cash/tx/27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50">27a3bc4c...</a>',
+        },
+        {
             hex: '04504f5752515120532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
             stackArray: [
                 '504f5752',

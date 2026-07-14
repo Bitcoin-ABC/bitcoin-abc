@@ -537,6 +537,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                     '57': 'unlock', // OP_7
                     '58': 'auth', // OP_8
                     '59': 'handle', // OP_9
+                    '5a': 'comment', // OP_10
+                    '5b': 'comment_reply', // OP_11
                 };
                 const type = TYPES[stackArray[2]];
                 if (typeof type === 'undefined') {
@@ -551,7 +553,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
 
                 switch (type) {
                     case 'post':
-                    case 'publish': {
+                    case 'publish':
+                    case 'comment': {
                         if (!is32(stackArray[3])) {
                             appActions.push({ lokadId, app, isValid: false });
                             break;
@@ -565,7 +568,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         break;
                     }
                     case 'reply':
-                    case 'quote': {
+                    case 'quote':
+                    case 'comment_reply': {
                         if (!is32(stackArray[3]) || !is32(stackArray[4])) {
                             appActions.push({ lokadId, app, isValid: false });
                             break;

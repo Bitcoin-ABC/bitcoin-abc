@@ -683,6 +683,141 @@ export const powParseFixtures: ParseFixture[] = [
         },
     },
     {
+        description: 'Proof of Writing comment tx',
+        tx: {
+            txid: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'c441a95229e4a7b06f0ae62e7964fcaa1f148bf933d8d6a9b5c71209dc017768',
+                        outIdx: 2,
+                    },
+                    inputScript:
+                        '4160b48670db8fa89d83bf8ecaa125b5b4fb665a8da0e5a0b1353695cc006bfe328a0af4c6159758b3be4efb6c8324c4015443a879403c14cc3358e063df85015a412102f267109c5c7a76c24f158705f236f7b394f2e091112ce3b737b27b25b119e5e3',
+                    sats: 92163n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a91469535ed57a629cb83609de1e958a3c87a2d5e9db88ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript:
+                        '6a04504f5752005a20532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+                },
+                {
+                    sats: 10000n,
+                    outputScript:
+                        '76a914dd1a2c6207afd46643e2af1c8134c92e636d15c788ac',
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 300,
+            isCoinbase: false,
+            isFinal: true,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        },
+        walletHashes: [walletHash],
+        parsed: {
+            satoshisSent: 10000,
+            stackArray: [
+                '504f5752',
+                '00',
+                '5a',
+                '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+            ],
+            xecTxType: XecTxType.Sent,
+            recipients: ['ecash:qrw35trzq7hagejru2h3eqf5eyhxxmg4cul69u7am3'],
+            appActions: [
+                {
+                    lokadId: '504f5752',
+                    app: 'Proof of Writing',
+                    isValid: true,
+                    action: {
+                        type: 'comment',
+                        contentHash:
+                            '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+                    },
+                },
+            ],
+            parsedTokenEntries: [],
+        },
+    },
+    {
+        description: 'Proof of Writing comment_reply tx',
+        tx: {
+            txid: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'c441a95229e4a7b06f0ae62e7964fcaa1f148bf933d8d6a9b5c71209dc017768',
+                        outIdx: 2,
+                    },
+                    inputScript:
+                        '4160b48670db8fa89d83bf8ecaa125b5b4fb665a8da0e5a0b1353695cc006bfe328a0af4c6159758b3be4efb6c8324c4015443a879403c14cc3358e063df85015a412102f267109c5c7a76c24f158705f236f7b394f2e091112ce3b737b27b25b119e5e3',
+                    sats: 92163n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a91469535ed57a629cb83609de1e958a3c87a2d5e9db88ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript:
+                        '6a04504f5752005b2027a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae5020aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+                },
+                {
+                    sats: 10000n,
+                    outputScript:
+                        '76a914dd1a2c6207afd46643e2af1c8134c92e636d15c788ac',
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 300,
+            isCoinbase: false,
+            isFinal: true,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        },
+        walletHashes: [walletHash],
+        parsed: {
+            satoshisSent: 10000,
+            stackArray: [
+                '504f5752',
+                '00',
+                '5b',
+                '27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50',
+                'aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+            ],
+            xecTxType: XecTxType.Sent,
+            recipients: ['ecash:qrw35trzq7hagejru2h3eqf5eyhxxmg4cul69u7am3'],
+            appActions: [
+                {
+                    lokadId: '504f5752',
+                    app: 'Proof of Writing',
+                    isValid: true,
+                    action: {
+                        type: 'comment_reply',
+                        targetTxid:
+                            '27a3bc4c1524c7ff86fe5268fbdb46b270dff2a210364ec817578842a676ae50',
+                        contentHash:
+                            'aad4c6f3706197cdb0baf81ef906943b1d7aad9956403749791555087b753d56',
+                    },
+                },
+            ],
+            parsedTokenEntries: [],
+        },
+    },
+    {
         description: 'Invalid Proof of Writing tx (bad version)',
         tx: {
             txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -832,5 +967,13 @@ export const powNotificationFixtures: NotificationFixture[] = [
         userLocale: 'en-US',
         selectedFiatTicker: 'USD',
         expected: 'Proof of Writing | Sent 10,000.00 XEC | handle',
+    },
+    {
+        description: 'Proof of Writing comment notification',
+        parsedTx: powParseFixtures[9].parsed,
+        fiatPrice: null,
+        userLocale: 'en-US',
+        selectedFiatTicker: 'USD',
+        expected: 'Proof of Writing | Sent 100.00 XEC | comment',
     },
 ];
