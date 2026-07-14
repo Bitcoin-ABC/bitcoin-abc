@@ -154,37 +154,6 @@ export interface TxJson extends Omit<
 }
 
 /**
- * Get the width of a given string of text
- * Useful to customize the width of a component according to the size of displayed text
- *
- * Note
- * It is not practical to unit test this function as document is an html document
- * @param document document global of a rendered web page
- * @param text text to get width of
- * @param font e.g. '16px Poppins'
- * @returns pixel width of text
- */
-export const getTextWidth = (
-    document: Document,
-    text: string,
-    font: string,
-): number => {
-    try {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        if (context !== null) {
-            context.font = font || getComputedStyle(document.body).font;
-            return context.measureText(text).width;
-        }
-        return 200;
-    } catch {
-        // If we do not have access to HTML methods, e.g. if we are in the test environment
-        // Return a hard-coded width
-        return 200;
-    }
-};
-
-/**
  * Create a standardized preview of an address for display purposes
  * @param address Full address string (e.g., "ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep")
  * @returns Abbreviated address in format "XXX...XXX" (e.g., "qzs...jep")
