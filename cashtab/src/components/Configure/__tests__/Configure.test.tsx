@@ -172,22 +172,20 @@ describe('<Configure />', () => {
 
         // Now we see the Send screen
         expect(
-            await screen.findByPlaceholderText('Address'),
+            await screen.findByTestId('send-recipient-input'),
         ).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
-            screen.getByPlaceholderText('Address'),
+            screen.getByTestId('send-recipient-input'),
             'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
         );
         await user.type(screen.getByPlaceholderText('Amount'), '55');
         // click send
         await user.click(screen.getByRole('button', { name: 'Send' }));
-        // we see a modal
+        // we see a modal with the resolved recipient preview
         expect(
-            await screen.findByText(
-                `Send 55 XEC to ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
-            ),
+            await screen.findByText(`Send 55 XEC to qph...72y`),
         ).toBeInTheDocument();
 
         // We can click ok to send the tx

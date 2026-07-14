@@ -25,8 +25,25 @@ import {
     tokenTestWallet,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
+import { previewAddress } from 'helpers';
+import { BLITZ_CHIPS_GAME_ADDRESS } from 'constants/recipients';
 
 describe('<SendXec /> rendered with params in URL', () => {
+    const expectUrlResolvedRecipient = async (
+        addressOrBip21,
+        expectedLabel,
+    ) => {
+        const address = addressOrBip21.split('?')[0];
+        expect(
+            await screen.findByTestId('resolved-recipient-name'),
+        ).toHaveTextContent(expectedLabel || previewAddress(address));
+        // URL / extension txs lock the recipient (no clear control)
+        expect(screen.queryByTestId('clear-recipient')).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId('send-recipient-input'),
+        ).not.toBeInTheDocument();
+    };
+
     const setLocationHash = hash => {
         window.history.pushState({}, '', hash);
     };
@@ -83,15 +100,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() =>
-            expect(addressInputEl).toHaveValue(destinationAddress),
-        );
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled address; field is locked
+        await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is set to the expected value
         expect(amountInputEl).toHaveValue(value);
@@ -116,6 +128,32 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(
             await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
+    });
+    it('Legacy params resolve known destinations by display name', async () => {
+        const value = 500;
+        const hash = `#/send?address=${BLITZ_CHIPS_GAME_ADDRESS}&value=${value}`;
+        setLocationHash(hash);
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12 XEC');
+
+        await expectUrlResolvedRecipient(
+            BLITZ_CHIPS_GAME_ADDRESS,
+            'BlitzChips',
+        );
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue(value);
     });
     it('Legacy params. Address and value keys are set and valid. Invalid bip21 string is ignored.', async () => {
         const destinationAddress =
@@ -145,15 +183,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() =>
-            expect(addressInputEl).toHaveValue(destinationAddress),
-        );
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled address; field is locked
+        await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is filled out per legacy passed amount
         expect(amountInputEl).toHaveValue(legacyPassedAmount);
@@ -200,15 +233,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() =>
-            expect(addressInputEl).toHaveValue(destinationAddress),
-        );
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled address; field is locked
+        await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is empty
         expect(amountInputEl).toHaveValue(null);
@@ -255,15 +283,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() =>
-            expect(addressInputEl).toHaveValue(destinationAddress),
-        );
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled address; field is locked
+        await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is empty
         expect(amountInputEl).toHaveValue(null);
@@ -303,7 +326,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await screen.findByTestId(
+            'send-recipient-input',
+        );
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field is untouched
@@ -351,7 +376,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await screen.findByTestId(
+            'send-recipient-input',
+        );
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field is untouched
@@ -405,15 +432,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() =>
-            expect(addressInputEl).toHaveValue(destinationAddress),
-        );
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled address; field is locked
+        await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input has the expected value
         expect(amountInputEl).toHaveValue(legacyPassedAmount);
@@ -464,16 +486,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
-        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
-
-        // The address input is disabled for app txs with bip21 strings
-        // Note it is NOT disabled for txs where the user inputs the bip21 string
-        // This is covered in SendXec.test.js
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled BIP21; field is locked
+        await expectUrlResolvedRecipient(bip21Str);
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(amount);
@@ -541,15 +557,15 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await screen.findByTestId(
+            'send-recipient-input',
+        );
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The 'Send To' input field has this address as a value
+        // Invalid BIP21 still shows locked input with the full string
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
 
         // The address input is disabled for app txs with bip21 strings
-        // Note it is NOT disabled for txs where the user inputs the bip21 string
-        // This is covered in SendXec.test.js
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // Amount input is updated despite invalid bip21 query, so the user can see the amount
@@ -588,7 +604,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await screen.findByTestId(
+            'send-recipient-input',
+        );
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field has this address as a value
@@ -648,15 +666,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
-
-        // The address input is disabled for app txs with bip21 strings
-        // Note it is NOT disabled for txs where the user inputs the bip21 string
-        // This is covered in SendXec.test.js
-        expect(addressInputEl).toHaveProperty('disabled', true);
+        // Recipient resolves for URL-filled BIP21; field is locked
+        await expectUrlResolvedRecipient(bip21Str);
 
         // Amount input is not displayed
         expect(screen.queryByPlaceholderText('Amount')).not.toBeInTheDocument();

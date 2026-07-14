@@ -6,7 +6,11 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
+import {
+    walletWithXecAndTokensActive,
+    populatedContactList,
+    validSavedWallets,
+} from 'components/App/fixtures/mocks';
 import {
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
@@ -33,9 +37,26 @@ import {
     tokenTestWallet,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
+import { previewAddress } from 'helpers';
+import {
+    BLITZ_CHIPS_GAME_ADDRESS,
+    EVERY_DAY_JACKPOT_GAME_ADDRESS,
+} from 'constants/recipients';
 
 describe('<SendXec />', () => {
     const ecc = new Ecc();
+
+    const getRecipientInput = async () =>
+        screen.findByTestId('send-recipient-input');
+
+    const expectResolvedRecipient = async expectedLabel => {
+        // Blur so the send field collapses to the resolved label
+        await user.tab();
+        expect(
+            await screen.findByTestId('resolved-recipient-name'),
+        ).toHaveTextContent(expectedLabel);
+    };
+
     let user;
     beforeEach(() => {
         // Set up userEvent
@@ -85,7 +106,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // Input fields are rendered
@@ -141,7 +162,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid address
@@ -149,8 +170,10 @@ describe('<SendXec />', () => {
 
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
@@ -171,6 +194,134 @@ describe('<SendXec />', () => {
         expect(screen.getByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
+    });
+    it('Searching contacts shows matches; selecting one resolves the name and send works', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        await localforage.setItem('contactList', populatedContactList);
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        // Same hex as fiat-denominated send to alpha contact address for 7000 sats
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064413b207f573a7abb9ec0d149fa71cbde63272a0e6b58298a81bc39ac2001729205bd1e9284c9d5a268f7abe63c5c953bf932ac06c13e408341bde4e4807d7f2fe94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acf7d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'a6e905185097cc1ffb289ca366ff7322f8aaf95713d1e5d1a4e89663e609530f';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'alp');
+
+        expect(
+            await screen.findByTestId('recipient-search-results'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByTestId('recipient-search-contact-alpha'),
+        ).toBeInTheDocument();
+
+        await user.click(screen.getByTestId('recipient-search-contact-alpha'));
+        await expectResolvedRecipient('alpha');
+
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        await user.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+        await user.type(amountInputEl, '0.21');
+
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('Searching own wallets shows wallet matches with My wallet icon', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        const storedWallets = await localforage.getItem('wallets');
+        storedWallets.push(validSavedWallets[1]); // bravo
+        await localforage.setItem('wallets', storedWallets);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'brav');
+
+        expect(
+            await screen.findByTestId('recipient-search-wallet-bravo'),
+        ).toBeInTheDocument();
+        expect(screen.getByTitle('My wallet')).toBeInTheDocument();
+
+        await user.click(screen.getByTestId('recipient-search-wallet-bravo'));
+        await expectResolvedRecipient('bravo');
+        expect(screen.getByTitle('My wallet')).toBeInTheDocument();
+    });
+    it('Pasting a known destination address resolves to its display name', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, BLITZ_CHIPS_GAME_ADDRESS);
+        await expectResolvedRecipient('BlitzChips');
+
+        await user.click(screen.getByTestId('clear-recipient'));
+        const clearedInput = await getRecipientInput();
+        await user.type(clearedInput, EVERY_DAY_JACKPOT_GAME_ADDRESS);
+        await expectResolvedRecipient('EveryDayJackpot');
     });
     it('Pass an invalid address to Send To field and get a validation error', async () => {
         // Mock the app with context at the Send screen
@@ -194,14 +345,14 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters an invalid address
         const addressInput = 'ecash:notValid';
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
+        // Invalid address stays in the input with a validation error
         expect(addressInputEl).toHaveValue(addressInput);
 
         // Amount input is untouched
@@ -240,7 +391,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -248,8 +399,10 @@ describe('<SendXec />', () => {
             'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500';
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -298,7 +451,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -306,8 +459,10 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=${dustAmount}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Amount input is the invalid amount param value
         expect(amountInputEl).toHaveValue(dustAmount);
@@ -352,7 +507,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -360,8 +515,10 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=${exceedBalanceAmount}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Amount input is the invalid amount param value
         expect(amountInputEl).toHaveValue(exceedBalanceAmount);
@@ -408,7 +565,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a badly formed query string
@@ -416,7 +573,7 @@ describe('<SendXec />', () => {
             'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?notaparam=500';
         await user.type(addressInputEl, addressInput);
 
-        // The Send To input value matches user input
+        // Invalid BIP21 stays in the input with a validation error
         expect(addressInputEl).toHaveValue(addressInput);
 
         // Advanced controls are hidden for BIP21 input
@@ -467,7 +624,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -475,8 +632,10 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -535,7 +694,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // DICE bet format: lokad (DICE) + version + minValue + maxValue
@@ -544,7 +703,9 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=100&input_data_raw=${inputDataRaw}`;
         await user.type(addressInputEl, addressInput);
 
-        expect(addressInputEl).toHaveValue(addressInput);
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
         expect(amountInputEl).toHaveValue(100);
 
         // input_data_raw is parsed from BIP21 only; parsed section shows DICE Bet protocol and bet range
@@ -574,7 +735,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
@@ -582,8 +743,10 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
+        // Valid address resolves to a preview (or contact / known name)
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -645,7 +808,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param and invalid op_return_raw
@@ -653,7 +816,7 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
+        // Invalid BIP21 stays editable so the user can see the bad params
         expect(addressInputEl).toHaveValue(addressInput);
 
         // Advanced controls are hidden for BIP21 input
@@ -729,7 +892,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const op_return_raw =
@@ -737,11 +900,11 @@ describe('<SendXec />', () => {
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // The 'Send To' input field is not disabled
-        expect(addressInputEl).toHaveProperty('disabled', false);
+        // Valid BIP21 resolves; clear remains available for manually entered strings
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
+        expect(screen.getByTestId('clear-recipient')).toBeInTheDocument();
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -813,7 +976,7 @@ describe('<SendXec />', () => {
         );
 
         // The 'Send To' input field has been cleared
-        expect(addressInputEl).toHaveValue('');
+        expect(await getRecipientInput()).toHaveValue('');
     });
     it('We can calculate max send amount with and without a cashtab msg, and send a max sat tx with a cashtab msg', async () => {
         // Mock the app with context at the Send screen
@@ -855,7 +1018,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -961,7 +1124,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid address
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -1167,7 +1330,7 @@ describe('<SendXec />', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -1283,18 +1446,18 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a valid BIP21 query string with a valid amount param
         const op_return_raw =
             '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
         const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}&addr=ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035&amount=1234.56`;
         await user.type(addressInputEl, addressInput);
 
-        // The 'Send To' input field has this bip21 query string as a value
-        expect(addressInputEl).toHaveValue(addressInput);
-
-        // The 'Send To' input field is not disabled
-        expect(addressInputEl).toHaveProperty('disabled', false);
+        // Valid BIP21 resolves; clear remains available for manually entered strings
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
+        expect(screen.getByTestId('clear-recipient')).toBeInTheDocument();
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -1374,7 +1537,7 @@ describe('<SendXec />', () => {
         // Amount input is reset
         expect(await screen.findByPlaceholderText('Amount')).toHaveValue(null);
         // The 'Send To' input field has been cleared
-        expect(addressInputEl).toHaveValue('');
+        expect(await getRecipientInput()).toHaveValue('');
     });
     it('Entering a valid bip21 query string for a token send tx does not render a populated token tx and shows a query error if Cashtab is unable to fetch the token info', async () => {
         // Mock the app with context at the Send screen
@@ -1407,7 +1570,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -1501,7 +1664,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -1606,7 +1769,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a BIP21 query string with firma param for an SLP token
         // This should show a validation error since firma is only valid for ALP tokens
         const token_decimalized_qty = '1';
@@ -1708,7 +1871,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -2629,7 +2792,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // The user enters a valid BIP21 query string with a valid amount param
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
 
@@ -2751,7 +2914,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         // Simulate pasting/scanning the full BIP21 string at once (not typing character-by-character)
         fireEvent.input(addressInputEl, { target: { value: bip21Str } });
         fireEvent.change(addressInputEl, { target: { value: bip21Str } });
@@ -3316,7 +3479,7 @@ describe('<SendXec />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        const addressInputEl = await screen.findByPlaceholderText('Address');
+        const addressInputEl = await getRecipientInput();
         fireEvent.input(addressInputEl, { target: { value: bip21Input } });
         fireEvent.change(addressInputEl, { target: { value: bip21Input } });
 

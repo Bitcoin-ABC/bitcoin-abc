@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Tx, TokenInfo } from 'chronik-client';
+import { EVERY_DAY_JACKPOT_GAME_ADDRESS } from 'constants/recipients';
 
 interface TokenConst {
     tokenId: string;
@@ -37,9 +38,7 @@ export const BLITZ_CHIPS_TOKEN_ID =
     'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69';
 
 /** EDJ.com game addresses - CACHET/EDJ/FIRMA sent here = bet */
-export const EDJ_COM_GAME_ADDRESSES = [
-    'ecash:qzqcq9p5lxa3jhc5lhwaefua9cjfhfjvcvsj887fg5',
-];
+export const EDJ_COM_GAME_ADDRESSES = [EVERY_DAY_JACKPOT_GAME_ADDRESS];
 
 // 8-char lokad + 64-char for 32-byte sol pk
 export const FIRMA_REDEEM_EMPP_RAW_LENGTH = 72;

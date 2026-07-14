@@ -318,9 +318,9 @@ describe('<Contacts />', () => {
             }),
         );
 
-        // Now we are on the SendXec page and the address field is filled out
-        expect(screen.getByPlaceholderText('Address')).toHaveValue(
-            populatedContactList[0].address,
-        );
+        // Now we are on the SendXec page and the contact is resolved
+        expect(
+            await screen.findByTestId('resolved-recipient-name'),
+        ).toHaveTextContent('alpha');
     });
 });

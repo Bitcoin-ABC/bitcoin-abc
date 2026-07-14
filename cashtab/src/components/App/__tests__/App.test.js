@@ -218,8 +218,8 @@ describe('<App />', () => {
             }),
         );
 
-        // Now we see the Send screen (Toggle Multisend was removed; verify Address input)
-        expect(screen.getByPlaceholderText('Address')).toBeInTheDocument();
+        // Now we see the Send screen
+        expect(screen.getByTestId('send-recipient-input')).toBeInTheDocument();
 
         // Navigate to eTokens screen
         await user.click(
@@ -432,22 +432,16 @@ describe('<App />', () => {
         // We do not see the send screen before clicking the button
         await waitFor(() =>
             expect(
-                screen.queryByPlaceholderText('Address'),
+                screen.queryByTestId('send-recipient-input'),
             ).not.toBeInTheDocument(),
         );
 
         await user.click(screen.getByTitle('reply'));
 
-        // Now we see the Send screen (Toggle Multisend was removed; verify Address input)
+        // Reply prefills the recipient (resolved) and dust amount
         expect(
-            await screen.findByPlaceholderText('Address'),
-        ).toBeInTheDocument();
-
-        // The SendXec send address input is rendered and has expected value
-        expect(screen.getByPlaceholderText('Address')).toHaveValue(
-            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-        );
-        // The value field is populated with dust
+            await screen.findByTestId('resolved-recipient-name'),
+        ).toHaveTextContent('qph...72y');
         expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.46);
     });
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {

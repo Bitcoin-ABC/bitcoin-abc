@@ -5,6 +5,17 @@
 import BigNumber from 'bignumber.js';
 import { toast } from 'react-toastify';
 
+export {
+    getAddressFromRecipientInput,
+    getRecipientDisplayLabel,
+    looksLikeAddressInput,
+    searchSendRecipients,
+} from './recipientResolve';
+export type {
+    RecipientMatchKind,
+    RecipientSearchMatch,
+} from './recipientResolve';
+
 /**
  * Get the total XEC amount sent in a one-to-many XEC tx
  * @param destinationAddressAndValueArray

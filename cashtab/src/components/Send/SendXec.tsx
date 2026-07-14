@@ -25,7 +25,12 @@ import {
     SlpDecimals,
     undecimalizeTokenAmount,
 } from 'wallet';
-import { sumOneToManyXec, confirmRawTx } from './helpers';
+import {
+    sumOneToManyXec,
+    confirmRawTx,
+    getRecipientDisplayLabel,
+} from './helpers';
+import SendRecipientInput from './SendRecipientInput';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
     isValidMultiSendUserInput,
@@ -619,7 +624,8 @@ const SendXec: React.FC = () => {
         chronik,
         ecashWallet,
     } = ContextValue;
-    const { settings, cashtabCache, tokens } = cashtabState;
+    const { settings, cashtabCache, tokens, contactList, wallets } =
+        cashtabState;
     if (!ecashWallet || !tokens) {
         return null;
     }
@@ -3015,7 +3021,11 @@ const SendXec: React.FC = () => {
                                 })} 
                                 XEC to multiple recipients?`
                                       : `Send ${formData.amount}${' '}
-                  ${selectedCurrency} to ${parsedAddressInput.address.value}`
+                  ${selectedCurrency} to ${getRecipientDisplayLabel(
+                      formData.address,
+                      contactList,
+                      wallets,
+                  )}`
                             }
                             handleOk={
                                 isTokenMode && selectedTokenId
@@ -3717,14 +3727,16 @@ const SendXec: React.FC = () => {
                         <InputModesHolder open={isOneToManyXECSend}>
                             <SendToOneHolder>
                                 <SendToOneInputForm>
-                                    <InputWithScanner
+                                    <SendRecipientInput
                                         label="Send to"
-                                        placeholder={'Address'}
+                                        placeholder="Address or contact"
                                         name="address"
                                         value={formData.address}
                                         disabled={txInfoFromUrl !== false}
                                         handleInput={handleAddressChange}
                                         error={sendAddressError}
+                                        contactList={contactList}
+                                        wallets={wallets}
                                     />
                                     {isBip21MultipleOutputsSafe(
                                         parsedAddressInput,
