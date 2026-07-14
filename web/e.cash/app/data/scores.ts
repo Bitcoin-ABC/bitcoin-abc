@@ -274,19 +274,28 @@ export function sortExchanges<T extends ScoreableItem>(
   );
 }
 
+async function fetchScorecardJson(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch scorecard data: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 export async function getScoreCardData() {
   let responses;
   try {
+    const base = process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL;
     responses = await Promise.all([
-      fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/exchanges?pagination[pageSize]=100&populate=*`,
-      ).then((res) => res.json()),
-      fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/instant-exchanges?pagination[pageSize]=100&populate=*`,
-      ).then((res) => res.json()),
-      fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/apps-services?pagination[pageSize]=100&populate=*`,
-      ).then((res) => res.json()),
+      fetchScorecardJson(
+        `${base}/api/exchanges?pagination[pageSize]=100&populate=*`,
+      ),
+      fetchScorecardJson(
+        `${base}/api/instant-exchanges?pagination[pageSize]=100&populate=*`,
+      ),
+      fetchScorecardJson(
+        `${base}/api/apps-services?pagination[pageSize]=100&populate=*`,
+      ),
     ]);
 
     const exchanges = responses[0].data || [];

@@ -282,16 +282,19 @@ describe("getScoreCardData", () => {
     (global.fetch as jest.Mock).mockImplementation((url: string) => {
       if (url.includes("/api/exchanges")) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve(mockExchangeData),
         });
       }
       if (url.includes("/api/instant-exchanges")) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve(mockInstantExchangeData),
         });
       }
       if (url.includes("/api/apps-services")) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve(mockServicesData),
         });
       }
@@ -321,15 +324,36 @@ describe("getScoreCardData", () => {
     });
   });
 
+  it("should handle non-OK HTTP responses gracefully", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      statusText: "Service Unavailable",
+      json: () => Promise.resolve({}),
+    });
+
+    const result = await getScoreCardData();
+
+    expect(result).toEqual({
+      exchanges: [],
+      instantExchanges: [],
+      services: [],
+    });
+  });
+
   it("should handle empty or undefined responses", async () => {
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: () => Promise.resolve(mockExchangesApiResponse.data),
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: () => Promise.resolve(mockExchangesApiResponse.data),
       })
-      .mockResolvedValueOnce({ json: () => Promise.resolve(undefined) });
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(undefined),
+      });
 
     const result = await getScoreCardData();
 
