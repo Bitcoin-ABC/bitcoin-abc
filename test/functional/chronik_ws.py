@@ -311,12 +311,12 @@ class ChronikWsTest(BitcoinTestFramework):
                 "The websocket did receive an unexpected message"
             )
             pass
-        except Exception:
-            assert False, "The websocket did not time out as expected"
-            raise
+        except Exception as e:
+            assert False, (
+                f"The websocket did not time out as expected. Got {type(e).__name__}: {e}"
+            )
         else:
             assert False, "The websocket did receive an unexpected message"
-            raise
 
         # From now on we stop receiving the block events
         chronik_sub_to_blocks(ws, node, is_unsub=True)

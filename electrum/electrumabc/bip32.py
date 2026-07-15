@@ -74,7 +74,9 @@ def _CKD_priv(k, c, s, is_prime):
 #  non-negative. If n is negative, we need the master private key to find it.
 def CKD_pub(cK, c, n):
     if n & BIP32_PRIME:
-        raise
+        raise ValueError(
+            f"hardened child key derivation (index >= {BIP32_PRIME}) is not allowed"
+        )
     return _CKD_pub(cK, c, n.to_bytes(4, "big"))
 
 
