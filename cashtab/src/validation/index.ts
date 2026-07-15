@@ -20,7 +20,10 @@ import CashtabCache, { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 import { getMaxDecimalizedQty } from 'token-protocols';
 import { CashtabContact } from 'config/CashtabState';
-import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
+import {
+    decimalizedTokenQtyToLocaleFormat,
+    normalizeDecimalInput,
+} from 'formatting';
 import { DEFAULT_DUST_SATS } from 'ecash-lib';
 
 export const getContactAddressError = (
@@ -79,7 +82,7 @@ export const validateMnemonic = (
  * @param fiatPrice
  * @returns true if valid, string error msg of why invalid if not
  */
-const VALID_XEC_USER_INPUT_REGEX = /^[0-9.]+$/;
+const VALID_XEC_NORMALIZED_INPUT_REGEX = /^[0-9.]+$/;
 export const isValidXecSendAmount = (
     sendAmount: string | number,
     balanceSats: number,
@@ -90,32 +93,35 @@ export const isValidXecSendAmount = (
     if (typeof sendAmount !== 'number' && typeof sendAmount !== 'string') {
         return 'sendAmount type must be number or string';
     }
-    if (typeof sendAmount === 'string' && isNaN(parseFloat(sendAmount))) {
+    // Normalize locale thousands / decimal separators to a `.`-decimal string
+    const normalizedAmount =
+        typeof sendAmount === 'number'
+            ? String(sendAmount)
+            : normalizeDecimalInput(sendAmount, userLocale);
+
+    // normalizedAmount is always a `.`-decimal string (number inputs are stringified)
+    if (isNaN(parseFloat(normalizedAmount))) {
         return `Unable to parse sendAmount “${sendAmount}” as a number`;
     }
-    // xecSendAmount may only contain numbers and '.'
-    // TODO support other locale decimal markers
-    const xecSendAmountCharCheck = VALID_XEC_USER_INPUT_REGEX.test(
-        sendAmount as string,
-    );
+    // After locale normalization, amount may only contain numbers and '.'
+    const xecSendAmountCharCheck =
+        VALID_XEC_NORMALIZED_INPUT_REGEX.test(normalizedAmount);
     if (!xecSendAmountCharCheck) {
-        return `Invalid amount “${sendAmount}”: Amount can only contain numbers and '.' to denote decimal places.`;
+        return `Invalid amount “${sendAmount}”: Amount can only contain numbers and locale decimal/thousands separators.`;
     }
 
     const isFiatSendAmount = selectedCurrency !== appConfig.ticker;
 
     // If it is not a fiat send amount, reject values with more than 2 decimal places
-    if (!isFiatSendAmount && sendAmount.toString().includes('.')) {
-        if (
-            sendAmount.toString().split('.')[1].length > appConfig.cashDecimals
-        ) {
+    if (!isFiatSendAmount && normalizedAmount.includes('.')) {
+        if (normalizedAmount.split('.')[1].length > appConfig.cashDecimals) {
             return `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
         }
     }
 
     const sendAmountSatoshis = isFiatSendAmount
-        ? fiatToSatoshis(sendAmount, fiatPrice)
-        : toSatoshis(Number(sendAmount));
+        ? fiatToSatoshis(normalizedAmount, fiatPrice)
+        : toSatoshis(Number(normalizedAmount));
 
     if (sendAmountSatoshis <= 0) {
         return 'Amount must be > 0';
@@ -1349,6 +1355,7 @@ export const isValidTokenSendOrBurnAmount = (
     tokenBalance: string,
     decimals: SlpDecimals,
     tokenProtocol: 'SLP' | 'ALP',
+    userLocale = 'en-US',
 ): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
@@ -1356,30 +1363,34 @@ export const isValidTokenSendOrBurnAmount = (
     if (amount === '') {
         return 'Amount is required';
     }
-    if (amount === '0') {
+    const normalizedAmount = normalizeDecimalInput(amount, userLocale);
+    if (normalizedAmount === '0') {
         return `Amount must be > 0`;
     }
-    if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
+    if (
+        !STRINGIFIED_DECIMALIZED_REGEX.test(normalizedAmount) ||
+        normalizedAmount.length === 0
+    ) {
         return `Invalid amount format`;
     }
     // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
     // The user is not inputting decimals
 
     // Amount must be <= balance
-    const amountBN = new BigNumber(amount);
+    const amountBN = new BigNumber(normalizedAmount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
     if (amountBN.gt(tokenBalance)) {
-        return `Amount ${amount} exceeds balance of ${tokenBalance}`;
+        return `Amount ${normalizedAmount} exceeds balance of ${tokenBalance}`;
     }
 
     const maxQty = getMaxDecimalizedQty(decimals, tokenProtocol);
 
     if (amountBN.gt(maxQty)) {
-        return `Amount ${amount} exceeds max supported qty for this token in one tx (${maxQty})`;
+        return `Amount ${normalizedAmount} exceeds max supported qty for this token in one tx (${maxQty})`;
     }
 
-    if (amount.includes('.')) {
-        if (amount.toString().split('.')[1].length > decimals) {
+    if (normalizedAmount.includes('.')) {
+        if (normalizedAmount.split('.')[1].length > decimals) {
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
@@ -1399,6 +1410,7 @@ export const isValidTokenMintAmount = (
     amount: string,
     decimals: SlpDecimals,
     tokenProtocol: 'SLP' | 'ALP' = 'SLP',
+    userLocale = 'en-US',
 ): string | true => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
@@ -1406,17 +1418,21 @@ export const isValidTokenMintAmount = (
     if (amount === '') {
         return 'Amount is required';
     }
-    if (amount === '0') {
+    const normalizedAmount = normalizeDecimalInput(amount, userLocale);
+    if (normalizedAmount === '0') {
         return `Amount must be > 0`;
     }
-    if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
+    if (
+        !STRINGIFIED_DECIMALIZED_REGEX.test(normalizedAmount) ||
+        normalizedAmount.length === 0
+    ) {
         return `Invalid amount format`;
     }
     // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
     // The user is not inputting decimals
 
-    if (amount.includes('.')) {
-        if (amount.toString().split('.')[1].length > decimals) {
+    if (normalizedAmount.includes('.')) {
+        if (normalizedAmount.split('.')[1].length > decimals) {
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
@@ -1424,11 +1440,11 @@ export const isValidTokenMintAmount = (
         }
     }
     // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
-    const amountBN = new BigNumber(amount);
+    const amountBN = new BigNumber(normalizedAmount);
     // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
     const maxMintAmount = getMaxDecimalizedQty(decimals, tokenProtocol);
     if (amountBN.gt(maxMintAmount)) {
-        return `Amount ${amount} exceeds max mint amount for this token (${maxMintAmount})`;
+        return `Amount ${normalizedAmount} exceeds max mint amount for this token (${maxMintAmount})`;
     }
 
     return true;
@@ -1469,6 +1485,7 @@ export const getXecListPriceError = (
     xecListPrice: string,
     selectedCurrency: string,
     fiatPrice: null | number,
+    userLocale = 'en-US',
 ): false | string => {
     if (xecListPrice === '') {
         return 'List price is required.';
@@ -1477,12 +1494,13 @@ export const getXecListPriceError = (
         // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
         return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
     }
-    if (!STRINGIFIED_DECIMALIZED_REGEX.test(xecListPrice)) {
+    const normalizedPrice = normalizeDecimalInput(xecListPrice, userLocale);
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(normalizedPrice)) {
         // Must be a number (can't necessarily rely on Number input field to validate this)
         return 'List price must be a number greater than 5.46 XEC.';
     }
-    if (xecListPrice.includes('.')) {
-        if (xecListPrice.split('.')[1].length > appConfig.cashDecimals) {
+    if (normalizedPrice.includes('.')) {
+        if (normalizedPrice.split('.')[1].length > appConfig.cashDecimals) {
             return `List price supports up to ${appConfig.cashDecimals} decimal places.`;
         }
     }
@@ -1491,11 +1509,11 @@ export const getXecListPriceError = (
             ? toSatoshis(
                   parseFloat(
                       (
-                          parseFloat(xecListPrice) / (fiatPrice as number)
+                          parseFloat(normalizedPrice) / (fiatPrice as number)
                       ).toFixed(2),
                   ),
               )
-            : toSatoshis(Number(xecListPrice));
+            : toSatoshis(Number(normalizedPrice));
     if (priceSatoshis < appConfig.dustSats) {
         // We cannot enforce an output to have less than dust satoshis
         return 'List price cannot be less than dust (5.46 XEC).';
@@ -1523,6 +1541,7 @@ export const getAgoraPartialListPriceError = (
     selectedCurrency: string,
     fiatPrice: null | number,
     tokenDecimals: SlpDecimals,
+    userLocale = 'en-US',
 ): false | string => {
     if (xecListPrice === '') {
         return 'List price is required.';
@@ -1531,15 +1550,16 @@ export const getAgoraPartialListPriceError = (
         // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
         return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
     }
-    if (!STRINGIFIED_DECIMALIZED_REGEX.test(xecListPrice)) {
+    const normalizedPrice = normalizeDecimalInput(xecListPrice, userLocale);
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(normalizedPrice)) {
         // Must be a number (can't necessarily rely on Number input field to validate this)
         return 'List price must be a number';
     }
-    if (xecListPrice.includes('.')) {
+    if (normalizedPrice.includes('.')) {
         // We can't support prices lower than 1 nanosatoshi per token satoshi
         // In practice, if the token has more than 1 decimal place,
         // Any amoutn lower than 1 nanosatoshi will be much lower than 1 nanosatoshi per token satoshi
-        if (xecListPrice.split('.')[1].length > NANOSAT_DECIMALS) {
+        if (normalizedPrice.split('.')[1].length > NANOSAT_DECIMALS) {
             return `List price supports up to ${NANOSAT_DECIMALS} decimal places.`;
         }
     }
@@ -1548,11 +1568,11 @@ export const getAgoraPartialListPriceError = (
     const priceXec =
         selectedCurrency !== 'XEC'
             ? new BigNumber(
-                  new BigNumber(xecListPrice)
+                  new BigNumber(normalizedPrice)
                       .div(fiatPrice as number)
                       .toFixed(NANOSAT_DECIMALS),
               )
-            : new BigNumber(xecListPrice);
+            : new BigNumber(normalizedPrice);
 
     // Get the price in nanosats per token satoshi
     // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
@@ -1591,8 +1611,11 @@ export const getAgoraMinBuyError = (
     tokenBalance: string,
     userLocale: string,
 ) => {
+    const normalizedMinBuy = normalizeDecimalInput(minBuyTokenQty, userLocale);
+    const normalizedListPrice = normalizeDecimalInput(xecListPrice, userLocale);
+
     // First, make sure the min does not exceed total offerd tokens
-    if (new BigNumber(minBuyTokenQty).gt(offeredTokenQty)) {
+    if (new BigNumber(normalizedMinBuy).gt(offeredTokenQty)) {
         return 'The min buy must be less than or equal to the offered quantity';
     }
 
@@ -1602,6 +1625,7 @@ export const getAgoraMinBuyError = (
         tokenBalance,
         tokenDecimals,
         tokenProtocol,
+        userLocale,
     );
 
     if (typeof isValidAmountOrErrorMsg === 'string') {
@@ -1617,14 +1641,14 @@ export const getAgoraMinBuyError = (
     const priceXec =
         selectedCurrency !== 'XEC'
             ? new BigNumber(
-                  new BigNumber(xecListPrice)
+                  new BigNumber(normalizedListPrice)
                       .div(fiatPrice as number)
                       .toFixed(NANOSAT_DECIMALS),
               )
-            : new BigNumber(xecListPrice);
+            : new BigNumber(normalizedListPrice);
 
     // Get the total price of the min buy amount
-    const priceXecMinBuy = priceXec.times(new BigNumber(minBuyTokenQty));
+    const priceXecMinBuy = priceXec.times(new BigNumber(normalizedMinBuy));
 
     if (priceXecMinBuy.lt(toXec(appConfig.dustSats))) {
         // Determine what the min buy must be
@@ -1659,22 +1683,24 @@ export const getAgoraPartialAcceptTokenQtyError = (
     if (takeTokenDecimalizedQty === '') {
         return 'Select a buy amount';
     }
-    if (new BigNumber(takeTokenDecimalizedQty).lt(decimalizedTokenQtyMin)) {
+    const normalizedQty = normalizeDecimalInput(
+        takeTokenDecimalizedQty,
+        userLocale,
+    );
+    if (new BigNumber(normalizedQty).lt(decimalizedTokenQtyMin)) {
         return `Must purchase at least ${decimalizedTokenQtyToLocaleFormat(
             decimalizedTokenQtyMin,
             userLocale,
         )} to accept this offer`;
     }
     if (
-        !STRINGIFIED_DECIMALIZED_REGEX.test(takeTokenDecimalizedQty) ||
-        takeTokenDecimalizedQty.length === 0
+        !STRINGIFIED_DECIMALIZED_REGEX.test(normalizedQty) ||
+        normalizedQty.length === 0
     ) {
         return `Invalid amount format`;
     }
-    if (takeTokenDecimalizedQty.includes('.')) {
-        if (
-            takeTokenDecimalizedQty.toString().split('.')[1].length > decimals
-        ) {
+    if (normalizedQty.includes('.')) {
+        if (normalizedQty.split('.')[1].length > decimals) {
             if (decimals === 0) {
                 return `This token does not support decimal places`;
             }
@@ -1708,8 +1734,8 @@ export const getAgoraPartialAcceptTokenQtyError = (
         decimalizedTokenQtyMin,
     );
     if (
-        new BigNumber(takeTokenDecimalizedQty).gt(threshold) &&
-        new BigNumber(takeTokenDecimalizedQty).lt(decimalizedTokenQtyMax)
+        new BigNumber(normalizedQty).gt(threshold) &&
+        new BigNumber(normalizedQty).lt(decimalizedTokenQtyMax)
     ) {
         return `Must accept <= ${decimalizedTokenQtyToLocaleFormat(
             threshold.toString(),
@@ -1733,6 +1759,7 @@ export const getReceiveAmountError = (
     amount: string,
     decimals: number,
     isXec = false,
+    userLocale = 'en-US',
 ): string | false => {
     if (typeof amount !== 'string') {
         return 'Amount must be a string';
@@ -1742,18 +1769,20 @@ export const getReceiveAmountError = (
     if (amount === '' && !isXec) {
         return false;
     }
-    if (amount === '0') {
+    const normalizedAmount = normalizeDecimalInput(amount, userLocale);
+    if (normalizedAmount === '0') {
         return `Amount must be > 0`;
     }
     if (
-        (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) &&
+        (!STRINGIFIED_DECIMALIZED_REGEX.test(normalizedAmount) ||
+            normalizedAmount.length === 0) &&
         amount !== ''
     ) {
         return `Invalid amount format`;
     }
 
-    if (amount.includes('.')) {
-        if (amount.toString().split('.')[1].length > decimals) {
+    if (normalizedAmount.includes('.')) {
+        if (normalizedAmount.split('.')[1].length > decimals) {
             if (isXec) {
                 return `Max ${decimals} decimal places`;
             }
@@ -1764,7 +1793,10 @@ export const getReceiveAmountError = (
         }
     }
 
-    if (isXec && parseFloat(amount) < Number(DEFAULT_DUST_SATS) / 100) {
+    if (
+        isXec &&
+        parseFloat(normalizedAmount) < Number(DEFAULT_DUST_SATS) / 100
+    ) {
         return `Minimum 5.46 XEC`;
     }
     return false;

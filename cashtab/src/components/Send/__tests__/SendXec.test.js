@@ -181,7 +181,7 @@ describe('<SendXec />', () => {
         );
 
         // Amount input is untouched
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
 
         // The amount input is NOT disabled because there is no BIP21 query string
         expect(amountInputEl).toHaveProperty('disabled', false);
@@ -360,7 +360,7 @@ describe('<SendXec />', () => {
         expect(addressInputEl).toHaveValue(addressInput);
 
         // Amount input is untouched
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
 
         // The amount input is NOT disabled because there is no BIP21 query string
         expect(amountInputEl).toHaveProperty('disabled', false);
@@ -414,7 +414,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(500);
+        expect(amountInputEl).toHaveValue('500');
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -469,7 +469,7 @@ describe('<SendXec />', () => {
         );
 
         // Amount input is the invalid amount param value
-        expect(amountInputEl).toHaveValue(dustAmount);
+        expect(amountInputEl).toHaveValue(String(dustAmount));
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -525,7 +525,7 @@ describe('<SendXec />', () => {
         );
 
         // Amount input is the invalid amount param value
-        expect(amountInputEl).toHaveValue(exceedBalanceAmount);
+        expect(amountInputEl).toHaveValue('1,000,000');
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -586,7 +586,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input unchanged
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
 
         // The amount input is not disabled because no amount param is specified
         expect(amountInputEl).toHaveProperty('disabled', false);
@@ -647,7 +647,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input is untouched
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
 
         // The amount input is not disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', false);
@@ -710,7 +710,7 @@ describe('<SendXec />', () => {
         await expectResolvedRecipient(
             previewAddress(addressInput.split('?')[0]),
         );
-        expect(amountInputEl).toHaveValue(100);
+        expect(amountInputEl).toHaveValue('100');
 
         // input_data_raw is parsed from BIP21 only; parsed section shows DICE Bet protocol and bet range
         expect(screen.getByText('Parsed input_data_raw')).toBeInTheDocument();
@@ -758,7 +758,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(500);
+        expect(amountInputEl).toHaveValue('500');
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -829,7 +829,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(500);
+        expect(amountInputEl).toHaveValue('500');
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -918,7 +918,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(17);
+        expect(amountInputEl).toHaveValue('17');
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -978,7 +978,7 @@ describe('<SendXec />', () => {
         );
         await waitFor(() =>
             // Amount input is reset
-            expect(amountInputEl).toHaveValue(null),
+            expect(amountInputEl).toHaveValue(''),
         );
 
         // The 'Send To' input field has been cleared
@@ -1034,7 +1034,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is the expected max send for Cashtab's fee and no other outputs
-        expect(amountInputEl).toHaveValue(9509.4);
+        expect(amountInputEl).toHaveValue('9,509.4');
 
         // Let's add a Cashtab message (expand Advanced first, then click Message)
         await user.click(screen.getByRole('button', { name: /Advanced/i }));
@@ -1052,7 +1052,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.97);
+        expect(amountInputEl).toHaveValue('9,508.97');
 
         // Clear the msg input and start again
         await user.clear(
@@ -1072,7 +1072,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.01);
+        expect(amountInputEl).toHaveValue('9,508.01');
 
         // Click Send
         await user.click(
@@ -1346,7 +1346,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is the expected max send for Cashtab's fee and no other outputs
-        expect(amountInputEl).toHaveValue(9509.4);
+        expect(amountInputEl).toHaveValue('9,509.4');
 
         // Let's add a Cashtab message (expand Advanced first, then click Message)
         await user.click(screen.getByRole('button', { name: /Advanced/i }));
@@ -1364,7 +1364,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.97);
+        expect(amountInputEl).toHaveValue('9,508.97');
 
         // Clear the msg input and start again
         await user.clear(
@@ -1384,7 +1384,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.01);
+        expect(amountInputEl).toHaveValue('9,508.01');
 
         // Now we turn the Cashtab Msg off without clearing the input field
         await user.click(screen.getByRole('button', { name: 'Message' }));
@@ -1396,7 +1396,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // We are back to our max send amount for no other outputs
-        expect(amountInputEl).toHaveValue(9509.4);
+        expect(amountInputEl).toHaveValue('9,509.4');
 
         // Click Send
         await user.click(
@@ -1543,7 +1543,7 @@ describe('<SendXec />', () => {
             await screen.findByPlaceholderText('Amount'),
         ).toBeInTheDocument();
         // Amount input is reset
-        expect(await screen.findByPlaceholderText('Amount')).toHaveValue(null);
+        expect(await screen.findByPlaceholderText('Amount')).toHaveValue('');
         // The 'Send To' input field has been cleared
         expect(await getRecipientInput()).toHaveValue('');
     });

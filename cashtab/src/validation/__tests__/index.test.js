@@ -692,12 +692,18 @@ describe('Cashtab validation functions', () => {
     describe('Gets error for bip21 quantity input on Receive screen', () => {
         const { expectedReturns } = vectors.getReceiveAmountError;
         expectedReturns.forEach(expectedReturn => {
-            const { description, amount, decimals, isXec, returned } =
-                expectedReturn;
+            const {
+                description,
+                amount,
+                decimals,
+                isXec,
+                userLocale,
+                returned,
+            } = expectedReturn;
             it(`getReceiveAmountError: ${description}`, () => {
-                expect(getReceiveAmountError(amount, decimals, isXec)).toBe(
-                    returned,
-                );
+                expect(
+                    getReceiveAmountError(amount, decimals, isXec, userLocale),
+                ).toBe(returned);
             });
         });
     });

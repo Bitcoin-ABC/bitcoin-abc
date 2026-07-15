@@ -59,6 +59,224 @@ export const formatBalance = (
 };
 
 /**
+ * Apostrophe-like group separators used by some locales (notably de-CH).
+ * ICU versions disagree between ASCII `'` (U+0027) and typographic `’` (U+2019);
+ * we canonicalize to U+2019 for stable display and accept all variants when parsing.
+ */
+const APOSTROPHE_GROUP_SEPARATORS = new Set([
+    "'", // U+0027 APOSTROPHE
+    '\u2019', // RIGHT SINGLE QUOTATION MARK (Swiss typographic)
+    '\u2018', // LEFT SINGLE QUOTATION MARK
+    '\u02BC', // MODIFIER LETTER APOSTROPHE
+]);
+const CANONICAL_APOSTROPHE_GROUP_SEPARATOR = '\u2019';
+
+const canonicalizeGroupSeparator = (separator: string): string =>
+    APOSTROPHE_GROUP_SEPARATORS.has(separator)
+        ? CANONICAL_APOSTROPHE_GROUP_SEPARATOR
+        : separator;
+
+/**
+ * Remove thousands separators from a string. When the locale uses an
+ * apostrophe-like group separator, strip every apostrophe variant so input
+ * from either ICU form (or paste) normalizes correctly.
+ */
+const removeThousandsSeparators = (
+    value: string,
+    thousandsSeparator: string,
+): string => {
+    if (!thousandsSeparator) {
+        return value;
+    }
+    const separators = APOSTROPHE_GROUP_SEPARATORS.has(thousandsSeparator)
+        ? [...APOSTROPHE_GROUP_SEPARATORS]
+        : [thousandsSeparator];
+
+    let cleaned = value;
+    for (const separator of separators) {
+        const escaped = separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        cleaned = cleaned.replace(new RegExp(escaped, 'g'), '');
+    }
+    return cleaned;
+};
+
+/**
+ * Get the decimal separator for a given locale
+ */
+export const getDecimalSeparator = (locale: string = 'en-US'): string => {
+    try {
+        const parts = new Intl.NumberFormat(locale, {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+        }).formatToParts(1.1);
+        return parts.find(part => part.type === 'decimal')?.value || '.';
+    } catch {
+        return '.';
+    }
+};
+
+/**
+ * Get the thousands separator for a given locale.
+ * Returns '' when the locale does not use a group separator.
+ */
+export const getThousandsSeparator = (locale: string = 'en-US'): string => {
+    try {
+        // Prefer 1,000,000 — some locales (e.g. es-ES) omit grouping for 1000
+        const parts = new Intl.NumberFormat(locale, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).formatToParts(1000000);
+        const separator = parts.find(part => part.type === 'group')?.value;
+        if (typeof separator !== 'string') {
+            return '';
+        }
+        return canonicalizeGroupSeparator(separator);
+    } catch {
+        return ',';
+    }
+};
+
+/**
+ * Parse user-typed amount text into a JavaScript decimal string
+ * (`.` separator, no grouping).
+ */
+export const normalizeDecimalInput = (
+    value: string,
+    locale: string = 'en-US',
+): string => {
+    const decimalSeparator = getDecimalSeparator(locale);
+    const thousandsSeparator = getThousandsSeparator(locale);
+
+    const normalized = removeThousandsSeparators(value, thousandsSeparator);
+
+    if (decimalSeparator === '.') {
+        return normalized;
+    }
+    const escapedDecimalSeparator = decimalSeparator.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        '\\$&',
+    );
+    return normalized.replace(new RegExp(escapedDecimalSeparator, 'g'), '.');
+};
+
+/**
+ * Format a number string with locale thousands and decimal separators.
+ * Designed for formatting user input as they type (handles incomplete input).
+ */
+export const formatUserNumberInput = (
+    value: string,
+    decimalSeparator: string,
+    thousandsSeparator: string,
+): string => {
+    if (!value) {
+        return '';
+    }
+    const escapedDecimalSeparator = decimalSeparator.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        '\\$&',
+    );
+    // Remove all non-digit characters except the decimal separator
+    const cleanValue = value.replace(
+        new RegExp(`[^\\d${escapedDecimalSeparator}]`, 'g'),
+        '',
+    );
+    const parts = cleanValue.split(decimalSeparator);
+    const integerPart = parts[0].replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        thousandsSeparator,
+    );
+    return parts.length > 1
+        ? `${integerPart}${decimalSeparator}${parts[1]}`
+        : integerPart;
+};
+
+/**
+ * Format a dot-normalized amount string for locale-aware input display.
+ * Accepts values already using `.` as the decimal marker (e.g. from bip21 or max).
+ */
+export const formatAmountForInputDisplay = (
+    value: string | number | null | undefined,
+    locale: string = 'en-US',
+): string => {
+    if (value === null || typeof value === 'undefined' || value === '') {
+        return '';
+    }
+    const asString = String(value);
+    const decimalSeparator = getDecimalSeparator(locale);
+    const thousandsSeparator = getThousandsSeparator(locale);
+    const withLocaleDecimal =
+        decimalSeparator === '.'
+            ? asString
+            : asString.replace(/\./g, decimalSeparator);
+    return formatUserNumberInput(
+        withLocaleDecimal,
+        decimalSeparator,
+        thousandsSeparator,
+    );
+};
+
+/**
+ * Sanitize and locale-format a raw amount field value as the user types.
+ * Returns the display string (with locale separators).
+ */
+export const sanitizeAndFormatAmountInput = (
+    value: string,
+    locale: string = 'en-US',
+    maxDecimals?: number,
+): string => {
+    const decimalSeparator = getDecimalSeparator(locale);
+    const thousandsSeparator = getThousandsSeparator(locale);
+    let formatted = formatUserNumberInput(
+        value,
+        decimalSeparator,
+        thousandsSeparator,
+    );
+    if (typeof maxDecimals === 'number') {
+        const parts = formatted.split(decimalSeparator);
+        if (parts.length > 1 && parts[1].length > maxDecimals) {
+            formatted = `${parts[0]}${decimalSeparator}${parts[1].substring(
+                0,
+                maxDecimals,
+            )}`;
+        }
+    }
+    return formatted;
+};
+
+/**
+ * Restore caret after locale reformatting by matching the count of
+ * significant characters (digits + decimal separator) before the old caret.
+ */
+export const caretPosAfterFormat = (
+    oldValue: string,
+    oldCaret: number,
+    newValue: string,
+    decimalSeparator: string,
+): number => {
+    const prefix = oldValue.slice(0, Math.max(0, oldCaret));
+    let significantCount = 0;
+    for (const ch of prefix) {
+        if (/\d/.test(ch) || ch === decimalSeparator) {
+            significantCount += 1;
+        }
+    }
+    if (significantCount === 0) {
+        return 0;
+    }
+    let seen = 0;
+    for (let i = 0; i < newValue.length; i++) {
+        const ch = newValue[i];
+        if (/\d/.test(ch) || ch === decimalSeparator) {
+            seen += 1;
+            if (seen >= significantCount) {
+                return i + 1;
+            }
+        }
+    }
+    return newValue.length;
+};
+
+/**
  * Add locale number formatting to a decimalized
  * token quantity
  */

@@ -109,7 +109,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is set to the expected value
-        expect(amountInputEl).toHaveValue(value);
+        expect(amountInputEl).toHaveValue(String(value));
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
@@ -156,7 +156,9 @@ describe('<SendXec /> rendered with params in URL', () => {
             BLITZ_CHIPS_GAME_ADDRESS,
             'BlitzChips',
         );
-        expect(screen.getByPlaceholderText('Amount')).toHaveValue(value);
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue(
+            String(value),
+        );
     });
     it('Legacy params. Address and value keys are set and valid. Invalid bip21 string is ignored.', async () => {
         const destinationAddress =
@@ -192,7 +194,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is filled out per legacy passed amount
-        expect(amountInputEl).toHaveValue(legacyPassedAmount);
+        expect(amountInputEl).toHaveValue(String(legacyPassedAmount));
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
@@ -242,7 +244,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is empty
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
@@ -292,7 +294,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input is empty
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
@@ -339,7 +341,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', false);
 
         // The amount input is empty
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
@@ -388,7 +390,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', false);
 
         // The amount input is empty
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
@@ -439,7 +441,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(destinationAddress);
 
         // The amount input has the expected value
-        expect(amountInputEl).toHaveValue(legacyPassedAmount);
+        expect(amountInputEl).toHaveValue(String(legacyPassedAmount));
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
@@ -493,7 +495,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         await expectUrlResolvedRecipient(bip21Str);
 
         // Amount input is the valid amount param value
-        expect(amountInputEl).toHaveValue(amount);
+        expect(amountInputEl).toHaveValue(String(amount));
 
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -569,7 +571,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // Amount input is updated despite invalid bip21 query, so the user can see the amount
-        expect(amountInputEl).toHaveValue(amount);
+        expect(amountInputEl).toHaveValue(String(amount));
 
         // The amount input is disabled because it was set by a bip21 query string and URL routing
         expect(amountInputEl).toHaveProperty('disabled', true);
@@ -614,7 +616,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', false);
 
         // The amount input is empty
-        expect(amountInputEl).toHaveValue(null);
+        expect(amountInputEl).toHaveValue('');
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 

@@ -12,6 +12,13 @@ import {
     getFormattedFiatPrice,
     getAgoraSpotPriceXec,
     getPercentDeltaOverSpot,
+    getDecimalSeparator,
+    getThousandsSeparator,
+    normalizeDecimalInput,
+    formatUserNumberInput,
+    sanitizeAndFormatAmountInput,
+    formatAmountForInputDisplay,
+    caretPosAfterFormat,
 } from 'formatting';
 import vectors from 'formatting/fixtures/vectors';
 
@@ -191,6 +198,52 @@ describe('Correctly executes formatting functions', () => {
                     getPercentDeltaOverSpot(thisPrice, spotPrice, userLocale),
                 ).toBe(returned);
             });
+        });
+    });
+    describe('Locale amount input helpers', () => {
+        it('getDecimalSeparator returns . for en-US and , for de-DE', () => {
+            expect(getDecimalSeparator('en-US')).toBe('.');
+            expect(getDecimalSeparator('de-DE')).toBe(',');
+        });
+        it('getThousandsSeparator returns , for en-US and . for de-DE', () => {
+            expect(getThousandsSeparator('en-US')).toBe(',');
+            expect(getThousandsSeparator('de-DE')).toBe('.');
+        });
+        it('normalizeDecimalInput strips thousands and converts locale decimals', () => {
+            expect(normalizeDecimalInput('1,234.56', 'en-US')).toBe('1234.56');
+            expect(normalizeDecimalInput('1.234,56', 'de-DE')).toBe('1234.56');
+            expect(normalizeDecimalInput('100,5', 'de-DE')).toBe('100.5');
+        });
+        it('formatUserNumberInput applies thousands and decimal separators', () => {
+            expect(formatUserNumberInput('1234567.89', '.', ',')).toBe(
+                '1,234,567.89',
+            );
+            expect(formatUserNumberInput('1234567,89', ',', '.')).toBe(
+                '1.234.567,89',
+            );
+        });
+        it('sanitizeAndFormatAmountInput formats as the user types', () => {
+            expect(sanitizeAndFormatAmountInput('1234.5', 'en-US')).toBe(
+                '1,234.5',
+            );
+            expect(sanitizeAndFormatAmountInput('1234,5', 'de-DE')).toBe(
+                '1.234,5',
+            );
+            expect(sanitizeAndFormatAmountInput('1,234.567', 'en-US', 2)).toBe(
+                '1,234.56',
+            );
+        });
+        it('formatAmountForInputDisplay formats wire-format amounts for inputs', () => {
+            expect(formatAmountForInputDisplay('1234.56', 'en-US')).toBe(
+                '1,234.56',
+            );
+            expect(formatAmountForInputDisplay('1234.56', 'de-DE')).toBe(
+                '1.234,56',
+            );
+        });
+        it('caretPosAfterFormat keeps caret after a trailing decimal', () => {
+            expect(caretPosAfterFormat('0.', 2, '0.', '.')).toBe(2);
+            expect(caretPosAfterFormat('1,234', 5, '1,234', '.')).toBe(5);
         });
     });
 });

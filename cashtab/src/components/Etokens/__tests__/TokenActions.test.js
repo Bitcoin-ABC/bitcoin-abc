@@ -330,7 +330,7 @@ describe('<Token /> available actions rendered', () => {
 
         // The min qty input updates automatically when price is set to reflect the actual min qty
         // i.e. what qty would sell for dust
-        expect(minQtyInput).toHaveValue(5460);
+        expect(minQtyInput).toHaveValue('5,460');
 
         // But this is higher than our balance, so we get an error
         expect(
@@ -344,7 +344,7 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.type(priceInput, '0.5');
 
         // Note that the min qty does not auto-update when price changes after the initial change
-        expect(minQtyInput).toHaveValue(5460);
+        expect(minQtyInput).toHaveValue('5,460');
 
         // The buy button is disabled with invalid qty
         expect(listButton).toBeDisabled();
@@ -394,7 +394,7 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // The price input is cleared when the user changes from XEC price to fiat price
-        expect(priceInput).toHaveValue(null);
+        expect(priceInput).toHaveValue('');
 
         // We list for $2 per token
         await userEvent.type(priceInput, '5');
@@ -1033,7 +1033,7 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // The price input is cleared when the user changes from XEC price to fiat price
-        expect(priceInput).toHaveValue(null);
+        expect(priceInput).toHaveValue('');
 
         // We list the NFT for $5
         await userEvent.type(priceInput, '5');
@@ -1924,7 +1924,7 @@ describe('<Token /> available actions rendered', () => {
         const minQtyInput = screen.getByPlaceholderText('Min qty');
 
         // The quantity updates automatically
-        expect(minQtyInput).toHaveValue(5460);
+        expect(minQtyInput).toHaveValue('5,460');
 
         // But because this price is so low, now the min qty is actually higher than our token balance
         // So we see an error
@@ -1989,7 +1989,7 @@ describe('<Token /> available actions rendered', () => {
         );
 
         // The price input is cleared when the user changes from XEC price to fiat price
-        expect(priceInput).toHaveValue(null);
+        expect(priceInput).toHaveValue('');
 
         // We list for $5 per token
         await userEvent.type(priceInput, '5');
@@ -2142,7 +2142,7 @@ describe('<Token /> available actions rendered', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(10000);
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2250,7 +2250,7 @@ describe('<Token /> available actions rendered', () => {
         // We redeem 10k XECX
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(10000);
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2343,7 +2343,7 @@ describe('<Token /> available actions rendered', () => {
         // We redeem 10k XECX
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(10000);
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2477,7 +2477,7 @@ describe('<Token /> available actions rendered', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(10);
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10');
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2738,7 +2738,7 @@ describe('<Token /> available actions rendered', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(10);
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10');
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2990,7 +2990,7 @@ describe('<Token /> available actions rendered', () => {
         const minQtyInput = screen.getByPlaceholderText('Min qty');
 
         // The quantity updates automatically
-        expect(minQtyInput).toHaveValue(6);
+        expect(minQtyInput).toHaveValue('6');
 
         // The list button is no longer disabled
         expect(listButton).toBeEnabled();

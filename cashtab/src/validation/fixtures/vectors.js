@@ -1690,13 +1690,34 @@ export default {
             },
             {
                 description:
-                    'A value using a decimal marker other than "." is rejected',
+                    'In en-US, a comma is treated as a thousands separator (100,12 → 10012)',
                 sendAmount: '100,12',
                 balanceSats: 100000, // 1,000.00 XEC
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Invalid amount “100,12”: Amount can only contain numbers and '.' to denote decimal places.`,
+                returned: `Amount 10,012.00 XEC exceeds wallet balance of 1,000.00 XEC`,
+            },
+            {
+                description:
+                    'In de-DE, a comma is the decimal separator (100,12 → 100.12)',
+                sendAmount: '100,12',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: 'de-DE',
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: true,
+            },
+            {
+                description:
+                    'In de-DE, period thousands separators are accepted (1.000,12 → 1000.12)',
+                sendAmount: '1.000,12',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: 'de-DE',
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                // 1000.12 XEC exceeds 1000.00 XEC balance
+                returned: `Amount 1.000,12 XEC exceeds wallet balance of 1.000,00 XEC`,
             },
             {
                 description: 'A non-number string is rejected',
@@ -1733,7 +1754,7 @@ export default {
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Invalid amount “12a17”: Amount can only contain numbers and '.' to denote decimal places.`,
+                returned: `Invalid amount “12a17”: Amount can only contain numbers and locale decimal/thousands separators.`,
             },
             {
                 description:
@@ -1974,12 +1995,12 @@ export default {
             },
             {
                 description:
-                    'Rejects input including a decimal marker other than "."',
+                    'In en-US, comma is a thousands separator (95,1 → 951)',
                 amount: '95,1',
                 tokenBalance: '100',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned: 'Invalid amount format',
+                returned: 'Amount 951 exceeds balance of 100',
             },
             {
                 description: 'Rejects input multiple decimal points',
@@ -2189,11 +2210,11 @@ export default {
             },
             {
                 description:
-                    'Rejects input including a decimal marker other than "."',
+                    'In en-US, comma is a thousands separator (95,1 → 951)',
                 amount: '95,1',
                 decimals: 1,
                 tokenProtocol: 'SLP',
-                returned: 'Invalid amount format',
+                returned: true,
             },
             {
                 description: 'Rejects input with multiple decimal points',
@@ -3051,13 +3072,24 @@ export default {
             },
             {
                 description:
-                    'Rejects input including a decimal marker other than "."',
+                    'In en-US, comma is a thousands separator (15,1 → 151)',
                 takeTokenDecimalizedQty: '15,1',
                 decimalizedTokenQtyMin: '10',
                 decimalizedTokenQtyMax: '100',
                 decimals: 0,
                 userLocale: 'en-US',
-                returned: 'Invalid amount format',
+                // 151 > max; this validator does not reject over-max (handled elsewhere)
+                returned: false,
+            },
+            {
+                description:
+                    'In de-DE, comma is the decimal separator (15,1 → 15.1)',
+                takeTokenDecimalizedQty: '15,1',
+                decimalizedTokenQtyMin: '10',
+                decimalizedTokenQtyMax: '100',
+                decimals: 1,
+                userLocale: 'de-DE',
+                returned: false,
             },
             {
                 description: 'Rejects multiple non-consecutive decimal points',
@@ -3253,19 +3285,28 @@ export default {
             },
             {
                 description:
-                    'XEC: Rejects input including a decimal marker other than "."',
+                    'XEC en-US: comma is a thousands separator (95,1 → 951)',
                 amount: '95,1',
                 decimals: 1,
                 isXec: true,
-                returned: 'Invalid amount format',
+                returned: false,
             },
             {
                 description:
-                    'Token: Rejects input including a decimal marker other than "."',
+                    'Token en-US: comma is a thousands separator (95,1 → 951)',
                 amount: '95,1',
                 decimals: 1,
                 isXec: false,
-                returned: 'Invalid amount format',
+                returned: false,
+            },
+            {
+                description:
+                    'XEC de-DE: comma is the decimal separator (95,1 → 95.1)',
+                amount: '95,1',
+                decimals: 1,
+                isXec: true,
+                userLocale: 'de-DE',
+                returned: false,
             },
             {
                 description: 'Rejects input multiple decimal points',

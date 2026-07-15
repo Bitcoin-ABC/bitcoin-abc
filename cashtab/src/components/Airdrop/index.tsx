@@ -38,6 +38,9 @@ import {
     AirdropContainer,
 } from './styled';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
+import { getUserLocale } from 'helpers';
+import { normalizeDecimalInput } from 'formatting';
+import appConfig from 'config/app';
 
 const Airdrop = () => {
     const ContextValue = useContext(WalletContext);
@@ -52,6 +55,7 @@ const Airdrop = () => {
         return null;
     }
     const location = useLocation();
+    const userLocale = getUserLocale(navigator);
 
     const [calculatingAirdrop, setCalculatingAirdrop] =
         useState<boolean>(false);
@@ -215,7 +219,8 @@ const Airdrop = () => {
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const { name, value } = e.target;
-        setTotalAirdropIsValid(isValidXecAirdrop(value));
+        const normalizedValue = normalizeDecimalInput(value, userLocale);
+        setTotalAirdropIsValid(isValidXecAirdrop(normalizedValue));
         setFormData(p => ({
             ...p,
             [name]: value,
@@ -226,8 +231,9 @@ const Airdrop = () => {
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const { value } = e.target;
+        const normalizedValue = normalizeDecimalInput(value, userLocale);
 
-        if (new BigNumber(value).gt(0)) {
+        if (new BigNumber(normalizedValue).gt(0)) {
             setIgnoreMinEtokenBalanceAmountIsValid(true);
             setIgnoreMinEtokenBalanceAmountError(false);
         } else {
@@ -283,11 +289,16 @@ const Airdrop = () => {
                 return setCalculatingAirdrop(false);
             }
             undecimalizedMinTokenAmount = new BigNumber(
-                ignoreMinEtokenBalanceAmount,
+                normalizeDecimalInput(ignoreMinEtokenBalanceAmount, userLocale),
             )
                 .times(10 ** tokenInfo.genesisInfo.decimals)
                 .toString();
         }
+
+        const normalizedTotalAirdrop = normalizeDecimalInput(
+            formData.totalAirdrop,
+            userLocale,
+        );
 
         // Get the holder map
 
@@ -325,13 +336,13 @@ const Airdrop = () => {
                 ? getEqualAirdropTx(
                       tokenHolderMap,
                       excludedAddresses,
-                      formData.totalAirdrop,
+                      normalizedTotalAirdrop,
                       undecimalizedMinTokenAmount,
                   )
                 : getAirdropTx(
                       tokenHolderMap,
                       excludedAddresses,
-                      formData.totalAirdrop,
+                      normalizedTotalAirdrop,
                       undecimalizedMinTokenAmount,
                   );
             setAirdropRecipients(csv);
@@ -445,9 +456,10 @@ const Airdrop = () => {
                             placeholder="Enter the total XEC airdrop"
                             label="Total XEC airdrop"
                             name="totalAirdrop"
-                            type="number"
                             value={formData.totalAirdrop}
                             handleInput={handleTotalAirdropInput}
+                            userLocale={userLocale}
+                            maxDecimals={appConfig.cashDecimals}
                             error={
                                 totalAirdropIsValid === false
                                     ? 'Invalid total XEC airdrop'
@@ -523,6 +535,12 @@ const Airdrop = () => {
                             placeholder="Minimum eToken balance"
                             handleInput={handleMinEtokenBalanceChange}
                             value={ignoreMinEtokenBalanceAmount}
+                            userLocale={userLocale}
+                            maxDecimals={
+                                typeof tokenInfo !== 'undefined'
+                                    ? tokenInfo.genesisInfo.decimals
+                                    : undefined
+                            }
                         />
                     )}
                 </FormRow>

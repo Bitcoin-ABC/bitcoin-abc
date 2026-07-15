@@ -446,7 +446,7 @@ describe('<App />', () => {
                 name: 'Recipient qph...72y',
             }),
         ).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.46);
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue('5.46');
     });
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {
         // Note: this is what happens to existing users when we add a new key to cashtabState.settings

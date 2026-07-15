@@ -24,6 +24,10 @@ import { CopyIconButton } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import { getUserLocale } from 'helpers';
+import {
+    normalizeDecimalInput,
+    sanitizeAndFormatAmountInput,
+} from 'formatting';
 
 export const Receive: React.FC = () => {
     const contextValue = useContext(WalletContext);
@@ -62,20 +66,30 @@ export const Receive: React.FC = () => {
     const [bip21Qty, setBip21Qty] = useState<string>('');
     const [bip21QtyError, setBip21QtyError] = useState<false | string>(false);
 
+    const normalizedBip21Qty = normalizeDecimalInput(bip21Qty, userLocale);
     const queryString = `${ecashWallet.address}${
         receiveFirma
             ? `?token_id=${FIRMA.tokenId}${
-                  bip21Qty ? `&token_decimalized_qty=${bip21Qty}` : ``
+                  normalizedBip21Qty
+                      ? `&token_decimalized_qty=${normalizedBip21Qty}`
+                      : ``
               }`
-            : bip21Qty
-              ? `?amount=${bip21Qty}`
+            : normalizedBip21Qty
+              ? `?amount=${normalizedBip21Qty}`
               : ``
     }`;
 
     const handleBip21QtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
-
-        setBip21Qty(value);
+        setBip21Qty(
+            sanitizeAndFormatAmountInput(
+                value,
+                userLocale,
+                receiveFirma
+                    ? FIRMA.token.genesisInfo.decimals
+                    : appConfig.cashDecimals,
+            ),
+        );
     };
 
     /**
@@ -84,8 +98,18 @@ export const Receive: React.FC = () => {
      */
     useEffect(() => {
         const error = receiveFirma
-            ? getReceiveAmountError(bip21Qty, FIRMA.token.genesisInfo.decimals)
-            : getReceiveAmountError(bip21Qty, appConfig.cashDecimals, true);
+            ? getReceiveAmountError(
+                  bip21Qty,
+                  FIRMA.token.genesisInfo.decimals,
+                  false,
+                  userLocale,
+              )
+            : getReceiveAmountError(
+                  bip21Qty,
+                  appConfig.cashDecimals,
+                  true,
+                  userLocale,
+              );
 
         setBip21QtyError(error);
     }, [bip21Qty, receiveFirma]);
@@ -93,7 +117,7 @@ export const Receive: React.FC = () => {
     // Show XEC amount in user's native currency below input when typed
     let fiatEquivalentString = '';
     if (!receiveFirma && fiatPrice !== null && bip21Qty !== '') {
-        const amount = parseFloat(bip21Qty);
+        const amount = parseFloat(normalizedBip21Qty);
         if (!isNaN(amount) && amount > 0) {
             const fiatAmount = fiatPrice * amount;
             const fiatCurrency = settings?.fiatCurrency ?? 'usd';
@@ -156,7 +180,12 @@ export const Receive: React.FC = () => {
                                 name="bip21Qty"
                                 value={bip21Qty}
                                 error={bip21QtyError}
-                                type="number"
+                                userLocale={userLocale}
+                                maxDecimals={
+                                    receiveFirma
+                                        ? FIRMA.token.genesisInfo.decimals
+                                        : appConfig.cashDecimals
+                                }
                                 placeholder={
                                     width < CASHTAB_FULLSCREEN_WIDTH
                                         ? ''

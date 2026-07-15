@@ -63,7 +63,11 @@ import {
     OuterCtn,
 } from 'components/Etokens/CreateTokenForm/styles';
 import { getUserLocale } from 'helpers';
-import { decimalizedTokenQtyToLocaleFormat } from 'formatting';
+import {
+    decimalizedTokenQtyToLocaleFormat,
+    normalizeDecimalInput,
+    sanitizeAndFormatAmountInput,
+} from 'formatting';
 import {
     toHex,
     signMsg,
@@ -239,6 +243,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                 ? 0
                 : (parseInt(formData.decimals) as SlpDecimals),
             tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
+            userLocale,
         );
         setFormDataErrors(previous => ({
             ...previous,
@@ -404,6 +409,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                         // Note that, in this code block, value is formData.decimals
                         parseInt(value) as SlpDecimals,
                         tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
+                        userLocale,
                     );
                     setFormDataErrors(previous => ({
                         ...previous,
@@ -423,6 +429,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                         ? 0
                         : (parseInt(formData.decimals) as SlpDecimals),
                     tokenTypeSwitches.alp === true ? 'ALP' : 'SLP',
+                    userLocale,
                 );
                 setFormDataErrors(previous => ({
                     ...previous,
@@ -467,7 +474,11 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         handleInput({
             target: {
                 name: 'genesisQty',
-                value: maxGenesisAmount,
+                value: sanitizeAndFormatAmountInput(
+                    maxGenesisAmount,
+                    userLocale,
+                    usedDecimals,
+                ),
             },
         } as React.ChangeEvent<HTMLInputElement>);
     };
@@ -680,7 +691,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                 // Calculate genesis quantity (undecimalized)
                 const genesisQty = BigInt(
                     undecimalizeTokenAmount(
-                        formData.genesisQty,
+                        normalizeDecimalInput(formData.genesisQty, userLocale),
                         parseInt(formData.decimals) as SlpDecimals,
                     ),
                 );
@@ -1024,6 +1035,14 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                             handleInput={handleInput}
                             error={formDataErrors.genesisQty}
                             handleOnMax={onMaxGenesis}
+                            userLocale={userLocale}
+                            maxDecimals={
+                                formData.decimals === ''
+                                    ? 0
+                                    : (parseInt(
+                                          formData.decimals,
+                                      ) as SlpDecimals)
+                            }
                         />
                     </>
                 )}

@@ -708,9 +708,7 @@ describe('<CreateTokenForm />', () => {
         await user.click(screen.getByText('max'));
 
         // We see max SLP supply for 0 decimals
-        expect(tokenGenesisQtyInput).toHaveValue(
-            MAX_OUTPUT_AMOUNT_SLP_ATOMS.toString(),
-        );
+        expect(tokenGenesisQtyInput).toHaveValue('18,446,744,073,709,551,615');
 
         // Select ALP
         await user.click(screen.getByTitle('Create ALP'));
@@ -726,9 +724,7 @@ describe('<CreateTokenForm />', () => {
         await user.click(screen.getByText('max'));
 
         // We see max ALP supply for 0 decimals
-        expect(tokenGenesisQtyInput).toHaveValue(
-            MAX_OUTPUT_AMOUNT_ALP_ATOMS.toString(),
-        );
+        expect(tokenGenesisQtyInput).toHaveValue('281,474,976,710,655');
 
         // Increase the decimals so that this supply is invalid
         await user.type(

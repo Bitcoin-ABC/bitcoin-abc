@@ -31,6 +31,8 @@ import {
     getAgoraSpotPriceXec,
     decimalizedTokenQtyToLocaleFormat,
     toFormattedXec,
+    normalizeDecimalInput,
+    sanitizeAndFormatAmountInput,
 } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
@@ -560,9 +562,19 @@ const Token: React.FC = () => {
 
         const targetPriceXec =
             selectedCurrency === appConfig.ticker
-                ? formData.tokenListPrice
+                ? parseFloat(
+                      normalizeDecimalInput(
+                          formData.tokenListPrice,
+                          userLocale,
+                      ),
+                  )
                 : // NB for selectedCurrency to be fiat fiatPrice is not null
-                  parseFloat(formData.tokenListPrice) / (fiatPrice as number);
+                  parseFloat(
+                      normalizeDecimalInput(
+                          formData.tokenListPrice,
+                          userLocale,
+                      ),
+                  ) / (fiatPrice as number);
 
         return getAgoraSpotPriceXec(targetPriceXec, userLocale);
     };
@@ -582,7 +594,10 @@ const Token: React.FC = () => {
         ) {
             return;
         }
-        let inputPrice = formData.tokenListPrice;
+        let inputPrice = normalizeDecimalInput(
+            formData.tokenListPrice,
+            userLocale,
+        );
         if (inputPrice === '') {
             inputPrice = '0';
         }
@@ -808,18 +823,26 @@ const Token: React.FC = () => {
         if (agoraPartialMin === '' || isRedeemingXecx) {
             // If agoraPartialMin is unset OR if we are redeeming XECX
             // Then we must update agoraPartialMin when agoraPartialTokenQty changes
-            if (parseFloat(formData.tokenListPrice) === 0) {
+            if (
+                parseFloat(
+                    normalizeDecimalInput(formData.tokenListPrice, userLocale),
+                ) === 0
+            ) {
                 // We can get here if the user is typing, e.g. 0.0001
                 // We do not want to setAgoraPartialMin(Infinity)
                 return;
             }
 
+            const normalizedListPrice = normalizeDecimalInput(
+                formData.tokenListPrice,
+                userLocale,
+            );
             const requiredMinBuyTokenQty = isRedeemingXecx
                 ? // If this is XECX and the user is trying to redeem, the min is the total offered
                   agoraPartialTokenQty
                 : // Otherwise it is the value that would be worth dust if sold
                   new BigNumber(toXec(appConfig.dustSats))
-                      .div(formData.tokenListPrice)
+                      .div(normalizedListPrice)
                       .decimalPlaces(
                           decimals as SlpDecimals,
                           BigNumber.ROUND_UP,
@@ -999,7 +1022,10 @@ const Token: React.FC = () => {
             const sendAtoms = isNftChild
                 ? 1n
                 : BigInt(
-                      undecimalizeTokenAmount(amount, decimals as SlpDecimals),
+                      undecimalizeTokenAmount(
+                          normalizeDecimalInput(amount, userLocale),
+                          decimals as SlpDecimals,
+                      ),
                   );
 
             // All token sends are the same in the ecash-wallet API
@@ -1065,6 +1091,7 @@ const Token: React.FC = () => {
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const amount = e.target.value;
+        const normalizedAmount = normalizeDecimalInput(amount, userLocale);
 
         const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
             amount,
@@ -1072,6 +1099,7 @@ const Token: React.FC = () => {
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
+            userLocale,
         );
 
         // For XECX redemptions, we have the price, so validate for this
@@ -1079,14 +1107,16 @@ const Token: React.FC = () => {
             tokenId === appConfig.vipTokens.xecx.tokenId &&
             switches.showRedeemXecx;
         const xecxRedeemError =
-            isRedeemingXecx && Number(amount) < toXec(appConfig.dustSats);
+            isRedeemingXecx &&
+            Number(normalizedAmount) < toXec(appConfig.dustSats);
 
         // For Firma redemptions, use 0.01 min
         const FIRMA_MINIMUM_REDEMPTION = 0.01; // 1 cent
         const isRedeemingFirma =
             tokenId === FIRMA.tokenId && switches.showRedeemFirma;
         const firmaRedeemError =
-            isRedeemingFirma && Number(amount) < FIRMA_MINIMUM_REDEMPTION;
+            isRedeemingFirma &&
+            Number(normalizedAmount) < FIRMA_MINIMUM_REDEMPTION;
 
         setAgoraPartialTokenQtyError(
             isValidAmountOrErrorMsg === true
@@ -1132,6 +1162,7 @@ const Token: React.FC = () => {
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
+            userLocale,
         );
         setSendTokenAmountError(
             isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
@@ -1186,7 +1217,11 @@ const Token: React.FC = () => {
         try {
             setFormData({
                 ...formData,
-                amount: tokenBalance as string, // we do not render token actions without tokenBalance
+                amount: sanitizeAndFormatAmountInput(
+                    tokenBalance as string,
+                    userLocale,
+                    decimals as SlpDecimals,
+                ),
             });
         } catch (err) {
             console.error(`Error in onMax:`);
@@ -1247,6 +1282,7 @@ const Token: React.FC = () => {
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
+            userLocale,
         );
         setBurnTokenAmountError(
             isValidBurnAmountOrErrorMsg === true
@@ -1266,6 +1302,7 @@ const Token: React.FC = () => {
             decimals as SlpDecimals,
             // Component does not render until token info is defined
             protocol as 'ALP' | 'SLP',
+            userLocale,
         );
         setMintAmountError(
             isValidMintAmountOrErrorMsg === true
@@ -1307,7 +1344,7 @@ const Token: React.FC = () => {
             // Calculate burnAtoms from decimal amount
             const burnAtoms = BigInt(
                 undecimalizeTokenAmount(
-                    formData.burnAmount,
+                    normalizeDecimalInput(formData.burnAmount, userLocale),
                     decimals as SlpDecimals,
                 ),
             );
@@ -1406,7 +1443,7 @@ const Token: React.FC = () => {
             // Calculate minted atoms (undecimalized)
             const mintedAtoms = BigInt(
                 undecimalizeTokenAmount(
-                    formData.mintAmount,
+                    normalizeDecimalInput(formData.mintAmount, userLocale),
                     decimals as SlpDecimals,
                 ),
             );
@@ -1517,7 +1554,12 @@ const Token: React.FC = () => {
     ) => {
         const { name, value } = e.target;
         setNftListPriceError(
-            getXecListPriceError(value, selectedCurrency, fiatPrice),
+            getXecListPriceError(
+                value,
+                selectedCurrency,
+                fiatPrice,
+                userLocale,
+            ),
         );
         setFormData(p => ({
             ...p,
@@ -1536,6 +1578,7 @@ const Token: React.FC = () => {
                 selectedCurrency,
                 fiatPrice,
                 decimals as SlpDecimals,
+                userLocale,
             ),
         );
 
@@ -1557,13 +1600,17 @@ const Token: React.FC = () => {
             return;
         }
 
+        const normalizedNftListPrice = normalizeDecimalInput(
+            formData.nftListPrice as string,
+            userLocale,
+        );
         const listPriceSatoshis =
             selectedCurrency === appConfig.ticker
-                ? toSatoshis(Number(formData.nftListPrice))
+                ? toSatoshis(Number(normalizedNftListPrice))
                 : toSatoshis(
                       parseFloat(
                           (
-                              parseFloat(formData.nftListPrice as string) /
+                              parseFloat(normalizedNftListPrice) /
                               (fiatPrice as number)
                           ).toFixed(2),
                       ),
@@ -1666,12 +1713,16 @@ const Token: React.FC = () => {
         // Convert formData price input to nanosats per token
         // note this is nanosats per token sat
         // So, you must account for token decimals
+        const normalizedTokenListPrice = normalizeDecimalInput(
+            formData.tokenListPrice as string,
+            userLocale,
+        );
         const priceInXec =
             selectedCurrency === appConfig.ticker
-                ? parseFloat(formData.tokenListPrice as string)
+                ? parseFloat(normalizedTokenListPrice)
                 : new BigNumber(
                       new BigNumber(
-                          parseFloat(formData.tokenListPrice as string) /
+                          parseFloat(normalizedTokenListPrice) /
                               (fiatPrice as number),
                       ).toFixed(NANOSAT_DECIMALS),
                   );
@@ -1688,14 +1739,17 @@ const Token: React.FC = () => {
         // Convert formData list qty (a decimalized token qty) to BigInt token sats
         const userSuggestedOfferedTokens = BigInt(
             undecimalizeTokenAmount(
-                agoraPartialTokenQty,
+                normalizeDecimalInput(agoraPartialTokenQty, userLocale),
                 decimals as SlpDecimals,
             ),
         );
 
         // Convert formData min buy qty to BigInt
         const minAcceptedAtoms = BigInt(
-            undecimalizeTokenAmount(agoraPartialMin, decimals as SlpDecimals),
+            undecimalizeTokenAmount(
+                normalizeDecimalInput(agoraPartialMin, userLocale),
+                decimals as SlpDecimals,
+            ),
         );
 
         let agoraPartial;
@@ -1790,7 +1844,7 @@ const Token: React.FC = () => {
         // Convert formData list qty (a decimalized token qty) to BigInt token sats
         const userSuggestedOfferedTokens = BigInt(
             undecimalizeTokenAmount(
-                agoraPartialTokenQty,
+                normalizeDecimalInput(agoraPartialTokenQty, userLocale),
                 decimals as SlpDecimals,
             ),
         );
@@ -2230,12 +2284,18 @@ const Token: React.FC = () => {
                                 title={`List ${tokenTicker} for ${
                                     selectedCurrency === appConfig.ticker
                                         ? `${parseFloat(
-                                              formData.nftListPrice,
+                                              normalizeDecimalInput(
+                                                  formData.nftListPrice,
+                                                  userLocale,
+                                              ),
                                           ).toLocaleString(userLocale)}
                                                         XEC ${getFormattedFiatPrice(
                                                             settings.fiatCurrency,
                                                             userLocale,
-                                                            formData.nftListPrice,
+                                                            normalizeDecimalInput(
+                                                                formData.nftListPrice,
+                                                                userLocale,
+                                                            ),
                                                             fiatPrice,
                                                         )}?`
                                         : `${
@@ -2243,14 +2303,20 @@ const Token: React.FC = () => {
                                                   settings.fiatCurrency
                                               ].symbol
                                           }${parseFloat(
-                                              formData.nftListPrice,
+                                              normalizeDecimalInput(
+                                                  formData.nftListPrice,
+                                                  userLocale,
+                                              ),
                                           ).toLocaleString(userLocale)} ${
                                               settings && settings.fiatCurrency
                                                   ? settings.fiatCurrency.toUpperCase()
                                                   : 'USD'
                                           } (${(
                                               parseFloat(
-                                                  formData.nftListPrice,
+                                                  normalizeDecimalInput(
+                                                      formData.nftListPrice,
+                                                      userLocale,
+                                                  ),
                                               ) / (fiatPrice as number)
                                           ).toLocaleString(userLocale, {
                                               minimumFractionDigits:
@@ -2295,7 +2361,12 @@ const Token: React.FC = () => {
                                         .toString(),
                                     decimals as SlpDecimals,
                                 ) !==
-                                    Number(agoraPartialTokenQty).toFixed(2) && (
+                                    Number(
+                                        normalizeDecimalInput(
+                                            agoraPartialTokenQty,
+                                            userLocale,
+                                        ),
+                                    ).toFixed(2) && (
                                     <AgoraPreviewTable>
                                         <AgoraPreviewRow>
                                             <AgoraPreviewLabel>
@@ -2303,7 +2374,10 @@ const Token: React.FC = () => {
                                             </AgoraPreviewLabel>
                                             <AgoraPreviewCol>
                                                 {Number(
-                                                    agoraPartialTokenQty,
+                                                    normalizeDecimalInput(
+                                                        agoraPartialTokenQty,
+                                                        userLocale,
+                                                    ),
                                                 ).toLocaleString(userLocale, {
                                                     minimumFractionDigits: 2,
                                                     maximumFractionDigits: 2,
@@ -2335,7 +2409,10 @@ const Token: React.FC = () => {
                                             <AgoraPreviewCol>
                                                 {(
                                                     Number(
-                                                        agoraPartialTokenQty,
+                                                        normalizeDecimalInput(
+                                                            agoraPartialTokenQty,
+                                                            userLocale,
+                                                        ),
                                                     ) -
                                                     Number(
                                                         decimalizeTokenAmount(
@@ -3195,6 +3272,12 @@ const Token: React.FC = () => {
                                                                 `1e-${decimals}`,
                                                             )}
                                                             allowTypedInput
+                                                            userLocale={
+                                                                userLocale
+                                                            }
+                                                            maxDecimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                         />
                                                     </InputRow>
                                                 </SendTokenFormRow>
@@ -3270,6 +3353,12 @@ const Token: React.FC = () => {
                                                                 `1e-${decimals}`,
                                                             )}
                                                             allowTypedInput
+                                                            userLocale={
+                                                                userLocale
+                                                            }
+                                                            maxDecimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                         />
                                                     </InputRow>
                                                 </SendTokenFormRow>
@@ -3343,6 +3432,10 @@ const Token: React.FC = () => {
                                                         handleSelect={
                                                             handleSelectedCurrencyChange
                                                         }
+                                                        userLocale={userLocale}
+                                                        maxDecimals={
+                                                            appConfig.cashDecimals
+                                                        }
                                                     ></ListPriceInput>
                                                 </InputRow>
                                             </SendTokenFormRow>
@@ -3355,7 +3448,10 @@ const Token: React.FC = () => {
                                                         {selectedCurrency ===
                                                         appConfig.ticker
                                                             ? `${parseFloat(
-                                                                  formData.nftListPrice,
+                                                                  normalizeDecimalInput(
+                                                                      formData.nftListPrice,
+                                                                      userLocale,
+                                                                  ),
                                                               ).toLocaleString(
                                                                   userLocale,
                                                               )}
@@ -3370,7 +3466,10 @@ const Token: React.FC = () => {
                                                                 : '$ '
                                                         }${(
                                                             parseFloat(
-                                                                formData.nftListPrice,
+                                                                normalizeDecimalInput(
+                                                                    formData.nftListPrice,
+                                                                    userLocale,
+                                                                ),
                                                             ) * fiatPrice
                                                         ).toLocaleString(
                                                             userLocale,
@@ -3397,7 +3496,10 @@ const Token: React.FC = () => {
                                                                         } `
                                                                       : '$ '
                                                               }${parseFloat(
-                                                                  formData.nftListPrice,
+                                                                  normalizeDecimalInput(
+                                                                      formData.nftListPrice,
+                                                                      userLocale,
+                                                                  ),
                                                               ).toLocaleString(
                                                                   userLocale,
                                                               )} ${
@@ -3407,7 +3509,10 @@ const Token: React.FC = () => {
                                                                       : 'USD'
                                                               } = ${(
                                                                   parseFloat(
-                                                                      formData.nftListPrice,
+                                                                      normalizeDecimalInput(
+                                                                          formData.nftListPrice,
+                                                                          userLocale,
+                                                                      ),
                                                                   ) / fiatPrice
                                                               ).toLocaleString(
                                                                   userLocale,
@@ -3477,6 +3582,12 @@ const Token: React.FC = () => {
                                                                 `1e-${decimals}`,
                                                             )}
                                                             allowTypedInput
+                                                            userLocale={
+                                                                userLocale
+                                                            }
+                                                            maxDecimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                         />
                                                     </InputRow>
                                                 </SendTokenFormRow>
@@ -3513,6 +3624,12 @@ const Token: React.FC = () => {
                                                                 handleSelect={
                                                                     handleSelectedCurrencyChange
                                                                 }
+                                                                userLocale={
+                                                                    userLocale
+                                                                }
+                                                                maxDecimals={
+                                                                    NANOSAT_DECIMALS
+                                                                }
                                                             ></ListPriceInput>
                                                         </LabelAndInputFlex>
                                                     </InputRow>
@@ -3548,6 +3665,12 @@ const Token: React.FC = () => {
                                                                 `1e-${decimals}`,
                                                             )}
                                                             allowTypedInput
+                                                            userLocale={
+                                                                userLocale
+                                                            }
+                                                            maxDecimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                         />
                                                     </InputRow>
                                                 </SendTokenFormRow>
@@ -3633,6 +3756,12 @@ const Token: React.FC = () => {
                                                                 handleTokenAmountChange
                                                             }
                                                             handleOnMax={onMax}
+                                                            userLocale={
+                                                                userLocale
+                                                            }
+                                                            maxDecimals={
+                                                                decimals as SlpDecimals
+                                                            }
                                                         />
                                                     </SendTokenFormRow>
                                                 )}
@@ -3709,6 +3838,10 @@ const Token: React.FC = () => {
                                                         handleEtokenBurnAmountChange
                                                     }
                                                     handleOnMax={onMaxBurn}
+                                                    userLocale={userLocale}
+                                                    maxDecimals={
+                                                        decimals as SlpDecimals
+                                                    }
                                                 />
 
                                                 <SecondaryButton
@@ -3742,6 +3875,10 @@ const Token: React.FC = () => {
                                                     handleMintAmountChange
                                                 }
                                                 handleOnMax={onMaxMint}
+                                                userLocale={userLocale}
+                                                maxDecimals={
+                                                    decimals as SlpDecimals
+                                                }
                                             />
 
                                             <SecondaryButton

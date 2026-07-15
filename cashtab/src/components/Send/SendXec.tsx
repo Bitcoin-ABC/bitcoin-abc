@@ -57,7 +57,12 @@ import {
     ParsedOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
-import { formatFiatBalance, formatBalance } from 'formatting';
+import {
+    formatFiatBalance,
+    formatBalance,
+    normalizeDecimalInput,
+    sanitizeAndFormatAmountInput,
+} from 'formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
@@ -1217,18 +1222,24 @@ const SendXec: React.FC = () => {
         }
         const { decimals } = cachedToken.genesisInfo;
         const { protocol } = cachedToken.tokenType;
-        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+        const formatted = sanitizeAndFormatAmountInput(
             value,
+            userLocale,
+            decimals,
+        );
+        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+            formatted,
             tokenBalance,
             decimals as SlpDecimals,
             protocol as 'ALP' | 'SLP',
+            userLocale,
         );
         setSendTokenAmountError(
             isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
         );
         setTokenFormData(p => ({
             ...p,
-            [name]: value,
+            [name]: formatted,
         }));
     };
 
@@ -1241,7 +1252,7 @@ const SendXec: React.FC = () => {
         if (tokenBalance) {
             setTokenFormData({
                 ...tokenFormData,
-                amount: tokenBalance,
+                amount: sanitizeAndFormatAmountInput(tokenBalance, userLocale),
             });
         }
     };
@@ -1293,7 +1304,10 @@ const SendXec: React.FC = () => {
                 ? addressInput.split('?')[0]
                 : addressInput;
             tokenId = selectedTokenId;
-            decimalizedTokenQty = tokenFormData.amount;
+            decimalizedTokenQty = normalizeDecimalInput(
+                tokenFormData.amount,
+                userLocale,
+            );
             eventName = 'Token Send';
         }
 
@@ -1944,10 +1958,14 @@ const SendXec: React.FC = () => {
             // Handle XEC send to one address
             const cleanAddress = formData.address.split('?')[0];
 
+            const normalizedSendAmount = normalizeDecimalInput(
+                formData.amount,
+                userLocale,
+            );
             const satoshisToSend =
                 selectedCurrency === appConfig.ticker
-                    ? toSatoshis(parseFloat(formData.amount))
-                    : fiatToSatoshis(formData.amount, fiatPrice as number);
+                    ? toSatoshis(parseFloat(normalizedSendAmount))
+                    : fiatToSatoshis(normalizedSendAmount, fiatPrice as number);
 
             targetOutputs.push({
                 script: Script.fromAddress(cleanAddress),
@@ -2228,7 +2246,7 @@ const SendXec: React.FC = () => {
             const tokenQty = parsedAddressInput.token_decimalized_qty.value;
             setTokenFormData(p => ({
                 ...p,
-                amount: tokenQty,
+                amount: sanitizeAndFormatAmountInput(tokenQty, userLocale),
             }));
         }
 
@@ -2539,10 +2557,19 @@ const SendXec: React.FC = () => {
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value, name } = e.target;
+        // Format here so bip21/max programmatic sets (bypass SendXecInput) are
+        // locale-formatted; already-formatted input values are idempotent.
+        const formatted = sanitizeAndFormatAmountInput(
+            String(value),
+            userLocale,
+            selectedCurrency === appConfig.ticker
+                ? appConfig.cashDecimals
+                : undefined,
+        );
 
         // Validate user input send amount
         const isValidAmountOrErrorMsg = isValidXecSendAmount(
-            value,
+            formatted,
             balanceSats,
             userLocale,
             selectedCurrency,
@@ -2555,7 +2582,7 @@ const SendXec: React.FC = () => {
 
         setFormData(p => ({
             ...p,
-            [name]: value,
+            [name]: formatted,
         }));
     };
 
@@ -2785,7 +2812,11 @@ const SendXec: React.FC = () => {
     if (isNaN(multiSendTotal)) {
         multiSendTotal = 0;
     }
-    if (fiatPrice !== null && !isNaN(parseFloat(formData.amount))) {
+    const normalizedFormAmount = normalizeDecimalInput(
+        formData.amount,
+        userLocale,
+    );
+    if (fiatPrice !== null && !isNaN(parseFloat(normalizedFormAmount))) {
         if (selectedCurrency === appConfig.ticker) {
             // insert symbol and currency before/after the locale formatted fiat balance
             fiatPriceString = isOneToManyXECSend
@@ -2821,7 +2852,7 @@ const SendXec: React.FC = () => {
                                 maximumFractionDigits: appConfig.cashDecimals,
                             })}`
                           : `${(
-                                fiatPrice * parseFloat(formData.amount)
+                                fiatPrice * parseFloat(normalizedFormAmount)
                             ).toLocaleString(userLocale, {
                                 minimumFractionDigits: appConfig.cashDecimals,
                                 maximumFractionDigits: appConfig.cashDecimals,
@@ -2835,7 +2866,9 @@ const SendXec: React.FC = () => {
             fiatPriceString = `${
                 formData.amount !== '0'
                     ? formatFiatBalance(
-                          toXec(fiatToSatoshis(formData.amount, fiatPrice)),
+                          toXec(
+                              fiatToSatoshis(normalizedFormAmount, fiatPrice),
+                          ),
                           userLocale,
                       )
                     : formatFiatBalance(0, userLocale)
@@ -3240,6 +3273,7 @@ const SendXec: React.FC = () => {
                                                 name="amount"
                                                 placeholder="Amount"
                                                 value={tokenFormData.amount}
+                                                userLocale={userLocale}
                                                 inputDisabled={
                                                     isOneToManyTokenSend ||
                                                     (isBip21TokenSendWithTokenId(
@@ -3316,6 +3350,7 @@ const SendXec: React.FC = () => {
                                             name="amount"
                                             placeholder="Amount"
                                             value={tokenFormData.amount}
+                                            userLocale={userLocale}
                                             inputDisabled={
                                                 isBip21TokenSendWithTokenId(
                                                     parsedAddressInput,
@@ -3750,6 +3785,7 @@ const SendXec: React.FC = () => {
                                             label="Amount"
                                             name="amount"
                                             value={formData.amount}
+                                            userLocale={userLocale}
                                             selectValue={selectedCurrency}
                                             selectDisabled={
                                                 'amount' in
@@ -4183,9 +4219,11 @@ const SendXec: React.FC = () => {
                                     </LocaleFormattedValue>
                                 ) : (
                                     <LocaleFormattedValue>
-                                        {!isNaN(parseFloat(formData.amount))
+                                        {!isNaN(
+                                            parseFloat(normalizedFormAmount),
+                                        )
                                             ? formatBalance(
-                                                  formData.amount,
+                                                  normalizedFormAmount,
                                                   userLocale,
                                               ) +
                                               ' ' +

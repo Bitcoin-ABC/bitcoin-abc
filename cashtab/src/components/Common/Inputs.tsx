@@ -7,6 +7,50 @@ import styled from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import {
+    sanitizeAndFormatAmountInput,
+    caretPosAfterFormat,
+    getDecimalSeparator,
+    normalizeDecimalInput,
+} from 'formatting';
+
+/**
+ * Format amount field input with locale thousands / decimal separators and
+ * restore the caret based on significant-character count (digits + decimal).
+ */
+const handleLocaleAmountChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    handleInput: React.ChangeEventHandler<HTMLInputElement>,
+    userLocale: string,
+    maxDecimals?: number,
+) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const selectionStart =
+        typeof input.selectionStart === 'number' ? input.selectionStart : 0;
+    const decimalSeparator = getDecimalSeparator(userLocale);
+    const formatted = sanitizeAndFormatAmountInput(
+        oldValue,
+        userLocale,
+        maxDecimals,
+    );
+
+    // Mutate the native event target value so controlled-input + user-event
+    // typing keep a consistent DOM value and selection.
+    input.value = formatted;
+    const nextCaret = caretPosAfterFormat(
+        oldValue,
+        selectionStart,
+        formatted,
+        decimalSeparator,
+    );
+    try {
+        input.setSelectionRange(nextCaret, nextCaret);
+    } catch {
+        // Some environments may reject selection changes
+    }
+    handleInput(e);
+};
 
 const CashtabInputWrapper = styled.div`
     box-sizing: border-box;
@@ -236,6 +280,9 @@ interface InputProps {
     spellCheck?: boolean;
     autoCorrect?: string;
     autoCapitalize?: string;
+    /** When set, format the field as a locale-aware amount (thousands + decimal). */
+    userLocale?: string;
+    maxDecimals?: number;
 }
 export const Input: React.FC<InputProps> = ({
     placeholder = '',
@@ -253,7 +300,10 @@ export const Input: React.FC<InputProps> = ({
     spellCheck = false,
     autoCorrect = 'off',
     autoCapitalize = 'off',
+    userLocale,
+    maxDecimals,
 }) => {
+    const isLocaleAmount = typeof userLocale === 'string';
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
@@ -268,11 +318,22 @@ export const Input: React.FC<InputProps> = ({
                     placeholder={placeholder}
                     disabled={disabled}
                     invalid={typeof error === 'string'}
-                    onChange={handleInput}
+                    onChange={
+                        isLocaleAmount
+                            ? e =>
+                                  handleLocaleAmountChange(
+                                      e,
+                                      handleInput,
+                                      userLocale,
+                                      maxDecimals,
+                                  )
+                            : handleInput
+                    }
                     onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).blur();
                     }}
-                    type={type}
+                    type={isLocaleAmount ? 'text' : type}
+                    inputMode={isLocaleAmount ? 'decimal' : undefined}
                     autoComplete={autocomplete}
                     spellCheck={spellCheck}
                     autoCorrect={autoCorrect}
@@ -549,6 +610,8 @@ interface SendXecInputProps {
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     handleSelect: React.ChangeEventHandler<HTMLSelectElement>;
     handleOnMax: () => void;
+    userLocale?: string;
+    maxDecimals?: number;
     label?: string;
     autocomplete?: string;
     spellCheck?: boolean;
@@ -566,6 +629,8 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
     handleInput,
     handleSelect,
     handleOnMax,
+    userLocale = 'en-US',
+    maxDecimals = appConfig.cashDecimals,
     label,
     autocomplete = 'off',
     spellCheck = false,
@@ -578,11 +643,18 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
             <InputRow invalid={typeof error === 'string'}>
                 <LeftInput
                     placeholder="Amount"
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     name={name}
                     value={value}
-                    onChange={handleInput}
+                    onChange={e =>
+                        handleLocaleAmountChange(
+                            e,
+                            handleInput,
+                            userLocale,
+                            maxDecimals,
+                        )
+                    }
                     disabled={inputDisabled}
                     autoComplete={autocomplete}
                     spellCheck={spellCheck}
@@ -623,6 +695,8 @@ interface SendTokenInputProps {
     error: false | string;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     handleOnMax: () => void;
+    userLocale?: string;
+    maxDecimals?: number;
     label?: string;
     autocomplete?: string;
     spellCheck?: boolean;
@@ -637,6 +711,8 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     error = false,
     handleInput,
     handleOnMax,
+    userLocale = 'en-US',
+    maxDecimals,
     label,
     autocomplete = 'off',
     spellCheck = false,
@@ -649,9 +725,18 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
             <InputRow invalid={typeof error === 'string'}>
                 <LeftInput
                     placeholder={placeholder}
+                    type="text"
+                    inputMode="decimal"
                     name={name}
                     value={value}
-                    onChange={e => handleInput(e)}
+                    onChange={e =>
+                        handleLocaleAmountChange(
+                            e,
+                            handleInput,
+                            userLocale,
+                            maxDecimals,
+                        )
+                    }
                     disabled={inputDisabled}
                     autoComplete={autocomplete}
                     spellCheck={spellCheck}
@@ -676,6 +761,8 @@ interface ListPriceInputProps {
     error: false | string;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
     handleSelect: React.ChangeEventHandler<HTMLSelectElement>;
+    userLocale?: string;
+    maxDecimals?: number;
     label?: string;
     autocomplete?: string;
     spellCheck?: boolean;
@@ -693,6 +780,8 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
     error = false,
     handleInput,
     handleSelect,
+    userLocale = 'en-US',
+    maxDecimals,
     label,
     autocomplete = 'off',
     spellCheck = false,
@@ -706,9 +795,17 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                 <LeftInput
                     name={name}
                     placeholder={placeholder}
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={value === null ? '' : value}
-                    onChange={handleInput}
+                    onChange={e =>
+                        handleLocaleAmountChange(
+                            e,
+                            handleInput,
+                            userLocale,
+                            maxDecimals,
+                        )
+                    }
                     disabled={inputDisabled}
                     invalid={typeof error === 'string'}
                     onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
@@ -838,6 +935,8 @@ interface SliderProps {
     allowTypedInput?: boolean;
     label?: string;
     disabled?: boolean;
+    userLocale?: string;
+    maxDecimals?: number;
 }
 export const Slider: React.FC<SliderProps> = ({
     name,
@@ -851,18 +950,46 @@ export const Slider: React.FC<SliderProps> = ({
     allowTypedInput,
     label,
     disabled = false,
+    userLocale = 'en-US',
+    maxDecimals,
 }) => {
+    // Range inputs require wire-format decimals; typed field shows locale format.
+    const rangeValue = normalizeDecimalInput(String(value ?? ''), userLocale);
+    const rangeMin = normalizeDecimalInput(String(min ?? ''), userLocale);
+    const rangeMax = normalizeDecimalInput(String(max ?? ''), userLocale);
+    const displayValue = sanitizeAndFormatAmountInput(
+        String(value ?? ''),
+        userLocale,
+        maxDecimals,
+    );
+
+    const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = sanitizeAndFormatAmountInput(
+            e.target.value,
+            userLocale,
+            maxDecimals,
+        );
+        handleSlide({
+            ...e,
+            target: {
+                ...e.target,
+                name,
+                value: formatted,
+            },
+        } as React.ChangeEvent<HTMLInputElement>);
+    };
+
     return (
         <CashtabInputWrapper>
             <CashtabSlider
                 type="range"
                 name={name}
-                value={value}
-                min={min}
-                max={max}
+                value={rangeValue}
+                min={rangeMin === '' ? min : rangeMin}
+                max={rangeMax === '' ? max : rangeMax}
                 step={step}
                 aria-labelledby={name}
-                onChange={handleSlide}
+                onChange={handleRangeChange}
                 isInvalid={typeof error === 'string'}
                 fixedWidth={fixedWidth}
                 disabled={disabled}
@@ -877,12 +1004,20 @@ export const Slider: React.FC<SliderProps> = ({
                     )}
                     <SliderInput
                         name={`${name}-typed`}
-                        value={value}
+                        value={displayValue}
                         placeholder={typeof label === 'string' ? label : name}
                         invalid={typeof error === 'string'}
-                        onChange={handleSlide}
+                        onChange={e =>
+                            handleLocaleAmountChange(
+                                e,
+                                handleSlide,
+                                userLocale,
+                                maxDecimals,
+                            )
+                        }
                         disabled={disabled}
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
                             (e.target as HTMLInputElement).blur();
                         }}

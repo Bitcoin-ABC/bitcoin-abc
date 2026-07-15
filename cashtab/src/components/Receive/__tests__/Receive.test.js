@@ -109,13 +109,17 @@ describe('<Receive />', () => {
         expect(svgElement).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
 
         // We can enter an amount to generate a bip21 QR code and query string
+        // Locale amount inputs truncate beyond max decimals as the user types
         await userEvent.type(
             screen.getByPlaceholderText('Enter receive amount'),
             '55.123',
         );
-
-        // We see expected validation error bc an eCash amount cannot have more than 2 decimal places
-        expect(screen.getByText('Max 2 decimal places')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter receive amount')).toHaveValue(
+            '55.12',
+        );
+        expect(
+            screen.queryByText('Max 2 decimal places'),
+        ).not.toBeInTheDocument();
 
         // Enter a valid amount
         await userEvent.clear(

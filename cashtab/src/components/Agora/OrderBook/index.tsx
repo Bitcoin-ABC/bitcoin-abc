@@ -44,6 +44,7 @@ import {
     decimalizedTokenQtyToLocaleFormat,
     getAgoraSpotPriceXec,
     getPercentDeltaOverSpot,
+    normalizeDecimalInput,
 } from 'formatting';
 import {
     DepthBarCol,
@@ -367,7 +368,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
                 (preparedTokenSatoshis as bigint).toString(),
                 decimals as SlpDecimals,
             ),
-        ).minus(takeTokenDecimalizedQty);
+        ).minus(normalizeDecimalInput(takeTokenDecimalizedQty, userLocale));
         if (delta.eq(0)) {
             return null;
         }
@@ -983,7 +984,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // Convert validated user input to token satoshis
         const tokenSatoshis = toBigInt(
             undecimalizeTokenAmount(
-                takeTokenDecimalizedQty,
+                normalizeDecimalInput(takeTokenDecimalizedQty, userLocale),
                 decimals as SlpDecimals,
             ),
         );
@@ -1112,7 +1113,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                 </AgoraPreviewLabel>
                                 <AgoraPreviewCol>
                                     {decimalizedTokenQtyToLocaleFormat(
-                                        takeTokenDecimalizedQty,
+                                        normalizeDecimalInput(
+                                            takeTokenDecimalizedQty,
+                                            userLocale,
+                                        ),
                                         userLocale,
                                     )}
                                 </AgoraPreviewCol>
@@ -1331,7 +1335,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     } = activeOffer;
                                     const acceptPercent =
                                         ((depthPercent as number) *
-                                            Number(takeTokenDecimalizedQty)) /
+                                            Number(
+                                                normalizeDecimalInput(
+                                                    takeTokenDecimalizedQty,
+                                                    userLocale,
+                                                ),
+                                            )) /
                                         Number(decimalizedTokenQtyMax);
 
                                     const tooltipCumulativeTokensThisOffer =
@@ -1578,6 +1587,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                             }
                                             step={parseFloat(`1e-${decimals}`)}
                                             allowTypedInput
+                                            userLocale={userLocale}
+                                            maxDecimals={decimals}
                                         />
                                     </SliderInputRow>
                                 </SliderContainer>
@@ -1589,7 +1600,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
                                     </BuyOrderSummaryLabel>
                                     <BuyOrderSummaryValue>
                                         {decimalizedTokenQtyToLocaleFormat(
-                                            takeTokenDecimalizedQty,
+                                            normalizeDecimalInput(
+                                                takeTokenDecimalizedQty,
+                                                userLocale,
+                                            ),
                                             userLocale,
                                         )}{' '}
                                         {tokenTicker !== ''
