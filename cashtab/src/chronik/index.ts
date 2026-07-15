@@ -20,12 +20,15 @@ export {
     getTxNotificationMsg,
     XecTxType,
     ParsedTokenTxType,
+} from 'ecash-parse';
+export type {
     ParsedTx,
     ParsedTokenEntry,
     AppAction,
     SolAddrAction,
     XecxAction,
     UnknownAction,
+    AlpSwapParsed,
 } from 'ecash-parse';
 
 const CHRONIK_MAX_PAGE_SIZE = 200;

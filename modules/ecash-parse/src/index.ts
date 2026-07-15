@@ -15,4 +15,9 @@ export {
     toFormattedXec,
 } from './formatting';
 export { getRenderedTokenType, RenderedTokenType } from './tokenProtocol';
+export { tryParseAlpSwap, extractAlpSwapLegs } from './parseAlpSwap';
+export {
+    ALP_SWAP_PLATFORM_FEE_ADDRESSES,
+    ALP_DEX_MAKER_FEE_ADDRESSES,
+} from './alpSwapFees';
 export * from './types';

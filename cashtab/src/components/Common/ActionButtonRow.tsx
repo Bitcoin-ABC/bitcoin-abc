@@ -12,6 +12,7 @@ import {
     ThemedSignAndVerifyMsg,
     RewardIcon,
     TokensIcon,
+    SwapIcon,
 } from 'components/Common/CustomIcons';
 import { ReactComponent as StakeIcon } from 'assets/stake.svg';
 import { ReactComponent as ReceiveIcon } from 'assets/qr-code.svg';
@@ -131,6 +132,11 @@ function getButtonsForVariant(
                     icon: <NftIcon />,
                     label: 'Listed NFTs',
                     to: '/nfts',
+                },
+                {
+                    icon: <SwapIcon />,
+                    label: 'AlpSwap',
+                    to: '/alpswap',
                 },
             ];
         }

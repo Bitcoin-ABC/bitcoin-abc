@@ -42,6 +42,10 @@ import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import { TokenIconToast } from 'components/Etokens/TokenIcon';
 import { shouldSuppressInstantRedeemSaleToast } from 'components/Etokens/pendingRedeems';
+import {
+    consumeAlpSwapSettleTxid,
+    isAlpSwapBuyerToastSuppressed,
+} from 'components/AlpSwap/rememberSettleTxid';
 import { getUserLocale } from 'helpers';
 import { FIRMA_APY_API_URL, XECX_APY_API_URL } from 'constants/tokens';
 import {
@@ -421,6 +425,18 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                     parsedTx.parsedTokenEntries[0]?.renderedTxType ===
                         ParsedTokenTxType.AgoraSale &&
                     shouldSuppressInstantRedeemSaleToast(incomingTxDetails)
+                ) {
+                    return true;
+                }
+
+                // AlpSwap UI already toasted from→to for this settle.
+                // In-flight covers the race where WS arrives before settle()
+                // returns the txid (parse often misses alpSwap → "Sent …").
+                if (
+                    parsedTx.alpSwap?.role === 'buyer' ||
+                    consumeAlpSwapSettleTxid(txid) ||
+                    (isAlpSwapBuyerToastSuppressed() &&
+                        parsedTx.parsedTokenEntries.length > 0)
                 ) {
                     return true;
                 }

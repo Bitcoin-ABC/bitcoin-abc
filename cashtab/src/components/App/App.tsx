@@ -24,6 +24,7 @@ import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Rewards from 'components/Rewards';
+import AlpSwap from 'components/AlpSwap';
 import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding';
 import Nfts from 'components/Nfts';
@@ -420,6 +421,10 @@ const App = () => {
                                                         path="/contacts"
                                                         element={<Contacts />}
                                                     />
+                                                    <Route
+                                                        path="/alpswap"
+                                                        element={<AlpSwap />}
+                                                    />
 
                                                     <Route
                                                         path="/etokens"
@@ -507,7 +512,11 @@ const App = () => {
                                 </NavButton>
                                 <NavButton
                                     aria-label="Agora"
-                                    active={location.pathname === '/agora'}
+                                    active={
+                                        location.pathname === '/agora' ||
+                                        location.pathname === '/nfts' ||
+                                        location.pathname === '/alpswap'
+                                    }
                                     onClick={() => navigate('/agora')}
                                 >
                                     <span>Agora</span>

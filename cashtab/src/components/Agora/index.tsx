@@ -17,6 +17,8 @@ import {
     TokenRowName,
     TokenRowTicker,
     SectionTitle,
+    SwapPairIcons,
+    SwapStatusRow,
     Wrapper,
 } from './styled';
 import { token as tokenConfig } from 'config/token';
@@ -26,6 +28,13 @@ import { InlineLoader } from 'components/Common/Spinner';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import Modal from 'components/Common/Modal';
 import ActionButtonRow from 'components/Common/ActionButtonRow';
+import { alpSwap, FeaturedAgoraSwapPair } from 'config/alpSwap';
+import AlpSwapExperimentalNotice from 'components/AlpSwap/ExperimentalNotice';
+import {
+    alpSwapPairPath,
+    featuredPairsListedOnStatus,
+    fetchStatus,
+} from 'services/alpSwapService';
 
 interface ServerBlacklistResponse {
     status: string;
@@ -95,6 +104,11 @@ const Agora: React.FC = () => {
 
     const [allOfferedTokenIds, setAllOfferedTokenIds] = useState<
         null | string[]
+    >(null);
+
+    /** Featured AlpSwap pairs on alp-dex; null while /status is in flight. */
+    const [listedSwapPairs, setListedSwapPairs] = useState<
+        FeaturedAgoraSwapPair[] | null
     >(null);
 
     useEffect(() => {
@@ -254,6 +268,31 @@ const Agora: React.FC = () => {
             });
         }
     };
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const status = await fetchStatus();
+                if (!cancelled) {
+                    setListedSwapPairs(
+                        featuredPairsListedOnStatus(
+                            alpSwap.featuredAgoraPairs,
+                            status,
+                        ),
+                    );
+                }
+            } catch (err) {
+                console.error('Agora: failed to load AlpSwap catalog', err);
+                if (!cancelled) {
+                    setListedSwapPairs([]);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         // Update offers when the wallet changes and the new pk has loaded
@@ -441,11 +480,87 @@ const Agora: React.FC = () => {
                                                     )}
                                                 <div
                                                     style={{
-                                                        marginTop:
-                                                            myOfferIds.length >
-                                                            0
-                                                                ? 24
-                                                                : 0,
+                                                        marginTop: 24,
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            flexWrap: 'wrap',
+                                                            alignItems:
+                                                                'center',
+                                                            gap: 8,
+                                                        }}
+                                                    >
+                                                        <SectionTitle
+                                                            style={{
+                                                                margin: 0,
+                                                            }}
+                                                        >
+                                                            Swaps
+                                                        </SectionTitle>
+                                                        <AlpSwapExperimentalNotice />
+                                                    </div>
+                                                    <TokenList>
+                                                        {listedSwapPairs ===
+                                                        null ? (
+                                                            <SwapStatusRow>
+                                                                <InlineLoader title="Loading swaps..." />
+                                                            </SwapStatusRow>
+                                                        ) : listedSwapPairs.length ===
+                                                          0 ? (
+                                                            <SwapStatusRow>
+                                                                No alp swaps are
+                                                                currently
+                                                                available
+                                                            </SwapStatusRow>
+                                                        ) : (
+                                                            listedSwapPairs.map(
+                                                                pair => (
+                                                                    <TokenRow
+                                                                        key={`${pair.tokenIdA}:${pair.tokenIdB}`}
+                                                                        as={
+                                                                            Link
+                                                                        }
+                                                                        to={alpSwapPairPath(
+                                                                            pair.tokenIdA,
+                                                                            pair.tokenIdB,
+                                                                        )}
+                                                                        aria-label={`Swap ${pair.tickerA} and ${pair.tickerB}`}
+                                                                    >
+                                                                        <SwapPairIcons>
+                                                                            <TokenIcon
+                                                                                size={
+                                                                                    64
+                                                                                }
+                                                                                tokenId={
+                                                                                    pair.tokenIdA
+                                                                                }
+                                                                            />
+                                                                            <TokenIcon
+                                                                                size={
+                                                                                    64
+                                                                                }
+                                                                                tokenId={
+                                                                                    pair.tokenIdB
+                                                                                }
+                                                                            />
+                                                                        </SwapPairIcons>
+                                                                        <TokenRowName>
+                                                                            {`${pair.tickerA} / ${pair.tickerB}`}
+                                                                            <TokenRowTicker>
+                                                                                AlpSwap
+                                                                            </TokenRowTicker>
+                                                                        </TokenRowName>
+                                                                    </TokenRow>
+                                                                ),
+                                                            )
+                                                        )}
+                                                    </TokenList>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        marginTop: 24,
                                                     }}
                                                 >
                                                     <div

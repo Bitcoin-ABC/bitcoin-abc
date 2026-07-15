@@ -157,6 +157,40 @@ export const TokenList = styled.div`
     overflow: hidden;
 `;
 
+/** Same footprint as a Swap pair TokenRow so Agora does not jump. */
+export const SwapStatusRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+    min-height: 74px;
+    box-sizing: border-box;
+    color: ${props => props.theme.secondaryText};
+    font-size: var(--text-base);
+    text-align: center;
+    @media (max-width: 768px) {
+        min-height: 64px;
+    }
+`;
+
+export const SwapPairIcons = styled.div`
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    img {
+        width: 50px;
+        height: 50px;
+        @media (max-width: 768px) {
+            width: 40px;
+            height: 40px;
+        }
+    }
+    img + img {
+        margin-left: -12px;
+    }
+`;
+
 export const TokenRow = styled.a`
     display: flex;
     align-items: center;

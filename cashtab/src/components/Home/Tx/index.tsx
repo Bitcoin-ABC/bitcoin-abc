@@ -133,9 +133,33 @@ const Tx: React.FC<TxProps> = ({
         appActions,
         replyAddress,
         parsedTokenEntries,
+        alpSwap,
     } = parsed;
     const { cashtabCache, contactList, settings } = cashtabState;
     const minAirdropXec = settings?.minAirdropXec ?? DEFAULT_MIN_AIRDROP_XEC;
+
+    const formatAlpSwapLeg = (tokenId: string, atoms: string) => {
+        const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
+        if (typeof cachedTokenInfo === 'undefined') {
+            return {
+                label: previewTokenId(tokenId),
+                ticker: '',
+                icon: <TokenIcon size={32} tokenId={tokenId} />,
+            };
+        }
+        const { tokenTicker, tokenName, decimals } =
+            cachedTokenInfo.genesisInfo;
+        const ticker = tokenTicker !== '' ? tokenTicker : tokenName;
+        const qty = decimalizedTokenQtyToLocaleFormat(
+            decimalizeTokenAmount(atoms, decimals as SlpDecimals),
+            userLocale,
+        );
+        return {
+            label: `${qty} ${ticker}`,
+            ticker,
+            icon: <TokenIcon size={32} tokenId={tokenId} />,
+        };
+    };
 
     const replyAddressPreview =
         typeof replyAddress !== 'undefined'
@@ -947,7 +971,99 @@ const Tx: React.FC<TxProps> = ({
 
     const tokenActions: React.ReactNode[] = [];
 
+    if (typeof alpSwap !== 'undefined') {
+        if (alpSwap.role === 'buyer') {
+            const from = formatAlpSwapLeg(
+                alpSwap.fromTokenId,
+                alpSwap.fromAtoms,
+            );
+            const to = formatAlpSwapLeg(alpSwap.toTokenId, alpSwap.toAtoms);
+            const fee = formatAlpSwapLeg(alpSwap.feeTokenId, alpSwap.feeAtoms);
+            tokenActions.push(
+                <TokenAction tokenTxType="AlpSwap" noWordBreak>
+                    <IconAndLabel>
+                        <SwapIcon />
+                        {from.icon}
+                        {to.icon}
+                        <TokenInfoCol>
+                            <TokenType>AlpSwap</TokenType>
+                            <TokenName to={`/token/${alpSwap.fromTokenId}`}>
+                                {from.ticker || from.label}
+                            </TokenName>
+                        </TokenInfoCol>
+                    </IconAndLabel>
+                    <TokenDesc>
+                        {`Swapped ${from.label} → ${to.label} · Fee ${fee.label}`}
+                    </TokenDesc>
+                </TokenAction>,
+            );
+        } else if (alpSwap.role === 'seller') {
+            const sold = formatAlpSwapLeg(alpSwap.toTokenId, alpSwap.toAtoms);
+            const received = formatAlpSwapLeg(
+                alpSwap.fromTokenId,
+                alpSwap.fromAtoms,
+            );
+            tokenActions.push(
+                <TokenAction tokenTxType="AlpSwap" noWordBreak>
+                    <IconAndLabel>
+                        <SwapIcon />
+                        {sold.icon}
+                        {received.icon}
+                        <TokenInfoCol>
+                            <TokenType>AlpSwap</TokenType>
+                            <TokenName to={`/token/${alpSwap.toTokenId}`}>
+                                {sold.ticker || sold.label}
+                            </TokenName>
+                        </TokenInfoCol>
+                    </IconAndLabel>
+                    <TokenDesc>
+                        {`Sold ${sold.label} for ${received.label}`}
+                    </TokenDesc>
+                </TokenAction>,
+            );
+        } else if (alpSwap.role === 'makerFee') {
+            const fee = formatAlpSwapLeg(alpSwap.tokenId, alpSwap.atoms);
+            tokenActions.push(
+                <TokenAction tokenTxType="AlpSwap" noWordBreak>
+                    <IconAndLabel>
+                        <SwapIcon />
+                        {fee.icon}
+                        <TokenInfoCol>
+                            <TokenType>Alp-dex fee</TokenType>
+                            <TokenName to={`/token/${alpSwap.tokenId}`}>
+                                {fee.ticker || fee.label}
+                            </TokenName>
+                        </TokenInfoCol>
+                    </IconAndLabel>
+                    <TokenDesc>{`Received alp-dex fee ${fee.label}`}</TokenDesc>
+                </TokenAction>,
+            );
+        } else {
+            const fee = formatAlpSwapLeg(alpSwap.tokenId, alpSwap.atoms);
+            tokenActions.push(
+                <TokenAction tokenTxType="AlpSwap" noWordBreak>
+                    <IconAndLabel>
+                        <SwapIcon />
+                        {fee.icon}
+                        <TokenInfoCol>
+                            <TokenType>Platform fee</TokenType>
+                            <TokenName to={`/token/${alpSwap.tokenId}`}>
+                                {fee.ticker || fee.label}
+                            </TokenName>
+                        </TokenInfoCol>
+                    </IconAndLabel>
+                    <TokenDesc>{`Received platform fee ${fee.label}`}</TokenDesc>
+                </TokenAction>,
+            );
+        }
+    }
+
     for (const parsedTokenEntry of parsedTokenEntries) {
+        // When classified as alp-dex settle for this wallet, skip per-entry
+        // SEND rows (avoids phantom receives on the other tokenId).
+        if (typeof alpSwap !== 'undefined') {
+            break;
+        }
         // Note that parsedTokenEntries[i] correspondes to tokenEntries[i]
         // Not used for now but could be used for other rendering cases
 

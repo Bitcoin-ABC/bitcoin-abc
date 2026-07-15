@@ -41,6 +41,7 @@ export const getTxNotificationMsg = (
         recipients,
         xecTxType,
         appActions,
+        alpSwap,
     } = parsedTx;
 
     // Prices in notifications: compact (k/M/B/T) for human readability
@@ -77,6 +78,52 @@ export const getTxNotificationMsg = (
         toOrFromAddress === 'self' || toOrFromAddress === 'unknown'
             ? toOrFromAddress
             : previewAddress(toOrFromAddress);
+
+    const formatAlpSwapQty = (
+        atoms: string,
+        tokenId: string,
+    ): { qty: string; ticker: string } => {
+        const ticker =
+            typeof genesisInfo !== 'undefined' &&
+            parsedTokenEntries[0]?.tokenId === tokenId
+                ? genesisInfo.tokenTicker !== ''
+                    ? genesisInfo.tokenTicker
+                    : genesisInfo.tokenName
+                : `${tokenId.slice(0, 5)}...${tokenId.slice(-5)}`;
+        const qty =
+            typeof genesisInfo !== 'undefined' &&
+            parsedTokenEntries[0]?.tokenId === tokenId
+                ? `${toFormattedTokenQty(
+                      decimalizeTokenAmount(
+                          atoms,
+                          genesisInfo.decimals as SlpDecimals,
+                      ),
+                      userLocale,
+                  )} `
+                : `${atoms} `;
+        return { qty, ticker };
+    };
+
+    if (typeof alpSwap !== 'undefined') {
+        if (alpSwap.role === 'buyer') {
+            // Buyer settle toasts are handled by the AlpSwap UI (from → to).
+            return;
+        }
+        if (alpSwap.role === 'seller') {
+            const sold = formatAlpSwapQty(alpSwap.toAtoms, alpSwap.toTokenId);
+            const received = formatAlpSwapQty(
+                alpSwap.fromAtoms,
+                alpSwap.fromTokenId,
+            );
+            return `Sold ${sold.qty}${sold.ticker} for ${received.qty}${received.ticker}`;
+        }
+        if (alpSwap.role === 'makerFee') {
+            const fee = formatAlpSwapQty(alpSwap.atoms, alpSwap.tokenId);
+            return `Received alp-dex fee ${fee.qty}${fee.ticker}`;
+        }
+        const fee = formatAlpSwapQty(alpSwap.atoms, alpSwap.tokenId);
+        return `Received platform fee ${fee.qty}${fee.ticker}`;
+    }
 
     if (parsedTokenEntries.length === 0) {
         // If this is not a token tx

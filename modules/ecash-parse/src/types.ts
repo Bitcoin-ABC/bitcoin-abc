@@ -157,6 +157,43 @@ export interface ParsedTokenEntry {
      */
     nftFanInputsCreated?: number;
 }
+
+/**
+ * Wallet-relative alp-dex settle classification.
+ * Buyer / seller see swap legs; fee payout addresses see maker or platform fee only.
+ */
+export type AlpSwapParsed =
+    | {
+          role: 'buyer';
+          fromTokenId: string;
+          toTokenId: string;
+          feeTokenId: string;
+          fromAtoms: string;
+          toAtoms: string;
+          /** Maker + platform fee atoms in from-token */
+          feeAtoms: string;
+      }
+    | {
+          /** LP sales wallet: provided to-token inventory + postage */
+          role: 'seller';
+          fromTokenId: string;
+          toTokenId: string;
+          /** Price leg (from-token to slush) */
+          fromAtoms: string;
+          /** Amount of to-token sold to the buyer */
+          toAtoms: string;
+      }
+    | {
+          role: 'makerFee';
+          tokenId: string;
+          atoms: string;
+      }
+    | {
+          role: 'platformFee';
+          tokenId: string;
+          atoms: string;
+      };
+
 export interface ParsedTx {
     recipients: string[];
     satoshisSent: number;
@@ -164,6 +201,11 @@ export interface ParsedTx {
     xecTxType: XecTxType;
     appActions: AppAction[];
     replyAddress?: string;
+    /**
+     * Present when this tx is an alp-dex settle for the given walletHashes
+     * (buyer swap, seller, maker fee payout, or platform fee payout).
+     */
+    alpSwap?: AlpSwapParsed;
     /**
      * Each token entry is associated with its own action, tokenId, token type, and quantity
      * Same length as tokenEntries of this tx

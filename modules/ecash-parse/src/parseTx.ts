@@ -31,6 +31,7 @@ import {
     AirdropAction,
     PowAction,
 } from './types';
+import { tryParseAlpSwap } from './parseAlpSwap';
 
 export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     const { inputs, outputs, isCoinbase, tokenEntries, txid } = tx;
@@ -916,6 +917,11 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     // Add possibly undefined key if present
     if (typeof replyAddress !== 'undefined') {
         parsedTx.replyAddress = replyAddress;
+    }
+
+    const alpSwap = tryParseAlpSwap(tx, hashes);
+    if (typeof alpSwap !== 'undefined') {
+        parsedTx.alpSwap = alpSwap;
     }
 
     return parsedTx;

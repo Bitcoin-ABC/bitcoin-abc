@@ -38,8 +38,41 @@ import {
     tokenMockXecx,
 } from 'components/Agora/fixtures/mocks';
 import { token as tokenConfig } from 'config/token';
+import { alpSwap } from 'config/alpSwap';
+import { alpSwapPairPath, statusUrl } from 'services/alpSwapService';
 import { prepareContext } from 'test';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
+
+const emptyAlpDexStatus = {
+    status: 'OK',
+    swapAddress: '',
+    slushAddress: '',
+    feeAddress: '',
+    postage: { sats: '0' },
+    platformFeeEnabled: false,
+    tradedTokens: [],
+    tradedPairs: [],
+};
+
+const mockAlpDexStatus = (
+    tradedPairs: unknown[],
+    tradedTokens: unknown[] = [],
+) => {
+    when(fetch)
+        .calledWith(
+            statusUrl(),
+            expect.objectContaining({ signal: expect.any(AbortSignal) }),
+        )
+        .mockResolvedValue({
+            ok: true,
+            json: () =>
+                Promise.resolve({
+                    ...emptyAlpDexStatus,
+                    tradedPairs,
+                    tradedTokens,
+                }),
+        } as Response);
+};
 
 // We need to wrap the Agora component with context so we can useContext instead of prop drilling
 interface AgoraTestWrapperProps {
@@ -120,6 +153,7 @@ describe('<Agora />', () => {
             .mockResolvedValue({
                 json: () => Promise.resolve(priceResponse),
             } as Response);
+        mockAlpDexStatus([]);
     });
 
     afterEach(async () => {
@@ -182,6 +216,15 @@ describe('<Agora />', () => {
             await screen.findByText('You have no active listings.'),
         ).toBeInTheDocument();
 
+        // Featured pair is not listed — reserved Swaps card stays, empty state
+        expect(screen.getByText('Swaps')).toBeInTheDocument();
+        expect(
+            await screen.findByText('No alp swaps are currently available'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Swap XECX and FIRMA' }),
+        ).not.toBeInTheDocument();
+
         // We try to load all the offers
         await userEvent.click(
             screen.getByRole('button', { name: 'Load all offers' }),
@@ -202,6 +245,197 @@ describe('<Agora />', () => {
         expect(
             await screen.findByText('No tokens are currently listed for sale.'),
         ).toBeInTheDocument();
+    });
+
+    it('Reserves Swaps space with a spinner while alp-dex status loads', async () => {
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${appConfig.coingeckoId}&vs_currencies=usd&include_last_updated_at=true`;
+        global.fetch = jest.fn((input: RequestInfo | URL) => {
+            const url = String(input);
+            if (url === statusUrl()) {
+                return new Promise(() => undefined);
+            }
+            if (url === priceApiUrl) {
+                return Promise.resolve({
+                    json: () =>
+                        Promise.resolve({
+                            ecash: {
+                                usd: 0.00003,
+                                last_updated_at: 1706644626,
+                            },
+                        }),
+                });
+            }
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+        });
+
+        const mockedAgora = new MockAgora();
+        mockedAgora.setOfferedFungibleTokenIds([]);
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, []);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet, agoraPartialBetaWallet],
+            tokenMocks,
+        );
+
+        render(
+            <AgoraTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                theme={theme}
+                route={`/agora/`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(screen.getByText('Swaps')).toBeInTheDocument();
+        expect(screen.getByTitle('Loading swaps...')).toBeInTheDocument();
+        expect(
+            screen.queryByText('No alp swaps are currently available'),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText('Token Offers')).toBeInTheDocument();
+    });
+
+    it('Shows a Swaps row for the listed XECX / FIRMA pair', async () => {
+        const featured = alpSwap.featuredAgoraPairs[0];
+        mockAlpDexStatus(
+            [
+                {
+                    aTokenId: featured.tokenIdB,
+                    bTokenId: featured.tokenIdA,
+                    feePct: 0.01,
+                    aUtxoQty: 1,
+                    bUtxoQty: 1,
+                },
+            ],
+            [
+                {
+                    tokenId: featured.tokenIdA,
+                    decimals: 2,
+                    utxoQty: 1,
+                },
+                {
+                    tokenId: featured.tokenIdB,
+                    decimals: 4,
+                    utxoQty: 1,
+                },
+            ],
+        );
+
+        const mockedAgora = new MockAgora();
+        mockedAgora.setOfferedFungibleTokenIds([]);
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, []);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet, agoraPartialBetaWallet],
+            tokenMocks,
+        );
+        mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
+        mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
+
+        render(
+            <AgoraTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                theme={theme}
+                route={`/agora/`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(await screen.findByText('Swaps')).toBeInTheDocument();
+        expect(screen.getByText('Experimental')).toBeInTheDocument();
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading swaps...'),
+            ).not.toBeInTheDocument(),
+        );
+        const yourListings = screen.getByText('Your Listings');
+        const swaps = screen.getByText('Swaps');
+        const tokenOffers = screen.getByText('Token Offers');
+        expect(
+            yourListings.compareDocumentPosition(swaps) &
+                Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+        expect(
+            swaps.compareDocumentPosition(tokenOffers) &
+                Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+
+        const swapLink = screen.getByRole('link', {
+            name: 'Swap XECX and FIRMA',
+        });
+        expect(swapLink).toHaveAttribute(
+            'href',
+            alpSwapPairPath(featured.tokenIdA, featured.tokenIdB),
+        );
+        expect(screen.getByText('XECX / FIRMA')).toBeInTheDocument();
+    });
+
+    it('Shows a reserved empty Swaps card when alp-dex lists only a non-whitelisted pair', async () => {
+        mockAlpDexStatus([
+            {
+                aTokenId: CACHET_TOKEN_ID,
+                bTokenId: BULL_TOKEN_ID,
+                feePct: 0.01,
+            },
+        ]);
+
+        const mockedAgora = new MockAgora();
+        mockedAgora.setOfferedFungibleTokenIds([]);
+        mockedAgora.setActiveOffersByPubKey(agoraPartialAlphaWallet.pk, []);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialAlphaWallet, agoraPartialBetaWallet],
+            tokenMocks,
+        );
+
+        render(
+            <AgoraTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                agora={mockedAgora}
+                theme={theme}
+                route={`/agora/`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Loading active offers'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(await screen.findByText('Token Offers')).toBeInTheDocument();
+        expect(screen.getByText('Swaps')).toBeInTheDocument();
+        expect(
+            await screen.findByText('No alp swaps are currently available'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Swap XECX and FIRMA' }),
+        ).not.toBeInTheDocument();
     });
 
     it('A chronik error notice is rendered if there is some error in querying listings', async () => {
