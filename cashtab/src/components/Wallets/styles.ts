@@ -60,6 +60,23 @@ export const WalletName = styled.div`
     font-weight: bold;
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
+    align-items: center;
+    gap: 8px;
+`;
+
+export const HdBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: ${props => props.theme.secondaryText};
+    border: 1px solid ${props => props.theme.secondaryText};
 `;
 
 export const ActiveWalletName = styled(WalletName)`

@@ -31,37 +31,58 @@ export {
 
 const CHRONIK_MAX_PAGE_SIZE = 200;
 
-export const getTransactionHistory = async (
+/**
+ * Compare txs for history display: unconfirmed first, then newer-first.
+ * Same-block (or same timeFirstSeen) ties break on txid for a stable order.
+ */
+const compareTxHistoryDesc = (a: Tx, b: Tx): number => {
+    const aHeight = a.block?.height;
+    const bHeight = b.block?.height;
+    const aConfirmed = typeof aHeight === 'number';
+    const bConfirmed = typeof bHeight === 'number';
+
+    if (aConfirmed !== bConfirmed) {
+        // Unconfirmed before confirmed
+        return aConfirmed ? 1 : -1;
+    }
+
+    if (aConfirmed && bConfirmed && aHeight !== bHeight) {
+        // Higher block height = newer
+        return (bHeight as number) - (aHeight as number);
+    }
+
+    const timeDiff = (b.timeFirstSeen || 0) - (a.timeFirstSeen || 0);
+    if (timeDiff !== 0) {
+        return timeDiff;
+    }
+
+    // Txids are hex; ASCII compare is enough for a stable tie-break
+    if (a.txid === b.txid) {
+        return 0;
+    }
+    return a.txid < b.txid ? 1 : -1;
+};
+
+/**
+ * Parse Chronik txs into CashtabTxs, caching token genesis info as needed.
+ */
+const parseTxsForHistory = async (
     chronik: ChronikClient,
-    address: string,
+    txs: Tx[],
+    hashes: string[],
     cachedTokens: Map<string, CashtabCachedTokenInfo>,
-    page: number = 0,
-    pageSize: number = chronikConfig.txHistoryPageSize,
-): Promise<{ txs: CashtabTx[]; numPages: number; numTxs: number }> => {
-    // Get hash from address for parseTx
-    const { hash } = decodeCashAddress(address);
-
-    // Get transaction history from chronik
-    const pageResponse = await chronik.address(address).history(page, pageSize);
-
-    // For non-paginated requests, limit to pageSize
-    const txsToProcess = pageResponse.txs;
-
-    // Parse txs
+): Promise<CashtabTx[]> => {
     const history: CashtabTx[] = [];
-    for (const tx of txsToProcess) {
+    for (const tx of txs) {
         const { tokenEntries } = tx;
 
-        // Get all tokenIds associated with this tx
         const tokenIds: Set<string> = new Set();
         for (const tokenEntry of tokenEntries) {
             tokenIds.add(tokenEntry.tokenId);
         }
 
-        // Cache any tokenIds you do not have cached
         for (const tokenId of [...tokenIds]) {
             if (typeof cachedTokens.get(tokenId) === 'undefined') {
-                // Add it to cache right here
                 try {
                     const newTokenCacheInfo = await getTokenGenesisInfo(
                         chronik,
@@ -69,10 +90,6 @@ export const getTransactionHistory = async (
                     );
                     cachedTokens.set(tokenId, newTokenCacheInfo);
                 } catch (err) {
-                    // If you have an error getting the calculated token cache info, do not throw
-                    // Could be some token out there that we do not parse properly with getTokenGenesisInfo
-                    // Log it
-                    // parseTx is tolerant to not having the info in cache
                     console.error(
                         `Error in getTokenGenesisInfo for tokenId ${tokenId}`,
                         err,
@@ -81,18 +98,101 @@ export const getTransactionHistory = async (
             }
         }
 
-        (tx as CashtabTx).parsed = parseTx(tx, [hash]);
-
+        (tx as CashtabTx).parsed = parseTx(tx, hashes);
         history.push(tx as CashtabTx);
     }
+    return history;
+};
 
-    const result = {
-        txs: history,
-        numTxs: pageResponse.numTxs,
-        numPages: pageResponse.numPages,
-    };
+/**
+ * Fetch all history pages for one address (Chronik max page size).
+ */
+const getAllTxHistoryByAddress = async (
+    chronik: ChronikClient,
+    address: string,
+    pageSize = CHRONIK_MAX_PAGE_SIZE,
+): Promise<Tx[]> => {
+    const firstPageResponse = await chronik
+        .address(address)
+        .history(0, pageSize);
+    const { txs, numPages } = firstPageResponse;
+    if (numPages <= 1) {
+        return txs;
+    }
+    const rest = await Promise.all(
+        Array.from({ length: numPages - 1 }, (_, i) =>
+            chronik.address(address).history(i + 1, pageSize),
+        ),
+    );
+    return txs.concat(rest.flatMap(page => page.txs));
+};
 
-    return result;
+/**
+ * Get paginated transaction history for one or more wallet addresses.
+ * Multiple addresses (HD): merge/dedupe by txid, sort newer-first, then page.
+ */
+export const getTransactionHistory = async (
+    chronik: ChronikClient,
+    addressOrAddresses: string | string[],
+    cachedTokens: Map<string, CashtabCachedTokenInfo>,
+    page: number = 0,
+    pageSize: number = chronikConfig.txHistoryPageSize,
+): Promise<{ txs: CashtabTx[]; numPages: number; numTxs: number }> => {
+    const addresses = Array.isArray(addressOrAddresses)
+        ? addressOrAddresses
+        : [addressOrAddresses];
+
+    if (addresses.length === 0) {
+        return { txs: [], numTxs: 0, numPages: 0 };
+    }
+
+    const hashes = addresses.map(address => {
+        const { hash } = decodeCashAddress(address);
+        return hash;
+    });
+
+    // Single address: use Chronik server-side pagination (existing behavior)
+    if (addresses.length === 1) {
+        const address = addresses[0];
+        const pageResponse = await chronik
+            .address(address)
+            .history(page, pageSize);
+        const history = await parseTxsForHistory(
+            chronik,
+            pageResponse.txs,
+            hashes,
+            cachedTokens,
+        );
+        return {
+            txs: history,
+            numTxs: pageResponse.numTxs,
+            numPages: pageResponse.numPages,
+        };
+    }
+
+    // HD / multi-address: fetch full history per address, merge, then page locally
+    const perAddressTxs = await Promise.all(
+        addresses.map(address => getAllTxHistoryByAddress(chronik, address)),
+    );
+    const byTxid = new Map<string, Tx>();
+    for (const txs of perAddressTxs) {
+        for (const tx of txs) {
+            byTxid.set(tx.txid, tx);
+        }
+    }
+    const merged = [...byTxid.values()].sort(compareTxHistoryDesc);
+    const numTxs = merged.length;
+    const numPages = numTxs === 0 ? 0 : Math.ceil(numTxs / pageSize);
+    const start = page * pageSize;
+    const pageTxs = merged.slice(start, start + pageSize);
+    const history = await parseTxsForHistory(
+        chronik,
+        pageTxs,
+        hashes,
+        cachedTokens,
+    );
+
+    return { txs: history, numTxs, numPages };
 };
 
 /**

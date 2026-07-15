@@ -1625,6 +1625,39 @@ export default {
                 wallet: walletWithZeroBalanceZeroHistory,
                 returned: true,
             },
+            {
+                description: 'Returns true for a valid HD stored wallet',
+                wallet: {
+                    ...validWalletJson,
+                    hd: true,
+                    accountNumber: 0,
+                    receiveIndex: 0,
+                    changeIndex: 0,
+                },
+                returned: true,
+            },
+            {
+                description: 'Returns false for HD wallet missing receiveIndex',
+                wallet: {
+                    ...validWalletJson,
+                    hd: true,
+                    accountNumber: 0,
+                    changeIndex: 0,
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false for HD wallet with non-integer changeIndex',
+                wallet: {
+                    ...validWalletJson,
+                    hd: true,
+                    accountNumber: 0,
+                    receiveIndex: 0,
+                    changeIndex: 1.5,
+                },
+                returned: false,
+            },
         ],
     },
     isValidXecSendAmount: {

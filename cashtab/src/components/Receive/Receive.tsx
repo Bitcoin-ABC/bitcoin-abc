@@ -28,6 +28,7 @@ import {
     normalizeDecimalInput,
     sanitizeAndFormatAmountInput,
 } from 'formatting';
+import { getCurrentReceiveAddress } from 'wallet/hd';
 
 export const Receive: React.FC = () => {
     const contextValue = useContext(WalletContext);
@@ -67,7 +68,10 @@ export const Receive: React.FC = () => {
     const [bip21QtyError, setBip21QtyError] = useState<false | string>(false);
 
     const normalizedBip21Qty = normalizeDecimalInput(bip21Qty, userLocale);
-    const queryString = `${ecashWallet.address}${
+    // HD: next unused receive index. Non-HD: the single wallet address.
+    const receiveAddress = getCurrentReceiveAddress(ecashWallet);
+
+    const queryString = `${receiveAddress}${
         receiveFirma
             ? `?token_id=${FIRMA.tokenId}${
                   normalizedBip21Qty

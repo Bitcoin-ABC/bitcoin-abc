@@ -18,6 +18,7 @@ import * as englishWordlist from 'ecash-lib/wordlists/english.json';
 import { Token, Tx, ScriptUtxo } from 'chronik-client';
 import { ParsedTx, getTokenBalances } from 'chronik';
 import { previewAddress, TxJson, TokenJson } from 'helpers';
+import { CashtabCachedTokenInfo } from 'config/CashtabCache';
 
 export type SlpDecimals = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -103,7 +104,12 @@ export interface CashtabWalletPaths extends Map<number, CashtabPathInfo> {
  * Note that all we really need is name and mnemonic, as we can derive the rest from mnemonic
  * However, since we never expect that info to change, it is convenient and lightweight to save ourselves from so much derivation
  *
- * We may, for example, wish to ws subscribe to all wallet addresses to show notifications if txs are received at the inactive wallet
+ * address / sk / pk / hash always refer to BIP44 receive index 0
+ * (m/44'/1899'/0'/0/0), which is the stable wallet identity for both
+ * single-address and HD wallets.
+ *
+ * HD wallets additionally persist next unused receive/change indices.
+ * We do not persist derived address lists; those are rebuilt at runtime.
  */
 export interface StoredCashtabWallet {
     name: string;
@@ -114,7 +120,23 @@ export interface StoredCashtabWallet {
     pk: string;
     address: string;
     hash: string;
+    /**
+     * When true, load via Wallet.fromMnemonic(..., { hd: true }) and track
+     * multiple receive/change addresses. Omitted or false = single-address
+     * (legacy Cashtab / Wallet.fromSk).
+     */
+    hd?: boolean;
+    /** BIP44 account number; only set when hd is true. Defaults to 0. */
+    accountNumber?: number;
+    /** Next unused receive index; only set when hd is true. */
+    receiveIndex?: number;
+    /** Next unused change index; only set when hd is true. */
+    changeIndex?: number;
 }
+
+/** True when this stored wallet should be loaded as an HD wallet. */
+export const isStoredHdWallet = (wallet: StoredCashtabWallet): boolean =>
+    wallet.hd === true;
 
 const SATOSHIS_PER_XEC = 100;
 const NANOSATS_PER_XEC = new BigNumber(1e11);
@@ -215,18 +237,32 @@ export const hasEnoughToken = (
 export interface ActiveCashtabWallet extends StoredCashtabWallet {
     state: CashtabWalletState;
 }
+export interface CreateCashtabWalletOptions {
+    /**
+     * If true, create an HD wallet (multi-address receive/change).
+     * Defaults to false for backward compatibility with existing single-address wallets.
+     */
+    hd?: boolean;
+    /** BIP44 account number for HD wallets. Defaults to 0. */
+    accountNumber?: number;
+}
+
 /**
  * Create a Cashtab wallet object from a valid BIP39 mnemonic
- * We only store wallet name and mnemonic, and we keep a CashtabWallet in state for processing
- * This will be replaced by Wallet from the ecash-wallet lib when feature parity is reached there
+ *
+ * address/sk/pk always come from m/44'/1899'/0'/0/0 (receive index 0), which is
+ * identical for single-address and HD account-0 wallets — so HD creation does
+ * not change the stable wallet identity.
+ *
  * @param mnemonic a valid BIP39 mnemonic
- * @param ecc
- * Default to 1899-only for all new wallets
- * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
+ * @param name optional display name (defaults to abbreviated address)
+ * @param options.hd create as HD wallet
+ * @param options.accountNumber BIP44 account (HD only)
  */
 export const createCashtabWallet = (
     mnemonic: string,
     name?: string,
+    options?: CreateCashtabWalletOptions,
 ): StoredCashtabWallet => {
     const rootSeedBuffer = mnemonicToSeed(mnemonic, '');
     const masterHDNode = HdNode.fromSeed(rootSeedBuffer);
@@ -241,7 +277,7 @@ export const createCashtabWallet = (
     const { hash } = decodeCashAddress(address);
     const sk = toHex(node.seckey()!);
 
-    return {
+    const wallet: StoredCashtabWallet = {
         name: name || previewAddress(address),
         mnemonic,
         sk,
@@ -249,6 +285,15 @@ export const createCashtabWallet = (
         address,
         hash,
     };
+
+    if (options?.hd === true) {
+        wallet.hd = true;
+        wallet.accountNumber = options.accountNumber ?? 0;
+        wallet.receiveIndex = 0;
+        wallet.changeIndex = 0;
+    }
+
+    return wallet;
 };
 
 /**

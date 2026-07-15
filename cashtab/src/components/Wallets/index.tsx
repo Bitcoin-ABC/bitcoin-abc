@@ -36,12 +36,14 @@ import {
     WalletAddress,
     CopyButton,
     ActiveIndicator,
+    HdBadge,
 } from 'components/Wallets/styles';
 import { getWalletNameError, validateMnemonic } from 'validation';
 import {
     createCashtabWallet,
     generateMnemonic,
     StoredCashtabWallet,
+    isStoredHdWallet,
 } from 'wallet';
 import { previewAddress } from 'helpers';
 import { sortWalletsForDisplay } from 'wallet';
@@ -111,6 +113,8 @@ const Wallets = () => {
         useState<null | StoredCashtabWallet>(null);
     const [showNewWalletModal, setShowNewWalletModal] =
         useState<boolean>(false);
+    // When true, confirm creates an HD wallet; otherwise a single-address wallet.
+    const [createWalletAsHd, setCreateWalletAsHd] = useState<boolean>(false);
     const [showImportWalletModal, setShowImportWalletModal] =
         useState<boolean>(false);
     const [showAddressShareModal, setShowAddressShareModal] =
@@ -356,7 +360,8 @@ const Wallets = () => {
         }));
     };
 
-    const openNewWalletModal = () => {
+    const openNewWalletModal = (asHd = false) => {
+        setCreateWalletAsHd(asHd);
         setShowImportWalletModal(false);
         clearNewWalletNameForm();
         setFormData(previous => ({
@@ -372,11 +377,13 @@ const Wallets = () => {
 
     const closeNewWalletModal = () => {
         setShowNewWalletModal(false);
+        setCreateWalletAsHd(false);
         clearNewWalletNameForm();
     };
 
     const openImportWalletModal = () => {
         setShowNewWalletModal(false);
+        setCreateWalletAsHd(false);
         clearNewWalletNameForm();
         setFormData(previous => ({
             ...previous,
@@ -404,6 +411,7 @@ const Wallets = () => {
 
     /**
      * Generate a new wallet with the user-chosen name and add it to wallets
+     * Uses createWalletAsHd when the user opened the New HD Wallet flow.
      */
     const addNewWallet = async () => {
         const walletName = formData.newWalletName;
@@ -413,7 +421,11 @@ const Wallets = () => {
 
         // Generate a new wallet with a new mnemonic
         const mnemonic = generateMnemonic();
-        const newAddedWallet = createCashtabWallet(mnemonic, walletName);
+        const newAddedWallet = createCashtabWallet(
+            mnemonic,
+            walletName,
+            createWalletAsHd ? { hd: true } : undefined,
+        );
 
         // Technically possible though almost impossibly improbable for a wallet with
         // the same mnemonic to already exist. Cover the edge case.
@@ -430,11 +442,19 @@ const Wallets = () => {
 
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
-        Event('Configure.js', 'Create Wallet', 'New');
+        Event(
+            'Configure.js',
+            'Create Wallet',
+            createWalletAsHd ? 'New HD' : 'New',
+        );
         // Add it to the end of the wallets object; display sorts by name
         updateCashtabState({ wallets: [...wallets, newAddedWallet] });
 
-        toast.success(`New wallet “${newAddedWallet.name}” added to wallets`);
+        toast.success(
+            createWalletAsHd
+                ? `New HD wallet “${newAddedWallet.name}” added to wallets`
+                : `New wallet “${newAddedWallet.name}” added to wallets`,
+        );
         closeNewWalletModal();
     };
 
@@ -628,7 +648,7 @@ const Wallets = () => {
             )}
             {showNewWalletModal && (
                 <Modal
-                    title="New wallet"
+                    title={createWalletAsHd ? 'New HD wallet' : 'New wallet'}
                     handleOk={addNewWallet}
                     handleCancel={closeNewWalletModal}
                     showCancelButton
@@ -638,7 +658,11 @@ const Wallets = () => {
                     }
                 >
                     <ModalInput
-                        placeholder="Enter a name for this wallet"
+                        placeholder={
+                            createWalletAsHd
+                                ? 'Enter a name for this HD wallet'
+                                : 'Enter a name for this wallet'
+                        }
                         name="newWalletName"
                         value={formData.newWalletName}
                         error={formDataErrors.newWalletName}
@@ -780,6 +804,11 @@ const Wallets = () => {
                                     <WalletLeftColumn>
                                         <WalletName className="notranslate">
                                             {wallet.name}
+                                            {isStoredHdWallet(wallet) && (
+                                                <HdBadge title="Hierarchical deterministic wallet">
+                                                    HD
+                                                </HdBadge>
+                                            )}
                                         </WalletName>
                                         <ActivateButton
                                             $active={isActive}
@@ -838,9 +867,14 @@ const Wallets = () => {
                     )}
                 </WalletsPanel>
                 <WalletRow>
-                    <PrimaryButton onClick={openNewWalletModal}>
+                    <PrimaryButton onClick={() => openNewWalletModal(false)}>
                         New Wallet
                     </PrimaryButton>
+                </WalletRow>
+                <WalletRow>
+                    <SecondaryButton onClick={() => openNewWalletModal(true)}>
+                        New HD Wallet
+                    </SecondaryButton>
                 </WalletRow>
                 <WalletRow>
                     <SecondaryButton onClick={openImportWalletModal}>

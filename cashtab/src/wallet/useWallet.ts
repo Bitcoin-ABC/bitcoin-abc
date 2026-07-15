@@ -31,7 +31,12 @@ import {
     StoredCashtabWallet,
     generateTokensFromWalletUtxos,
     CashtabTx,
+    isStoredHdWallet,
 } from 'wallet';
+import {
+    getWalletAddressesForSubscription,
+    getWalletHashesForParseTx,
+} from 'wallet/hd';
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import { TokenIconToast } from 'components/Etokens/TokenIcon';
@@ -43,9 +48,8 @@ import {
     MsgTxClient,
 } from 'chronik-client';
 import { Agora } from 'ecash-agora';
-import { Address, Ecc, toHex } from 'ecash-lib';
+import { Address, Ecc, fromHex } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
-import { fromHex } from 'ecash-lib';
 
 import CashtabCache from 'config/CashtabCache';
 import { App } from '@capacitor/app';
@@ -141,10 +145,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         try {
+            const addresses = getWalletAddressesForSubscription(
+                ecashWalletRef.current,
+            );
             // NB this gives us page 0 as we call without specifying page number
             const result = await getTransactionHistory(
                 chronik,
-                ecashWalletRef.current.address,
+                addresses,
                 currentCashtabStateRef.current.cashtabCache.tokens,
             );
 
@@ -224,6 +231,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     // Queue for processing messages in order
     const messageQueue = useRef<Array<WsMsgClient>>([]);
     const isProcessing = useRef<boolean>(false);
+    /**
+     * Chronik emits TX_ADDED_TO_MEMPOOL once per subscribed script involved in
+     * a tx. HD wallets subscribe to many addresses, so one consolidation can
+     * enqueue the same txid N times — dedupe so we notify / append history once.
+     */
+    const processedMempoolTxids = useRef<Set<string>>(new Set());
+
+    // Drop processed-txid cache when the active wallet identity changes
+    useEffect(() => {
+        processedMempoolTxids.current.clear();
+    }, [ecashWallet?.address]);
 
     // Process messages sequentially
     const processMessageQueue = async () => {
@@ -267,11 +285,27 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         switch (msgType) {
             case 'TX_ADDED_TO_MEMPOOL': {
-                // Update wallet utxo set when we see a new tx
-                await update();
-
                 // We parse txs that are added to the mempool for notifications
                 const txid = (msg as MsgTxClient).txid;
+
+                // One Chronik msg per subscribed script; process each txid once
+                if (processedMempoolTxids.current.has(txid)) {
+                    return;
+                }
+                processedMempoolTxids.current.add(txid);
+                // Bound memory if finalize/remove msgs are missed. Prefer clearing
+                // on TX_FINALIZED / TX_REMOVED_FROM_MEMPOOL so in-flight size stays small.
+                if (processedMempoolTxids.current.size > 1000) {
+                    const oldest = processedMempoolTxids.current
+                        .values()
+                        .next().value;
+                    if (typeof oldest === 'string') {
+                        processedMempoolTxids.current.delete(oldest);
+                    }
+                }
+
+                // Update wallet utxo set when we see a new tx
+                await update();
 
                 let incomingTxDetails;
                 try {
@@ -324,15 +358,20 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 }
 
                 // parse tx for notification
-                // Get hash from ecashWallet address
-                const walletHash = ecashWalletRef.current
-                    ? toHex(ecashWalletRef.current.pkh)
-                    : '';
-                const parsedTx = parseTx(incomingTxDetails, [walletHash]);
+                // Include all HD receive/change hashes so change-address activity classifies correctly
+                const walletHashes = ecashWalletRef.current
+                    ? getWalletHashesForParseTx(ecashWalletRef.current)
+                    : [];
+                const parsedTx = parseTx(incomingTxDetails, walletHashes);
 
                 // Add the new transaction to the beginning of the first page history
                 setTransactionHistory(prev => {
                     if (!prev) {
+                        return prev;
+                    }
+
+                    // Already present (e.g. race with refreshTransactionHistory)
+                    if (prev.firstPageTxs.some(tx => tx.txid === txid)) {
                         return prev;
                     }
 
@@ -410,27 +449,32 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 // Update tx if it is in the first page of history
                 const txid = (msg as MsgTxClient).txid;
 
+                // Drop dedupe entry so the Set does not grow without bound
+                // across mined txs (HD multi-address can see many unique txids).
+                processedMempoolTxids.current.delete(txid);
+
                 // Use functional update to avoid race conditions
+                // Mark every matching row final (legacy duplicate rows from
+                // multi-address WS before dedupe, if any remain).
                 setTransactionHistory(prev => {
                     if (!prev || prev.firstPageTxs.length === 0) {
                         return prev;
                     }
 
-                    const txIndex = prev.firstPageTxs.findIndex(
-                        tx => tx.txid === txid,
-                    );
-                    if (txIndex !== -1 && !prev.firstPageTxs[txIndex].isFinal) {
-                        // Create a new array with the updated transaction
-                        const updatedFirstPageTxs = [...prev.firstPageTxs];
-                        updatedFirstPageTxs[txIndex] = {
-                            ...updatedFirstPageTxs[txIndex],
-                            isFinal: true,
-                        };
+                    let changed = false;
+                    const updatedFirstPageTxs = prev.firstPageTxs.map(tx => {
+                        if (tx.txid === txid && !tx.isFinal) {
+                            changed = true;
+                            return { ...tx, isFinal: true };
+                        }
+                        return tx;
+                    });
 
-                        return { ...prev, firstPageTxs: updatedFirstPageTxs };
+                    if (!changed) {
+                        return prev;
                     }
 
-                    return prev;
+                    return { ...prev, firstPageTxs: updatedFirstPageTxs };
                 });
 
                 return;
@@ -439,6 +483,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 // Rare
                 // But, when this happens, we better be sure we are not showing this in the history
                 console.info(`Tx removed from mempool: ${msg.txid}`);
+
+                // Allow the same txid to be processed again if it re-enters mempool
+                processedMempoolTxids.current.delete(msg.txid);
 
                 // Remove the transaction from the first page history if it exists
                 setTransactionHistory(prev => {
@@ -523,17 +570,39 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             return;
         }
 
-        const sk = fromHex(activeWallet.sk);
-        const newWallet = Wallet.fromSk(sk, chronik, {
-            prefix: appConfig.prefix,
-        });
+        let newWallet: Wallet;
+        if (isStoredHdWallet(activeWallet)) {
+            // HD: restore from mnemonic with persisted next-unused indices
+            newWallet = Wallet.fromMnemonic(activeWallet.mnemonic, chronik, {
+                hd: true,
+                accountNumber: activeWallet.accountNumber ?? 0,
+                receiveIndex: activeWallet.receiveIndex ?? 0,
+                changeIndex: activeWallet.changeIndex ?? 0,
+                prefix: appConfig.prefix,
+            });
+        } else {
+            // Single-address: sk at m/44'/1899'/0'/0/0 is enough
+            const sk = fromHex(activeWallet.sk);
+            newWallet = Wallet.fromSk(sk, chronik, {
+                prefix: appConfig.prefix,
+            });
+        }
         ecashWalletRef.current = newWallet;
         // Sync on init (so we sync on app startup and on wallet switch)
         // NB we do not sync before sending txs, as ecash-wallet auto updates utxo sets on sending txs,
         // and we call "update" to sync when txs are received
 
         try {
-            await newWallet.sync();
+            // HD: gap-limit discovery so receive/change indices track used addresses.
+            // Start from persisted indices to avoid re-scanning from zero on every load.
+            if (newWallet.isHD) {
+                await newWallet.syncAndDiscoverAddresses({
+                    startReceiveIndex: newWallet.receiveIndex,
+                    startChangeIndex: newWallet.changeIndex,
+                });
+            } else {
+                await newWallet.sync();
+            }
             // Update state after sync so components re-render with updated wallet
             setEcashWallet(newWallet);
 
@@ -554,6 +623,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 tokens: tokens as Map<string, string>,
                 cashtabCache: currentCashtabStateRef.current.cashtabCache,
             } as Parameters<UpdateCashtabState>[0]);
+
+            // Persist HD indices quietly after sync (no-op for single-address)
+            await persistHdWalletIndices();
         } catch (error) {
             console.error(`Error in initializeWallet()`, error);
             // Set this in state so that transactions are disabled until the issue is resolved
@@ -561,6 +633,50 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             // Set loading false, as we may not have set it to false by updating the wallet
             setLoading(false);
         }
+    };
+
+    /**
+     * Write HD receive/change indices back to stored wallets when they diverge
+     * from in-memory Wallet state (e.g. after a spend creates change).
+     * Avoids updateCashtabState loading lock — quiet storage write only.
+     */
+    const persistHdWalletIndices = async () => {
+        const liveWallet = ecashWalletRef.current;
+        if (!liveWallet || !liveWallet.isHD) {
+            return;
+        }
+
+        const stored = currentCashtabStateRef.current.wallets.find(
+            w => w.address === liveWallet.address,
+        );
+        if (!stored || !isStoredHdWallet(stored)) {
+            return;
+        }
+
+        if (
+            stored.receiveIndex === liveWallet.receiveIndex &&
+            stored.changeIndex === liveWallet.changeIndex
+        ) {
+            return;
+        }
+
+        const updatedWallets = currentCashtabStateRef.current.wallets.map(w =>
+            w.address === liveWallet.address
+                ? {
+                      ...w,
+                      receiveIndex: liveWallet.receiveIndex,
+                      changeIndex: liveWallet.changeIndex,
+                  }
+                : w,
+        );
+
+        // Update React state + ref without the loading spinner
+        setCashtabState(prev => ({ ...prev, wallets: updatedWallets }));
+        currentCashtabStateRef.current = {
+            ...currentCashtabStateRef.current,
+            wallets: updatedWallets,
+        };
+        await storage.set('wallets', updatedWallets);
     };
 
     /**
@@ -606,9 +722,28 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         try {
             // Sync wallet to get latest UTXOs
-            await ecashWalletRef.current.sync();
-            // Update state after sync so components re-render with updated wallet
-            setEcashWallet(ecashWalletRef.current);
+            // HD: rediscover from current indices so receive advances to the
+            // next unused address after funds arrive.
+            if (ecashWalletRef.current.isHD) {
+                const prevReceive = ecashWalletRef.current.receiveIndex;
+                const prevChange = ecashWalletRef.current.changeIndex;
+                await ecashWalletRef.current.syncAndDiscoverAddresses({
+                    startReceiveIndex: ecashWalletRef.current.receiveIndex,
+                    startChangeIndex: ecashWalletRef.current.changeIndex,
+                });
+                // Clone when indices move so Receive / header re-render
+                if (
+                    prevReceive !== ecashWalletRef.current.receiveIndex ||
+                    prevChange !== ecashWalletRef.current.changeIndex
+                ) {
+                    setEcashWallet(ecashWalletRef.current.clone());
+                } else {
+                    setEcashWallet(ecashWalletRef.current);
+                }
+            } else {
+                await ecashWalletRef.current.sync();
+                setEcashWallet(ecashWalletRef.current);
+            }
 
             // Get UTXOs from the synced wallet
             const walletUtxos = ecashWalletRef.current.utxos;
@@ -629,6 +764,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 },
                 tokens,
             });
+
+            // After sync / spend, HD indices may have advanced (change address)
+            await persistHdWalletIndices();
 
             // If everything executed correctly, remove apiError
             setApiError(false);
@@ -850,8 +988,12 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // Subscribe to wallet address if wallet was initialized above
         if (cashtabState.activeWalletAddress && ecashWalletRef.current) {
-            // Subscribe to its address for websocket updates
-            ws.subscribeToAddress(ecashWalletRef.current.address);
+            // Subscribe to all known HD addresses (or the single address)
+            for (const address of getWalletAddressesForSubscription(
+                ecashWalletRef.current,
+            )) {
+                ws.subscribeToAddress(address);
+            }
         } else {
             // Set loading to false if we have no wallet
             // as we will not get to the update() until the user creates a wallet
@@ -893,22 +1035,28 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             subscribedPayloads.push(script.payload);
         }
 
-        // Get hash from ecashWallet address
-        const walletHash = toHex(ecashWalletRef.current.pkh);
+        const wantedAddresses = getWalletAddressesForSubscription(
+            ecashWalletRef.current,
+        );
+        const wantedPayloads = new Set(
+            getWalletHashesForParseTx(ecashWalletRef.current),
+        );
 
-        if (
-            subscribedPayloads.length !== 1 ||
-            subscribedPayloads[0] !== walletHash
-        ) {
-            // If we are subscribed to no addresses, more than 1 address, or the wrong address, we need to update subscriptions
+        const subscribedSet = new Set(subscribedPayloads);
+        const subscriptionsMatch =
+            subscribedSet.size === wantedPayloads.size &&
+            [...wantedPayloads].every(payload => subscribedSet.has(payload));
 
+        if (!subscriptionsMatch) {
             // Unsubscribe from all existing subscriptions
             for (const payload of subscribedPayloads) {
                 ws.unsubscribeFromScript('p2pkh', payload);
             }
 
-            // Subscribe to active wallet address
-            ws.subscribeToAddress(ecashWalletRef.current.address);
+            // Subscribe to every known wallet address (receive + change for HD)
+            for (const address of wantedAddresses) {
+                ws.subscribeToAddress(address);
+            }
         }
 
         // Update ws in state

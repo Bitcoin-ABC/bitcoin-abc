@@ -3,13 +3,17 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useContext } from 'react';
-import { toHex } from 'ecash-lib';
 import Tx from 'components/Home/Tx';
 import TxHistoryPagination from 'components/Home/TxHistoryPagination';
 import { CashtabTx } from 'wallet';
 import { getTransactionHistory } from 'chronik';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { getUserLocale } from 'helpers';
+import {
+    getCurrentReceiveAddress,
+    getWalletAddressesForSubscription,
+    getWalletHashesForParseTx,
+} from 'wallet/hd';
 
 const TxHistory: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -31,7 +35,8 @@ const TxHistory: React.FC = () => {
         return null;
     }
 
-    const hashes = [toHex(ecashWallet.pkh)];
+    const hashes = getWalletHashesForParseTx(ecashWallet);
+    const historyAddresses = getWalletAddressesForSubscription(ecashWallet);
     const fiatCurrency =
         settings && settings.fiatCurrency ? settings.fiatCurrency : 'usd';
     const userLocale = getUserLocale(navigator);
@@ -41,8 +46,9 @@ const TxHistory: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [showPagination, setShowPagination] = useState(false);
 
-    // Get the path1899 address (path 1899 is always defined in CashtabWalletPaths)
-    const path1899Address = ecashWallet.address;
+    // Stable identity for wallet switch; receive address for HD display changes
+    const walletIdAddress = ecashWallet.address;
+    const currentReceiveAddress = getCurrentReceiveAddress(ecashWallet);
 
     // Get first page transactions from context
     const txs = transactionHistory?.firstPageTxs || [];
@@ -51,7 +57,7 @@ const TxHistory: React.FC = () => {
     useEffect(() => {
         setCurrentPage(0);
         setPaginatedTxs([]);
-    }, [path1899Address]);
+    }, [walletIdAddress]);
 
     // Check if we need to show pagination (more than 20 transactions)
     useEffect(() => {
@@ -63,13 +69,13 @@ const TxHistory: React.FC = () => {
 
     // Load paginated transactions when page changes
     const handlePageChange = async (page: number) => {
-        if (!path1899Address || loading) return;
+        if (!currentReceiveAddress || loading) return;
 
         setLoading(true);
         try {
             const result = await getTransactionHistory(
                 chronik,
-                path1899Address,
+                historyAddresses,
                 cashtabState.cashtabCache.tokens,
                 page,
             );

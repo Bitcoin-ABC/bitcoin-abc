@@ -171,6 +171,58 @@ describe('<Wallets />', () => {
             'grant grass sock faculty behave guitar pepper tiger sustain task occur soon',
         );
     });
+    it('We can add an HD wallet from the wallets page', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        render(
+            <CashtabTestWrapper
+                ecc={ecc}
+                chronik={mockedChronik}
+                route="/wallets"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.click(
+            screen.getByRole('button', {
+                name: /New HD Wallet/,
+            }),
+        );
+
+        expect(await screen.findByText('New HD wallet')).toBeInTheDocument();
+        const newHdWalletNameInput = screen.getByPlaceholderText(
+            'Enter a name for this HD wallet',
+        );
+        await user.type(newHdWalletNameInput, 'HD Savings');
+        await user.click(screen.getByText('OK'));
+
+        expect(
+            await screen.findByText(
+                `New HD wallet “HD Savings” added to wallets`,
+            ),
+        ).toBeInTheDocument();
+
+        // HD badge is shown next to the new wallet name
+        expect(screen.getByText('HD')).toBeInTheDocument();
+
+        const walletsAfterHdAdd = await localforage.getItem('wallets');
+        const addedHdWallet = walletsAfterHdAdd.find(
+            wallet => wallet.name === 'HD Savings',
+        );
+        expect(addedHdWallet).toBeDefined();
+        expect(addedHdWallet.hd).toBe(true);
+        expect(addedHdWallet.accountNumber).toBe(0);
+        expect(addedHdWallet.receiveIndex).toBe(0);
+        expect(addedHdWallet.changeIndex).toBe(0);
+    });
     it('We can rename the active wallet or a saved wallet, we can add a wallet, we can import a wallet, we can delete a wallet', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
@@ -378,6 +430,8 @@ describe('<Wallets />', () => {
         expect(walletsAfterAdd.some(wallet => wallet.name === 'Savings')).toBe(
             true,
         );
+        // Default new wallets are single-address (not HD)
+        expect(walletsAfterAdd[walletsAfterAdd.length - 1].hd).toBeUndefined();
 
         // We can import a wallet by specifying a name and mnemonic
         await user.click(

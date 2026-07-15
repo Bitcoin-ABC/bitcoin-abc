@@ -70,9 +70,11 @@ describe('Cashtab wallet methods', () => {
     describe('Creates a wallet from valid bip39 mnemonic', () => {
         const { expectedReturns } = vectors.createCashtabWallet;
         expectedReturns.forEach(expectedReturn => {
-            const { description, mnemonic, wallet } = expectedReturn;
+            const { description, mnemonic, wallet, options } = expectedReturn;
             it(`createCashtabWallet: ${description}`, async () => {
-                expect(createCashtabWallet(mnemonic)).toStrictEqual(wallet);
+                expect(
+                    createCashtabWallet(mnemonic, undefined, options),
+                ).toStrictEqual(wallet);
 
                 // The created wallet is a valid Cashtab wallet
                 expect(isValidStoredCashtabWallet(wallet)).toBe(true);

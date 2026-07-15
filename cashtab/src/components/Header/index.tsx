@@ -17,6 +17,7 @@ import { ReactComponent as StakeIcon } from 'assets/stake.svg';
 import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
 import { sortWalletsForDisplay } from 'wallet';
 import { useCountRoll } from 'hooks/useCountRoll';
+import { getCurrentReceiveAddress } from 'wallet/hd';
 import {
     HeaderCtn,
     WalletDropdown,
@@ -291,7 +292,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                         </ExtenstionButton>
                     )}
                     <WalletHeaderActions
-                        address={ecashWallet.address}
+                        address={getCurrentReceiveAddress(ecashWallet)}
                         settings={settings}
                         updateCashtabState={updateCashtabState}
                     />

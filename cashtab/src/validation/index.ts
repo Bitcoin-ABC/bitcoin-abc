@@ -1333,13 +1333,32 @@ export const isValidStoredCashtabWallet = (
 
     // NB we are only really validating storedWallets here as this function is only used in tests, for now
     // When we have another migration, will need to update this
-    return (
+    const baseValid =
         typeof wallet.sk === 'string' &&
         typeof wallet.pk === 'string' &&
         typeof wallet.address === 'string' &&
         typeof wallet.hash === 'string' &&
         typeof wallet.mnemonic === 'string' &&
-        typeof wallet.name === 'string'
+        typeof wallet.name === 'string';
+
+    if (!baseValid) {
+        return false;
+    }
+
+    // Single-address wallets omit hd (or set hd: false)
+    if (wallet.hd !== true) {
+        return true;
+    }
+
+    // HD wallets must persist next unused indices and account number
+    // Number.isInteger already rejects non-numbers
+    return (
+        Number.isInteger(wallet.accountNumber) &&
+        wallet.accountNumber >= 0 &&
+        Number.isInteger(wallet.receiveIndex) &&
+        wallet.receiveIndex >= 0 &&
+        Number.isInteger(wallet.changeIndex) &&
+        wallet.changeIndex >= 0
     );
 };
 
