@@ -9607,6 +9607,181 @@ describe('HD Wallet', () => {
         expect(wallet.keypairs.has(receive9)).to.equal(true);
     });
 
+    describe('syncAndDiscoverAddresses onAddress', () => {
+        it('invokes onAddress for each scanned address with batch-summary data', async () => {
+            const mockChronik = new MockChronikClient();
+            const probe = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+
+            mockChronik.setBlockchainInfo({
+                tipHash: DUMMY_TIPHASH,
+                tipHeight: DUMMY_TIPHEIGHT,
+            });
+            mockChronik.setUtxosByAddress(probe.getReceiveAddress(0), [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                    sats: 1000n,
+                },
+            ]);
+            mockChronik.setUtxosByAddress(probe.getReceiveAddress(2), [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: 1 },
+                    sats: 2000n,
+                },
+            ]);
+            mockChronik.setTxHistoryByAddress(probe.getReceiveAddress(2), [
+                {
+                    txid: '22'.repeat(32),
+                    version: 2,
+                    inputs: [],
+                    outputs: [],
+                    lockTime: 0,
+                    timeFirstSeen: 0,
+                    size: 100,
+                    isCoinbase: false,
+                    tokenEntries: [],
+                    tokenFailedParsings: [],
+                    tokenStatus: 'TOKEN_STATUS_NON_TOKEN' as const,
+                } as ChronikTx,
+            ]);
+
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+            const scanned: {
+                forChange: boolean;
+                index: number;
+                address: string;
+                numTxs: number;
+                numUtxos: number;
+            }[] = [];
+            await wallet.syncAndDiscoverAddresses({
+                gapLimit: 2,
+                onAddress: entry => {
+                    scanned.push({
+                        forChange: entry.forChange,
+                        index: entry.index,
+                        address: entry.address,
+                        numTxs: entry.summary.numTxs,
+                        numUtxos: entry.summary.numUtxos,
+                    });
+                },
+            });
+
+            expect(wallet.receiveIndex).to.equal(3);
+
+            // 5 receive addresses + 2 change addresses
+            expect(scanned.length).to.equal(7);
+            expect(scanned[0]).to.deep.equal({
+                forChange: false,
+                index: 0,
+                address: probe.getReceiveAddress(0),
+                numTxs: 0,
+                numUtxos: 1,
+            });
+            expect(scanned[1]).to.deep.equal({
+                forChange: false,
+                index: 1,
+                address: probe.getReceiveAddress(1),
+                numTxs: 0,
+                numUtxos: 0,
+            });
+            expect(scanned[2]).to.deep.equal({
+                forChange: false,
+                index: 2,
+                address: probe.getReceiveAddress(2),
+                numTxs: 1,
+                numUtxos: 1,
+            });
+            expect(scanned[3]).to.deep.equal({
+                forChange: false,
+                index: 3,
+                address: probe.getReceiveAddress(3),
+                numTxs: 0,
+                numUtxos: 0,
+            });
+            expect(scanned[4]).to.deep.equal({
+                forChange: false,
+                index: 4,
+                address: probe.getReceiveAddress(4),
+                numTxs: 0,
+                numUtxos: 0,
+            });
+            expect(scanned[5]).to.deep.equal({
+                forChange: true,
+                index: 0,
+                address: probe.getChangeAddress(0),
+                numTxs: 0,
+                numUtxos: 0,
+            });
+            expect(scanned[6]).to.deep.equal({
+                forChange: true,
+                index: 1,
+                address: probe.getChangeAddress(1),
+                numTxs: 0,
+                numUtxos: 0,
+            });
+        });
+
+        it('does not invoke onAddress when batch summary is unavailable', async () => {
+            const mockChronik = new MockChronikClient();
+            const probe = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+            const receive0 = probe.getReceiveAddress(0);
+            const receive0Pkh = toHex(probe.keypairs.get(receive0)!.pkh);
+
+            mockChronik.setBlockchainInfo({
+                tipHash: DUMMY_TIPHASH,
+                tipHeight: DUMMY_TIPHEIGHT,
+            });
+            mockChronik.setUtxosByScript('p2pkh', receive0Pkh, [
+                {
+                    ...DUMMY_UTXO,
+                    outpoint: { ...DUMMY_OUTPOINT, outIdx: 0 },
+                    sats: 1000n,
+                },
+            ]);
+
+            const originalScript = mockChronik.script.bind(mockChronik);
+            mockChronik.script = (type, hash) => {
+                if (!originalScript(type, hash)) {
+                    mockChronik.setUtxosByScript(type, hash, []);
+                }
+                return originalScript(type, hash);
+            };
+
+            mockChronik.batchSummary = async () => {
+                throw new Error('batch summary unavailable');
+            };
+
+            const wallet = Wallet.fromMnemonic(
+                testMnemonic,
+                mockChronik as unknown as ChronikClient,
+                { hd: true },
+            );
+            let onAddressCalls = 0;
+            await wallet.syncAndDiscoverAddresses({
+                gapLimit: 2,
+                onAddress: () => {
+                    onAddressCalls++;
+                },
+            });
+
+            expect(wallet.receiveIndex).to.equal(1);
+            expect(onAddressCalls).to.equal(0);
+        });
+    });
+
     describe('addReceivedTx', () => {
         let mockChronik: MockChronikClient;
         let testWallet: Wallet;

@@ -54,7 +54,12 @@ import {
 } from 'ecash-lib';
 import type { TokenType as EcashTokenType } from 'ecash-lib';
 import { WalletBase } from './walletBase';
-export { DEFAULT_GAP_LIMIT, type SyncAndDiscoverOptions } from './walletBase';
+export {
+    DEFAULT_GAP_LIMIT,
+    type SyncAndDiscoverOptions,
+    type AddressSummary,
+    type OnAddressFn,
+} from './walletBase';
 import { ChronikClient, ScriptUtxo, TokenType } from 'chronik-client';
 
 const eccDummy = new EccDummy();

@@ -377,3 +377,9 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 - Unchained `NO_SATS` Actions yield one 1-step chain; chained token sends yield one or more multi-step chains (ALP multi-tokenId: one chain per SEND tokenId)
 - Per link: `chain.buildStepPostage(i, prevFuelCompletedTxid?)` → partial `PostageTx` for a postage server to fuel-complete before any broadcast
 - **_BREAKING CHANGE_** Removes the old singular `buildPostage(): PostageTx` return type; callers must use `buildPostage()[0].buildStepPostage(0)` for single-tx postage (or iterate chains/steps for chained sends)
+
+# 6.1.0 [D20299](https://reviews.bitcoinabc.org/D20299)
+
+Add optional `onAddress` callback to `syncAndDiscoverAddresses()` (`SyncAndDiscoverOptions`): invoked for each address as it is scanned during HD gap-limit discovery (including the final address that completes the gap), then stops for that chain once the gap limit is reached. Each call receives an `AddressSummary` (`forChange`, `index`, `address`, and Chronik `BatchSummaryRow` data). Useful for app-specific heuristics such as WebSocket subscribe lists without a separate gap scan.
+
+Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.33.4**, **chronik-client >= 4.3.0**); if the endpoint is unavailable, gap discovery falls back to per-script queries and the callback is not invoked.

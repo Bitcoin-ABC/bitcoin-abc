@@ -60,13 +60,33 @@ export interface SyncAndDiscoverOptions {
      * Pass a persisted next-change index to avoid re-scanning from zero.
      */
     startChangeIndex?: number;
+    /**
+     * Optional hook invoked for each address when gap discovery has Chronik
+     * batch-summary data for that address (requires `POST /script/batch/summary`,
+     * Chronik server >= 0.33.4). Not invoked when discovery falls back to
+     * per-script queries. Stops for a chain once that chain's gap limit is
+     * reached (after the callback for the gap-completing address).
+     */
+    onAddress?: OnAddressFn;
 }
+
+/** One HD address considered during gap-limit discovery. */
+export interface AddressSummary {
+    forChange: boolean;
+    index: number;
+    address: string;
+    summary: BatchSummaryRow;
+}
+
+/** Called for each row during {@link SyncAndDiscoverOptions} gap discovery. */
+export type OnAddressFn = (entry: AddressSummary) => void;
 
 interface ResolvedGapSearchOptions {
     receiveGapLimit: number;
     changeGapLimit: number;
     startReceiveIndex: number;
     startChangeIndex: number;
+    onAddress?: OnAddressFn;
 }
 
 /**
@@ -428,11 +448,16 @@ export abstract class WalletBase<
      * the batch endpoint is unavailable.
      *
      * @param scripts - Scripts to check (order preserved in the result)
-     * @returns Parallel boolean array: true if the script has history or UTXOs
+     * @returns An object with `usedFlags` indicating if each script was used,
+     *   and the fetched Chronik batch summary `rows` (which may be empty
+     *   if falling back to per-script checks).
      */
-    private async _queryScriptsUsed(scripts: ScriptRef[]): Promise<boolean[]> {
+    private async _queryScriptsBatchSummary(scripts: ScriptRef[]): Promise<{
+        usedFlags: boolean[];
+        rows: BatchSummaryRow[];
+    }> {
         if (scripts.length === 0) {
-            return [];
+            return { usedFlags: [], rows: [] };
         }
 
         try {
@@ -450,13 +475,15 @@ export abstract class WalletBase<
             for (const chunk of chunks) {
                 rows.push(...chunk);
             }
-            return rows.map(row => this._isScriptUsedFromSummary(row));
+            return {
+                usedFlags: rows.map(row => this._isScriptUsedFromSummary(row)),
+                rows,
+            };
         } catch {
-            // Fallback when batch/summary is unsupported or errors.
-            // Promise.all preserves input order, so usedFlags[i] matches scripts[i].
-            return Promise.all(
+            const usedFlags = await Promise.all(
                 scripts.map(script => this._queryScriptUsed(script)),
             );
+            return { usedFlags, rows: [] };
         }
     }
 
@@ -474,6 +501,7 @@ export abstract class WalletBase<
         forChange: boolean,
         gapLimit: number,
         startIndex: number = 0,
+        onAddress?: OnAddressFn,
     ): Promise<void> {
         let consecutiveUnused = 0;
 
@@ -500,8 +528,23 @@ export abstract class WalletBase<
                 });
             }
 
-            const usedFlags = await this._queryScriptsUsed(scripts);
+            const { usedFlags, rows } =
+                await this._queryScriptsBatchSummary(scripts);
+
             for (let i = 0; i < usedFlags.length; i++) {
+                const summary = rows[i];
+                if (onAddress && summary) {
+                    onAddress({
+                        forChange,
+                        index,
+                        // The address is cached so this call is mostly free
+                        address: forChange
+                            ? this.getChangeAddress(index)
+                            : this.getReceiveAddress(index),
+                        summary,
+                    });
+                }
+
                 if (usedFlags[i]) {
                     consecutiveUnused = 0;
                 } else {
@@ -560,6 +603,7 @@ export abstract class WalletBase<
             changeGapLimit,
             startReceiveIndex,
             startChangeIndex,
+            onAddress: options?.onAddress,
         };
     }
 
@@ -569,14 +613,29 @@ export abstract class WalletBase<
      * Receive and change chains are scanned concurrently.
      */
     protected async _discoverHDIndices(
-        receiveGapLimit: number,
-        changeGapLimit: number,
-        startReceiveIndex: number,
-        startChangeIndex: number,
+        options: ResolvedGapSearchOptions,
     ): Promise<void> {
+        const {
+            receiveGapLimit,
+            changeGapLimit,
+            startReceiveIndex,
+            startChangeIndex,
+            onAddress,
+        } = options;
+
         await Promise.all([
-            this._discoverHDChain(false, receiveGapLimit, startReceiveIndex),
-            this._discoverHDChain(true, changeGapLimit, startChangeIndex),
+            this._discoverHDChain(
+                false,
+                receiveGapLimit,
+                startReceiveIndex,
+                onAddress,
+            ),
+            this._discoverHDChain(
+                true,
+                changeGapLimit,
+                startChangeIndex,
+                onAddress,
+            ),
         ]);
     }
 
@@ -598,7 +657,8 @@ export abstract class WalletBase<
      * Normal {@link sync} assumes indices are already correct and does not
      * perform gap-limit discovery.
      *
-     * @param options - Gap limits and optional start indexes
+     * @param options - Gap limits, optional start indexes, optional per-row
+     *                  hook
      * @throws Error if the wallet is not HD, or if options are invalid
      */
     public async syncAndDiscoverAddresses(
@@ -610,19 +670,7 @@ export abstract class WalletBase<
             );
         }
 
-        const {
-            receiveGapLimit,
-            changeGapLimit,
-            startReceiveIndex,
-            startChangeIndex,
-        } = this._resolveGapSearchOptions(options);
-
-        await this._discoverHDIndices(
-            receiveGapLimit,
-            changeGapLimit,
-            startReceiveIndex,
-            startChangeIndex,
-        );
+        await this._discoverHDIndices(this._resolveGapSearchOptions(options));
         await this._syncHDWallet();
     }
 
