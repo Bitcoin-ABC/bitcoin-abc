@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,6 +16,7 @@ import { ReactComponent as EcashIcon } from 'assets/ecash-icon.svg';
 import { ReactComponent as StakeIcon } from 'assets/stake.svg';
 import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
 import { sortWalletsForDisplay } from 'wallet';
+import { useCountRoll } from 'hooks/useCountRoll';
 import {
     HeaderCtn,
     WalletDropdown,
@@ -35,6 +36,162 @@ import {
 interface HeaderProps {
     path: string;
 }
+
+type AssetBalanceCardProps = {
+    title: string;
+    logo: React.ReactNode;
+    tokenLabel: string;
+    balanceAmount: string;
+    fiatAmount: string | undefined;
+    balanceVisible: boolean;
+    renderFiatValues: boolean;
+    fiatCurrency: string;
+};
+
+const AssetBalanceCard = ({
+    title,
+    logo,
+    tokenLabel,
+    balanceAmount,
+    fiatAmount,
+    balanceVisible,
+    renderFiatValues,
+    fiatCurrency,
+}: AssetBalanceCardProps) => {
+    return (
+        <BalanceCard tokenLabel={tokenLabel}>
+            <BalanceTitle tokenLabel={tokenLabel}>
+                {logo}
+                {title}
+            </BalanceTitle>
+
+            <BalanceRow
+                title={`Balance ${tokenLabel}`}
+                hideBalance={balanceVisible}
+                tokenLabel={tokenLabel}
+            >
+                {balanceAmount}{' '}
+                {tokenLabel === FIRMA_BALANCE_LABEL ? (
+                    <a href={`#/token/${FIRMA.tokenId}`}>{tokenLabel}</a>
+                ) : tokenLabel === 'XECX' ? (
+                    <a href={`#/token/${appConfig.vipTokens.xecx.tokenId}`}>
+                        XECX
+                    </a>
+                ) : (
+                    <>{tokenLabel}</>
+                )}
+            </BalanceRow>
+            {renderFiatValues && (
+                <BalanceFiat
+                    balanceVisible={balanceVisible}
+                    title={`Balance ${tokenLabel} Fiat`}
+                >
+                    {supportedFiatCurrencies[fiatCurrency].symbol}
+                    {fiatAmount}&nbsp;
+                    {supportedFiatCurrencies[fiatCurrency].slug.toUpperCase()}
+                </BalanceFiat>
+            )}
+        </BalanceCard>
+    );
+};
+
+interface BalanceCardsProps {
+    balanceXec: number;
+    balanceXecx: number;
+    balanceFirma: number;
+    fiatPrice: number | null;
+    firmaPrice: number | null;
+    balanceVisible: boolean;
+    fiatCurrency: string;
+    userLocale: string;
+}
+
+/**
+ * Balance cards with count-roll animation on XEC / XECX / Firma Alpha
+ * when balances change (e.g. incoming websocket tx + notification).
+ * Isolated so useCountRoll mounts only after the wallet is loaded.
+ */
+const BalanceCards: React.FC<BalanceCardsProps> = ({
+    balanceXec,
+    balanceXecx,
+    balanceFirma,
+    fiatPrice,
+    firmaPrice,
+    balanceVisible,
+    fiatCurrency,
+    userLocale,
+}) => {
+    const rolledXec = useCountRoll(balanceXec);
+    const rolledXecx = useCountRoll(balanceXecx);
+    const rolledFirma = useCountRoll(balanceFirma);
+
+    const renderFiatValues = typeof fiatPrice === 'number';
+
+    const formatBalance = (amount: number, decimals: number) =>
+        amount.toLocaleString(userLocale, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+
+    const formatFiat = (amount: number, price: number) =>
+        (amount * price).toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.fiatDecimals,
+            maximumFractionDigits: appConfig.fiatDecimals,
+        });
+
+    return (
+        <BalanceXec>
+            <AssetBalanceCard
+                title="eCash"
+                logo={<EcashIcon />}
+                tokenLabel={appConfig.ticker}
+                balanceAmount={formatBalance(rolledXec, appConfig.cashDecimals)}
+                fiatAmount={
+                    renderFiatValues
+                        ? formatFiat(rolledXec, fiatPrice)
+                        : undefined
+                }
+                balanceVisible={balanceVisible}
+                renderFiatValues={renderFiatValues}
+                fiatCurrency={fiatCurrency}
+            />
+            <AssetBalanceCard
+                title="Staked"
+                logo={<StakeIcon />}
+                tokenLabel="XECX"
+                balanceAmount={formatBalance(
+                    rolledXecx,
+                    appConfig.cashDecimals,
+                )}
+                fiatAmount={
+                    renderFiatValues
+                        ? formatFiat(rolledXecx, fiatPrice)
+                        : undefined
+                }
+                balanceVisible={balanceVisible}
+                renderFiatValues={renderFiatValues}
+                fiatCurrency={fiatCurrency}
+            />
+            <AssetBalanceCard
+                title="USD"
+                logo={<SavingsIcon />}
+                tokenLabel={FIRMA_BALANCE_LABEL}
+                balanceAmount={formatBalance(
+                    rolledFirma,
+                    FIRMA.token.genesisInfo.decimals,
+                )}
+                fiatAmount={
+                    firmaPrice !== null
+                        ? formatFiat(rolledFirma, firmaPrice)
+                        : undefined
+                }
+                balanceVisible={balanceVisible}
+                renderFiatValues={renderFiatValues}
+                fiatCurrency={fiatCurrency}
+            />
+        </BalanceXec>
+    );
+};
 
 const Header: React.FC<HeaderProps> = ({ path }) => {
     const userLocale = getUserLocale(navigator);
@@ -106,107 +263,10 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
           })
         : undefined;
 
-    const formatBalance = (amount: number, decimals: number) =>
-        amount.toLocaleString(userLocale, {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-        });
-
-    const formatFiat = (amount: number, price: number) =>
-        (amount * price).toLocaleString(userLocale, {
-            minimumFractionDigits: appConfig.fiatDecimals,
-            maximumFractionDigits: appConfig.fiatDecimals,
-        });
-
     const balanceXec = toXec(Number(ecashWallet.balanceSats));
-
-    const formattedBalanceXec = formatBalance(
-        balanceXec,
-        appConfig.cashDecimals,
-    );
-
     const balanceXecx =
         Number(tokens.get(appConfig.vipTokens.xecx.tokenId)) || 0;
-
-    const formattedBalanceXecx = formatBalance(
-        balanceXecx,
-        appConfig.cashDecimals,
-    );
-
     const balanceFirma = Number(tokens.get(FIRMA.tokenId)) || 0;
-
-    const formattedBalanceFirma = formatBalance(
-        balanceFirma,
-        FIRMA.token.genesisInfo.decimals,
-    );
-
-    const formattedXECBalanceFiat = renderFiatValues
-        ? formatFiat(balanceXec, fiatPrice)
-        : undefined;
-
-    const formattedXECXBalanceFiat = renderFiatValues
-        ? formatFiat(balanceXecx, fiatPrice)
-        : undefined;
-
-    const formattedFIRMABalanceFiat =
-        firmaPrice !== null ? formatFiat(balanceFirma, firmaPrice) : undefined;
-
-    type AssetBalanceCardProps = {
-        title: string;
-        logo: React.ReactNode;
-        logoAlt: string;
-        tokenLabel: string;
-        balanceAmount: string;
-        fiatAmount: string | undefined;
-        balanceVisible: boolean;
-    };
-
-    const AssetBalanceCard = ({
-        title,
-        logo,
-        tokenLabel,
-        balanceAmount,
-        fiatAmount,
-        balanceVisible,
-    }: AssetBalanceCardProps) => {
-        return (
-            <BalanceCard tokenLabel={tokenLabel}>
-                <BalanceTitle tokenLabel={tokenLabel}>
-                    {logo}
-                    {title}
-                </BalanceTitle>
-
-                <BalanceRow
-                    title={`Balance ${tokenLabel}`}
-                    hideBalance={balanceVisible}
-                    tokenLabel={tokenLabel}
-                >
-                    {balanceAmount}{' '}
-                    {tokenLabel === FIRMA_BALANCE_LABEL ? (
-                        <a href={`#/token/${FIRMA.tokenId}`}>{tokenLabel}</a>
-                    ) : tokenLabel === 'XECX' ? (
-                        <a href={`#/token/${appConfig.vipTokens.xecx.tokenId}`}>
-                            XECX
-                        </a>
-                    ) : (
-                        <>{tokenLabel}</>
-                    )}
-                </BalanceRow>
-                {renderFiatValues && (
-                    <BalanceFiat
-                        balanceVisible={balanceVisible}
-                        title={`Balance ${tokenLabel} Fiat`}
-                    >
-                        {supportedFiatCurrencies[settings.fiatCurrency].symbol}
-                        {fiatAmount}&nbsp;
-                        {supportedFiatCurrencies[
-                            settings.fiatCurrency
-                        ].slug.toUpperCase()}
-                    </BalanceFiat>
-                )}
-            </BalanceCard>
-        );
-    };
 
     return (
         <HeaderCtn title="Wallet Info">
@@ -252,35 +312,17 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                 </WalletSelectCtn>
             </LabelCtn>
             <CardWrapper>
-                <BalanceXec>
-                    <AssetBalanceCard
-                        title="eCash"
-                        logo={<EcashIcon />}
-                        logoAlt="eCash"
-                        tokenLabel={appConfig.ticker}
-                        balanceAmount={formattedBalanceXec}
-                        fiatAmount={formattedXECBalanceFiat}
-                        balanceVisible={settings.balanceVisible === false}
-                    />
-                    <AssetBalanceCard
-                        title="Staked"
-                        logo={<StakeIcon />}
-                        logoAlt="eCash Staking"
-                        tokenLabel="XECX"
-                        balanceAmount={formattedBalanceXecx}
-                        fiatAmount={formattedXECXBalanceFiat}
-                        balanceVisible={settings.balanceVisible === false}
-                    />
-                    <AssetBalanceCard
-                        title="USD"
-                        logo={<SavingsIcon />}
-                        logoAlt="Savings"
-                        tokenLabel={FIRMA_BALANCE_LABEL}
-                        balanceAmount={formattedBalanceFirma}
-                        fiatAmount={formattedFIRMABalanceFiat}
-                        balanceVisible={settings.balanceVisible === false}
-                    />
-                </BalanceXec>
+                <BalanceCards
+                    key={activeWalletAddress}
+                    balanceXec={balanceXec}
+                    balanceXecx={balanceXecx}
+                    balanceFirma={balanceFirma}
+                    fiatPrice={fiatPrice}
+                    firmaPrice={firmaPrice}
+                    balanceVisible={settings.balanceVisible === false}
+                    fiatCurrency={settings.fiatCurrency}
+                    userLocale={userLocale}
+                />
             </CardWrapper>
         </HeaderCtn>
     );
