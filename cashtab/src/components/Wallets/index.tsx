@@ -279,7 +279,7 @@ const Wallets = () => {
             }
             await updateCashtabState(updates);
             toast.success(
-                `"${oldName}" renamed to "${formData.renamedWalletName}"`,
+                `“${oldName}” renamed to “${formData.renamedWalletName}”`,
             );
         } else {
             toast.error(`Unable to find wallet ${walletToBeRenamed.name}`);
@@ -331,7 +331,7 @@ const Wallets = () => {
 
         // Update localforage and state
         await updateCashtabState(updates);
-        toast.success(`"${walletToBeDeleted.name}" deleted`);
+        toast.success(`“${walletToBeDeleted.name}” deleted`);
 
         // Reset walletToBeDeleted to hide the modal
         setWalletToBeDeleted(null);
@@ -363,7 +363,7 @@ const Wallets = () => {
         );
         if (typeof walletAlreadyInWalletsSomehow !== 'undefined') {
             toast.error(
-                `By a vanishingly small chance, "${newAddedWallet.name}" already existed in saved wallets. Please try again.`,
+                `By a vanishingly small chance, “${newAddedWallet.name}” already existed in saved wallets. Please try again.`,
             );
             // Do not add this wallet
             return;
@@ -375,7 +375,7 @@ const Wallets = () => {
         // Add it to the end of the wallets object
         updateCashtabState({ wallets: [...wallets, newAddedWallet] });
 
-        toast.success(`New wallet "${newAddedWallet.name}" added to wallets`);
+        toast.success(`New wallet “${newAddedWallet.name}” added to wallets`);
     };
 
     /**
@@ -390,10 +390,10 @@ const Wallets = () => {
         if (typeof walletInWallets !== 'undefined') {
             // Import error modal
             console.error(
-                `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
+                `Cannot import: wallet already exists (name: “${walletInWallets.name}”)`,
             );
             toast.error(
-                `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
+                `Cannot import: wallet already exists (name: “${walletInWallets.name}”)`,
             );
             // Do not clear form data in this case
             return;
@@ -410,10 +410,10 @@ const Wallets = () => {
         if (typeof existingWalletHasSameName !== 'undefined') {
             // Import error modal for wallet existing with the same name
             console.error(
-                `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
+                `Cannot import: wallet with same name already exists (name: “${existingWalletHasSameName.name}”)`,
             );
             toast.error(
-                `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
+                `Cannot import: wallet with same name already exists (name: “${existingWalletHasSameName.name}”)`,
             );
             // Do not clear form data in this case
             return;
@@ -428,7 +428,7 @@ const Wallets = () => {
 
         // Import success modal
         toast.success(
-            `New imported wallet "${newImportedWallet.name}" added to your saved wallets`,
+            `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
         );
 
         // Clear formdata
@@ -536,7 +536,7 @@ const Wallets = () => {
             </SettingsPageHeaderLink>
             {walletToBeRenamed !== null && (
                 <Modal
-                    title={`Rename "${walletToBeRenamed.name}"?`}
+                    title={`Rename “${walletToBeRenamed.name}”?`}
                     handleOk={renameWallet}
                     handleCancel={() => setWalletToBeRenamed(null)}
                     showCancelButton
@@ -556,7 +556,7 @@ const Wallets = () => {
             )}
             {walletToBeDeleted !== null && (
                 <Modal
-                    title={`Delete "${walletToBeDeleted.name}"?`}
+                    title={`Delete “${walletToBeDeleted.name}”?`}
                     handleOk={deleteWallet}
                     handleCancel={() => setWalletToBeDeleted(null)}
                     showCancelButton

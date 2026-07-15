@@ -141,7 +141,7 @@ const Contacts = () => {
             // Update localforage and state
             await updateCashtabState({ contactList: contactList });
             toast.success(
-                `"${oldName}" renamed to "${formData.renamedContactName}"`,
+                `“${oldName}” renamed to “${formData.renamedContactName}”`,
             );
         } else {
             toast.error(`Unable to find contact`);
@@ -167,7 +167,7 @@ const Contacts = () => {
 
         // Update localforage and state
         await updateCashtabState({ contactList: updatedContactList });
-        toast.success(`"${contactToBeDeleted.name}" removed from Contacts`);
+        toast.success(`“${contactToBeDeleted.name}” removed from Contacts`);
 
         // Reset contactToBeDeleted to hide the modal
         setContactToBeDeleted(null);
@@ -199,7 +199,7 @@ const Contacts = () => {
             // update localforage and state
             await updateCashtabState({ contactList: contactList });
             toast.success(
-                `"${formData.newContactName}" (${formData.newContactAddress}) added to Contacts`,
+                `“${formData.newContactName}” (${formData.newContactAddress}) added to Contacts`,
             );
         }
 
@@ -246,7 +246,7 @@ const Contacts = () => {
             <ActionButtonRow variant="tools" activeIndex={0} />
             {contactToBeRenamed !== null && (
                 <Modal
-                    title={`Rename "${contactToBeRenamed.name}"?`}
+                    title={`Rename “${contactToBeRenamed.name}”?`}
                     handleOk={renameContact}
                     handleCancel={() => setContactToBeRenamed(null)}
                     showCancelButton

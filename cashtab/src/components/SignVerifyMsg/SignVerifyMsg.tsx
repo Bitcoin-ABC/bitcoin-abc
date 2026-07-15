@@ -175,7 +175,7 @@ const SignVerifyMsg = () => {
 
         if (verification) {
             toast.success(
-                `Signature verified. Message "${formData.msgToVerify}" was signed by ${formData.addressToVerify}`,
+                `Signature verified. Message “${formData.msgToVerify}” was signed by ${formData.addressToVerify}`,
             );
         } else {
             toast.error('Signature does not match address and message');
@@ -225,9 +225,7 @@ const SignVerifyMsg = () => {
                                 <SignatureLabel>Signature:</SignatureLabel>
                             </Row>
                             <Row>
-                                <CopyToClipboard
-                                    data={messageSignature}
-                                >
+                                <CopyToClipboard data={messageSignature}>
                                     <SignatureHolder>
                                         {messageSignature}
                                     </SignatureHolder>

@@ -323,7 +323,7 @@ export const opReturnVectors = {
                 description: 'Invalid opreturn param input',
                 opreturnParam:
                     '6a0400746162155468697320697320612043617368746162204d7367',
-                errorMsg: `Invalid opreturnParam "6a0400746162155468697320697320612043617368746162204d7367"`,
+                errorMsg: `Invalid opreturnParam “6a0400746162155468697320697320612043617368746162204d7367”`,
             },
         ],
     },

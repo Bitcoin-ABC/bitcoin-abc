@@ -33,7 +33,7 @@ export const getContactAddressError = (
     );
     // We do not accept prefixless input
     if (!address.startsWith(`${appConfig.prefix}:`)) {
-        return `Addresses in Contacts must start with "${appConfig.prefix}:" prefix`;
+        return `Addresses in Contacts must start with “${appConfig.prefix}:” prefix`;
     }
     if (!thisIsValidCashAddress) {
         return `Invalid address`;
@@ -91,7 +91,7 @@ export const isValidXecSendAmount = (
         return 'sendAmount type must be number or string';
     }
     if (typeof sendAmount === 'string' && isNaN(parseFloat(sendAmount))) {
-        return `Unable to parse sendAmount "${sendAmount}" as a number`;
+        return `Unable to parse sendAmount “${sendAmount}” as a number`;
     }
     // xecSendAmount may only contain numbers and '.'
     // TODO support other locale decimal markers
@@ -99,7 +99,7 @@ export const isValidXecSendAmount = (
         sendAmount as string,
     );
     if (!xecSendAmountCharCheck) {
-        return `Invalid amount "${sendAmount}": Amount can only contain numbers and '.' to denote decimal places.`;
+        return `Invalid amount “${sendAmount}”: Amount can only contain numbers and '.' to denote decimal places.`;
     }
 
     const isFiatSendAmount = selectedCurrency !== appConfig.ticker;
@@ -407,7 +407,7 @@ export const getWalletNameError = (
     }
     for (const wallet of wallets) {
         if (wallet.name === name) {
-            return `Wallet name "${name}" already exists`;
+            return `Wallet name “${name}” already exists`;
         }
     }
     return false;
@@ -493,7 +493,7 @@ export const isValidMultiSendUserInput = (
         const isValidAddress = isValidCashAddress(address, appConfig.prefix);
 
         if (!isValidAddress) {
-            return `Invalid address "${address}" at line ${i + 1}`;
+            return `Invalid address “${address}” at line ${i + 1}`;
         }
 
         const xecSendAmount = addressAndValueThisLine[1].trim();
@@ -502,7 +502,7 @@ export const isValidMultiSendUserInput = (
 
         if (isValidValue !== true) {
             // isValidXecSendAmount returns a string explaining the error if it does not return true
-            return `${isValidValue}: check value "${xecSendAmount}" at line ${
+            return `${isValidValue}: check value “${xecSendAmount}” at line ${
                 i + 1
             }`;
         }
@@ -568,7 +568,7 @@ export const isValidTokenMultiSendUserInput = (
         }
         const address = addressAndValueThisLine[0].trim();
         if (!isValidCashAddress(address, appConfig.prefix)) {
-            return `Invalid address "${address}" at line ${i + 1}`;
+            return `Invalid address “${address}” at line ${i + 1}`;
         }
         const qty = addressAndValueThisLine[1].trim();
         if (qty === '') {
@@ -1029,7 +1029,7 @@ export function parseAddressInput(
                         appConfig.prefix,
                     );
                     if (!isValidNthAddress) {
-                        parsedAddressInput.parsedAdditionalTokenOutputs.error = `Invalid address "${value}"`;
+                        parsedAddressInput.parsedAdditionalTokenOutputs.error = `Invalid address “${value}”`;
                         parsedAddressInput.queryString.error =
                             parsedAddressInput.parsedAdditionalTokenOutputs.error;
                         return parsedAddressInput;
@@ -1139,7 +1139,7 @@ export function parseAddressInput(
                 if (!supportedParams.includes(key)) {
                     // queryString error
                     // Keep parsing for other params though
-                    parsedAddressInput.queryString.error = `Unsupported param "${key}"`;
+                    parsedAddressInput.queryString.error = `Unsupported param “${key}”`;
                 }
                 if (key === 'addr') {
                     // nth output address param
@@ -1159,7 +1159,7 @@ export function parseAddressInput(
                     if (!isValidNthAddress) {
                         //
                         // If your address is not a valid address
-                        parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address "${nthAddress}"`;
+                        parsedAddressInput.parsedAdditionalXecOutputs.error = `Invalid address “${nthAddress}”`;
                         // We do not return a value for parsedAdditionalXecOutputs if there is a validation error
                         return parsedAddressInput;
                     }
@@ -1453,7 +1453,7 @@ export const getContactNameError = (
     }
     for (const contact of contacts) {
         if (contact.name === name) {
-            return `"${name}" already exists in contacts`;
+            return `“${name}” already exists in contacts`;
         }
     }
     return false;

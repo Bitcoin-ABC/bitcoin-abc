@@ -225,7 +225,7 @@ describe('<Wallets />', () => {
         );
 
         // We see a modal.
-        expect(await screen.findByText(`Rename "alpha"?`)).toBeInTheDocument();
+        expect(await screen.findByText(`Rename “alpha”?`)).toBeInTheDocument();
 
         // Try to rename it to an already existing name
         await user.type(
@@ -235,7 +235,7 @@ describe('<Wallets />', () => {
 
         // We see expected validation error
         expect(
-            screen.getByText(`Wallet name "bravo" already exists`),
+            screen.getByText(`Wallet name “bravo” already exists`),
         ).toBeInTheDocument();
 
         // Rename OK button is disabled
@@ -254,7 +254,7 @@ describe('<Wallets />', () => {
 
         // We get a confirmation modal
         expect(
-            await screen.findByText('"alpha" renamed to "ALPHA PRIME"'),
+            await screen.findByText('“alpha” renamed to “ALPHA PRIME”'),
         ).toBeInTheDocument();
 
         // The wallet has been renamed
@@ -280,7 +280,7 @@ describe('<Wallets />', () => {
         // We get a confirmation modal
         expect(
             await screen.findByText(
-                '"Transaction Fixtures" renamed to "ACTIVE WALLET"',
+                '“Transaction Fixtures” renamed to “ACTIVE WALLET”',
             ),
         ).toBeInTheDocument();
 
@@ -302,7 +302,7 @@ describe('<Wallets />', () => {
 
         // We see a confirmation modal
         expect(
-            await screen.findByText(`Delete "ALPHA PRIME"?`),
+            await screen.findByText(`Delete “ALPHA PRIME”?`),
         ).toBeInTheDocument();
 
         // Type deletion confirmation
@@ -316,7 +316,7 @@ describe('<Wallets />', () => {
 
         // We get a modal confirming successful wallet deletion
         expect(
-            await screen.findByText('"ALPHA PRIME" deleted'),
+            await screen.findByText('“ALPHA PRIME” deleted'),
         ).toBeInTheDocument();
 
         // wallet ALPHA PRIME is no longer in savedWallets list
@@ -346,7 +346,7 @@ describe('<Wallets />', () => {
 
         // Wallet added success notification
         expect(
-            await screen.findByText(`New wallet "qrj...mua" added to wallets`),
+            await screen.findByText(`New wallet “qrj...mua” added to wallets`),
         ).toBeInTheDocument();
 
         // We see the new wallet
@@ -414,7 +414,7 @@ describe('<Wallets />', () => {
         // Wallet imported success toast
         expect(
             await screen.findByText(
-                `New imported wallet "qzx...l7c" added to your saved wallets`,
+                `New imported wallet “qzx...l7c” added to your saved wallets`,
             ),
         ).toBeInTheDocument();
 
@@ -470,7 +470,7 @@ describe('<Wallets />', () => {
         // Wallet imported failure toast
         expect(
             await screen.findByText(
-                `Cannot import: wallet already exists (name: "qzx...l7c")`,
+                `Cannot import: wallet already exists (name: “qzx...l7c”)`,
             ),
         ).toBeInTheDocument();
 
@@ -504,7 +504,7 @@ describe('<Wallets />', () => {
         // We get the once-in-a-blue-moon modal error
         expect(
             await screen.findByText(
-                `By a vanishingly small chance, "qrj...mua" already existed in saved wallets. Please try again.`,
+                `By a vanishingly small chance, “qrj...mua” already existed in saved wallets. Please try again.`,
             ),
         ).toBeInTheDocument();
     });
@@ -553,7 +553,7 @@ describe('<Wallets />', () => {
         );
 
         expect(
-            await screen.findByText(`Delete "Transaction Fixtures"?`),
+            await screen.findByText(`Delete “Transaction Fixtures”?`),
         ).toBeInTheDocument();
 
         await user.type(
@@ -566,7 +566,7 @@ describe('<Wallets />', () => {
         await user.click(screen.getByRole('button', { name: 'OK' }));
 
         expect(
-            await screen.findByText('"Transaction Fixtures" deleted'),
+            await screen.findByText('“Transaction Fixtures” deleted'),
         ).toBeInTheDocument();
 
         const expectedNextActive = validSavedWallets[0];

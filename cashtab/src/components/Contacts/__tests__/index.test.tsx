@@ -169,7 +169,7 @@ describe('<Contacts />', () => {
         // Confirm notification is triggered
         await waitFor(() => {
             expect(
-                screen.getByText(`"alpha" removed from Contacts`),
+                screen.getByText(`“alpha” removed from Contacts`),
             ).toBeInTheDocument();
         });
 
@@ -207,7 +207,7 @@ describe('<Contacts />', () => {
         // Confirm add contact success notification is triggered
         await waitFor(() => {
             expect(
-                screen.getByText(`"delta" (${address}) added to Contacts`),
+                screen.getByText(`“delta” (${address}) added to Contacts`),
             ).toBeInTheDocument();
         });
 
@@ -272,7 +272,7 @@ describe('<Contacts />', () => {
         // Confirm rename success notification is triggered
         await waitFor(() => {
             expect(
-                screen.getByText(`"beta" renamed to "omega"`),
+                screen.getByText(`“beta” renamed to “omega”`),
             ).toBeInTheDocument();
         });
     });

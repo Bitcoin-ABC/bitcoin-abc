@@ -339,7 +339,7 @@ export const getOpreturnParamTargetOutput = (
     opreturnParam: string,
 ): TxOutput => {
     if (getOpReturnRawError(opreturnParam) !== false) {
-        throw new Error(`Invalid opreturnParam "${opreturnParam}"`);
+        throw new Error(`Invalid opreturnParam “${opreturnParam}”`);
     }
 
     // Note this is a "weird" function that translates op_return_raw input per bip21 spec

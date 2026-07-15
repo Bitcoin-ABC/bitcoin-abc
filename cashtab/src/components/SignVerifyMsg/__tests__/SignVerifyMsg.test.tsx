@@ -129,7 +129,7 @@ describe('<SignVerifyMsg />', () => {
 
         expect(
             screen.getByText(
-                'Signature verified. Message "test message" was signed by ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
+                'Signature verified. Message “test message” was signed by ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
             ),
         ).toBeInTheDocument();
     });

@@ -644,7 +644,7 @@ export default {
                     },
                     amount: { value: '110', error: false },
                     parsedAdditionalXecOutputs: {
-                        error: `Invalid address "someinvalidaddress"`,
+                        error: `Invalid address “someinvalidaddress”`,
                         value: null,
                     },
                     queryString: {
@@ -856,7 +856,7 @@ export default {
                     },
                     queryString: {
                         value: '*&@^&%@amount=-500000',
-                        error: `Unsupported param "%@amount"`,
+                        error: `Unsupported param “%@amount”`,
                     },
                 },
             },
@@ -1696,7 +1696,7 @@ export default {
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Invalid amount "100,12": Amount can only contain numbers and '.' to denote decimal places.`,
+                returned: `Invalid amount “100,12”: Amount can only contain numbers and '.' to denote decimal places.`,
             },
             {
                 description: 'A non-number string is rejected',
@@ -1705,7 +1705,7 @@ export default {
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Unable to parse sendAmount "not a number" as a number`,
+                returned: `Unable to parse sendAmount “not a number” as a number`,
             },
             {
                 description: 'null is rejected',
@@ -1733,7 +1733,7 @@ export default {
                 userLocale: appConfig.defaultLocale,
                 selectedCurrency: appConfig.ticker,
                 fiatPrice: 0.000003,
-                returned: `Invalid amount "12a17": Amount can only contain numbers and '.' to denote decimal places.`,
+                returned: `Invalid amount “12a17”: Amount can only contain numbers and '.' to denote decimal places.`,
             },
             {
                 description:
@@ -1854,7 +1854,7 @@ export default {
                 userMultisendInput: `ecash:notValid, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
                 balanceSats: 11000,
                 userLocale: appConfig.defaultLocale,
-                returned: `Invalid address "ecash:notValid" at line 1`,
+                returned: `Invalid address “ecash:notValid” at line 1`,
             },
             {
                 description:
@@ -1862,7 +1862,7 @@ export default {
                 userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
                 balanceSats: 11000,
                 userLocale: appConfig.defaultLocale,
-                returned: `Send amount must be at least 5.46 XEC: check value "1" at line 1`,
+                returned: `Send amount must be at least 5.46 XEC: check value “1” at line 1`,
             },
             {
                 description:
@@ -1870,7 +1870,7 @@ export default {
                 userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.12\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 10.123\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
                 balanceSats: 11000,
                 userLocale: appConfig.defaultLocale,
-                returned: `XEC transactions do not support more than 2 decimal places: check value "10.123" at line 2`,
+                returned: `XEC transactions do not support more than 2 decimal places: check value “10.123” at line 2`,
             },
             {
                 description: 'Returns expected error msg for an empty input',
@@ -2643,7 +2643,7 @@ export default {
                     { name: 'beta' },
                     { name: 'gamma' },
                 ],
-                returned: `"gamma" already exists in contacts`,
+                returned: `“gamma” already exists in contacts`,
             },
         ],
     },
@@ -2674,7 +2674,7 @@ export default {
                     'Expected error from a valid prefixless ecash: address',
                 address: 'qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                 contacts: [],
-                returned: `Addresses in Contacts must start with "ecash:" prefix`,
+                returned: `Addresses in Contacts must start with “ecash:” prefix`,
             },
             {
                 description: 'Expected error from an invalid address',
@@ -2699,7 +2699,7 @@ export default {
                 name: 'thisnameistwentyfourchar',
                 wallets: [{ name: 'thisnameistwentyfourchar' }],
                 returned:
-                    'Wallet name "thisnameistwentyfourchar" already exists',
+                    'Wallet name “thisnameistwentyfourchar” already exists',
             },
             {
                 description: 'Returns expected error for an empty string',

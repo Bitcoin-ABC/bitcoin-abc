@@ -593,7 +593,7 @@ describe('<SendXec />', () => {
 
         // We get expected addr validation error
         expect(
-            screen.getByText(`Unsupported param "notaparam"`),
+            screen.getByText(`Unsupported param “notaparam”`),
         ).toBeInTheDocument();
 
         // The Send button is disabled
