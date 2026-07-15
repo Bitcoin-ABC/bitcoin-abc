@@ -172,12 +172,12 @@ describe('<Configure />', () => {
 
         // Now we see the Send screen
         expect(
-            await screen.findByTestId('send-recipient-input'),
+            await screen.findByPlaceholderText('Address or contact'),
         ).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
-            screen.getByTestId('send-recipient-input'),
+            screen.getByPlaceholderText('Address or contact'),
             'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
         );
         await user.type(screen.getByPlaceholderText('Amount'), '55');

@@ -22,7 +22,7 @@ const Wrapper = styled.div`
     position: relative;
 `;
 
-const InputLabel = styled.div`
+const InputLabel = styled.label`
     color: ${props => props.theme.primaryText};
     margin-bottom: 6px;
     font-weight: 700;
@@ -332,7 +332,10 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
         return (
             <Wrapper>
                 {label && <InputLabel>{label}</InputLabel>}
-                <ResolvedDisplay data-testid="resolved-recipient">
+                <ResolvedDisplay
+                    role="status"
+                    aria-label={`Recipient ${resolvedLabel}`}
+                >
                     <IconSlot>
                         {isOwnWallet ? (
                             <span title="My wallet">
@@ -345,9 +348,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                         ) : null}
                     </IconSlot>
                     <ResolvedInfo>
-                        <ResolvedName data-testid="resolved-recipient-name">
-                            {resolvedLabel}
-                        </ResolvedName>
+                        <ResolvedName>{resolvedLabel}</ResolvedName>
                         {resolvedLabel !== resolvedPreview && (
                             <ResolvedPreview>{resolvedPreview}</ResolvedPreview>
                         )}
@@ -355,9 +356,9 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                     {!disabled && (
                         <ClearButton
                             type="button"
+                            aria-label="Clear recipient"
                             title="Clear recipient"
                             onClick={clearRecipient}
-                            data-testid="clear-recipient"
                         >
                             ×
                         </ClearButton>
@@ -369,6 +370,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
     }
 
     const showError = typeof error === 'string' && looksLikeAddressInput(query);
+    const inputId = `${name}-input`;
 
     return (
         <Wrapper
@@ -378,9 +380,10 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                 }
             }}
         >
-            {label && <InputLabel>{label}</InputLabel>}
+            {label && <InputLabel htmlFor={inputId}>{label}</InputLabel>}
             <InputRow invalid={showError}>
                 <LeftInput
+                    id={inputId}
                     name={name}
                     value={query}
                     disabled={disabled}
@@ -393,22 +396,21 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                     spellCheck={false}
                     autoCorrect="off"
                     autoCapitalize="off"
-                    data-testid="send-recipient-input"
                 />
                 {!disabled && <ScanQRCode onScan={onScan} />}
             </InputRow>
             {showDropdown && (
-                <DropdownList data-testid="recipient-search-results">
+                <DropdownList aria-label="Matching recipients">
                     {matches.map(match => (
                         <DropdownItem
                             key={`${match.kind}-${match.address}`}
                             type="button"
+                            aria-label={match.name}
                             onMouseDown={e => {
                                 // Prevent input blur before click registers
                                 e.preventDefault();
                             }}
                             onClick={() => selectMatch(match)}
-                            data-testid={`recipient-search-${match.kind}-${match.name}`}
                         >
                             <IconSlot>
                                 {match.kind === 'wallet' ? (

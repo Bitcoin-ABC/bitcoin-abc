@@ -47,14 +47,19 @@ describe('<SendXec />', () => {
     const ecc = new Ecc();
 
     const getRecipientInput = async () =>
-        screen.findByTestId('send-recipient-input');
+        screen.findByPlaceholderText('Address or contact');
 
     const expectResolvedRecipient = async expectedLabel => {
         // Blur so the send field collapses to the resolved label
         await user.tab();
         expect(
-            await screen.findByTestId('resolved-recipient-name'),
-        ).toHaveTextContent(expectedLabel);
+            await screen.findByRole('status', {
+                name: `Recipient ${expectedLabel}`,
+            }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
     };
 
     let user;
@@ -235,13 +240,10 @@ describe('<SendXec />', () => {
         await user.type(addressInputEl, 'alp');
 
         expect(
-            await screen.findByTestId('recipient-search-results'),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByTestId('recipient-search-contact-alpha'),
+            await screen.findByRole('button', { name: 'alpha' }),
         ).toBeInTheDocument();
 
-        await user.click(screen.getByTestId('recipient-search-contact-alpha'));
+        await user.click(screen.getByRole('button', { name: 'alpha' }));
         await expectResolvedRecipient('alpha');
 
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -287,11 +289,11 @@ describe('<SendXec />', () => {
         await user.type(addressInputEl, 'brav');
 
         expect(
-            await screen.findByTestId('recipient-search-wallet-bravo'),
+            await screen.findByRole('button', { name: 'bravo' }),
         ).toBeInTheDocument();
         expect(screen.getByTitle('My wallet')).toBeInTheDocument();
 
-        await user.click(screen.getByTestId('recipient-search-wallet-bravo'));
+        await user.click(screen.getByRole('button', { name: 'bravo' }));
         await expectResolvedRecipient('bravo');
         expect(screen.getByTitle('My wallet')).toBeInTheDocument();
     });
@@ -318,7 +320,9 @@ describe('<SendXec />', () => {
         await user.type(addressInputEl, BLITZ_CHIPS_GAME_ADDRESS);
         await expectResolvedRecipient('BlitzChips');
 
-        await user.click(screen.getByTestId('clear-recipient'));
+        await user.click(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        );
         const clearedInput = await getRecipientInput();
         await user.type(clearedInput, EVERY_DAY_JACKPOT_GAME_ADDRESS);
         await expectResolvedRecipient('EveryDayJackpot');
@@ -904,7 +908,9 @@ describe('<SendXec />', () => {
         await expectResolvedRecipient(
             previewAddress(addressInput.split('?')[0]),
         );
-        expect(screen.getByTestId('clear-recipient')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -1457,7 +1463,9 @@ describe('<SendXec />', () => {
         await expectResolvedRecipient(
             previewAddress(addressInput.split('?')[0]),
         );
-        expect(screen.getByTestId('clear-recipient')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // Advanced controls are hidden for BIP21 input
         expect(
@@ -1582,20 +1590,16 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: addressInput } });
         fireEvent.change(addressInputEl, { target: { value: addressInput } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
-        const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
-        await waitFor(() => {
-            expect(tokenAddressInputEl).toHaveValue(addressInput);
-        });
+        // Wait for token mode to be activated (recipient resolves from bip21)
+        await screen.findByRole('status', { name: /Recipient / });
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // The "Send to many" button should not be visible in token mode (XEC form not shown)
         expect(
             screen.queryByRole('button', { name: 'Send to many' }),
         ).not.toBeInTheDocument();
-
-        // The token mode 'Send To' input field is not disabled
-        expect(tokenAddressInputEl).toHaveProperty('disabled', false);
 
         // Even though we have a query error, the token amount input is visible
         // because the amount came from the BIP21 string (token_decimalized_qty)
@@ -1676,20 +1680,16 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: addressInput } });
         fireEvent.change(addressInputEl, { target: { value: addressInput } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
-        const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
-        await waitFor(() => {
-            expect(tokenAddressInputEl).toHaveValue(addressInput);
-        });
+        // Wait for token mode to be activated (recipient resolves from bip21)
+        await screen.findByRole('status', { name: /Recipient / });
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // The "Send to many" button should not be visible in token mode (XEC form not shown)
         expect(
             screen.queryByRole('button', { name: 'Send to many' }),
         ).not.toBeInTheDocument();
-
-        // The token mode 'Send To' input field is not disabled
-        expect(tokenAddressInputEl).toHaveProperty('disabled', false);
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -1782,9 +1782,9 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: addressInput } });
         fireEvent.change(addressInputEl, { target: { value: addressInput } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
+        // Wait for token mode to be activated; firma error keeps recipient field editable
         const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
+            await screen.findByPlaceholderText('Address or contact');
         await waitFor(() => {
             expect(tokenAddressInputEl).toHaveValue(addressInput);
         });
@@ -1883,20 +1883,16 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: addressInput } });
         fireEvent.change(addressInputEl, { target: { value: addressInput } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
-        const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
-        await waitFor(() => {
-            expect(tokenAddressInputEl).toHaveValue(addressInput);
-        });
+        // Wait for token mode to be activated (recipient resolves from bip21)
+        await screen.findByRole('status', { name: /Recipient / });
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // The "Send to many" button should not be visible in token mode (XEC form not shown)
         expect(
             screen.queryByRole('button', { name: 'Send to many' }),
         ).not.toBeInTheDocument();
-
-        // The token mode 'Send To' input field is not disabled
-        expect(tokenAddressInputEl).toHaveProperty('disabled', false);
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -1947,6 +1943,80 @@ describe('<SendXec />', () => {
         );
         // After sending, the form is cleared - token mode may be reset or amount input may not be visible
         // This is expected behavior after a successful transaction
+    });
+    it('Send Token: Searching contacts shows matches; selecting one resolves and send works', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        await localforage.setItem('contactList', populatedContactList);
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: false,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        // Same hex as ALP Fungible token mode UI send to alpha contact address
+        const hex =
+            '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf79261803000000644160d959e0008ec5b21cb927fd5196ce6e37803a63ff85c22e6659b6c77946c724c3703e3bea8d31338520e3924065e78ace4b484605a0ec34cc712a65717a41354121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff88bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c2501000000644199e25f1c1f8e110260ee39baef7149c181a4d1d3cdc9fc8d505e7875e1f77b356339d1f33bdf0a1ab0dce567cbc9b23e071cf1d6d1d5854c1be86c0a7a9a981a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0400000000000000003a6a5037534c5032000453454e4449884c726ebb974b9b8345ee12b44cc48445562b970f776e307d16547ccdd77c02102700000000301b0f00000022020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac18310f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '9f08db20bf0cbf7cc590e6d0139e370a1338bde2c7fab7755342a0bf473d9ec4';
+        mockedChronik.setBroadcastTx(hex, txid);
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+
+        const { tokenTicker } = alpMocks.token.genesisInfo;
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.click(
+            await screen.findByRole('link', { name: /Send Token/i }),
+        );
+        await screen.findByPlaceholderText('Search by token ticker or name');
+        await user.type(
+            screen.getByPlaceholderText('Search by token ticker or name'),
+            tokenTicker,
+        );
+        await waitFor(() => {
+            expect(screen.getByText(tokenTicker)).toBeInTheDocument();
+        });
+        await user.click(screen.getByText(tokenTicker).closest('div'));
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'alp');
+        expect(
+            await screen.findByRole('button', { name: 'alpha' }),
+        ).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'alpha' }));
+        await expectResolvedRecipient('alpha');
+
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        await user.type(amountInputEl, '1');
+
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+        const txSuccessNotification = await screen.findByText('eToken sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
     });
     it('ALP Fungible: We can send an ALP token using the token mode UI', async () => {
         // Mock the app with context at the Send screen
@@ -2032,7 +2102,8 @@ describe('<SendXec />', () => {
         // Wait for token to be selected and address/amount inputs to appear
         // The search input should be replaced with the selected token display
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -2045,7 +2116,8 @@ describe('<SendXec />', () => {
         expect(screen.getByText(tokenTicker)).toBeInTheDocument();
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -2082,7 +2154,9 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
+            expect(
+                screen.queryByPlaceholderText('Address or contact'),
+            ).toHaveValue('');
         });
     });
     it('SLP1 Fungible: We can send an SLP token using the token mode UI', async () => {
@@ -2169,7 +2243,8 @@ describe('<SendXec />', () => {
         // Wait for token to be selected and address/amount inputs to appear
         // The search input should be replaced with the selected token display
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -2182,7 +2257,8 @@ describe('<SendXec />', () => {
         expect(screen.getByText(tokenTicker)).toBeInTheDocument();
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -2226,7 +2302,9 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
+            expect(
+                screen.queryByPlaceholderText('Address or contact'),
+            ).toHaveValue('');
         });
     });
     it('SLP1 NFT Parent: We can send an SLP NFT parent token using the token mode UI', async () => {
@@ -2349,7 +2427,8 @@ describe('<SendXec />', () => {
         // Wait for token to be selected and address/amount inputs to appear
         // The search input should be replaced with the selected token display
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -2362,7 +2441,8 @@ describe('<SendXec />', () => {
         expect(screen.getByText(tokenTicker)).toBeInTheDocument();
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -2399,7 +2479,9 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
+            expect(
+                screen.queryByPlaceholderText('Address or contact'),
+            ).toHaveValue('');
         });
     });
     it('SLP1 NFT Child: We can send an SLP NFT using the token mode UI', async () => {
@@ -2519,7 +2601,8 @@ describe('<SendXec />', () => {
         // Wait for token to be selected and address/amount inputs to appear
         // The search input should be replaced with the selected token display
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -2532,7 +2615,8 @@ describe('<SendXec />', () => {
         expect(screen.getByText(tokenTicker)).toBeInTheDocument();
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -2569,7 +2653,9 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
+            expect(
+                screen.queryByPlaceholderText('Address or contact'),
+            ).toHaveValue('');
         });
     });
     it('SLP2 Mint Vault: We can send a mint vault token using the token mode UI', async () => {
@@ -2689,7 +2775,8 @@ describe('<SendXec />', () => {
         // Wait for token to be selected and address/amount inputs to appear
         // The search input should be replaced with the selected token display
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -2702,7 +2789,8 @@ describe('<SendXec />', () => {
         expect(screen.getByText(tokenTicker)).toBeInTheDocument();
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -2739,7 +2827,9 @@ describe('<SendXec />', () => {
 
         // Form should be cleared after successful send
         await waitFor(() => {
-            expect(screen.queryByPlaceholderText('Address')).toHaveValue('');
+            expect(
+                screen.queryByPlaceholderText('Address or contact'),
+            ).toHaveValue('');
         });
     });
     it('SLP1 NFT Child: Entering a valid bip21 query string for a token send tx will correcty populate the UI, and the tx can be sent', async () => {
@@ -2804,20 +2894,16 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: addressInput } });
         fireEvent.change(addressInputEl, { target: { value: addressInput } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
-        const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
-        await waitFor(() => {
-            expect(tokenAddressInputEl).toHaveValue(addressInput);
-        });
+        // Wait for token mode to be activated (recipient resolves from bip21)
+        await screen.findByRole('status', { name: /Recipient / });
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // The "Send to many" button should not be visible in token mode (XEC form not shown)
         expect(
             screen.queryByRole('button', { name: 'Send to many' }),
         ).not.toBeInTheDocument();
-
-        // The token mode 'Send To' input field is not disabled
-        expect(tokenAddressInputEl).toHaveProperty('disabled', false);
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -2919,12 +3005,11 @@ describe('<SendXec />', () => {
         fireEvent.input(addressInputEl, { target: { value: bip21Str } });
         fireEvent.change(addressInputEl, { target: { value: bip21Str } });
 
-        // Wait for token mode to be activated (address input populated with bip21)
-        const tokenAddressInputEl =
-            await screen.findByPlaceholderText('Address');
-        await waitFor(() => {
-            expect(tokenAddressInputEl).toHaveValue(bip21Str);
-        });
+        // Wait for token mode to be activated (recipient resolves from bip21)
+        await screen.findByRole('status', { name: /Recipient / });
+        expect(
+            screen.getByRole('button', { name: 'Clear recipient' }),
+        ).toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -3039,7 +3124,8 @@ describe('<SendXec />', () => {
 
         // Wait for token to be selected and address/amount inputs to appear
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
@@ -3056,7 +3142,8 @@ describe('<SendXec />', () => {
         });
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -3207,12 +3294,14 @@ describe('<SendXec />', () => {
 
         // Wait for token to be selected and address/amount inputs to appear
         await waitFor(() => {
-            const addressInput = screen.queryByPlaceholderText('Address');
+            const addressInput =
+                screen.queryByPlaceholderText('Address or contact');
             expect(addressInput).toBeInTheDocument();
         });
 
         // Enter address
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl =
+            screen.getByPlaceholderText('Address or contact');
         const address = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         await user.type(addressInputEl, address);
         expect(addressInputEl).toHaveValue(address);
@@ -3370,7 +3459,7 @@ describe('<SendXec />', () => {
         });
         await user.click(screen.getByText('CACHET').closest('div'));
 
-        await screen.findByPlaceholderText('Address');
+        await screen.findByPlaceholderText('Address or contact');
         await user.click(screen.getByRole('button', { name: /Advanced/i }));
         await user.click(screen.getByRole('button', { name: 'Send to many' }));
 

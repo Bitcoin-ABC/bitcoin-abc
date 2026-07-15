@@ -34,13 +34,16 @@ describe('<SendXec /> rendered with params in URL', () => {
         expectedLabel,
     ) => {
         const address = addressOrBip21.split('?')[0];
+        const label = expectedLabel || previewAddress(address);
         expect(
-            await screen.findByTestId('resolved-recipient-name'),
-        ).toHaveTextContent(expectedLabel || previewAddress(address));
+            await screen.findByRole('status', { name: `Recipient ${label}` }),
+        ).toBeInTheDocument();
         // URL / extension txs lock the recipient (no clear control)
-        expect(screen.queryByTestId('clear-recipient')).not.toBeInTheDocument();
         expect(
-            screen.queryByTestId('send-recipient-input'),
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByPlaceholderText('Address or contact'),
         ).not.toBeInTheDocument();
     };
 
@@ -326,9 +329,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByTestId(
-            'send-recipient-input',
-        );
+        const addressInputEl =
+            await screen.findByPlaceholderText('Address or contact');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field is untouched
@@ -376,9 +378,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByTestId(
-            'send-recipient-input',
-        );
+        const addressInputEl =
+            await screen.findByPlaceholderText('Address or contact');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field is untouched
@@ -557,9 +558,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toHaveTextContent('9,513.12 XEC');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByTestId(
-            'send-recipient-input',
-        );
+        const addressInputEl =
+            await screen.findByPlaceholderText('Address or contact');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // Invalid BIP21 still shows locked input with the full string
@@ -604,9 +604,8 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
-        const addressInputEl = await screen.findByTestId(
-            'send-recipient-input',
-        );
+        const addressInputEl =
+            await screen.findByPlaceholderText('Address or contact');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The 'Send To' input field has this address as a value
@@ -761,16 +760,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             { timeout: 5000 },
         );
 
-        // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
-
-        // The address input is disabled for app txs with bip21 strings
-        // Note it is NOT disabled for txs where the user inputs the bip21 string
-        // This is covered in SendXec.test.js
-        expect(addressInputEl).toBeDisabled();
+        // Token mode recipient is resolved and locked for extension/URL bip21 txs
+        expect(
+            screen.getByRole('status', { name: /Recipient / }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -877,14 +873,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             { timeout: 5000 },
         );
 
-        // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
-
-        // The address input is disabled for app txs with bip21 strings
-        expect(addressInputEl).toBeDisabled();
+        // Token mode recipient is resolved and locked for extension/URL bip21 txs
+        expect(
+            screen.getByRole('status', { name: /Recipient / }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -956,14 +951,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             { timeout: 5000 },
         );
 
-        // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
-
-        // The address input is disabled for app txs with bip21 strings
-        expect(addressInputEl).toBeDisabled();
+        // Token mode recipient is resolved and locked for extension/URL bip21 txs
+        expect(
+            screen.getByRole('status', { name: /Recipient / }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -1050,14 +1044,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             { timeout: 5000 },
         );
 
-        // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
-
-        // The address input is disabled for app txs with bip21 strings
-        expect(addressInputEl).toBeDisabled();
+        // Token mode recipient is resolved and locked for extension/URL bip21 txs
+        expect(
+            screen.getByRole('status', { name: /Recipient / }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -1141,14 +1134,13 @@ describe('<SendXec /> rendered with params in URL', () => {
             { timeout: 5000 },
         );
 
-        // Get the token address input (in token mode)
-        const addressInputEl = screen.getByPlaceholderText('Address');
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
-
-        // The address input is disabled for app txs with bip21 strings
-        expect(addressInputEl).toBeDisabled();
+        // Token mode recipient is resolved and locked for extension/URL bip21 txs
+        expect(
+            screen.getByRole('status', { name: /Recipient / }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Clear recipient' }),
+        ).not.toBeInTheDocument();
 
         // The token amount input is visible and populated from the BIP21 string
         const amountInputEl = screen.getByPlaceholderText('Amount');

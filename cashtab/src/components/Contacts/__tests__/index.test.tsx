@@ -320,7 +320,7 @@ describe('<Contacts />', () => {
 
         // Now we are on the SendXec page and the contact is resolved
         expect(
-            await screen.findByTestId('resolved-recipient-name'),
-        ).toHaveTextContent('alpha');
+            await screen.findByRole('status', { name: 'Recipient alpha' }),
+        ).toBeInTheDocument();
     });
 });

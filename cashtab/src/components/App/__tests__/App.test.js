@@ -219,7 +219,9 @@ describe('<App />', () => {
         );
 
         // Now we see the Send screen
-        expect(screen.getByTestId('send-recipient-input')).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText('Address or contact'),
+        ).toBeInTheDocument();
 
         // Navigate to eTokens screen
         await user.click(
@@ -432,7 +434,7 @@ describe('<App />', () => {
         // We do not see the send screen before clicking the button
         await waitFor(() =>
             expect(
-                screen.queryByTestId('send-recipient-input'),
+                screen.queryByPlaceholderText('Address or contact'),
             ).not.toBeInTheDocument(),
         );
 
@@ -440,8 +442,10 @@ describe('<App />', () => {
 
         // Reply prefills the recipient (resolved) and dust amount
         expect(
-            await screen.findByTestId('resolved-recipient-name'),
-        ).toHaveTextContent('qph...72y');
+            await screen.findByRole('status', {
+                name: 'Recipient qph...72y',
+            }),
+        ).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.46);
     });
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {

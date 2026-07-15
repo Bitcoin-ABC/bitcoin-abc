@@ -67,7 +67,6 @@ import { getUserLocale } from 'helpers';
 import { fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
 import {
-    InputWithScanner,
     SendXecInput,
     SendTokenInput,
     Input,
@@ -3013,7 +3012,11 @@ const SendXec: React.FC = () => {
                                                   selectedTokenId,
                                               )?.genesisInfo.tokenTicker ||
                                               'token'
-                                          } to ${tokenFormData.address}`
+                                          } to ${getRecipientDisplayLabel(
+                                              tokenFormData.address,
+                                              contactList,
+                                              wallets,
+                                          )}`
                                     : isOneToManyXECSend
                                       ? `Send
                                 ${multiSendTotal.toLocaleString(userLocale, {
@@ -3208,9 +3211,9 @@ const SendXec: React.FC = () => {
                                         open={isOneToManyTokenSend}
                                     >
                                         <SendToOneHolder>
-                                            <InputWithScanner
+                                            <SendRecipientInput
                                                 label="Address"
-                                                placeholder="Address"
+                                                placeholder="Address or contact"
                                                 name="address"
                                                 value={tokenFormData.address}
                                                 disabled={
@@ -3225,19 +3228,12 @@ const SendXec: React.FC = () => {
                                                             selectedTokenId) ||
                                                     isOneToManyTokenSend
                                                 }
-                                                handleInput={e => {
-                                                    const parsed =
-                                                        parseAddressInput(
-                                                            e.target.value,
-                                                            balanceSats,
-                                                            userLocale,
-                                                        );
-                                                    handleTokenModeAddressChange(
-                                                        e,
-                                                        parsed,
-                                                    );
-                                                }}
+                                                handleInput={
+                                                    handleAddressChange
+                                                }
                                                 error={sendAddressError}
+                                                contactList={contactList}
+                                                wallets={wallets}
                                             />
                                             <SendTokenInput
                                                 label="Amount"
@@ -3296,9 +3292,9 @@ const SendXec: React.FC = () => {
                                     </InputModesHolder>
                                 ) : (
                                     <>
-                                        <InputWithScanner
+                                        <SendRecipientInput
                                             label="Address"
-                                            placeholder="Address"
+                                            placeholder="Address or contact"
                                             name="address"
                                             value={tokenFormData.address}
                                             disabled={
@@ -3310,19 +3306,10 @@ const SendXec: React.FC = () => {
                                                 parsedAddressInput.token_id
                                                     ?.value === selectedTokenId
                                             }
-                                            handleInput={e => {
-                                                const parsed =
-                                                    parseAddressInput(
-                                                        e.target.value,
-                                                        balanceSats,
-                                                        userLocale,
-                                                    );
-                                                handleTokenModeAddressChange(
-                                                    e,
-                                                    parsed,
-                                                );
-                                            }}
+                                            handleInput={handleAddressChange}
                                             error={sendAddressError}
+                                            contactList={contactList}
+                                            wallets={wallets}
                                         />
                                         <SendTokenInput
                                             label="Amount"
