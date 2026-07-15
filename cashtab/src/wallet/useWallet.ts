@@ -965,6 +965,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
         try {
             const xecPrice = await fetch(priceApiUrl);
+            if (xecPrice.ok === false) {
+                // Most common case is CoinGecko 429; avoid parsing an error body as JSON
+                console.error(
+                    `Failed to fetch XEC Price: Bad response or rate limit from CoinGecko`,
+                );
+                return setFiatPrice(null);
+            }
             const xecPriceJson = await xecPrice.json();
             const xecPriceInFiat = xecPriceJson[cryptoId][fiatCode];
 
@@ -1002,6 +1009,13 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=${fiatCode}`;
         try {
             const firmaPrice = await fetch(priceApiUrl);
+            if (firmaPrice.ok === false) {
+                // Most common case is CoinGecko 429; avoid parsing an error body as JSON
+                console.error(
+                    `Failed to fetch Firma Price: Bad response or rate limit from CoinGecko`,
+                );
+                return setFirmaPrice(null);
+            }
             const firmaPriceJson = await firmaPrice.json();
             const firmaPriceInFiat = firmaPriceJson.usd[fiatCode];
 

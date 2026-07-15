@@ -46,6 +46,7 @@ describe('useWallet hook rendering in different localforage states', () => {
         when(fetch)
             .calledWith(priceApiUrl)
             .mockResolvedValue({
+                ok: true,
                 json: () => Promise.resolve(priceResponse),
             });
     });
@@ -104,6 +105,7 @@ describe('useWallet hook rendering in different localforage states', () => {
         when(fetch)
             .calledWith(priceApiUrl)
             .mockResolvedValue({
+                ok: false,
                 json: () => Promise.reject('Rate limit or some other error'),
             });
 
@@ -129,6 +131,7 @@ describe('useWallet hook rendering in different localforage states', () => {
         when(fetch)
             .calledWith(priceApiUrl)
             .mockResolvedValue({
+                ok: true,
                 json: () => Promise.resolve(priceResponseGbp),
             });
 
