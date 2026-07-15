@@ -45,20 +45,6 @@ export const isAgoraPartialInputOrOutput = (
     );
 };
 
-export const isAgoraTx = (tx: Tx): boolean => {
-    for (const input of tx.inputs) {
-        if (isAgoraPartialInputOrOutput(input)) {
-            return true;
-        }
-    }
-    for (const output of tx.outputs) {
-        if (isAgoraPartialInputOrOutput(output)) {
-            return true;
-        }
-    }
-    return false;
-};
-
 const getAgoraOffer = (tx: Tx): PartialOffer | undefined => {
     const { txid, outputs } = tx;
 
