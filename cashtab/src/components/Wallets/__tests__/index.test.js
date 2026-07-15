@@ -28,7 +28,7 @@ import { generateMnemonic } from 'wallet';
 import { Ecc } from 'ecash-lib';
 
 // Mock wallet.generateMnemonic() only for this test file
-// This ensures we have a consistent test for wallet name generation
+// This ensures a consistent mnemonic for the duplicate-seed edge case
 jest.mock('wallet', () => {
     const actual = jest.requireActual('wallet');
     return {
@@ -337,47 +337,75 @@ describe('<Wallets />', () => {
         expect(renamedWallet).toBeDefined();
         expect(renamedWallet.address).toBe(activeWalletAddress);
 
-        // We can add a wallet without specifying any mnemonic
+        // We can add a wallet after naming it
         await user.click(
             screen.getByRole('button', {
                 name: /New Wallet/,
             }),
         );
 
+        // We see the new wallet name modal
+        expect(await screen.findByText('New wallet')).toBeInTheDocument();
+        const newWalletNameInput = screen.getByPlaceholderText(
+            'Enter a name for this wallet',
+        );
+        const newWalletOkBtn = screen.getByRole('button', { name: 'OK' });
+        expect(newWalletOkBtn).toHaveProperty('disabled', true);
+
+        // Reject duplicate names
+        await user.type(newWalletNameInput, 'bravo');
+        expect(
+            screen.getByText(`Wallet name “bravo” already exists`),
+        ).toBeInTheDocument();
+        expect(newWalletOkBtn).toHaveProperty('disabled', true);
+
+        await user.clear(newWalletNameInput);
+        await user.type(newWalletNameInput, 'Savings');
+        expect(newWalletOkBtn).toHaveProperty('disabled', false);
+
+        await user.click(newWalletOkBtn);
+
         // Wallet added success notification
         expect(
-            await screen.findByText(`New wallet “qrj...mua” added to wallets`),
+            await screen.findByText(`New wallet “Savings” added to wallets`),
         ).toBeInTheDocument();
 
-        // We see the new wallet
-        expect(
-            (await screen.findAllByText('qrj...mua'))[1],
-        ).toBeInTheDocument();
+        // We see the new wallet by its chosen name
+        expect((await screen.findAllByText('Savings'))[1]).toBeInTheDocument();
 
-        // It is added to the end of the wallets array
-        // It will be organized alphabetically when the user refreshes and loadCashtabState runs
-        // We want it added at the end so it's easy for a user to see what wallet was just added
+        // It is stored with the user-chosen name
         const walletsAfterAdd = await localforage.getItem('wallets');
-        expect(walletsAfterAdd[walletsAfterAdd.length - 1].name).toBe(
-            'qrj...mua',
+        expect(walletsAfterAdd.some(wallet => wallet.name === 'Savings')).toBe(
+            true,
         );
 
-        // We can import a wallet by specifying a mnemonic
+        // We can import a wallet by specifying a name and mnemonic
         await user.click(
             screen.getByRole('button', {
                 name: /Import Wallet/,
             }),
         );
 
-        // We see import modal
+        // We see import modal with name + mnemonic fields
+        expect(
+            screen.getByPlaceholderText('Enter a name for this wallet'),
+        ).toBeInTheDocument();
         expect(
             screen.getByPlaceholderText('mnemonic (seed phrase)'),
         ).toBeInTheDocument();
 
-        // Import button is disabled
+        // Import button is disabled until both name and mnemonic are valid
         const importBtn = screen.getByRole('button', {
             name: 'OK',
         });
+        expect(importBtn).toHaveProperty('disabled', true);
+
+        await user.type(
+            screen.getByPlaceholderText('Enter a name for this wallet'),
+            'Imported Wallet',
+        );
+
+        // Still disabled without a valid mnemonic
         expect(importBtn).toHaveProperty('disabled', true);
 
         // Type in most of a mnemonic
@@ -414,7 +442,7 @@ describe('<Wallets />', () => {
         // Wallet imported success toast
         expect(
             await screen.findByText(
-                `New imported wallet “qzx...l7c” added to your saved wallets`,
+                `New imported wallet “Imported Wallet” added to your saved wallets`,
             ),
         ).toBeInTheDocument();
 
@@ -423,18 +451,18 @@ describe('<Wallets />', () => {
             screen.queryByPlaceholderText('mnemonic (seed phrase)'),
         ).not.toBeInTheDocument();
 
-        // We see the new wallet
+        // We see the new wallet by its chosen name
         expect(
-            (await screen.findAllByText('qzx...l7c'))[1],
+            (await screen.findAllByText('Imported Wallet'))[1],
         ).toBeInTheDocument();
 
-        // It is added to the end of the wallets array
-        // It will be organized alphabetically when the user refreshes and loadCashtabState runs
-        // We want it added at the end so it's easy for a user to see what wallet was just added
+        // It is stored with the user-chosen name
         const walletsAfterImport = await localforage.getItem('wallets');
-        expect(walletsAfterImport[walletsAfterImport.length - 1].name).toBe(
-            'qzx...l7c',
-        );
+        expect(
+            walletsAfterImport.some(
+                wallet => wallet.name === 'Imported Wallet',
+            ),
+        ).toBe(true);
 
         // The modal will be closed after a successful import
         await waitFor(() =>
@@ -452,6 +480,10 @@ describe('<Wallets />', () => {
 
         // If we try to import the same wallet again, we get an error and wallets is unchanged
         await user.type(
+            screen.getByPlaceholderText('Enter a name for this wallet'),
+            'Another Name',
+        );
+        await user.type(
             screen.getByPlaceholderText('mnemonic (seed phrase)'),
             'pioneer waste next tired armed course expand stairs load brick asthma budget',
         );
@@ -467,12 +499,20 @@ describe('<Wallets />', () => {
         // Click import
         await user.click(newImportButton);
 
-        // Wallet imported failure toast
+        // Wallet imported failure toast (reports the existing wallet's name)
         expect(
             await screen.findByText(
-                `Cannot import: wallet already exists (name: “qzx...l7c”)`,
+                `Cannot import: wallet already exists (name: “Imported Wallet”)`,
             ),
         ).toBeInTheDocument();
+
+        // Close the import modal before creating another wallet
+        await user.click(screen.getByRole('button', { name: 'Cancel' }));
+        await waitFor(() =>
+            expect(
+                screen.queryByPlaceholderText('mnemonic (seed phrase)'),
+            ).not.toBeInTheDocument(),
+        );
 
         // We can change the active wallet
 
@@ -488,23 +528,23 @@ describe('<Wallets />', () => {
             EXPECTED_ACTIVE_WALLET_LABELS_IN_DOCUMENT,
         );
 
-        // If we try to add a wallet that has the same name as an already existing wallet
-        // We get an error modal
-
-        // We can add a wallet without specifying any mnemonic
-        // Since we already did this earlier in the test, and we have mocked generateMnemonic() in this test,
-        // we will get the same wallet that already exists
-        // Confirm this edge case is not allowed
+        // If we try to create another wallet from the same mocked mnemonic, reject it
         await user.click(
             screen.getByRole('button', {
                 name: /New Wallet/,
             }),
         );
 
+        await user.type(
+            await screen.findByPlaceholderText('Enter a name for this wallet'),
+            'Duplicate Seed',
+        );
+        await user.click(screen.getByRole('button', { name: 'OK' }));
+
         // We get the once-in-a-blue-moon modal error
         expect(
             await screen.findByText(
-                `By a vanishingly small chance, “qrj...mua” already existed in saved wallets. Please try again.`,
+                `By a vanishingly small chance, this wallet already existed in saved wallets. Please try again.`,
             ),
         ).toBeInTheDocument();
     });

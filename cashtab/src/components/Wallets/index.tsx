@@ -109,6 +109,8 @@ const Wallets = () => {
         useState<null | StoredCashtabWallet>(null);
     const [walletToBeDeleted, setWalletToBeDeleted] =
         useState<null | StoredCashtabWallet>(null);
+    const [showNewWalletModal, setShowNewWalletModal] =
+        useState<boolean>(false);
     const [showImportWalletModal, setShowImportWalletModal] =
         useState<boolean>(false);
     const [showAddressShareModal, setShowAddressShareModal] =
@@ -187,7 +189,7 @@ const Wallets = () => {
      * e.target.name will be name of originating input field
      */
     const handleInputCommon = (name: string, value: string) => {
-        if (name === 'renamedWalletName') {
+        if (name === 'renamedWalletName' || name === 'newWalletName') {
             setFormDataErrors(previous => ({
                 ...previous,
                 [name]: getWalletNameError(value, wallets),
@@ -343,27 +345,84 @@ const Wallets = () => {
         }));
     };
 
+    const clearNewWalletNameForm = () => {
+        setFormData(previous => ({
+            ...previous,
+            newWalletName: '',
+        }));
+        setFormDataErrors(previous => ({
+            ...previous,
+            newWalletName: false,
+        }));
+    };
+
+    const openNewWalletModal = () => {
+        setShowImportWalletModal(false);
+        clearNewWalletNameForm();
+        setFormData(previous => ({
+            ...previous,
+            mnemonic: '',
+        }));
+        setFormDataErrors(previous => ({
+            ...previous,
+            mnemonic: false,
+        }));
+        setShowNewWalletModal(true);
+    };
+
+    const closeNewWalletModal = () => {
+        setShowNewWalletModal(false);
+        clearNewWalletNameForm();
+    };
+
+    const openImportWalletModal = () => {
+        setShowNewWalletModal(false);
+        clearNewWalletNameForm();
+        setFormData(previous => ({
+            ...previous,
+            mnemonic: '',
+        }));
+        setFormDataErrors(previous => ({
+            ...previous,
+            mnemonic: false,
+        }));
+        setShowImportWalletModal(true);
+    };
+
+    const closeImportWalletModal = () => {
+        setShowImportWalletModal(false);
+        clearNewWalletNameForm();
+        setFormData(previous => ({
+            ...previous,
+            mnemonic: '',
+        }));
+        setFormDataErrors(previous => ({
+            ...previous,
+            mnemonic: false,
+        }));
+    };
+
     /**
-     * Generate a new wallet and add it to the users wallets array
+     * Generate a new wallet with the user-chosen name and add it to wallets
      */
     const addNewWallet = async () => {
+        const walletName = formData.newWalletName;
+        if (walletName === '' || formDataErrors.newWalletName !== false) {
+            return;
+        }
+
         // Generate a new wallet with a new mnemonic
         const mnemonic = generateMnemonic();
-        const newAddedWallet = createCashtabWallet(mnemonic);
+        const newAddedWallet = createCashtabWallet(mnemonic, walletName);
 
-        // Note: technically possible though highly unlikley that a wallet already exists with this name
-        // Also technically possible though ... er, almost impossibly improbable for wallet with same mnemonic to exist
-        // In both cases, the odds are tremendously low.
-        // Let's cover the edge case anyway though. It's easy enough for the user to just create
-        // a wallet again if we some crazy how get here
+        // Technically possible though almost impossibly improbable for a wallet with
+        // the same mnemonic to already exist. Cover the edge case.
         const walletAlreadyInWalletsSomehow = wallets.find(
-            wallet =>
-                wallet.name === newAddedWallet.name ||
-                wallet.mnemonic === newAddedWallet.mnemonic,
+            wallet => wallet.mnemonic === newAddedWallet.mnemonic,
         );
         if (typeof walletAlreadyInWalletsSomehow !== 'undefined') {
             toast.error(
-                `By a vanishingly small chance, “${newAddedWallet.name}” already existed in saved wallets. Please try again.`,
+                `By a vanishingly small chance, this wallet already existed in saved wallets. Please try again.`,
             );
             // Do not add this wallet
             return;
@@ -372,16 +431,27 @@ const Wallets = () => {
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Create Wallet', 'New');
-        // Add it to the end of the wallets object
+        // Add it to the end of the wallets object; display sorts by name
         updateCashtabState({ wallets: [...wallets, newAddedWallet] });
 
         toast.success(`New wallet “${newAddedWallet.name}” added to wallets`);
+        closeNewWalletModal();
     };
 
     /**
      * Add a new imported wallet to cashtabState wallets object
      */
     async function importNewWallet() {
+        const walletName = formData.newWalletName;
+        if (
+            walletName === '' ||
+            formDataErrors.newWalletName !== false ||
+            formData.mnemonic === '' ||
+            formDataErrors.mnemonic !== false
+        ) {
+            return;
+        }
+
         // Make sure no existing wallets have this mnemonic
         const walletInWallets = wallets.find(
             wallet => wallet.mnemonic === formData.mnemonic,
@@ -399,31 +469,17 @@ const Wallets = () => {
             return;
         }
 
-        // Create a new wallet from mnemonic
-        const newImportedWallet = createCashtabWallet(formData.mnemonic);
-
-        // Handle edge case of another wallet having the same name
-        const existingWalletHasSameName = wallets.find(
-            wallet => wallet.name === newImportedWallet.name,
+        // Create a new wallet from mnemonic with the user-chosen name
+        const newImportedWallet = createCashtabWallet(
+            formData.mnemonic,
+            walletName,
         );
-
-        if (typeof existingWalletHasSameName !== 'undefined') {
-            // Import error modal for wallet existing with the same name
-            console.error(
-                `Cannot import: wallet with same name already exists (name: “${existingWalletHasSameName.name}”)`,
-            );
-            toast.error(
-                `Cannot import: wallet with same name already exists (name: “${existingWalletHasSameName.name}”)`,
-            );
-            // Do not clear form data in this case
-            return;
-        }
 
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Create Wallet', 'Imported');
 
-        // Add it to the end of the wallets object
+        // Add it to the end of the wallets object; display sorts by name
         updateCashtabState({ wallets: [...wallets, newImportedWallet] });
 
         // Import success modal
@@ -431,11 +487,7 @@ const Wallets = () => {
             `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
         );
 
-        // Clear formdata
-        setFormData({ ...formData, mnemonic: '' });
-
-        // Close the modal
-        setShowImportWalletModal(false);
+        closeImportWalletModal();
     }
 
     /**
@@ -574,17 +626,46 @@ const Wallets = () => {
                     />
                 </Modal>
             )}
+            {showNewWalletModal && (
+                <Modal
+                    title="New wallet"
+                    handleOk={addNewWallet}
+                    handleCancel={closeNewWalletModal}
+                    showCancelButton
+                    disabled={
+                        formDataErrors.newWalletName !== false ||
+                        formData.newWalletName === ''
+                    }
+                >
+                    <ModalInput
+                        placeholder="Enter a name for this wallet"
+                        name="newWalletName"
+                        value={formData.newWalletName}
+                        error={formDataErrors.newWalletName}
+                        handleInput={handleInput}
+                    />
+                </Modal>
+            )}
             {showImportWalletModal && (
                 <Modal
                     title={`Import wallet`}
                     handleOk={importNewWallet}
-                    handleCancel={() => setShowImportWalletModal(false)}
+                    handleCancel={closeImportWalletModal}
                     showCancelButton
                     disabled={
                         formDataErrors.mnemonic !== false ||
-                        formData.mnemonic === ''
+                        formData.mnemonic === '' ||
+                        formDataErrors.newWalletName !== false ||
+                        formData.newWalletName === ''
                     }
                 >
+                    <ModalInput
+                        placeholder="Enter a name for this wallet"
+                        name="newWalletName"
+                        value={formData.newWalletName}
+                        error={formDataErrors.newWalletName}
+                        handleInput={handleInput}
+                    />
                     <ModalTextArea
                         placeholder="mnemonic (seed phrase)"
                         name="mnemonic"
@@ -757,14 +838,12 @@ const Wallets = () => {
                     )}
                 </WalletsPanel>
                 <WalletRow>
-                    <PrimaryButton onClick={() => addNewWallet()}>
+                    <PrimaryButton onClick={openNewWalletModal}>
                         New Wallet
                     </PrimaryButton>
                 </WalletRow>
                 <WalletRow>
-                    <SecondaryButton
-                        onClick={() => setShowImportWalletModal(true)}
-                    >
+                    <SecondaryButton onClick={openImportWalletModal}>
                         Import Wallet
                     </SecondaryButton>
                 </WalletRow>
