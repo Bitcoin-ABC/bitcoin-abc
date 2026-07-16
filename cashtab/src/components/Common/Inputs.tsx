@@ -892,22 +892,44 @@ const CashtabSlider = styled.input<{
     accent-color: ${props =>
         props.isInvalid ? props.theme.error : props.theme.accent};
 `;
-const SliderInput = styled.input<{ invalid?: boolean }>`
+const SliderInput = styled.input<{ invalid?: boolean; withMax?: boolean }>`
     ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.inputBackground};
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
     padding: 6px;
-    border-radius: 4px;
+    border-radius: ${props => (props.withMax ? '4px 0 0 4px' : '4px')};
     text-align: right;
     border: ${props =>
         props.invalid ? `1px solid ${props.theme.formError}` : `none`};
     width: 100%;
     color: ${props => props.theme.primaryText};
-    margin-top: 5px;
+    margin-top: ${props => (props.withMax ? '0' : '5px')};
     :focus-visible {
         outline: none;
     }
+`;
+const SliderTypedInputRow = styled.div<{ invalid?: boolean }>`
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 5px;
+    input,
+    button {
+        border: ${props =>
+            props.invalid
+                ? `1px solid ${props.theme.formError}`
+                : `1px solid transparent`};
+    }
+    button {
+        color: ${props =>
+            props.invalid ? props.theme.formError : props.theme.primaryText};
+    }
+`;
+const OnMaxBtnSlider = styled(OnMaxBtnToken)`
+    border-radius: 0 4px 4px 0;
+    padding: 6px 12px;
+    min-width: 48px;
 `;
 export const SliderLabel = styled.span`
     color: ${props => props.theme.primaryText};
@@ -933,6 +955,7 @@ interface SliderProps {
     handleSlide: React.ChangeEventHandler<HTMLInputElement>;
     fixedWidth?: boolean;
     allowTypedInput?: boolean;
+    handleOnMax?: () => void;
     label?: string;
     disabled?: boolean;
     userLocale?: string;
@@ -948,6 +971,7 @@ export const Slider: React.FC<SliderProps> = ({
     handleSlide,
     fixedWidth,
     allowTypedInput,
+    handleOnMax,
     label,
     disabled = false,
     userLocale = 'en-US',
@@ -962,6 +986,7 @@ export const Slider: React.FC<SliderProps> = ({
         userLocale,
         maxDecimals,
     );
+    const showMax = typeof handleOnMax === 'function';
 
     const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formatted = sanitizeAndFormatAmountInput(
@@ -978,6 +1003,30 @@ export const Slider: React.FC<SliderProps> = ({
             },
         } as React.ChangeEvent<HTMLInputElement>);
     };
+
+    const typedInput = (
+        <SliderInput
+            name={`${name}-typed`}
+            value={displayValue}
+            placeholder={typeof label === 'string' ? label : name}
+            invalid={typeof error === 'string'}
+            withMax={showMax}
+            onChange={e =>
+                handleLocaleAmountChange(
+                    e,
+                    handleSlide,
+                    userLocale,
+                    maxDecimals,
+                )
+            }
+            disabled={disabled}
+            type="text"
+            inputMode="decimal"
+            onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
+                (e.target as HTMLInputElement).blur();
+            }}
+        />
+    );
 
     return (
         <CashtabInputWrapper>
@@ -1002,26 +1051,21 @@ export const Slider: React.FC<SliderProps> = ({
                             {':'}
                         </SliderLabel>
                     )}
-                    <SliderInput
-                        name={`${name}-typed`}
-                        value={displayValue}
-                        placeholder={typeof label === 'string' ? label : name}
-                        invalid={typeof error === 'string'}
-                        onChange={e =>
-                            handleLocaleAmountChange(
-                                e,
-                                handleSlide,
-                                userLocale,
-                                maxDecimals,
-                            )
-                        }
-                        disabled={disabled}
-                        type="text"
-                        inputMode="decimal"
-                        onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
-                            (e.target as HTMLInputElement).blur();
-                        }}
-                    ></SliderInput>
+                    {showMax ? (
+                        <SliderTypedInputRow
+                            invalid={typeof error === 'string'}
+                        >
+                            {typedInput}
+                            <OnMaxBtnSlider
+                                onClick={handleOnMax}
+                                disabled={disabled}
+                            >
+                                max
+                            </OnMaxBtnSlider>
+                        </SliderTypedInputRow>
+                    ) : (
+                        typedInput
+                    )}
                 </LabelAndInputFlex>
             )}
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>

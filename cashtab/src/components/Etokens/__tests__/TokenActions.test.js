@@ -2137,12 +2137,12 @@ describe('<Token /> available actions rendered', () => {
         // The redeem button is still disabled
         expect(redeemButton).toBeDisabled();
 
-        // OK we redeem more than dust
-        await userEvent.clear(screen.getByPlaceholderText('Total qty'));
+        // Max fills the wallet balance (same as token send)
+        await userEvent.click(screen.getByRole('button', { name: /max/i }));
 
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
-
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(
+            '10,000.00',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2472,9 +2472,14 @@ describe('<Token /> available actions rendered', () => {
         // The redeem button is still disabled
         expect(redeemButton).toBeDisabled();
 
-        // OK we redeem more than dust
-        await userEvent.clear(screen.getByPlaceholderText('Total qty'));
+        // Max fills the wallet balance (same as token send)
+        await userEvent.click(screen.getByRole('button', { name: /max/i }));
+        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(
+            '100.0000',
+        );
 
+        // Redeem a smaller qty that matches the mocked offer hex below
+        await userEvent.clear(screen.getByPlaceholderText('Total qty'));
         await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
 
         expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10');

@@ -1229,6 +1229,19 @@ const Token: React.FC = () => {
         }
     };
 
+    const onMaxRedeemQty = () => {
+        handleTokenOfferedSlide({
+            target: {
+                name: 'Total qty',
+                value: sanitizeAndFormatAmountInput(
+                    tokenBalance as string, // we do not render redeem without tokenBalance
+                    userLocale,
+                    decimals as SlpDecimals,
+                ),
+            },
+        } as React.ChangeEvent<HTMLInputElement>);
+    };
+
     const onMaxMint = () => {
         const maxMintAmount = getMaxDecimalizedQty(
             decimals as SlpDecimals,
@@ -3278,6 +3291,9 @@ const Token: React.FC = () => {
                                                             maxDecimals={
                                                                 decimals as SlpDecimals
                                                             }
+                                                            handleOnMax={
+                                                                onMaxRedeemQty
+                                                            }
                                                         />
                                                     </InputRow>
                                                 </SendTokenFormRow>
@@ -3358,6 +3374,9 @@ const Token: React.FC = () => {
                                                             }
                                                             maxDecimals={
                                                                 decimals as SlpDecimals
+                                                            }
+                                                            handleOnMax={
+                                                                onMaxRedeemQty
                                                             }
                                                         />
                                                     </InputRow>
