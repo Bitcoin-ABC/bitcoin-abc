@@ -52,9 +52,11 @@ export default function GetEcashContent({
           {exchanges.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
               {exchanges.map((exchange) => {
-                const logoSrc = Array.isArray(exchange.attributes.logo.data)
-                  ? exchange.attributes.logo.data[0].attributes
-                  : exchange.attributes.logo.data.attributes;
+                const logoSrc = Array.isArray(exchange.attributes.logo?.data)
+                  ? exchange.attributes.logo.data[0]?.attributes
+                  : exchange.attributes.logo?.data?.attributes;
+
+                if (!logoSrc?.url) return null;
 
                 const imageUrl =
                   process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL + logoSrc.url;
@@ -114,9 +116,11 @@ export default function GetEcashContent({
           {instantExchanges.length > 0 ? (
             <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
               {instantExchanges.map((exchange) => {
-                const logoSrc = Array.isArray(exchange.attributes.logo.data)
-                  ? exchange.attributes.logo.data[0].attributes
-                  : exchange.attributes.logo.data.attributes;
+                const logoSrc = Array.isArray(exchange.attributes.logo?.data)
+                  ? exchange.attributes.logo.data[0]?.attributes
+                  : exchange.attributes.logo?.data?.attributes;
+
+                if (!logoSrc?.url) return null;
 
                 const imageUrl =
                   process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL + logoSrc.url;
