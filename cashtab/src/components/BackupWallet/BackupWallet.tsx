@@ -1,11 +1,10 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { useState, useContext } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import styled from 'styled-components';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
 import Seed from 'components/Common/Seed';
 import Switch from 'components/Common/Switch';
 import { getUserLocale } from 'helpers';
@@ -116,11 +115,7 @@ const BackupWallet = () => {
 
             {showSeed && (
                 <FlexRow>
-                    <CopyToClipboard
-                        data={storedActiveWallet.mnemonic}
-                    >
-                        <Seed mnemonic={storedActiveWallet.mnemonic} />
-                    </CopyToClipboard>
+                    <Seed mnemonic={storedActiveWallet.mnemonic} />
                 </FlexRow>
             )}
         </BackupFlex>
