@@ -14,6 +14,7 @@ import {
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import { ModalInput, ModalTextArea } from 'components/Common/Inputs';
+import CashtabSwitch from 'components/Common/Switch';
 import { toast } from 'react-toastify';
 import PrimaryButton, {
     SecondaryButton,
@@ -37,6 +38,8 @@ import {
     CopyButton,
     ActiveIndicator,
     HdBadge,
+    HdSwitchRow,
+    HdSwitchLabel,
 } from 'components/Wallets/styles';
 import { getWalletNameError, validateMnemonic } from 'validation';
 import {
@@ -113,7 +116,8 @@ const Wallets = () => {
         useState<null | StoredCashtabWallet>(null);
     const [showNewWalletModal, setShowNewWalletModal] =
         useState<boolean>(false);
-    // When true, confirm creates an HD wallet; otherwise a single-address wallet.
+    // When true, New/Import confirm creates an HD wallet; otherwise single-address.
+    // Defaults off; toggled by the HD checkbox in each modal.
     const [createWalletAsHd, setCreateWalletAsHd] = useState<boolean>(false);
     const [showImportWalletModal, setShowImportWalletModal] =
         useState<boolean>(false);
@@ -360,8 +364,8 @@ const Wallets = () => {
         }));
     };
 
-    const openNewWalletModal = (asHd = false) => {
-        setCreateWalletAsHd(asHd);
+    const openNewWalletModal = () => {
+        setCreateWalletAsHd(false);
         setShowImportWalletModal(false);
         clearNewWalletNameForm();
         setFormData(previous => ({
@@ -398,6 +402,7 @@ const Wallets = () => {
 
     const closeImportWalletModal = () => {
         setShowImportWalletModal(false);
+        setCreateWalletAsHd(false);
         clearNewWalletNameForm();
         setFormData(previous => ({
             ...previous,
@@ -410,8 +415,8 @@ const Wallets = () => {
     };
 
     /**
-     * Generate a new wallet with the user-chosen name and add it to wallets
-     * Uses createWalletAsHd when the user opened the New HD Wallet flow.
+     * Generate a new wallet with the user-chosen name and add it to wallets.
+     * Uses createWalletAsHd when the HD checkbox is checked.
      */
     const addNewWallet = async () => {
         const walletName = formData.newWalletName;
@@ -459,7 +464,8 @@ const Wallets = () => {
     };
 
     /**
-     * Add a new imported wallet to cashtabState wallets object
+     * Add a new imported wallet to cashtabState wallets object.
+     * Uses createWalletAsHd when the HD checkbox is checked.
      */
     async function importNewWallet() {
         const walletName = formData.newWalletName;
@@ -493,18 +499,25 @@ const Wallets = () => {
         const newImportedWallet = createCashtabWallet(
             formData.mnemonic,
             walletName,
+            createWalletAsHd ? { hd: true } : undefined,
         );
 
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
-        Event('Configure.js', 'Create Wallet', 'Imported');
+        Event(
+            'Configure.js',
+            'Create Wallet',
+            createWalletAsHd ? 'Imported HD' : 'Imported',
+        );
 
         // Add it to the end of the wallets object; display sorts by name
         updateCashtabState({ wallets: [...wallets, newImportedWallet] });
 
         // Import success modal
         toast.success(
-            `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
+            createWalletAsHd
+                ? `New imported HD wallet “${newImportedWallet.name}” added to your saved wallets`
+                : `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
         );
 
         closeImportWalletModal();
@@ -648,7 +661,7 @@ const Wallets = () => {
             )}
             {showNewWalletModal && (
                 <Modal
-                    title={createWalletAsHd ? 'New HD wallet' : 'New wallet'}
+                    title="New wallet"
                     handleOk={addNewWallet}
                     handleCancel={closeNewWalletModal}
                     showCancelButton
@@ -658,16 +671,22 @@ const Wallets = () => {
                     }
                 >
                     <ModalInput
-                        placeholder={
-                            createWalletAsHd
-                                ? 'Enter a name for this HD wallet'
-                                : 'Enter a name for this wallet'
-                        }
+                        placeholder="Enter a name for this wallet"
                         name="newWalletName"
                         value={formData.newWalletName}
                         error={formDataErrors.newWalletName}
                         handleInput={handleInput}
                     />
+                    <HdSwitchRow>
+                        <CashtabSwitch
+                            name="createWalletAsHd"
+                            checked={createWalletAsHd}
+                            handleToggle={() =>
+                                setCreateWalletAsHd(prev => !prev)
+                            }
+                        />
+                        <HdSwitchLabel>HD</HdSwitchLabel>
+                    </HdSwitchRow>
                 </Modal>
             )}
             {showImportWalletModal && (
@@ -701,6 +720,16 @@ const Wallets = () => {
                         autoCorrect="off"
                         autoCapitalize="off"
                     />
+                    <HdSwitchRow>
+                        <CashtabSwitch
+                            name="importWalletAsHd"
+                            checked={createWalletAsHd}
+                            handleToggle={() =>
+                                setCreateWalletAsHd(prev => !prev)
+                            }
+                        />
+                        <HdSwitchLabel>HD</HdSwitchLabel>
+                    </HdSwitchRow>
                 </Modal>
             )}
             {showAddressShareModal && (
@@ -867,14 +896,9 @@ const Wallets = () => {
                     )}
                 </WalletsPanel>
                 <WalletRow>
-                    <PrimaryButton onClick={() => openNewWalletModal(false)}>
+                    <PrimaryButton onClick={openNewWalletModal}>
                         New Wallet
                     </PrimaryButton>
-                </WalletRow>
-                <WalletRow>
-                    <SecondaryButton onClick={() => openNewWalletModal(true)}>
-                        New HD Wallet
-                    </SecondaryButton>
                 </WalletRow>
                 <WalletRow>
                     <SecondaryButton onClick={openImportWalletModal}>

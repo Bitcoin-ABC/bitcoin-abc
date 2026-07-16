@@ -191,17 +191,31 @@ describe('<Wallets />', () => {
             ).not.toBeInTheDocument(),
         );
 
+        // No distinct New HD Wallet button — HD is a checkbox on New Wallet
+        expect(
+            screen.queryByRole('button', {
+                name: /New HD Wallet/,
+            }),
+        ).not.toBeInTheDocument();
+
         await user.click(
             screen.getByRole('button', {
-                name: /New HD Wallet/,
+                name: /New Wallet/,
             }),
         );
 
-        expect(await screen.findByText('New HD wallet')).toBeInTheDocument();
+        expect(await screen.findByText('New wallet')).toBeInTheDocument();
         const newHdWalletNameInput = screen.getByPlaceholderText(
-            'Enter a name for this HD wallet',
+            'Enter a name for this wallet',
         );
         await user.type(newHdWalletNameInput, 'HD Savings');
+
+        // HD checkbox defaults off; enable it
+        const hdSwitch = screen.getByTitle('createWalletAsHd');
+        expect(hdSwitch).not.toBeChecked();
+        await user.click(hdSwitch);
+        expect(hdSwitch).toBeChecked();
+
         await user.click(screen.getByText('OK'));
 
         expect(
@@ -222,6 +236,67 @@ describe('<Wallets />', () => {
         expect(addedHdWallet.accountNumber).toBe(0);
         expect(addedHdWallet.receiveIndex).toBe(0);
         expect(addedHdWallet.changeIndex).toBe(0);
+    });
+    it('We can import an HD wallet from the wallets page', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        render(
+            <CashtabTestWrapper
+                ecc={ecc}
+                chronik={mockedChronik}
+                route="/wallets"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.click(
+            screen.getByRole('button', {
+                name: /Import Wallet/,
+            }),
+        );
+
+        expect(await screen.findByText('Import wallet')).toBeInTheDocument();
+        await user.type(
+            screen.getByPlaceholderText('Enter a name for this wallet'),
+            'Imported HD',
+        );
+        await user.type(
+            screen.getByPlaceholderText('mnemonic (seed phrase)'),
+            'pioneer waste next tired armed course expand stairs load brick asthma budget',
+        );
+
+        const hdSwitch = screen.getByTitle('importWalletAsHd');
+        expect(hdSwitch).not.toBeChecked();
+        await user.click(hdSwitch);
+        expect(hdSwitch).toBeChecked();
+
+        await user.click(screen.getByRole('button', { name: 'OK' }));
+
+        expect(
+            await screen.findByText(
+                `New imported HD wallet “Imported HD” added to your saved wallets`,
+            ),
+        ).toBeInTheDocument();
+
+        expect(screen.getByText('HD')).toBeInTheDocument();
+
+        const walletsAfterHdImport = await localforage.getItem('wallets');
+        const importedHdWallet = walletsAfterHdImport.find(
+            wallet => wallet.name === 'Imported HD',
+        );
+        expect(importedHdWallet).toBeDefined();
+        expect(importedHdWallet.hd).toBe(true);
+        expect(importedHdWallet.accountNumber).toBe(0);
+        expect(importedHdWallet.receiveIndex).toBe(0);
+        expect(importedHdWallet.changeIndex).toBe(0);
     });
     it('We can rename the active wallet or a saved wallet, we can add a wallet, we can import a wallet, we can delete a wallet', async () => {
         // localforage defaults
@@ -512,11 +587,12 @@ describe('<Wallets />', () => {
 
         // It is stored with the user-chosen name
         const walletsAfterImport = await localforage.getItem('wallets');
-        expect(
-            walletsAfterImport.some(
-                wallet => wallet.name === 'Imported Wallet',
-            ),
-        ).toBe(true);
+        const importedWallet = walletsAfterImport.find(
+            wallet => wallet.name === 'Imported Wallet',
+        );
+        expect(importedWallet).toBeDefined();
+        // Default import is single-address (not HD)
+        expect(importedWallet.hd).toBeUndefined();
 
         // The modal will be closed after a successful import
         await waitFor(() =>

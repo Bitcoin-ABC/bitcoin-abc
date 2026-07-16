@@ -169,3 +169,18 @@ export const ActiveIndicator = styled.span`
     color: ${props => props.theme.accent};
     margin-left: 4px;
 `;
+
+export const HdSwitchRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 12px;
+    margin-top: 16px;
+`;
+
+export const HdSwitchLabel = styled.div`
+    color: ${props => props.theme.primaryText};
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+`;

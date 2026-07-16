@@ -4,18 +4,16 @@ Remaining work after opt-in HD create / receive / spend on Settings → Wallets.
 
 ## Must-fix for backup / restore
 
-- [ ] **Import as HD** — Import Wallet still calls `createCashtabWallet(mnemonic)`
-      without `{ hd: true }`. Wipe + re-import an HD seed only restores
-      receive\[0\]; other funded addresses are not discovered. Same issue when
-      importing a mnemonic that was used as HD elsewhere. Import should create
-      an HD wallet (or run discovery and set `hd` from the result).
+- [x] **Import as HD** — Import Wallet (and New Wallet) expose an HD checkbox
+      (default off) on the name prompt; when checked, `createCashtabWallet`
+      is called with `{ hd: true }`. Distinct “New HD Wallet” button removed.
 
 ## Nice-to-haves
 
 - [ ] **Upgrade** an existing single-address wallet to HD (same mnemonic +
       discover)
-- [ ] **Onboarding** HD create (first-run New Wallet); currently scoped to the
-      Wallets page only
+- [ ] **Onboarding** HD create / import (first-run New Wallet / Import);
+      currently scoped to the Wallets page only
 - [ ] **Push notifications** — registrar still uses `ecashWallet.address`
       (receive\[0\]), not the current unused receive address
 - [ ] **Address list** UI for past receive / change addresses
