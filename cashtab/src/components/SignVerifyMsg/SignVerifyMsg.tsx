@@ -7,8 +7,10 @@ import styled from 'styled-components';
 import { TextArea, Input } from 'components/Common/Inputs';
 import SegmentedControl from 'components/Common/SegmentedControl';
 import { WalletContext } from 'wallet/context';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
-import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
+import PrimaryButton, {
+    CopyIconButton,
+    SecondaryButton,
+} from 'components/Common/Buttons';
 import { isValidCashAddress } from 'ecashaddrjs';
 import { toast } from 'react-toastify';
 import appConfig from 'config/app';
@@ -44,8 +46,15 @@ const SignatureLabel = styled.div`
     font-weight: bold;
     width: 100%;
 `;
-const SignatureHolder = styled.code`
+const SignatureRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
+`;
+const SignatureHolder = styled.code`
+    flex: 1;
+    min-width: 0;
     color: ${props => props.theme.primaryText};
     word-break: break-all;
 `;
@@ -102,7 +111,10 @@ const SignVerifyMsg = () => {
             const signature = signMsg(msgToSign, ecashWallet.sk);
 
             setMessageSignature(signature);
-            toast.success('Message Signed');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(signature);
+            }
+            toast.success('Message signed and copied to clipboard');
         } catch (err) {
             const errorMessage =
                 err instanceof Error ? err.message : String(err);
@@ -224,13 +236,15 @@ const SignVerifyMsg = () => {
                             <Row>
                                 <SignatureLabel>Signature:</SignatureLabel>
                             </Row>
-                            <Row>
-                                <CopyToClipboard data={messageSignature}>
-                                    <SignatureHolder>
-                                        {messageSignature}
-                                    </SignatureHolder>
-                                </CopyToClipboard>
-                            </Row>
+                            <SignatureRow>
+                                <SignatureHolder>
+                                    {messageSignature}
+                                </SignatureHolder>
+                                <CopyIconButton
+                                    name="Copy signature"
+                                    data={messageSignature}
+                                />
+                            </SignatureRow>
                         </>
                     )}
                 </FormContainer>

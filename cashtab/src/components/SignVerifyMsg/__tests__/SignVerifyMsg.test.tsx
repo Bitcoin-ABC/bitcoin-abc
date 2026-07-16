@@ -20,9 +20,17 @@ import { UserEvent } from '@testing-library/user-event';
 
 describe('<SignVerifyMsg />', () => {
     let user: UserEvent;
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    const expectedSignature =
+        'H15QdmXfPFzMX+nDsoIGL51Nq3jkX/3RGmhwe87fIs9fLpvdHEflw+K9935GTU30Ids8J8Cdn1fV4uRJfUwYM8w=';
     beforeEach(() => {
         // Set up userEvent
         user = userEvent.setup();
+        writeText.mockClear();
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText },
+        });
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
@@ -75,12 +83,53 @@ describe('<SignVerifyMsg />', () => {
         // Click the Sign button (SegmentedControl has "✍️ Sign" segment; use exact match for submit button)
         await user.click(screen.getByRole('button', { name: /^Sign$/ }));
 
-        expect(await screen.findByText('Message Signed')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Message signed and copied to clipboard'),
+        ).toBeInTheDocument();
+
+        expect(screen.getByText(expectedSignature)).toBeInTheDocument();
+        expect(writeText).toHaveBeenCalledWith(expectedSignature);
+        expect(
+            screen.getByRole('button', { name: 'Copy signature' }),
+        ).toBeInTheDocument();
+    });
+    it('Copy signature button copies the signed message again', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/signverifymsg"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.type(
+            screen.getByPlaceholderText('Enter message to sign'),
+            'test message',
+        );
+        await user.click(screen.getByRole('button', { name: /^Sign$/ }));
 
         expect(
-            screen.getByText(
-                'H15QdmXfPFzMX+nDsoIGL51Nq3jkX/3RGmhwe87fIs9fLpvdHEflw+K9935GTU30Ids8J8Cdn1fV4uRJfUwYM8w=',
-            ),
+            await screen.findByText('Message signed and copied to clipboard'),
+        ).toBeInTheDocument();
+        writeText.mockClear();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Copy signature' }),
+        );
+
+        expect(writeText).toHaveBeenCalledWith(expectedSignature);
+        expect(screen.getByTitle('check')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Copied' }),
         ).toBeInTheDocument();
     });
     it('Notification is rendered upon successfully verifying a message', async () => {
