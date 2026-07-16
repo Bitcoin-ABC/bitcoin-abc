@@ -2,7 +2,7 @@
     "dependencies": {
         "chronik-client": "workspace:^",
         "ecashaddrjs": "workspace:^",
-        "ws": "^8.20.1"
+        "ws": "^8.21.0"
     },
     "name": "mock-chronik-client",
     "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
