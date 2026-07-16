@@ -6,6 +6,9 @@ import './initWasm.js';
 
 export * from './consts.js';
 export * from './ecc.js';
+export * from './eccScalar.js';
+export * from './blindSchnorr.js';
+export * from './pedersen.js';
 export * from './hash.js';
 export * from './op.js';
 export * from './opcode.js';
@@ -20,6 +23,7 @@ export * from './psbt.js';
 export * from './signatories.js';
 export * from './txBuilder.js';
 export * from './unsignedTx.js';
+export * from './io/array.js';
 export * from './io/bytes.js';
 export * from './io/hex.js';
 export * from './io/int.js';

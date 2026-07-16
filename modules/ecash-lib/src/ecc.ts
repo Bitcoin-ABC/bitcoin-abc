@@ -35,8 +35,23 @@ export interface Ecc {
     /** Add a scalar to a secret key */
     seckeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array;
 
+    /** Multiply a secret key by a scalar (a * b) */
+    seckeyMul(a: Uint8Array, b: Uint8Array): Uint8Array;
+
+    /** Negate a secret key (−a mod n) */
+    seckeyNegate(a: Uint8Array): Uint8Array;
+
     /** Add a scalar to a public key (adding G*b) */
     pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array;
+
+    /** Multiply a public key by a scalar (P * b) */
+    pubkeyMul(a: Uint8Array, b: Uint8Array): Uint8Array;
+
+    /** Add two public keys (P + Q). Errors if the sum is infinity. */
+    pubkeyCombine(a: Uint8Array, b: Uint8Array): Uint8Array;
+
+    /** Decompress a compressed public key to 65-byte uncompressed (0x04||x||y) */
+    uncompressPk(pk: Uint8Array): Uint8Array;
 
     /** Sign a ECDSA recoverable signature, includes the recovery ID */
     signRecoverable(seckey: Uint8Array, msg: Uint8Array): Uint8Array;
@@ -74,8 +89,28 @@ export class EccDummy implements Ecc {
         return new Uint8Array(32);
     }
 
-    pubkeyAdd(_a: Uint8Array, _b: Uint8Array): Uint8Array {
+    seckeyMul(_a: Uint8Array, _b: Uint8Array): Uint8Array {
         return new Uint8Array(32);
+    }
+
+    seckeyNegate(_a: Uint8Array): Uint8Array {
+        return new Uint8Array(32);
+    }
+
+    pubkeyAdd(_a: Uint8Array, _b: Uint8Array): Uint8Array {
+        return new Uint8Array(33);
+    }
+
+    pubkeyMul(_a: Uint8Array, _b: Uint8Array): Uint8Array {
+        return new Uint8Array(33);
+    }
+
+    pubkeyCombine(_a: Uint8Array, _b: Uint8Array): Uint8Array {
+        return new Uint8Array(33);
+    }
+
+    uncompressPk(_pk: Uint8Array): Uint8Array {
+        return new Uint8Array(65);
     }
 
     signRecoverable(_seckey: Uint8Array, _msg: Uint8Array): Uint8Array {
@@ -144,9 +179,34 @@ export class Ecc implements Ecc {
         return ECC.ecc!.seckeyAdd(a, b);
     }
 
+    /** Multiply a secret key by a scalar (a * b) */
+    seckeyMul(a: Uint8Array, b: Uint8Array): Uint8Array {
+        return ECC.ecc!.seckeyMul(a, b);
+    }
+
+    /** Negate a secret key (−a mod n) */
+    seckeyNegate(a: Uint8Array): Uint8Array {
+        return ECC.ecc!.seckeyNegate(a);
+    }
+
     /** Add a scalar to a public key (adding G*b) */
     pubkeyAdd(a: Uint8Array, b: Uint8Array): Uint8Array {
         return ECC.ecc!.pubkeyAdd(a, b);
+    }
+
+    /** Multiply a public key by a scalar (P * b) */
+    pubkeyMul(a: Uint8Array, b: Uint8Array): Uint8Array {
+        return ECC.ecc!.pubkeyMul(a, b);
+    }
+
+    /** Add two public keys (P + Q). Errors if the sum is infinity. */
+    pubkeyCombine(a: Uint8Array, b: Uint8Array): Uint8Array {
+        return ECC.ecc!.pubkeyCombine(a, b);
+    }
+
+    /** Decompress a compressed public key to 65-byte uncompressed (0x04||x||y) */
+    uncompressPk(pk: Uint8Array): Uint8Array {
+        return ECC.ecc!.uncompressPk(pk);
     }
 
     signRecoverable(seckey: Uint8Array, msg: Uint8Array): Uint8Array {

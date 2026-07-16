@@ -56,6 +56,45 @@ describe('Ecc', () => {
         expect(toHex(ecc.compressPk(fromHex(UNCOMPRESSED_PK)))).to.equal(
             '02db78c5695628eebba58176d9e566800c568a0b39fc2e4e99b9b3aa69bb17aea7',
         );
+
+        // pubkeyMul / pubkeyCombine / uncompressPk (CashFusion / Pedersen helpers)
+        const ONE = fromHex(
+            '0000000000000000000000000000000000000000000000000000000000000001',
+        );
+        const TWO = fromHex(
+            '0000000000000000000000000000000000000000000000000000000000000002',
+        );
+        const THREE = fromHex(
+            '0000000000000000000000000000000000000000000000000000000000000003',
+        );
+        const pk1 = ecc.derivePubkey(ONE);
+        const pk2 = ecc.pubkeyMul(pk1, TWO); // 2*G
+        expect(toHex(pk2)).to.equal(toHex(ecc.derivePubkey(TWO)));
+        expect(toHex(ecc.pubkeyCombine(pk1, pk2))).to.equal(
+            toHex(ecc.derivePubkey(THREE)),
+        );
+        const uncompressed = ecc.uncompressPk(pk1);
+        expect(uncompressed).to.have.lengthOf(65);
+        expect(uncompressed[0]).to.equal(0x04);
+        expect(toHex(ecc.compressPk(uncompressed))).to.equal(toHex(pk1));
+        // P + (-P) is infinity (scalar n-1)
+        const NEG_ONE = fromHex(
+            'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140',
+        );
+        expect(() =>
+            ecc.pubkeyCombine(pk1, ecc.pubkeyMul(pk1, NEG_ONE)),
+        ).to.throw();
+
+        // seckeyMul / seckeyNegate
+        expect(toHex(ecc.seckeyMul(TWO, THREE))).to.equal(
+            toHex(
+                fromHex(
+                    '0000000000000000000000000000000000000000000000000000000000000006',
+                ),
+            ),
+        );
+        expect(toHex(ecc.seckeyNegate(ONE))).to.equal(toHex(NEG_ONE));
+        expect(toHex(ecc.seckeyAdd(ONE, TWO))).to.equal(toHex(THREE));
     });
 
     it('EccDummy', () => {
@@ -76,5 +115,16 @@ describe('Ecc', () => {
             new Uint8Array(33),
         );
         expect(dummy.compressPk({} as any)).to.deep.equal(new Uint8Array(33));
+        expect(dummy.pubkeyMul({} as any, {} as any)).to.deep.equal(
+            new Uint8Array(33),
+        );
+        expect(dummy.pubkeyCombine({} as any, {} as any)).to.deep.equal(
+            new Uint8Array(33),
+        );
+        expect(dummy.uncompressPk({} as any)).to.deep.equal(new Uint8Array(65));
+        expect(dummy.seckeyMul({} as any, {} as any)).to.deep.equal(
+            new Uint8Array(32),
+        );
+        expect(dummy.seckeyNegate({} as any)).to.deep.equal(new Uint8Array(32));
     });
 });

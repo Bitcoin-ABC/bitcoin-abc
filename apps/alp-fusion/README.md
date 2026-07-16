@@ -47,13 +47,13 @@ Must provide:
 |                    | Electrum ABC CashFusion (XEC)                                                | alp-fusion (ALP)                                                                      |
 | ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Asset              | Native XEC only                                                              | One ALP `tokenId` per pool / round                                                    |
-| Status             | Production in Electrum ABC (and some third-party wallets)                    | Spec / planned; not in-tree yet                                                       |
+| Status             | Production in Electrum ABC (and some third-party wallets)                    | Docs landed; [protocol primitives D20318](https://reviews.bitcoinabc.org/D20318)      |
 | Token UTXOs        | **Excluded** — ALP/SLP coins are frozen out of fusion so they are not burned | **Target** — fuse ALP deliberately with correct `alpSend` coloring                    |
 | Coordinator        | Public fusion servers; long-lived desktop/daemon clients keep pools warm     | Same role expected; public coordinators + continuous clients required                 |
 | Covert / Tor       | Separate covert channel over Tor                                             | Required before claiming CashFusion-class privacy                                     |
 | Crypto sketch      | Blind Schnorr component auth, Pedersen commitments, shuffled multi-party tx  | Same family, extended for token atoms + ALP EMPP `SEND`                               |
 | Wallet UX          | Toggle in Electrum; “spend only fused coins”                                 | End goal: Cashtab toggle (+ other wallets via a shared client)                        |
-| What stays visible | That XEC moved in a large coinjoin                                           | That a given `tokenId` moved in a fusion; amounts↔addresses obscured inside the round |
+| What stays visible | That XEC moved in a large fusion                                             | That a given `tokenId` moved in a fusion; amounts↔addresses obscured inside the round |
 
 Electrum already gives XEC holders opt-in fusion and
 actively _avoids_ touching ALP UTXOs; this project is the missing path that
@@ -81,8 +81,9 @@ fuses ALP without burning tokens.
 ## Roadmap
 
 1. **Docs [D20284](https://reviews.bitcoinabc.org/D20284)** — privacy model, Electrum comparison, end state, roadmap, SPEC.
-2. **Protocol primitives** — Pedersen over sats + token atoms, blind Schnorr,
-   component hashing; unit tests only.
+2. **Protocol primitives [D20318](https://reviews.bitcoinabc.org/D20318)** —
+   Pedersen over sats + token atoms, blind Schnorr, and component hashing in
+   `ecash-lib`, plus alp-fusion session/round constants; unit tests only.
 3. **Tx assembly** — build/validate fused ALP `SEND` + fee/dust rules against
    `ecash-lib` / `ecash-wallet` limits (`ALP_POLICY_MAX_OUTPUTS`, etc.).
 4. **Coordinator + one-shot client** — pool match → one round → broadcast;

@@ -210,6 +210,24 @@ impl Ecc {
             .to_vec())
     }
 
+    /// Multiply a secret key by a scalar (a * b).
+    #[wasm_bindgen(js_name = seckeyMul)]
+    pub fn seckey_mul(&self, a: &[u8], b: &[u8]) -> Result<Vec<u8>, String> {
+        let a = parse_secret_key(a)?;
+        let b = parse_scalar(b)?;
+        Ok(a.mul_tweak(&b)
+            .map_err(|_| InvalidSeckey)?
+            .secret_bytes()
+            .to_vec())
+    }
+
+    /// Negate a secret key (−a mod n).
+    #[wasm_bindgen(js_name = seckeyNegate)]
+    pub fn seckey_negate(&self, a: &[u8]) -> Result<Vec<u8>, String> {
+        let a = parse_secret_key(a)?;
+        Ok(a.negate().secret_bytes().to_vec())
+    }
+
     /// Add a scalar to a public key (adding G*b).
     #[wasm_bindgen(js_name = pubkeyAdd)]
     pub fn pubkey_add(&self, a: &[u8], b: &[u8]) -> Result<Vec<u8>, String> {
@@ -219,6 +237,40 @@ impl Ecc {
             .map_err(|_| InvalidPubkey)?
             .serialize()
             .to_vec())
+    }
+
+    /// Multiply a public key by a scalar (P * b).
+    #[wasm_bindgen(js_name = pubkeyMul)]
+    pub fn pubkey_mul(&self, a: &[u8], b: &[u8]) -> Result<Vec<u8>, String> {
+        let a = parse_public_key(a)?;
+        let b = parse_scalar(b)?;
+        Ok(a.mul_tweak(&self.curve, &b)
+            .map_err(|_| InvalidPubkey)?
+            .serialize()
+            .to_vec())
+    }
+
+    /// Add two public keys (P + Q). Errors if the sum is the point at infinity.
+    #[wasm_bindgen(js_name = pubkeyCombine)]
+    pub fn pubkey_combine(
+        &self,
+        a: &[u8],
+        b: &[u8],
+    ) -> Result<Vec<u8>, String> {
+        let a = parse_public_key(a)?;
+        let b = parse_public_key(b)?;
+        Ok(a.combine(&b)
+            .map_err(|_| InvalidPubkey)?
+            .serialize()
+            .to_vec())
+    }
+
+    /// Decompress a compressed public key to 65-byte uncompressed form
+    /// (0x04||x||y).
+    #[wasm_bindgen(js_name = uncompressPk)]
+    pub fn uncompress_pk(&self, pk: &[u8]) -> Result<Vec<u8>, String> {
+        let pk = parse_public_key(pk)?;
+        Ok(pk.serialize_uncompressed().to_vec())
     }
 
     /// Create a compact ECDSA signature (65 bytes), which allows reconstructing

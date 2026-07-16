@@ -932,6 +932,28 @@ builds:
         templates:
             - js-mocha
 
+    alp-fusion-tests:
+        runOnDiffRegex:
+            - pnpm-lock.yaml
+            - apps/alp-fusion/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/b58-ts/
+            - src/secp256k1/
+        env:
+            JS_PROJECT_ROOT: apps/alp-fusion
+            RUN_NPM_BUILD: 'true'
+        depends:
+            - ecashaddrjs
+            - b58-ts
+            - ecash-lib-wasm
+            - chronik-client
+            - ecash-lib
+        templates:
+            - js-mocha
+
     token-server-tests:
         runOnDiffRegex:
             - pnpm-lock.yaml
