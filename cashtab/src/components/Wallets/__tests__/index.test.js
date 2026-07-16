@@ -635,13 +635,17 @@ describe('<Wallets />', () => {
                 screen.queryByTitle('Cashtab Loading'),
             ).not.toBeInTheDocument(),
         );
+        // App still shows Spinner (title Loading...) until UTXO sync completes
+        await waitFor(() =>
+            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        );
 
         expect(
             screen.queryByText(/Welcome to Cashtab/),
         ).not.toBeInTheDocument();
 
         await user.click(
-            screen.getByRole('button', {
+            await screen.findByRole('button', {
                 name: /Delete Transaction Fixtures/i,
             }),
         );
