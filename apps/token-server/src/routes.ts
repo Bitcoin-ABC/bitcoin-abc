@@ -128,7 +128,7 @@ export const startExpressServer = (
             const tokenId = req.params.tokenId;
 
             if (typeof tokenId !== 'string' || !isValidTokenId(tokenId)) {
-                return res.status(500).json({
+                return res.status(400).json({
                     status: 'error',
                     message: `Invalid tokenId: ${tokenId}`,
                 });

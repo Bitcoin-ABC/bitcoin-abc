@@ -608,7 +608,7 @@ describe('routes.js', function () {
         const tokenId = 'not a token id';
         return request(app)
             .get(`/blacklist/${tokenId}`)
-            .expect(500)
+            .expect(400)
             .expect('Content-Type', /json/)
             .expect({
                 status: 'error',
