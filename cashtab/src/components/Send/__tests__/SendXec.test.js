@@ -35,8 +35,10 @@ import {
     slp1NftParentMocks,
     slpMintVaultMocks,
     tokenTestWallet,
+    xecxMocks,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
+import { FIRMA_DISPLAY_TICKER } from 'constants/tokenDisplayOverrides';
 import { previewAddress } from 'helpers';
 import {
     BLITZ_CHIPS_GAME_ADDRESS,
@@ -2017,6 +2019,79 @@ describe('<SendXec />', () => {
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),
         );
+    });
+    it('Send Token: Firma Alpha and XECX appear at the top of the token select list when held', async () => {
+        // tokenTestWallet holds FIRMA, XECX, and tCRD (among others). Without
+        // pinning, tCRD sorts before XECX alphabetically.
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+        mockedChronik.setToken(xecxMocks.tokenId, xecxMocks.token);
+        mockedChronik.setTx(xecxMocks.tokenId, xecxMocks.tx);
+        mockedChronik.setToken(alpMocks.tokenId, alpMocks.token);
+        mockedChronik.setTx(alpMocks.tokenId, alpMocks.tx);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.click(
+            await screen.findByRole('link', { name: /Send Token/i }),
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.getByPlaceholderText('Search by token ticker or name'),
+            ).toBeInTheDocument();
+        });
+
+        const dropdown = await screen.findByTestId('token-select-dropdown');
+        await waitFor(() => {
+            expect(
+                screen.getByTestId(`token-select-option-${FIRMA.tokenId}`),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId(`token-select-option-${xecxMocks.tokenId}`),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId(`token-select-option-${alpMocks.tokenId}`),
+            ).toBeInTheDocument();
+        });
+
+        const options = dropdown.querySelectorAll(
+            '[data-testid^="token-select-option-"]',
+        );
+        expect(options[0]).toHaveAttribute(
+            'data-testid',
+            `token-select-option-${FIRMA.tokenId}`,
+        );
+        expect(options[1]).toHaveAttribute(
+            'data-testid',
+            `token-select-option-${xecxMocks.tokenId}`,
+        );
+        expect(options[0]).toHaveTextContent(FIRMA_DISPLAY_TICKER);
+        expect(options[1]).toHaveTextContent('XECX');
+        // tCRD is held and sorts before XECX alphabetically — still below pins
+        expect(
+            [...options].findIndex(
+                el =>
+                    el.getAttribute('data-testid') ===
+                    `token-select-option-${alpMocks.tokenId}`,
+            ),
+        ).toBeGreaterThan(1);
     });
     it('ALP Fungible: We can send an ALP token using the token mode UI', async () => {
         // Mock the app with context at the Send screen

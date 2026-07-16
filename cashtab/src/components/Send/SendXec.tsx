@@ -612,6 +612,32 @@ const parseCashtabTxInfoFromSendHash = (
     };
 };
 
+/** Held Firma Alpha / XECX stay at the top of Send Token select (then A–Z). */
+const PINNED_SEND_TOKEN_IDS: readonly string[] = [
+    FIRMA.tokenId,
+    appConfig.vipTokens.xecx.tokenId,
+];
+
+export const compareSendTokenSelectOrder = (
+    a: TokenInfoKv,
+    b: TokenInfoKv,
+): number => {
+    const aPin = PINNED_SEND_TOKEN_IDS.indexOf(a[0]);
+    const bPin = PINNED_SEND_TOKEN_IDS.indexOf(b[0]);
+    if (aPin !== -1 && bPin !== -1) {
+        return aPin - bPin;
+    }
+    if (aPin !== -1) {
+        return -1;
+    }
+    if (bPin !== -1) {
+        return 1;
+    }
+    return a[1].genesisInfo.tokenTicker.localeCompare(
+        b[1].genesisInfo.tokenTicker,
+    );
+};
+
 const SendXec: React.FC = () => {
     const ContextValue = useContext(WalletContext);
     if (!isWalletContextLoaded(ContextValue)) {
@@ -1077,11 +1103,7 @@ const SendXec: React.FC = () => {
             tokens.has(kv[0]),
         );
 
-        walletTokensKeyValueArray.sort((a, b) => {
-            return a[1].genesisInfo.tokenTicker.localeCompare(
-                b[1].genesisInfo.tokenTicker,
-            );
-        });
+        walletTokensKeyValueArray.sort(compareSendTokenSelectOrder);
 
         setTokensInWallet(walletTokensKeyValueArray);
     }, [tokens, isTokenMode, cashtabCache]);
@@ -3187,10 +3209,11 @@ const SendXec: React.FC = () => {
                                             handleInput={handleTokenSearchInput}
                                         />
                                         {filteredTokens.length > 0 && (
-                                            <TokenDropdownList>
+                                            <TokenDropdownList data-testid="token-select-dropdown">
                                                 {filteredTokens.map(kv => (
                                                     <TokenDropdownItem
                                                         key={kv[0]}
+                                                        data-testid={`token-select-option-${kv[0]}`}
                                                         onClick={() =>
                                                             handleTokenSelect(
                                                                 kv[0],
