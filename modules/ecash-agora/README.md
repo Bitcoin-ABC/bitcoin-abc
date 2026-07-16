@@ -356,3 +356,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.4 [D20233](https://reviews.bitcoinabc.org/D20233)
 
 - Upgrade to `ecash-wallet` 6.0.0
+
+### 4.2.5 [D20321](https://reviews.bitcoinabc.org/D20321)
+
+- Refuse ONESHOT offers whose enforced outputs would not assign the offered token to the first taker-appended output (NFT redirection)

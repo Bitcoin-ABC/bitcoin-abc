@@ -8,4 +8,5 @@ export * from './actions.js';
 export * from './consts.js';
 export * from './inputs.js';
 export * from './oneshot.js';
+export * from './oneshotValidate.js';
 export * from './partial.js';

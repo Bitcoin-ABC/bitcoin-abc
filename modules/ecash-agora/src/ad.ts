@@ -17,6 +17,7 @@ import {
 } from 'ecash-lib';
 import { AGORA_LOKAD_ID_STR } from './consts.js';
 import { AgoraOneshot } from './oneshot.js';
+import { isSafeOneshotNftEnforcedOutputs } from './oneshotValidate.js';
 
 type ParsedAdVariant = {
     type: 'ONESHOT';
@@ -76,6 +77,11 @@ export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
                     opreturnScript,
                 );
             } catch {
+                return undefined;
+            }
+            if (
+                !isSafeOneshotNftEnforcedOutputs(agoraOneshot.enforcedOutputs)
+            ) {
                 return undefined;
             }
             variant = {

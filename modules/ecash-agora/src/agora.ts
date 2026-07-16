@@ -53,6 +53,10 @@ import {
     AgoraOneshotSignatory,
 } from './oneshot.js';
 import {
+    assertSafeOneshotNftEnforcedOutputs,
+    isSafeOneshotNftEnforcedOutputs,
+} from './oneshotValidate.js';
+import {
     AgoraPartial,
     AgoraPartialCancelSignatory,
     AgoraPartialParams,
@@ -387,6 +391,11 @@ export class AgoraOffer {
     }): TxBuilder {
         switch (this.variant.type) {
             case 'ONESHOT':
+                // Refuse accepts that would not assign the offered token to the
+                // first taker-appended output (NFT redirection / buyer theft).
+                assertSafeOneshotNftEnforcedOutputs(
+                    this.variant.params.enforcedOutputs,
+                );
                 return new TxBuilder({
                     inputs: [
                         ...params.fuelInputs,
@@ -1386,6 +1395,10 @@ export class Agora {
         ];
         while (outputsSerBytes.data.length > outputsSerBytes.idx) {
             enforcedOutputs.push(readTxOutput(outputsSerBytes));
+        }
+        // Do not surface offers that redirect the token away from the taker
+        if (!isSafeOneshotNftEnforcedOutputs(enforcedOutputs)) {
+            return undefined;
         }
         const cancelPkGroupHex = plugin.groups.find(group =>
             group.startsWith(PUBKEY_PREFIX),

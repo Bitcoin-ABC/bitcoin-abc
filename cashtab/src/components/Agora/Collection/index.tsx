@@ -3,7 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import { Agora, AgoraOffer, AgoraOneshot } from 'ecash-agora';
+import {
+    Agora,
+    AgoraOffer,
+    AgoraOneshot,
+    assertSafeOneshotNftEnforcedOutputs,
+} from 'ecash-agora';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
 import CashtabSettings from 'config/CashtabSettings';
 import { Alert, Info, TokenIdPreview } from 'components/Common/Atoms';
@@ -164,6 +169,13 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
             ) {
                 return;
             }
+            // Refuse ONESHOT shapes that would not deliver the NFT to the buyer
+            if (agoraOneshot.variant.type === 'ONESHOT') {
+                assertSafeOneshotNftEnforcedOutputs(
+                    agoraOneshot.variant.params.enforcedOutputs,
+                );
+            }
+
             // Use ecash-agora's take() method which handles fuel inputs and broadcasting via ecash-wallet
             // ecashWallet is guaranteed to be non-null after the check above
             const broadcastResult = await agoraOneshot.take({
@@ -298,7 +310,8 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
         const isMaker =
             ecashWallet != null &&
             toHex(ecashWallet.pk) === toHex(params.cancelPk);
-        const priceSatoshis = params.enforcedOutputs[1].sats;
+        // Sum all enforced payment outputs (not only index 1)
+        const priceSatoshis = selectedOffer.askedSats();
         const priceXec = toXec(priceSatoshis);
         const formattedPrice = getFormattedFiatPrice(
             settings.fiatCurrency,
@@ -346,7 +359,8 @@ export const OneshotSwiper: React.FC<OneshotSwiperProps> = ({
     const isMaker =
         ecashWallet != null &&
         toHex(ecashWallet.pk) === toHex(offer.variant.params.cancelPk);
-    const priceSatoshis = offer.variant.params.enforcedOutputs[1].sats;
+    // Sum all enforced payment outputs (not only index 1)
+    const priceSatoshis = offer.askedSats();
     const priceXec = toXec(priceSatoshis);
     const formattedPrice = getFormattedFiatPrice(
         settings.fiatCurrency,

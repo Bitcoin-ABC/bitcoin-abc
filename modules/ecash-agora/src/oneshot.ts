@@ -60,6 +60,7 @@ import { AgoraBroadcastParams, toBroadcastConfig } from './broadcast.js';
 import { AGORA_LOKAD_ID } from './consts.js';
 import { reconcileWalletUtxosAfterBroadcasts } from './walletUtxoReconcile.js';
 import { getAgoraAdFuelSats } from './inputs.js';
+import { assertSafeOneshotNftEnforcedOutputs } from './oneshotValidate.js';
 
 /**
  * Agora offer that has to be accepted in "one shot", i.e. all or nothing.
@@ -284,6 +285,9 @@ export class AgoraOneshot {
                 'AgoraOneshot.list() only supports SLP NFT tokens (SLP_TOKEN_TYPE_NFT1_CHILD)',
             );
         }
+
+        // Refuse listings that would not assign the NFT to the first taker output
+        assertSafeOneshotNftEnforcedOutputs(this.enforcedOutputs);
 
         const dustSats = params.dustSats ?? DEFAULT_DUST_SATS;
         const feePerKb = params.feePerKb ?? DEFAULT_FEE_SATS_PER_KB;
