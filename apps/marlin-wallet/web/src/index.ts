@@ -7,7 +7,7 @@
 // ============================================================================
 
 import { Wallet } from 'ecash-wallet';
-import { ChronikClient, ConnectionStrategy } from 'chronik-client';
+import { ChronikClient, ConnectionStrategy, WsMsgClient } from 'chronik-client';
 import {
     CoinGeckoProvider,
     Fiat,
@@ -306,180 +306,166 @@ async function loadWallet(forceReload: boolean = false) {
 // SYNC AND SUBSCRIPTION FUNCTIONS
 // ============================================================================
 
+/**
+ * Handle Chronik WebSocket tx notifications for the active wallet.
+ */
+async function handleWalletWsMessage(msg: WsMsgClient): Promise<void> {
+    if (!('msgType' in msg) || !('txid' in msg)) {
+        // error or block
+        return;
+    }
+
+    if (!transactionManager) {
+        return;
+    }
+
+    const { txid, msgType } = msg;
+
+    try {
+        switch (msgType) {
+            case 'TX_ADDED_TO_MEMPOOL': {
+                // The transaction is not finalized yet, show it
+                // in the transitional balance
+                const tx =
+                    await transactionManager.addNonFinalTransaction(txid);
+                if (!tx) {
+                    webViewError(
+                        `Failed to add pending mempool transaction: ${txid}`,
+                    );
+                    break;
+                }
+                webViewLog(
+                    `Added pending transaction: ${atomsToUnit(
+                        tx.amountAtoms,
+                        activeAssetDecimals(),
+                    )} ${activeAssetTicker()} for tx ${txid}`,
+                );
+                break;
+            }
+            case 'TX_CONFIRMED':
+                if (!transactionManager.isPendingTransaction(txid)) {
+                    // If the pending transaction doesn't exist, we
+                    // need to figure out if it's been finalized by
+                    // pre-consensus or not.
+                    // If it's final we have no way to know whether
+                    // it's already been accounted for or not (e.g.
+                    // we just opened the wallet).
+                    // In this case we do nothing and wait for the
+                    // block to eventually finalize to resync the
+                    // wallet.
+                    const chronik_tx = await chronik.tx(txid);
+                    if (!chronik_tx.isFinal) {
+                        const amountAtoms =
+                            calculateTransactionAmountAtomsFromTx(
+                                ecashWallet,
+                                chronik_tx,
+                                activeTokenId(),
+                            );
+                        const tx =
+                            await transactionManager.addNonFinalTransaction(
+                                txid,
+                                amountAtoms,
+                            );
+                        if (!tx) {
+                            webViewError(
+                                `Failed to add pending confirmed transaction: ${txid}`,
+                            );
+                            break;
+                        }
+                        webViewLog(
+                            `Added pending confirmed transaction: ${atomsToUnit(
+                                tx.amountAtoms,
+                                activeAssetDecimals(),
+                            )} ${activeAssetTicker()} for tx ${txid}`,
+                        );
+                    }
+                }
+                break;
+            case 'TX_FINALIZED':
+                switch (msg.finalizationReasonType) {
+                    case 'TX_FINALIZATION_REASON_PRE_CONSENSUS':
+                        await transactionManager.finalizePreConsensus(txid);
+                        // Always trigger haptic feedback for
+                        // pre-consensus finalization
+                        sendMessageToBackend('TX_FINALIZED', undefined);
+                        break;
+                    case 'TX_FINALIZATION_REASON_POST_CONSENSUS': {
+                        const status =
+                            await transactionManager.finalizePostConsensus(
+                                txid,
+                            );
+                        switch (status) {
+                            case PostConsensusFinalizationResult.NEWLY_FINALIZED:
+                                // Trigger haptic feedback only if the
+                                // transaction was pending
+                                sendMessageToBackend('TX_FINALIZED', undefined);
+                                break;
+                            case PostConsensusFinalizationResult.ALREADY_FINALIZED:
+                                // Nothing to do
+                                break;
+                            case PostConsensusFinalizationResult.NOT_PENDING:
+                                // We're lost, resync the wallet
+                                webViewLog(
+                                    `Post-consensus finalized transaction ${txid} which is not pending, resyncing the wallet`,
+                                );
+                                await syncWallet();
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                        webViewError(
+                            `Unknown finalization reason for ${txid}: `,
+                            msg.finalizationReasonType,
+                        );
+                        break;
+                }
+                break;
+
+            case 'TX_REMOVED_FROM_MEMPOOL':
+            case 'TX_INVALIDATED':
+                await transactionManager.invalidateTransaction(txid);
+                webViewLog(
+                    `Removed pending transaction: ${txid}, reason: ${msgType}`,
+                );
+                break;
+            default:
+                webViewError(`Unknown message type: ${msgType}`);
+                break;
+        }
+    } catch (error) {
+        webViewError('Failed processing WebSocket message:', error);
+    }
+}
+
+/**
+ * Open a Chronik WebSocket with the wallet message handler.
+ * Does not subscribe to any addresses.
+ */
+async function openWalletWebSocket(): Promise<void> {
+    unsubscribeFromAddress();
+    wsEndpoint = chronik.ws({
+        onConnect: () => {
+            webViewLog('Chronik WebSocket connected');
+        },
+        onReconnect: e => {
+            webViewLog('Chronik WebSocket reconnecting:', e);
+        },
+        onMessage: handleWalletWsMessage,
+    });
+    await wsEndpoint.waitForOpen();
+}
+
 // Subscribe to address notifications via Chronik WebSocket.
 // This is where the main wallet update logic happens.
 async function subscribeToAddresses(addresses: string[]) {
     try {
-        // Close existing connection if any
-        unsubscribeFromAddress();
-
         if (addresses.length === 0) {
+            unsubscribeFromAddress();
             return;
         }
 
-        // Create WebSocket connection using chronik-client
-        wsEndpoint = chronik.ws({
-            onConnect: () => {
-                webViewLog('Chronik WebSocket connected');
-            },
-            onReconnect: e => {
-                webViewLog('Chronik WebSocket reconnecting:', e);
-            },
-            onMessage: async msg => {
-                if (!('msgType' in msg) || !('txid' in msg)) {
-                    webViewError(
-                        'No msgType, skipping websocket message:',
-                        msg,
-                    );
-                    return;
-                }
-                if (!('txid' in msg)) {
-                    webViewError('No txid, skipping websocket message:', msg);
-                    return;
-                }
-
-                if (!transactionManager) {
-                    return;
-                }
-
-                const txid = msg.txid;
-
-                try {
-                    switch (msg.msgType) {
-                        case 'TX_ADDED_TO_MEMPOOL': {
-                            // The transaction is not finalized yet, show it
-                            // in the transitional balance
-                            const tx =
-                                await transactionManager.addNonFinalTransaction(
-                                    txid,
-                                );
-                            if (!tx) {
-                                webViewError(
-                                    `Failed to add pending mempool transaction: ${txid}`,
-                                );
-                                break;
-                            }
-                            webViewLog(
-                                `Added pending transaction: ${atomsToUnit(
-                                    tx.amountAtoms,
-                                    activeAssetDecimals(),
-                                )} ${activeAssetTicker()} for tx ${txid}`,
-                            );
-                            break;
-                        }
-                        case 'TX_CONFIRMED':
-                            if (
-                                !transactionManager.isPendingTransaction(txid)
-                            ) {
-                                // If the pending transaction doesn't exist, we
-                                // need to figure out if it's been finalized by
-                                // pre-consensus or not.
-                                // If it's final we have no way to know whether
-                                // it's already been accounted for or not (e.g.
-                                // we just opened the wallet).
-                                // In this case we do nothing and wait for the
-                                // block to eventually finalize to resync the
-                                // wallet.
-                                const chronik_tx = await chronik.tx(txid);
-                                if (!chronik_tx.isFinal) {
-                                    const amountAtoms =
-                                        calculateTransactionAmountAtomsFromTx(
-                                            ecashWallet,
-                                            chronik_tx,
-                                            activeTokenId(),
-                                        );
-                                    const tx =
-                                        await transactionManager.addNonFinalTransaction(
-                                            txid,
-                                            amountAtoms,
-                                        );
-                                    if (!tx) {
-                                        webViewError(
-                                            `Failed to add pending confirmed transaction: ${txid}`,
-                                        );
-                                        break;
-                                    }
-                                    webViewLog(
-                                        `Added pending confirmed transaction: ${atomsToUnit(
-                                            tx.amountAtoms,
-                                            activeAssetDecimals(),
-                                        )} ${activeAssetTicker()} for tx ${txid}`,
-                                    );
-                                }
-                            }
-                            break;
-                        case 'TX_FINALIZED':
-                            switch (msg.finalizationReasonType) {
-                                case 'TX_FINALIZATION_REASON_PRE_CONSENSUS':
-                                    await transactionManager.finalizePreConsensus(
-                                        txid,
-                                    );
-                                    // Always trigger haptic feedback for
-                                    // pre-consensus finalization
-                                    sendMessageToBackend(
-                                        'TX_FINALIZED',
-                                        undefined,
-                                    );
-                                    break;
-                                case 'TX_FINALIZATION_REASON_POST_CONSENSUS': {
-                                    const status =
-                                        await transactionManager.finalizePostConsensus(
-                                            txid,
-                                        );
-                                    switch (status) {
-                                        case PostConsensusFinalizationResult.NEWLY_FINALIZED:
-                                            // Trigger haptic feedback only if the
-                                            // transaction was pending
-                                            sendMessageToBackend(
-                                                'TX_FINALIZED',
-                                                undefined,
-                                            );
-                                            break;
-                                        case PostConsensusFinalizationResult.ALREADY_FINALIZED:
-                                            // Nothing to do
-                                            break;
-                                        case PostConsensusFinalizationResult.NOT_PENDING:
-                                            // We're lost, resync the wallet
-                                            webViewLog(
-                                                `Post-consensus finalized transaction ${txid} which is not pending, resyncing the wallet`,
-                                            );
-                                            await syncWallet();
-                                            break;
-                                    }
-                                    break;
-                                }
-                                default:
-                                    webViewError(
-                                        `Unknown finalization reason for ${txid}: `,
-                                        msg.finalizationReasonType,
-                                    );
-                                    break;
-                            }
-                            break;
-
-                        case 'TX_REMOVED_FROM_MEMPOOL':
-                        case 'TX_INVALIDATED':
-                            await transactionManager.invalidateTransaction(
-                                txid,
-                            );
-                            webViewLog(
-                                `Removed pending transaction: ${txid}, reason: ${msg.msgType}`,
-                            );
-                            break;
-                        default:
-                            webViewError(
-                                `Unknown message type: ${msg.msgType}`,
-                            );
-                            break;
-                    }
-                } catch (error) {
-                    webViewError('Failed processing WebSocket message:', error);
-                }
-            },
-        });
-
-        // Wait for WebSocket to be connected
-        await wsEndpoint.waitForOpen();
+        await openWalletWebSocket();
 
         for (const address of addresses) {
             wsEndpoint.subscribeToAddress(address);
