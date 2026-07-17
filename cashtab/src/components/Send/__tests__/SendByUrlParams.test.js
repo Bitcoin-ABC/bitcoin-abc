@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import {
@@ -520,6 +520,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         }
 
         // We see the preview of this op_return_raw
+        expect(screen.getByText('Cashtab Msg')).toBeInTheDocument();
         expect(
             screen.getByText('cashtab message with op_return_raw'),
         ).toBeInTheDocument();
@@ -529,6 +530,110 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByRole('button', { name: 'Accept' }),
         ).not.toHaveStyle('cursor: not-allowed');
     });
+    it.each([
+        {
+            description: 'Proof of Writing (POWR) auth/login',
+            op_return_raw:
+                '04504f575200582432623335633765362d366431362d343463352d626338312d363036363838383131396639',
+            protocol: 'Proof of Writing',
+            dataMatchers: [
+                /Login/,
+                /Nonce: 2b35c7e6-6d16-44c5-bc81-6066888119f9/,
+            ],
+        },
+        {
+            description: 'eCash Chat Auth',
+            op_return_raw:
+                '0461757468140644ad85a538657c033e36ce5a3c8cf26076591f',
+            protocol: 'Auth',
+            dataMatchers: ['0644ad85a538657c033e36ce5a3c8cf26076591f'],
+        },
+        {
+            description: 'XECX staking reward',
+            op_return_raw:
+                '04584543581b0008c43400000000000e21fdc39e01000000000000000000000000',
+            protocol: 'XECX',
+            dataMatchers: ['Min holder balance: 34580.56 XEC'],
+        },
+        {
+            description: 'Solana Address (SOL0)',
+            op_return_raw:
+                '04534f4c30204ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+            protocol: 'Solana Address',
+            dataMatchers: ['6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4'],
+        },
+        {
+            description: 'DICE bet',
+            op_return_raw: '0444494345010004814a5d050400e1f505',
+            protocol: 'DICE Bet',
+            dataMatchers: ['Range: [90000001, 100000000]'],
+        },
+        {
+            description: 'ROLL payout',
+            op_return_raw:
+                '04524f4c4c0100208d55f439eab81e9fc7fa9712f1742c975ccfcb984135e8c944330a958792d19d04c095a9052000000000000000000000000000000000000000000000000000000000000000000157',
+            protocol: 'ROLL Payout',
+            dataMatchers: [
+                'Bet: 8d55f439...8792d19d, Roll: 95000000, Result: Win',
+            ],
+        },
+    ])(
+        'bip21 param - parses op_return_raw for $description',
+        async ({ op_return_raw, protocol, dataMatchers }) => {
+            const destinationAddress =
+                'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
+            const amount = 6;
+            const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}`;
+            setLocationHash(`#/send?bip21=${bip21Str}`);
+
+            const mockedChronik = await initializeCashtabStateForTests(
+                walletWithXecAndTokensActive,
+                localforage,
+            );
+            render(
+                <CashtabTestWrapper chronik={mockedChronik} route="/send" />,
+            );
+
+            await waitFor(() =>
+                expect(
+                    screen.queryByTitle('Cashtab Loading'),
+                ).not.toBeInTheDocument(),
+            );
+
+            expect(
+                await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+            ).toHaveTextContent('9,513.12 XEC');
+
+            await expectUrlResolvedRecipient(bip21Str);
+
+            expect(screen.getByPlaceholderText('Amount')).toHaveValue(
+                String(amount),
+            );
+            expect(screen.getByPlaceholderText('Amount')).toHaveProperty(
+                'disabled',
+                true,
+            );
+
+            // Same parsed preview path as Cashtab Msg / other bip21 op_return_raw txs
+            const parsedLabel = await screen.findByText('Parsed op_return_raw');
+            // Scope to the parsed row — protocol labels like "XECX" also appear elsewhere in the UI
+            const parsedRow = parsedLabel.parentElement;
+            expect(parsedRow).not.toBeNull();
+            expect(within(parsedRow).getByText(protocol)).toBeInTheDocument();
+            for (const matcher of dataMatchers) {
+                expect(
+                    within(parsedRow).getByText(matcher),
+                ).toBeInTheDocument();
+            }
+            expect(
+                within(parsedRow).queryByText('Unknown Protocol'),
+            ).not.toBeInTheDocument();
+
+            expect(
+                await screen.findByRole('button', { name: 'Accept' }),
+            ).not.toHaveStyle('cursor: not-allowed');
+        },
+    );
     it('bip21 param - an invalid bip21 param shows validation errors but cannot be changed', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';

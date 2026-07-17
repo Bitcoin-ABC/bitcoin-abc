@@ -25,6 +25,7 @@ import {
 import { AddressType } from 'ecashaddrjs/dist/types';
 import { AppAction, XecxAction, UnknownAction } from 'chronik';
 import { Buffer } from 'buffer';
+import { toXec } from 'wallet';
 
 // FIXME we should never use Buffer, it creates polyfill nightmares in prod builds, you can use other methods
 
@@ -232,9 +233,163 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
             }
             return parsed;
         }
+        case opReturn.appPrefixesHex.pow: {
+            // Spec: doc/standards/proofofwriting.md
+            // <POWR> <OP_0 version> <OP_N action> [payload pushes]
+            return parsePowOpReturnRaw(stackArray, opReturnRaw);
+        }
+        case opReturn.appPrefixesHex.authPrefixHex: {
+            // eCash Chat auth: lokad + random challenge bytes
+            parsed.protocol = 'Auth';
+            parsed.data =
+                typeof stackArray[1] !== 'undefined' ? stackArray[1] : '';
+            return parsed;
+        }
+        case opReturn.appPrefixesHex.xecx:
+        case opReturn.appPrefixesHex.solAddr:
+        case opReturn.appPrefixesHex.dice:
+        case opReturn.appPrefixesHex.roll: {
+            // Same contiguous lokad+payload encoding as EMPP / ecash-parse
+            // standalone DICE/ROLL (join stack pushes, then parse).
+            try {
+                const emppAction = getEmppAppAction(stackArray.join(''));
+                if (typeof emppAction !== 'undefined') {
+                    return formatEmppAppActionPreview(emppAction, opReturnRaw, {
+                        solanaAsFirma: false,
+                    });
+                }
+            } catch {
+                // Fall through to Unknown Protocol
+            }
+            return parsed;
+        }
         default: {
             return parsed;
         }
+    }
+};
+
+const POW_ACTION_TYPES: Record<
+    string,
+    | 'post'
+    | 'reply'
+    | 'quote'
+    | 'repost'
+    | 'like'
+    | 'publish'
+    | 'unlock'
+    | 'auth'
+    | 'handle'
+    | 'comment'
+    | 'comment_reply'
+> = {
+    '51': 'post', // OP_1
+    '52': 'reply', // OP_2
+    '53': 'quote', // OP_3
+    '54': 'repost', // OP_4
+    '55': 'like', // OP_5
+    '56': 'publish', // OP_6
+    '57': 'unlock', // OP_7
+    '58': 'auth', // OP_8
+    '59': 'handle', // OP_9
+    '5a': 'comment', // OP_10
+    '5b': 'comment_reply', // OP_11
+};
+
+const POW_ACTION_LABELS: Record<string, string> = {
+    post: 'Post',
+    reply: 'Reply',
+    quote: 'Quote',
+    repost: 'Repost',
+    like: 'Like',
+    publish: 'Article Published',
+    unlock: 'Article Unlocked',
+    auth: 'Login',
+    handle: 'Handle Mint',
+    comment: 'Comment',
+    comment_reply: 'Comment Reply',
+};
+
+/**
+ * Parse a Proof of Writing (POWR) OP_RETURN stack for Send-screen preview.
+ * Spec: doc/standards/proofofwriting.md
+ */
+const parsePowOpReturnRaw = (
+    stackArray: string[],
+    opReturnRaw: string,
+): ParsedOpReturnRaw => {
+    const invalid = {
+        protocol: 'Invalid Proof of Writing',
+        data: opReturnRaw,
+    };
+
+    // stackArray[1] = version (bare OP_0 -> "00"), [2] = action (bare OP_N)
+    if (stackArray[1] !== '00') {
+        return invalid;
+    }
+
+    const type = POW_ACTION_TYPES[stackArray[2]];
+    if (typeof type === 'undefined') {
+        return invalid;
+    }
+
+    const is32 = (s?: string): s is string =>
+        typeof s === 'string' && s.length === 64;
+    const is36 = (s?: string): s is string =>
+        typeof s === 'string' && s.length === 72;
+    const label = POW_ACTION_LABELS[type];
+
+    switch (type) {
+        case 'post':
+        case 'publish':
+        case 'comment': {
+            if (!is32(stackArray[3])) {
+                return invalid;
+            }
+            return {
+                protocol: 'Proof of Writing',
+                data: `${label}\nContent hash: ${stackArray[3]}`,
+            };
+        }
+        case 'reply':
+        case 'quote':
+        case 'comment_reply': {
+            if (!is32(stackArray[3]) || !is32(stackArray[4])) {
+                return invalid;
+            }
+            return {
+                protocol: 'Proof of Writing',
+                data: `${label}\nTarget: ${stackArray[3]}\nContent hash: ${stackArray[4]}`,
+            };
+        }
+        case 'repost':
+        case 'like': {
+            if (!is32(stackArray[3])) {
+                return invalid;
+            }
+            return {
+                protocol: 'Proof of Writing',
+                data: `${label}\nTarget: ${stackArray[3]}`,
+            };
+        }
+        case 'unlock': {
+            return {
+                protocol: 'Proof of Writing',
+                data: label,
+            };
+        }
+        case 'auth':
+        case 'handle': {
+            if (!is36(stackArray[3])) {
+                return invalid;
+            }
+            return {
+                protocol: 'Proof of Writing',
+                data: `${label}\nNonce: ${Buffer.from(stackArray[3], 'hex').toString('utf8')}`,
+            };
+        }
+        default:
+            return invalid;
     }
 };
 
@@ -706,6 +861,157 @@ export const getEmppAppAction = (push: string): AppAction | undefined => {
 };
 
 /**
+ * Format a parsed EMPP/app action for Send-screen preview.
+ * @param solanaAsFirma when true (firma/empp_raw ALP path), label SOL0 as
+ *   Firma Withdrawal; when false (standalone op_return_raw), use Solana Address
+ */
+const formatEmppAppActionPreview = (
+    emppAction: AppAction,
+    fallbackData: string,
+    opts: { solanaAsFirma: boolean } = { solanaAsFirma: true },
+): ParsedOpReturnRaw => {
+    const unknown = { protocol: 'Unknown Protocol', data: fallbackData };
+    if (typeof emppAction.action === 'undefined') {
+        return unknown;
+    }
+    const action = emppAction.action;
+    switch (emppAction.app) {
+        case 'Cashtab Msg': {
+            if (emppAction.isValid && 'msg' in action) {
+                return {
+                    protocol: 'Cashtab Msg',
+                    data: (action as { msg: string }).msg,
+                };
+            }
+            return { protocol: 'Invalid Cashtab Msg', data: fallbackData };
+        }
+        case 'Solana Address': {
+            const protocol = opts.solanaAsFirma
+                ? 'Firma Withdrawal'
+                : 'Solana Address';
+            const invalidProtocol = opts.solanaAsFirma
+                ? 'Invalid Firma Withdrawal'
+                : 'Invalid Solana Address';
+            if (emppAction.isValid && 'solAddr' in action) {
+                return {
+                    protocol,
+                    data: (action as { solAddr: string }).solAddr,
+                };
+            }
+            return { protocol: invalidProtocol, data: fallbackData };
+        }
+        case 'PayButton': {
+            if (emppAction.isValid && 'data' in action && 'nonce' in action) {
+                const paybuttonAction = action as {
+                    data: string;
+                    nonce: string;
+                };
+                return {
+                    protocol: 'PayButton',
+                    data: `${
+                        paybuttonAction.data !== ''
+                            ? `Data: ${paybuttonAction.data}${
+                                  paybuttonAction.nonce !== '' ? ', ' : ''
+                              }`
+                            : ''
+                    }${
+                        paybuttonAction.nonce !== ''
+                            ? `Nonce: ${paybuttonAction.nonce}`
+                            : ''
+                    }`,
+                };
+            }
+            return { protocol: 'Invalid PayButton', data: fallbackData };
+        }
+        case 'DICE Bet': {
+            if (
+                emppAction.isValid &&
+                'minValue' in action &&
+                'maxValue' in action
+            ) {
+                const diceAction = action as {
+                    minValue: number;
+                    maxValue: number;
+                };
+                return {
+                    protocol: 'DICE Bet',
+                    data: `Range: [${diceAction.minValue}, ${diceAction.maxValue}]`,
+                };
+            }
+            return { protocol: 'Invalid DICE Bet', data: fallbackData };
+        }
+        case 'ROLL Payout': {
+            if (
+                emppAction.isValid &&
+                'betTxid' in action &&
+                'roll' in action &&
+                'seedHash' in action &&
+                'result' in action
+            ) {
+                const rollAction = action as {
+                    betTxid: string;
+                    roll: number;
+                    seedHash: string;
+                    result: string;
+                };
+                const resultLabel =
+                    rollAction.result === 'W'
+                        ? 'Win'
+                        : rollAction.result === 'L'
+                          ? 'Loss'
+                          : 'Invalid';
+                return {
+                    protocol: 'ROLL Payout',
+                    data: `Bet: ${rollAction.betTxid.slice(0, 8)}...${rollAction.betTxid.slice(-8)}, Roll: ${rollAction.roll}, Result: ${resultLabel}`,
+                };
+            }
+            return { protocol: 'Invalid ROLL Payout', data: fallbackData };
+        }
+        case 'XECX': {
+            if (
+                emppAction.isValid &&
+                'minBalanceTokenSatoshisToReceivePaymentThisRound' in action
+            ) {
+                const xecxAction = action as XecxAction;
+                const minBalanceXec = toXec(
+                    xecxAction.minBalanceTokenSatoshisToReceivePaymentThisRound,
+                );
+                return {
+                    protocol: 'XECX',
+                    data: `Min holder balance: ${minBalanceXec} XEC`,
+                };
+            }
+            return { protocol: 'Invalid XECX', data: fallbackData };
+        }
+        case 'EDJ.com Payout': {
+            if (
+                emppAction.isValid &&
+                'numTxs' in action &&
+                'potAtoms' in action &&
+                'winnerOddsBps' in action &&
+                'winnerTxid' in action
+            ) {
+                const trophyAction = action as {
+                    numTxs: number;
+                    potAtoms: bigint;
+                    winnerOddsBps: number;
+                    winnerTxid: string;
+                };
+                const oddsPct = (trophyAction.winnerOddsBps / 100).toFixed(2);
+                return {
+                    protocol: 'EDJ.com Payout',
+                    data: `${trophyAction.numTxs} entries, $${(Number(trophyAction.potAtoms) / 10000).toFixed(2)} pot, ${oddsPct}% odds, winning tx: ${trophyAction.winnerTxid.slice(0, 3)}...${trophyAction.winnerTxid.slice(-3)}`,
+                };
+            }
+            return { protocol: 'Invalid EDJ.com Payout', data: fallbackData };
+        }
+        default: {
+            return unknown;
+        }
+    }
+};
+
+/**
  * Parse an empp_raw input according to known EMPP specs
  * The returned output is used to generate a preview of the tx on the SendXec screen
  * @param emppRaw hex string of EMPP push (without OP_RETURN or OP_RESERVED)
@@ -730,127 +1036,10 @@ export const parseEmppRaw = (emppRaw: string): ParsedOpReturnRaw => {
         return parsed;
     }
 
-    if (typeof emppAction !== 'undefined' && emppAction.action) {
-        const action = emppAction.action;
-        switch (emppAction.app) {
-            case 'Cashtab Msg': {
-                if (emppAction.isValid && 'msg' in action) {
-                    parsed.protocol = 'Cashtab Msg';
-                    parsed.data = (action as { msg: string }).msg;
-                } else {
-                    parsed.protocol = 'Invalid Cashtab Msg';
-                }
-                return parsed;
-            }
-            case 'Solana Address': {
-                if (emppAction.isValid && 'solAddr' in action) {
-                    parsed.protocol = 'Firma Withdrawal';
-                    parsed.data = (action as { solAddr: string }).solAddr;
-                } else {
-                    parsed.protocol = 'Invalid Firma Withdrawal';
-                }
-                return parsed;
-            }
-            case 'PayButton': {
-                if (
-                    emppAction.isValid &&
-                    'data' in action &&
-                    'nonce' in action
-                ) {
-                    parsed.protocol = 'PayButton';
-                    const paybuttonAction = action as {
-                        data: string;
-                        nonce: string;
-                    };
-                    parsed.data = `${
-                        paybuttonAction.data !== ''
-                            ? `Data: ${paybuttonAction.data}${
-                                  paybuttonAction.nonce !== '' ? ', ' : ''
-                              }`
-                            : ''
-                    }${
-                        paybuttonAction.nonce !== ''
-                            ? `Nonce: ${paybuttonAction.nonce}`
-                            : ''
-                    }`;
-                } else {
-                    parsed.protocol = 'Invalid PayButton';
-                }
-                return parsed;
-            }
-            case 'DICE Bet': {
-                if (
-                    emppAction.isValid &&
-                    'minValue' in action &&
-                    'maxValue' in action
-                ) {
-                    parsed.protocol = 'DICE Bet';
-                    const diceAction = action as {
-                        minValue: number;
-                        maxValue: number;
-                    };
-                    parsed.data = `Range: [${diceAction.minValue}, ${diceAction.maxValue}]`;
-                } else {
-                    parsed.protocol = 'Invalid DICE Bet';
-                }
-                return parsed;
-            }
-            case 'ROLL Payout': {
-                if (
-                    emppAction.isValid &&
-                    'betTxid' in action &&
-                    'roll' in action &&
-                    'seedHash' in action &&
-                    'result' in action
-                ) {
-                    parsed.protocol = 'ROLL Payout';
-                    const rollAction = action as {
-                        betTxid: string;
-                        roll: number;
-                        seedHash: string;
-                        result: string;
-                    };
-                    const resultLabel =
-                        rollAction.result === 'W'
-                            ? 'Win'
-                            : rollAction.result === 'L'
-                              ? 'Loss'
-                              : 'Invalid';
-                    parsed.data = `Bet: ${rollAction.betTxid.slice(0, 8)}...${rollAction.betTxid.slice(-8)}, Roll: ${rollAction.roll}, Result: ${resultLabel}`;
-                } else {
-                    parsed.protocol = 'Invalid ROLL Payout';
-                }
-                return parsed;
-            }
-            case 'EDJ.com Payout': {
-                if (
-                    emppAction.isValid &&
-                    'numTxs' in action &&
-                    'potAtoms' in action &&
-                    'winnerOddsBps' in action &&
-                    'winnerTxid' in action
-                ) {
-                    parsed.protocol = 'EDJ.com Payout';
-                    const trophyAction = action as {
-                        numTxs: number;
-                        potAtoms: bigint;
-                        winnerOddsBps: number;
-                        winnerTxid: string;
-                    };
-                    const oddsPct = (trophyAction.winnerOddsBps / 100).toFixed(
-                        2,
-                    );
-                    parsed.data = `${trophyAction.numTxs} entries, $${(Number(trophyAction.potAtoms) / 10000).toFixed(2)} pot, ${oddsPct}% odds, winning tx: ${trophyAction.winnerTxid.slice(0, 3)}...${trophyAction.winnerTxid.slice(-3)}`;
-                } else {
-                    parsed.protocol = 'Invalid EDJ.com Payout';
-                }
-                return parsed;
-            }
-            default: {
-                // Unknown app from getEmppAppAction
-                return parsed;
-            }
-        }
+    if (typeof emppAction !== 'undefined') {
+        return formatEmppAppActionPreview(emppAction, emppRaw, {
+            solanaAsFirma: true,
+        });
     }
 
     // Unknown protocol

@@ -474,6 +474,140 @@ export const opReturnVectors = {
                 },
             },
             {
+                description:
+                    'Proof of Writing auth (login) with 36-byte UUID nonce',
+                opReturnRaw:
+                    '04504f575200582432623335633765362d366431362d343463352d626338312d363036363838383131396639',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Login\nNonce: 2b35c7e6-6d16-44c5-bc81-6066888119f9',
+                },
+            },
+            {
+                description: 'Proof of Writing unlock (no payload)',
+                opReturnRaw: '04504f57520057',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Article Unlocked',
+                },
+            },
+            {
+                description: 'Proof of Writing post with content hash',
+                opReturnRaw:
+                    '04504f5752005120532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Post\nContent hash: 532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+                },
+            },
+            {
+                description:
+                    'Proof of Writing reply with target txid and content hash',
+                opReturnRaw:
+                    '04504f5752005220aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa20bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Reply\nTarget: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nContent hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                },
+            },
+            {
+                description: 'Proof of Writing like with target txid',
+                opReturnRaw:
+                    '04504f5752005520cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Like\nTarget: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+                },
+            },
+            {
+                description:
+                    'Proof of Writing handle mint with 36-byte UUID nonce',
+                opReturnRaw:
+                    '04504f575200592432623335633765362d366431362d343463352d626338312d363036363838383131396639',
+                returned: {
+                    protocol: 'Proof of Writing',
+                    data: 'Handle Mint\nNonce: 2b35c7e6-6d16-44c5-bc81-6066888119f9',
+                },
+            },
+            {
+                description: 'Invalid Proof of Writing (unsupported version)',
+                opReturnRaw: '04504f57520157',
+                returned: {
+                    protocol: 'Invalid Proof of Writing',
+                    data: '04504f57520157',
+                },
+            },
+            {
+                description: 'Invalid Proof of Writing (unknown action opcode)',
+                opReturnRaw: '04504f5752005c',
+                returned: {
+                    protocol: 'Invalid Proof of Writing',
+                    data: '04504f5752005c',
+                },
+            },
+            {
+                description: 'Invalid Proof of Writing (auth missing nonce)',
+                opReturnRaw: '04504f57520058',
+                returned: {
+                    protocol: 'Invalid Proof of Writing',
+                    data: '04504f57520058',
+                },
+            },
+            {
+                description: 'eCash Chat Auth lokad with challenge bytes',
+                opReturnRaw:
+                    '0461757468140644ad85a538657c033e36ce5a3c8cf26076591f',
+                returned: {
+                    protocol: 'Auth',
+                    data: '0644ad85a538657c033e36ce5a3c8cf26076591f',
+                },
+            },
+            {
+                description:
+                    'XECX staking reward EMPP payload as OP_RETURN pushes',
+                opReturnRaw:
+                    '04584543581b0008c43400000000000e21fdc39e01000000000000000000000000',
+                returned: {
+                    protocol: 'XECX',
+                    data: 'Min holder balance: 34580.56 XEC',
+                },
+            },
+            {
+                description: 'Invalid XECX (unsupported version)',
+                opReturnRaw:
+                    '04584543581b0108c43400000000000e21fdc39e01000000000000000000000000',
+                returned: {
+                    protocol: 'Invalid XECX',
+                    data: '04584543581b0108c43400000000000e21fdc39e01000000000000000000000000',
+                },
+            },
+            {
+                description: 'Solana address (SOL0) as OP_RETURN pushes',
+                opReturnRaw:
+                    '04534f4c30204ebabba2b443691c1a9180426004d5fd3419e9f9c64e5839b853cecdaacbf745',
+                returned: {
+                    protocol: 'Solana Address',
+                    data: '6JKwz43wDTgk5n8eNCJrtsnNtkDdKd1XUZAvB9WkiEQ4',
+                },
+            },
+            {
+                description: 'Standalone DICE bet OP_RETURN',
+                opReturnRaw: '0444494345010004814a5d050400e1f505',
+                returned: {
+                    protocol: 'DICE Bet',
+                    data: 'Range: [90000001, 100000000]',
+                },
+            },
+            {
+                description: 'Standalone ROLL payout OP_RETURN',
+                opReturnRaw:
+                    '04524f4c4c0100208d55f439eab81e9fc7fa9712f1742c975ccfcb984135e8c944330a958792d19d04c095a9052000000000000000000000000000000000000000000000000000000000000000000157',
+                returned: {
+                    protocol: 'ROLL Payout',
+                    data: 'Bet: 8d55f439...8792d19d, Roll: 95000000, Result: Win',
+                },
+            },
+            {
                 description: 'Returns unknown for unknown OP_RETURN',
                 opReturnRaw: '04deadbeef',
                 returned: {
