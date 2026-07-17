@@ -94,6 +94,7 @@ export const SendButtonContainer = styled.div`
 
     @media (max-width: 768px) {
         position: fixed;
+        /* Above footer; keypad docks above this CTA via --cashtab-fixed-cta-offset */
         bottom: 70px;
         left: 0;
         right: 0;

@@ -225,7 +225,7 @@ const addressEvent = (
  * Send-to field with contact / wallet search and resolved recipient display.
  */
 const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
-    label = 'Send to',
+    label,
     placeholder = 'Address or contact',
     name = 'address',
     value = '',

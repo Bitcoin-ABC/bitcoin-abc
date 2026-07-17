@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,6 +14,13 @@ import {
     getDecimalSeparator,
     normalizeDecimalInput,
 } from 'formatting';
+import CashtabAmountKeypad from './CashtabAmountKeypad';
+import {
+    appendDecimalToAmount,
+    appendDigitToAmount,
+    backspaceAmount,
+    shouldUseAmountKeypad,
+} from './cashtabAmountKeypadInput';
 
 /**
  * Format amount field input with locale thousands / decimal separators and
@@ -51,6 +58,95 @@ const handleLocaleAmountChange = (
         // Some environments may reject selection changes
     }
     handleInput(e);
+};
+
+/**
+ * Emit a locale-formatted amount change from the custom keypad (no DOM input).
+ */
+const emitLocaleAmountValue = (
+    name: string,
+    nextRaw: string,
+    userLocale: string,
+    handleInput: React.ChangeEventHandler<HTMLInputElement>,
+    maxDecimals?: number,
+) => {
+    const formatted = formatAmountFromTypedInput(
+        nextRaw,
+        userLocale,
+        maxDecimals,
+    );
+    handleInput({
+        target: { name, value: formatted },
+    } as React.ChangeEvent<HTMLInputElement>);
+};
+
+interface LocaleAmountKeypadBridgeProps {
+    name: string;
+    value: string;
+    userLocale: string;
+    maxDecimals?: number;
+    handleInput: React.ChangeEventHandler<HTMLInputElement>;
+    active: boolean;
+}
+
+/**
+ * Renders CashtabAmountKeypad while an amount field is focused on mobile.
+ */
+const LocaleAmountKeypadBridge: React.FC<LocaleAmountKeypadBridgeProps> = ({
+    name,
+    value,
+    userLocale,
+    maxDecimals,
+    handleInput,
+    active,
+}) => {
+    if (!active) {
+        return null;
+    }
+    const decimalSeparator = getDecimalSeparator(userLocale);
+    const current = value ?? '';
+
+    return (
+        <CashtabAmountKeypad
+            userLocale={userLocale}
+            onDigit={digit =>
+                emitLocaleAmountValue(
+                    name,
+                    appendDigitToAmount(
+                        current,
+                        digit,
+                        decimalSeparator,
+                        maxDecimals,
+                    ),
+                    userLocale,
+                    handleInput,
+                    maxDecimals,
+                )
+            }
+            onDecimal={() =>
+                emitLocaleAmountValue(
+                    name,
+                    appendDecimalToAmount(
+                        current,
+                        decimalSeparator,
+                        maxDecimals,
+                    ),
+                    userLocale,
+                    handleInput,
+                    maxDecimals,
+                )
+            }
+            onBackspace={() =>
+                emitLocaleAmountValue(
+                    name,
+                    backspaceAmount(current, decimalSeparator),
+                    userLocale,
+                    handleInput,
+                    maxDecimals,
+                )
+            }
+        />
+    );
 };
 
 const CashtabInputWrapper = styled.div`
@@ -284,6 +380,11 @@ interface InputProps {
     /** When set, format the field as a locale-aware amount (thousands + decimal). */
     userLocale?: string;
     maxDecimals?: number;
+    /**
+     * Opt-in custom amount keypad (mobile/native). Default off — enable per
+     * screen after the fixed CTA layout is accounted for (see Send).
+     */
+    enableAmountKeypad?: boolean;
 }
 export const Input: React.FC<InputProps> = ({
     placeholder = '',
@@ -303,8 +404,14 @@ export const Input: React.FC<InputProps> = ({
     autoCapitalize = 'off',
     userLocale,
     maxDecimals,
+    enableAmountKeypad = false,
 }) => {
     const isLocaleAmount = typeof userLocale === 'string';
+    const useKeypad =
+        enableAmountKeypad && isLocaleAmount && shouldUseAmountKeypad();
+    const [keypadActive, setKeypadActive] = useState(false);
+    const stringValue = value === null ? '' : value;
+
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
@@ -315,7 +422,7 @@ export const Input: React.FC<InputProps> = ({
                 <CashtabInput
                     name={name}
                     style={style}
-                    value={value === null ? '' : value}
+                    value={stringValue}
                     placeholder={placeholder}
                     disabled={disabled}
                     invalid={typeof error === 'string'}
@@ -330,11 +437,24 @@ export const Input: React.FC<InputProps> = ({
                                   )
                             : handleInput
                     }
+                    onFocus={
+                        useKeypad ? () => setKeypadActive(true) : undefined
+                    }
+                    onBlur={
+                        useKeypad ? () => setKeypadActive(false) : undefined
+                    }
                     onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).blur();
                     }}
                     type={isLocaleAmount ? 'text' : type}
-                    inputMode={isLocaleAmount ? 'decimal' : undefined}
+                    inputMode={
+                        isLocaleAmount
+                            ? useKeypad
+                                ? 'none'
+                                : 'decimal'
+                            : undefined
+                    }
+                    readOnly={useKeypad || undefined}
                     autoComplete={autocomplete}
                     spellCheck={spellCheck}
                     autoCorrect={autoCorrect}
@@ -345,6 +465,16 @@ export const Input: React.FC<InputProps> = ({
                 )}
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ' '}</ErrorMsg>
+            {useKeypad && (
+                <LocaleAmountKeypadBridge
+                    name={name}
+                    value={stringValue}
+                    userLocale={userLocale}
+                    maxDecimals={maxDecimals}
+                    handleInput={handleInput}
+                    active={keypadActive && !disabled}
+                />
+            )}
         </CashtabInputWrapper>
     );
 };
@@ -618,6 +748,8 @@ interface SendXecInputProps {
     spellCheck?: boolean;
     autoCorrect?: string;
     autoCapitalize?: string;
+    /** Opt-in custom amount keypad (mobile/native). Default off. */
+    enableAmountKeypad?: boolean;
 }
 export const SendXecInput: React.FC<SendXecInputProps> = ({
     name = '',
@@ -637,7 +769,12 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
     spellCheck = false,
     autoCorrect = 'off',
     autoCapitalize = 'off',
+    enableAmountKeypad = false,
 }) => {
+    const useKeypad = enableAmountKeypad && shouldUseAmountKeypad();
+    const [keypadActive, setKeypadActive] = useState(false);
+    const stringValue = String(value ?? '');
+
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
@@ -645,7 +782,8 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
                 <LeftInput
                     placeholder="Amount"
                     type="text"
-                    inputMode="decimal"
+                    inputMode={useKeypad ? 'none' : 'decimal'}
+                    readOnly={useKeypad || undefined}
                     name={name}
                     value={value}
                     onChange={e =>
@@ -655,6 +793,12 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
                             userLocale,
                             maxDecimals,
                         )
+                    }
+                    onFocus={
+                        useKeypad ? () => setKeypadActive(true) : undefined
+                    }
+                    onBlur={
+                        useKeypad ? () => setKeypadActive(false) : undefined
                     }
                     disabled={inputDisabled}
                     autoComplete={autocomplete}
@@ -684,6 +828,16 @@ export const SendXecInput: React.FC<SendXecInputProps> = ({
                 </OnMaxBtn>
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            {useKeypad && (
+                <LocaleAmountKeypadBridge
+                    name={name}
+                    value={stringValue}
+                    userLocale={userLocale}
+                    maxDecimals={maxDecimals}
+                    handleInput={handleInput}
+                    active={keypadActive && !inputDisabled}
+                />
+            )}
         </CashtabInputWrapper>
     );
 };
@@ -703,6 +857,8 @@ interface SendTokenInputProps {
     spellCheck?: boolean;
     autoCorrect?: string;
     autoCapitalize?: string;
+    /** Opt-in custom amount keypad (mobile/native). Default off. */
+    enableAmountKeypad?: boolean;
 }
 export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     name = '',
@@ -719,7 +875,12 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     spellCheck = false,
     autoCorrect = 'off',
     autoCapitalize = 'off',
+    enableAmountKeypad = false,
 }) => {
+    const useKeypad = enableAmountKeypad && shouldUseAmountKeypad();
+    const [keypadActive, setKeypadActive] = useState(false);
+    const stringValue = String(value ?? '');
+
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
@@ -727,7 +888,8 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
                 <LeftInput
                     placeholder={placeholder}
                     type="text"
-                    inputMode="decimal"
+                    inputMode={useKeypad ? 'none' : 'decimal'}
+                    readOnly={useKeypad || undefined}
                     name={name}
                     value={value}
                     onChange={e =>
@@ -738,6 +900,12 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
                             maxDecimals,
                         )
                     }
+                    onFocus={
+                        useKeypad ? () => setKeypadActive(true) : undefined
+                    }
+                    onBlur={
+                        useKeypad ? () => setKeypadActive(false) : undefined
+                    }
                     disabled={inputDisabled}
                     autoComplete={autocomplete}
                     spellCheck={spellCheck}
@@ -747,6 +915,16 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
                 <OnMaxBtnToken onClick={handleOnMax}>max</OnMaxBtnToken>
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            {useKeypad && (
+                <LocaleAmountKeypadBridge
+                    name={name}
+                    value={stringValue}
+                    userLocale={userLocale}
+                    maxDecimals={maxDecimals}
+                    handleInput={handleInput}
+                    active={keypadActive && !inputDisabled}
+                />
+            )}
         </CashtabInputWrapper>
     );
 };
@@ -769,6 +947,8 @@ interface ListPriceInputProps {
     spellCheck?: boolean;
     autoCorrect?: string;
     autoCapitalize?: string;
+    /** Opt-in custom amount keypad (mobile/native). Default off. */
+    enableAmountKeypad?: boolean;
 }
 export const ListPriceInput: React.FC<ListPriceInputProps> = ({
     name = 'listPriceInput',
@@ -788,7 +968,12 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
     spellCheck = false,
     autoCorrect = 'off',
     autoCapitalize = 'off',
+    enableAmountKeypad = false,
 }) => {
+    const useKeypad = enableAmountKeypad && shouldUseAmountKeypad();
+    const [keypadActive, setKeypadActive] = useState(false);
+    const stringValue = value === null ? '' : String(value);
+
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
@@ -797,8 +982,9 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                     name={name}
                     placeholder={placeholder}
                     type="text"
-                    inputMode="decimal"
-                    value={value === null ? '' : value}
+                    inputMode={useKeypad ? 'none' : 'decimal'}
+                    readOnly={useKeypad || undefined}
+                    value={stringValue}
                     onChange={e =>
                         handleLocaleAmountChange(
                             e,
@@ -806,6 +992,12 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                             userLocale,
                             maxDecimals,
                         )
+                    }
+                    onFocus={
+                        useKeypad ? () => setKeypadActive(true) : undefined
+                    }
+                    onBlur={
+                        useKeypad ? () => setKeypadActive(false) : undefined
                     }
                     disabled={inputDisabled}
                     invalid={typeof error === 'string'}
@@ -832,6 +1024,16 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                 </SellPriceDropdown>
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            {useKeypad && (
+                <LocaleAmountKeypadBridge
+                    name={name}
+                    value={stringValue}
+                    userLocale={userLocale}
+                    maxDecimals={maxDecimals}
+                    handleInput={handleInput}
+                    active={keypadActive && !inputDisabled}
+                />
+            )}
         </CashtabInputWrapper>
     );
 };
@@ -961,6 +1163,8 @@ interface SliderProps {
     disabled?: boolean;
     userLocale?: string;
     maxDecimals?: number;
+    /** Opt-in custom amount keypad (mobile/native). Default off. */
+    enableAmountKeypad?: boolean;
 }
 export const Slider: React.FC<SliderProps> = ({
     name,
@@ -977,7 +1181,12 @@ export const Slider: React.FC<SliderProps> = ({
     disabled = false,
     userLocale = 'en-US',
     maxDecimals,
+    enableAmountKeypad = false,
 }) => {
+    const useKeypad = enableAmountKeypad && shouldUseAmountKeypad();
+    const [keypadActive, setKeypadActive] = useState(false);
+    const typedName = `${name}-typed`;
+
     // HTML <input type="range"> always uses `.` decimals. `value` is
     // locale-formatted user state; `min`/`max` are wire-format quantities.
     const rangeValue = normalizeDecimalInput(String(value ?? ''), userLocale);
@@ -1009,7 +1218,7 @@ export const Slider: React.FC<SliderProps> = ({
 
     const typedInput = (
         <SliderInput
-            name={`${name}-typed`}
+            name={typedName}
             value={displayValue}
             placeholder={typeof label === 'string' ? label : name}
             invalid={typeof error === 'string'}
@@ -1022,9 +1231,12 @@ export const Slider: React.FC<SliderProps> = ({
                     maxDecimals,
                 )
             }
+            onFocus={useKeypad ? () => setKeypadActive(true) : undefined}
+            onBlur={useKeypad ? () => setKeypadActive(false) : undefined}
             disabled={disabled}
             type="text"
-            inputMode="decimal"
+            inputMode={useKeypad ? 'none' : 'decimal'}
+            readOnly={useKeypad || undefined}
             onWheel={(e: React.WheelEvent<HTMLInputElement>) => {
                 (e.target as HTMLInputElement).blur();
             }}
@@ -1072,6 +1284,16 @@ export const Slider: React.FC<SliderProps> = ({
                 </LabelAndInputFlex>
             )}
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            {useKeypad && allowTypedInput && (
+                <LocaleAmountKeypadBridge
+                    name={typedName}
+                    value={displayValue}
+                    userLocale={userLocale}
+                    maxDecimals={maxDecimals}
+                    handleInput={handleSlide}
+                    active={keypadActive && !disabled}
+                />
+            )}
         </CashtabInputWrapper>
     );
 };
