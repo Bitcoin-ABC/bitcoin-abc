@@ -9,6 +9,7 @@ import appConfig from 'config/app';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
     sanitizeAndFormatAmountInput,
+    formatAmountForInputDisplay,
     caretPosAfterFormat,
     getDecimalSeparator,
     normalizeDecimalInput,
@@ -977,10 +978,11 @@ export const Slider: React.FC<SliderProps> = ({
     userLocale = 'en-US',
     maxDecimals,
 }) => {
-    // Range inputs require wire-format decimals; typed field shows locale format.
+    // HTML <input type="range"> always uses `.` decimals. `value` is
+    // locale-formatted user state; `min`/`max` are wire-format quantities.
     const rangeValue = normalizeDecimalInput(String(value ?? ''), userLocale);
-    const rangeMin = normalizeDecimalInput(String(min ?? ''), userLocale);
-    const rangeMax = normalizeDecimalInput(String(max ?? ''), userLocale);
+    const rangeMin = String(min ?? '');
+    const rangeMax = String(max ?? '');
     const displayValue = sanitizeAndFormatAmountInput(
         String(value ?? ''),
         userLocale,
@@ -989,8 +991,11 @@ export const Slider: React.FC<SliderProps> = ({
     const showMax = typeof handleOnMax === 'function';
 
     const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Range events emit wire-format (`.` decimal). Convert to locale
+        // display before sanitizing — otherwise comma-decimal locales strip
+        // `.` as a non-decimal character and inflate the amount (e.g. 0.1234 → 1234).
         const formatted = sanitizeAndFormatAmountInput(
-            e.target.value,
+            formatAmountForInputDisplay(e.target.value, userLocale),
             userLocale,
             maxDecimals,
         );

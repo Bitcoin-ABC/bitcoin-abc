@@ -6,7 +6,7 @@ import React from 'react';
 import * as localForage from 'localforage';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import 'fake-indexeddb/auto';
@@ -1187,6 +1187,71 @@ describe('<OrderBook />', () => {
         // Test Max button
         await userEvent.click(screen.getByText('Max'));
         expect(screen.getByText('100.00 CACHET')).toBeInTheDocument();
+    });
+    it('Agora percentage buttons and slider keep fractional qty for comma-decimal locales', async () => {
+        // Regression: EU locales use "," as decimal and "." as thousands. Setting
+        // wire-format amounts (e.g. "100.00" or range "0.1234") via sanitize alone
+        // stripped "." and inflated qty (100.00 → 10000, 0.1234 → 1234).
+        mockPrice(0.000033);
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setActiveOffersByTokenId(CACHET_TOKEN_ID, [
+            agoraOfferCachetAlphaOne,
+        ]);
+
+        const mockedChronik = await prepareContext(
+            localForage,
+            [agoraPartialBetaMoreBalanceWallet],
+            tokenMocks,
+        );
+
+        await localForage.setItem(
+            SupportedCashtabStorageKeys.Settings,
+            SettingsUsd,
+        );
+
+        render(
+            <OrderBookTestWrapper
+                agora={mockedAgora}
+                chronik={mockedChronik}
+                ecc={ecc}
+                theme={theme}
+                tokenId={CACHET_TOKEN_ID}
+                userLocale={'de-DE'}
+            />,
+        );
+
+        await waitForContext();
+
+        expect(await screen.findByText('Cachet')).toBeInTheDocument();
+
+        const buyAmountCachetInput = screen.getByPlaceholderText(
+            `Select buy qty ${CACHET_TOKEN_ID}`,
+        );
+        // Min accept is 0.10 CACHET — must keep the fractional part (",10", not "10")
+        expect(await screen.findByDisplayValue(',10')).toBeInTheDocument();
+        expect(screen.getByText(',10 CACHET')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Max'));
+        // Full offer is 100.00 CACHET — not 10.000 / 10000 from stripped decimals
+        expect(buyAmountCachetInput).toHaveValue('100,00');
+        expect(screen.getByText('100,00 CACHET')).toBeInTheDocument();
+        expect(
+            screen.queryByText(/exceeds available balance/),
+        ).not.toBeInTheDocument();
+
+        const buyCachetButton = screen.getByRole('button', {
+            name: /Buy CACHET/i,
+        });
+        expect(buyCachetButton).not.toBeDisabled();
+
+        // Dragging the range input also emits "."-decimal values; locale must
+        // convert them (25.00 → 25,00) instead of stripping decimals.
+        const slider = screen.getByRole('slider');
+        fireEvent.change(slider, { target: { value: '25.00' } });
+        expect(buyAmountCachetInput).toHaveValue('25,00');
+        expect(screen.getByText('25,00 CACHET')).toBeInTheDocument();
+        expect(buyCachetButton).not.toBeDisabled();
     });
     it('auto-selects affordable offers over unaffordable ones', async () => {
         mockPrice(0.000033);

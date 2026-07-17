@@ -45,6 +45,7 @@ import {
     getAgoraSpotPriceXec,
     getPercentDeltaOverSpot,
     normalizeDecimalInput,
+    formatAmountForInputDisplay,
 } from 'formatting';
 import {
     DepthBarCol,
@@ -516,13 +517,16 @@ const OrderBook: React.FC<OrderBookProps> = ({
             return; // User cannot afford this amount
         }
 
-        // Convert to decimalized amount for the slider
+        // Convert to decimalized amount for the slider (locale-formatted;
+        // wire-format "." would be misread as a thousands separator in EU locales)
         const decimalizedQty = decimalizeTokenAmount(
             validAmount.toString(),
             decimals,
         );
 
-        setTakeTokenDecimalizedQty(decimalizedQty);
+        setTakeTokenDecimalizedQty(
+            formatAmountForInputDisplay(decimalizedQty, userLocale),
+        );
     };
 
     const canAffordPercentage = (percentage: number): boolean => {
@@ -1037,16 +1041,22 @@ const OrderBook: React.FC<OrderBookProps> = ({
             typeof decimals !== 'undefined'
         ) {
             // Select the minAcceptedTokens amount every time the order changes
+            // Locale-format so EU decimal-comma users do not lose fractional digits
             setTakeTokenDecimalizedQty(
-                decimalizeTokenAmount(
-                    activeOffers[selectedIndex].variant.params
-                        .minAcceptedAtoms()
-                        .toString(),
-                    decimals as SlpDecimals,
+                formatAmountForInputDisplay(
+                    decimalizeTokenAmount(
+                        activeOffers[selectedIndex].variant.params
+                            .minAcceptedAtoms()
+                            .toString(),
+                        decimals as SlpDecimals,
+                    ),
+                    userLocale,
                 ),
             );
         }
-    }, [activeOffers, selectedIndex]);
+        // Include decimals: cache may load after activeOffers, and we must
+        // re-run once decimals are available or the slider stays at "0".
+    }, [activeOffers, selectedIndex, decimals, userLocale]);
 
     // Re-fetch offers when wallet balance changes to re-evaluate affordability
     useEffect(() => {
