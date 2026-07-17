@@ -65,8 +65,8 @@ import {
 import { getUserLocale } from 'helpers';
 import {
     decimalizedTokenQtyToLocaleFormat,
+    formatAmountFromWire,
     normalizeDecimalInput,
-    sanitizeAndFormatAmountInput,
 } from 'formatting';
 import {
     toHex,
@@ -474,7 +474,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         handleInput({
             target: {
                 name: 'genesisQty',
-                value: sanitizeAndFormatAmountInput(
+                value: formatAmountFromWire(
                     maxGenesisAmount,
                     userLocale,
                     usedDecimals,

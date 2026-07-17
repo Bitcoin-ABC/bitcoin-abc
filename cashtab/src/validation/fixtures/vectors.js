@@ -525,6 +525,22 @@ export default {
                 },
             },
             {
+                description:
+                    'BIP21 amount with decimals is not inflated in de-DE (`.` is thousands sep)',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=5.50',
+                balanceSats: 5000000,
+                userLocale: 'de-DE',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                    },
+                    amount: { value: '5.50', error: false },
+                    queryString: { value: 'amount=5.50', error: false },
+                },
+            },
+            {
                 description: 'Invalid address with valid amount param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg?amount=500000',
@@ -1751,6 +1767,28 @@ export default {
                 fiatPrice: 0.000003,
                 // 1000.12 XEC exceeds 1000.00 XEC balance
                 returned: `Amount 1.000,12 XEC exceeds wallet balance of 1.000,00 XEC`,
+            },
+            {
+                description:
+                    'wireFormat: BIP21 amount 5.50 stays 5.50 in de-DE (not 550)',
+                sendAmount: '5.50',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: 'de-DE',
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                wireFormat: true,
+                returned: true,
+            },
+            {
+                description:
+                    'Without wireFormat, de-DE treats BIP21 5.50 `.` as thousands (→ 550)',
+                sendAmount: '5.50',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: 'de-DE',
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                wireFormat: false,
+                returned: true, // 550 XEC is still a valid send vs 1000 balance
             },
             {
                 description: 'A non-number string is rejected',

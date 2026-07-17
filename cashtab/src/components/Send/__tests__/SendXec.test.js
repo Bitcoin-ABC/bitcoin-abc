@@ -435,6 +435,90 @@ describe('<SendXec />', () => {
             'cursor: not-allowed',
         );
     });
+    it('de-DE: BIP21 wire amount=5.50 prefills as 5,50 and broadcasts 550 sats (not 550 XEC)', async () => {
+        // Locale uses `.` thousands and `,` decimal. BIP21 amounts are always
+        // wire-format (`.` decimal); a regression here inflates 5.50 → 550.
+        const originalLanguage = window.navigator.language;
+        Object.defineProperty(window.navigator, 'language', {
+            configurable: true,
+            get: () => 'de-DE',
+        });
+
+        try {
+            const mockedChronik = await initializeCashtabStateForTests(
+                walletWithXecAndTokensActive,
+                localforage,
+            );
+
+            await localforage.setItem('settings', {
+                fiatCurrency: 'usd',
+                sendModal: false,
+                autoCameraOn: false,
+                hideMessagesFromUnknownSenders: false,
+                balanceVisible: true,
+                satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+            });
+
+            // Send 5.50 XEC (550 sats) to qp89…; change back to wallet.
+            // Output value 0x0226 LE confirms 550 sats (not 55_000 for 550 XEC).
+            const hex =
+                '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441f36afad724c37be0dc4d45ea236e11022b901d918020f384a8d2279d08198d102b740e80b8fc960b4cd280220989af95ffe3cfa5aa472347d9ecbb612110f5124121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0226020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac31800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            const txid =
+                '3e1ed56fb6f7181a74190a4f71693a1ff329946b1cbb5036f661b6f36de1eed8';
+            mockedChronik.setBroadcastTx(hex, txid);
+
+            render(
+                <CashtabTestWrapper
+                    chronik={mockedChronik}
+                    ecc={ecc}
+                    route="/send"
+                />,
+            );
+
+            await waitFor(() =>
+                expect(
+                    screen.queryByTitle('Cashtab Loading'),
+                ).not.toBeInTheDocument(),
+            );
+
+            const addressInputEl = await getRecipientInput();
+            const amountInputEl = screen.getByPlaceholderText('Amount');
+
+            // Wire-format BIP21 scan (`.` decimal). Must display 5,50 — not 550.
+            const addressInput =
+                'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=5.50';
+            fireEvent.input(addressInputEl, {
+                target: { value: addressInput },
+            });
+            fireEvent.change(addressInputEl, {
+                target: { value: addressInput },
+            });
+
+            await expectResolvedRecipient(
+                previewAddress(addressInput.split('?')[0]),
+            );
+
+            expect(amountInputEl).toHaveValue('5,50');
+            expect(amountInputEl).toHaveProperty('disabled', true);
+            expect(
+                screen.getByRole('button', { name: 'Send' }),
+            ).not.toHaveStyle('cursor: not-allowed');
+
+            await user.click(screen.getByRole('button', { name: 'Send' }));
+            const txSuccessNotification = await screen.findByText('eCash sent');
+            await waitFor(() =>
+                expect(txSuccessNotification).toHaveAttribute(
+                    'href',
+                    `${explorer.blockExplorerUrl}/tx/${txid}`,
+                ),
+            );
+        } finally {
+            Object.defineProperty(window.navigator, 'language', {
+                configurable: true,
+                get: () => originalLanguage,
+            });
+        }
+    });
     it('Pass a valid address and bip21 query string with invalid amount param (dust) to Send To field', async () => {
         // Mock the app with context at the Send screen
         const mockedChronik = await initializeCashtabStateForTests(

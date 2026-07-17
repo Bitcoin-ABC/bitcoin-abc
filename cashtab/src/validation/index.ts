@@ -89,13 +89,19 @@ export const isValidXecSendAmount = (
     userLocale = 'en-US',
     selectedCurrency: string = appConfig.ticker,
     fiatPrice = 0,
+    /**
+     * BIP21 / other wire amounts always use `.` as the decimal marker.
+     * Skip locale thousands stripping so `5.50` is not read as `550` in
+     * locales where `.` is the group separator (de-DE, id-ID, …).
+     */
+    wireFormat = false,
 ): boolean | string => {
     if (typeof sendAmount !== 'number' && typeof sendAmount !== 'string') {
         return 'sendAmount type must be number or string';
     }
     // Normalize locale thousands / decimal separators to a `.`-decimal string
     const normalizedAmount =
-        typeof sendAmount === 'number'
+        typeof sendAmount === 'number' || wireFormat
             ? String(sendAmount)
             : normalizeDecimalInput(sendAmount, userLocale);
 
@@ -1117,11 +1123,14 @@ export function parseAddressInput(
                         }
                         return parsedAddressInput;
                     }
-                    // Validate the amount
+                    // Validate the amount (BIP21 amounts are always wire-format)
                     const isValidXecSendAmountOrErrorMsg = isValidXecSendAmount(
                         value,
                         balanceSats,
                         userLocale,
+                        appConfig.ticker,
+                        0,
+                        true,
                     );
                     if (isValidXecSendAmountOrErrorMsg !== true) {
                         if (
@@ -1192,10 +1201,14 @@ export function parseAddressInput(
                     const amount = value;
                     parsedAddressInput.amount = { value: amount, error: false };
 
+                    // BIP21 amounts are always wire-format (`.` decimal)
                     const validXecSendAmount = isValidXecSendAmount(
                         amount,
                         balanceSats,
                         userLocale,
+                        appConfig.ticker,
+                        0,
+                        true,
                     );
                     if (validXecSendAmount !== true) {
                         // If the result of isValidXecSendAmount is not true, it is an error msg explaining wy

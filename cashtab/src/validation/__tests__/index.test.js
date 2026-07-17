@@ -406,6 +406,7 @@ describe('Cashtab validation functions', () => {
                 userLocale,
                 selectedCurrency,
                 fiatPrice,
+                wireFormat,
                 returned,
             } = expectedReturn;
             it(`isValidXecSendAmount: ${description}`, () => {
@@ -416,6 +417,7 @@ describe('Cashtab validation functions', () => {
                         userLocale,
                         selectedCurrency,
                         fiatPrice,
+                        wireFormat,
                     ),
                 ).toBe(returned);
             });

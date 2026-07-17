@@ -8,8 +8,8 @@ import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import {
-    sanitizeAndFormatAmountInput,
-    formatAmountForInputDisplay,
+    formatAmountFromTypedInput,
+    formatAmountFromWire,
     caretPosAfterFormat,
     getDecimalSeparator,
     normalizeDecimalInput,
@@ -30,7 +30,7 @@ const handleLocaleAmountChange = (
     const selectionStart =
         typeof input.selectionStart === 'number' ? input.selectionStart : 0;
     const decimalSeparator = getDecimalSeparator(userLocale);
-    const formatted = sanitizeAndFormatAmountInput(
+    const formatted = formatAmountFromTypedInput(
         oldValue,
         userLocale,
         maxDecimals,
@@ -983,7 +983,7 @@ export const Slider: React.FC<SliderProps> = ({
     const rangeValue = normalizeDecimalInput(String(value ?? ''), userLocale);
     const rangeMin = String(min ?? '');
     const rangeMax = String(max ?? '');
-    const displayValue = sanitizeAndFormatAmountInput(
+    const displayValue = formatAmountFromTypedInput(
         String(value ?? ''),
         userLocale,
         maxDecimals,
@@ -991,11 +991,9 @@ export const Slider: React.FC<SliderProps> = ({
     const showMax = typeof handleOnMax === 'function';
 
     const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Range events emit wire-format (`.` decimal). Convert to locale
-        // display before sanitizing — otherwise comma-decimal locales strip
-        // `.` as a non-decimal character and inflate the amount (e.g. 0.1234 → 1234).
-        const formatted = sanitizeAndFormatAmountInput(
-            formatAmountForInputDisplay(e.target.value, userLocale),
+        // Range events emit wire-format (`.` decimal)
+        const formatted = formatAmountFromWire(
+            e.target.value,
             userLocale,
             maxDecimals,
         );

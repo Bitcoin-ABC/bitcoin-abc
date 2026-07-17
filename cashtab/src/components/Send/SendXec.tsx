@@ -60,8 +60,9 @@ import ApiError from 'components/Common/ApiError';
 import {
     formatFiatBalance,
     formatBalance,
+    formatAmountFromWire,
     normalizeDecimalInput,
-    sanitizeAndFormatAmountInput,
+    formatAmountFromTypedInput,
 } from 'formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
@@ -1244,7 +1245,7 @@ const SendXec: React.FC = () => {
         }
         const { decimals } = cachedToken.genesisInfo;
         const { protocol } = cachedToken.tokenType;
-        const formatted = sanitizeAndFormatAmountInput(
+        const formatted = formatAmountFromTypedInput(
             value,
             userLocale,
             decimals,
@@ -1274,7 +1275,7 @@ const SendXec: React.FC = () => {
         if (tokenBalance) {
             setTokenFormData({
                 ...tokenFormData,
-                amount: sanitizeAndFormatAmountInput(tokenBalance, userLocale),
+                amount: formatAmountFromWire(tokenBalance, userLocale),
             });
         }
     };
@@ -1894,7 +1895,10 @@ const SendXec: React.FC = () => {
                 handleAmountChange({
                     target: {
                         name: 'amount',
-                        value: txInfoFromUrl.value,
+                        value: formatAmountFromWire(
+                            txInfoFromUrl.value,
+                            userLocale,
+                        ),
                     },
                 } as React.ChangeEvent<HTMLInputElement>);
             }
@@ -2268,7 +2272,7 @@ const SendXec: React.FC = () => {
             const tokenQty = parsedAddressInput.token_decimalized_qty.value;
             setTokenFormData(p => ({
                 ...p,
-                amount: sanitizeAndFormatAmountInput(tokenQty, userLocale),
+                amount: formatAmountFromWire(tokenQty, userLocale),
             }));
         }
 
@@ -2444,11 +2448,13 @@ const SendXec: React.FC = () => {
             // Set currency to non-fiat
             setSelectedCurrency(appConfig.ticker);
 
-            // Use this object to mimic user input and get validation for the value
             const amountObj = {
                 target: {
                     name: 'amount',
-                    value: parsedAddressInput.amount.value,
+                    value: formatAmountFromWire(
+                        parsedAddressInput.amount.value,
+                        userLocale,
+                    ),
                 },
             };
             handleAmountChange(
@@ -2579,9 +2585,8 @@ const SendXec: React.FC = () => {
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value, name } = e.target;
-        // Format here so bip21/max programmatic sets (bypass SendXecInput) are
-        // locale-formatted; already-formatted input values are idempotent.
-        const formatted = sanitizeAndFormatAmountInput(
+        // Typed path. Programmatic BIP21/max/URL sets use formatAmountFromWire.
+        const formatted = formatAmountFromTypedInput(
             String(value),
             userLocale,
             selectedCurrency === appConfig.ticker
@@ -2813,7 +2818,7 @@ const SendXec: React.FC = () => {
         );
         const maxSendSatoshis = Number(maxSendSats);
 
-        // Convert to XEC to set in form
+        // Convert to XEC to set in form (wire-format number → locale display)
         const maxSendXec = toXec(maxSendSatoshis);
 
         // Update value in the send field
@@ -2821,7 +2826,7 @@ const SendXec: React.FC = () => {
         handleAmountChange({
             target: {
                 name: 'amount',
-                value: maxSendXec,
+                value: formatAmountFromWire(maxSendXec, userLocale),
             },
         } as unknown as React.ChangeEvent<HTMLInputElement>);
     };

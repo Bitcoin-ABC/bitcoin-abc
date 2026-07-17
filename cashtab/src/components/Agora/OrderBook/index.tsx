@@ -45,7 +45,7 @@ import {
     getAgoraSpotPriceXec,
     getPercentDeltaOverSpot,
     normalizeDecimalInput,
-    formatAmountForInputDisplay,
+    formatAmountFromWire,
 } from 'formatting';
 import {
     DepthBarCol,
@@ -525,7 +525,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
         );
 
         setTakeTokenDecimalizedQty(
-            formatAmountForInputDisplay(decimalizedQty, userLocale),
+            formatAmountFromWire(decimalizedQty, userLocale),
         );
     };
 
@@ -1043,7 +1043,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             // Select the minAcceptedTokens amount every time the order changes
             // Locale-format so EU decimal-comma users do not lose fractional digits
             setTakeTokenDecimalizedQty(
-                formatAmountForInputDisplay(
+                formatAmountFromWire(
                     decimalizeTokenAmount(
                         activeOffers[selectedIndex].variant.params
                             .minAcceptedAtoms()

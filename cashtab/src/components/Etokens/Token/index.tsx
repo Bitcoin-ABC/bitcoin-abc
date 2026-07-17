@@ -32,8 +32,7 @@ import {
     decimalizedTokenQtyToLocaleFormat,
     toFormattedXec,
     normalizeDecimalInput,
-    sanitizeAndFormatAmountInput,
-    formatAmountForInputDisplay,
+    formatAmountFromWire,
 } from 'formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
@@ -1216,14 +1215,10 @@ const Token: React.FC = () => {
         // Clear this error before updating field
         setSendTokenAmountError(false);
         try {
-            // tokenBalance is wire-format ("."); convert before locale sanitize
             setFormData({
                 ...formData,
-                amount: sanitizeAndFormatAmountInput(
-                    formatAmountForInputDisplay(
-                        tokenBalance as string,
-                        userLocale,
-                    ),
+                amount: formatAmountFromWire(
+                    tokenBalance as string,
                     userLocale,
                     decimals as SlpDecimals,
                 ),
@@ -1238,12 +1233,9 @@ const Token: React.FC = () => {
         handleTokenOfferedSlide({
             target: {
                 name: 'Total qty',
-                // tokenBalance is wire-format ("."); convert before locale sanitize
-                value: sanitizeAndFormatAmountInput(
-                    formatAmountForInputDisplay(
-                        tokenBalance as string, // we do not render redeem without tokenBalance
-                        userLocale,
-                    ),
+                // we do not render redeem without tokenBalance
+                value: formatAmountFromWire(
+                    tokenBalance as string,
                     userLocale,
                     decimals as SlpDecimals,
                 ),

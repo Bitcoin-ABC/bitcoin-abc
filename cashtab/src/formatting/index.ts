@@ -190,13 +190,33 @@ export const formatUserNumberInput = (
         : integerPart;
 };
 
+const applyMaxDecimals = (
+    formatted: string,
+    decimalSeparator: string,
+    maxDecimals?: number,
+): string => {
+    if (typeof maxDecimals !== 'number') {
+        return formatted;
+    }
+    const parts = formatted.split(decimalSeparator);
+    if (parts.length > 1 && parts[1].length > maxDecimals) {
+        return `${parts[0]}${decimalSeparator}${parts[1].substring(
+            0,
+            maxDecimals,
+        )}`;
+    }
+    return formatted;
+};
+
 /**
- * Format a dot-normalized amount string for locale-aware input display.
- * Accepts values already using `.` as the decimal marker (e.g. from bip21 or max).
+ * Format a wire-format amount (`.` decimal, no grouping) for a locale amount field.
+ * Use for BIP21, max, token balances, sliders, and other programmatic sets.
+ * Do not pass user-typed locale text — use {@link formatAmountFromTypedInput}.
  */
-export const formatAmountForInputDisplay = (
+export const formatAmountFromWire = (
     value: string | number | null | undefined,
     locale: string = 'en-US',
+    maxDecimals?: number,
 ): string => {
     if (value === null || typeof value === 'undefined' || value === '') {
         return '';
@@ -208,39 +228,34 @@ export const formatAmountForInputDisplay = (
         decimalSeparator === '.'
             ? asString
             : asString.replace(/\./g, decimalSeparator);
-    return formatUserNumberInput(
-        withLocaleDecimal,
+    return applyMaxDecimals(
+        formatUserNumberInput(
+            withLocaleDecimal,
+            decimalSeparator,
+            thousandsSeparator,
+        ),
         decimalSeparator,
-        thousandsSeparator,
+        maxDecimals,
     );
 };
 
 /**
- * Sanitize and locale-format a raw amount field value as the user types.
- * Returns the display string (with locale separators).
+ * Sanitize and locale-format an amount field value as the user types.
+ * Expects locale decimal/thousands separators (or raw keystrokes using them).
+ * Do not pass wire-format `.` decimals — use {@link formatAmountFromWire}.
  */
-export const sanitizeAndFormatAmountInput = (
+export const formatAmountFromTypedInput = (
     value: string,
     locale: string = 'en-US',
     maxDecimals?: number,
 ): string => {
     const decimalSeparator = getDecimalSeparator(locale);
     const thousandsSeparator = getThousandsSeparator(locale);
-    let formatted = formatUserNumberInput(
-        value,
+    return applyMaxDecimals(
+        formatUserNumberInput(value, decimalSeparator, thousandsSeparator),
         decimalSeparator,
-        thousandsSeparator,
+        maxDecimals,
     );
-    if (typeof maxDecimals === 'number') {
-        const parts = formatted.split(decimalSeparator);
-        if (parts.length > 1 && parts[1].length > maxDecimals) {
-            formatted = `${parts[0]}${decimalSeparator}${parts[1].substring(
-                0,
-                maxDecimals,
-            )}`;
-        }
-    }
-    return formatted;
 };
 
 /**

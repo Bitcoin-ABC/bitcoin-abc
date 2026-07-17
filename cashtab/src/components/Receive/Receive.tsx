@@ -24,10 +24,7 @@ import { CopyIconButton } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
 import { getUserLocale } from 'helpers';
-import {
-    normalizeDecimalInput,
-    sanitizeAndFormatAmountInput,
-} from 'formatting';
+import { normalizeDecimalInput, formatAmountFromTypedInput } from 'formatting';
 import { getCurrentReceiveAddress } from 'wallet/hd';
 
 export const Receive: React.FC = () => {
@@ -86,7 +83,7 @@ export const Receive: React.FC = () => {
     const handleBip21QtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
         setBip21Qty(
-            sanitizeAndFormatAmountInput(
+            formatAmountFromTypedInput(
                 value,
                 userLocale,
                 receiveFirma

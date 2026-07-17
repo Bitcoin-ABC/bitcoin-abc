@@ -16,8 +16,8 @@ import {
     getThousandsSeparator,
     normalizeDecimalInput,
     formatUserNumberInput,
-    sanitizeAndFormatAmountInput,
-    formatAmountForInputDisplay,
+    formatAmountFromTypedInput,
+    formatAmountFromWire,
     caretPosAfterFormat,
 } from 'formatting';
 import vectors from 'formatting/fixtures/vectors';
@@ -222,23 +222,29 @@ describe('Correctly executes formatting functions', () => {
                 '1.234.567,89',
             );
         });
-        it('sanitizeAndFormatAmountInput formats as the user types', () => {
-            expect(sanitizeAndFormatAmountInput('1234.5', 'en-US')).toBe(
+        it('formatAmountFromTypedInput formats as the user types', () => {
+            expect(formatAmountFromTypedInput('1234.5', 'en-US')).toBe(
                 '1,234.5',
             );
-            expect(sanitizeAndFormatAmountInput('1234,5', 'de-DE')).toBe(
+            expect(formatAmountFromTypedInput('1234,5', 'de-DE')).toBe(
                 '1.234,5',
             );
-            expect(sanitizeAndFormatAmountInput('1,234.567', 'en-US', 2)).toBe(
+            expect(formatAmountFromTypedInput('1,234.567', 'en-US', 2)).toBe(
                 '1,234.56',
             );
         });
-        it('formatAmountForInputDisplay formats wire-format amounts for inputs', () => {
-            expect(formatAmountForInputDisplay('1234.56', 'en-US')).toBe(
-                '1,234.56',
-            );
-            expect(formatAmountForInputDisplay('1234.56', 'de-DE')).toBe(
-                '1.234,56',
+        it('formatAmountFromWire formats wire-format amounts for inputs', () => {
+            expect(formatAmountFromWire('1234.56', 'en-US')).toBe('1,234.56');
+            expect(formatAmountFromWire('1234.56', 'de-DE')).toBe('1.234,56');
+            expect(formatAmountFromWire('5.50', 'de-DE')).toBe('5,50');
+            expect(formatAmountFromWire('10000.00', 'de-DE')).toBe('10.000,00');
+            expect(formatAmountFromWire('1.23456', 'en-US', 2)).toBe('1.23');
+        });
+        it('formatAmountFromTypedInput must not be used for wire amounts in comma-decimal locales', () => {
+            // Typed helper strips `.` when locale decimal is `,` (5.50 → 550)
+            expect(formatAmountFromTypedInput('5.50', 'de-DE')).toBe('550');
+            expect(formatAmountFromTypedInput('10000.00', 'de-DE')).toBe(
+                '1.000.000',
             );
         });
         it('caretPosAfterFormat keeps caret after a trailing decimal', () => {
