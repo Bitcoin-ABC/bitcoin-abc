@@ -680,22 +680,12 @@ describe('<Wallets />', () => {
     });
 
     it('Deleting the active wallet while other wallets exist activates the next wallet in the list and does not show onboarding', async () => {
+        // Init every wallet up front (stored shapes + chronik mocks). Overwriting
+        // localforage with ActiveCashtabWallet (BigInt/Map state) after init can
+        // race load and leave Wallets returning null — empty shell, no Delete btn.
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokensActive,
+            [walletWithXecAndTokensActive, ...validActiveWallets],
             localforage,
-        );
-
-        await localforage.setItem('wallets', [
-            walletWithXecAndTokensActive,
-            ...validSavedWallets,
-        ]);
-
-        const alphaWalletForChronik = validActiveWallets.find(
-            wallet => wallet.name === 'alpha',
-        );
-        prepareMockedChronikCallsForWallet(
-            mockedChronik,
-            alphaWalletForChronik,
         );
 
         render(
@@ -706,25 +696,19 @@ describe('<Wallets />', () => {
             />,
         );
 
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Cashtab Loading'),
-            ).not.toBeInTheDocument(),
-        );
-        // App still shows Spinner (title Loading...) until UTXO sync completes
-        await waitFor(() =>
-            expect(screen.queryByTitle('Loading...')).not.toBeInTheDocument(),
+        // Positive wait for wallets UI. Avoid asserting Spinner (Loading...) gone:
+        // it may not be mounted yet and clears in one frame after startupUtxoSync.
+        const deleteActiveWalletButton = await screen.findByRole(
+            'button',
+            { name: /Delete Transaction Fixtures/i },
+            { timeout: 15000 },
         );
 
         expect(
             screen.queryByText(/Welcome to Cashtab/),
         ).not.toBeInTheDocument();
 
-        await user.click(
-            await screen.findByRole('button', {
-                name: /Delete Transaction Fixtures/i,
-            }),
-        );
+        await user.click(deleteActiveWalletButton);
 
         expect(
             await screen.findByText(`Delete “Transaction Fixtures”?`),
