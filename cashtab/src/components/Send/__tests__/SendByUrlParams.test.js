@@ -100,7 +100,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded, as input fields are not populated until balance loads
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -116,7 +116,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
@@ -150,7 +150,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         await expectUrlResolvedRecipient(
             BLITZ_CHIPS_GAME_ADDRESS,
@@ -185,7 +185,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -235,7 +235,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded, as input fields are not populated until balance loads
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -285,7 +285,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded, as input fields are not populated until balance loads
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -432,7 +432,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -486,7 +486,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -662,7 +662,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded, as input fields are not populated until balance loads
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         const addressInputEl =
@@ -769,7 +769,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // Wait for ecashWallet to be initialized (component renders after ecashWallet is set)
         // Recipient resolves for URL-filled BIP21; field is locked
@@ -848,7 +848,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token mode UI and parsed tx to appear (confirms async token load completed)
@@ -1132,7 +1132,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,513.12 XEC');
+        ).toHaveTextContent('9,513.12');
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token info to load (check for parsed tx info)
@@ -1223,7 +1223,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for balance to be loaded
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,970.81 XEC');
+        ).toHaveTextContent('9,970.81');
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token mode UI and parsed tx to appear
@@ -1334,7 +1334,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,970.81 XEC');
+        ).toHaveTextContent('9,970.81');
 
         const multiInputEl = await screen.findByPlaceholderText(
             /One address & token qty per line/,

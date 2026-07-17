@@ -1,7 +1,8 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { Link } from 'react-router';
 import styled from 'styled-components';
 import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 
@@ -159,23 +160,6 @@ export const ExtenstionButton = styled.div`
 export const CardWrapper = styled.div`
     position: relative;
     width: 100%;
-    @media (max-width: 1100px) {
-        overflow: hidden;
-        &::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 100%;
-            pointer-events: none;
-            background: linear-gradient(
-                to left,
-                rgba(0, 0, 0, 0.4),
-                transparent
-            );
-        }
-    }
 `;
 
 export const BalanceXec = styled.div`
@@ -188,36 +172,18 @@ export const BalanceXec = styled.div`
     @media (max-width: 1100px) {
         margin-top: 6px;
         gap: 5px;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        flex-direction: row;
-
-        @media (pointer: fine) {
-            &::-webkit-scrollbar {
-                width: 4px;
-            }
-
-            &::-webkit-scrollbar-track {
-                -webkit-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
-                background-color: ${props => props.theme.primaryBackground};
-            }
-
-            &::-webkit-scrollbar-thumb {
-                border-radius: 10px;
-                background-color: ${props => props.theme.accent};
-            }
-        }
     }
 `;
 
-export const BalanceCard = styled.div<{
+export const BalanceCard = styled(Link)<{
     tokenLabel?: string;
 }>`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
     border-radius: 10px;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -225,18 +191,19 @@ export const BalanceCard = styled.div<{
     text-align: left;
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    cursor: pointer;
     color: ${props => props.theme.primaryText};
     background: ${props =>
         (props.tokenLabel === FIRMA_BALANCE_LABEL
             ? props.theme.firmaAccent
-            : props.tokenLabel === 'XECX'
-              ? props.theme.secondaryAccent
-              : props.theme.accent) + '4D'};
+            : props.theme.accent) + '4D'};
+    :hover {
+        text-decoration: none;
+        color: ${props => props.theme.primaryText};
+    }
     @media (max-width: 1100px) {
         padding: 10px 10px;
-        width: 88%;
-        flex-shrink: 0;
-        scroll-snap-align: start;
     }
 `;
 
@@ -272,6 +239,14 @@ export const BalanceTitle = styled.div<{
         font-size: 12px;
     }
 `;
+
+/** Ticker next to the card title (e.g. "eCash XEC") — smaller than the title */
+export const TitleTicker = styled.span`
+    font-size: 0.85em;
+    font-weight: 500;
+    opacity: 0.75;
+    letter-spacing: 0.02em;
+`;
 export const BalanceRow = styled.div<{
     hideBalance: boolean;
     tokenLabel: string;
@@ -286,13 +261,6 @@ export const BalanceRow = styled.div<{
         props.hideBalance ? `0 0 15px ${props.theme.primaryText}` : 'none'};
     @media (max-width: 768px) {
         font-size: var(--text-lg);
-    }
-    a {
-        color: ${props => props.theme.primaryText};
-        :hover {
-            color: ${props => props.theme.accent};
-            text-decoration: underline;
-        }
     }
 `;
 export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
@@ -309,5 +277,23 @@ export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
         font-size: 12px;
         line-height: 1em;
         margin-top: 2px;
+    }
+`;
+
+/** Staked XECX share shown under the combined eCash total */
+export const StakedPercent = styled.div<{ balanceVisible: boolean }>`
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    margin-top: 2px;
+    color: ${props =>
+        props.balanceVisible ? 'transparent' : props.theme.secondaryText};
+
+    text-shadow: ${props =>
+        props.balanceVisible
+            ? `0 0 15px ${props.theme.secondaryText}`
+            : 'none'};
+    @media (max-width: 768px) {
+        font-size: 12px;
+        line-height: 1em;
     }
 `;

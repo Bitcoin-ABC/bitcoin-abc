@@ -285,7 +285,7 @@ describe('<App />', () => {
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '10,000.00 XEC',
+            '10,000.00',
         );
 
         // We see the home container
@@ -350,7 +350,7 @@ describe('<App />', () => {
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '10,000.00 XEC',
+            '10,000.00',
         );
 
         // We see the home container
@@ -428,7 +428,7 @@ describe('<App />', () => {
 
         // Balance is correct
         expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '10,000.00 XEC',
+            '10,000.00',
         );
 
         // We do not see the send screen before clicking the button
@@ -578,7 +578,7 @@ describe('<App />', () => {
         await waitFor(
             () => {
                 expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
-                    '9,513.12 XEC',
+                    '9,513.12',
                 );
             },
             { timeout: 10000 },
@@ -616,7 +616,7 @@ describe('<App />', () => {
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
+            '9,513.12',
         );
 
         const walletsAfterLoad = await localforage.getItem('wallets');

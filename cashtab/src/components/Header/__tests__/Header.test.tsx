@@ -1,4 +1,4 @@
-// Copyright (c) 2024-2025 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,6 +19,9 @@ import {
     bearTokenAndTx,
     validActiveWallets,
 } from 'components/App/fixtures/mocks';
+import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
+import appConfig from 'config/app';
+import { FIRMA } from 'constants/tokens';
 import {
     MockChronikClient,
     MockAgora,
@@ -112,13 +115,110 @@ describe('<Header />', () => {
             ).toHaveTextContent('1 XEC = 0.00003000 USD');
         });
 
-        expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
-            '9,513.12 XEC',
+        expect(screen.getByTitle('Balance XEC')).toHaveTextContent('9,513.12');
+        expect(screen.getByText('eCash')).toBeInTheDocument();
+        expect(
+            screen.getByText('XEC', { selector: 'span' }),
+        ).toBeInTheDocument();
+
+        // No XECX held — staked share is 0% under the eCash card
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
+        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
+
+        // Whole eCash card links to XECX; USD card links to Firma Alpha
+        expect(screen.getByRole('link', { name: /eCash/ })).toHaveAttribute(
+            'href',
+            `/token/${appConfig.vipTokens.xecx.tokenId}`,
         );
+        expect(
+            document.querySelector(`a[href="/token/${FIRMA.tokenId}"]`),
+        ).toBeInTheDocument();
 
         expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
             '$0.29 USD',
         );
+    });
+
+    it('shows XEC + XECX as total XEC and staked percent under eCash', async () => {
+        // Same liquid XEC as the default fixture (9,513.12) plus an equal
+        // amount of XECX so total is 19,026.24 XEC and staked share is 50%.
+        const walletWithXecx: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
+            name: 'MyWallet',
+            state: {
+                ...walletWithXecAndTokensActive.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: appConfig.vipTokens.xecx.tokenId,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 951312n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...walletWithXecAndTokensActive.state.tokens,
+                    [appConfig.vipTokens.xecx.tokenId, '9513.12'],
+                ]),
+            },
+        };
+
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
+        );
+        tokenMocks.set(tokenMockXecx.tokenId, {
+            tx: tokenMockXecx.tx,
+            tokenInfo: tokenMockXecx.tokenInfo,
+        });
+
+        const testMockChronik = await prepareContext(
+            localforage,
+            [walletWithXecx],
+            tokenMocks,
+        );
+
+        render(
+            <HeaderTestWrapper
+                chronik={testMockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/home"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                '19,026.24',
+            );
+        });
+
+        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
+        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
+                '$0.57 USD',
+            );
+        });
     });
 
     it('shows wallet dropdown and allows wallet switching', async () => {
@@ -202,8 +302,8 @@ describe('<Header />', () => {
         expect(screen.getByTitle('Balance XEC')).toHaveStyle(
             'text-shadow: 0 0 15px #FFFFFF',
         );
-        expect(screen.getByTitle('Balance XECX')).toHaveStyle(
-            'text-shadow: 0 0 15px #FFFFFF',
+        expect(screen.getByTitle('Staked')).toHaveStyle(
+            'text-shadow: 0 0 15px rgba(255,255,255,0.5)',
         );
         expect(screen.getByTitle('Balance USD')).toHaveStyle(
             'text-shadow: 0 0 15px #FFFFFF',
@@ -233,14 +333,17 @@ describe('<Header />', () => {
             />,
         );
 
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+        });
+
         expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
-        expect(
-            screen.queryByTitle('Balance XECX Fiat'),
-        ).not.toBeInTheDocument();
         expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
         expect(
             screen.queryByTitle('Price in Local Currency'),
         ).not.toBeInTheDocument();
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
+        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
     });
 
     it('renders fiat price for a non-USD currency', async () => {
@@ -290,7 +393,7 @@ describe('<Header />', () => {
         });
 
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12');
         expect(balanceXec).toHaveStyle('text-shadow: none');
 
         // Wait for fiat price to load and check for GBP symbol
@@ -358,7 +461,7 @@ describe('<Header />', () => {
         });
 
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12');
 
         // Wait for fiat prices to load and check for GBP symbols
         await waitFor(() => {
@@ -394,13 +497,12 @@ describe('<Header />', () => {
         });
 
         const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('9,513.12 XEC');
+        expect(balanceXec).toHaveTextContent('9,513.12');
         expect(balanceXec).toHaveStyle('text-shadow: none');
 
         expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
-        expect(
-            screen.queryByTitle('Balance XECX Fiat'),
-        ).not.toBeInTheDocument();
         expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
+        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
     });
 });

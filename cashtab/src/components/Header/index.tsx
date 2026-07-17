@@ -13,7 +13,6 @@ import { toXec } from 'wallet';
 import { FIRMA } from 'constants/tokens';
 import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 import { ReactComponent as EcashIcon } from 'assets/ecash-icon.svg';
-import { ReactComponent as StakeIcon } from 'assets/stake.svg';
 import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
 import { sortWalletsForDisplay } from 'wallet';
 import { useCountRoll } from 'hooks/useCountRoll';
@@ -30,7 +29,9 @@ import {
     BalanceCard,
     BalanceRow,
     BalanceTitle,
+    TitleTicker,
     BalanceFiat,
+    StakedPercent,
     CardWrapper,
 } from './styled';
 
@@ -47,6 +48,16 @@ type AssetBalanceCardProps = {
     balanceVisible: boolean;
     renderFiatValues: boolean;
     fiatCurrency: string;
+    /** Whole card navigates here (e.g. XECX or Firma token page). */
+    to: string;
+    /** When set, shown under fiat as "X% staked" (eCash total includes XECX). */
+    stakedPercentLabel?: string;
+    /**
+     * Put ticker on the title line (smaller) instead of after the amount.
+     * Used for eCash — title already says eCash, so "XEC" after the number is
+     * redundant.
+     */
+    tickerInTitle?: boolean;
 };
 
 const AssetBalanceCard = ({
@@ -58,12 +69,16 @@ const AssetBalanceCard = ({
     balanceVisible,
     renderFiatValues,
     fiatCurrency,
+    to,
+    stakedPercentLabel,
+    tickerInTitle = false,
 }: AssetBalanceCardProps) => {
     return (
-        <BalanceCard tokenLabel={tokenLabel}>
+        <BalanceCard to={to} tokenLabel={tokenLabel}>
             <BalanceTitle tokenLabel={tokenLabel}>
                 {logo}
                 {title}
+                {tickerInTitle && <TitleTicker>{tokenLabel}</TitleTicker>}
             </BalanceTitle>
 
             <BalanceRow
@@ -71,16 +86,8 @@ const AssetBalanceCard = ({
                 hideBalance={balanceVisible}
                 tokenLabel={tokenLabel}
             >
-                {balanceAmount}{' '}
-                {tokenLabel === FIRMA_BALANCE_LABEL ? (
-                    <a href={`#/token/${FIRMA.tokenId}`}>{tokenLabel}</a>
-                ) : tokenLabel === 'XECX' ? (
-                    <a href={`#/token/${appConfig.vipTokens.xecx.tokenId}`}>
-                        XECX
-                    </a>
-                ) : (
-                    <>{tokenLabel}</>
-                )}
+                {balanceAmount}
+                {!tickerInTitle && <> {tokenLabel}</>}
             </BalanceRow>
             {renderFiatValues && (
                 <BalanceFiat
@@ -91,6 +98,11 @@ const AssetBalanceCard = ({
                     {fiatAmount}&nbsp;
                     {supportedFiatCurrencies[fiatCurrency].slug.toUpperCase()}
                 </BalanceFiat>
+            )}
+            {typeof stakedPercentLabel === 'string' && (
+                <StakedPercent balanceVisible={balanceVisible} title="Staked">
+                    {stakedPercentLabel} staked
+                </StakedPercent>
             )}
         </BalanceCard>
     );
@@ -108,9 +120,13 @@ interface BalanceCardsProps {
 }
 
 /**
- * Balance cards with count-roll animation on XEC / XECX / Firma Alpha
- * when balances change (e.g. incoming websocket tx + notification).
- * Isolated so useCountRoll mounts only after the wallet is loaded.
+ * Balance cards with count-roll animation on total XEC (incl. staked XECX)
+ * and Firma Alpha when balances change (e.g. incoming websocket tx +
+ * notification). Isolated so useCountRoll mounts only after the wallet is
+ * loaded.
+ *
+ * XECX is staked XEC (1:1). There is no separate XECX card — the eCash card
+ * shows XEC + XECX as the total and the staked share of that total as a %.
  */
 const BalanceCards: React.FC<BalanceCardsProps> = ({
     balanceXec,
@@ -126,6 +142,10 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
     const rolledXecx = useCountRoll(balanceXecx);
     const rolledFirma = useCountRoll(balanceFirma);
 
+    const rolledTotalXec = rolledXec + rolledXecx;
+    const stakedPercent =
+        rolledTotalXec > 0 ? (100 * rolledXecx) / rolledTotalXec : 0;
+
     const renderFiatValues = typeof fiatPrice === 'number';
 
     const formatBalance = (amount: number, decimals: number) =>
@@ -140,38 +160,33 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
             maximumFractionDigits: appConfig.fiatDecimals,
         });
 
+    const formatStakedPercent = (percent: number) =>
+        `${percent.toLocaleString(userLocale, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+        })}%`;
+
     return (
         <BalanceXec>
             <AssetBalanceCard
                 title="eCash"
                 logo={<EcashIcon />}
                 tokenLabel={appConfig.ticker}
-                balanceAmount={formatBalance(rolledXec, appConfig.cashDecimals)}
-                fiatAmount={
-                    renderFiatValues
-                        ? formatFiat(rolledXec, fiatPrice)
-                        : undefined
-                }
-                balanceVisible={balanceVisible}
-                renderFiatValues={renderFiatValues}
-                fiatCurrency={fiatCurrency}
-            />
-            <AssetBalanceCard
-                title="Staked"
-                logo={<StakeIcon />}
-                tokenLabel="XECX"
                 balanceAmount={formatBalance(
-                    rolledXecx,
+                    rolledTotalXec,
                     appConfig.cashDecimals,
                 )}
                 fiatAmount={
                     renderFiatValues
-                        ? formatFiat(rolledXecx, fiatPrice)
+                        ? formatFiat(rolledTotalXec, fiatPrice)
                         : undefined
                 }
                 balanceVisible={balanceVisible}
                 renderFiatValues={renderFiatValues}
                 fiatCurrency={fiatCurrency}
+                to={`/token/${appConfig.vipTokens.xecx.tokenId}`}
+                stakedPercentLabel={formatStakedPercent(stakedPercent)}
+                tickerInTitle
             />
             <AssetBalanceCard
                 title="USD"
@@ -189,6 +204,7 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
                 balanceVisible={balanceVisible}
                 renderFiatValues={renderFiatValues}
                 fiatCurrency={fiatCurrency}
+                to={`/token/${FIRMA.tokenId}`}
             />
         </BalanceXec>
     );

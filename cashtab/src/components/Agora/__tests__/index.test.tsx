@@ -350,7 +350,9 @@ describe('<Agora />', () => {
                 )
             ).length,
         ).toBeGreaterThan(0);
-        expect(await screen.findAllByText('XECX')).toHaveLength(2);
+        // Agora offer ticker only — header no longer has a dedicated XECX balance
+        // card (XEC+XECX are combined under eCash with a staked %).
+        expect(await screen.findAllByText('XECX')).toHaveLength(1);
 
         // In the new design, offer details live on the token page. Click XECX to open OrderBook.
         await userEvent.click(
@@ -907,7 +909,10 @@ describe('<Agora />', () => {
             { timeout: 3000 },
         );
 
-        expect(await screen.findByText('100,000.00 XEC')).toBeInTheDocument();
+        // Header eCash amount (ticker is on the title line, not after the number)
+        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
+            '100,000.00',
+        );
 
         // Wait for tokens to re-load (triggered by wallet change)
         await waitFor(() =>
@@ -961,7 +966,9 @@ describe('<Agora />', () => {
             { timeout: 3000 },
         );
 
-        expect(await screen.findByText('4,200.00 XEC')).toBeInTheDocument();
+        expect(await screen.findByTitle('Balance XEC')).toHaveTextContent(
+            '4,200.00',
+        );
 
         await waitFor(() =>
             expect(

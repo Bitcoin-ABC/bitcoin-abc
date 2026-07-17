@@ -2021,9 +2021,12 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.getByText('Create the following sell offer?'),
         ).toBeInTheDocument();
-        // Offered qty (actual, calculated from AgoraOffer)
+        // Offered qty (actual, calculated from AgoraOffer).
+        // Formerly matched twice because the Firma header balance was also
+        // exactly "100.0000" (ticker in a nested <a>); the header now shows
+        // "100.0000 USD" as one string.
         const actualOfferedQty = '100.0000';
-        expect(screen.getAllByText(actualOfferedQty)).toHaveLength(2);
+        expect(screen.getByText(actualOfferedQty)).toBeInTheDocument();
         // Min buy (actual, calculated from AgoraOffer)
         expect(screen.getByText('1.0000')).toBeInTheDocument();
         // Actual price calculated from AgoraOffer
