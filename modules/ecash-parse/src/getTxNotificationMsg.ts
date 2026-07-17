@@ -15,12 +15,14 @@ import { RenderedTokenType } from './tokenProtocol';
 import {
     AirdropAction,
     CashtabMsgAction,
+    DiceBetAction,
     EcashChatAction,
     NftoaAction,
     ParsedTokenTxType,
     ParsedTx,
     PaybuttonAction,
     PaywallAction,
+    RollPayoutAction,
     UnknownAction,
     XecTxType,
 } from './types';
@@ -188,14 +190,33 @@ export const getTxNotificationMsg = (
                         action && 'type' in action ? action.type : 'activity';
                     return `Proof of Writing | ${xecTxType} ${renderedAmount} | ${verb}`;
                 }
+                case opReturn.appPrefixesHex.dice: {
+                    if (isValid) {
+                        const { minValue, maxValue } = action as DiceBetAction;
+                        return `${app} | ${xecTxType} ${renderedAmount} | ${minValue}-${maxValue}`;
+                    }
+                    return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
+                }
+                case opReturn.appPrefixesHex.roll: {
+                    if (isValid) {
+                        const { result, roll } = action as RollPayoutAction;
+                        return `${app} | ${xecTxType} ${renderedAmount} | ${result} (${roll})`;
+                    }
+                    return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
+                }
                 default: {
                     if (app === 'unknown') {
                         // Then it has a lokadId, just not one we recognize
                         return `${xecTxType} ${renderedAmount} | Unrecognized LOKAD ${lokadId}`;
                     } else {
                         // Other unparsed OP_RETURN
-                        const { decoded } = action as UnknownAction;
-                        return `${xecTxType} ${renderedAmount} | Unparsed OP_RETURN: ${decoded}`;
+                        const decoded =
+                            action && 'decoded' in action
+                                ? (action as UnknownAction).decoded
+                                : undefined;
+                        return typeof decoded !== 'undefined'
+                            ? `${xecTxType} ${renderedAmount} | Unparsed OP_RETURN: ${decoded}`
+                            : `${xecTxType} ${renderedAmount} | ${app}`;
                     }
                 }
             }

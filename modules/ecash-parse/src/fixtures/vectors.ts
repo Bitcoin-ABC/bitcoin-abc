@@ -8761,6 +8761,108 @@ export const notificationFixtures = [
         },
         expected: 'Sent 1.0000 FIRMA',
     },
+    {
+        description:
+            'Standalone XEC DICE bet received at BlitzChips game address',
+        parsedTx: {
+            satoshisSent: 33000,
+            stackArray: ['44494345', '00', '814a5d05', '00e1f505'],
+            xecTxType: 'Received',
+            recipients: [],
+            replyAddress: 'ecash:qqt3nngfky8sywc24n8ee97cut7tyrawju5qj7wpdr',
+            appActions: [
+                {
+                    lokadId: '44494345',
+                    app: 'DICE Bet',
+                    isValid: true,
+                    action: {
+                        minValue: 90000001,
+                        maxValue: 100000000,
+                    },
+                },
+            ],
+            parsedTokenEntries: [],
+        },
+        tx: {
+            txid: '8d55f439eab81e9fc7fa9712f1742c975ccfcb984135e8c944330a958792d19d',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'f960e40345a2a0a53d42e95c858c704663c6003039510e16849bc33f28b7c4f9',
+                        outIdx: 2,
+                    },
+                    inputScript:
+                        '419d8fb3a857ae651d2ed51ad3eed664fdfe2f4acc888a678f9f449f303a111178141e7b0aefa0185b7a32135f76630d9f87bab817b8c099ba946bd40e784605a4412103a4372bf29335f5226996995d60e6b41c5d17cd4bf654b566e95b59bab27112be',
+                    sats: 242489657n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9141719cd09b10f023b0aaccf9c97d8e2fcb20fae9788ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript: '6a0444494345010004814a5d050400e1f505',
+                },
+                {
+                    sats: 33000n,
+                    outputScript:
+                        '76a9142d817e4eda9d327dbefeca6a5e56cb142d53606e88ac',
+                },
+                {
+                    sats: 242456411n,
+                    outputScript:
+                        '76a9141719cd09b10f023b0aaccf9c97d8e2fcb20fae9788ac',
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1784288352,
+            size: 246,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            isFinal: true,
+        },
+        walletHashes: ['2d817e4eda9d327dbefeca6a5e56cb142d53606e'],
+        fiatPrice: null,
+        userLocale: 'en-US',
+        selectedFiatTicker: 'USD',
+        genesisInfo: undefined,
+        expected: 'DICE Bet | Received 330.00 XEC | 90000001-100000000',
+    },
+    {
+        description: 'ROLL payout notification',
+        parsedTx: {
+            satoshisSent: 66000,
+            stackArray: [],
+            xecTxType: 'Received',
+            recipients: [],
+            replyAddress: 'ecash:qqkczljwm2wnyld7lm9x5hjkev2z65mqdcz6544y9c',
+            appActions: [
+                {
+                    lokadId: '524f4c4c',
+                    app: 'ROLL Payout',
+                    isValid: true,
+                    action: {
+                        betTxid:
+                            '8d55f439eab81e9fc7fa9712f1742c975ccfcb984135e8c944330a958792d19d',
+                        roll: 95000000,
+                        seedHash:
+                            '0000000000000000000000000000000000000000000000000000000000000000',
+                        result: 'W',
+                    },
+                },
+            ],
+            parsedTokenEntries: [],
+        },
+        fiatPrice: null,
+        userLocale: 'en-US',
+        selectedFiatTicker: 'USD',
+        genesisInfo: undefined,
+        expected: 'ROLL Payout | Received 660.00 XEC | W (95000000)',
+    },
 ] as NotificationFixture[];
 
 export const parseFixtures = [
