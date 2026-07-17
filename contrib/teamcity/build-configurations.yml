@@ -876,11 +876,14 @@ builds:
             - pnpm-lock.yaml
             - apps/metachronik/
             - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
         env:
             JS_PROJECT_ROOT: apps/metachronik
             RUN_NPM_BUILD: 'true'
         depends:
             - chronik-client
+            - ecash-lib
         templates:
             - js-mocha
 

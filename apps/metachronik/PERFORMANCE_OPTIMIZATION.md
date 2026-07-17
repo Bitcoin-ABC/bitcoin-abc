@@ -2,6 +2,13 @@
 
 Some notes from lessons learned during initial indexing.
 
+## Batching model
+
+Indexing is **serial by batch**: fetch one tx-budget batch from Chronik, save it,
+then build the next. Blocks _within_ a batch are still loaded in parallel via
+`Promise.all`. Holding many full batches in heap OOM'd around ~400k blocks as
+tx density grew, so true multi-batch concurrency was removed.
+
 ## Optimal Configuration for Railway $5 Hobby Plan
 
 **Hardware Specs:**
@@ -15,7 +22,6 @@ Some notes from lessons learned during initial indexing.
 ```bash
 # Optimal indexing configuration for Railway $5 hobby plan
 TARGET_TX_COUNT_PER_BATCH=30000
-INDEXING_MAX_CONCURRENT_BATCHES=12
 ```
 
 ### Performance Characteristics
@@ -30,21 +36,18 @@ INDEXING_MAX_CONCURRENT_BATCHES=12
 
 - **Transaction-count based batching** prevents memory spikes on large blocks
 - **30K transactions per batch** reduces API overhead
-- **12 concurrent batches** maximizes throughput without hitting rate limits
 - **500 block limit** enforced to respect Chronik API constraints
 
 ### Configuration Limits
 
 **Tested Limits (DO NOT EXCEED):**
 
-- ❌ `INDEXING_MAX_CONCURRENT_BATCHES=13` - Causes API rate limiting/connection issues
-- ❌ `TARGET_TX_COUNT_PER_BATCH=35000` - Causes out-of-memory errors
-- ❌ `INDEXING_MAX_CONCURRENT_BATCHES=14` - Causes crashes
+- ❌ `TARGET_TX_COUNT_PER_BATCH=35000` - Can cause out-of-memory errors on 8GB hosts
 
 **Safe Range:**
 
-- ✅ `INDEXING_MAX_CONCURRENT_BATCHES=10-12`
-- ✅ `TARGET_TX_COUNT_PER_BATCH=25000-30000`
+- ✅ `TARGET_TX_COUNT_PER_BATCH=25000-30000` on ~8GB RAM
+- Local Chronik + large heap (e.g. 16GB Node) can push higher (e.g. 75K)
 
 Note even with these settings, did see some occasional crashes. Best to have a higher-spec server or a lot of time on your hands.
 
@@ -55,7 +58,7 @@ Note even with these settings, did see some occasional crashes. Best to have a h
 - Batches blocks by total transaction count rather than block count
 - Prevents memory spikes when processing blocks with many transactions
 - Automatically enforces 500-block limit per batch (Chronik API constraint)
-- Processes batches in parallel for maximum throughput
+- Processes one batch at a time to bound peak heap
 
 **Memory Management:**
 
@@ -71,7 +74,6 @@ NODE_OPTIONS='--max-old-space-size=4096'
 
 # Optimal indexing settings
 TARGET_TX_COUNT_PER_BATCH=30000
-INDEXING_MAX_CONCURRENT_BATCHES=12
 
 # Other recommended settings
 LOG_LEVEL=info
@@ -97,10 +99,9 @@ CRON_SCHEDULE=0 */6 * * *
 
 **If experiencing crashes:**
 
-1. Reduce `INDEXING_MAX_CONCURRENT_BATCHES` by 1
-2. Reduce `TARGET_TX_COUNT_PER_BATCH` by 5000
-3. Monitor memory usage for 15-20 minutes
-4. Gradually increase settings if stable
+1. Reduce `TARGET_TX_COUNT_PER_BATCH` by 5000
+2. Monitor memory usage for 15-20 minutes
+3. Gradually increase settings if stable
 
 **If experiencing slow performance:**
 
@@ -123,11 +124,11 @@ Production deployment is handled by Bitcoin ABC CI/CD pipeline. The performance 
 - **Solution:** Implemented transaction-count based batching
 - **Result:** Stable memory usage, no more crashes
 
-### Performance Tuning
+### Parallel batches (removed)
 
-- **Starting Point:** 3 concurrent batches, 10K transactions
-- **Final Optimal:** 12 concurrent batches, 30K transactions
-- **Performance Gain:** ~4x faster indexing with stable memory usage
+- Early tuning used many concurrent in-flight batches for throughput on remote Chronik.
+- That held multiple full batches in heap at once and was retired in favor of
+  serial batch fetch+save with a tunable `TARGET_TX_COUNT_PER_BATCH`.
 
 ### Key Learnings
 

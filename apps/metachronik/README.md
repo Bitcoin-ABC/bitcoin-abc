@@ -76,7 +76,8 @@ CHRONIK_STRATEGY=closestFirst
 CRON_SCHEDULE=0 */6 * * *
 
 # Initial Indexing Configuration
-INITIAL_INDEX_START=850000
+# Must be 0 unless you bootstrap a full utxos snapshot at this height.
+INITIAL_INDEX_START=0
 ```
 
 5. Start the application:
@@ -125,6 +126,19 @@ pnpm run lint
 pnpm run lint:fix
 ```
 
+### Indexing health & historic edge cases
+
+```bash
+pnpm check-indexing              # full UTXO / token invariant check
+pnpm check-indexing -- --quick   # sampled reconcile (faster)
+```
+
+Bitcoin has a few pre-standard quirks (duplicate coinbase txids, empty-script
+outputs) that need special handling when indexing from genesis. See
+**[scripts/README.md — Historic edge cases](./scripts/README.md#historic-edge-cases)**
+for symptoms, fixes, and repair commands (`repair-known-drift`,
+`repair-empty-script-utxos`).
+
 ## Usage
 
 This application is a database indexing service that runs continuously in the background. It does not expose any API endpoints. The indexed data is consumed directly by the frontend application which has its own database connection.
@@ -167,25 +181,27 @@ Event-driven reconciliation:
 
 ## Database Schema
 
-The application uses a comprehensive schema with two main tables:
+The application uses a comprehensive schema:
 
-- `blocks` - Detailed block information including all transaction types, rewards, and special metrics
-- `days` - Daily aggregated data for efficient chart generation and price storage
+- `blocks` — Detailed block information including all transaction types, rewards, and special metrics
+- `days` — Daily aggregated data for efficient chart generation and price storage
+- `day_addresses` — Staging table for true daily address deduplication (pruned after aggregation)
+- `addresses` — Permanent table tracking every unique address: first seen, last activity, miner/staker status
+- Materialized views — Pre-computed cumulative data (agora volume, tokens created, claims, fusion, addresses, miners/stakers)
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable              | Description                       | Default       |
-| --------------------- | --------------------------------- | ------------- |
-| `PORT`                | Server port                       | 3001          |
-| `NODE_ENV`            | Environment mode                  | development   |
-| `LOG_LEVEL`           | Logging level                     | info          |
-| `DATABASE_URL`        | NeonDB/Postgres connection string | (required)    |
-| `CHRONIK_URLS`        | Comma-separated Chronik URLs      | (required)    |
-| `CHRONIK_STRATEGY`    | Connection strategy               | closestFirst  |
-| `CRON_SCHEDULE`       | Data collection schedule          | 0 _/6 _ \* \* |
-| `INITIAL_INDEX_START` | Initial block height for indexing | 850000        |
+| Variable                    | Description                                    | Default       |
+| --------------------------- | ---------------------------------------------- | ------------- |
+| `LOG_LEVEL`                 | Logging level                                  | info          |
+| `DATABASE_URL`              | NeonDB/Postgres connection string              | (required)    |
+| `CHRONIK_URLS`              | Comma-separated Chronik URLs                   | (required)    |
+| `CHRONIK_STRATEGY`          | Connection strategy                            | closestFirst  |
+| `CRON_SCHEDULE`             | Data collection schedule                       | 0 _/6 _ \* \* |
+| `INITIAL_INDEX_START`       | Start height (must be 0 without utxo snapshot) | 0             |
+| `TARGET_TX_COUNT_PER_BATCH` | Tx budget per Chronik fetch/save batch         | 30000         |
 
 ### Chronik Connection Strategy
 
@@ -207,16 +223,65 @@ The frontend is a Next.js application located in `web/charts.e.cash/` that provi
 
 We intend to add more data to this indexer. The main goal of this product is the database and not the pace of indexing. If some interesting information takes a long, long time to derive...we may still want that information.
 
-[] Token supply by blockheight
-[] Token holders by blockheight
-[] Token holder balances by blockheight
-[] LOKAD tx count
-[] Agora tx count
-[] Total number of addresses
-[] Monthly Active Users (e.g., active addresses by blockheight; say, any address with a transaction in the the last month)
-[] Monthly Active Tokens by blockheight (tokenId with any tx in the last month)
-[] Monthly Active LokadIds
-[] Cash Fusions (daily)
-[] Cash Fusions (cumulative)
-[] Cash fusion utxo count
-[] utxo count (so we can get % fused stat)
+### Network Adoption & Activity
+
+- [x] Daily Active Addresses (unique senders per day)
+- [x] Daily Active Addresses — sent or received
+- [x] New Addresses per Day (first-seen tracking)
+- [x] Cumulative Unique Addresses
+- [ ] Monthly Active Addresses (rolling 30-day unique senders)
+- [x] New vs Returning Addresses breakdown
+- [ ] Transaction Size Distribution (bucket tx output values)
+- [ ] UTXO Set Size Over Time (track creates/destroys per block)
+- [ ] Total number of addresses
+
+### Token Economy
+
+- [ ] Token supply by blockheight
+- [ ] Token holders by blockheight
+- [ ] Token holder balances by blockheight
+- [ ] Top Tokens by Tx Volume (per-token tx count tracking)
+- [ ] Token Holder Count Over Time (snapshot holder count per token per day)
+- [ ] Token Velocity (transfer volume / circulating supply)
+- [ ] Active Tokens per Day (distinct token IDs in txs per day)
+- [ ] Monthly Active Tokens by blockheight (tokenId with any tx in the last month)
+
+### Agora DEX Analytics
+
+- [x] Unique Agora Traders per Day (P2PKH only, true daily dedup)
+- [ ] Agora tx count
+- [ ] Average/Median Trade Size (store individual trade amounts)
+- [ ] Active Listings Over Time (track listing creation/fulfillment)
+
+### Privacy (CashFusion)
+
+- [x] Cash Fusions (daily)
+- [x] Cash Fusions (cumulative)
+- [ ] Cash fusion utxo count
+- [ ] utxo count (so we can get % fused stat)
+- [ ] Average Fusion Participants (count inputs per fusion tx)
+
+### Protocol / LOKAD Usage
+
+- [x] LOKAD tx count
+- [ ] Monthly Active LokadIds
+- [ ] OP_RETURN Usage by LOKAD ID (parse LOKAD prefix, stacked area chart)
+- [ ] Payload Size Distribution (track OP_RETURN byte sizes)
+
+### Economic / On-Chain Analysis
+
+- [ ] HODL Waves (UTXO age band distribution — requires full UTXO-set tracking with creation timestamps)
+- [ ] Coin Days Destroyed (sum of UTXO*age * value for each spent input — requires input creation height)
+- [ ] Realized Cap (each UTXO's value \* price when it last moved)
+- [ ] Supply Distribution (address balance bands: 1-10 XEC, 10K-100K, 1M+, etc.)
+- [ ] Dormancy Flow (average coin dormancy \* spend volume)
+
+### Mining & Consensus
+
+- [x] Daily Unique Miners (addresses receiving mining rewards)
+- [x] Daily Unique Stakers (addresses receiving staking rewards)
+- [x] Cumulative Miners, Stakers, and Both (addresses that have received both)
+- [ ] Estimated Hashrate (derive from difficulty + block times)
+- [ ] Block Time Distribution (histogram of actual vs expected 10-min targets)
+- [ ] Mining Pool Distribution (parse coinbase scriptsig for pool identifiers, stacked area)
+- [ ] Staking Reward Growth (separate chart for staking ecosystem — data already indexed)

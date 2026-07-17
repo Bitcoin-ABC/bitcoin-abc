@@ -252,6 +252,156 @@ export const chartOptions: ChartOption[] = [
             fields: ['usd'],
         },
     },
+    {
+        id: 'daily-active-addresses',
+        name: 'Daily Active Addresses',
+        description: 'True unique addresses active per day (sent or received)',
+        dataConfig: {
+            dataKey: 'completeDailyActiveAddresses',
+            fields: ['daily_active_senders', 'daily_active_addresses'],
+        },
+    },
+    {
+        id: 'new-addresses-per-day',
+        name: 'New Addresses per Day',
+        description: 'Unique addresses seen for the first time each day',
+        dataConfig: {
+            dataKey: 'completeNewAddressesPerDay',
+            fields: ['new_addresses_count'],
+        },
+    },
+    {
+        id: 'cumulative-addresses',
+        name: 'Cumulative Unique Addresses',
+        description: 'Total unique addresses ever seen on the eCash network',
+        dataConfig: {
+            dataKey: 'completeCumulativeAddresses',
+            fields: ['cumulative_addresses'],
+        },
+    },
+    {
+        id: 'daily-agora-traders',
+        name: 'Unique Agora Traders',
+        description: 'Unique buyer and seller addresses on Agora DEX per day',
+        dataConfig: {
+            dataKey: 'completeDailyAgoraTraders',
+            fields: ['agora_unique_traders'],
+        },
+    },
+    {
+        id: 'daily-fusion',
+        name: 'CashFusion Transactions',
+        description: 'Daily CashFusion transactions',
+        dataConfig: {
+            dataKey: 'completeDailyFusion',
+            fields: ['fusion_tx_count'],
+        },
+    },
+    {
+        id: 'cumulative-fusion',
+        name: 'Cumulative CashFusion',
+        description: 'Total CashFusion transactions over time',
+        dataConfig: {
+            dataKey: 'completeCumulativeFusion',
+            fields: ['cumulative_fusion_txs'],
+        },
+    },
+    {
+        id: 'daily-lokad-txs',
+        name: 'LOKAD Protocol Transactions',
+        description: 'Daily transactions using LOKAD protocol identifiers',
+        dataConfig: {
+            dataKey: 'completeDailyLokadTxs',
+            fields: ['lokad_tx_count'],
+        },
+    },
+    {
+        id: 'daily-unique-miners',
+        name: 'Daily Unique Miners',
+        description: 'Unique mining reward recipients per day',
+        dataConfig: {
+            dataKey: 'completeDailyMinersStakers',
+            fields: ['daily_unique_miners'],
+        },
+    },
+    {
+        id: 'daily-unique-stakers',
+        name: 'Daily Unique Stakers',
+        description: 'Unique staking reward recipients per day',
+        dataConfig: {
+            dataKey: 'completeDailyMinersStakers',
+            fields: ['daily_unique_stakers'],
+        },
+    },
+    {
+        id: 'cumulative-unique-miners',
+        name: 'Cumulative Unique Miners',
+        description: 'Total unique addresses that have received mining rewards',
+        dataConfig: {
+            dataKey: 'completeCumulativeMinersStakers',
+            fields: ['cumulative_miners'],
+        },
+    },
+    {
+        id: 'cumulative-unique-stakers',
+        name: 'Cumulative Unique Stakers',
+        description:
+            'Total unique addresses that have received staking rewards',
+        dataConfig: {
+            dataKey: 'completeCumulativeMinersStakers',
+            fields: ['cumulative_stakers'],
+        },
+    },
+    {
+        id: 'returning-vs-new-addresses',
+        name: 'Returning vs New Addresses',
+        description:
+            'Daily breakdown of returning addresses vs first-time addresses',
+        dataConfig: {
+            dataKey: 'completeReturningVsNewAddresses',
+            fields: ['returning_addresses', 'new_addresses'],
+            sumFields: true,
+        },
+    },
+    {
+        id: 'daily-coinbase-recipients',
+        name: 'Daily Coinbase Recipients',
+        description:
+            'Unique addresses that received coinbase (mining/staking) outputs per day',
+        dataConfig: {
+            dataKey: 'completeDailyCoinbaseRecipients',
+            fields: ['daily_coinbase_recipients'],
+        },
+    },
+    {
+        id: 'new-miners-per-day',
+        name: 'New Miners per Day',
+        description:
+            'Addresses receiving mining rewards for the first time each day',
+        dataConfig: {
+            dataKey: 'completeNewMinersStakers',
+            fields: ['new_miners_count'],
+        },
+    },
+    {
+        id: 'new-stakers-per-day',
+        name: 'New Stakers per Day',
+        description:
+            'Addresses receiving staking rewards for the first time each day',
+        dataConfig: {
+            dataKey: 'completeNewMinersStakers',
+            fields: ['new_stakers_count'],
+        },
+    },
+    {
+        id: 'rich-list',
+        name: 'Rich List',
+        description: 'Top eCash addresses by balance (current snapshot)',
+        dataConfig: {
+            dataKey: 'completeRichList',
+            fields: ['balance_xec'],
+        },
+    },
 ];
 
 /**

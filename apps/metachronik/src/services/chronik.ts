@@ -4,6 +4,18 @@
 import { ChronikClient, ConnectionStrategy } from 'chronik-client';
 import { ChronikConfig, BlockData } from '../types';
 import logger from '../utils/logger';
+import {
+    txUsesFusionProtocol,
+    txUsesLokadProtocol,
+} from '../utils/opReturnProtocols';
+import { UtxoEvent } from './utxoTypes';
+import {
+    collectUtxoEventsFromBlockTxs,
+    rawScriptHex,
+} from './emptyScriptUtxos';
+import { TokenUtxoEvent } from './tokenTypes';
+import { TokenBlockDelta } from './tokenBlockDeltas';
+import { collectTokenBlockDeltas } from './tokenBlockDeltas';
 
 // Constants for reward calculations
 const STAKING_ACTIVATION_HEIGHT = 818670;
@@ -18,9 +30,6 @@ const STAKING_REWARDS_PERCENT = 10n;
 
 // Price API endpoint
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
-
-// First XEC block is 661642 (used for transaction data optimization)
-const FIRST_BLOCK_XEC = 661642;
 
 class ChronikService {
     private chronik!: ChronikClient;
@@ -100,47 +109,47 @@ class ChronikService {
         height: number,
         numTxs?: number,
     ): Promise<any[]> {
-        try {
-            // If we don't have numTxs, we need to get it from the block info
-            if (numTxs === undefined) {
-                const blockInfo = await this.getBlock(height);
-                numTxs = blockInfo.numTxs;
-            }
+        // Errors propagate to the caller intentionally. On a Chronik outage
+        // this runs for every block in a batch concurrently, so logging (or
+        // catching) per call would flood the output with hundreds of identical
+        // stack traces; the batch processor logs one concise summary instead.
 
-            // For blocks with ≤200 transactions, get all in one call
-            if (numTxs && numTxs <= 200) {
-                const response = await this.chronik.blockTxs(height, 0, numTxs);
-                return response.txs || [];
-            }
-
-            // For blocks with >200 transactions, use pagination
-            const allTxs: any[] = [];
-            let page = 0;
-            const pageSize = 200;
-
-            while (true) {
-                const response = await this.chronik.blockTxs(
-                    height,
-                    page,
-                    pageSize,
-                );
-                if (!response.txs || response.txs.length === 0) {
-                    break;
-                }
-                allTxs.push(...response.txs);
-
-                // If we got fewer transactions than the page size, we've reached the end
-                if (response.txs.length < pageSize) {
-                    break;
-                }
-                page++;
-            }
-
-            return allTxs;
-        } catch (error) {
-            logger.error(`Failed to get all block txs ${height}:`, error);
-            throw error;
+        // If we don't have numTxs, we need to get it from the block info
+        if (numTxs === undefined) {
+            const blockInfo = await this.getBlock(height);
+            numTxs = blockInfo.numTxs;
         }
+
+        // For blocks with ≤200 transactions, get all in one call
+        if (numTxs && numTxs <= 200) {
+            const response = await this.chronik.blockTxs(height, 0, numTxs);
+            return response.txs || [];
+        }
+
+        // For blocks with >200 transactions, use pagination
+        const allTxs: any[] = [];
+        let page = 0;
+        const pageSize = 200;
+
+        while (true) {
+            const response = await this.chronik.blockTxs(
+                height,
+                page,
+                pageSize,
+            );
+            if (!response.txs || response.txs.length === 0) {
+                break;
+            }
+            allTxs.push(...response.txs);
+
+            // If we got fewer transactions than the page size, we've reached the end
+            if (response.txs.length < pageSize) {
+                break;
+            }
+            page++;
+        }
+
+        return allTxs;
     }
 
     /**
@@ -339,6 +348,84 @@ class ChronikService {
     }
 
     /**
+     * Identify coinbase output scripts that receive miner vs staker rewards.
+     * Miner outputs = everything that isn't IFP or staking.
+     * Staker output = the output matching the staking reward heuristic.
+     */
+    private collectCoinbaseRewardRecipients(
+        height: number,
+        coinbaseOutputs: any[],
+    ): { miner_scripts: string[]; staker_scripts: string[] } {
+        const sum_coinbase_output_sats = coinbaseOutputs.reduce(
+            (sum, output) => sum + BigInt(output.sats),
+            0n,
+        );
+
+        const ifpOutputScript =
+            height >= IFP_ACTIVATION_HEIGHT
+                ? height >= IFP_OUTPUTSCRIPT_CHANGE_HEIGHT
+                    ? IFP_OUTPUTSCRIPT_NEW
+                    : IFP_OUTPUTSCRIPT_OLD
+                : null;
+
+        let stakerScript: string | null = null;
+
+        if (height >= STAKING_ACTIVATION_HEIGHT) {
+            const minStakerValue =
+                (sum_coinbase_output_sats * STAKING_REWARDS_PERCENT) / 100n;
+            const STAKER_PERCENT_PADDING = 1n;
+            const assumedMaxStakerValue =
+                (sum_coinbase_output_sats *
+                    (STAKING_REWARDS_PERCENT + STAKER_PERCENT_PADDING)) /
+                100n;
+
+            for (const output of coinbaseOutputs) {
+                const outputSats = BigInt(output.sats);
+                const outputScript =
+                    typeof output.outputScript === 'string'
+                        ? output.outputScript
+                        : Buffer.from(output.outputScript).toString('hex');
+
+                if (ifpOutputScript && outputScript === ifpOutputScript) {
+                    continue;
+                }
+
+                if (
+                    outputSats >= minStakerValue &&
+                    outputSats <= assumedMaxStakerValue
+                ) {
+                    stakerScript = outputScript;
+                    break;
+                }
+            }
+        }
+
+        const minerScripts = new Set<string>();
+        const stakerScripts = new Set<string>();
+
+        for (const output of coinbaseOutputs) {
+            const outputScript =
+                typeof output.outputScript === 'string'
+                    ? output.outputScript
+                    : Buffer.from(output.outputScript).toString('hex');
+
+            if (outputScript.startsWith('6a')) continue;
+            if (ifpOutputScript && outputScript === ifpOutputScript) continue;
+
+            if (stakerScript && outputScript === stakerScript) {
+                stakerScripts.add(outputScript);
+            } else {
+                minerScripts.add(outputScript);
+            }
+        }
+
+        return {
+            miner_scripts: Array.from(minerScripts),
+            staker_scripts: Array.from(stakerScripts),
+        };
+    }
+
+    /**
      * Calculate the total Agora volume from all transactions in a block
      * by summing the sats paid to sellers in Agora BUY transactions
      */
@@ -457,56 +544,37 @@ class ChronikService {
         const blockInfo = chronikBlock.blockInfo || chronikBlock;
 
         if (
-            !blockInfo.height ||
+            blockInfo.height == null ||
             !blockInfo.hash ||
             !blockInfo.timestamp ||
             blockInfo.numTxs === undefined
         ) {
             logger.error(
                 'Invalid block info structure:',
-                JSON.stringify(chronikBlock, null, 2),
+                JSON.stringify(
+                    chronikBlock,
+                    (_, v) => (typeof v === 'bigint' ? v.toString() : v),
+                    2,
+                ),
             );
             throw new Error('Invalid block info structure');
         }
 
-        // Determine if we need to fetch transactions
-        const needsTransactionData = this.needsTransactionData(blockInfo);
+        // Always fetch full transaction data. metachronik's purpose is accurate
+        // data: skipping tx fetches for early 1-tx blocks would drop real
+        // coinbase recipients (e.g. never-moved dormant holders) from balance
+        // tracking, and only saves a round-trip for a tiny 1-tx payload.
+        const allBlockTxs: any[] = await this.getAllBlockTxs(
+            blockInfo.height,
+            blockInfo.numTxs,
+        );
+        const coinbaseTx = allBlockTxs[0]; // Coinbase tx is always first
 
-        let allBlockTxs: any[] = [];
-        let coinbaseTx: any;
-
-        if (needsTransactionData) {
-            // Only fetch transactions when we actually need them
-            // Pass numTxs to optimize the API call
-            allBlockTxs = await this.getAllBlockTxs(
-                blockInfo.height,
-                blockInfo.numTxs,
+        if (!coinbaseTx || !coinbaseTx.outputs) {
+            logger.error(
+                `No coinbase transaction found for block ${blockInfo.height}`,
             );
-            coinbaseTx = allBlockTxs[0]; // Coinbase tx is always first
-
-            if (!coinbaseTx || !coinbaseTx.outputs) {
-                logger.error(
-                    `No coinbase transaction found for block ${blockInfo.height}`,
-                );
-                throw new Error('No coinbase transaction found');
-            }
-        } else {
-            // Create synthetic coinbase tx from block info for early blocks
-            coinbaseTx = {
-                isCoinbase: true,
-                outputs: [
-                    {
-                        sats: blockInfo.sumCoinbaseOutputSats,
-                        outputScript:
-                            '76a914000000000000000000000000000000000000000088ac', // Dummy script
-                    },
-                ],
-            };
-            allBlockTxs = [coinbaseTx];
-
-            logger.debug(
-                `🚀 Optimized: Block ${blockInfo.height} doesn't need transaction data, skipping blockTxs query`,
-            );
+            throw new Error('No coinbase transaction found');
         }
 
         // Calculate reward amounts
@@ -539,9 +607,26 @@ class ChronikService {
             tx_count_genesis_slp_token_type_nft1_group: 0,
             tx_count_genesis_slp_token_type_nft1_child: 0,
         };
+        let unique_senders = 0;
+        let fusion_tx_count = 0;
+        let agora_unique_traders = 0;
+        let lokad_tx_count = 0;
+        let sender_scripts: string[] = [];
+        let receiver_scripts: string[] = [];
+        let coinbase_scripts: string[] = [];
+        let agora_trader_scripts: string[] = [];
+        let miner_scripts: string[] = [];
+        let staker_scripts: string[] = [];
+        let utxo_events: UtxoEvent[] = [];
+        let token_utxo_events: TokenUtxoEvent[] = [];
+        let token_block_deltas: TokenBlockDelta[] = [];
 
-        // Only calculate detailed metrics if we have transaction data
-        if (needsTransactionData && allBlockTxs.length > 1) {
+        utxo_events = this.collectUtxoEvents(allBlockTxs);
+        token_utxo_events = this.collectTokenUtxoEvents(allBlockTxs);
+        token_block_deltas = collectTokenBlockDeltas(allBlockTxs);
+
+        // Only calculate detailed metrics for blocks with more than a coinbase
+        if (allBlockTxs.length > 1) {
             // Calculate counts for new fields (only for blocks that need it)
             cachetClaimCount = this.countCachetClaims(allBlockTxs);
             cashtabFaucetClaimCount =
@@ -559,6 +644,24 @@ class ChronikService {
 
             // Count genesis txs by token type for ALP and SLP
             genesisTokenTypeTxs = this.countGenesisTokenTypeTxs(allBlockTxs);
+
+            // Collect unique address sets for true DAU calculation
+            sender_scripts = this.collectUniqueSenders(allBlockTxs);
+            receiver_scripts = this.collectUniqueReceivers(allBlockTxs);
+            coinbase_scripts = this.collectCoinbaseRecipients(allBlockTxs);
+            const rewardRecipients = this.collectCoinbaseRewardRecipients(
+                Number(blockInfo.height),
+                coinbaseTx.outputs,
+            );
+            miner_scripts = rewardRecipients.miner_scripts;
+            staker_scripts = rewardRecipients.staker_scripts;
+            unique_senders = sender_scripts.length;
+
+            // New metrics
+            fusion_tx_count = this.countFusionTxs(allBlockTxs);
+            agora_trader_scripts = this.collectAgoraTraders(allBlockTxs);
+            agora_unique_traders = agora_trader_scripts.length;
+            lokad_tx_count = this.countLokadTxs(allBlockTxs);
         }
 
         return {
@@ -602,26 +705,100 @@ class ChronikService {
                 genesisTokenTypeTxs.tx_count_genesis_slp_token_type_nft1_group,
             tx_count_genesis_slp_token_type_nft1_child:
                 genesisTokenTypeTxs.tx_count_genesis_slp_token_type_nft1_child,
+            unique_senders,
+            fusion_tx_count,
+            agora_unique_traders,
+            lokad_tx_count,
+            sender_scripts,
+            receiver_scripts,
+            coinbase_scripts,
+            agora_trader_scripts,
+            miner_scripts,
+            staker_scripts,
+            utxo_events,
+            token_utxo_events,
+            token_block_deltas,
         };
     }
 
     /**
-     * Determine if a block needs transaction data for detailed metrics
-     * This is the key optimization - only skip when absolutely safe
+     * Ordered UTXO creates and spends for a block (explorer-style).
+     * Processes txs in block order; within each tx, inputs then outputs.
      */
-    private needsTransactionData(blockInfo: any): boolean {
-        const height = blockInfo.height;
-        const numTxs = blockInfo.numTxs;
+    private collectUtxoEvents(blockTxs: any[]): UtxoEvent[] {
+        return collectUtxoEventsFromBlockTxs(blockTxs);
+    }
 
-        // Only skip transaction fetching for early blocks (before eCash) with exactly 1 transaction
-        // These are guaranteed to be just coinbase transactions
-        if (height < FIRST_BLOCK_XEC && numTxs === 1) {
-            return false;
+    /**
+     * Ordered token creates/spends for a block.
+     * Only inputs/outputs with Chronik `token` coloring are included.
+     * Creates before spends (CTOR may list child txs before parents).
+     */
+    private collectTokenUtxoEvents(blockTxs: any[]): TokenUtxoEvent[] {
+        const creates: TokenUtxoEvent[] = [];
+        const spends: TokenUtxoEvent[] = [];
+
+        for (const tx of blockTxs) {
+            const txid =
+                typeof tx.txid === 'string'
+                    ? tx.txid
+                    : Buffer.from(tx.txid).toString('hex');
+
+            if (!tx.isCoinbase && tx.inputs) {
+                for (const input of tx.inputs) {
+                    if (!input.prevOut || !input.token) {
+                        continue;
+                    }
+                    const prevTxid =
+                        typeof input.prevOut.txid === 'string'
+                            ? input.prevOut.txid
+                            : Buffer.from(input.prevOut.txid).toString('hex');
+                    spends.push({
+                        type: 'spend',
+                        prevTxid,
+                        prevVout: Number(input.prevOut.outIdx),
+                    });
+                }
+            }
+
+            if (tx.outputs) {
+                let vout = 0;
+                for (const output of tx.outputs) {
+                    if (output.token) {
+                        const script = this.normalizeScriptHex(
+                            output.outputScript,
+                        );
+                        if (script) {
+                            const { protocol, type } = this.tokenTypeFields(
+                                output.token,
+                            );
+                            creates.push({
+                                type: 'create',
+                                txid,
+                                vout,
+                                script,
+                                tokenId: output.token.tokenId,
+                                atoms: BigInt(output.token.atoms ?? 0),
+                                isMintBaton: Boolean(output.token.isMintBaton),
+                                tokenProtocol: protocol,
+                                tokenType: type,
+                            });
+                        }
+                    }
+                    vout++;
+                }
+            }
         }
 
-        // For all other blocks, we need transaction data to calculate metrics
-        // Even blocks with 2-3 transactions might have interesting data
-        return true;
+        return [...creates, ...spends];
+    }
+
+    private tokenTypeFields(token: {
+        tokenType?: { protocol?: string; type?: string };
+    }): { protocol: string; type: string } {
+        const protocol = token.tokenType?.protocol ?? 'UNKNOWN';
+        const type = token.tokenType?.type ?? 'UNKNOWN';
+        return { protocol, type };
     }
 
     /**
@@ -707,6 +884,293 @@ class ChronikService {
             }
         }
         return appTxsCount;
+    }
+
+    /**
+     * Count unique sending addresses in block transactions.
+     * A "sender" is identified by the outputScript of the first input of each tx.
+     */
+    private countUniqueSenders(blockTxs: any[]): number {
+        const senders = new Set<string>();
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            if (!tx.inputs) continue;
+            for (const input of tx.inputs) {
+                if (input.outputScript) {
+                    senders.add(input.outputScript);
+                }
+            }
+        }
+        return senders.size;
+    }
+
+    /**
+     * Normalize an output script to lowercase hex, skipping OP_RETURN.
+     */
+    private rawScriptHex(
+        outputScript: string | Uint8Array | undefined,
+    ): string {
+        return rawScriptHex(outputScript);
+    }
+
+    private normalizeScriptHex(
+        outputScript: string | Uint8Array | undefined,
+    ): string | null {
+        const scriptHex = this.rawScriptHex(outputScript);
+        if (scriptHex === '') {
+            return null;
+        }
+        if (scriptHex.startsWith('6a')) {
+            return null;
+        }
+        return scriptHex;
+    }
+
+    /**
+     * @deprecated Replaced by collectUtxoEvents for incremental UTXO indexing.
+     */
+    private collectBalanceDeltas(blockTxs: any[]): Array<{
+        script: string;
+        received_sats: bigint;
+        sent_sats: bigint;
+    }> {
+        const deltas = new Map<string, { received: bigint; sent: bigint }>();
+
+        const addReceived = (script: string, sats: bigint) => {
+            const existing = deltas.get(script) ?? { received: 0n, sent: 0n };
+            existing.received += sats;
+            deltas.set(script, existing);
+        };
+
+        const addSent = (script: string, sats: bigint) => {
+            const existing = deltas.get(script) ?? { received: 0n, sent: 0n };
+            existing.sent += sats;
+            deltas.set(script, existing);
+        };
+
+        for (const tx of blockTxs) {
+            if (tx.outputs) {
+                for (const output of tx.outputs) {
+                    const script = this.normalizeScriptHex(output.outputScript);
+                    if (!script) {
+                        continue;
+                    }
+                    addReceived(script, BigInt(output.sats ?? 0));
+                }
+            }
+
+            if (tx.isCoinbase || !tx.inputs) {
+                continue;
+            }
+
+            for (const input of tx.inputs) {
+                const script = this.normalizeScriptHex(input.outputScript);
+                if (!script) {
+                    continue;
+                }
+                addSent(script, BigInt(input.sats ?? 0));
+            }
+        }
+
+        return Array.from(deltas.entries()).map(
+            ([script, { received, sent }]) => ({
+                script,
+                received_sats: received,
+                sent_sats: sent,
+            }),
+        );
+    }
+
+    /**
+     * Collect unique sender outputScripts for true DAU deduplication.
+     * Includes all input addresses, not just the first input.
+     */
+    private collectUniqueSenders(blockTxs: any[]): string[] {
+        const senders = new Set<string>();
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            if (!tx.inputs) continue;
+            for (const input of tx.inputs) {
+                if (input.outputScript) {
+                    senders.add(input.outputScript);
+                }
+            }
+        }
+        return Array.from(senders);
+    }
+
+    /**
+     * Collect unique receiver outputScripts for true DAU deduplication.
+     * A "receiver" is any non-OP_RETURN output address.
+     */
+    private collectUniqueReceivers(blockTxs: any[]): string[] {
+        const receivers = new Set<string>();
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            if (!tx.outputs) continue;
+            for (const output of tx.outputs) {
+                if (!output.outputScript) continue;
+                const scriptHex =
+                    typeof output.outputScript === 'string'
+                        ? output.outputScript
+                        : Buffer.from(output.outputScript).toString('hex');
+                if (scriptHex.startsWith('6a')) continue;
+                receivers.add(scriptHex);
+            }
+        }
+        return Array.from(receivers);
+    }
+
+    /**
+     * Collect unique coinbase output recipients (miners, stakers, IFP).
+     */
+    private collectCoinbaseRecipients(blockTxs: any[]): string[] {
+        const recipients = new Set<string>();
+        for (const tx of blockTxs) {
+            if (!tx.isCoinbase) continue;
+            if (!tx.outputs) continue;
+            for (const output of tx.outputs) {
+                if (!output.outputScript) continue;
+                const scriptHex =
+                    typeof output.outputScript === 'string'
+                        ? output.outputScript
+                        : Buffer.from(output.outputScript).toString('hex');
+                if (scriptHex.startsWith('6a')) continue;
+                recipients.add(scriptHex);
+            }
+        }
+        return Array.from(recipients);
+    }
+
+    /**
+     * Count CashFusion transactions in a block.
+     * Detects FUZ LOKAD ID (46555a00) in legacy OP_RETURN or eMPP fragments.
+     */
+    private countFusionTxs(blockTxs: any[]): number {
+        let count = 0;
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            if (txUsesFusionProtocol(tx)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Count unique Agora traders (buyer addresses) in block transactions.
+     * A trader is the address that initiates an Agora BUY transaction.
+     */
+    private countAgoraUniqueTraders(blockTxs: any[]): number {
+        const traders = new Set<string>();
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            const volume = this.parseAgoraBuyVolume(tx);
+            if (volume !== undefined) {
+                // Buyer: first non-Agora P2PKH input
+                if (tx.inputs && tx.inputs.length > 0) {
+                    for (const input of tx.inputs) {
+                        if (
+                            !this.isAgoraPartialInputOrOutput(input) &&
+                            input.outputScript
+                        ) {
+                            const script =
+                                typeof input.outputScript === 'string'
+                                    ? input.outputScript
+                                    : Buffer.from(input.outputScript).toString(
+                                          'hex',
+                                      );
+                            if (script.startsWith('76a914')) {
+                                traders.add(script);
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Seller: outputs[1] is the maker's payment address
+                if (tx.outputs && tx.outputs.length > 1) {
+                    const sellerOutput = tx.outputs[1];
+                    if (sellerOutput.outputScript) {
+                        const script =
+                            typeof sellerOutput.outputScript === 'string'
+                                ? sellerOutput.outputScript
+                                : Buffer.from(
+                                      sellerOutput.outputScript,
+                                  ).toString('hex');
+                        if (script.startsWith('76a914')) {
+                            traders.add(script);
+                        }
+                    }
+                }
+            }
+        }
+        return traders.size;
+    }
+
+    /**
+     * Collect unique Agora trader outputScripts for true daily deduplication.
+     * Traders = buyers (non-P2SH inputs) + sellers (outputs[1] of BUY txs).
+     * Only P2PKH addresses are included — P2SH scripts are Agora offer contracts.
+     */
+    private collectAgoraTraders(blockTxs: any[]): string[] {
+        const traders = new Set<string>();
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            const volume = this.parseAgoraBuyVolume(tx);
+            if (volume !== undefined) {
+                // Buyer: first non-Agora P2PKH input
+                if (tx.inputs && tx.inputs.length > 0) {
+                    for (const input of tx.inputs) {
+                        if (
+                            !this.isAgoraPartialInputOrOutput(input) &&
+                            input.outputScript
+                        ) {
+                            const script =
+                                typeof input.outputScript === 'string'
+                                    ? input.outputScript
+                                    : Buffer.from(input.outputScript).toString(
+                                          'hex',
+                                      );
+                            if (script.startsWith('76a914')) {
+                                traders.add(script);
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Seller: outputs[1] is the maker's payment address
+                if (tx.outputs && tx.outputs.length > 1) {
+                    const sellerOutput = tx.outputs[1];
+                    if (sellerOutput.outputScript) {
+                        const script =
+                            typeof sellerOutput.outputScript === 'string'
+                                ? sellerOutput.outputScript
+                                : Buffer.from(
+                                      sellerOutput.outputScript,
+                                  ).toString('hex');
+                        if (script.startsWith('76a914')) {
+                            traders.add(script);
+                        }
+                    }
+                }
+            }
+        }
+        return Array.from(traders);
+    }
+
+    /**
+     * Count transactions using a LOKAD protocol identifier.
+     * Supports legacy OP_RETURN (6a04...) and eMPP (6a50...) encodings.
+     */
+    private countLokadTxs(blockTxs: any[]): number {
+        let count = 0;
+        for (const tx of blockTxs) {
+            if (tx.isCoinbase) continue;
+            if (txUsesLokadProtocol(tx)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

@@ -42,6 +42,46 @@ export interface BlockData {
     agora_volume_xecx_sats: bigint;
     agora_volume_firma_sats: bigint;
     app_txs_count: number;
+    unique_senders: number;
+    fusion_tx_count: number;
+    agora_unique_traders: number;
+    lokad_tx_count: number;
+    sender_scripts: string[];
+    receiver_scripts: string[];
+    coinbase_scripts: string[];
+    agora_trader_scripts: string[];
+    miner_scripts: string[];
+    staker_scripts: string[];
+    utxo_events: Array<
+        | { type: 'spend'; prevTxid: string; prevVout: number }
+        | {
+              type: 'create';
+              txid: string;
+              vout: number;
+              script: string;
+              sats: bigint;
+          }
+    >;
+    token_utxo_events: Array<
+        | { type: 'spend'; prevTxid: string; prevVout: number }
+        | {
+              type: 'create';
+              txid: string;
+              vout: number;
+              script: string;
+              tokenId: string;
+              atoms: bigint;
+              isMintBaton: boolean;
+              tokenProtocol: string;
+              tokenType: string;
+          }
+    >;
+    token_block_deltas: Array<{
+        tokenId: string;
+        genesisAtoms: bigint;
+        mintAtoms: bigint;
+        burnAtoms: bigint;
+    }>;
 }
 
 export interface DayData {
@@ -89,7 +129,6 @@ export interface ChronikConfig {
 
 export interface IndexingConfig {
     batchSize: number;
-    maxConcurrentBatches: number;
     targetTxCountPerBatch: number;
 }
 

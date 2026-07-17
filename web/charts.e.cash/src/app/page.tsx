@@ -103,6 +103,82 @@ export interface DailyPriceData {
     avg_price_usd: number;
 }
 
+export interface DailyActiveAddressesData {
+    date: string;
+    daily_active_senders: number;
+    daily_active_addresses: number;
+}
+
+export interface NewAddressesPerDayData {
+    date: string;
+    new_addresses_count: number;
+}
+
+export interface CumulativeAddressesData {
+    date: string;
+    cumulative_addresses: number;
+}
+
+export interface DailyFusionData {
+    date: string;
+    fusion_tx_count: number;
+}
+
+export interface CumulativeFusionData {
+    date: string;
+    cumulative_fusion_txs: number;
+}
+
+export interface DailyAgoraTradersData {
+    date: string;
+    agora_unique_traders: number;
+}
+
+export interface DailyLokadTxsData {
+    date: string;
+    lokad_tx_count: number;
+}
+
+export interface DailyMinersStakersData {
+    date: string;
+    daily_unique_miners: number;
+    daily_unique_stakers: number;
+}
+
+export interface CumulativeMinersStakersData {
+    date: string;
+    cumulative_miners: number;
+    cumulative_stakers: number;
+}
+
+export interface ReturningVsNewAddressesData {
+    date: string;
+    returning_addresses: number;
+    new_addresses: number;
+}
+
+export interface DailyCoinbaseRecipientsData {
+    date: string;
+    daily_coinbase_recipients: number;
+}
+
+export interface NewMinersStakersData {
+    date: string;
+    new_miners_count: number;
+    new_stakers_count: number;
+}
+
+export interface RichListEntryData {
+    rank: number;
+    address: string;
+    balance_xec: number;
+    balance_sats: number;
+    is_miner: boolean;
+    is_staker: boolean;
+    is_coinbase_recipient: boolean;
+    first_seen: string;
+}
+
 // API response interfaces
 interface CoinbaseAPIResponse {
     date: string;
@@ -174,6 +250,39 @@ export default function Home() {
             other_usd: number;
         }>
     >([]);
+    const [dailyActiveAddresses, setDailyActiveAddresses] = useState<
+        DailyActiveAddressesData[]
+    >([]);
+    const [newAddressesPerDay, setNewAddressesPerDay] = useState<
+        NewAddressesPerDayData[]
+    >([]);
+    const [cumulativeAddresses, setCumulativeAddresses] = useState<
+        CumulativeAddressesData[]
+    >([]);
+    const [dailyFusion, setDailyFusion] = useState<DailyFusionData[]>([]);
+    const [cumulativeFusion, setCumulativeFusion] = useState<
+        CumulativeFusionData[]
+    >([]);
+    const [dailyAgoraTraders, setDailyAgoraTraders] = useState<
+        DailyAgoraTradersData[]
+    >([]);
+    const [dailyLokadTxs, setDailyLokadTxs] = useState<DailyLokadTxsData[]>([]);
+    const [dailyMinersStakers, setDailyMinersStakers] = useState<
+        DailyMinersStakersData[]
+    >([]);
+    const [cumulativeMinersStakers, setCumulativeMinersStakers] = useState<
+        CumulativeMinersStakersData[]
+    >([]);
+    const [returningVsNewAddresses, setReturningVsNewAddresses] = useState<
+        ReturningVsNewAddressesData[]
+    >([]);
+    const [dailyCoinbaseRecipients, setDailyCoinbaseRecipients] = useState<
+        DailyCoinbaseRecipientsData[]
+    >([]);
+    const [newMinersStakers, setNewMinersStakers] = useState<
+        NewMinersStakersData[]
+    >([]);
+    const [richList, setRichList] = useState<RichListEntryData[]>([]);
     const [dateRange, setDateRange] = useState<{
         startDate: string;
         endDate: string;
@@ -190,8 +299,8 @@ export default function Home() {
     const [yMax, setYMax] = useState<number | null>(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-    // Add a ref to prevent multiple simultaneous requests
-    const isFetching = useRef(false);
+    // Add a ref so only the latest in-flight request clears loading / applies data
+    const fetchGeneration = useRef(0);
 
     // Store the initial yMax for proportional zooming
     const initialYMax = useRef<number | null>(null);
@@ -215,13 +324,29 @@ export default function Home() {
         startDate?: string,
         endDate?: string,
     ) => {
-        if (isFetching.current) {
-            return;
-        }
+        const generation = ++fetchGeneration.current;
+        const isCurrent = () => generation === fetchGeneration.current;
+
+        /**
+         * Parse JSON only for the latest in-flight request. Prevents a slow
+         * All Time response from overwriting a newer short-range selection.
+         */
+        const readJsonIfCurrent = async <T,>(
+            res: Response,
+        ): Promise<T | undefined> => {
+            if (!isCurrent() || !res.ok) {
+                return undefined;
+            }
+            const data = (await res.json()) as T;
+            if (!isCurrent()) {
+                return undefined;
+            }
+            return data;
+        };
 
         try {
-            isFetching.current = true;
             setLoading(true);
+            setError(null);
 
             const params = new URLSearchParams();
             if (startDate && endDate) {
@@ -236,10 +361,10 @@ export default function Home() {
                     const dailyStatsRes = await fetch(
                         `/api/charts/daily-stats?${params}`,
                     );
-                    if (dailyStatsRes.ok) {
-                        setDailyStats(
-                            (await dailyStatsRes.json()) as DailyStats[],
-                        );
+                    const data =
+                        await readJsonIfCurrent<DailyStats[]>(dailyStatsRes);
+                    if (data) {
+                        setDailyStats(data);
                     }
                     break;
                 }
@@ -248,10 +373,12 @@ export default function Home() {
                     const coinbaseRes = await fetch(
                         `/api/charts/daily-coinbase?${params}`,
                     );
-                    if (coinbaseRes.ok) {
-                        const coinbaseData =
-                            (await coinbaseRes.json()) as CoinbaseAPIResponse[];
-                        const transformedData: CoinbaseOutputData[] =
+                    const coinbaseData =
+                        await readJsonIfCurrent<CoinbaseAPIResponse[]>(
+                            coinbaseRes,
+                        );
+                    if (coinbaseData) {
+                        setCoinbaseOutputData(
                             coinbaseData.map(
                                 (item): CoinbaseOutputData => ({
                                     date: item.date,
@@ -260,8 +387,8 @@ export default function Home() {
                                         100,
                                     label: 'Coinbase Output',
                                 }),
-                            );
-                        setCoinbaseOutputData(transformedData);
+                            ),
+                        );
                     }
                     break;
                 }
@@ -270,9 +397,11 @@ export default function Home() {
                     const rewardsRes = await fetch(
                         `/api/charts/daily-coinbase?${params}`,
                     );
-                    if (rewardsRes.ok) {
-                        const coinbaseData =
-                            (await rewardsRes.json()) as CoinbaseAPIResponse[];
+                    const coinbaseData =
+                        await readJsonIfCurrent<CoinbaseAPIResponse[]>(
+                            rewardsRes,
+                        );
+                    if (coinbaseData) {
                         const rewardsData: RewardsData[] = coinbaseData.map(
                             (item): RewardsData => {
                                 const itemDate = new Date(item.date);
@@ -325,10 +454,10 @@ export default function Home() {
                     const claimsRes = await fetch(
                         `/api/charts/daily-claims?${params}`,
                     );
-                    if (claimsRes.ok) {
-                        setDailyClaims(
-                            (await claimsRes.json()) as DailyClaimsData[],
-                        );
+                    const data =
+                        await readJsonIfCurrent<DailyClaimsData[]>(claimsRes);
+                    if (data) {
+                        setDailyClaims(data);
                     }
                     break;
                 }
@@ -337,10 +466,12 @@ export default function Home() {
                     const cumulativeClaimsRes = await fetch(
                         `/api/charts/cumulative-claims?${params}`,
                     );
-                    if (cumulativeClaimsRes.ok) {
-                        setCumulativeClaims(
-                            (await cumulativeClaimsRes.json()) as CumulativeClaimsData[],
+                    const data =
+                        await readJsonIfCurrent<CumulativeClaimsData[]>(
+                            cumulativeClaimsRes,
                         );
+                    if (data) {
+                        setCumulativeClaims(data);
                     }
                     break;
                 }
@@ -349,9 +480,11 @@ export default function Home() {
                     const binanceRes = await fetch(
                         `/api/charts/daily-binance-withdrawals?${params}`,
                     );
-                    if (binanceRes.ok) {
-                        const binanceData =
-                            (await binanceRes.json()) as BinanceWithdrawalsAPIResponse[];
+                    const binanceData =
+                        await readJsonIfCurrent<
+                            BinanceWithdrawalsAPIResponse[]
+                        >(binanceRes);
+                    if (binanceData) {
                         const transformedData: DailyBinanceWithdrawalsData[] =
                             binanceData.map(
                                 (item): DailyBinanceWithdrawalsData => ({
@@ -372,9 +505,11 @@ export default function Home() {
                     const agoraRes = await fetch(
                         `/api/charts/daily-agora-volume?${params}`,
                     );
-                    if (agoraRes.ok) {
-                        const agoraData =
-                            (await agoraRes.json()) as AgoraVolumeAPIResponse[];
+                    const agoraData =
+                        await readJsonIfCurrent<AgoraVolumeAPIResponse[]>(
+                            agoraRes,
+                        );
+                    if (agoraData) {
                         const transformedData: DailyAgoraVolumeData[] =
                             agoraData.map(
                                 (item): DailyAgoraVolumeData => ({
@@ -394,9 +529,11 @@ export default function Home() {
                     const cumulativeAgoraRes = await fetch(
                         `/api/charts/cumulative-agora-volume?${params}`,
                     );
-                    if (cumulativeAgoraRes.ok) {
-                        const cumulativeAgoraData =
-                            (await cumulativeAgoraRes.json()) as AgoraVolumeAPIResponse[];
+                    const cumulativeAgoraData =
+                        await readJsonIfCurrent<AgoraVolumeAPIResponse[]>(
+                            cumulativeAgoraRes,
+                        );
+                    if (cumulativeAgoraData) {
                         const transformedData: DailyAgoraVolumeData[] =
                             cumulativeAgoraData.map(
                                 (item): DailyAgoraVolumeData => ({
@@ -416,10 +553,12 @@ export default function Home() {
                     const tokenTypeRes = await fetch(
                         `/api/charts/daily-token-type-tx-counts?${params}`,
                     );
-                    if (tokenTypeRes.ok) {
-                        setTokenTypeData(
-                            (await tokenTypeRes.json()) as DailyTokenTypeData[],
+                    const data =
+                        await readJsonIfCurrent<DailyTokenTypeData[]>(
+                            tokenTypeRes,
                         );
+                    if (data) {
+                        setTokenTypeData(data);
                     }
                     break;
                 }
@@ -428,10 +567,12 @@ export default function Home() {
                     const genesisRes = await fetch(
                         `/api/charts/daily-genesis-txs?${params}`,
                     );
-                    if (genesisRes.ok) {
-                        setGenesisTxsData(
-                            (await genesisRes.json()) as DailyGenesisTxsData[],
+                    const data =
+                        await readJsonIfCurrent<DailyGenesisTxsData[]>(
+                            genesisRes,
                         );
+                    if (data) {
+                        setGenesisTxsData(data);
                     }
                     break;
                 }
@@ -440,10 +581,12 @@ export default function Home() {
                     const cumulativeTokensRes = await fetch(
                         `/api/charts/cumulative-tokens-created?${params}`,
                     );
-                    if (cumulativeTokensRes.ok) {
-                        setCumulativeTokensData(
-                            (await cumulativeTokensRes.json()) as CumulativeTokensCreatedData[],
+                    const data =
+                        await readJsonIfCurrent<CumulativeTokensCreatedData[]>(
+                            cumulativeTokensRes,
                         );
+                    if (data) {
+                        setCumulativeTokensData(data);
                     }
                     break;
                 }
@@ -452,10 +595,10 @@ export default function Home() {
                     const priceRes = await fetch(
                         `/api/charts/daily-price?${params}`,
                     );
-                    if (priceRes.ok) {
-                        setPriceData(
-                            (await priceRes.json()) as DailyPriceData[],
-                        );
+                    const data =
+                        await readJsonIfCurrent<DailyPriceData[]>(priceRes);
+                    if (data) {
+                        setPriceData(data);
                     }
                     break;
                 }
@@ -464,16 +607,17 @@ export default function Home() {
                     const agoraUSDRes = await fetch(
                         `/api/charts/daily-agora-volume-usd?${params}`,
                     );
-                    if (agoraUSDRes.ok) {
-                        setDailyAgoraVolumeUSD(
-                            (await agoraUSDRes.json()) as Array<{
-                                date: string;
-                                usd: number;
-                                xecx_usd: number;
-                                firma_usd: number;
-                                other_usd: number;
-                            }>,
-                        );
+                    const data = await readJsonIfCurrent<
+                        Array<{
+                            date: string;
+                            usd: number;
+                            xecx_usd: number;
+                            firma_usd: number;
+                            other_usd: number;
+                        }>
+                    >(agoraUSDRes);
+                    if (data) {
+                        setDailyAgoraVolumeUSD(data);
                     }
                     break;
                 }
@@ -482,26 +626,193 @@ export default function Home() {
                     const cumulativeAgoraUSDRes = await fetch(
                         `/api/charts/cumulative-agora-volume-usd?${params}`,
                     );
-                    if (cumulativeAgoraUSDRes.ok) {
-                        setCumulativeAgoraVolumeUSD(
-                            (await cumulativeAgoraUSDRes.json()) as Array<{
-                                date: string;
-                                usd: number;
-                                xecx_usd: number;
-                                firma_usd: number;
-                                other_usd: number;
-                            }>,
+                    const data = await readJsonIfCurrent<
+                        Array<{
+                            date: string;
+                            usd: number;
+                            xecx_usd: number;
+                            firma_usd: number;
+                            other_usd: number;
+                        }>
+                    >(cumulativeAgoraUSDRes);
+                    if (data) {
+                        setCumulativeAgoraVolumeUSD(data);
+                    }
+                    break;
+                }
+
+                case 'daily-active-addresses': {
+                    const res = await fetch(
+                        `/api/charts/daily-active-addresses?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyActiveAddressesData[]>(
+                            res,
                         );
+                    if (data) {
+                        setDailyActiveAddresses(data);
+                    }
+                    break;
+                }
+
+                case 'new-addresses-per-day': {
+                    const res = await fetch(
+                        `/api/charts/new-addresses-per-day?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<NewAddressesPerDayData[]>(res);
+                    if (data) {
+                        setNewAddressesPerDay(data);
+                    }
+                    break;
+                }
+
+                case 'cumulative-addresses': {
+                    const res = await fetch(
+                        `/api/charts/cumulative-addresses?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<CumulativeAddressesData[]>(res);
+                    if (data) {
+                        setCumulativeAddresses(data);
+                    }
+                    break;
+                }
+
+                case 'daily-agora-traders': {
+                    const res = await fetch(
+                        `/api/charts/daily-agora-traders?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyAgoraTradersData[]>(res);
+                    if (data) {
+                        setDailyAgoraTraders(data);
+                    }
+                    break;
+                }
+
+                case 'daily-fusion': {
+                    const res = await fetch(
+                        `/api/charts/daily-fusion?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyFusionData[]>(res);
+                    if (data) {
+                        setDailyFusion(data);
+                    }
+                    break;
+                }
+
+                case 'cumulative-fusion': {
+                    const res = await fetch(
+                        `/api/charts/cumulative-fusion?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<CumulativeFusionData[]>(res);
+                    if (data) {
+                        setCumulativeFusion(data);
+                    }
+                    break;
+                }
+
+                case 'daily-lokad-txs': {
+                    const res = await fetch(
+                        `/api/charts/daily-lokad-txs?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyLokadTxsData[]>(res);
+                    if (data) {
+                        setDailyLokadTxs(data);
+                    }
+                    break;
+                }
+                case 'daily-unique-miners':
+                case 'daily-unique-stakers':
+                case 'daily-miners-stakers': {
+                    const res = await fetch(
+                        `/api/charts/daily-miners-stakers?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyMinersStakersData[]>(res);
+                    if (data) {
+                        setDailyMinersStakers(data);
+                    }
+                    break;
+                }
+                case 'cumulative-unique-miners':
+                case 'cumulative-unique-stakers':
+                case 'cumulative-miners-stakers': {
+                    const res = await fetch(
+                        `/api/charts/cumulative-miners-stakers?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<CumulativeMinersStakersData[]>(
+                            res,
+                        );
+                    if (data) {
+                        setCumulativeMinersStakers(data);
+                    }
+                    break;
+                }
+                case 'returning-vs-new-addresses': {
+                    const res = await fetch(
+                        `/api/charts/returning-vs-new-addresses?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<ReturningVsNewAddressesData[]>(
+                            res,
+                        );
+                    if (data) {
+                        setReturningVsNewAddresses(data);
+                    }
+                    break;
+                }
+                case 'daily-coinbase-recipients': {
+                    const res = await fetch(
+                        `/api/charts/daily-coinbase-recipients?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<DailyCoinbaseRecipientsData[]>(
+                            res,
+                        );
+                    if (data) {
+                        setDailyCoinbaseRecipients(data);
+                    }
+                    break;
+                }
+                case 'new-miners-per-day':
+                case 'new-stakers-per-day':
+                case 'new-miners-stakers': {
+                    const res = await fetch(
+                        `/api/charts/new-miners-stakers?${params}`,
+                    );
+                    const data =
+                        await readJsonIfCurrent<NewMinersStakersData[]>(res);
+                    if (data) {
+                        setNewMinersStakers(data);
+                    }
+                    break;
+                }
+                case 'rich-list': {
+                    const res = await fetch('/api/charts/rich-list?limit=100');
+                    const data =
+                        await readJsonIfCurrent<RichListEntryData[]>(res);
+                    if (data) {
+                        setRichList(data);
                     }
                     break;
                 }
             }
         } catch (err) {
+            if (generation !== fetchGeneration.current) {
+                return;
+            }
             setError('Failed to fetch chart data');
             console.error('Error fetching chart data:', err);
         } finally {
-            setLoading(false);
-            isFetching.current = false;
+            if (generation === fetchGeneration.current) {
+                setLoading(false);
+            }
         }
     };
 
@@ -569,6 +880,19 @@ export default function Home() {
     const completeGenesisTxsData = genesisTxsData;
     const completeCumulativeTokensData = cumulativeTokensData;
     const completePriceData = priceData;
+    const completeDailyActiveAddresses = dailyActiveAddresses;
+    const completeNewAddressesPerDay = newAddressesPerDay;
+    const completeCumulativeAddresses = cumulativeAddresses;
+    const completeDailyFusion = dailyFusion;
+    const completeCumulativeFusion = cumulativeFusion;
+    const completeDailyAgoraTraders = dailyAgoraTraders;
+    const completeDailyLokadTxs = dailyLokadTxs;
+    const completeDailyMinersStakers = dailyMinersStakers;
+    const completeCumulativeMinersStakers = cumulativeMinersStakers;
+    const completeReturningVsNewAddresses = returningVsNewAddresses;
+    const completeDailyCoinbaseRecipients = dailyCoinbaseRecipients;
+    const completeNewMinersStakers = newMinersStakers;
+    const completeRichList = richList;
 
     function handleResetY() {
         // Reset to auto-scaling
@@ -583,17 +907,6 @@ export default function Home() {
         hasStartedZooming.current = false;
         initialYMax.current = null;
     }, [selectedChart]);
-
-    if (loading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-[#090916]">
-                <div className="text-center">
-                    <div className="mx-auto h-32 w-32 animate-spin rounded-full border-b-2 border-[#01a0e0]"></div>
-                    <p className="mt-4 text-[#cccccc]">Loading chart data...</p>
-                </div>
-            </div>
-        );
-    }
 
     if (error) {
         return (
@@ -627,6 +940,19 @@ export default function Home() {
         completePriceData,
         dailyAgoraVolumeUSD,
         cumulativeAgoraVolumeUSD,
+        completeDailyActiveAddresses,
+        completeNewAddressesPerDay,
+        completeCumulativeAddresses,
+        completeDailyFusion,
+        completeCumulativeFusion,
+        completeDailyAgoraTraders,
+        completeDailyLokadTxs,
+        completeDailyMinersStakers,
+        completeCumulativeMinersStakers,
+        completeReturningVsNewAddresses,
+        completeDailyCoinbaseRecipients,
+        completeNewMinersStakers,
+        completeRichList,
     };
 
     return (
@@ -813,6 +1139,32 @@ export default function Home() {
                                                         return dailyAgoraVolumeUSD;
                                                     case 'cumulativeAgoraVolumeUSD':
                                                         return cumulativeAgoraVolumeUSD;
+                                                    case 'completeDailyActiveAddresses':
+                                                        return completeDailyActiveAddresses;
+                                                    case 'completeNewAddressesPerDay':
+                                                        return completeNewAddressesPerDay;
+                                                    case 'completeCumulativeAddresses':
+                                                        return completeCumulativeAddresses;
+                                                    case 'completeDailyFusion':
+                                                        return completeDailyFusion;
+                                                    case 'completeCumulativeFusion':
+                                                        return completeCumulativeFusion;
+                                                    case 'completeDailyAgoraTraders':
+                                                        return completeDailyAgoraTraders;
+                                                    case 'completeDailyLokadTxs':
+                                                        return completeDailyLokadTxs;
+                                                    case 'completeDailyMinersStakers':
+                                                        return completeDailyMinersStakers;
+                                                    case 'completeCumulativeMinersStakers':
+                                                        return completeCumulativeMinersStakers;
+                                                    case 'completeReturningVsNewAddresses':
+                                                        return completeReturningVsNewAddresses;
+                                                    case 'completeDailyCoinbaseRecipients':
+                                                        return completeDailyCoinbaseRecipients;
+                                                    case 'completeNewMinersStakers':
+                                                        return completeNewMinersStakers;
+                                                    case 'completeRichList':
+                                                        return completeRichList;
                                                     default:
                                                         return [];
                                                 }
@@ -928,6 +1280,7 @@ export default function Home() {
                                 data={chartData}
                                 summaryData={summaryData}
                                 yAxisDomain={[0, yMax !== null ? yMax : 'auto']}
+                                isLoading={loading}
                             />
                         </div>
                     </div>

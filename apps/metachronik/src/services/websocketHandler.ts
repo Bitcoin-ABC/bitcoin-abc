@@ -167,10 +167,13 @@ export class WebSocketHandler {
                 .split('T')[0];
 
             if (blockDate) {
-                await this.dbService.aggregateDailyData(
+                // Tip day: aggregate without pruning so day_addresses keeps
+                // accumulating across blocks. Prune only completed days.
+                await this.dbService.refreshDayAggregation(
                     blockDate,
                     this.chronikService,
                 );
+                await this.dbService.finalizeCompletedDays(this.chronikService);
                 logger.info(`📊 Updated daily aggregation for ${blockDate}`);
 
                 // Refresh cumulative materialized views to include new data

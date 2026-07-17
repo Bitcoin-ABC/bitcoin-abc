@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import dotenv from 'dotenv';
 import cron from 'node-cron';
+import readline from 'readline';
 
 import { AppConfig } from './types';
 import DatabaseService from './services/database';
@@ -10,11 +11,98 @@ import ChronikService from './services/chronik';
 import { WebSocketHandler } from './services/websocketHandler';
 import { ReconciliationService } from './services/reconciliationService';
 import logger from './utils/logger';
+import { isShutdownRequested, requestShutdown } from './utils/shutdown';
 
 dotenv.config();
 
 // Check for reindex flags
 const shouldReindex = process.argv.includes('--reindex');
+// Allow skipping the interactive reindex confirmation (for automation)
+const skipReindexConfirm =
+    process.argv.includes('--yes') || process.argv.includes('-y');
+
+/**
+ * Detect transient database/connection errors that are worth backing off and
+ * retrying (rather than crashing). Covers dropped connections, timeouts, and
+ * "too many connections" from an overloaded Neon compute.
+ */
+function isRetryableDbError(error: unknown): boolean {
+    const message = (
+        error instanceof Error ? error.message : String(error)
+    ).toLowerCase();
+    const code = (error as { code?: string })?.code ?? '';
+
+    const retryableCodes = new Set([
+        '08000', // connection_exception
+        '08003', // connection_does_not_exist
+        '08006', // connection_failure
+        '57P01', // admin_shutdown
+        '57P03', // cannot_connect_now
+        '53300', // too_many_connections
+        '53400', // configuration_limit_exceeded
+        '40P01', // deadlock_detected
+        '57014', // statement_timeout / query_canceled
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EPIPE',
+    ]);
+
+    if (retryableCodes.has(code)) {
+        return true;
+    }
+
+    return (
+        message.includes('connection terminated') ||
+        message.includes('connection reset') ||
+        message.includes('econnreset') ||
+        message.includes('etimedout') ||
+        message.includes('timeout') ||
+        message.includes('too many connections') ||
+        message.includes('terminating connection') ||
+        message.includes('server closed the connection') ||
+        // pg emits these on in-flight queries when the socket dies mid-request
+        message.includes('connection error') ||
+        message.includes('not queryable') ||
+        message.includes('client has encountered')
+    );
+}
+
+/**
+ * Ask the user to confirm a destructive reindex before proceeding.
+ * Resolves true if confirmed, false otherwise.
+ */
+async function confirmReindex(): Promise<boolean> {
+    if (skipReindexConfirm) {
+        return true;
+    }
+
+    // Cannot prompt without an interactive terminal (e.g. stdin is piped)
+    if (!process.stdin.isTTY) {
+        logger.error(
+            '--reindex requires confirmation but stdin is not a TTY. ' +
+                'Re-run in an interactive terminal, or pass --yes to skip this prompt.',
+        );
+        return false;
+    }
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    try {
+        const answer = await new Promise<string>(resolve => {
+            rl.question(
+                '⚠️  --reindex will DROP and recreate the blocks and days tables, ' +
+                    'destroying all existing indexed data.\nAre you sure you want to continue? (y/N) ',
+                resolve,
+            );
+        });
+        return answer.trim().toLowerCase() === 'y';
+    } finally {
+        rl.close();
+    }
+}
 
 // Configuration
 const config: AppConfig = {
@@ -36,9 +124,6 @@ const config: AppConfig = {
     // Indexing performance configuration
     indexing: {
         batchSize: parseInt(process.env.INDEXING_BATCH_SIZE || '200'),
-        maxConcurrentBatches: parseInt(
-            process.env.INDEXING_MAX_CONCURRENT_BATCHES || '3',
-        ),
         targetTxCountPerBatch: parseInt(
             process.env.TARGET_TX_COUNT_PER_BATCH || '10000',
         ),
@@ -50,6 +135,35 @@ let dbService: DatabaseService;
 let chronikService: ChronikService;
 let wsHandler: WebSocketHandler;
 let reconciliationService: ReconciliationService;
+let forceExitOnNextSignal = false;
+/** True while initialIndexing / collectData / gap-fill is actively indexing. */
+let indexingInProgress = false;
+/** Cron handle — registered only after initial indexing completes. */
+let scheduledCollectionTask: ReturnType<typeof cron.schedule> | null = null;
+
+/**
+ * Finalize every completed calendar day (aggregate blocks → days, prune DAU
+ * staging). Balances are maintained incrementally via the UTXO set.
+ */
+async function finalizeCompletedDays(options?: {
+    includeTipDay?: boolean;
+}): Promise<void> {
+    if (isShutdownRequested()) {
+        return;
+    }
+
+    const finalized = await dbService.finalizeCompletedDays(
+        chronikService,
+        options,
+    );
+    if (finalized.length > 0) {
+        const range =
+            finalized.length === 1
+                ? finalized[0]
+                : `${finalized[0]} → ${finalized[finalized.length - 1]}`;
+        logger.info(`Finalized ${finalized.length} calendar day(s): ${range}`);
+    }
+}
 
 async function initializeServices() {
     try {
@@ -58,6 +172,13 @@ async function initializeServices() {
         const dbConnected = await dbService['db'].testConnection();
         if (!dbConnected) {
             throw new Error('Failed to connect to database');
+        }
+
+        const lockAcquired = await dbService.acquireInstanceLock();
+        if (!lockAcquired) {
+            throw new Error(
+                'Another metachronik indexer is already running. Stop it before starting a new instance.',
+            );
         }
 
         // Initialize database tables
@@ -74,21 +195,40 @@ async function initializeServices() {
         );
 
         logger.info('All services initialized successfully');
-
-        // Setup cron job for data collection
-        cron.schedule(config.cronSchedule, async () => {
-            logger.info('Starting scheduled data collection');
-            try {
-                await collectData();
-                logger.info('Scheduled data collection completed');
-            } catch (error) {
-                logger.error('Scheduled data collection failed:', error);
-            }
-        });
+        // Cron is intentionally NOT started here. During a multi-hour reindex
+        // the scheduled collectData would race initialIndexing, merge the same
+        // day_addresses rows twice (additive), and corrupt balances.
     } catch (error) {
         logger.error('Failed to initialize services:', error);
         process.exit(1);
     }
+}
+
+/**
+ * Start the periodic catch-up cron only after bulk/initial indexing finished.
+ */
+function startScheduledCollection(): void {
+    if (scheduledCollectionTask) {
+        return;
+    }
+    scheduledCollectionTask = cron.schedule(config.cronSchedule, async () => {
+        if (indexingInProgress) {
+            logger.info(
+                'Skipping scheduled data collection: indexing already in progress',
+            );
+            return;
+        }
+        logger.info('Starting scheduled data collection');
+        try {
+            await collectData();
+            logger.info('Scheduled data collection completed');
+        } catch (error) {
+            logger.error('Scheduled data collection failed:', error);
+        }
+    });
+    logger.info(
+        `Scheduled data collection enabled (cron: ${config.cronSchedule})`,
+    );
 }
 
 async function detectAndFillGaps() {
@@ -99,7 +239,7 @@ async function detectAndFillGaps() {
         const highestBlockHeight = await dbService.getHighestBlockHeight();
         const lowestBlockHeight = await dbService.getLowestBlockHeight();
 
-        if (highestBlockHeight === 0) {
+        if (highestBlockHeight < 0) {
             logger.info('No blocks in database, skipping gap detection');
             return;
         }
@@ -172,7 +312,29 @@ async function detectAndFillGaps() {
     }
 }
 
+/**
+ * UTXO balances require every spend's prevout to exist in `utxos`. Starting
+ * mid-chain without a snapshot leaves the set empty for older outputs.
+ */
+async function assertUtxoIndexingCanStart(startHeight: number): Promise<void> {
+    if (startHeight === 0) {
+        return;
+    }
+    const result = await dbService['db'].query(
+        'SELECT COUNT(*)::bigint AS n FROM utxos',
+    );
+    const utxoCount = BigInt(result.rows[0]?.n ?? 0);
+    if (utxoCount === 0n) {
+        throw new Error(
+            `INITIAL_INDEX_START=${startHeight} is not supported for the UTXO indexer: ` +
+                'the utxos table is empty, so spends reference outputs from earlier blocks that were never indexed. ' +
+                'Set INITIAL_INDEX_START=0 and index from genesis (use --reindex --yes on a fresh DB if you already started mid-chain).',
+        );
+    }
+}
+
 async function initialIndexing() {
+    indexingInProgress = true;
     try {
         logger.info('🚀 Starting initial indexing...');
 
@@ -188,6 +350,7 @@ async function initialIndexing() {
             // Recreate both tables
             await dbService.recreateBlocksTable();
             await dbService.recreateDaysTable();
+            await dbService.resetAddressBalancesForReindex();
             logger.info(
                 '📋 Blocks and days tables recreated, starting fresh indexing',
             );
@@ -215,7 +378,7 @@ async function initialIndexing() {
             logger.info(
                 `🔄 Reindex mode: starting from ${startHeight.toLocaleString()}`,
             );
-        } else if (highestBlockHeight === 0) {
+        } else if (highestBlockHeight < 0) {
             // No blocks in database: start from INITIAL_INDEX_START or 0
             startHeight = parseInt(process.env.INITIAL_INDEX_START || '0');
             logger.info(
@@ -228,6 +391,8 @@ async function initialIndexing() {
                 `🔄 Continuing from block ${startHeight.toLocaleString()}`,
             );
         }
+
+        await assertUtxoIndexingCanStart(startHeight);
 
         const endHeight = currentTipHeight;
 
@@ -246,70 +411,22 @@ async function initialIndexing() {
             await indexBlocksInRange(startHeight);
         }
 
-        // Check if days table exists and has data
-        const daysTableExists = await dbService.daysTableExists();
-        const daysCount = await dbService.getDaysCount();
-
+        // Finalize staging once after bulk indexing (not mid-loop — that was
+        // the main speed bottleneck and raced with cron collectData).
         logger.info(
-            `📅 Days table exists: ${daysTableExists}, Days count: ${daysCount}`,
+            '📅 Finalizing completed calendar days after bulk indexing...',
         );
+        await finalizeCompletedDays({ includeTipDay: true });
 
-        // Aggregate daily data
-        if (daysTableExists && daysCount > 0) {
-            // Days table already exists and has data - only aggregate newly indexed blocks
-            logger.info(
-                '📅 Aggregating daily data for newly indexed blocks...',
-            );
-            const newBlocks = await dbService.getBlocksInRange(
-                startHeight,
-                endHeight,
-            );
-            const datesToAggregate = new Set<string>();
-
-            for (const block of newBlocks) {
-                const date = new Date(block.timestamp * 1000)
-                    .toISOString()
-                    .split('T')[0];
-                if (date) {
-                    datesToAggregate.add(date);
-                }
-            }
-
-            logger.info(
-                `📊 Aggregating data for ${datesToAggregate.size} unique days...`,
-            );
-            for (const date of datesToAggregate) {
-                await dbService.aggregateDailyData(date, chronikService);
-            }
-        } else {
-            // Days table doesn't exist OR is empty - aggregate ALL blocks in the database
-            logger.info('📅 Creating days table from ALL existing blocks...');
-            const allBlocks = await dbService.query(
-                'SELECT * FROM blocks ORDER BY height',
-            );
-            const datesToAggregate = new Set<string>();
-
-            for (const block of allBlocks.rows) {
-                const date = new Date(block.timestamp * 1000)
-                    .toISOString()
-                    .split('T')[0];
-                if (date) {
-                    datesToAggregate.add(date);
-                }
-            }
-
-            logger.info(
-                `📊 Aggregating data for ${datesToAggregate.size} unique days from ${allBlocks.rows.length} blocks...`,
-            );
-            for (const date of datesToAggregate) {
-                await dbService.aggregateDailyData(date, chronikService);
-            }
-        }
+        // Refresh materialized views after all daily aggregation
+        await dbService.refreshCumulativeViews();
 
         logger.info('🎉 Initial indexing completed successfully!');
     } catch (error) {
         logger.error('❌ Initial indexing failed:', error);
         throw error;
+    } finally {
+        indexingInProgress = false;
     }
 }
 
@@ -334,14 +451,68 @@ async function initializeWebSocket(): Promise<void> {
 }
 
 async function indexBlocksInRange(startHeight: number) {
-    // Configuration for transaction-count based batching
-    const targetTxCountPerBatch = parseInt(
+    // Transaction-count based batches: fetch+save one batch at a time. Blocks
+    // within a batch are still loaded from Chronik in parallel. Target size is
+    // lowered on transient errors, then recovered toward the env maximum.
+    const initialTargetTxCountPerBatch = parseInt(
         process.env.TARGET_TX_COUNT_PER_BATCH || '30000',
-    ); // Target transactions per batch
-    const maxConcurrentBatches = parseInt(
-        process.env.INDEXING_MAX_CONCURRENT_BATCHES || '12',
-    ); // Max concurrent batches
-    const progressInterval = 500;
+    );
+    let targetTxCountPerBatch = initialTargetTxCountPerBatch;
+
+    const MIN_TARGET_TX_COUNT_PER_BATCH = parseInt(
+        process.env.MIN_TARGET_TX_COUNT_PER_BATCH || '2000',
+    );
+    const BASE_BACKOFF_MS = 2000;
+    const MAX_BACKOFF_MS = 60000;
+    const RECOVER_AFTER_SUCCESSES = parseInt(
+        process.env.RECOVER_AFTER_SUCCESSES || '10',
+        10,
+    );
+
+    let consecutiveFailures = 0;
+    let consecutiveSuccesses = 0;
+
+    function throttleDown() {
+        consecutiveSuccesses = 0;
+        const prevTarget = targetTxCountPerBatch;
+        targetTxCountPerBatch = Math.max(
+            MIN_TARGET_TX_COUNT_PER_BATCH,
+            Math.floor(targetTxCountPerBatch / 2),
+        );
+        if (prevTarget !== targetTxCountPerBatch) {
+            logger.warn(
+                `⏬ Throttling down: target txs ${prevTarget.toLocaleString()}→${targetTxCountPerBatch.toLocaleString()} ` +
+                    `(will recover toward ${initialTargetTxCountPerBatch.toLocaleString()} after ${RECOVER_AFTER_SUCCESSES} stable cycles)`,
+            );
+        } else {
+            logger.warn(
+                `⚠️ Already at minimum throttle (target txs ${targetTxCountPerBatch.toLocaleString()}); will keep retrying`,
+            );
+        }
+    }
+
+    function maybeRecover() {
+        if (targetTxCountPerBatch >= initialTargetTxCountPerBatch) {
+            return;
+        }
+        consecutiveSuccesses++;
+        if (consecutiveSuccesses < RECOVER_AFTER_SUCCESSES) {
+            return;
+        }
+        consecutiveSuccesses = 0;
+        const prevTarget = targetTxCountPerBatch;
+        targetTxCountPerBatch = Math.min(
+            initialTargetTxCountPerBatch,
+            targetTxCountPerBatch +
+                Math.ceil(initialTargetTxCountPerBatch * 0.25),
+        );
+        logger.info(
+            `⏫ Recovering: target txs ${prevTarget.toLocaleString()}→${targetTxCountPerBatch.toLocaleString()} ` +
+                `(max ${initialTargetTxCountPerBatch.toLocaleString()})`,
+        );
+    }
+
+    const progressInterval = 10000;
     let processedBlocks = 0;
     let currentHeight = startHeight;
 
@@ -362,9 +533,98 @@ async function indexBlocksInRange(startHeight: number) {
         `🚀 Starting to index blocks from ${startHeight.toLocaleString()} (will continue until chain tip is reached)`,
     );
     logger.info(
-        `📊 Using transaction-count based batching: target ${targetTxCountPerBatch.toLocaleString()} txs per batch, max ${maxConcurrentBatches} concurrent batches`,
+        `📊 Using transaction-count based batching: target ${targetTxCountPerBatch.toLocaleString()} txs per batch ` +
+            `(env max ${initialTargetTxCountPerBatch.toLocaleString()}; throttles down on errors, recovers after ${RECOVER_AFTER_SUCCESSES} stable cycles)`,
     );
     logMemoryUsage();
+
+    /**
+     * Live batch progress on a TTY (reporting only — no indexing work).
+     * Non-TTY: final ✓ log only.
+     */
+    function startBatchProgress(heightLabel: string): {
+        setPhase: (phase: 'fetch' | 'transform' | 'apply' | 'write') => void;
+        setTotal: (total: number) => void;
+        tick: () => void;
+        succeed: () => void;
+        clear: () => void;
+    } {
+        const useLive = Boolean(process.stdout.isTTY);
+        const barWidth = 20;
+        let phase: 'fetch' | 'transform' | 'apply' | 'write' = 'fetch';
+        let done = 0;
+        let total = 0;
+        let frame = 0;
+        let interval: ReturnType<typeof setInterval> | null = null;
+
+        const paint = () => {
+            if (!useLive) {
+                return;
+            }
+            let detail: string;
+            if (phase === 'fetch') {
+                const dots = '.'.repeat((frame % 3) + 1).padEnd(3);
+                detail = `fetch${dots}`;
+            } else if (phase === 'write') {
+                const dots = '.'.repeat((frame % 3) + 1).padEnd(3);
+                detail = `Writing to db${dots}`;
+            } else if (phase === 'transform') {
+                const pct = total > 0 ? done / total : 0;
+                const filled = Math.min(barWidth, Math.round(pct * barWidth));
+                const bar = '█'.repeat(filled) + '░'.repeat(barWidth - filled);
+                detail = `[${bar}] ${done}/${total} Getting block txs...`;
+            } else {
+                const pct = total > 0 ? done / total : 0;
+                const filled = Math.min(barWidth, Math.round(pct * barWidth));
+                const bar = '█'.repeat(filled) + '░'.repeat(barWidth - filled);
+                detail = `[${bar}] ${done}/${total} Processing blocks...`;
+            }
+            process.stdout.write(`\r\x1b[K📦 ${heightLabel} ${detail}`);
+        };
+
+        const clearLive = () => {
+            if (interval) {
+                clearInterval(interval);
+                interval = null;
+            }
+            if (useLive) {
+                process.stdout.write('\r\x1b[K');
+            }
+        };
+
+        if (useLive) {
+            paint();
+            interval = setInterval(() => {
+                frame++;
+                if (phase === 'fetch' || phase === 'write') {
+                    paint();
+                }
+            }, 400);
+        }
+
+        return {
+            setPhase: next => {
+                phase = next;
+                if (next === 'transform' || next === 'apply') {
+                    done = 0;
+                }
+                paint();
+            },
+            setTotal: n => {
+                total = n;
+                paint();
+            },
+            tick: () => {
+                done++;
+                paint();
+            },
+            succeed: () => {
+                clearLive();
+                logger.info(`📦 ${heightLabel} ✓`);
+            },
+            clear: clearLive,
+        };
+    }
 
     // Helper function to get block info for a range (without full transaction data)
     async function getBlockInfoRange(
@@ -389,29 +649,29 @@ async function indexBlocksInRange(startHeight: number) {
         }
     }
 
-    // Helper function to create transaction-count based batches
-    async function createTxBasedBatches(
+    /**
+     * Build the next tx-budget batch starting at startHeight.
+     * Chronik blocks() max range is 500; we stop once the tx target is filled.
+     */
+    async function createNextTxBasedBatch(
         startHeight: number,
-        maxBlocksToScan: number = 1000, // Limit how far ahead we scan
-    ): Promise<
-        Array<{
-            startHeight: number;
-            endHeight: number;
-            estimatedTxCount: number;
-        }>
-    > {
-        const batches: Array<{
-            startHeight: number;
-            endHeight: number;
-            estimatedTxCount: number;
-        }> = [];
-        let currentBatchStart = startHeight;
+        maxBlocksToScan: number = 1000,
+    ): Promise<{
+        startHeight: number;
+        endHeight: number;
+        estimatedTxCount: number;
+    } | null> {
+        const currentBatchStart = startHeight;
         let currentBatchTxCount = 0;
         let currentBatchBlockCount = 0;
         let blocksScanned = 0;
+        let finalized: {
+            startHeight: number;
+            endHeight: number;
+            estimatedTxCount: number;
+        } | null = null;
 
-        // Scan blocks to group them by transaction count
-        while (blocksScanned < maxBlocksToScan) {
+        while (blocksScanned < maxBlocksToScan && finalized === null) {
             const scanEndHeight = Math.min(
                 startHeight + blocksScanned + 50,
                 startHeight + maxBlocksToScan,
@@ -422,7 +682,6 @@ async function indexBlocksInRange(startHeight: number) {
             );
 
             if (blockInfos.length === 0) {
-                // Reached chain tip
                 break;
             }
 
@@ -432,48 +691,51 @@ async function indexBlocksInRange(startHeight: number) {
                 const blockTxCount = Number(blockInfo.numTxs || 0);
                 blocksScanned++;
 
-                // Check if we need to finalize the current batch
-                // Either due to transaction count limit OR block count limit (Chronik API limit is 500)
                 const wouldExceedTxLimit =
                     currentBatchTxCount + blockTxCount >
                         targetTxCountPerBatch && currentBatchTxCount > 0;
                 const wouldExceedBlockLimit = currentBatchBlockCount >= 500;
 
                 if (wouldExceedTxLimit || wouldExceedBlockLimit) {
-                    batches.push({
+                    finalized = {
                         startHeight: currentBatchStart,
                         endHeight: blockInfo.height - 1,
                         estimatedTxCount: currentBatchTxCount,
-                    });
-
-                    // Start new batch with this block
-                    currentBatchStart = blockInfo.height;
-                    currentBatchTxCount = blockTxCount;
-                    currentBatchBlockCount = 1;
-                } else {
-                    // Add to current batch
-                    currentBatchTxCount += blockTxCount;
-                    currentBatchBlockCount++;
+                    };
+                    break;
                 }
+
+                currentBatchTxCount += blockTxCount;
+                currentBatchBlockCount++;
             }
         }
 
-        // Add the final batch if it has any blocks
+        if (finalized) {
+            return finalized;
+        }
+
         if (currentBatchTxCount > 0) {
-            batches.push({
+            return {
                 startHeight: currentBatchStart,
                 endHeight: startHeight + blocksScanned - 1,
                 estimatedTxCount: currentBatchTxCount,
-            });
+            };
         }
 
-        return batches;
+        return null;
     }
 
     // Helper function to process a single batch of blocks
     async function processBatch(
         batchStart: number,
         batchEnd: number,
+        progress?: {
+            setPhase: (
+                phase: 'fetch' | 'transform' | 'apply' | 'write',
+            ) => void;
+            setTotal: (total: number) => void;
+            tick: () => void;
+        },
     ): Promise<{
         success: boolean;
         blockDataArray: any[];
@@ -481,6 +743,7 @@ async function indexBlocksInRange(startHeight: number) {
         error?: string;
     }> {
         try {
+            progress?.setPhase('fetch');
             // Get all blocks in the batch in one API call
             const blocks = await chronikService.getBlocks(batchStart, batchEnd);
 
@@ -493,27 +756,61 @@ async function indexBlocksInRange(startHeight: number) {
                 };
             }
 
-            // Process all blocks in the batch in parallel
+            // Process all blocks in the batch in parallel. Track failures so
+            // we never save a partial batch: if any block fails to fetch (e.g.
+            // a transient Chronik outage), we discard the whole batch and let
+            // the range be retried. Silently dropping failed blocks here would
+            // create permanent gaps and missing balances — unacceptable for an
+            // indexer whose entire purpose is accurate data.
+            progress?.setPhase('transform');
+            progress?.setTotal(blocks.length);
+            let failureCount = 0;
+            let firstError: string | undefined;
             const blockPromises = blocks.map(async blockInfo => {
-                if (!blockInfo) {
-                    logger.error('Received undefined blockInfo');
-                    return null;
-                }
-
                 try {
-                    const blockData =
-                        await chronikService.transformBlockData(blockInfo);
-                    return blockData;
-                } catch (error) {
-                    logger.error(
-                        `Failed to transform block ${blockInfo.height}:`,
-                        error,
-                    );
-                    return null;
+                    if (!blockInfo) {
+                        failureCount++;
+                        if (!firstError) {
+                            firstError = 'received undefined blockInfo';
+                        }
+                        return null;
+                    }
+
+                    try {
+                        return await chronikService.transformBlockData(
+                            blockInfo,
+                        );
+                    } catch (error) {
+                        failureCount++;
+                        if (!firstError) {
+                            firstError =
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error);
+                        }
+                        return null;
+                    }
+                } finally {
+                    progress?.tick();
                 }
             });
 
             const blockResults = await Promise.all(blockPromises);
+
+            if (failureCount > 0) {
+                // One concise line instead of a stack trace per failed block.
+                logger.warn(
+                    `Batch ${batchStart}-${batchEnd}: ${failureCount}/${blocks.length} blocks failed to fetch ` +
+                        `(e.g. "${firstError}"); discarding batch and retrying range`,
+                );
+                return {
+                    success: false,
+                    blockDataArray: [],
+                    processedCount: 0,
+                    error: firstError ?? 'block fetch failed',
+                };
+            }
+
             const blockDataArray = blockResults.filter(
                 result => result !== null,
             );
@@ -553,42 +850,53 @@ async function indexBlocksInRange(startHeight: number) {
         }
     }
 
-    // Helper function to process multiple batches in parallel
-    async function processBatchesInParallel(
-        batches: Array<{
-            startHeight: number;
-            endHeight: number;
-            estimatedTxCount: number;
-        }>,
-    ): Promise<{
-        totalProcessed: number;
-        reachedTip: boolean;
-        highestProcessedHeight: number;
-    }> {
-        const batchPromises = batches.map(batch =>
-            processBatch(batch.startHeight, batch.endHeight),
-        );
+    while (true) {
+        if (isShutdownRequested()) {
+            logger.info('Shutdown requested, stopping block indexing');
+            break;
+        }
 
-        const results = await Promise.all(batchPromises);
-
-        let totalProcessed = 0;
-        let reachedTip = false;
-        let highestProcessedHeight = currentHeight - 1;
-
-        // Process results sequentially to save memory
-        for (let i = 0; i < results.length; i++) {
-            const result = results[i];
-            const batch = batches[i];
-
-            if (!result || !batch) {
+        try {
+            // If a dropped connection released our advisory lock, re-acquire it
+            // before doing more work.
+            const locked = await dbService.ensureInstanceLock();
+            if (!locked) {
                 logger.warn(
-                    `⚠️ Skipping undefined result or batch at index ${i}`,
+                    'Could not hold the instance lock (another indexer may be running). Backing off...',
                 );
+                await new Promise(resolve => setTimeout(resolve, 5000));
                 continue;
             }
 
+            // Resume strictly from what is already committed. saveBlocks writes
+            // each block's row together with its UTXO events in a single
+            // transaction, so the committed tip is an exactly-once watermark.
+            // Re-syncing here guarantees that a partially-saved cycle followed
+            // by a retry never re-saves an already-committed block — which would
+            // otherwise double-apply its UTXO events and corrupt balances.
+            const committedTip = await dbService.getHighestBlockHeight();
+            if (committedTip + 1 > currentHeight) {
+                currentHeight = committedTip + 1;
+            }
+
+            const batch = await createNextTxBasedBatch(currentHeight);
+
+            if (!batch) {
+                logger.info('✅ No more blocks to process, reached chain tip');
+                break;
+            }
+
+            const batchLabel = batch.endHeight.toLocaleString();
+            const batchProgress = startBatchProgress(batchLabel);
+
+            const result = await processBatch(
+                batch.startHeight,
+                batch.endHeight,
+                batchProgress,
+            );
+
             if (result.error === 'REACHED_TIP') {
-                reachedTip = true;
+                batchProgress.clear();
                 logger.info(
                     `✅ Reached chain tip at height ${(
                         batch.startHeight - 1
@@ -597,95 +905,119 @@ async function indexBlocksInRange(startHeight: number) {
                 break;
             }
 
-            if (result.success && result.blockDataArray.length > 0) {
-                // Save blocks immediately to free memory
-                await dbService.saveBlocks(result.blockDataArray);
-                totalProcessed += result.processedCount;
-                highestProcessedHeight = Math.max(
-                    highestProcessedHeight,
-                    batch.endHeight,
+            if (!result.success) {
+                batchProgress.clear();
+                // Do not advance past a failed batch; back off and retry.
+                consecutiveFailures++;
+                throttleDown();
+                const delay = Math.min(
+                    MAX_BACKOFF_MS,
+                    BASE_BACKOFF_MS * 2 ** (consecutiveFailures - 1),
                 );
-
-                // Force garbage collection if available
-                if (global.gc) {
-                    global.gc();
-                }
-            } else if (!result.success) {
                 logger.warn(
-                    `⚠️ Batch ${batch.startHeight}-${batch.endHeight} failed, will retry later`,
+                    `Chronik fetch failure (#${consecutiveFailures}); backing off ${delay}ms then retrying from ${currentHeight.toLocaleString()}`,
                 );
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
             }
-        }
 
-        return { totalProcessed, reachedTip, highestProcessedHeight };
-    }
+            try {
+                if (result.blockDataArray.length > 0) {
+                    batchProgress.setPhase('apply');
+                    batchProgress.setTotal(result.blockDataArray.length);
+                    await dbService.saveBlocks(result.blockDataArray, {
+                        onBlockApplied: () => batchProgress.tick(),
+                        onBeforeDbWrite: () => batchProgress.setPhase('write'),
+                    });
+                    processedBlocks += result.processedCount;
 
-    while (true) {
-        // Create transaction-count based batches
-        const batches = await createTxBasedBatches(currentHeight);
+                    if (global.gc) {
+                        global.gc();
+                    }
+                }
+                batchProgress.succeed();
+            } catch (error) {
+                batchProgress.clear();
+                throw error;
+            }
 
-        if (batches.length === 0) {
-            logger.info('✅ No more blocks to process, reached chain tip');
-            break;
-        }
+            // Log progress when we cross height thresholds
+            const previousThreshold =
+                Math.floor(
+                    (batch.endHeight - result.processedCount) /
+                        progressInterval,
+                ) * progressInterval;
+            const currentThreshold =
+                Math.floor(batch.endHeight / progressInterval) *
+                progressInterval;
 
-        // Limit to maxConcurrentBatches
-        const batchesToProcess = batches.slice(0, maxConcurrentBatches);
+            if (currentThreshold > previousThreshold) {
+                logger.info(
+                    `📈 PROGRESS: Indexed through ${currentThreshold.toLocaleString()}`,
+                );
+                logMemoryUsage();
+            }
 
-        const totalTxs = batchesToProcess.reduce(
-            (sum, batch) => sum + batch.estimatedTxCount,
-            0,
-        );
-        const highestHeight =
-            batchesToProcess[batchesToProcess.length - 1]?.endHeight || 0;
+            currentHeight = batch.endHeight + 1;
 
-        logger.info(
-            `📦 Processing ${
-                batchesToProcess.length
-            } batches: thru ${highestHeight.toLocaleString()} (~${totalTxs.toLocaleString()} txs)`,
-        );
+            // Mid-bulk day merges are intentionally skipped here: finalizing
+            // every ~1000 blocks spent most of the wall clock on Neon merges and
+            // also raced with cron collectData. Staging is merged once at the
+            // end of this indexing pass instead.
 
-        // Process batches in parallel
-        const { totalProcessed, reachedTip, highestProcessedHeight } =
-            await processBatchesInParallel(batchesToProcess);
+            consecutiveFailures = 0;
+            maybeRecover();
 
-        // Update counters
-        processedBlocks += totalProcessed;
+            await new Promise(resolve => setTimeout(resolve, 25));
+        } catch (error) {
+            // Non-transient errors are real bugs; let them surface.
+            if (!isRetryableDbError(error)) {
+                throw error;
+            }
 
-        // Log progress when we cross height thresholds
-        const previousThreshold =
-            Math.floor(
-                (highestProcessedHeight - totalProcessed) / progressInterval,
-            ) * progressInterval;
-        const currentThreshold =
-            Math.floor(highestProcessedHeight / progressInterval) *
-            progressInterval;
-
-        if (currentThreshold > previousThreshold) {
-            logger.info(
-                `📈 PROGRESS: Indexed through ${currentThreshold.toLocaleString()}`,
+            // Transient overload/connection error: lower the tx target,
+            // back off, and retry. The top-of-loop resume-from-committed-tip
+            // resync ensures the retry restarts after the last committed block,
+            // so any batch that had already committed in this cycle is not
+            // re-saved (which would double-apply its UTXO events).
+            consecutiveFailures++;
+            throttleDown();
+            const delay = Math.min(
+                MAX_BACKOFF_MS,
+                BASE_BACKOFF_MS * 2 ** (consecutiveFailures - 1),
             );
-            logMemoryUsage(); // Log memory usage with progress
+            logger.warn(
+                `Transient DB error (failure #${consecutiveFailures}), retrying in ${delay}ms: ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+            );
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
-
-        // Check if we've reached the chain tip
-        if (reachedTip) {
-            break;
-        }
-
-        // Move to next set of batches
-        currentHeight = highestProcessedHeight + 1;
-
-        // Add a small delay to prevent overwhelming the API
-        await new Promise(resolve => setTimeout(resolve, 25));
     }
 
     logger.info(
         `🎉 Indexing completed. Total blocks processed: ${processedBlocks.toLocaleString()}`,
     );
+
+    try {
+        await finalizeCompletedDays({ includeTipDay: true });
+    } catch (error) {
+        logger.warn(
+            'Final day finalization after indexing failed; will retry on next run:',
+            error,
+        );
+    }
 }
 
 async function collectData() {
+    if (indexingInProgress) {
+        logger.info(
+            'Skipping data collection: another indexing pass is already in progress',
+        );
+        return;
+    }
+
+    indexingInProgress = true;
     try {
         logger.info('Starting data collection...');
 
@@ -711,48 +1043,34 @@ async function collectData() {
         );
         await indexBlocksInRange(startHeight);
 
-        // Get the new highest block height after indexing
-        const newHighestBlockHeight = await dbService.getHighestBlockHeight();
-
-        // Check if days table exists and has data
-        const daysTableExists = await dbService.daysTableExists();
-        const daysCount = await dbService.getDaysCount();
-
-        logger.info(
-            `📅 Days table exists: ${daysTableExists}, Days count: ${daysCount}`,
-        );
-
         // Aggregate daily data for new blocks
         logger.info('Aggregating daily data...');
-        const newBlocks = await dbService.getBlocksInRange(
-            startHeight,
-            newHighestBlockHeight,
-        );
-        const datesToAggregate = new Set<string>();
+        await finalizeCompletedDays({ includeTipDay: true });
 
-        for (const block of newBlocks) {
-            const date = new Date(block.timestamp * 1000)
-                .toISOString()
-                .split('T')[0];
-            if (date) {
-                datesToAggregate.add(date);
-            }
-        }
-
-        for (const date of datesToAggregate) {
-            await dbService.aggregateDailyData(date, chronikService);
-        }
+        // Refresh materialized views after aggregation
+        await dbService.refreshCumulativeViews();
 
         logger.info('Data collection completed');
     } catch (error) {
         logger.error('Data collection failed:', error);
         throw error;
+    } finally {
+        indexingInProgress = false;
     }
 }
 
 async function startIndexer() {
     try {
-        // Initialize services
+        // Confirm destructive reindex before touching anything
+        if (shouldReindex) {
+            const confirmed = await confirmReindex();
+            if (!confirmed) {
+                logger.info('Reindex cancelled by user. Exiting.');
+                process.exit(0);
+            }
+        }
+
+        // Initialize services (cron is NOT started yet)
         await initializeServices();
 
         // Start initial indexing if needed
@@ -764,12 +1082,12 @@ async function startIndexer() {
         // Initialize WebSocket for real-time block processing
         await initializeWebSocket();
 
-        logger.info('All initialization completed successfully');
-        logger.info(
-            'Indexer is now running with cron jobs for data collection',
-        );
+        // Only now enable scheduled collectData — never while reindex runs
+        startScheduledCollection();
 
-        // Keep the process running for cron jobs
+        logger.info('All initialization completed successfully');
+
+        // Keep the process running for cron jobs / websocket
         process.stdin.resume();
     } catch (error) {
         logger.error('Failed to start indexer:', error);
@@ -777,27 +1095,70 @@ async function startIndexer() {
     }
 }
 
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-    logger.info('Shutting down gracefully...');
-    if (wsHandler) {
-        await wsHandler.close();
+async function handleShutdownSignal(signal: string): Promise<void> {
+    if (forceExitOnNextSignal) {
+        logger.warn(`Force exit on second ${signal}`);
+        process.exit(1);
     }
-    if (dbService) {
-        await dbService['db'].close();
+    forceExitOnNextSignal = true;
+    requestShutdown();
+    logger.info(
+        `Shutting down gracefully (${signal}, press again to force)...`,
+    );
+
+    try {
+        if (dbService) {
+            await dbService.cancelActiveQuery();
+        }
+        if (wsHandler) {
+            await wsHandler.close();
+        }
+        if (dbService) {
+            await dbService.close();
+        }
+    } catch (error) {
+        logger.warn('Error during shutdown:', error);
     }
+
     process.exit(0);
+}
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+    void handleShutdownSignal('SIGINT');
 });
 
-process.on('SIGTERM', async () => {
-    logger.info('Shutting down gracefully...');
-    if (wsHandler) {
-        await wsHandler.close();
+process.on('SIGTERM', () => {
+    void handleShutdownSignal('SIGTERM');
+});
+
+// Last-resort safety net: pg emits an 'error' event on Client instances when a
+// connection drops (e.g. Neon closing an idle socket). If it lands on a client
+// with no listener it becomes an uncaughtException and kills the process. We
+// swallow ONLY transient connection errors here so the indexing loop's retry
+// logic can recover; anything else is a real bug and should still crash.
+process.on('uncaughtException', (error: Error) => {
+    if (isRetryableDbError(error)) {
+        logger.warn(
+            `Ignoring transient uncaught connection error: ${error.message}`,
+        );
+        return;
     }
-    if (dbService) {
-        await dbService['db'].close();
+    logger.error('Uncaught exception, exiting:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+    if (isRetryableDbError(reason)) {
+        logger.warn(
+            `Ignoring transient unhandled rejection: ${
+                reason instanceof Error ? reason.message : String(reason)
+            }`,
+        );
+        return;
     }
-    process.exit(0);
+    logger.error('Unhandled rejection, exiting:', reason);
+    process.exit(1);
 });
 
 // Start the indexer

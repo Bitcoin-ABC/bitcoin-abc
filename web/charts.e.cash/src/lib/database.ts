@@ -81,6 +81,54 @@ interface CumulativeTokensRow {
     cumulative_genesis_slp_nft1_child: string | number;
 }
 
+interface DailyActiveAddressesRow {
+    date: string;
+    daily_active_senders: string | number;
+    daily_active_addresses: string | number;
+}
+
+interface DailyFusionRow {
+    date: string;
+    fusion_tx_count: string | number;
+}
+
+interface CumulativeFusionRow {
+    date: string;
+    cumulative_fusion_txs: string | number;
+}
+
+interface DailyAgoraTradersRow {
+    date: string;
+    agora_unique_traders: string | number;
+}
+
+interface DailyLokadTxsRow {
+    date: string;
+    lokad_tx_count: string | number;
+}
+
+interface NewAddressesRow {
+    date: string;
+    new_addresses_count: string | number;
+}
+
+interface CumulativeAddressesRow {
+    date: string;
+    cumulative_addresses: string | number;
+}
+
+interface DailyMinersStakersRow {
+    date: string;
+    daily_unique_miners: string | number;
+    daily_unique_stakers: string | number;
+}
+
+interface CumulativeMinersStakersRow {
+    date: string;
+    cumulative_miners: string | number;
+    cumulative_stakers: string | number;
+}
+
 interface DailyPriceRow {
     date: string;
     avg_price_usd: string | number;
@@ -761,6 +809,187 @@ export class DatabaseService {
         }
     }
 
+    // Get daily active addresses (unique senders)
+    async getDailyActiveAddresses(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    daily_active_senders,
+                    daily_active_addresses
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['daily_active_addresses > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: DailyActiveAddressesRow) => ({
+                date: row.date,
+                daily_active_senders: Number(row.daily_active_senders),
+                daily_active_addresses: Number(row.daily_active_addresses),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get daily CashFusion transactions
+    async getDailyFusion(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    fusion_tx_count
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['fusion_tx_count > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: DailyFusionRow) => ({
+                date: row.date,
+                fusion_tx_count: Number(row.fusion_tx_count),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get cumulative CashFusion transactions
+    async getCumulativeFusion(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    cumulative_fusion_txs
+                FROM cumulative_fusion
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = [];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            // Filter out incomplete days (current day)
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            if (conditions.length > 0) {
+                query += ' WHERE ' + conditions.join(' AND ');
+            }
+
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: CumulativeFusionRow) => ({
+                date: row.date,
+                cumulative_fusion_txs: Number(row.cumulative_fusion_txs),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get daily unique Agora traders (true deduplicated count)
+    async getDailyAgoraTraders(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    daily_agora_unique_traders as agora_unique_traders
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = [];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: DailyAgoraTradersRow) => ({
+                date: row.date,
+                agora_unique_traders: Number(row.agora_unique_traders),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get daily LOKAD protocol transactions
+    async getDailyLokadTxs(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    lokad_tx_count
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['lokad_tx_count > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: DailyLokadTxsRow) => ({
+                date: row.date,
+                lokad_tx_count: Number(row.lokad_tx_count),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
     // Get summary statistics
     async getSummary() {
         const client = await this.pool.connect();
@@ -821,6 +1050,391 @@ export class DatabaseService {
                 'SELECT COUNT(*) as count FROM blocks LIMIT 1',
             );
             return { success: true, blockCount: result.rows[0].count };
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get new addresses per day
+    async getNewAddressesPerDay(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    new_addresses_count
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['new_addresses_count > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: NewAddressesRow) => ({
+                date: row.date,
+                new_addresses_count: Number(row.new_addresses_count),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get cumulative addresses over time
+    async getCumulativeAddresses(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    cumulative_addresses
+                FROM cumulative_addresses
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['cumulative_addresses > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: CumulativeAddressesRow) => ({
+                date: row.date,
+                cumulative_addresses: Number(row.cumulative_addresses),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get daily unique miners and stakers
+    async getDailyMinersStakers(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    daily_unique_miners,
+                    daily_unique_stakers
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = [];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            if (conditions.length > 0) {
+                query += ' WHERE ' + conditions.join(' AND ');
+            }
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: DailyMinersStakersRow) => ({
+                date: row.date,
+                daily_unique_miners: Number(row.daily_unique_miners),
+                daily_unique_stakers: Number(row.daily_unique_stakers),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    // Get cumulative miner/staker/both counts
+    async getCumulativeMinersStakers(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    cumulative_miners, cumulative_stakers
+                FROM cumulative_miners_stakers
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = [];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            if (conditions.length > 0) {
+                query += ' WHERE ' + conditions.join(' AND ');
+            }
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map((row: CumulativeMinersStakersRow) => ({
+                date: row.date,
+                cumulative_miners: Number(row.cumulative_miners),
+                cumulative_stakers: Number(row.cumulative_stakers),
+            }));
+        } finally {
+            client.release();
+        }
+    }
+
+    async getReturningVsNewAddresses(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    GREATEST(daily_active_addresses - new_addresses_count, 0) as returning_addresses,
+                    new_addresses_count as new_addresses
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['daily_active_addresses > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map(
+                (row: {
+                    date: string;
+                    returning_addresses: string | number;
+                    new_addresses: string | number;
+                }) => ({
+                    date: row.date,
+                    returning_addresses: Number(row.returning_addresses),
+                    new_addresses: Number(row.new_addresses),
+                }),
+            );
+        } finally {
+            client.release();
+        }
+    }
+
+    async getDailyCoinbaseRecipients(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    daily_coinbase_recipients
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = ['daily_coinbase_recipients > 0'];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map(
+                (row: {
+                    date: string;
+                    daily_coinbase_recipients: string | number;
+                }) => ({
+                    date: row.date,
+                    daily_coinbase_recipients: Number(
+                        row.daily_coinbase_recipients,
+                    ),
+                }),
+            );
+        } finally {
+            client.release();
+        }
+    }
+
+    async getNewMinersStakers(startDate?: string, endDate?: string) {
+        const client = await this.pool.connect();
+        try {
+            let query = `
+                SELECT to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date,
+                    new_miners_count, new_stakers_count
+                FROM days
+            `;
+
+            const params: (string | number)[] = [];
+            const conditions: string[] = [
+                '(new_miners_count > 0 OR new_stakers_count > 0)',
+            ];
+
+            if (startDate && endDate) {
+                conditions.push('date BETWEEN $1 AND $2');
+                params.push(startDate, endDate);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            conditions.push('date < $' + (params.length + 1));
+            params.push(today);
+
+            query += ' WHERE ' + conditions.join(' AND ');
+            query += ' ORDER BY date';
+
+            const result = await client.query(query, params);
+            return result.rows.map(
+                (row: {
+                    date: string;
+                    new_miners_count: string | number;
+                    new_stakers_count: string | number;
+                }) => ({
+                    date: row.date,
+                    new_miners_count: Number(row.new_miners_count),
+                    new_stakers_count: Number(row.new_stakers_count),
+                }),
+            );
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Top addresses by XEC balance (incremental balance_sats column).
+     */
+    async getRichList(limit = 100, minBalanceSats = 10000) {
+        const client = await this.pool.connect();
+        try {
+            const query = `
+                SELECT output_script, balance_sats,
+                       is_miner, is_staker, is_coinbase_recipient, first_seen
+                FROM addresses
+                WHERE balance_sats >= $1
+                ORDER BY balance_sats DESC
+                LIMIT $2
+            `;
+            const result = await client.query(query, [minBalanceSats, limit]);
+            return result.rows.map(
+                (row: {
+                    output_script: string;
+                    balance_sats: string | number;
+                    is_miner: boolean;
+                    is_staker: boolean;
+                    is_coinbase_recipient: boolean;
+                    first_seen: string;
+                }) => ({
+                    output_script: row.output_script,
+                    balance_sats: Number(row.balance_sats),
+                    is_miner: row.is_miner,
+                    is_staker: row.is_staker,
+                    is_coinbase_recipient: row.is_coinbase_recipient,
+                    first_seen: row.first_seen,
+                }),
+            );
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Top holders for a token by atom balance (fungible rich list).
+     *
+     * Mint batons always have atoms = 0. Default minAtoms (>= 1) therefore
+     * excludes batons; pass includeMintBatons=true and min_atoms=0 if baton
+     * rows are needed (API: include_mint_batons + min_atoms).
+     */
+    async getTokenRichList(
+        tokenId: string,
+        limit = 100,
+        minAtoms = 1n,
+        includeMintBatons = false,
+    ) {
+        const client = await this.pool.connect();
+        try {
+            const query = `
+                SELECT output_script, atoms::text, is_mint_baton,
+                       token_protocol, token_type
+                FROM token_balances
+                WHERE token_id = $1
+                  AND atoms >= $2
+                  AND ($3::boolean OR is_mint_baton = FALSE)
+                ORDER BY atoms DESC
+                LIMIT $4
+            `;
+            const result = await client.query(query, [
+                tokenId,
+                minAtoms.toString(),
+                includeMintBatons,
+                limit,
+            ]);
+            return result.rows.map(
+                (row: {
+                    output_script: string;
+                    atoms: string;
+                    is_mint_baton: boolean;
+                    token_protocol: string;
+                    token_type: string;
+                }) => ({
+                    output_script: row.output_script,
+                    atoms: row.atoms,
+                    is_mint_baton: row.is_mint_baton,
+                    token_protocol: row.token_protocol,
+                    token_type: row.token_type,
+                }),
+            );
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Tokens seen by the indexer (from on-chain activity).
+     */
+    async getIndexedTokens(limit = 100, protocol?: string) {
+        const client = await this.pool.connect();
+        try {
+            const query = protocol
+                ? `SELECT token_id, token_protocol, token_type, first_seen_height
+                   FROM tokens
+                   WHERE token_protocol = $2
+                   ORDER BY first_seen_height DESC
+                   LIMIT $1`
+                : `SELECT token_id, token_protocol, token_type, first_seen_height
+                   FROM tokens
+                   ORDER BY first_seen_height DESC
+                   LIMIT $1`;
+            const params = protocol ? [limit, protocol] : [limit];
+            const result = await client.query(query, params);
+            return result.rows;
         } finally {
             client.release();
         }
