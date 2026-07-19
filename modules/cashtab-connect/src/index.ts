@@ -57,7 +57,10 @@ export class CashtabTimeoutError extends Error {
 
 export class CashtabConnect {
     private timeout: number;
-    private messageListeners: Map<string, (response: any) => void> = new Map();
+    private messageListeners: Map<
+        string,
+        (response: AddressResponse | TransactionResponse) => void
+    > = new Map();
 
     constructor(timeout: number = 30000) {
         this.timeout = timeout;
@@ -143,13 +146,14 @@ export class CashtabConnect {
         // Check if the extension is available in the window object
         const isAvailable =
             typeof window !== 'undefined' &&
-            (window as any).bitcoinAbc === 'cashtab';
+            (window as Window & { bitcoinAbc?: string }).bitcoinAbc ===
+                'cashtab';
 
         return isAvailable;
     }
 
     // When a web page requests the user address, a response is expected
-    private sendMessage(message: CashtabMessage): Promise<any> {
+    private sendMessage(message: CashtabMessage): Promise<AddressResponse> {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 this.messageListeners.delete('address');
@@ -158,7 +162,7 @@ export class CashtabConnect {
 
             this.messageListeners.set('address', response => {
                 clearTimeout(timeoutId);
-                resolve(response);
+                resolve(response as AddressResponse);
             });
 
             if (typeof window !== 'undefined' && window.postMessage) {
@@ -181,7 +185,7 @@ export class CashtabConnect {
 
             this.messageListeners.set('transaction', response => {
                 clearTimeout(timeoutId);
-                resolve(response);
+                resolve(response as TransactionResponse);
             });
 
             if (typeof window !== 'undefined' && window.postMessage) {
