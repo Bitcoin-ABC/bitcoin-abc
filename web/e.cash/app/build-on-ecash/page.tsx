@@ -15,7 +15,16 @@ import { getProducts } from "../data/products";
 export const revalidate = 7200;
 
 export default async function Build() {
-  const products = await getProducts();
+  let products;
+  try {
+    products = await getProducts();
+  } catch {
+    return (
+      <div className="text-center text-red-500">
+        Failed to load products built with XEC.
+      </div>
+    );
+  }
 
   return (
     <main>

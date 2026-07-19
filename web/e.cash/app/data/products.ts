@@ -31,7 +31,10 @@ export async function getProducts(): Promise<Product[]> {
     throw new Error(`Failed to fetch products: ${response.statusText}`);
   }
 
-  const data: StrapiProductResponse = await response.json();
+  const data = (await response.json()) as Partial<StrapiProductResponse>;
+  if (!Array.isArray(data?.data)) {
+    throw new Error("Failed to fetch products: missing data");
+  }
 
   // Transform Strapi response to Product[]
   return data.data.map((item) => ({
