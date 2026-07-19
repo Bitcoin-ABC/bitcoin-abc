@@ -18,6 +18,11 @@ export const initDb = async (connectionString: string): Promise<Pool> => {
     let pool: Pool | undefined;
     try {
         pool = new Pool(poolConfig);
+        // Neon (and its pooler) may close idle connections. Without this
+        // listener, pg emits an unhandled 'error' on the pool and Node exits.
+        pool.on('error', (err: Error) => {
+            console.error('Unexpected error on idle client', err);
+        });
         await pool.query('SELECT NOW()');
         console.info('Database connected.');
         return pool;
