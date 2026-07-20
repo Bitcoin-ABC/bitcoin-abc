@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Link } from 'react-router';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 
 export const HeaderCtn = styled.div`
@@ -175,9 +175,7 @@ export const BalanceXec = styled.div`
     }
 `;
 
-export const BalanceCard = styled(Link)<{
-    tokenLabel?: string;
-}>`
+const balanceCardStyles = css<{ tokenLabel?: string }>`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -192,19 +190,34 @@ export const BalanceCard = styled(Link)<{
     position: relative;
     overflow: hidden;
     text-decoration: none;
-    cursor: pointer;
     color: ${props => props.theme.primaryText};
     background: ${props =>
         (props.tokenLabel === FIRMA_BALANCE_LABEL
             ? props.theme.firmaAccent
             : props.theme.accent) + '4D'};
+    @media (max-width: 1100px) {
+        padding: 10px 10px;
+    }
+`;
+
+/** Clickable balance card (e.g. USD → Firma token page). */
+export const BalanceCard = styled(Link)<{ tokenLabel?: string }>`
+    ${balanceCardStyles}
+    cursor: pointer;
     :hover {
         text-decoration: none;
         color: ${props => props.theme.primaryText};
     }
-    @media (max-width: 1100px) {
-        padding: 10px 10px;
-    }
+`;
+
+/**
+ * eCash card panel — tap swaps combined total for stacked XEC/XECX; only the
+ * "staked" word navigates to XECX.
+ */
+export const BalanceCardPanel = styled.div<{ tokenLabel?: string }>`
+    ${balanceCardStyles}
+    cursor: pointer;
+    user-select: none;
 `;
 
 export const BackgroundImage = styled.img`
@@ -280,11 +293,14 @@ export const BalanceFiat = styled.div<{ balanceVisible: boolean }>`
     }
 `;
 
-/** Staked XECX share shown under the combined eCash total */
+/** "% staked" — only the "staked" word is a link (see StakedLink). */
 export const StakedPercent = styled.div<{ balanceVisible: boolean }>`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
-    margin-top: 2px;
     color: ${props =>
         props.balanceVisible ? 'transparent' : props.theme.secondaryText};
 
@@ -292,8 +308,81 @@ export const StakedPercent = styled.div<{ balanceVisible: boolean }>`
         props.balanceVisible
             ? `0 0 15px ${props.theme.secondaryText}`
             : 'none'};
+
     @media (max-width: 768px) {
         font-size: 12px;
         line-height: 1em;
     }
+`;
+
+/** "staked" word → XECX token page */
+export const StakedLink = styled(Link)`
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    :hover {
+        color: ${props => props.theme.accent};
+        text-decoration: underline;
+    }
+`;
+
+/**
+ * Fixed-height slot for combined total/fiat vs stacked XEC/XECX so toggling
+ * does not change the eCash card height.
+ *
+ * Note: --text-*-line-height vars are unitless multipliers, so they must be
+ * multiplied by a font-size length inside calc() (bare addition is invalid CSS).
+ */
+export const BalanceToggleArea = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+    /* BalanceRow: text-2xl @ line-height 1em; BalanceFiat: base * base line-height */
+    height: calc(
+        var(--text-2xl) + (var(--text-base) * var(--text-base--line-height))
+    );
+    @media (max-width: 768px) {
+        /* text-lg @ 1em + 12px fiat + 2px fiat margin-top */
+        height: calc(var(--text-lg) + 14px);
+    }
+`;
+
+/**
+ * Expanded liquid XEC / XECX — smaller monospace so two lines fit the same
+ * height as total + fiat without growing the card. Place values align.
+ */
+export const BalanceBreakdown = styled.div<{ balanceVisible: boolean }>`
+    display: grid;
+    grid-template-columns: max-content auto;
+    column-gap: 0.35em;
+    row-gap: 1px;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: var(--text-base);
+    line-height: 1.2em;
+    color: ${props =>
+        props.balanceVisible ? 'transparent' : props.theme.primaryText};
+
+    text-shadow: ${props =>
+        props.balanceVisible ? `0 0 15px ${props.theme.primaryText}` : 'none'};
+
+    @media (max-width: 768px) {
+        font-size: 13px;
+        line-height: 1.2em;
+    }
+`;
+
+export const BreakdownAmount = styled.span`
+    text-align: right;
+`;
+
+export const BreakdownLabel = styled.span`
+    text-align: left;
+    font-weight: 500;
+    opacity: 0.85;
 `;

@@ -350,8 +350,8 @@ describe('<Agora />', () => {
                 )
             ).length,
         ).toBeGreaterThan(0);
-        // Agora offer ticker only — header no longer has a dedicated XECX balance
-        // card (XEC+XECX are combined under eCash with a staked %).
+        // Agora offer ticker only — header combines XEC+XECX under eCash
+        // (tap swaps in stacked amounts; no dedicated XECX card).
         expect(await screen.findAllByText('XECX')).toHaveLength(1);
 
         // In the new design, offer details live on the token page. Click XECX to open OrderBook.

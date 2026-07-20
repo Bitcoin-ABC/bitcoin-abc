@@ -121,12 +121,9 @@ describe('<Header />', () => {
             screen.getByText('XEC', { selector: 'span' }),
         ).toBeInTheDocument();
 
-        // No XECX held — staked share is 0% under the eCash card
+        // No XECX held — 0% staked; "staked" links to XECX
         expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
-        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
-
-        // Whole eCash card links to XECX; USD card links to Firma Alpha
-        expect(screen.getByRole('link', { name: /eCash/ })).toHaveAttribute(
+        expect(screen.getByRole('link', { name: 'staked' })).toHaveAttribute(
             'href',
             `/token/${appConfig.vipTokens.xecx.tokenId}`,
         );
@@ -137,11 +134,57 @@ describe('<Header />', () => {
         expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
             '$0.29 USD',
         );
+        // Firma is USD-pegged — no redundant fiat line when currency is USD
+        expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
+
+        // Web/extension: hover tooltip anywhere on the eCash card
+        const ecashCard = screen.getByRole('button', {
+            name: 'Toggle XEC and XECX balances',
+        });
+        expect(ecashCard).toHaveAttribute('data-tooltip-id', 'cashtab-tooltip');
+        expect(ecashCard.getAttribute('data-tooltip-html')).toContain(
+            '9,513.12',
+        );
+        expect(ecashCard.getAttribute('data-tooltip-html')).toContain('XECX');
+
+        // Tap eCash card → replace total/fiat with stacked XEC / XECX;
+        // USD card and % staked stay; hover tooltip goes away while expanded
+        fireEvent.click(
+            screen.getByRole('button', {
+                name: 'Toggle XEC and XECX balances',
+            }),
+        );
+        expect(screen.getByTitle('Liquid and staked')).toHaveTextContent(
+            /9,513\.12\s*XEC\s*0\.00\s*XECX/,
+        );
+        expect(screen.queryByTitle('Balance XEC')).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
+        expect(
+            document.querySelector(`a[href="/token/${FIRMA.tokenId}"]`),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', {
+                name: 'Toggle XEC and XECX balances',
+            }),
+        ).not.toHaveAttribute('data-tooltip-id');
+
+        // Tap again → restore combined total + fiat
+        fireEvent.click(
+            screen.getByRole('button', {
+                name: 'Toggle XEC and XECX balances',
+            }),
+        );
+        expect(screen.getByTitle('Balance XEC')).toHaveTextContent('9,513.12');
+        expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
+            '$0.29 USD',
+        );
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
     });
 
-    it('shows XEC + XECX as total XEC and staked percent under eCash', async () => {
+    it('shows XEC + XECX total with staked percent', async () => {
         // Same liquid XEC as the default fixture (9,513.12) plus an equal
-        // amount of XECX so total is 19,026.24 XEC and staked share is 50%.
+        // amount of XECX so total is 19,026.24 XEC.
         const walletWithXecx: ActiveCashtabWallet = {
             ...walletWithXecAndTokensActive,
             name: 'MyWallet',
@@ -212,13 +255,130 @@ describe('<Header />', () => {
         });
 
         expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
-        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'staked' })).toHaveAttribute(
+            'href',
+            `/token/${appConfig.vipTokens.xecx.tokenId}`,
+        );
 
         await waitFor(() => {
             expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
                 '$0.57 USD',
             );
         });
+    });
+
+    it('taps eCash card to expand liquid XEC / XECX breakdown', async () => {
+        // Equal liquid XEC and XECX so stacked lines are easy to assert.
+        const walletWithXecx: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
+            name: 'MyWallet',
+            state: {
+                ...walletWithXecAndTokensActive.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: appConfig.vipTokens.xecx.tokenId,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 951312n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...walletWithXecAndTokensActive.state.tokens,
+                    [appConfig.vipTokens.xecx.tokenId, '9513.12'],
+                ]),
+            },
+        };
+
+        const tokenMocks = new Map();
+        tokenMocks.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tx: bearTokenAndTx.tx,
+                tokenInfo: bearTokenAndTx.token,
+            },
+        );
+        tokenMocks.set(tokenMockXecx.tokenId, {
+            tx: tokenMockXecx.tx,
+            tokenInfo: tokenMockXecx.tokenInfo,
+        });
+
+        const testMockChronik = await prepareContext(
+            localforage,
+            [walletWithXecx],
+            tokenMocks,
+        );
+
+        render(
+            <HeaderTestWrapper
+                chronik={testMockChronik}
+                agora={mockAgora}
+                ecc={mockEcc}
+                route="/home"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Balance XEC')).toHaveTextContent(
+                '19,026.24',
+            );
+        });
+
+        const ecashCard = screen.getByRole('button', {
+            name: 'Toggle XEC and XECX balances',
+        });
+
+        // Click / Enter / Space on "staked" must not toggle the breakdown
+        const stakedLink = screen.getByRole('link', { name: 'staked' });
+        fireEvent.click(stakedLink);
+        expect(screen.getByTitle('Balance XEC')).toHaveTextContent('19,026.24');
+        expect(
+            screen.queryByTitle('Liquid and staked'),
+        ).not.toBeInTheDocument();
+        fireEvent.keyDown(stakedLink, { key: 'Enter' });
+        fireEvent.keyDown(stakedLink, { key: ' ' });
+        expect(screen.getByTitle('Balance XEC')).toHaveTextContent('19,026.24');
+        expect(
+            screen.queryByTitle('Liquid and staked'),
+        ).not.toBeInTheDocument();
+
+        // Tap card → stacked liquid XEC / XECX; USD + % staked stay
+        fireEvent.click(ecashCard);
+        expect(screen.getByTitle('Liquid and staked')).toHaveTextContent(
+            /9,513\.12\s*XEC\s*9,513\.12\s*XECX/,
+        );
+        expect(screen.queryByTitle('Balance XEC')).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
+        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
+        expect(
+            document.querySelector(`a[href="/token/${FIRMA.tokenId}"]`),
+        ).toBeInTheDocument();
+        expect(ecashCard).not.toHaveAttribute('data-tooltip-id');
+
+        // Tap again → restore combined total + fiat
+        fireEvent.click(ecashCard);
+        expect(screen.getByTitle('Balance XEC')).toHaveTextContent('19,026.24');
+        expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
+            '$0.57 USD',
+        );
+        expect(
+            screen.queryByTitle('Liquid and staked'),
+        ).not.toBeInTheDocument();
+        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
     });
 
     it('shows wallet dropdown and allows wallet switching', async () => {
@@ -343,7 +503,6 @@ describe('<Header />', () => {
             screen.queryByTitle('Price in Local Currency'),
         ).not.toBeInTheDocument();
         expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
-        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
     });
 
     it('renders fiat price for a non-USD currency', async () => {
@@ -503,6 +662,5 @@ describe('<Header />', () => {
         expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
         expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
         expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
-        expect(screen.queryByTitle('Balance XECX')).not.toBeInTheDocument();
     });
 });

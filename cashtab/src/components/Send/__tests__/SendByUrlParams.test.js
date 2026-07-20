@@ -1220,10 +1220,10 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
-        // Wait for balance to be loaded
+        // Wait for balance to be loaded (liquid XEC + XECX)
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,970.81');
+        ).toHaveTextContent('1,009,970.81');
 
         // BIP21 with token_id switches to token mode automatically
         // Wait for token mode UI and parsed tx to appear
@@ -1332,9 +1332,10 @@ describe('<SendXec /> rendered with params in URL', () => {
             ).not.toBeInTheDocument(),
         );
 
+        // liquid XEC + XECX
         expect(
             await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-        ).toHaveTextContent('9,970.81');
+        ).toHaveTextContent('1,009,970.81');
 
         const multiInputEl = await screen.findByPlaceholderText(
             /One address & token qty per line/,

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
@@ -17,6 +17,7 @@ import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
 import { sortWalletsForDisplay } from 'wallet';
 import { useCountRoll } from 'hooks/useCountRoll';
 import { getCurrentReceiveAddress } from 'wallet/hd';
+import { platformInfo } from 'platform';
 import {
     HeaderCtn,
     WalletDropdown,
@@ -27,13 +28,22 @@ import {
     WalletOption,
     BalanceXec,
     BalanceCard,
+    BalanceCardPanel,
     BalanceRow,
     BalanceTitle,
     TitleTicker,
     BalanceFiat,
     StakedPercent,
+    StakedLink,
+    BalanceToggleArea,
+    BalanceBreakdown,
+    BreakdownAmount,
+    BreakdownLabel,
     CardWrapper,
 } from './styled';
+
+/** App-wide react-tooltip id (see App.tsx). */
+const CASHTAB_TOOLTIP_ID = 'cashtab-tooltip';
 
 interface HeaderProps {
     path: string;
@@ -48,16 +58,13 @@ type AssetBalanceCardProps = {
     balanceVisible: boolean;
     renderFiatValues: boolean;
     fiatCurrency: string;
-    /** Whole card navigates here (e.g. XECX or Firma token page). */
+    /** Whole card navigates here (USD → Firma). */
     to: string;
-    /** When set, shown under fiat as "X% staked" (eCash total includes XECX). */
-    stakedPercentLabel?: string;
     /**
-     * Put ticker on the title line (smaller) instead of after the amount.
-     * Used for eCash — title already says eCash, so "XEC" after the number is
-     * redundant.
+     * When true, do not append tokenLabel after the balance amount (e.g. USD
+     * card title already says USD).
      */
-    tickerInTitle?: boolean;
+    hideAmountTicker?: boolean;
 };
 
 const AssetBalanceCard = ({
@@ -70,15 +77,15 @@ const AssetBalanceCard = ({
     renderFiatValues,
     fiatCurrency,
     to,
-    stakedPercentLabel,
-    tickerInTitle = false,
+    hideAmountTicker = false,
 }: AssetBalanceCardProps) => {
+    const showFiatLine = renderFiatValues && typeof fiatAmount === 'string';
+
     return (
         <BalanceCard to={to} tokenLabel={tokenLabel}>
             <BalanceTitle tokenLabel={tokenLabel}>
                 {logo}
                 {title}
-                {tickerInTitle && <TitleTicker>{tokenLabel}</TitleTicker>}
             </BalanceTitle>
 
             <BalanceRow
@@ -87,9 +94,9 @@ const AssetBalanceCard = ({
                 tokenLabel={tokenLabel}
             >
                 {balanceAmount}
-                {!tickerInTitle && <> {tokenLabel}</>}
+                {!hideAmountTicker && <> {tokenLabel}</>}
             </BalanceRow>
-            {renderFiatValues && (
+            {showFiatLine && (
                 <BalanceFiat
                     balanceVisible={balanceVisible}
                     title={`Balance ${tokenLabel} Fiat`}
@@ -99,12 +106,134 @@ const AssetBalanceCard = ({
                     {supportedFiatCurrencies[fiatCurrency].slug.toUpperCase()}
                 </BalanceFiat>
             )}
-            {typeof stakedPercentLabel === 'string' && (
-                <StakedPercent balanceVisible={balanceVisible} title="Staked">
-                    {stakedPercentLabel} staked
-                </StakedPercent>
-            )}
         </BalanceCard>
+    );
+};
+
+type EcashBalanceCardProps = {
+    balanceVisible: boolean;
+    renderFiatValues: boolean;
+    fiatCurrency: string;
+    fiatAmount: string | undefined;
+    totalAmount: string;
+    liquidAmount: string;
+    stakedAmount: string;
+    stakedPercentLabel: string;
+    stakedHref: string;
+    /** Stacked XEC/XECX HTML for web/extension hover tooltip. */
+    breakdownTooltipHtml: string;
+    /** Hover tooltip only on web/extension (Android uses tap-to-expand). */
+    enableHoverTooltip: boolean;
+    showBreakdown: boolean;
+    onToggleBreakdown: () => void;
+};
+
+/**
+ * eCash card: combined total + fiat + "% staked" by default. Tap (except the
+ * "staked" link) replaces the total/fiat with stacked liquid XEC / XECX.
+ * On web/extension, hover also shows a stacked XEC/XECX tooltip. The USD
+ * card stays visible.
+ */
+const EcashBalanceCard = ({
+    balanceVisible,
+    renderFiatValues,
+    fiatCurrency,
+    fiatAmount,
+    totalAmount,
+    liquidAmount,
+    stakedAmount,
+    stakedPercentLabel,
+    stakedHref,
+    breakdownTooltipHtml,
+    enableHoverTooltip,
+    showBreakdown,
+    onToggleBreakdown,
+}: EcashBalanceCardProps) => {
+    const showFiatLine =
+        !showBreakdown && renderFiatValues && typeof fiatAmount === 'string';
+    // Hover preview only while showing the combined total (not after expand).
+    const showHoverTooltip =
+        enableHoverTooltip && !showBreakdown && !balanceVisible;
+
+    return (
+        <BalanceCardPanel
+            tokenLabel={appConfig.ticker}
+            onClick={onToggleBreakdown}
+            role="button"
+            tabIndex={0}
+            aria-label="Toggle XEC and XECX balances"
+            onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onToggleBreakdown();
+                }
+            }}
+            data-tooltip-id={showHoverTooltip ? CASHTAB_TOOLTIP_ID : undefined}
+            data-tooltip-html={
+                showHoverTooltip ? breakdownTooltipHtml : undefined
+            }
+            data-tooltip-place="bottom"
+        >
+            <BalanceTitle tokenLabel={appConfig.ticker}>
+                <EcashIcon />
+                eCash
+                <TitleTicker>{appConfig.ticker}</TitleTicker>
+            </BalanceTitle>
+
+            <BalanceToggleArea>
+                {showBreakdown ? (
+                    <BalanceBreakdown
+                        balanceVisible={balanceVisible}
+                        title="Liquid and staked"
+                    >
+                        <BreakdownAmount>{liquidAmount}</BreakdownAmount>
+                        <BreakdownLabel>{appConfig.ticker}</BreakdownLabel>
+                        <BreakdownAmount>{stakedAmount}</BreakdownAmount>
+                        <BreakdownLabel>XECX</BreakdownLabel>
+                    </BalanceBreakdown>
+                ) : (
+                    <>
+                        <BalanceRow
+                            title={`Balance ${appConfig.ticker}`}
+                            hideBalance={balanceVisible}
+                            tokenLabel={appConfig.ticker}
+                        >
+                            {totalAmount}
+                        </BalanceRow>
+                        {showFiatLine && (
+                            <BalanceFiat
+                                balanceVisible={balanceVisible}
+                                title={`Balance ${appConfig.ticker} Fiat`}
+                            >
+                                {supportedFiatCurrencies[fiatCurrency].symbol}
+                                {fiatAmount}&nbsp;
+                                {supportedFiatCurrencies[
+                                    fiatCurrency
+                                ].slug.toUpperCase()}
+                            </BalanceFiat>
+                        )}
+                    </>
+                )}
+            </BalanceToggleArea>
+            <StakedPercent balanceVisible={balanceVisible} title="Staked">
+                {stakedPercentLabel}{' '}
+                <StakedLink
+                    to={stakedHref}
+                    onClick={(e: React.MouseEvent) => {
+                        // Navigate to XECX; do not toggle breakdown.
+                        e.stopPropagation();
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                        // Let the link handle Enter/Space; don't toggle the card.
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                        }
+                    }}
+                >
+                    staked
+                </StakedLink>
+            </StakedPercent>
+        </BalanceCardPanel>
     );
 };
 
@@ -125,8 +254,10 @@ interface BalanceCardsProps {
  * notification). Isolated so useCountRoll mounts only after the wallet is
  * loaded.
  *
- * XECX is staked XEC (1:1). There is no separate XECX card — the eCash card
- * shows XEC + XECX as the total and the staked share of that total as a %.
+ * XECX is staked XEC (1:1). The eCash card shows the combined total and a
+ * "% staked" line (word links to XECX). Tapping the card replaces the
+ * total/fiat with stacked liquid XEC / XECX; the USD card stays put. On
+ * web/extension, hover shows the same stacked amounts in a tooltip.
  */
 const BalanceCards: React.FC<BalanceCardsProps> = ({
     balanceXec,
@@ -138,6 +269,9 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
     fiatCurrency,
     userLocale,
 }) => {
+    const [showBreakdown, setShowBreakdown] = useState(false);
+    const enableHoverTooltip = platformInfo.platform !== 'capacitor-android';
+
     const rolledXec = useCountRoll(balanceXec);
     const rolledXecx = useCountRoll(balanceXecx);
     const rolledFirma = useCountRoll(balanceFirma);
@@ -147,6 +281,8 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
         rolledTotalXec > 0 ? (100 * rolledXecx) / rolledTotalXec : 0;
 
     const renderFiatValues = typeof fiatPrice === 'number';
+    // Firma is USD-pegged; fiat conversion is redundant when local currency is USD.
+    const showFirmaFiat = fiatCurrency !== 'usd';
 
     const formatBalance = (amount: number, decimals: number) =>
         amount.toLocaleString(userLocale, {
@@ -166,45 +302,60 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
             maximumFractionDigits: 1,
         })}%`;
 
+    // Firma USD: 2 decimals above $0.01, else full token decimals for dust.
+    const firmaDecimals =
+        rolledFirma > 0.01 ? 2 : FIRMA.token.genesisInfo.decimals;
+    const usdSymbol = supportedFiatCurrencies.usd.symbol;
+    const firmaBalanceAmount = `${usdSymbol}${formatBalance(
+        rolledFirma,
+        firmaDecimals,
+    )}`;
+
+    const liquidLabel = formatBalance(rolledXec, appConfig.cashDecimals);
+    const stakedLabel = formatBalance(rolledXecx, appConfig.cashDecimals);
+    const breakdownTooltipHtml = `<div style="display:grid;grid-template-columns:max-content auto;column-gap:0.35em;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums"><span style="text-align:right">${liquidLabel}</span><span>${appConfig.ticker}</span><span style="text-align:right">${stakedLabel}</span><span>XECX</span></div>`;
+
+    const xecxHref = `/token/${appConfig.vipTokens.xecx.tokenId}`;
+
     return (
         <BalanceXec>
-            <AssetBalanceCard
-                title="eCash"
-                logo={<EcashIcon />}
-                tokenLabel={appConfig.ticker}
-                balanceAmount={formatBalance(
-                    rolledTotalXec,
-                    appConfig.cashDecimals,
-                )}
+            <EcashBalanceCard
+                balanceVisible={balanceVisible}
+                renderFiatValues={renderFiatValues}
+                fiatCurrency={fiatCurrency}
                 fiatAmount={
                     renderFiatValues
                         ? formatFiat(rolledTotalXec, fiatPrice)
                         : undefined
                 }
-                balanceVisible={balanceVisible}
-                renderFiatValues={renderFiatValues}
-                fiatCurrency={fiatCurrency}
-                to={`/token/${appConfig.vipTokens.xecx.tokenId}`}
+                totalAmount={formatBalance(
+                    rolledTotalXec,
+                    appConfig.cashDecimals,
+                )}
+                liquidAmount={liquidLabel}
+                stakedAmount={stakedLabel}
                 stakedPercentLabel={formatStakedPercent(stakedPercent)}
-                tickerInTitle
+                stakedHref={xecxHref}
+                breakdownTooltipHtml={breakdownTooltipHtml}
+                enableHoverTooltip={enableHoverTooltip}
+                showBreakdown={showBreakdown}
+                onToggleBreakdown={() => setShowBreakdown(prev => !prev)}
             />
             <AssetBalanceCard
                 title="USD"
                 logo={<SavingsIcon />}
                 tokenLabel={FIRMA_BALANCE_LABEL}
-                balanceAmount={formatBalance(
-                    rolledFirma,
-                    FIRMA.token.genesisInfo.decimals,
-                )}
+                balanceAmount={firmaBalanceAmount}
                 fiatAmount={
-                    firmaPrice !== null
+                    showFirmaFiat && firmaPrice !== null
                         ? formatFiat(rolledFirma, firmaPrice)
                         : undefined
                 }
                 balanceVisible={balanceVisible}
-                renderFiatValues={renderFiatValues}
+                renderFiatValues={renderFiatValues && showFirmaFiat}
                 fiatCurrency={fiatCurrency}
                 to={`/token/${FIRMA.tokenId}`}
+                hideAmountTicker
             />
         </BalanceXec>
     );
