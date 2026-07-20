@@ -83,6 +83,7 @@ PACKAGES=(
   software-properties-common
   swig
   tar
+  unzip
   wget
   xorriso
   xvfb
@@ -208,6 +209,19 @@ wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists
 apt-get update
 # Use the stable version so we don't get a rolling release
 DEBIAN_FRONTEND=noninteractive apt-get install -y winehq-stable
+
+# Install coderabbit CLI
+CR_VERSION=0.6.5
+CR_TMPDIR=$(mktemp -d)
+pushd "${CR_TMPDIR}"
+wget "https://cli.coderabbit.ai/releases/${CR_VERSION}/coderabbit-linux-x64.zip"
+echo "8280dcf8228d087b78fbe8955b8c5ef3f83f73fd46d9a009453948547d304a99  coderabbit-linux-x64.zip" | sha256sum -c
+unzip coderabbit-linux-x64.zip
+install "${CR_TMPDIR}/coderabbit" /usr/bin/cr
+popd
+rm -rf "${CR_TMPDIR}"
+# Check the installation worked
+cr --version
 
 # shellcheck source=/dev/null
 source ~/.bashrc

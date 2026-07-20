@@ -1135,11 +1135,18 @@ def create_server(
 
             if status == BuildStatus.Success:
                 # Upon success, we only report if there is a website preview
-                # available.
+                # available or an AI review.
                 preview_url_log = tc.getPreviewUrl(buildId)
                 if preview_url_log:
                     msg = phab.createBuildStatusMessage(status, guest_url, buildName)
                     msg += f"\n{preview_url_log}\n"
+
+                    phab.commentOnRevision(revisionPHID, msg, buildName)
+
+                ai_review = tc.getAiReview(buildId)
+                if ai_review:
+                    msg = phab.createBuildStatusMessage(status, guest_url, buildName)
+                    msg += f"\n{ai_review}\n"
 
                     phab.commentOnRevision(revisionPHID, msg, buildName)
 

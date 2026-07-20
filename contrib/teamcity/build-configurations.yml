@@ -1311,3 +1311,20 @@ builds:
             pnpm --filter marlin-wallet-web exec cypress install
             pnpm --filter marlin-wallet-web run test:e2e
             popd
+
+    ai-review:
+        #runOnDiff: true
+        artifacts:
+            ai_review.log: ai_review.log
+        script: |
+            pushd "${TOPLEVEL}"
+            # Store and disable the x flag to avoid logging the API key
+            old_x=$-
+            set +x
+            cr auth login --api-key "${CR_API_KEY}" > /dev/null
+            cr review --plain --base master --type committed > "${BUILD_DIR}/ai_review.log"
+            cr auth logout
+            # Restore the x flag if it was set
+            [[ $old_x == *x* ]] && set -x
+            cat "${BUILD_DIR}/ai_review.log"
+            popd

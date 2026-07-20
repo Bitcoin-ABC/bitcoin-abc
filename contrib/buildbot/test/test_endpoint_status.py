@@ -59,6 +59,8 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.configure_build_info()
         self.teamcity.get_coverage_summary = mock.Mock()
         self.teamcity.get_coverage_summary.return_value = None
+        self.teamcity.getAiReview = mock.Mock()
+        self.teamcity.getAiReview.return_value = None
         self.teamcity.getIgnoreList = mock.Mock()
         self.teamcity.getIgnoreList.return_value = []
 
@@ -1170,6 +1172,64 @@ class EndpointStatusTestCase(ABCBotFixture):
                         f"Build [[{build_url} | build-name (linux)]] passed.\nPreview"
                         " is available at http://127.0.0.1:8080 for the next 10"
                         " minutes.\n"
+                    ),
+                }
+            ],
+            objectIdentifier="789",
+        )
+
+    def test_status_ai_review_available(self):
+        data = statusRequestData()
+        data.buildResult = "success"
+        data.branch = "phabricator/diff/456"
+
+        ai_review = (
+            "Critical: Missing error handling in server.py\n"
+            "Minor: Prefer early return in teamcity_wrapper.py"
+        )
+        self.teamcity.getAiReview.return_value = ai_review
+
+        self.configure_build_info(
+            properties=test.mocks.teamcity.buildInfo_properties(
+                propsList=[
+                    {
+                        "name": "env.ABC_BUILD_NAME",
+                        "value": "ai-review",
+                    }
+                ]
+            ),
+        )
+
+        self.phab.differential.revision.edit = mock.Mock()
+        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": "456",
+                    "fields": {"revisionPHID": "789"},
+                }
+            ]
+        )
+        self.phab.differential.revision.search.return_value = (
+            test.mocks.phabricator.differential_revision_search_result()
+        )
+
+        response = self.app.post("/status", headers=self.headers, json=data)
+        self.assertEqual(response.status_code, 200)
+        build_url = self.teamcity.build_url(
+            "viewLog.html",
+            {
+                "buildTypeId": data.buildTypeId,
+                "buildId": DEFAULT_BUILD_ID,
+            },
+        )
+        self.teamcity.getAiReview.assert_called_with(DEFAULT_BUILD_ID)
+        self.phab.differential.revision.edit.assert_called_with(
+            transactions=[
+                {
+                    "type": "comment",
+                    "value": (
+                        f"Build [[{build_url} | build-name (ai-review)]] passed.\n"
+                        f"{ai_review}\n"
                     ),
                 }
             ],

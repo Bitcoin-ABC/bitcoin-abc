@@ -176,6 +176,14 @@ class TeamCity:
             pass
         return None
 
+    def getAiReview(self, buildId):
+        try:
+            return self.get_artifact(buildId, "artifacts.tar.gz!/ai_review.log")
+        except TeamcityRequestException:
+            # This is likely a 404 and the log doesn't exist.
+            pass
+        return None
+
     def getBuildProblems(self, buildId):
         endpoint = self.build_url(
             "app/rest/problemOccurrences",
