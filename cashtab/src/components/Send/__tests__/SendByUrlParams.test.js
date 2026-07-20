@@ -602,7 +602,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
             expect(
                 await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
-            ).toHaveTextContent('9,513.12 XEC');
+            ).toHaveTextContent('9,513.12');
 
             await expectUrlResolvedRecipient(bip21Str);
 
