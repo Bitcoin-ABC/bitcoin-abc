@@ -94,14 +94,14 @@ export const startExpressServer = (
             logIpInfo(req);
 
             if (typeof address !== 'string') {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Address is not a string`,
                 });
             }
 
             if (!isValidCashAddress(address, 'ecash')) {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Invalid eCash address`,
                 });
@@ -168,7 +168,7 @@ export const startExpressServer = (
             const address = req.params.address;
 
             if (typeof address !== 'string') {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Address is not a string`,
                 });
@@ -225,7 +225,7 @@ export const startExpressServer = (
             }
 
             if (!isValidCashAddress(address, 'ecash')) {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Invalid eCash address`,
                 });
@@ -318,7 +318,7 @@ export const startExpressServer = (
             const address = req.params.address;
 
             if (typeof address !== 'string') {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Address is not a string`,
                 });
@@ -360,7 +360,7 @@ export const startExpressServer = (
             }
 
             if (!isValidCashAddress(address, 'ecash')) {
-                return res.status(500).json({
+                return res.status(400).json({
                     address,
                     error: `Invalid eCash address`,
                 });

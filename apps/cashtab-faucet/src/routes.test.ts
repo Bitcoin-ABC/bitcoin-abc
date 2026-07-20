@@ -231,7 +231,7 @@ describe('routes.js', function () {
     it('/is-eligible/:address returns expected error status if called with invalid address', function () {
         return request(app)
             .get(`/is-eligible/${INVALID_ADDRESS}`)
-            .expect(500)
+            .expect(400)
             .expect('Content-Type', /json/)
             .expect({
                 address: INVALID_ADDRESS,
@@ -321,7 +321,7 @@ describe('routes.js', function () {
             .post(`/claim/${INVALID_ADDRESS}`)
             .send({ token: MOCK_RECAPTCHA_V3_TOKEN })
             .set('Content-Type', 'application/json')
-            .expect(500)
+            .expect(400)
             .expect('Content-Type', /json/)
             .expect({
                 address: INVALID_ADDRESS,
@@ -566,7 +566,7 @@ describe('routes.js', function () {
             .post(`/claimxec/${INVALID_ADDRESS}`)
             .send({ token: MOCK_RECAPTCHA_TOKEN }) // send the request body
             .set('Content-Type', 'application/json') // set the Content-Type header
-            .expect(500)
+            .expect(400)
             .expect('Content-Type', /json/)
             .expect({
                 address: INVALID_ADDRESS,
