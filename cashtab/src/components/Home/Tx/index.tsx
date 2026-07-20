@@ -994,6 +994,7 @@ const Tx: React.FC<TxProps> = ({
                 actionIcon = <AgoraCancelIcon />;
                 break;
             }
+            case ParsedTokenTxType.AgoraRelist:
             case ParsedTokenTxType.AgoraOffer: {
                 actionIcon = <AgoraOfferIcon />;
                 break;
@@ -1072,69 +1073,75 @@ const Tx: React.FC<TxProps> = ({
                                     ? formattedAmount
                                     : ''
                             } ${tokenTicker}`
-                          : renderedTxType === ParsedTokenTxType.BlitzPlay
-                            ? `Blitz play ${
+                          : renderedTxType === ParsedTokenTxType.AgoraRelist
+                            ? `Relisted ${
                                   typeof decimals === 'number'
                                       ? formattedAmount
                                       : ''
                               } ${tokenTicker}`
-                            : renderedTxType === ParsedTokenTxType.AgoraBuy
-                              ? `Bought ${
+                            : renderedTxType === ParsedTokenTxType.BlitzPlay
+                              ? `Blitz play ${
                                     typeof decimals === 'number'
                                         ? formattedAmount
                                         : ''
                                 } ${tokenTicker}`
-                              : renderedTxType === ParsedTokenTxType.AgoraSale
-                                ? `Sold ${
+                              : renderedTxType === ParsedTokenTxType.AgoraBuy
+                                ? `Bought ${
                                       typeof decimals === 'number'
                                           ? formattedAmount
                                           : ''
                                   } ${tokenTicker}`
-                                : renderedTxType ===
-                                    ParsedTokenTxType.AgoraCancel
-                                  ? `Canceled offer ${
+                                : renderedTxType === ParsedTokenTxType.AgoraSale
+                                  ? `Sold ${
                                         typeof decimals === 'number'
-                                            ? `of ${formattedAmount}`
+                                            ? formattedAmount
                                             : ''
                                     } ${tokenTicker}`
-                                  : renderedTxType === 'BURN'
-                                    ? `Burned ${
+                                  : renderedTxType ===
+                                      ParsedTokenTxType.AgoraCancel
+                                    ? `Canceled offer ${
                                           typeof decimals === 'number'
-                                              ? formattedAmount
+                                              ? `of ${formattedAmount}`
                                               : ''
                                       } ${tokenTicker}`
-                                    : renderedTxType === 'SEND'
-                                      ? `${xecTxType} ${
+                                    : renderedTxType === 'BURN'
+                                      ? `Burned ${
                                             typeof decimals === 'number'
                                                 ? formattedAmount
                                                 : ''
                                         } ${tokenTicker}`
-                                      : renderedTxType === 'MINT' ||
-                                          (renderedTxType === 'GENESIS' &&
-                                              renderedTokenType === 'NFT')
-                                        ? `Minted ${
+                                      : renderedTxType === 'SEND'
+                                        ? `${xecTxType} ${
                                               typeof decimals === 'number'
                                                   ? formattedAmount
                                                   : ''
                                           } ${tokenTicker}`
-                                        : renderedTxType === 'NONE' &&
-                                            renderedTokenType === 'Collection'
-                                          ? `Burned 1 ${
+                                        : renderedTxType === 'MINT' ||
+                                            (renderedTxType === 'GENESIS' &&
+                                                renderedTokenType === 'NFT')
+                                          ? `Minted ${
                                                 typeof decimals === 'number'
                                                     ? formattedAmount
                                                     : ''
                                             } ${tokenTicker}`
-                                          : renderedTxType === 'GENESIS'
-                                            ? `Created ${
+                                          : renderedTxType === 'NONE' &&
+                                              renderedTokenType === 'Collection'
+                                            ? `Burned 1 ${
                                                   typeof decimals === 'number'
                                                       ? formattedAmount
                                                       : ''
                                               } ${tokenTicker}`
-                                            : `${renderedTxType} ${
-                                                  typeof decimals === 'number'
-                                                      ? formattedAmount
-                                                      : ''
-                                              } ${tokenTicker}`}
+                                            : renderedTxType === 'GENESIS'
+                                              ? `Created ${
+                                                    typeof decimals === 'number'
+                                                        ? formattedAmount
+                                                        : ''
+                                                } ${tokenTicker}`
+                                              : `${renderedTxType} ${
+                                                    typeof decimals === 'number'
+                                                        ? formattedAmount
+                                                        : ''
+                                                } ${tokenTicker}`}
                 </TokenDesc>
             </TokenAction>,
         );

@@ -14,6 +14,7 @@ export enum XecTxType {
 export enum ParsedTokenTxType {
     AgoraOffer = 'Agora Offer',
     AgoraCancel = 'Agora Cancel',
+    AgoraRelist = 'Agora Relist',
     AgoraBuy = 'Agora Buy',
     AgoraSale = 'Agora Sale',
     FanOut = 'Fan Out',

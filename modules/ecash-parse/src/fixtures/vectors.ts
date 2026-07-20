@@ -19934,4 +19934,173 @@ export const parseFixtures = [
             ],
         },
     },
+    {
+        description: 'ALP agora relist tx',
+        tx: {
+            txid: '92604d8db0d72f145556d9b8d0c07c48a841acbc449e1197c7a00758bae0b459',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '410337b42ef386087f372a044495e8d7a3a7c0dd2c2ab85b49d61c7924f1839b',
+                        outIdx: 1,
+                    },
+                    inputScript:
+                        '4190041bde0d631c4c293ceeca9b4c5321a00f6f15ba985c125c7b804c54c17124d1bbc3001557d74ac121b43e34bd9ef688b1259b297d04bb8cb005d4e1e829da41004d5f014c78534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f9487036a504b41475230075041525449414c0000e9c5243f30000000b759820900000000044f5daad812000080cf182e03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105080f7aaff4ffffff7fab7b63817b6ea2697606044f5daad812a2697605e9c5243f309700887d945279012a7f757892635357807e7805e9c5243f30965667525768807e527905e9c5243f309656807e827c7e5379012a7f777c7e825980bc7c7e007e7b04b65982099304b75982099658807e041976a914707501577f77a97e0288ac7e7e6b7d02220258800317a9147e024c7872587d807e7e7e01ab7e537901257f7702db007f5c7f7701207f547f750480cf182e886b7ea97e01877e7c92647500687b8292697e6c6c7b7eaa88520144807c7ea86f7bbb7501c17e7c677501577f7768ac',
+                    sats: 546n,
+                    sequenceNo: 4294967295,
+                    token: {
+                        tokenId:
+                            '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                        tokenType: {
+                            protocol: 'ALP',
+                            type: 'ALP_TOKEN_TYPE_STANDARD',
+                            number: 0,
+                        },
+                        atoms: 44510519n,
+                        isMintBaton: false,
+                        entryIdx: 0,
+                    },
+                    plugins: {
+                        agora: {
+                            groups: [
+                                '5003fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                                '540387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                                '460387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                            ],
+                            data: [
+                                '5041525449414c',
+                                '00',
+                                '00',
+                                'e9c5243f30000000',
+                                'b759820900000000',
+                                '044f5daad8120000',
+                                '80cf182e',
+                            ],
+                        },
+                    },
+                    outputScript:
+                        'a914e6f96c46f7cd901d54a299dcb2c943ab8e50c1cb87',
+                },
+                {
+                    prevOut: {
+                        txid: '92ef4778d5dbca1e5ca147e4ec7e9fce7e16a2c1da77acce21000afd1afcfbb7',
+                        outIdx: 2,
+                    },
+                    inputScript:
+                        '410e129f1a0c4bed39388e1e68f1737f3bfe418a5e51bb4a24d556006d5bb013f3313abb2d997c971f4be5cda4f98379d016c92495f6814b66b763e3e4d31971b4412103fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                    sats: 5460144255n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript:
+                        '6a504b41475230075041525449414c0000e9c5243f300000001c24790900000000044f5daad8120000ee97233903fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d10531534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870301372da7020000',
+                },
+                {
+                    sats: 546n,
+                    outputScript:
+                        'a9141a84a578409caada180a85b63ba0ffaabb8d437f87',
+                    plugins: {
+                        agora: {
+                            groups: [
+                                '5003fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                                '540387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                                '460387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                            ],
+                            data: [
+                                '5041525449414c',
+                                '00',
+                                '00',
+                                'e9c5243f30000000',
+                                '1c24790900000000',
+                                '044f5daad8120000',
+                                'ee972339',
+                            ],
+                        },
+                    },
+                    token: {
+                        tokenId:
+                            '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                        tokenType: {
+                            protocol: 'ALP',
+                            type: 'ALP_TOKEN_TYPE_STANDARD',
+                            number: 0,
+                        },
+                        atoms: 44510519n,
+                        isMintBaton: false,
+                        entryIdx: 0,
+                    },
+                    spentBy: {
+                        txid: 'a687c9e4f808a94239951c5430277d691a9783374e48adb80c5a1a88dd905b8c',
+                        outIdx: 0,
+                    },
+                },
+                {
+                    sats: 5460143437n,
+                    outputScript:
+                        '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+                    spentBy: {
+                        txid: 'bcebe8103e87e90b7d606bddec276accee358e3a9b747319bee9ca9a426ffede',
+                        outIdx: 1,
+                    },
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1784540580,
+            size: 818,
+            isCoinbase: false,
+            tokenEntries: [
+                {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    txType: 'SEND',
+                    isInvalid: false,
+                    burnSummary: '',
+                    failedColorings: [],
+                    actualBurnAtoms: 0n,
+                    intentionalBurnAtoms: 0n,
+                    burnsMintBatons: false,
+                },
+            ],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NORMAL',
+            isFinal: true,
+            block: {
+                height: 958797,
+                hash: '0000000000000000078dde3856a3d3ba7c69e56ca86f5a33b2f15106e4d4f1cf',
+                timestamp: 1784542964,
+            },
+        },
+        walletHashes: ['cf76d8e334b149cb49ad1f95de339c3e6e9ed541'],
+        parsed: {
+            recipients: ['ecash:pqdgfftcgzw24kscp2zmvwaql74thr2r0ucdx0erha'],
+            satoshisSent: 546,
+            stackArray: [
+                '50',
+                '41475230075041525449414c0000e9c5243f300000001c24790900000000044f5daad8120000ee97233903fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105',
+                '534c5032000453454e44f0cb08302c4bbc665b6241592b19fd37ec5d632f323e9ab14fdb75d57f94870301372da7020000',
+            ],
+            xecTxType: 'Sent',
+            appActions: [],
+            parsedTokenEntries: [
+                {
+                    tokenId:
+                        '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0',
+                    renderedTxType: 'Agora Relist',
+                    renderedTokenType: 'ALP',
+                    tokenSatoshis: '44510519',
+                },
+            ],
+        },
+    },
 ] as ParseFixture[];

@@ -73,6 +73,7 @@ import {
     partialSellBull,
     alpBurnTx,
     alpAgoraListingTx,
+    alpAgoraRelistTx,
     xecxTx,
     invalidXecxTx,
     firmaYieldTx,
@@ -3636,6 +3637,47 @@ describe('<Tx />', () => {
                 `Burned 1 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
             ),
         ).toBeInTheDocument();
+    });
+    it('ALP Agora relist tx renders Relisted instead of Canceled (cached)', async () => {
+        const thisMock = alpAgoraRelistTx;
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{ ...thisMock.tx, parsed: thisMock.parsed }}
+                        hashes={[thisMock.sendingHash]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(thisMock.cache),
+                            },
+                        }}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        expect(screen.getByText('Jul 20, 2026, 09:43:00')).toBeInTheDocument();
+        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        expect(
+            screen.getByAltText(`icon for ${thisMock.cache[0][0]}`),
+        ).toBeInTheDocument();
+        expect(screen.getByTitle('Agora Offer')).toBeInTheDocument();
+        expect(screen.getByText('Agora Relist')).toBeInTheDocument();
+        expect(
+            screen.getByText(thisMock.cache[0][1].genesisInfo.tokenName),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                `Relisted 4,451.0519 ${thisMock.cache[0][1].genesisInfo.tokenTicker}`,
+            ),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/Canceled offer/)).not.toBeInTheDocument();
     });
     it('Ad setup tx for an ALP Agora offer (cached)', async () => {
         const thisMock = alpAgoraListingTx;

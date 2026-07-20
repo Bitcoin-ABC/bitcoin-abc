@@ -701,8 +701,9 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     }
 
     // Parse for ALP agora listing tx
-    if (!isAgoraAdSetup && !isAgoraCancel && !isAgoraPurchase) {
-        // If this is not already classified as agora
+    // Allow when isAgoraCancel: cancel + new ALP agora offer is a relist
+    if (!isAgoraAdSetup && !isAgoraPurchase) {
+        // If this is not already classified as agora purchase / SLP ad setup
         if (
             stackArray.length === 3 &&
             stackArray[0] === '50' &&
@@ -726,6 +727,9 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
             }
         }
     }
+
+    // Relist = cancel existing agora offer and create a new one in the same tx
+    const isAgoraRelist = isAgoraCancel && (isAgoraOffer || isAgoraAdSetup);
 
     let xecTxType: XecTxType = incoming ? XecTxType.Received : XecTxType.Sent;
 
@@ -770,6 +774,10 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         }
         if (isAgoraCancel) {
             renderedTxType = ParsedTokenTxType.AgoraCancel;
+        }
+        if (isAgoraRelist) {
+            // Relist is cancel + new offer; prefer Relist over Cancel/Offer
+            renderedTxType = ParsedTokenTxType.AgoraRelist;
         }
         if (isBlitzPlay) {
             renderedTxType = ParsedTokenTxType.BlitzPlay;
@@ -844,7 +852,8 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                 tokenSatoshis = tokenSatoshisReceived;
                 break;
             }
-            case ParsedTokenTxType.AgoraCancel: {
+            case ParsedTokenTxType.AgoraCancel:
+            case ParsedTokenTxType.AgoraRelist: {
                 tokenSatoshis = tokenSatoshisTotal;
                 break;
             }

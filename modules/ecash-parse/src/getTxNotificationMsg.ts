@@ -261,6 +261,10 @@ export const getTxNotificationMsg = (
                 // Agora cancel tx notifications are handled by UI components that support cancels
                 return;
             }
+            case ParsedTokenTxType.AgoraRelist: {
+                // Agora relist tx notifications are handled by UI components that support relists
+                return;
+            }
             case ParsedTokenTxType.AgoraBuy: {
                 // Agora purchase tx notifications are handled by UI components that support buys
                 return;
