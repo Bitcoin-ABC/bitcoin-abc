@@ -114,7 +114,7 @@
         "tailwindcss": "^3.0.2",
         "typescript": "^5.9.3",
         "util": "^0.12.5",
-        "vite": "~7.3.3",
+        "vite": "~7.3.6",
         "vite-plugin-cjs2esm": "^1.0.10",
         "vite-plugin-commonjs": "^0.10.4",
         "vite-plugin-node-polyfills": "^0.28.0",
