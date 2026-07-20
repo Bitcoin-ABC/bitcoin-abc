@@ -190,6 +190,16 @@ export default function MiningContent() {
                       Solo Fury
                     </a>
                   </li>
+                  <li>
+                    <a
+                      href="https://mkpool.com/xec/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 transition-colors hover:text-blue-300"
+                    >
+                      mkpool
+                    </a>
+                  </li>
                 </ul>
               </div>
 
