@@ -319,15 +319,41 @@ impl SubRecv {
     }
 
     async fn cleanup(self, indexer: &ChronikIndexerRef) {
-        if self.scripts.is_empty() {
+        let has_member_subs = !self.txids.is_empty()
+            || !self.scripts.is_empty()
+            || !self.token_ids.is_empty()
+            || !self.lokad_ids.is_empty()
+            || !self.plugin_groups.is_empty();
+        if !has_member_subs {
             return;
         }
         let indexer = indexer.read().await;
         let mut subs = indexer.subs().write().await;
+        for (txid, receiver) in self.txids {
+            std::mem::drop(receiver);
+            subs.subs_txid_mut().unsubscribe_from_member(&txid);
+        }
         for (script_variant, receiver) in self.scripts {
             std::mem::drop(receiver);
             subs.subs_script_mut()
                 .unsubscribe_from_member(&&script_variant.to_script());
+        }
+        for (token_id, receiver) in self.token_ids {
+            std::mem::drop(receiver);
+            subs.subs_token_id_mut().unsubscribe_from_member(&token_id);
+        }
+        for (lokad_id, receiver) in self.lokad_ids {
+            std::mem::drop(receiver);
+            subs.subs_lokad_id_mut().unsubscribe_from_member(&lokad_id);
+        }
+        for (plugin_group, receiver) in self.plugin_groups {
+            std::mem::drop(receiver);
+            let member = PluginMember {
+                plugin_idx: plugin_group.plugin_idx,
+                group: &plugin_group.group,
+            };
+            subs.subs_plugin_mut()
+                .unsubscribe_from_member(&member.ser());
         }
     }
 }
@@ -517,7 +543,10 @@ pub async fn handle_subscribe_socket(
             WsAction::Sub(_) => unreachable!("Handled above"),
             WsAction::Message(msg) => match socket.send(msg).await {
                 Ok(()) => {}
-                Err(_) => return,
+                Err(_) => {
+                    recv.cleanup(&indexer).await;
+                    return;
+                }
             },
             WsAction::Nothing => {}
         }
