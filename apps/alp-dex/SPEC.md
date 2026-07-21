@@ -95,12 +95,12 @@ not separate on-disk product formats.
 
 ### Coordinator opt-in
 
-| Variable               | Purpose                                                               |
-| ---------------------- | --------------------------------------------------------------------- |
-| `PLATFORM_FEE_ENABLED` | When true, templates/settle inject and validate coordinator fee outs  |
-| Coordinator base URL   | Fetch live `platformFeePct` + `platformFeeAddress` from `/api/status` |
+| Variable               | Purpose                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `PLATFORM_FEE_ENABLED` | When true, templates/settle inject and validate coordinator fee outs              |
+| Coordinator base URL   | Fetch live `platformFeePct` + `platformFeeAddress` from coordinator `/api/status` |
 
-`GET /api/status` advertises `platformFeeEnabled` so a coordinator can
+`GET /api/v1/status` advertises `platformFeeEnabled` so a coordinator can
 discover makers that opt into fee enforcement before whitelisting them.
 
 ## Pricing
@@ -171,12 +171,13 @@ can still race.
 
 ## HTTP API (planned)
 
-Default listen port: **3003**. CORS open for browser takers. Rate-limited.
+Listen port from env `PORT` (see `env.sample`; sample default **3003**).
+CORS open for browser takers. Rate-limited.
 
 | Method | Path                                     | Purpose                                              |
 | ------ | ---------------------------------------- | ---------------------------------------------------- |
 | GET    | `/`                                      | Service metadata                                     |
-| GET    | `/api/status`                            | Health, seller address, pairs, postage, platform fee |
+| GET    | `/api/v1/status`                         | Health, seller address, pairs, postage, platform fee |
 | GET    | `/api/v1/token/:tokenId/available`       | Seller spendable atoms for one token                 |
 | GET    | `/api/v1/swap/inventory`                 | `tokenId →` human balance (seller+slush)             |
 | GET    | `/api/v1/swap/:from/:to/price`           | Spot + reserves + pair `feePct`                      |

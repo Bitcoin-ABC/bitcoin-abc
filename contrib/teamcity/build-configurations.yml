@@ -905,6 +905,16 @@ builds:
         templates:
             - js-mocha
 
+    alp-dex-tests:
+        runOnDiffRegex:
+            - pnpm-lock.yaml
+            - apps/alp-dex/
+        env:
+            JS_PROJECT_ROOT: apps/alp-dex
+            RUN_NPM_BUILD: 'true'
+        templates:
+            - js-mocha
+
     token-server-tests:
         runOnDiffRegex:
             - pnpm-lock.yaml

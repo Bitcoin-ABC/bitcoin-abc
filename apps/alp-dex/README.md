@@ -126,8 +126,10 @@ should ship tests a reviewer can run locally.
 
 1. **Docs [D20325](https://reviews.bitcoinabc.org/D20325)** — motivation,
    trust model, end state, roadmap, SPEC (API + inventory + settle contract).
-2. **Scaffold** — TypeScript package under `apps/alp-dex`, mocha, Express
-   stub (`GET /`, `GET /api/status` health), CI wiring.
+2. **Scaffold [D20354](https://reviews.bitcoinabc.org/D20354)** — TypeScript
+   package under `apps/alp-dex`, mocha, Express stub (`GET /`,
+   `GET /api/v1/status` health), `env.sample` (`PORT`), TeamCity
+   `alp-dex-tests`.
 3. **Config** — `tokenId` asserts; env parsers for flat CSV-shaped vars and
    JSON `TRADED_CONFIG`; fee / postage / `utxoQty`; pure unit tests (no
    Chronik).
