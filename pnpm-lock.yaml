@@ -5,7 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@vercel/fun>tar@<7.5.11': '>=7.5.15'
   '@vercel/node>undici@<6.24.0': '>=6.25.0'
   '@vercel/python-analysis>minimatch@<10.2.3': '>=10.2.5'
   '@vercel/backends>path-to-regexp@<8.4.0': '>=8.4.2'
@@ -27,6 +26,7 @@ overrides:
   shell-quote@>=1.1.0 <=1.8.3: '>=1.8.4'
   immutable@>=4.0.0 <4.3.9: 4.3.9
   immutable@>=5.0.0 <5.1.8: '>=5.1.8'
+  tar: '>=7.5.19'
 
 importers:
 
@@ -12570,8 +12570,8 @@ packages:
   tar-stream@3.1.7:
     resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
 
-  tar@7.5.15:
-    resolution: {integrity: sha512-dzGK0boVlC4W5QFuQN1EFSl3bIDYsk7Tj40U6eIBnK2k/8ml7TZ5agbI5j5+qnoVcAA+rNtBml8SEiLxZpNqRQ==}
+  tar@7.5.20:
+    resolution: {integrity: sha512-9FcyK4PA6+WbzlTM9WhQm6vB5W7cP7dUiPsv1g7YDwEQnQ1CGpK3MGlKk/ITVWMk05kHZuBhmVhiv8LZoy/PFQ==}
     engines: {node: '>=18'}
 
   teeny-request@9.0.0:
@@ -15354,7 +15354,7 @@ snapshots:
       prompts: 2.4.2
       rimraf: 6.1.3
       semver: 7.7.4
-      tar: 7.5.15
+      tar: 7.5.20
       tslib: 2.8.1
       xml2js: 0.6.2
     transitivePeerDependencies:
@@ -17131,7 +17131,7 @@ snapshots:
       node-fetch: 2.7.0
       nopt: 8.1.0
       semver: 7.7.4
-      tar: 7.5.15
+      tar: 7.5.20
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -19162,7 +19162,7 @@ snapshots:
       semver: 7.5.4
       stat-mode: 0.3.0
       stream-to-promise: 2.2.0
-      tar: 7.5.15
+      tar: 7.5.20
       tinyexec: 0.3.2
       tree-kill: 1.2.2
       uid-promise: 1.0.0
@@ -27966,7 +27966,7 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  tar@7.5.15:
+  tar@7.5.20:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
