@@ -1313,7 +1313,7 @@ builds:
             popd
 
     ai-review:
-        #runOnDiff: true
+        runOnDiff: true
         artifacts:
             ai_review.log: ai_review.log
         script: |
@@ -1322,9 +1322,8 @@ builds:
             old_x=$-
             set +x
             cr auth login --api-key "${CR_API_KEY}" > /dev/null
-            cr review --plain --base master --type committed > "${BUILD_DIR}/ai_review.log"
+            cr review --plain --base-commit "$(git rev-parse HEAD^)" --type committed > "${BUILD_DIR}/ai_review.log"
             cr auth logout
             # Restore the x flag if it was set
             [[ $old_x == *x* ]] && set -x
-            cat "${BUILD_DIR}/ai_review.log"
             popd
