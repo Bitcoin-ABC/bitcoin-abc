@@ -56,6 +56,29 @@ pip3 install -r contrib/requirements/requirements-binaries.txt
 pip3 install -r contrib/requirements/requirements-hw.txt
 ```
 
+### Compiling libsecp256k1
+
+Electrum ABC depends on Bitcoin ABC's flavor of libsecp256k1. A build script is available to
+build the library and copy it where needed:
+
+On Debian or Ubuntu linux:
+```shell
+sudo apt-get install libtool automake
+./contrib/make_secp
+```
+
+On MacOS:
+```shell
+brew install coreutils automake
+./contrib/make_secp
+```
+
+or if using MacPorts: `sudo port install coreutils automake`
+
+On Windows, you can download a recent `Electrum-ABC-X.Y.Z-setup.exe` release file
+and use `7z` to extract `libsecp256k1-0.dll` from it, and copy it to the `electrumabc`
+subfolder.
+
 ## Running Electrum ABC from source
 
 If you installed the application as a python package, you can run it from anywhere
@@ -102,6 +125,9 @@ is required for either).
 
 ## Running tests
 
+The setuptools package is an additional dependency for running unit tests.
+You can install it with `pip3 install setuptools`.
+
 Running unit tests:
 ```shell
 python3 test_runner.py
@@ -126,28 +152,6 @@ This requires a few additional python dependencies:
 ```shell
 pip3 install -r contrib/requirements/requirements-regtest.txt
 ```
-
-## Compiling libsecp256k1
-
-Compiling libsecp256k1 is highly-recommended when running from source, to use fast
-cryptographic algorithms instead of using fallback pure-python algos.
-
-It is required when using CashFusion, as slow participants can cause a fusion round
-to fail.
-
-On Debian or Ubuntu linux:
-```shell
-sudo apt-get install libtool automake
-./contrib/make_secp
-```
-
-On MacOS:
-```shell
-brew install coreutils automake
-./contrib/make_secp
-```
-
-or if using MacPorts: `sudo port install coreutils automake`
 
 ## Compiling the icons file for Qt
 
