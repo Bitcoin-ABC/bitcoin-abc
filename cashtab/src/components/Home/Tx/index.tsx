@@ -1041,6 +1041,74 @@ const Tx: React.FC<TxProps> = ({
                       userLocale,
                   )
                 : '0';
+        const amountLabel = typeof decimals === 'number' ? formattedAmount : '';
+
+        let tokenDesc: string;
+        switch (renderedTxType) {
+            case ParsedTokenTxType.FanOut: {
+                tokenDesc = `Created ${nftFanInputsCreated} NFT Mint Input${
+                    (nftFanInputsCreated as number) > 1 ? 's' : ''
+                }`;
+                break;
+            }
+            case ParsedTokenTxType.AgoraOffer: {
+                tokenDesc = `Listed ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case ParsedTokenTxType.AgoraRelist: {
+                tokenDesc = `Relisted ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case ParsedTokenTxType.BlitzPlay: {
+                tokenDesc = `Blitz play ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case ParsedTokenTxType.AgoraBuy: {
+                tokenDesc = `Bought ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case ParsedTokenTxType.AgoraSale: {
+                tokenDesc = `Sold ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case ParsedTokenTxType.AgoraCancel: {
+                tokenDesc = `Canceled offer ${
+                    typeof decimals === 'number' ? `of ${formattedAmount}` : ''
+                } ${tokenTicker}`;
+                break;
+            }
+            case 'BURN': {
+                tokenDesc = `Burned ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case 'SEND': {
+                tokenDesc = `${xecTxType} ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case 'MINT': {
+                tokenDesc = `Minted ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case 'GENESIS': {
+                tokenDesc =
+                    renderedTokenType === 'NFT'
+                        ? `Minted ${amountLabel} ${tokenTicker}`
+                        : `Created ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            case 'NONE': {
+                tokenDesc =
+                    renderedTokenType === 'Collection'
+                        ? `Burned 1 ${tokenTicker}`
+                        : `${renderedTxType} ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+            default: {
+                tokenDesc = `${renderedTxType} ${amountLabel} ${tokenTicker}`;
+                break;
+            }
+        }
+
         tokenActions.push(
             <TokenAction
                 tokenTxType={renderedTxType}
@@ -1062,87 +1130,7 @@ const Tx: React.FC<TxProps> = ({
                         </TokenName>
                     </TokenInfoCol>
                 </IconAndLabel>
-                <TokenDesc>
-                    {renderedTxType === ParsedTokenTxType.FanOut
-                        ? `Created ${nftFanInputsCreated} NFT Mint Input${
-                              (nftFanInputsCreated as number) > 1 ? 's' : ''
-                          }`
-                        : renderedTxType === ParsedTokenTxType.AgoraOffer
-                          ? `Listed ${
-                                typeof decimals === 'number'
-                                    ? formattedAmount
-                                    : ''
-                            } ${tokenTicker}`
-                          : renderedTxType === ParsedTokenTxType.AgoraRelist
-                            ? `Relisted ${
-                                  typeof decimals === 'number'
-                                      ? formattedAmount
-                                      : ''
-                              } ${tokenTicker}`
-                            : renderedTxType === ParsedTokenTxType.BlitzPlay
-                              ? `Blitz play ${
-                                    typeof decimals === 'number'
-                                        ? formattedAmount
-                                        : ''
-                                } ${tokenTicker}`
-                              : renderedTxType === ParsedTokenTxType.AgoraBuy
-                                ? `Bought ${
-                                      typeof decimals === 'number'
-                                          ? formattedAmount
-                                          : ''
-                                  } ${tokenTicker}`
-                                : renderedTxType === ParsedTokenTxType.AgoraSale
-                                  ? `Sold ${
-                                        typeof decimals === 'number'
-                                            ? formattedAmount
-                                            : ''
-                                    } ${tokenTicker}`
-                                  : renderedTxType ===
-                                      ParsedTokenTxType.AgoraCancel
-                                    ? `Canceled offer ${
-                                          typeof decimals === 'number'
-                                              ? `of ${formattedAmount}`
-                                              : ''
-                                      } ${tokenTicker}`
-                                    : renderedTxType === 'BURN'
-                                      ? `Burned ${
-                                            typeof decimals === 'number'
-                                                ? formattedAmount
-                                                : ''
-                                        } ${tokenTicker}`
-                                      : renderedTxType === 'SEND'
-                                        ? `${xecTxType} ${
-                                              typeof decimals === 'number'
-                                                  ? formattedAmount
-                                                  : ''
-                                          } ${tokenTicker}`
-                                        : renderedTxType === 'MINT' ||
-                                            (renderedTxType === 'GENESIS' &&
-                                                renderedTokenType === 'NFT')
-                                          ? `Minted ${
-                                                typeof decimals === 'number'
-                                                    ? formattedAmount
-                                                    : ''
-                                            } ${tokenTicker}`
-                                          : renderedTxType === 'NONE' &&
-                                              renderedTokenType === 'Collection'
-                                            ? `Burned 1 ${
-                                                  typeof decimals === 'number'
-                                                      ? formattedAmount
-                                                      : ''
-                                              } ${tokenTicker}`
-                                            : renderedTxType === 'GENESIS'
-                                              ? `Created ${
-                                                    typeof decimals === 'number'
-                                                        ? formattedAmount
-                                                        : ''
-                                                } ${tokenTicker}`
-                                              : `${renderedTxType} ${
-                                                    typeof decimals === 'number'
-                                                        ? formattedAmount
-                                                        : ''
-                                                } ${tokenTicker}`}
-                </TokenDesc>
+                <TokenDesc>{tokenDesc}</TokenDesc>
             </TokenAction>,
         );
     }
