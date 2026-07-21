@@ -79,6 +79,11 @@ On Windows, you can download a recent `Electrum-ABC-X.Y.Z-setup.exe` release fil
 and use `7z` to extract `libsecp256k1-0.dll` from it, and copy it to the `electrumabc`
 subfolder.
 
+### PyQt5 with Python 3.12+
+
+For python versions superior or equal to 3.12, `pyqt5>=5.15.11` must be installed to avoid
+a segmentation fault caused by PyQt5.
+
 ## Running Electrum ABC from source
 
 If you installed the application as a python package, you can run it from anywhere
