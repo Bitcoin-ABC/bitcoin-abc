@@ -184,6 +184,19 @@ class TeamCity:
             pass
         return None
 
+    @staticmethod
+    def format_ai_review(review):
+        """Strip the CodeRabbit CLI preamble before the review section.
+
+        The CLI prints a "What's new" banner and other noise before the actual
+        review. Keep everything from the "CodeRabbit Review" header onward.
+        """
+        marker = "CodeRabbit Review"
+        idx = review.find(marker)
+        if idx == -1:
+            return review
+        return review[idx:]
+
     def getBuildProblems(self, buildId):
         endpoint = self.build_url(
             "app/rest/problemOccurrences",

@@ -1183,11 +1183,18 @@ class EndpointStatusTestCase(ABCBotFixture):
         data.buildResult = "success"
         data.branch = "phabricator/diff/456"
 
-        ai_review = (
+        review_body = (
+            "CodeRabbit Review\n"
             "Critical: Missing error handling in server.py\n"
-            "Minor: Prefer early return in teamcity_wrapper.py"
+            "Minor: Prefer early return in teamcity_wrapper.py\n"
         )
-        self.teamcity.getAiReview.return_value = ai_review
+        self.teamcity.getAiReview.return_value = (
+            "────────────────────────────────────────\n"
+            "CodeRabbit CLI 0.6.5\n"
+            "What's new\n"
+            "────────────────────────────────────────\n"
+            f"{review_body}"
+        )
 
         self.configure_build_info(
             properties=test.mocks.teamcity.buildInfo_properties(
@@ -1229,7 +1236,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                     "type": "comment",
                     "value": (
                         f"Build [[{build_url} | build-name (ai-review)]] passed.\n"
-                        f"{ai_review}\n"
+                        f"{review_body}\n"
                     ),
                 }
             ],

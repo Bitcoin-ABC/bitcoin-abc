@@ -1146,7 +1146,7 @@ def create_server(
                 ai_review = tc.getAiReview(buildId)
                 if ai_review:
                     msg = phab.createBuildStatusMessage(status, guest_url, buildName)
-                    msg += f"\n{ai_review}\n"
+                    msg += f"\n{tc.format_ai_review(ai_review)}\n"
 
                     phab.commentOnRevision(revisionPHID, msg, buildName)
 

@@ -821,6 +821,42 @@ class TeamcityTests(unittest.TestCase):
             },
         )
 
+    def test_format_ai_review(self):
+        review_body = (
+            "CodeRabbit Review\n"
+            "\n"
+            "Diff : committed changes only\n"
+            "────────────────────────────────────────\n"
+            "Review complete\n"
+            "No findings ✔\n"
+        )
+        full_output = (
+            "────────────────────────────────────────\n"
+            "CodeRabbit CLI 0.6.5\n"
+            "What's new\n"
+            "\n"
+            "Auth : SSO login handles multi-provider workspaces\n"
+            "────────────────────────────────────────\n"
+            "\n"
+            "────────────────────────────────────────\n"
+            f"{review_body}"
+        )
+
+        self.assertEqual(
+            self.teamcity.format_ai_review(full_output),
+            review_body,
+        )
+        # Already trimmed output is returned unchanged
+        self.assertEqual(
+            self.teamcity.format_ai_review(review_body),
+            review_body,
+        )
+        # Missing marker: return the original content
+        self.assertEqual(
+            self.teamcity.format_ai_review("no review header here\n"),
+            "no review header here\n",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
