@@ -64,20 +64,25 @@ const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
         setClaimPending(true);
         let claimResponse;
         try {
-            claimResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(
-                            buildTokenRewardClaimBody(recaptchaToken),
-                        ),
+            const response = await fetch(
+                `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                )
-            ).json();
+                    body: JSON.stringify(
+                        buildTokenRewardClaimBody(recaptchaToken),
+                    ),
+                },
+            );
+            try {
+                claimResponse = await response.json();
+            } catch {
+                throw new Error(
+                    `Token rewards server returned non-JSON response (${response.status})`,
+                );
+            }
             setClaimPending(false);
             console.info(claimResponse);
             if ('error' in claimResponse) {
@@ -98,6 +103,12 @@ const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
                     );
                 }
                 throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
+            }
+            // Non-OK JSON without `error` must not toast success (=== false keeps mocks OK)
+            if (response.ok === false) {
+                throw new Error(
+                    `Token rewards server returned ${response.status}`,
+                );
             }
             toast.success('Rewards claimed!');
             onClaimSuccess();
@@ -157,11 +168,16 @@ const Rewards = () => {
     const getIsEligible = async (address: string) => {
         let serverResponse;
         try {
-            serverResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/is-eligible/${address}`,
-                )
-            ).json();
+            const response = await fetch(
+                `${tokenConfig.rewardsServerBaseUrl}/is-eligible/${address}`,
+            );
+            // === false: mocks that omit `ok` must still succeed (see useWallet)
+            if (response.ok === false) {
+                throw new Error(
+                    `Token rewards server returned ${response.status}`,
+                );
+            }
+            serverResponse = await response.json();
             // Could help in debugging from user reports
             console.info(serverResponse);
             const { isEligible } = serverResponse;

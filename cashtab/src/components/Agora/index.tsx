@@ -149,9 +149,15 @@ const Agora: React.FC = () => {
 
         let blacklist: string[];
         try {
-            const serverBlacklistResponse: ServerBlacklistResponse = await (
-                await fetch(`${tokenConfig.blacklistServerUrl}/blacklist`)
-            ).json();
+            const response = await fetch(
+                `${tokenConfig.blacklistServerUrl}/blacklist`,
+            );
+            // === false: mocks that omit `ok` must still succeed (see useWallet)
+            if (response.ok === false) {
+                throw new Error(`Blacklist server returned ${response.status}`);
+            }
+            const serverBlacklistResponse: ServerBlacklistResponse =
+                await response.json();
             blacklist = serverBlacklistResponse.tokenIds;
             if (!Array.isArray(blacklist)) {
                 throw new Error('Error parsing server response');

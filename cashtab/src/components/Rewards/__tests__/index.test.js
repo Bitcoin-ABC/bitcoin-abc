@@ -264,4 +264,59 @@ describe('<Rewards />', () => {
             ),
         ).toBeInTheDocument();
     });
+    it('Does not toast success when claim returns non-OK JSON without an error field', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        const address = walletWithXecAndTokensActive.address;
+
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.rewardsServerBaseUrl}/is-eligible/${address}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ address, isEligible: true }),
+            });
+
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: MOCKED_RECAPTCHA_V3_TOKEN }),
+                },
+            )
+            .mockResolvedValue({
+                ok: false,
+                status: 500,
+                json: () =>
+                    Promise.resolve({
+                        address,
+                        msg: 'upstream gateway timeout',
+                    }),
+            });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/rewards" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const claimButton = await screen.findByRole('button', {
+            name: /Claim/,
+        });
+        await waitFor(() => expect(claimButton).toBeEnabled());
+        await userEvent.click(claimButton);
+
+        expect(
+            await screen.findByText('Error: Token rewards server returned 500'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('Rewards claimed!')).not.toBeInTheDocument();
+    });
 });
