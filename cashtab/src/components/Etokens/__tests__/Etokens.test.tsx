@@ -21,6 +21,20 @@ import { when } from 'jest-when';
 import appConfig from 'config/app';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 
+/**
+ * Wait for app boot, then for the Etokens list to finish its initial render
+ * (Loading tokens → Wallet Tokens).
+ */
+const awaitEtokensReady = async () => {
+    await waitFor(() =>
+        expect(screen.queryByTitle('Cashtab Loading')).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+        expect(screen.queryByTitle('Loading tokens')).not.toBeInTheDocument(),
+    );
+    expect(screen.getByTitle('Wallet Tokens')).toBeInTheDocument();
+};
+
 describe('<Etokens />', () => {
     beforeEach(() => {
         // Mock the fetch call for Cashtab's price API
@@ -57,26 +71,17 @@ describe('<Etokens />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/etokens" />);
 
-        // The Etokens page is rendered
-        expect(await screen.findByTitle('Wallet Tokens')).toBeInTheDocument();
-
-        // Wait for loader to be gone
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Loading tokens'),
-            ).not.toBeInTheDocument(),
-        );
+        await awaitEtokensReady();
 
         const renderedTokens = screen.getAllByTitle('Token List Item');
+        // We render all 57 tokens
+        expect(renderedTokens).toHaveLength(57);
 
         // The 'All' switch is "on" on load
         const showAllSwitch = screen.getByTitle('Toggle All');
         expect(showAllSwitch).toHaveProperty('checked', true);
         // The 'All' switch is disabled when it is on
         expect(showAllSwitch).toHaveProperty('disabled', true);
-
-        // We render all 57 tokens
-        expect(renderedTokens).toHaveLength(57);
 
         // Tokens are sorted alphabetically
         expect(renderedTokens[0]).toHaveTextContent('223');
@@ -185,13 +190,7 @@ describe('<Etokens />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/etokens" />);
 
-        expect(await screen.findByTitle('Wallet Tokens')).toBeInTheDocument();
-
-        await waitFor(() =>
-            expect(
-                screen.queryByTitle('Loading tokens'),
-            ).not.toBeInTheDocument(),
-        );
+        await awaitEtokensReady();
 
         // User holds the NFT but not the collection token in "All" view
         expect(screen.getAllByTitle('Token List Item')).toHaveLength(56);

@@ -119,7 +119,10 @@ const Etokens = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { loading, cashtabState, ecashWallet, chronik, updateCashtabState } =
+    // Note: do not key the token list off context `loading`. updateCashtabState
+    // sets that for any storage write (including background collection-cache
+    // hydration), which would unmount the list and flake tests / flash the UI.
+    const { cashtabState, ecashWallet, chronik, updateCashtabState } =
         ContextValue;
     const { cashtabCache, tokens } = cashtabState;
 
@@ -373,7 +376,7 @@ const Etokens = () => {
     };
     return (
         <>
-            {loading || renderedTokens === null ? (
+            {renderedTokens === null ? (
                 <LoadingCtn title="Loading tokens" />
             ) : (
                 <EtokensCtn title="Wallet Tokens">
