@@ -591,6 +591,25 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'AlphaSoloPool.com',
     },
+    // mkpool.com - parsed from payout script (payout script changes every
+    // block depending on the miner; this is not reliable so we realy on
+    // identifying via coinbase instead)
+    {
+        height: '958611',
+        coinbaseHex:
+            '0393a00e0c2f6d6b706f6f6c2e636f6d2fd8103ca861ff000000000000',
+        payoutOutputScript:
+            '76a9145d9f5be157f66eec68b98e30a9cdc53f6b04112488ac',
+        parsed: 'mkpool.com',
+    },
+    // mkpool.com - parsed from coinbase hex fragment
+    {
+        height: '958611',
+        coinbaseHex:
+            '0393a00e0c2f6d6b706f6f6c2e636f6d2fd8103ca861ff000000000000',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'mkpool.com',
+    },
 ];
 
 export default minerTestFixtures;

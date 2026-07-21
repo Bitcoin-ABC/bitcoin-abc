@@ -252,6 +252,14 @@ const miners: Miners = {
                 coinbaseHexFragment: '416c706861536f6c6f506f6f6c2e636f6d', // ascii AlphaSoloPool.com
             },
         ],
+        [
+            // NB payout script changes every block; identify via coinbase only
+            '76a9145d9f5be157f66eec68b98e30a9cdc53f6b04112488ac',
+            {
+                miner: 'mkpool.com',
+                coinbaseHexFragment: '6d6b706f6f6c2e636f6d', // ascii mkpool.com
+            },
+        ],
     ],
 };
 
