@@ -36,7 +36,7 @@
     },
     "dependencies": {
         "@types/ws": "^8.18.1",
-        "axios": "^1.16.1",
+        "axios": "^1.18.0",
         "ecashaddrjs": "workspace:^",
         "isomorphic-ws": "^4.0.1",
         "long": "^4.0.0",
