@@ -1240,27 +1240,6 @@ builds:
         templates:
             - js-mocha
 
-    the-overmind-tests:
-        runOnDiffRegex:
-            - pnpm-lock.yaml
-            - apps/the-overmind/
-            - modules/chronik-client/
-            - modules/ecash-lib/
-            - modules/ecash-wallet/
-            - modules/ecashaddrjs/
-            - modules/ecash-lib-wasm/
-            - modules/b58-ts/
-        env:
-            JS_PROJECT_ROOT: apps/the-overmind
-            RUN_NPM_BUILD: 'true'
-        depends:
-            - ecashaddrjs
-            - chronik-client
-            - ecash-lib
-            - ecash-wallet
-        templates:
-            - js-mocha
-
     ecash-price:
         script: |
             corepack enable

@@ -621,88 +621,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  apps/the-overmind:
-    dependencies:
-      chronik-client:
-        specifier: workspace:^
-        version: link:../../modules/chronik-client
-      cron:
-        specifier: ^4.4.0
-        version: 4.4.0
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.4.2
-      ecash-lib:
-        specifier: workspace:^
-        version: link:../../modules/ecash-lib
-      ecash-wallet:
-        specifier: workspace:^
-        version: link:../../modules/ecash-wallet
-      ecashaddrjs:
-        specifier: workspace:^
-        version: link:../../modules/ecashaddrjs
-      grammy:
-        specifier: ^1.44.0
-        version: 1.44.0
-      pg:
-        specifier: ^8.16.3
-        version: 8.20.0
-      qrcode-terminal:
-        specifier: ^0.12.0
-        version: 0.12.0
-    devDependencies:
-      '@types/chai':
-        specifier: ^5.2.3
-        version: 5.2.3
-      '@types/mocha':
-        specifier: ^10.0.10
-        version: 10.0.10
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.12.2
-      '@types/pg':
-        specifier: ^8.15.5
-        version: 8.20.0
-      '@types/qrcode-terminal':
-        specifier: ^0.12.0
-        version: 0.12.2
-      '@types/sinon':
-        specifier: ^17.0.4
-        version: 17.0.4
-      '@types/sinon-chai':
-        specifier: ^4.0.0
-        version: 4.0.0
-      chai:
-        specifier: ^6.2.1
-        version: 6.2.2
-      chai-as-promised:
-        specifier: ^8.0.2
-        version: 8.0.2(chai@6.2.2)
-      mocha:
-        specifier: ^11.7.5
-        version: 11.7.5
-      mocha-junit-reporter:
-        specifier: ^2.2.1
-        version: 2.2.1(mocha@11.7.5)
-      mocha-suppress-logs:
-        specifier: ^0.6.0
-        version: 0.6.0
-      pg-mem:
-        specifier: ^3.0.5
-        version: 3.0.14
-      sinon:
-        specifier: ^21.0.0
-        version: 21.1.2
-      sinon-chai:
-        specifier: ^4.0.1
-        version: 4.0.1(chai@6.2.2)(sinon@21.1.2)
-      tsx:
-        specifier: ^4.20.6
-        version: 4.21.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   apps/token-server:
     dependencies:
       axios:
@@ -5580,9 +5498,6 @@ packages:
   '@types/luxon@3.4.2':
     resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
 
-  '@types/luxon@3.7.1':
-    resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
-
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
 
@@ -5643,9 +5558,6 @@ packages:
   '@types/pulltorefreshjs@0.1.7':
     resolution: {integrity: sha512-Y0g/yfuycIvpvUmP97n5NE2+HDAOwfREGVERjhMWw2Y0ODh5wvbflcQ5gXPZ+ihgoq+BQZjA1DL8apw2wAsJXA==}
 
-  '@types/qrcode-terminal@0.12.2':
-    resolution: {integrity: sha512-v+RcIEJ+Uhd6ygSQ0u5YYY7ZM+la7GgPbs0V/7l/kFs2uO4S8BcIUEMoP7za4DNIqNnUD5npf0A/7kBhrCKG5Q==}
-
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
 
@@ -5696,12 +5608,6 @@ packages:
 
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
-
-  '@types/sinon-chai@4.0.0':
-    resolution: {integrity: sha512-Uar+qk3TmeFsUWCwtqRNqNUE7vf34+MCJiQJR5M2rd4nCbhtE8RgTiHwN/mVwbfCjhmO6DiOel/MgzHkRMJJFg==}
-
-  '@types/sinon@17.0.4':
-    resolution: {integrity: sha512-RHnIrhfPO3+tJT0s7cFaXGZvsL4bbR3/k7z3P312qMS4JaS2Tk+KiwiLx1S0rQ56ERj00u1/BtdyVd0FY+Pdew==}
 
   '@types/sinon@20.0.0':
     resolution: {integrity: sha512-etYGUC6IEevDGSWvR9WrECRA01ucR2/Oi9XMBUAdV0g4bLkNf4HlZWGiGlDOq5lgwXRwcV+PSeKgFcW4QzzYOg==}
@@ -7331,10 +7237,6 @@ packages:
 
   cron@3.5.0:
     resolution: {integrity: sha512-0eYZqCnapmxYcV06uktql93wNWdlTmmBFP2iYz+JPVcQqlyFYcn1lFuIk4R54pkOmE7mcldTAPZv6X5XA4Q46A==}
-
-  cron@4.4.0:
-    resolution: {integrity: sha512-fkdfq+b+AHI4cKdhZlppHveI/mgz2qpiYxcm+t5E5TsxX7QrLS1VE0+7GENEk9z0EeGPcpSciGv6ez24duWhwQ==}
-    engines: {node: '>=18.x'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -11576,10 +11478,6 @@ packages:
   qr-scanner@1.4.2:
     resolution: {integrity: sha512-kV1yQUe2FENvn59tMZW6mOVfpq9mGxGf8l6+EGaXUOd4RBOLg7tRC83OrirM5AtDvZRpdjdlXURsHreAOSPOUw==}
 
-  qrcode-terminal@0.12.0:
-    resolution: {integrity: sha512-EXtzRZmC+YGmGlDFbXKxQiMZNwCLEO6BANKXG4iCtSIM0yqc/pappSx3RIKr4r0uh5JsBckOXeKrB3Iz7mdQpQ==}
-    hasBin: true
-
   qrcode.react@4.2.0:
     resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
     peerDependencies:
@@ -12263,12 +12161,6 @@ packages:
 
   simple-swizzle@0.2.4:
     resolution: {integrity: sha512-nAu1WFPQSMNr2Zn9PGSZK9AGn4t/y97lEm+MXTtUDwfP0ksAIX4nO+6ruD9Jwut4C49SB1Ws+fbXsm/yScWOHw==}
-
-  sinon-chai@4.0.1:
-    resolution: {integrity: sha512-xMKEEV3cYHC1G+boyr7QEqi80gHznYsxVdC9CdjP5JnCWz/jPGuXQzJz3PtBcb0CcHAxar15Y5sjLBoAs6a0yA==}
-    peerDependencies:
-      chai: ^5.0.0 || ^6.0.0
-      sinon: '>=4.0.0'
 
   sinon@21.1.2:
     resolution: {integrity: sha512-FS6mN+/bx7e2ajpXkEmOcWB6xBzWiuNoAQT18/+a20SS4U7FSYl8Ms7N6VTUxN/1JAjkx7aXp+THMC8xdpp0gA==}
@@ -18677,8 +18569,6 @@ snapshots:
 
   '@types/luxon@3.4.2': {}
 
-  '@types/luxon@3.7.1': {}
-
   '@types/markdown-it@14.1.2':
     dependencies:
       '@types/linkify-it': 5.0.0
@@ -18739,8 +18629,6 @@ snapshots:
   '@types/prismjs@1.26.6': {}
 
   '@types/pulltorefreshjs@0.1.7': {}
-
-  '@types/qrcode-terminal@0.12.2': {}
 
   '@types/qrcode@1.5.6':
     dependencies:
@@ -18817,15 +18705,6 @@ snapshots:
     dependencies:
       '@types/http-errors': 2.0.5
       '@types/node': 20.19.39
-
-  '@types/sinon-chai@4.0.0':
-    dependencies:
-      '@types/chai': 4.3.20
-      '@types/sinon': 20.0.0
-
-  '@types/sinon@17.0.4':
-    dependencies:
-      '@types/sinonjs__fake-timers': 8.1.5
 
   '@types/sinon@20.0.0':
     dependencies:
@@ -21033,11 +20912,6 @@ snapshots:
     dependencies:
       '@types/luxon': 3.4.2
       luxon: 3.5.0
-
-  cron@4.4.0:
-    dependencies:
-      '@types/luxon': 3.7.1
-      luxon: 3.7.2
 
   cross-spawn@7.0.6:
     dependencies:
@@ -26894,8 +26768,6 @@ snapshots:
     dependencies:
       '@types/offscreencanvas': 2019.7.3
 
-  qrcode-terminal@0.12.0: {}
-
   qrcode.react@4.2.0(react@19.2.5):
     dependencies:
       react: 19.2.5
@@ -27895,11 +27767,6 @@ snapshots:
   simple-swizzle@0.2.4:
     dependencies:
       is-arrayish: 0.3.4
-
-  sinon-chai@4.0.1(chai@6.2.2)(sinon@21.1.2):
-    dependencies:
-      chai: 6.2.2
-      sinon: 21.1.2
 
   sinon@21.1.2:
     dependencies:
