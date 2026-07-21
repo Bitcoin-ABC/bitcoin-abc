@@ -55,50 +55,44 @@ One BIP39 mnemonic; HD path `m/44'/1899'/{account}'/0/0`:
 
 ## Config model (planned)
 
-Operators choose which pairs to trade, inventory sizes, and fees. There is
-**no default trading config in the repo** — each deployment sets its own
-allowlist.
+Operators choose which pairs to trade, inventory sizes, fees, and listen
+port. There is **no default trading allowlist in the repo** — each
+deployment copies `config.sample.json` → `config.json` and edits it.
+`config.json` is the single runtime config file (required at the package
+root, gitignored). No `.env` file.
 
-Config is supplied via **environment variables** (not committed config
-files). Two encodings are planned for the same logical settings:
+### `config.json`
 
-1. **Flat env vars with CSV-shaped values** — easy to set in CI / Docker /
-   secret stores without embedding a multi-line document. Example:
-   `TRADED_PAIRS=tokenIdA:tokenIdB,tokenIdC:tokenIdD`.
-2. **`TRADED_CONFIG` as a JSON document** — same content in one human-readable
-   blob when an operator manages many pairs locally. Prefer this for large
-   configs; prefer flat CSV-shaped vars for deploy automation.
+| Field   | Purpose             |
+| ------- | ------------------- |
+| `port`  | HTTP listen port    |
+| `pairs` | Non-empty pair list |
 
-Use one path or the other for the pair allowlist (do not mix conflicting
-sources). “CSV” / “JSON” here means **how the env var value is encoded**,
-not separate on-disk product formats.
+No global default fee or utxo size. Each pair must set:
 
-### Required
+| Field      | Purpose                                               |
+| ---------- | ----------------------------------------------------- |
+| `aTokenId` | 64-hex ALP token id                                   |
+| `bTokenId` | 64-hex ALP token id (undirected with `aTokenId`)      |
+| `feePct`   | Maker fee as a decimal in `[0, 1]` (e.g. `0.01` = 1%) |
+| `aUtxoQty` | Inventory UTXO size (human units) for `aTokenId`      |
+| `bUtxoQty` | Inventory UTXO size (human units) for `bTokenId`      |
 
-| Variable                          | Purpose                                 |
-| --------------------------------- | --------------------------------------- |
-| `MNEMONIC_SECRET`                 | BIP39 mnemonic                          |
-| `DATABASE_CONNECTION_STRING`      | Postgres URL (apply `schema.sql` first) |
-| `TRADED_PAIRS` or `TRADED_CONFIG` | Pair allowlist (see encodings above)    |
+Later slices may add more top-level fields (e.g. mnemonic, database URL)
+to the same file. To add more tokens, append another object to `pairs[]`.
+If the same token appears in multiple pairs, its utxoQty must match in
+every pair. The process exits on startup if `config.json` is missing.
 
-### Trading / inventory
+Postage stamp size is **not** configurable: fixed at `POSTAGE_SATS = 1000`
+(10 XEC) in code. Inventory automation should mint stamps from all loose
+slush XEC; there is no `mintBatch` config.
 
-| Variable             | Purpose                                                        |
-| -------------------- | -------------------------------------------------------------- |
-| `TRADED_PAIRS`       | Env value: `tokenIdA:tokenIdB,...` (both directions implied)   |
-| `TOKEN_UTXO_QTY`     | Env value: optional `tokenId:qty,...` overrides                |
-| `DEX_UTXO_QTY`       | Default human inventory UTXO size                              |
-| `SWAP_FEE_PCT`       | Maker fee when using the flat/`TRADED_PAIRS` path              |
-| `POSTAGE_SATS`       | Postage stamp size (sats)                                      |
-| `POSTAGE_MINT_BATCH` | Max stamps minted per maintain pass                            |
-| `TRADED_CONFIG`      | Env value: JSON document with pairs / fees / utxoQty / postage |
+### Coordinator opt-in (planned `config.json` fields)
 
-### Coordinator opt-in
-
-| Variable               | Purpose                                                                           |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| `PLATFORM_FEE_ENABLED` | When true, templates/settle inject and validate coordinator fee outs              |
-| Coordinator base URL   | Fetch live `platformFeePct` + `platformFeeAddress` from coordinator `/api/status` |
+| Field                | Purpose                                                                           |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `platformFeeEnabled` | When true, templates/settle inject and validate coordinator fee outs              |
+| Coordinator base URL | Fetch live `platformFeePct` + `platformFeeAddress` from coordinator `/api/status` |
 
 `GET /api/v1/status` advertises `platformFeeEnabled` so a coordinator can
 discover makers that opt into fee enforcement before whitelisting them.
@@ -171,7 +165,7 @@ can still race.
 
 ## HTTP API (planned)
 
-Listen port from env `PORT` (see `env.sample`; sample default **3003**).
+Listen port from `config.json` `port` (sample default **3003**).
 CORS open for browser takers. Rate-limited.
 
 | Method | Path                                     | Purpose                                              |

@@ -2,5 +2,5 @@ node_modules/
 dist/
 coverage/
 test_results/
-.env
+config.json
 *.log

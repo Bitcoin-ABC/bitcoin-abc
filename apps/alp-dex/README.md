@@ -2,6 +2,16 @@
 
 Protocol and API detail: [SPEC.md](./SPEC.md) (**spec version 1**).
 
+## Configure
+
+```bash
+cp config.sample.json config.json
+# edit config.json — port, token ids, feePct, utxo sizes
+```
+
+All runtime settings live in `config.json` (see SPEC). It is required at the
+package root and is gitignored. The app exits on startup if it is missing.
+
 ## Why ALP needs an open AMM node
 
 ALP tokens trade on eCash today mainly through custodial venues, one-off
@@ -30,9 +40,9 @@ Must provide:
 2. **Local-liquidity pricing** — spot and size quotes from **seller +
    slush** atom reserves (constant-product). Fills spend **seller**
    inventory only.
-3. **Permissionless pairs** — operators choose which `tokenId` pairs to
-   trade via env config (flat CSV-shaped vars and/or a JSON `TRADED_CONFIG`
-   blob; no default trading config in-repo — see SPEC).
+3. **Permissionless pairs** — operators copy `config.sample.json` →
+   `config.json` and set which `tokenId` pairs to trade (no default
+   allowlist in-repo — see SPEC).
 4. **Postage-protocol settle (SPEC v1)** — taker builds and signs their side;
    the node adds XEC fuel + exact-size token UTXOs and broadcasts. Taker-pays
    all fees is possible in principle but out of scope for SPEC v1.
@@ -128,11 +138,10 @@ should ship tests a reviewer can run locally.
    trust model, end state, roadmap, SPEC (API + inventory + settle contract).
 2. **Scaffold [D20354](https://reviews.bitcoinabc.org/D20354)** — TypeScript
    package under `apps/alp-dex`, mocha, Express stub (`GET /`,
-   `GET /api/v1/status` health), `env.sample` (`PORT`), TeamCity
-   `alp-dex-tests`.
-3. **Config** — `tokenId` asserts; env parsers for flat CSV-shaped vars and
-   JSON `TRADED_CONFIG`; fee / postage / `utxoQty`; pure unit tests (no
-   Chronik).
+   `GET /api/v1/status` health), TeamCity `alp-dex-tests`.
+3. **Config [D20363](https://reviews.bitcoinabc.org/D20363)** — `tokenId`
+   asserts; required `config.json` (`port` + per-pair `feePct` / utxo sizes);
+   fixed `POSTAGE_SATS`; `config.sample.json`; pure unit tests (no Chronik).
 4. **Wallet / HD** — Derive seller / slush / fee (`m/44'/1899'/{account}'/0/0`);
    `FEE_ADDRESS` resolution; mnemonic script; reject address collisions.
 5. **Chronik sync + genesis** — Client wiring; genesis fetch; allowlisted
@@ -149,8 +158,7 @@ should ship tests a reviewer can run locally.
 10. **DB + ops** — `schema.sql`, swap audit inserts, summarize / rebalance
     scripts, optional Telegram message builders.
 11. **Coordinator opt-in + deploy** — Platform-fee source (mockable fetch),
-    status flag for whitelist discovery, Docker/nginx/`env.sample`, public
-    HTTPS checklist.
+    status flag for whitelist discovery, Docker/nginx, public HTTPS checklist.
 12. **Wallet + multi-server liquidity** — Cashtab (and others) consume
     whitelisted alp-dex URLs via a coordinator; quote → template → settle;
     best-of / split / failover across multiple LPs for the same pair.

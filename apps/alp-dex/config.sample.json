@@ -1,0 +1,12 @@
+{
+    "port": 3003,
+    "pairs": [
+        {
+            "aTokenId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bTokenId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "feePct": 0.01,
+            "aUtxoQty": 20,
+            "bUtxoQty": 1
+        }
+    ]
+}
