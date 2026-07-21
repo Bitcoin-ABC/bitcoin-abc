@@ -117,6 +117,11 @@ RUN pnpm --filter ecash-parse run build
 # Include devDependencies since we need them for the build
 RUN pnpm install --frozen-lockfile --offline --filter cashtab... --include-workspace-root
 
+# .env is gitignored. Prod supplies a real .env in the build context; preview
+# and local docker builds often do not. Copy env.sample only when missing so
+# Vite has required vars (e.g. reCAPTCHA sitekey) without overwriting prod.
+RUN test -f cashtab/.env || cp cashtab/env.sample cashtab/.env
+
 # Build cashtab from monorepo root
 RUN pnpm --filter cashtab run build
 
