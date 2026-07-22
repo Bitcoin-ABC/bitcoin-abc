@@ -1,6 +1,6 @@
-require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+require_relative '../../../node_modules/.pnpm/@capacitor+ios@8.4.2_@capacitor+core@8.4.2/node_modules/@capacitor/ios/scripts/pods_helpers'
 
-platform :ios, '14.0'
+platform :ios, '15.0'
 use_frameworks!
 
 # workaround to avoid Xcode caching of Pods that requires
@@ -9,11 +9,15 @@ use_frameworks!
 install! 'cocoapods', :disable_input_output_paths => true
 
 def capacitor_pods
-  pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
-  pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
-  pod 'AparajitaCapacitorSecureStorage', :path => '../../node_modules/@aparajita/capacitor-secure-storage'
-  pod 'CapacitorCommunitySqlite', :path => '../../node_modules/@capacitor-community/sqlite'
-  pod 'CapacitorBarcodeScanner', :path => '../../node_modules/@capacitor/barcode-scanner'
+  pod 'Capacitor', :path => '../../../node_modules/.pnpm/@capacitor+ios@8.4.2_@capacitor+core@8.4.2/node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../../node_modules/.pnpm/@capacitor+ios@8.4.2_@capacitor+core@8.4.2/node_modules/@capacitor/ios'
+  pod 'AparajitaCapacitorBiometricAuth', :path => '../../../node_modules/.pnpm/@aparajita+capacitor-biometric-auth@10.0.0/node_modules/@aparajita/capacitor-biometric-auth'
+  pod 'AparajitaCapacitorSecureStorage', :path => '../../../node_modules/.pnpm/@aparajita+capacitor-secure-storage@8.0.0/node_modules/@aparajita/capacitor-secure-storage'
+  pod 'CapacitorCommunitySqlite', :path => '../../../node_modules/.pnpm/@capacitor-community+sqlite@8.1.0_@capacitor+core@8.4.2/node_modules/@capacitor-community/sqlite'
+  pod 'CapacitorFirebaseMessaging', :path => '../../../node_modules/.pnpm/@capacitor-firebase+messaging@8.3.0_@capacitor+core@8.4.2_firebase@12.16.0/node_modules/@capacitor-firebase/messaging'
+  pod 'CapacitorApp', :path => '../../../node_modules/.pnpm/@capacitor+app@8.1.1_@capacitor+core@8.4.2/node_modules/@capacitor/app'
+  pod 'CapacitorAppLauncher', :path => '../../../node_modules/.pnpm/@capacitor+app-launcher@8.0.1_@capacitor+core@8.4.2/node_modules/@capacitor/app-launcher'
+  pod 'CapacitorBarcodeScanner', :path => '../../../node_modules/.pnpm/@capacitor+barcode-scanner@3.1.0_@capacitor+core@8.4.2/node_modules/@capacitor/barcode-scanner'
 end
 
 target 'App' do
