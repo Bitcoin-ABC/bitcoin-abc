@@ -18,6 +18,7 @@ COPY pnpm-lock.yaml .
 COPY package.json .
 
 # Copy package.json files for dependency resolution
+COPY modules/ecashaddrjs/package.json ./modules/ecashaddrjs/
 COPY web/charts.e.cash/package.json ./web/charts.e.cash/
 
 # Copy vercel.json from app subdir to root (necessary for our pnpm CI)
@@ -27,7 +28,12 @@ COPY web/charts.e.cash/vercel.json ./vercel.json
 RUN pnpm fetch --frozen-lockfile
 
 # Copy source files
+COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
 COPY web/charts.e.cash/ ./web/charts.e.cash/
+
+# Install and build workspace dependency first
+RUN pnpm install --frozen-lockfile --offline --filter ecashaddrjs...
+RUN pnpm --filter ecashaddrjs run build
 
 # Install dependencies offline (using cached packages) - only for charts-e-cash and its dependencies
 RUN pnpm install --frozen-lockfile --offline --filter charts-e-cash...
