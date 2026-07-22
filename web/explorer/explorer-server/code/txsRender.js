@@ -48,23 +48,14 @@ const renderInput = data => {
     );
 };
 
-const escapeHtml = unsafe => {
-    return unsafe
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-};
-
 const renderOutput = (satsOutput, _type, row) => {
     if (row.token) {
         var ticker =
             '<a href="/token/' +
             row.tokenId +
-            '" class="num-col-suffix" data-suffix=' +
+            '" class="num-col-suffix" data-suffix="' +
             escapeHtml(row.token.tokenTicker) +
-            '></a>';
+            '"></a>';
         return renderAmount(row.stats.tokenOutput, row.token.decimals) + ticker;
     }
     return (

@@ -36,7 +36,7 @@ function renderRowsCoins(row, type, decimals, ticker) {
             '<div>' +
             renderAmount(row.tokenAmount, decimals) +
             ' ' +
-            ticker +
+            escapeHtml(ticker) +
             '</div>' +
             '</div>'
         );
@@ -226,7 +226,7 @@ const renderToken = (_value, _type, row) => {
             ' <a href="/tx/' +
             row.txHash +
             '">' +
-            row.token.tokenTicker +
+            escapeHtml(row.token.tokenTicker) +
             '</a>';
         return renderAmount(row.stats.deltaTokens, row.token.decimals) + ticker;
     }

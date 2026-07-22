@@ -78,8 +78,10 @@
                         Unknown
                         {% when _ %}
                         <a href="#"
-                           onclick="checkDocumentUri('{{ token_url }}');return false;"
-                           target="_blank">{{ token_url }}</a>
+                           data-document-uri="{{ token_url }}"
+                           onclick="checkDocumentUri(this);return false;"
+                           target="_blank"
+                           rel="noopener noreferrer">{{ token_url }}</a>
                     {% endmatch %}
                 </div>
             </div>
@@ -134,12 +136,16 @@
         </div>
     {% endif %}
     <script type="text/javascript">
-        const checkDocumentUri = address => {
-            if (!address.slice(0, 4).includes('http')) {
-                window.open('http://' + address, '_blank');
-            } else {
-                window.open(address, '_blank');
+        const checkDocumentUri = element => {
+            // data-document-uri is HTML-escaped by Askama
+            let address = element.getAttribute('data-document-uri');
+            if (!address) {
+                return;
             }
+            if (!/^https?:\/\//i.test(address)) {
+                address = 'http://' + address;
+            }
+            window.open(address, '_blank', 'noopener,noreferrer');
         };
     </script>
 {% endmacro %}

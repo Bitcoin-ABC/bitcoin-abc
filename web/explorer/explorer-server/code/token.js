@@ -25,7 +25,7 @@ const renderTokenAmount = (_value, _type, row) => {
             sign +
             renderAmount(amount, row.token.decimals) +
             ' ' +
-            row.token.tokenTicker +
+            escapeHtml(row.token.tokenTicker) +
             '</span>'
         );
     }
