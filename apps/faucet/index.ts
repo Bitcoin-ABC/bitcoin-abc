@@ -37,7 +37,7 @@ function tooManyRequests(res: Response) {
     });
 }
 function invalidAddress(res: Response, address: string, reason: string) {
-    res.status(406).json({
+    res.status(400).json({
         address,
         error: `Invalid eCash address (${reason})`,
     });
