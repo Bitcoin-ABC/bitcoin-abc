@@ -231,18 +231,23 @@ const Home: React.FC = () => {
         // expected to be eligible.
         let claimResponse;
         try {
-            claimResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${ecashWallet.address}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ token: recaptchaToken }),
+            const response = await fetch(
+                `${tokenConfig.rewardsServerBaseUrl}/claimxec/${ecashWallet.address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                )
-            ).json();
+                    body: JSON.stringify({ token: recaptchaToken }),
+                },
+            );
+            try {
+                claimResponse = await response.json();
+            } catch {
+                throw new Error(
+                    `Rewards server returned non-JSON response (${response.status})`,
+                );
+            }
             // Could help in debugging from user reports
             console.info(claimResponse);
             if ('error' in claimResponse) {
@@ -418,22 +423,25 @@ const NewWalletTokenRewardsClaimButton: React.FC<
         setTokenRewardsPending(true);
         let claimResponse;
         try {
-            claimResponse = await (
-                await fetch(
-                    `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(
-                            buildTokenRewardClaimBody(
-                                tokenRewardRecaptchaToken,
-                            ),
-                        ),
+            const response = await fetch(
+                `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                )
-            ).json();
+                    body: JSON.stringify(
+                        buildTokenRewardClaimBody(tokenRewardRecaptchaToken),
+                    ),
+                },
+            );
+            try {
+                claimResponse = await response.json();
+            } catch {
+                throw new Error(
+                    `Token rewards server returned non-JSON response (${response.status})`,
+                );
+            }
             console.info(claimResponse);
             if ('error' in claimResponse) {
                 throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
