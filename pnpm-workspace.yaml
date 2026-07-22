@@ -26,3 +26,4 @@ overrides:
     'shell-quote@>=1.1.0 <=1.8.3': '>=1.8.4'
     'immutable@>=4.0.0 <4.3.9': '4.3.9'
     'immutable@>=5.0.0 <5.1.8': '>=5.1.8'
+    'websocket-driver': '>=0.7.5'
