@@ -42,13 +42,18 @@ for careful takers, not a designed custodial loss path.
 
 ## Wallet model
 
-One BIP39 mnemonic; HD path `m/44'/1899'/{account}'/0/0`:
+One BIP39 mnemonic on the LP server; HD path `m/44'/1899'/{account}'/0/0`:
 
 | Account      | Role                                                                                                              |
 | ------------ | ----------------------------------------------------------------------------------------------------------------- |
 | **0 Seller** | Spendable inventory: exact-size traded-token UTXOs + postage stamps. Public swap address. Fills spend these only. |
 | **1 Slush**  | Deposit / change / LP reserve. Operator tops up here. Receives price-leg `fromToken` on settle.                   |
-| **2 Fee**    | Maker fee payout + misc sweep destination. Overridable via `FEE_ADDRESS` (must not collide with seller/slush).    |
+
+**Fee payout** is **not** an HD account on the server. Operators set a required
+`feeAddress` in `config.json`. The fee wallet should be off the server and
+does not need to be a hot wallet. Maker fees and misc sweeps pay out to that
+address only. Config rejects `feeAddress` equal to seller or slush. Provision
+the fee wallet from a seed that never reaches the LP host.
 
 **Pricing reserves** = seller + slush atom sums for each token.  
 **Fill selection** = seller UTXOs of configured inventory size only.
@@ -63,10 +68,12 @@ root, gitignored). No `.env` file.
 
 ### `config.json`
 
-| Field   | Purpose             |
-| ------- | ------------------- |
-| `port`  | HTTP listen port    |
-| `pairs` | Non-empty pair list |
+| Field        | Purpose                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `port`       | HTTP listen port                                                                        |
+| `mnemonic`   | Valid BIP39 English mnemonic; seeds seller + slush only                                 |
+| `feeAddress` | Required `ecash:` fee / misc-sweep payout (≠ seller/slush; off-server; need not be hot) |
+| `pairs`      | Non-empty pair list                                                                     |
 
 No global default fee or utxo size. Each pair must set:
 
@@ -78,8 +85,8 @@ No global default fee or utxo size. Each pair must set:
 | `aUtxoQty` | Inventory UTXO size (human units) for `aTokenId`      |
 | `bUtxoQty` | Inventory UTXO size (human units) for `bTokenId`      |
 
-Later slices may add more top-level fields (e.g. mnemonic, database URL)
-to the same file. To add more tokens, append another object to `pairs[]`.
+Later slices may add more top-level fields (e.g. database URL) to the same
+file. To add more tokens, append another object to `pairs[]`.
 If the same token appears in multiple pairs, its utxoQty must match in
 every pair. The process exits on startup if `config.json` is missing.
 

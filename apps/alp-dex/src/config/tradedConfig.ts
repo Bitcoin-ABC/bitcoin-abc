@@ -5,14 +5,25 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { assertTokenId } from '../methods/tokenId';
+import { assertEcashAddress, resolveLpAddresses } from '../wallet/accounts';
+import { assertBip39Mnemonic, MNEMONIC_PLACEHOLDER } from './mnemonic';
 import { canonicalizePair, pairKey, type TradedPair } from './tradedPairs';
 
 export const CONFIG_FILENAME = 'config.json';
 export const CONFIG_SAMPLE_FILENAME = 'config.sample.json';
+export { MNEMONIC_PLACEHOLDER };
 
 export type ParsedTradedConfig = {
     /** HTTP listen port */
     port: number;
+    /** Valid BIP39 English mnemonic; seeds seller + slush only */
+    mnemonic: string;
+    /**
+     * Fee / misc-sweep payout address (must not be seller/slush).
+     * The fee wallet should be off the server and does not need to be a hot
+     * wallet.
+     */
+    feeAddress: string;
     /** tokenId → inventory UTXO size in human units */
     utxoQtyByToken: Map<string, number>;
     pairs: TradedPair[];
@@ -102,9 +113,11 @@ export const getAlpDexRoot = (startDir: string = __dirname): string => {
 /**
  * Parse config JSON (see `config.sample.json`).
  *
- * Top-level `port` is required. Each pair must set `aTokenId`, `bTokenId`,
- * `feePct`, `aUtxoQty`, and `bUtxoQty`. Postage stamp size is fixed in code
- * (`POSTAGE_SATS`), not config.
+ * Top-level `port`, `mnemonic` (valid BIP39 English), and `feeAddress` are
+ * required. `feeAddress` must not be seller/slush (fee wallet should be off
+ * the server and does not need to be a hot wallet). Each pair must set
+ * `aTokenId`, `bTokenId`, `feePct`, `aUtxoQty`, and `bUtxoQty`. Postage stamp
+ * size is fixed in code (`POSTAGE_SATS`), not config.
  */
 export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
     let parsed: unknown;
@@ -126,6 +139,8 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
     }
     const obj = parsed as {
         port?: unknown;
+        mnemonic?: unknown;
+        feeAddress?: unknown;
         pairs?: unknown;
     };
 
@@ -133,6 +148,23 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         throw new Error('config.json port is required');
     }
     const port = parsePort(obj.port);
+
+    if (obj.mnemonic === undefined) {
+        throw new Error('config.json mnemonic is required');
+    }
+    const mnemonic = assertBip39Mnemonic(obj.mnemonic);
+
+    if (obj.feeAddress === undefined) {
+        throw new Error('config.json feeAddress is required');
+    }
+    if (typeof obj.feeAddress !== 'string') {
+        throw new Error(
+            `feeAddress must be a string (got ${typeof obj.feeAddress})`,
+        );
+    }
+    const feeAddress = assertEcashAddress(obj.feeAddress, 'feeAddress');
+    // Reject feeAddress == seller/slush early.
+    resolveLpAddresses(mnemonic, feeAddress);
 
     if (!Array.isArray(obj.pairs) || obj.pairs.length === 0) {
         throw new Error('config.json pairs must be a non-empty array');
@@ -206,6 +238,8 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
 
     return {
         port,
+        mnemonic,
+        feeAddress,
         utxoQtyByToken,
         pairs,
     };

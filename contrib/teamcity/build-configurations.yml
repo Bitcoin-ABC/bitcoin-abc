@@ -912,9 +912,23 @@ builds:
         runOnDiffRegex:
             - pnpm-lock.yaml
             - apps/alp-dex/
+            - modules/ecash-wallet/
+            - modules/mock-chronik-client/
+            - modules/ecashaddrjs/
+            - modules/chronik-client/
+            - modules/ecash-lib/
+            - modules/ecash-lib-wasm/
+            - modules/b58-ts/
+            - src/secp256k1/
         env:
             JS_PROJECT_ROOT: apps/alp-dex
             RUN_NPM_BUILD: 'true'
+        depends:
+            - ecashaddrjs
+            - chronik-client
+            - mock-chronik-client
+            - ecash-lib
+            - ecash-wallet
         templates:
             - js-mocha
 

@@ -78,6 +78,15 @@ importers:
 
   apps/alp-dex:
     dependencies:
+      chronik-client:
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
+      ecash-lib:
+        specifier: workspace:^
+        version: link:../../modules/ecash-lib
+      ecash-wallet:
+        specifier: workspace:^
+        version: link:../../modules/ecash-wallet
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -103,6 +112,9 @@ importers:
       mocha-junit-reporter:
         specifier: ^2.2.1
         version: 2.2.1(mocha@11.7.5)
+      mock-chronik-client:
+        specifier: workspace:^
+        version: link:../../modules/mock-chronik-client
       supertest:
         specifier: ^7.2.2
         version: 7.2.2

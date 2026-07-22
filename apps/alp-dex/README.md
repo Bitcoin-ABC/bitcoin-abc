@@ -6,11 +6,17 @@ Protocol and API detail: [SPEC.md](./SPEC.md) (**spec version 1**).
 
 ```bash
 cp config.sample.json config.json
-# edit config.json — port, token ids, feePct, utxo sizes
+# edit config.json — replace mnemonic + feeAddress placeholders, then pairs/port
+# feeAddress: off-server fee wallet (not seller/slush; need not be hot)
+
+pnpm print-addresses
 ```
 
 All runtime settings live in `config.json` (see SPEC). It is required at the
 package root and is gitignored. The app exits on startup if it is missing.
+`config.sample.json` uses placeholders — set a valid BIP39 English mnemonic and
+fee address before the config will parse. The fee wallet should be off the
+server and does not need to be a hot wallet.
 
 ## Why ALP needs an open AMM node
 
@@ -34,9 +40,9 @@ liquidity source.
 
 Must provide:
 
-1. **Self-hosted LP** — one mnemonic, three HD roles (seller / slush / fee),
-   Postgres for audit, Chronik for sync. No shared custody with a
-   coordinator.
+1. **Self-hosted LP** — one mnemonic for seller + slush HD roles, plus an
+   external `feeAddress` (off-server; need not be hot). Postgres for audit,
+   Chronik for sync. No shared custody with a coordinator.
 2. **Local-liquidity pricing** — spot and size quotes from **seller +
    slush** atom reserves (constant-product). Fills spend **seller**
    inventory only.
@@ -142,8 +148,9 @@ should ship tests a reviewer can run locally.
 3. **Config [D20363](https://reviews.bitcoinabc.org/D20363)** — `tokenId`
    asserts; required `config.json` (`port` + per-pair `feePct` / utxo sizes);
    fixed `POSTAGE_SATS`; `config.sample.json`; pure unit tests (no Chronik).
-4. **Wallet / HD** — Derive seller / slush / fee (`m/44'/1899'/{account}'/0/0`);
-   `FEE_ADDRESS` resolution; mnemonic script; reject address collisions.
+4. **Wallet / HD** — Derive seller / slush (`m/44'/1899'/{0,1}'/0/0`);
+   required `feeAddress` (off-server; need not be hot); `print-addresses`
+   script; reject fee/seller/slush collisions.
 5. **Chronik sync + genesis** — Client wiring; genesis fetch; allowlisted
    `TradedTokens`; wallet `sync()` against mock Chronik.
 6. **Pricing** — Wire local seller+slush reserves into constant-product

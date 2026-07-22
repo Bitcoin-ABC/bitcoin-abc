@@ -1,5 +1,7 @@
 {
     "port": 3003,
+    "mnemonic": "REPLACE_WITH_YOUR_BIP39_MNEMONIC",
+    "feeAddress": "ecash:REPLACE_WITH_YOUR_FEE_ADDRESS",
     "pairs": [
         {
             "aTokenId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

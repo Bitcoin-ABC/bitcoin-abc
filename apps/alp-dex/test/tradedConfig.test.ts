@@ -11,6 +11,7 @@ import {
     CONFIG_SAMPLE_FILENAME,
     getAlpDexRoot,
     loadTradedConfig,
+    MNEMONIC_PLACEHOLDER,
     parseTradedConfigJson,
     tokenIdsFromConfig,
 } from '../src/config/tradedConfig';
@@ -18,6 +19,11 @@ import {
 const TOKEN_A = 'aa'.repeat(32);
 const TOKEN_B = 'bb'.repeat(32);
 const TOKEN_C = 'cc'.repeat(32);
+
+const SAMPLE_MNEMONIC =
+    'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+const SAMPLE_FEE = 'ecash:qrwzys2q6xq98vwz0kjn6ulu5m6yljr5fyc909kalg';
+const SELLER = 'ecash:qq86jv6h0y97q8l63ndynvk3fn9aq8fqru3exew8gl';
 
 const samplePath = path.join(getAlpDexRoot(), CONFIG_SAMPLE_FILENAME);
 
@@ -29,21 +35,47 @@ const pair = (
     bUtxoQty: number,
 ) => ({ aTokenId, bTokenId, feePct, aUtxoQty, bUtxoQty });
 
+const withBase = (overrides: Record<string, unknown> = {}) =>
+    JSON.stringify({
+        port: 3003,
+        mnemonic: SAMPLE_MNEMONIC,
+        feeAddress: SAMPLE_FEE,
+        pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
+        ...overrides,
+    });
+
 describe('tradedConfig', () => {
-    it('parses config.sample.json', () => {
+    it('config.sample.json uses non-usable placeholders (must be replaced)', () => {
         const raw = fs.readFileSync(samplePath, 'utf8');
-        const config = parseTradedConfigJson(raw);
-        assert.strictEqual(config.port, 3003);
-        assert.strictEqual(config.pairs.length, 1);
-        assert.strictEqual(config.pairs[0]!.feePct, 0.01);
-        assert.strictEqual(config.utxoQtyByToken.get(TOKEN_A), 20);
-        assert.strictEqual(config.utxoQtyByToken.get(TOKEN_B), 1);
+        const sample = JSON.parse(raw) as {
+            port: number;
+            mnemonic: string;
+            feeAddress: string;
+            pairs: unknown[];
+        };
+        assert.strictEqual(sample.port, 3003);
+        assert.strictEqual(sample.mnemonic, MNEMONIC_PLACEHOLDER);
+        assert.ok(sample.feeAddress.includes('REPLACE_WITH_YOUR'));
+        assert.strictEqual(sample.pairs.length, 1);
+        assert.throws(
+            () => parseTradedConfigJson(raw),
+            /placeholder|not a valid ecash address/,
+        );
+    });
+
+    it('rejects the sample mnemonic placeholder', () => {
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({ mnemonic: MNEMONIC_PLACEHOLDER }),
+                ),
+            /placeholder/,
+        );
     });
 
     it('parses pairs with per-pair fee and utxo sizes', () => {
         const config = parseTradedConfigJson(
-            JSON.stringify({
-                port: 3003,
+            withBase({
                 pairs: [
                     pair(TOKEN_B, TOKEN_A, 0.02, 1, 1_000_000),
                     pair(TOKEN_A, TOKEN_C, 0.01, 1_000_000, 20),
@@ -70,6 +102,8 @@ describe('tradedConfig', () => {
             () =>
                 parseTradedConfigJson(
                     JSON.stringify({
+                        mnemonic: SAMPLE_MNEMONIC,
+                        feeAddress: SAMPLE_FEE,
                         pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
                     }),
                 ),
@@ -78,15 +112,53 @@ describe('tradedConfig', () => {
         assert.throws(
             () =>
                 parseTradedConfigJson(
-                    JSON.stringify({ port: 3003, pairs: [] }),
+                    JSON.stringify({
+                        port: 3003,
+                        feeAddress: SAMPLE_FEE,
+                        pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
+                    }),
                 ),
-            /non-empty/,
+            /mnemonic is required/,
         );
         assert.throws(
             () =>
                 parseTradedConfigJson(
                     JSON.stringify({
                         port: 3003,
+                        mnemonic: SAMPLE_MNEMONIC,
+                        pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
+                    }),
+                ),
+            /feeAddress is required/,
+        );
+        // 12 English words with an invalid BIP39 checksum
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
+                        mnemonic:
+                            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
+                    }),
+                ),
+            /not a valid BIP39/,
+        );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
+                        mnemonic: 'only eleven words in this phrase here now',
+                    }),
+                ),
+            /not a valid BIP39/,
+        );
+        assert.throws(
+            () => parseTradedConfigJson(withBase({ pairs: [] })),
+            /non-empty/,
+        );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
                         pairs: [
                             {
                                 aTokenId: TOKEN_A,
@@ -99,6 +171,17 @@ describe('tradedConfig', () => {
                 ),
             /feePct is required/,
         );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({ feeAddress: 'not-a-cashaddr' }),
+                ),
+            /not a valid ecash address/,
+        );
+        assert.throws(
+            () => parseTradedConfigJson(withBase({ feeAddress: SELLER })),
+            /must not collide/,
+        );
     });
 
     it('rejects out-of-range feePct and non-numeric fee/utxo values', () => {
@@ -106,41 +189,26 @@ describe('tradedConfig', () => {
         assert.throws(
             () =>
                 parseTradedConfigJson(
-                    JSON.stringify({
-                        port: 3003,
-                        pairs: [{ ...base, feePct: 5 }],
-                    }),
+                    withBase({ pairs: [{ ...base, feePct: 5 }] }),
                 ),
             /between 0 and 1/,
         );
         assert.throws(
             () =>
                 parseTradedConfigJson(
-                    JSON.stringify({
-                        port: 3003,
-                        pairs: [{ ...base, feePct: null }],
-                    }),
+                    withBase({ pairs: [{ ...base, feePct: null }] }),
                 ),
             /must be a number/,
         );
         assert.throws(
             () =>
                 parseTradedConfigJson(
-                    JSON.stringify({
-                        port: 3003,
-                        pairs: [{ ...base, aUtxoQty: true }],
-                    }),
+                    withBase({ pairs: [{ ...base, aUtxoQty: true }] }),
                 ),
             /must be a number/,
         );
         assert.throws(
-            () =>
-                parseTradedConfigJson(
-                    JSON.stringify({
-                        port: 0,
-                        pairs: [base],
-                    }),
-                ),
+            () => parseTradedConfigJson(withBase({ port: 0 })),
             /positive integer/,
         );
     });
@@ -149,8 +217,7 @@ describe('tradedConfig', () => {
         assert.throws(
             () =>
                 parseTradedConfigJson(
-                    JSON.stringify({
-                        port: 3003,
+                    withBase({
                         pairs: [
                             pair(TOKEN_A, TOKEN_B, 0.01, 20, 1),
                             pair(TOKEN_A, TOKEN_C, 0.01, 5, 1),
@@ -177,7 +244,7 @@ describe('tradedConfig', () => {
         );
         fs.writeFileSync(
             tmp,
-            JSON.stringify({
+            withBase({
                 port: 4001,
                 pairs: [pair(TOKEN_A, TOKEN_B, 0.05, 7, 9)],
             }),
@@ -185,6 +252,8 @@ describe('tradedConfig', () => {
         try {
             const config = loadTradedConfig(tmp);
             assert.strictEqual(config.port, 4001);
+            assert.strictEqual(config.mnemonic, SAMPLE_MNEMONIC);
+            assert.strictEqual(config.feeAddress, SAMPLE_FEE);
             assert.strictEqual(config.pairs[0]!.feePct, 0.05);
             assert.strictEqual(assertTokenIdInConfig(config, TOKEN_A), TOKEN_A);
             assert.throws(
