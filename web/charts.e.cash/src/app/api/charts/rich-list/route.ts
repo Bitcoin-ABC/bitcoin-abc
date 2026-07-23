@@ -7,6 +7,9 @@ import { db } from '../../../../lib/database';
 import { scriptToAddress } from '../../../../lib/scriptToAddress';
 import { parseBoundedInt } from '../../../../lib/chartQueryParams';
 
+/** Max diluted XEC supply (21 trillion). Used for % Supply on the rich list. */
+const MAX_SUPPLY_XEC = 21_000_000_000_000;
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -29,16 +32,20 @@ export async function GET(request: NextRequest) {
 
         const rows = await db.getRichList(limit, minBalanceSats);
 
-        const richList = rows.map((row, index) => ({
-            rank: index + 1,
-            address: scriptToAddress(row.output_script),
-            balance_xec: row.balance_sats / 100,
-            balance_sats: row.balance_sats,
-            is_miner: row.is_miner,
-            is_staker: row.is_staker,
-            is_coinbase_recipient: row.is_coinbase_recipient,
-            first_seen: row.first_seen,
-        }));
+        const richList = rows.map((row, index) => {
+            const balance_xec = row.balance_sats / 100;
+            return {
+                rank: index + 1,
+                address: scriptToAddress(row.output_script),
+                balance_xec,
+                balance_sats: row.balance_sats,
+                pct_supply: (balance_xec / MAX_SUPPLY_XEC) * 100,
+                is_miner: row.is_miner,
+                is_staker: row.is_staker,
+                is_coinbase_recipient: row.is_coinbase_recipient,
+                first_seen: row.first_seen,
+            };
+        });
 
         return NextResponse.json(richList);
     } catch (error) {

@@ -3006,7 +3006,8 @@ export default function ChartRenderer({
                         {getChartName(chartId)}
                     </h2>
                     <p className="mt-1 text-sm text-gray-400">
-                        Top 100 addresses with balance at least 100 XEC
+                        Top 100 addresses with balance at least 100 XEC. %
+                        Supply is of max diluted supply (21T XEC).
                     </p>
                 </div>
                 {entries.length === 0 ? (
@@ -3025,6 +3026,9 @@ export default function ChartRenderer({
                                     <th className="px-3 py-2">Address</th>
                                     <th className="px-3 py-2 text-right">
                                         Balance (XEC)
+                                    </th>
+                                    <th className="px-3 py-2 text-right">
+                                        % Supply
                                     </th>
                                     <th className="hidden px-3 py-2 md:table-cell">
                                         Tags
@@ -3063,6 +3067,16 @@ export default function ChartRenderer({
                                                         maximumFractionDigits: 2,
                                                     },
                                                 )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right text-gray-300">
+                                                {row.pct_supply.toLocaleString(
+                                                    undefined,
+                                                    {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 4,
+                                                    },
+                                                )}
+                                                %
                                             </td>
                                             <td className="hidden px-3 py-2 text-gray-400 md:table-cell">
                                                 {tags.length > 0

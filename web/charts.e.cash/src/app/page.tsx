@@ -173,6 +173,8 @@ export interface RichListEntryData {
     address: string;
     balance_xec: number;
     balance_sats: number;
+    /** Percent of max diluted supply (21T XEC). */
+    pct_supply: number;
     is_miner: boolean;
     is_staker: boolean;
     is_coinbase_recipient: boolean;
