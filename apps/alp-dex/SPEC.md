@@ -68,12 +68,13 @@ root, gitignored). No `.env` file.
 
 ### `config.json`
 
-| Field        | Purpose                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------- |
-| `port`       | HTTP listen port                                                                        |
-| `mnemonic`   | Valid BIP39 English mnemonic; seeds seller + slush only                                 |
-| `feeAddress` | Required `ecash:` fee / misc-sweep payout (≠ seller/slush; off-server; need not be hot) |
-| `pairs`      | Non-empty pair list                                                                     |
+| Field         | Purpose                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------- |
+| `port`        | HTTP listen port                                                                        |
+| `mnemonic`    | Valid BIP39 English mnemonic; seeds seller + slush only                                 |
+| `feeAddress`  | Required `ecash:` fee / misc-sweep payout (≠ seller/slush; off-server; need not be hot) |
+| `chronikUrls` | Non-empty Chronik URL list (primary first, then failover; no trailing slash)            |
+| `pairs`       | Non-empty pair list                                                                     |
 
 No global default fee or utxo size. Each pair must set:
 
@@ -85,10 +86,11 @@ No global default fee or utxo size. Each pair must set:
 | `aUtxoQty` | Inventory UTXO size (human units) for `aTokenId`      |
 | `bUtxoQty` | Inventory UTXO size (human units) for `bTokenId`      |
 
-Later slices may add more top-level fields (e.g. database URL) to the same
-file. To add more tokens, append another object to `pairs[]`.
-If the same token appears in multiple pairs, its utxoQty must match in
-every pair. The process exits on startup if `config.json` is missing.
+Startup fetches Chronik genesis (`chronik.token`) for every allowlisted
+token id and requires protocol ALP. To add more tokens, append another
+object to `pairs[]`. If the same token appears in multiple pairs, its
+utxoQty must match in every pair. The process exits on startup if
+`config.json` is missing.
 
 Postage stamp size is **not** configurable: fixed at `POSTAGE_SATS = 1000`
 (10 XEC) in code. Inventory automation should mint stamps from all loose

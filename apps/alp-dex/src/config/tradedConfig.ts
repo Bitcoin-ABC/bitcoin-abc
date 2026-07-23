@@ -24,6 +24,8 @@ export type ParsedTradedConfig = {
      * wallet.
      */
     feeAddress: string;
+    /** Chronik HTTP URLs (primary first, then failover). */
+    chronikUrls: string[];
     /** tokenId → inventory UTXO size in human units */
     utxoQtyByToken: Map<string, number>;
     pairs: TradedPair[];
@@ -48,6 +50,30 @@ const parsePort = (raw: unknown): number => {
         throw new Error(`port must be a positive integer (got ${String(raw)})`);
     }
     return port;
+};
+
+/**
+ * Non-empty Chronik URL list. chronik-client rejects trailing slashes and
+ * non-http(s) schemes when the client is constructed.
+ */
+const parseChronikUrls = (raw: unknown): string[] => {
+    if (!Array.isArray(raw) || raw.length === 0) {
+        throw new Error('config.json chronikUrls must be a non-empty array');
+    }
+    const urls: string[] = [];
+    for (const [i, item] of raw.entries()) {
+        if (typeof item !== 'string' || item.trim() === '') {
+            throw new Error(`chronikUrls[${i}] must be a non-empty string`);
+        }
+        const url = item.trim();
+        if (url.endsWith('/')) {
+            throw new Error(
+                `chronikUrls[${i}] must not end with a trailing slash`,
+            );
+        }
+        urls.push(url);
+    }
+    return urls;
 };
 
 /** Maker fee as a decimal in [0, 1] (e.g. 0.01 = 1%). */
@@ -113,11 +139,12 @@ export const getAlpDexRoot = (startDir: string = __dirname): string => {
 /**
  * Parse config JSON (see `config.sample.json`).
  *
- * Top-level `port`, `mnemonic` (valid BIP39 English), and `feeAddress` are
- * required. `feeAddress` must not be seller/slush (fee wallet should be off
- * the server and does not need to be a hot wallet). Each pair must set
- * `aTokenId`, `bTokenId`, `feePct`, `aUtxoQty`, and `bUtxoQty`. Postage stamp
- * size is fixed in code (`POSTAGE_SATS`), not config.
+ * Top-level `port`, `mnemonic` (valid BIP39 English), `feeAddress`, and
+ * `chronikUrls` are required. `feeAddress` must not be seller/slush (fee
+ * wallet should be off the server and does not need to be a hot wallet).
+ * Each pair must set `aTokenId`, `bTokenId`, `feePct`, `aUtxoQty`, and
+ * `bUtxoQty`. Postage stamp size is fixed in code (`POSTAGE_SATS`), not
+ * config.
  */
 export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
     let parsed: unknown;
@@ -141,6 +168,7 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         port?: unknown;
         mnemonic?: unknown;
         feeAddress?: unknown;
+        chronikUrls?: unknown;
         pairs?: unknown;
     };
 
@@ -165,6 +193,11 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
     const feeAddress = assertEcashAddress(obj.feeAddress, 'feeAddress');
     // Reject feeAddress == seller/slush early.
     resolveLpAddresses(mnemonic, feeAddress);
+
+    if (obj.chronikUrls === undefined) {
+        throw new Error('config.json chronikUrls is required');
+    }
+    const chronikUrls = parseChronikUrls(obj.chronikUrls);
 
     if (!Array.isArray(obj.pairs) || obj.pairs.length === 0) {
         throw new Error('config.json pairs must be a non-empty array');
@@ -240,6 +273,7 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         port,
         mnemonic,
         feeAddress,
+        chronikUrls,
         utxoQtyByToken,
         pairs,
     };

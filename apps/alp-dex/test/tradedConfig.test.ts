@@ -31,15 +31,18 @@ const pair = (
     aTokenId: string,
     bTokenId: string,
     feePct: number,
-    aUtxoQty: number,
-    bUtxoQty: number,
+    aUtxoQty: number | string,
+    bUtxoQty: number | string,
 ) => ({ aTokenId, bTokenId, feePct, aUtxoQty, bUtxoQty });
+
+const SAMPLE_CHRONIK = ['https://chronik.example.com'];
 
 const withBase = (overrides: Record<string, unknown> = {}) =>
     JSON.stringify({
         port: 3003,
         mnemonic: SAMPLE_MNEMONIC,
         feeAddress: SAMPLE_FEE,
+        chronikUrls: SAMPLE_CHRONIK,
         pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
         ...overrides,
     });
@@ -51,11 +54,14 @@ describe('tradedConfig', () => {
             port: number;
             mnemonic: string;
             feeAddress: string;
+            chronikUrls: string[];
             pairs: unknown[];
         };
         assert.strictEqual(sample.port, 3003);
         assert.strictEqual(sample.mnemonic, MNEMONIC_PLACEHOLDER);
         assert.ok(sample.feeAddress.includes('REPLACE_WITH_YOUR'));
+        assert.ok(Array.isArray(sample.chronikUrls));
+        assert.ok(sample.chronikUrls.length > 0);
         assert.strictEqual(sample.pairs.length, 1);
         assert.throws(
             () => parseTradedConfigJson(raw),
@@ -126,10 +132,34 @@ describe('tradedConfig', () => {
                     JSON.stringify({
                         port: 3003,
                         mnemonic: SAMPLE_MNEMONIC,
+                        chronikUrls: SAMPLE_CHRONIK,
                         pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
                     }),
                 ),
             /feeAddress is required/,
+        );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    JSON.stringify({
+                        port: 3003,
+                        mnemonic: SAMPLE_MNEMONIC,
+                        feeAddress: SAMPLE_FEE,
+                        pairs: [pair(TOKEN_A, TOKEN_B, 0.01, 1, 1)],
+                    }),
+                ),
+            /chronikUrls is required/,
+        );
+        assert.throws(
+            () => parseTradedConfigJson(withBase({ chronikUrls: [] })),
+            /non-empty array/,
+        );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({ chronikUrls: ['https://chronik.example.com/'] }),
+                ),
+            /trailing slash/,
         );
         // 12 English words with an invalid BIP39 checksum
         assert.throws(

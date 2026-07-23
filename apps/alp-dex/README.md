@@ -6,7 +6,7 @@ Protocol and API detail: [SPEC.md](./SPEC.md) (**spec version 1**).
 
 ```bash
 cp config.sample.json config.json
-# edit config.json — replace mnemonic + feeAddress placeholders, then pairs/port
+# edit config.json — mnemonic, feeAddress, chronikUrls, pairs, port
 # feeAddress: off-server fee wallet (not seller/slush; need not be hot)
 
 pnpm print-addresses
@@ -148,11 +148,12 @@ should ship tests a reviewer can run locally.
 3. **Config [D20363](https://reviews.bitcoinabc.org/D20363)** — `tokenId`
    asserts; required `config.json` (`port` + per-pair `feePct` / utxo sizes);
    fixed `POSTAGE_SATS`; `config.sample.json`; pure unit tests (no Chronik).
-4. **Wallet / HD** — Derive seller / slush (`m/44'/1899'/{0,1}'/0/0`);
-   required `feeAddress` (off-server; need not be hot); `print-addresses`
-   script; reject fee/seller/slush collisions.
-5. **Chronik sync + genesis** — Client wiring; genesis fetch; allowlisted
-   `TradedTokens`; wallet `sync()` against mock Chronik.
+4. **Wallet / HD [D20370](https://reviews.bitcoinabc.org/D20370)** — Derive
+   seller / slush (`m/44'/1899'/{0,1}'/0/0`); required `feeAddress`
+   (off-server; need not be hot); `print-addresses` script; reject
+   fee/seller/slush collisions.
+5. **Chronik sync + genesis** — `chronikUrls` in config; genesis fetch;
+   allowlisted `TradedTokens`; wallet `sync()` against mock Chronik.
 6. **Pricing** — Wire local seller+slush reserves into constant-product
    quotes (reuse `ecash-wallet` CP helpers; do not re-prove the math here).
 7. **Inventory automation** — Classify seller UTXOs; reshape wrong sizes via

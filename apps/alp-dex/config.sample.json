@@ -2,6 +2,11 @@
     "port": 3003,
     "mnemonic": "REPLACE_WITH_YOUR_BIP39_MNEMONIC",
     "feeAddress": "ecash:REPLACE_WITH_YOUR_FEE_ADDRESS",
+    "chronikUrls": [
+        "https://chronik-native2.fabien.cash",
+        "https://chronik-native3.fabien.cash",
+        "https://chronik-native1.fabien.cash"
+    ],
     "pairs": [
         {
             "aTokenId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
