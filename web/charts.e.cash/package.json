@@ -20,7 +20,7 @@
         "clsx": "^2.0.0",
         "date-fns": "^2.30.0",
         "ecashaddrjs": "workspace:^",
-        "next": "16.2.6",
+        "next": "16.2.11",
         "pg": "^8.16.3",
         "postcss": "^8.4.31",
         "react": "19.2.5",
@@ -35,7 +35,7 @@
         "@typescript-eslint/eslint-plugin": "^8.59.4",
         "@typescript-eslint/parser": "^8.59.4",
         "eslint": "^9.39.4",
-        "eslint-config-next": "16.2.6",
+        "eslint-config-next": "16.2.11",
         "typescript": "^5.9.3",
         "vercel": "^54.1.0"
     },
