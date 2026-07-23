@@ -685,9 +685,15 @@ describe('Send', () => {
                     .clear()
                     .type(WALLET_ADDRESS)
                     .blur();
-                cy.get('#send-amount').clear().type('0.01');
-                cy.get('#fee-display').should('be.visible');
-                cy.get('#fee-display').should('have.class', 'error');
+                // Set via invoke: typing below input[type=number] min is flaky in
+                // Chromium (value can stick at dust min and fee shows without error).
+                cy.get('#send-amount')
+                    .invoke('val', '0.01')
+                    .trigger('input', { force: true })
+                    .should('have.value', '0.01');
+                cy.get('#fee-display')
+                    .should('be.visible')
+                    .and('have.class', 'error');
                 cy.get('#fee-display .fee-item.title').should(
                     'contain',
                     'Amount is too small',
