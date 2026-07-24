@@ -419,9 +419,9 @@ describe('Transaction history', () => {
                 'style',
                 'max-height: 140px !important; overflow-y: auto !important;',
             );
-            cy.get('#transaction-list').scrollTo('bottom', {
-                ensureScrollable: false,
-            });
+            cy.get('#transaction-list')
+                .scrollTo('bottom', { ensureScrollable: false })
+                .trigger('scroll');
 
             cy.get('#transaction-list .transaction-item').should(
                 'have.length',
@@ -450,9 +450,9 @@ describe('Transaction history', () => {
                 'style',
                 'max-height: 140px !important; overflow-y: auto !important;',
             );
-            cy.get('#transaction-list').scrollTo('bottom', {
-                ensureScrollable: false,
-            });
+            cy.get('#transaction-list')
+                .scrollTo('bottom', { ensureScrollable: false })
+                .trigger('scroll');
 
             cy.get('#transaction-list .transaction-item').should(
                 'have.length',

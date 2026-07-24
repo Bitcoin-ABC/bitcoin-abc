@@ -573,7 +573,8 @@ describe('Send', () => {
             const valuePrimary = (STUB_EXPECTED_TOTAL_XEC / 2).toFixed(2);
             cy.get('#send-amount')
                 .clear()
-                .type(valuePrimary)
+                .invoke('val', valuePrimary)
+                .trigger('input')
                 .should('have.value', valuePrimary);
             // The slider gets updated by the amount input
             cy.get('#amount-slider')
@@ -638,7 +639,8 @@ describe('Send', () => {
                     );
                     cy.get('#send-amount')
                         .clear()
-                        .type(valuePrimary)
+                        .invoke('val', valuePrimary)
+                        .trigger('input')
                         .should('have.value', valuePrimary);
                     cy.get('#amount-slider')
                         .invoke('val')
@@ -747,13 +749,13 @@ describe('Send', () => {
                     .clear()
                     .type(WALLET_ADDRESS)
                     .blur();
+                const belowMin = (MIN_FIRMA_SLIDER_PRIMARY / 10).toFixed(
+                    FIRMA_TOKEN.decimals + 1,
+                );
                 cy.get('#send-amount')
                     .clear()
-                    .type(
-                        (MIN_FIRMA_SLIDER_PRIMARY / 10).toFixed(
-                            FIRMA_TOKEN.decimals + 1,
-                        ),
-                    )
+                    .invoke('val', belowMin)
+                    .trigger('input')
                     .blur();
                 cy.get('#fee-display').should('be.visible');
                 cy.get('#fee-display').should('have.class', 'error');
@@ -823,10 +825,15 @@ describe('Send', () => {
                         const valuePrimary = (max / 2).toFixed(
                             FIRMA_TOKEN.decimals,
                         );
-                        cy.get('#send-amount')
-                            .clear()
-                            .type(valuePrimary)
-                            .should('have.value', valuePrimary);
+                        // Drive the slider (same as other amount tests): typing
+                        // into #send-amount races sanitizers + slider sync.
+                        cy.get('#amount-slider')
+                            .invoke('val', valuePrimary)
+                            .trigger('input', { force: true });
+                        cy.get('#send-amount').should(
+                            'have.value',
+                            valuePrimary,
+                        );
                     });
                 cy.get('#fee-display').should('be.visible');
                 cy.get('#fee-display').should('have.class', 'error');
