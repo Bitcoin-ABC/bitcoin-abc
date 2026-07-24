@@ -833,7 +833,7 @@ uint64_t PeerManager::compact() {
         }
 
         newslots.emplace_back(prevStop, it->getScore(), it->peerid);
-        prevStop = slots[i].getStop();
+        prevStop = newslots.back().getStop();
         if (!peers.modify(it, [&](Peer &p) { p.index = i++; })) {
             return 0;
         }

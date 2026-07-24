@@ -119,6 +119,10 @@ namespace {
         static bool isFlaky(const PeerManager &pm, const ProofId &proofid) {
             return pm.isFlaky(proofid);
         }
+
+        static PeerId selectPeerFromSlot(const PeerManager &pm, uint64_t slot) {
+            return selectPeerImpl(pm.slots, slot, pm.slotCount);
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -498,6 +502,51 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     BOOST_CHECK(pm.verify());
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 0);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(compact_slots_non_uniform_scores) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+
+    // Add 4 peers with distinct scores
+    const std::array<uint32_t, 4> scores{{10000, 20000, 30000, 40000}};
+    std::array<PeerId, 4> peerids;
+    for (int i = 0; i < 4; i++) {
+        auto p = buildRandomProof(chainman.ActiveChainstate(), scores[i]);
+        peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
+        BOOST_CHECK(pm.addNode(m_rng.rand32(), p->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
+    }
+
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 100000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
+    // Remove a peer in a middle slot, leaving a dead slot behind
+    BOOST_CHECK(pm.removePeer(peerids[1]));
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 100000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 20000);
+
+    // Compaction reclaims exactly the fragmented slot space
+    BOOST_CHECK_EQUAL(pm.compact(), 20000);
+    BOOST_CHECK(pm.verify());
+
+    // After compaction, the slot space must cover exactly the sum of the
+    // remaining peers' scores.
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 80000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
+
+    // Every value of the slot space must select one of the remaining peers
+    // (not NO_PEER), and each remaining peer must be selected over its range.
+    for (uint64_t slot = 0; slot < pm.getSlotCount(); slot++) {
+        PeerId p = TestPeerManager::selectPeerFromSlot(pm, slot);
+        if (slot < 10000) {
+            BOOST_CHECK_EQUAL(p, peerids[0]);
+        } else if (slot < 40000) {
+            BOOST_CHECK_EQUAL(p, peerids[2]);
+        } else {
+            BOOST_CHECK_EQUAL(p, peerids[3]);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(node_crud) {
