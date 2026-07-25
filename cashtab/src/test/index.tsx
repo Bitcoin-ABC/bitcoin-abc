@@ -6,6 +6,7 @@ import { when } from 'jest-when';
 import { Tx, TokenInfo, Block, BlockchainInfo } from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import appConfig from 'config/app';
+import { FIRMA_APY_API_URL } from 'constants/tokens';
 import { ActiveCashtabWallet, StoredCashtabWallet } from 'wallet';
 
 /**
@@ -87,6 +88,25 @@ export const mockPrice = (price: number) => {
         .calledWith(priceApiUrl)
         .mockResolvedValue({
             json: () => Promise.resolve(priceResponse),
+        } as Response);
+
+    // Firma APY is fetched on the same boot path as fiat price
+    mockFirmaApy(6.29);
+};
+
+/**
+ * Mock firmaprotocol.com /api/apy (same source as the marketing site hero)
+ */
+export const mockFirmaApy = (averageApySpot: number) => {
+    when(fetch)
+        .calledWith(FIRMA_APY_API_URL)
+        .mockResolvedValue({
+            ok: true,
+            json: () =>
+                Promise.resolve({
+                    average_apy_spot: averageApySpot,
+                    payment_count: 100,
+                }),
         } as Response);
 };
 

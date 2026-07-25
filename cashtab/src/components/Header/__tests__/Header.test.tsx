@@ -137,6 +137,13 @@ describe('<Header />', () => {
         // Firma is USD-pegged — no redundant fiat line when currency is USD
         expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
 
+        // Same average APY as firmaprotocol.com/api/apy
+        await waitFor(() => {
+            expect(screen.getByTitle('Firma APY')).toHaveTextContent(
+                '6.29% APY',
+            );
+        });
+
         // Web/extension: hover tooltip anywhere on the eCash card
         const ecashCard = screen.getByRole('button', {
             name: 'Toggle XEC and XECX balances',
@@ -147,8 +154,8 @@ describe('<Header />', () => {
         );
         expect(ecashCard.getAttribute('data-tooltip-html')).toContain('XECX');
 
-        // Tap eCash card → replace total/fiat with stacked XEC / XECX;
-        // USD card and % staked stay; hover tooltip goes away while expanded
+        // Tap eCash card → replace total with stacked XEC / XECX; hide %
+        // staked; fiat stays; hover tooltip goes away while expanded
         fireEvent.click(
             screen.getByRole('button', {
                 name: 'Toggle XEC and XECX balances',
@@ -158,8 +165,10 @@ describe('<Header />', () => {
             /9,513\.12\s*XEC\s*0\.00\s*XECX/,
         );
         expect(screen.queryByTitle('Balance XEC')).not.toBeInTheDocument();
-        expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
-        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
+        expect(screen.queryByTitle('Staked')).not.toBeInTheDocument();
+        expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
+            '$0.29 USD',
+        );
         expect(
             document.querySelector(`a[href="/token/${FIRMA.tokenId}"]`),
         ).toBeInTheDocument();
@@ -169,17 +178,17 @@ describe('<Header />', () => {
             }),
         ).not.toHaveAttribute('data-tooltip-id');
 
-        // Tap again → restore combined total + fiat
+        // Tap again → restore combined total + % staked + fiat
         fireEvent.click(
             screen.getByRole('button', {
                 name: 'Toggle XEC and XECX balances',
             }),
         );
         expect(screen.getByTitle('Balance XEC')).toHaveTextContent('9,513.12');
+        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
         expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
             '$0.29 USD',
         );
-        expect(screen.getByTitle('Staked')).toHaveTextContent('0% staked');
     });
 
     it('shows XEC + XECX total with staked percent', async () => {
@@ -356,29 +365,31 @@ describe('<Header />', () => {
             screen.queryByTitle('Liquid and staked'),
         ).not.toBeInTheDocument();
 
-        // Tap card → stacked liquid XEC / XECX; USD + % staked stay
+        // Tap card → stacked liquid XEC / XECX; hide % staked; fiat stays
         fireEvent.click(ecashCard);
         expect(screen.getByTitle('Liquid and staked')).toHaveTextContent(
             /9,513\.12\s*XEC\s*9,513\.12\s*XECX/,
         );
         expect(screen.queryByTitle('Balance XEC')).not.toBeInTheDocument();
-        expect(screen.queryByTitle('Balance XEC Fiat')).not.toBeInTheDocument();
-        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
+        expect(screen.queryByTitle('Staked')).not.toBeInTheDocument();
+        expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
+            '$0.57 USD',
+        );
         expect(
             document.querySelector(`a[href="/token/${FIRMA.tokenId}"]`),
         ).toBeInTheDocument();
         expect(ecashCard).not.toHaveAttribute('data-tooltip-id');
 
-        // Tap again → restore combined total + fiat
+        // Tap again → restore combined total + % staked + fiat
         fireEvent.click(ecashCard);
         expect(screen.getByTitle('Balance XEC')).toHaveTextContent('19,026.24');
+        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
         expect(screen.getByTitle('Balance XEC Fiat')).toHaveTextContent(
             '$0.57 USD',
         );
         expect(
             screen.queryByTitle('Liquid and staked'),
         ).not.toBeInTheDocument();
-        expect(screen.getByTitle('Staked')).toHaveTextContent('50% staked');
     });
 
     it('shows wallet dropdown and allows wallet switching', async () => {

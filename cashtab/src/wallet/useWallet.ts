@@ -41,6 +41,7 @@ import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import { TokenIconToast } from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
+import { FIRMA_APY_API_URL } from 'constants/tokens';
 import {
     ChronikClient,
     WsEndpoint,
@@ -86,6 +87,8 @@ export interface UseWalletReturnType {
     ecc: Ecc;
     fiatPrice: number | null;
     firmaPrice: number | null;
+    /** Average Firma Alpha APY from firmaprotocol.com/api/apy, or null. */
+    firmaApy: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
     initialUtxoSyncComplete: boolean;
@@ -124,6 +127,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [ws, setWs] = useState<null | WsEndpoint>(null);
     const [fiatPrice, setFiatPrice] = useState<null | number>(null);
     const [firmaPrice, setFirmaPrice] = useState<null | number>(null);
+    const [firmaApy, setFirmaApy] = useState<null | number>(null);
     const [apiError, setApiError] = useState<boolean>(false);
     const [checkFiatInterval, setCheckFiatInterval] =
         useState<null | NodeJS.Timeout>(null);
@@ -1190,6 +1194,31 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         return setFirmaPrice(null);
     };
 
+    /**
+     * Fetch average Firma Alpha APY from firmaprotocol.com (AVG of past
+     * daily apy_spot payouts — same endpoint as the marketing site hero).
+     * APY updates once per day; call only once on app load.
+     */
+    const fetchFirmaApy = async () => {
+        try {
+            const response = await fetch(FIRMA_APY_API_URL);
+            if (response.ok === false) {
+                console.error(
+                    `Failed to fetch Firma APY: Bad response from firmaprotocol.com`,
+                );
+                return setFirmaApy(null);
+            }
+            const apyJson = await response.json();
+            const averageApy = apyJson.average_apy_spot;
+            if (typeof averageApy === 'number' && Number.isFinite(averageApy)) {
+                return setFirmaApy(averageApy);
+            }
+        } catch (err) {
+            console.error(`Failed to fetch Firma APY`, err);
+        }
+        return setFirmaApy(null);
+    };
+
     const cashtabBootup = async () => {
         // Initialize platform storage
         const storageInit = await initializeStorage();
@@ -1236,6 +1265,19 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         // Reset fiat price API when fiatCurrency setting changes
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
     }, [cashtabLoaded, cashtabState.settings.fiatCurrency]);
+
+    // Firma APY updates once per day — fetch once on app load only (not on
+    // fiat-currency re-init or the price interval).
+    useEffect(() => {
+        if (cashtabLoaded !== true) {
+            return;
+        }
+        if (import.meta.env.VITE_TESTNET === 'true') {
+            setFirmaApy(null);
+            return;
+        }
+        fetchFirmaApy();
+    }, [cashtabLoaded]);
 
     /**
      * useEffect
@@ -1412,6 +1454,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         ecc,
         fiatPrice,
         firmaPrice,
+        firmaApy,
         cashtabLoaded,
         loading,
         setLoading,

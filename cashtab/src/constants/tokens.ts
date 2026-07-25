@@ -25,6 +25,12 @@ export const XECX_SWEEPER_ADDRESS =
 export const FIRMA_REDEEM_ADDRESS =
     'ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5';
 
+/**
+ * Average spot APY from firmaprotocol.com (same source as the marketing site
+ * hero). CORS allows any origin.
+ */
+export const FIRMA_APY_API_URL = 'https://firmaprotocol.com/api/apy';
+
 /** EDJ token - everydayjackpot.com bets (100 EDJ = 1 FIRMA) */
 export const EDJ_TOKEN_ID =
     '411f07171b98e8e1e0c368dc88673bb7228e56fb96079f838ca57c2022777d84';

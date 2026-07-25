@@ -65,6 +65,8 @@ type AssetBalanceCardProps = {
      * card title already says USD).
      */
     hideAmountTicker?: boolean;
+    /** Optional protocol APY line (e.g. Firma average APY). */
+    apyLabel?: string;
 };
 
 const AssetBalanceCard = ({
@@ -78,6 +80,7 @@ const AssetBalanceCard = ({
     fiatCurrency,
     to,
     hideAmountTicker = false,
+    apyLabel,
 }: AssetBalanceCardProps) => {
     const showFiatLine = renderFiatValues && typeof fiatAmount === 'string';
 
@@ -106,6 +109,11 @@ const AssetBalanceCard = ({
                     {supportedFiatCurrencies[fiatCurrency].slug.toUpperCase()}
                 </BalanceFiat>
             )}
+            {typeof apyLabel === 'string' && (
+                <StakedPercent balanceVisible={false} title="Firma APY">
+                    {apyLabel}
+                </StakedPercent>
+            )}
         </BalanceCard>
     );
 };
@@ -129,10 +137,10 @@ type EcashBalanceCardProps = {
 };
 
 /**
- * eCash card: combined total + fiat + "% staked" by default. Tap (except the
- * "staked" link) replaces the total/fiat with stacked liquid XEC / XECX.
- * On web/extension, hover also shows a stacked XEC/XECX tooltip. The USD
- * card stays visible.
+ * eCash card: combined total, then "% staked", then fiat by default. Tap
+ * (except the "staked" link) replaces the total with stacked liquid XEC /
+ * XECX and hides "% staked"; the fiat line stays. On web/extension, hover
+ * also shows a stacked XEC/XECX tooltip. The USD card stays visible.
  */
 const EcashBalanceCard = ({
     balanceVisible,
@@ -149,8 +157,7 @@ const EcashBalanceCard = ({
     showBreakdown,
     onToggleBreakdown,
 }: EcashBalanceCardProps) => {
-    const showFiatLine =
-        !showBreakdown && renderFiatValues && typeof fiatAmount === 'string';
+    const showFiatLine = renderFiatValues && typeof fiatAmount === 'string';
     // Hover preview only while showing the combined total (not after expand).
     const showHoverTooltip =
         enableHoverTooltip && !showBreakdown && !balanceVisible;
@@ -200,39 +207,40 @@ const EcashBalanceCard = ({
                         >
                             {totalAmount}
                         </BalanceRow>
-                        {showFiatLine && (
-                            <BalanceFiat
-                                balanceVisible={balanceVisible}
-                                title={`Balance ${appConfig.ticker} Fiat`}
+                        <StakedPercent
+                            balanceVisible={balanceVisible}
+                            title="Staked"
+                        >
+                            {stakedPercentLabel}{' '}
+                            <StakedLink
+                                to={stakedHref}
+                                onClick={(e: React.MouseEvent) => {
+                                    // Navigate to XECX; do not toggle breakdown.
+                                    e.stopPropagation();
+                                }}
+                                onKeyDown={(e: React.KeyboardEvent) => {
+                                    // Let the link handle Enter/Space; don't toggle the card.
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.stopPropagation();
+                                    }
+                                }}
                             >
-                                {supportedFiatCurrencies[fiatCurrency].symbol}
-                                {fiatAmount}&nbsp;
-                                {supportedFiatCurrencies[
-                                    fiatCurrency
-                                ].slug.toUpperCase()}
-                            </BalanceFiat>
-                        )}
+                                staked
+                            </StakedLink>
+                        </StakedPercent>
                     </>
                 )}
             </BalanceToggleArea>
-            <StakedPercent balanceVisible={balanceVisible} title="Staked">
-                {stakedPercentLabel}{' '}
-                <StakedLink
-                    to={stakedHref}
-                    onClick={(e: React.MouseEvent) => {
-                        // Navigate to XECX; do not toggle breakdown.
-                        e.stopPropagation();
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                        // Let the link handle Enter/Space; don't toggle the card.
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.stopPropagation();
-                        }
-                    }}
+            {showFiatLine && (
+                <BalanceFiat
+                    balanceVisible={balanceVisible}
+                    title={`Balance ${appConfig.ticker} Fiat`}
                 >
-                    staked
-                </StakedLink>
-            </StakedPercent>
+                    {supportedFiatCurrencies[fiatCurrency].symbol}
+                    {fiatAmount}&nbsp;
+                    {supportedFiatCurrencies[fiatCurrency].slug.toUpperCase()}
+                </BalanceFiat>
+            )}
         </BalanceCardPanel>
     );
 };
@@ -243,6 +251,7 @@ interface BalanceCardsProps {
     balanceFirma: number;
     fiatPrice: number | null;
     firmaPrice: number | null;
+    firmaApy: number | null;
     balanceVisible: boolean;
     fiatCurrency: string;
     userLocale: string;
@@ -254,10 +263,10 @@ interface BalanceCardsProps {
  * notification). Isolated so useCountRoll mounts only after the wallet is
  * loaded.
  *
- * XECX is staked XEC (1:1). The eCash card shows the combined total and a
- * "% staked" line (word links to XECX). Tapping the card replaces the
- * total/fiat with stacked liquid XEC / XECX; the USD card stays put. On
- * web/extension, hover shows the same stacked amounts in a tooltip.
+ * XECX is staked XEC (1:1). The eCash card shows combined total, "% staked"
+ * (word links to XECX), then fiat. Tapping replaces the total with stacked
+ * liquid XEC / XECX and hides "% staked"; fiat stays. On web/extension,
+ * hover shows the same stacked amounts in a tooltip.
  */
 const BalanceCards: React.FC<BalanceCardsProps> = ({
     balanceXec,
@@ -265,6 +274,7 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
     balanceFirma,
     fiatPrice,
     firmaPrice,
+    firmaApy,
     balanceVisible,
     fiatCurrency,
     userLocale,
@@ -356,6 +366,14 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
                 fiatCurrency={fiatCurrency}
                 to={`/token/${FIRMA.tokenId}`}
                 hideAmountTicker
+                apyLabel={
+                    typeof firmaApy === 'number'
+                        ? `${firmaApy.toLocaleString(userLocale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                          })}% APY`
+                        : undefined
+                }
             />
         </BalanceXec>
     );
@@ -375,6 +393,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
         setLoading,
         fiatPrice,
         firmaPrice,
+        firmaApy,
         ecashWallet,
         getWalletByAddress,
     } = ContextValue;
@@ -487,6 +506,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                     balanceFirma={balanceFirma}
                     fiatPrice={fiatPrice}
                     firmaPrice={firmaPrice}
+                    firmaApy={firmaApy}
                     balanceVisible={settings.balanceVisible === false}
                     fiatCurrency={settings.fiatCurrency}
                     userLocale={userLocale}

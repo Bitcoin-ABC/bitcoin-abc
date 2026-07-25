@@ -328,8 +328,8 @@ export const StakedLink = styled(Link)`
 `;
 
 /**
- * Fixed-height slot for combined total/fiat vs stacked XEC/XECX so toggling
- * does not change the eCash card height.
+ * Fixed-height slot for combined total + "% staked" vs stacked XEC/XECX so
+ * toggling does not change the eCash card height. Fiat stays below this slot.
  *
  * Note: --text-*-line-height vars are unitless multipliers, so they must be
  * multiplied by a font-size length inside calc() (bare addition is invalid CSS).
@@ -339,19 +339,19 @@ export const BalanceToggleArea = styled.div`
     flex-direction: column;
     justify-content: center;
     flex-shrink: 0;
-    /* BalanceRow: text-2xl @ line-height 1em; BalanceFiat: base * base line-height */
+    /* BalanceRow: text-2xl @ line-height 1em; StakedPercent: base * base line-height */
     height: calc(
         var(--text-2xl) + (var(--text-base) * var(--text-base--line-height))
     );
     @media (max-width: 768px) {
-        /* text-lg @ 1em + 12px fiat + 2px fiat margin-top */
-        height: calc(var(--text-lg) + 14px);
+        /* text-lg @ 1em + 12px staked */
+        height: calc(var(--text-lg) + 12px);
     }
 `;
 
 /**
  * Expanded liquid XEC / XECX — smaller monospace so two lines fit the same
- * height as total + fiat without growing the card. Place values align.
+ * height as total + "% staked" without growing the card. Place values align.
  */
 export const BalanceBreakdown = styled.div<{ balanceVisible: boolean }>`
     display: grid;
