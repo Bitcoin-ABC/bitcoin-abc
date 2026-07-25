@@ -321,6 +321,69 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
         setSearchFocused(false);
     };
 
+    /**
+     * Keyboard confirm for the suggestion dropdown.
+     *
+     * Enter / Tab both select the first match. That calls selectMatch(), which
+     * sets isEditing=false and unmounts this <input> in favor of the resolved
+     * recipient UI — so native Tab traversal cannot finish (the focused node
+     * is gone). We therefore preventDefault and place focus ourselves.
+     *
+     * - Enter / Tab: Amount (Tab also skips the QR button in between).
+     * - Shift+Tab: the previous focusable. Without this, focus falls to
+     *   <body> after the input unmounts.
+     *
+     * setTimeout(0): selectMatch only schedules a React state update. Focus
+     * must run after that commit, once the search input is actually gone and
+     * Amount is queryable in the DOM. A sync .focus() here races the unmount.
+     */
+    const focusAmountInput = () => {
+        window.setTimeout(() => {
+            const amountInput = document.querySelector<HTMLInputElement>(
+                'input[name="amount"]',
+            );
+            amountInput?.focus();
+        }, 0);
+    };
+
+    const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!showDropdown) {
+            return;
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            selectMatch(matches[0]);
+            focusAmountInput();
+            return;
+        }
+        if (e.key !== 'Tab') {
+            return;
+        }
+
+        e.preventDefault();
+        const match = matches[0];
+
+        if (e.shiftKey) {
+            const current = e.currentTarget;
+            const focusables = Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                ),
+            );
+            const currentIndex = focusables.indexOf(current);
+            const previous =
+                currentIndex > 0 ? focusables[currentIndex - 1] : null;
+            selectMatch(match);
+            window.setTimeout(() => {
+                previous?.focus();
+            }, 0);
+            return;
+        }
+
+        selectMatch(match);
+        focusAmountInput();
+    };
+
     const onScan = (result: string) => {
         setQuery('');
         setIsEditing(false);
@@ -392,6 +455,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                     onChange={onInputChange}
                     onFocus={() => setSearchFocused(true)}
                     onBlur={onInputBlur}
+                    onKeyDown={onInputKeyDown}
                     autoComplete="off"
                     spellCheck={false}
                     autoCorrect="off"

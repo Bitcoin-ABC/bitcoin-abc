@@ -264,6 +264,128 @@ describe('<SendXec />', () => {
             ),
         );
     });
+    it('Enter selects the first contact suggestion', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        await localforage.setItem('contactList', populatedContactList);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'alp');
+
+        expect(
+            await screen.findByRole('button', { name: 'alpha' }),
+        ).toBeInTheDocument();
+
+        await user.keyboard('{Enter}');
+        expect(
+            await screen.findByRole('status', {
+                name: 'Recipient alpha',
+            }),
+        ).toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.getByPlaceholderText('Amount')).toHaveFocus(),
+        );
+    });
+    it('Tab selects the first contact suggestion', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        await localforage.setItem('contactList', populatedContactList);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'alp');
+
+        expect(
+            await screen.findByRole('button', { name: 'alpha' }),
+        ).toBeInTheDocument();
+
+        await user.tab();
+        expect(
+            await screen.findByRole('status', {
+                name: 'Recipient alpha',
+            }),
+        ).toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.getByPlaceholderText('Amount')).toHaveFocus(),
+        );
+    });
+    it('Shift+Tab selects the first contact suggestion and focuses the previous control', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        await localforage.setItem('contactList', populatedContactList);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = await getRecipientInput();
+        await user.type(addressInputEl, 'alp');
+
+        expect(
+            await screen.findByRole('button', { name: 'alpha' }),
+        ).toBeInTheDocument();
+
+        const focusables = Array.from(
+            document.querySelectorAll(
+                'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            ),
+        );
+        const previous = focusables[focusables.indexOf(addressInputEl) - 1];
+        expect(previous).toBeTruthy();
+
+        await user.tab({ shift: true });
+        expect(
+            await screen.findByRole('status', {
+                name: 'Recipient alpha',
+            }),
+        ).toBeInTheDocument();
+        await waitFor(() => expect(previous).toHaveFocus());
+        expect(screen.getByPlaceholderText('Amount')).not.toHaveFocus();
+        expect(document.activeElement).not.toBe(document.body);
+    });
     it('Searching own wallets shows wallet matches with My wallet icon', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
