@@ -12,16 +12,26 @@ interface ChartNavigationProps {
     selectedChart: string;
     onChartSelect: (chartId: string) => void;
     summaryData: SummaryData | null;
+    /**
+     * When true, fill the parent container (used for the mobile fullscreen
+     * chart picker). Desktop sidebar keeps fixed h-screen / w-64 sizing.
+     */
+    fillContainer?: boolean;
 }
 
 export default function ChartNavigation({
     selectedChart,
     onChartSelect,
     summaryData,
+    fillContainer = false,
 }: ChartNavigationProps) {
     return (
         <div
-            className="custom-scrollbar h-screen w-64 overflow-y-auto border-r border-white/10 bg-[#181A20]"
+            className={`custom-scrollbar overflow-y-auto overscroll-contain bg-[#181A20] ${
+                fillContainer
+                    ? 'h-full w-full'
+                    : 'h-screen w-64 border-r border-white/10'
+            }`}
             style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#01a0e0 #090916',
@@ -52,9 +62,11 @@ export default function ChartNavigation({
                         )}
                     </div>
                 )}
-                <h2 className="mb-4 text-lg font-semibold text-white">
-                    Charts
-                </h2>
+                {!fillContainer && (
+                    <h2 className="mb-4 text-lg font-semibold text-white">
+                        Charts
+                    </h2>
+                )}
                 <nav className="space-y-1">
                     {chartOptions.map(chart => (
                         <button

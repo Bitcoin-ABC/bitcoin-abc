@@ -4,6 +4,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 import DateRangeSelector from '../components/DateRangeSelector';
 import ChartNavigation from '../components/ChartNavigation';
@@ -964,6 +965,8 @@ export default function Home() {
                 className="z-30 p-4 focus:outline-none md:hidden"
                 onClick={() => setMobileNavOpen(true)}
                 aria-label="Open chart picker"
+                aria-haspopup="dialog"
+                aria-expanded={mobileNavOpen}
             >
                 <svg
                     width="28"
@@ -990,42 +993,41 @@ export default function Home() {
                 />
             </div>
 
-            {/* Sidebar Navigation (mobile drawer) */}
-            {mobileNavOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden"
-                        onClick={() => setMobileNavOpen(false)}
-                    />
-                    <div
-                        className="custom-scrollbar fixed left-0 top-0 z-30 h-full w-64 border-r border-white/10 bg-white/5 transition-transform duration-300 md:hidden"
-                        style={{
-                            transform: mobileNavOpen
-                                ? 'translateX(0)'
-                                : 'translateX(-100%)',
-                        }}
-                    >
-                        <div className="flex justify-end p-4">
-                            <button
-                                onClick={() => setMobileNavOpen(false)}
-                                aria-label="Close chart picker"
+            {/* Fullscreen chart picker (mobile) — Headless UI Dialog for
+                focus trap, Escape, labelled name, and focus restore */}
+            <Dialog
+                open={mobileNavOpen}
+                onClose={setMobileNavOpen}
+                className="relative z-40 md:hidden"
+            >
+                <DialogPanel className="fixed inset-0 flex flex-col bg-[#181A20]">
+                    <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3">
+                        <DialogTitle className="text-lg font-semibold text-white">
+                            Charts
+                        </DialogTitle>
+                        <button
+                            type="button"
+                            onClick={() => setMobileNavOpen(false)}
+                            aria-label="Close chart picker"
+                            className="rounded-lg p-1 text-white hover:bg-white/10"
+                        >
+                            <svg
+                                width="28"
+                                height="28"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
                             >
-                                <svg
-                                    width="28"
-                                    height="28"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="min-h-0 flex-1">
                         <ChartNavigation
                             selectedChart={selectedChart}
                             onChartSelect={id => {
@@ -1033,10 +1035,11 @@ export default function Home() {
                                 setMobileNavOpen(false);
                             }}
                             summaryData={summaryData}
+                            fillContainer
                         />
                     </div>
-                </>
-            )}
+                </DialogPanel>
+            </Dialog>
 
             {/* Main Content */}
             <div className="flex min-h-0 flex-1 flex-col space-y-2 sm:space-y-4">
@@ -1090,6 +1093,12 @@ export default function Home() {
                                 if (el) {
                                     // Create a native event handler for wheel events
                                     const wheelHandler = (e: WheelEvent) => {
+                                        // Table views (e.g. rich list) need native
+                                        // wheel scrolling; skip Y-axis zoom.
+                                        if (selectedChart === 'rich-list') {
+                                            return;
+                                        }
+
                                         e.preventDefault();
                                         e.stopPropagation();
 

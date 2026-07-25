@@ -3018,7 +3018,7 @@ export default function ChartRenderer({
                         </p>
                     </div>
                 ) : (
-                    <div className="max-h-[600px] overflow-auto rounded-lg border border-gray-800">
+                    <div className="custom-scrollbar max-h-[600px] overflow-auto overscroll-contain rounded-lg border border-gray-800">
                         <table className="w-full text-left text-sm">
                             <thead className="sticky top-0 bg-[#111122] text-gray-300">
                                 <tr>
