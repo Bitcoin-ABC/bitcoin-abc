@@ -250,13 +250,65 @@ describe('<Token />', () => {
             screen.queryByRole('button', { name: /Sell/ }),
         ).not.toBeInTheDocument();
 
-        // Blacklisted tokens default to burn; send/mint/burn remain in the menu
+        // Blacklisted tokens with a balance default to burn; burn is enabled
         expect(
             await screen.findByPlaceholderText('Burn Amount'),
         ).toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: '⋯' }));
-        expect(screen.getByText('Send')).toBeInTheDocument();
-        expect(screen.getByText('Burn')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+        const burnMenuItem = screen.getByRole('button', { name: 'Burn' });
+        expect(burnMenuItem).toBeEnabled();
+        expect(burnMenuItem).not.toHaveAttribute('disabled');
+    });
+
+    it('Blacklisted token with no balance shows hold notice and no more menu', async () => {
+        const CACHET_TOKENID = slp1FixedCachet.tokenId;
+
+        mockedChronik.setUtxosByTokenId(
+            CACHET_TOKENID,
+            slp1FixedCachet.utxos as unknown as Utxo[],
+        );
+
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.blacklistServerUrl}/blacklist/${CACHET_TOKENID}`,
+            )
+            .mockResolvedValue({
+                json: () => Promise.resolve({ isBlacklisted: true }),
+            } as Response);
+
+        render(
+            <TokenTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                theme={theme}
+                route={`/token/${CACHET_TOKENID}`}
+            />,
+        );
+
+        expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        expect(
+            await screen.findByText(
+                'Cashtab does not support trading this token',
+            ),
+        ).toBeInTheDocument();
+
+        expect(
+            await screen.findByText('You do not hold this token.'),
+        ).toBeInTheDocument();
+
+        // No trading buttons, no more menu, no burn form
+        expect(
+            screen.queryByRole('button', { name: /Buy/ }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: '⋯' }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByPlaceholderText('Burn Amount'),
+        ).not.toBeInTheDocument();
     });
 
     it('Accepts a valid ecash: prefixed address', async () => {
@@ -957,7 +1009,13 @@ describe('<Token />', () => {
             }),
         ).toBeInTheDocument();
 
-        // Action bar is shown (Buy/Sell/⋯) but Sell is disabled when no balance
+        // Buy remains available; more menu is hidden when the wallet holds none
+        expect(
+            await screen.findByRole('button', { name: /Buy/ }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: '⋯' }),
+        ).not.toBeInTheDocument();
     });
 
     it('For an uncached token with no balance, we show a chronik query error if we are unable to fetch the token info', async () => {

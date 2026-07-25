@@ -634,12 +634,13 @@ const Token: React.FC = () => {
             ).isBlacklisted;
             setIsBlacklisted(blacklistStatus);
             if (blacklistStatus) {
-                const defaultAction: TokenActionType = isNftParent
-                    ? 'mintNft'
-                    : isNftChild
-                      ? 'send'
-                      : 'burn';
-                setAction(defaultAction);
+                // Only default into a holder's action when the wallet holds the token
+                // (or NFT parent mint, which does not require a fungible balance).
+                if (isNftParent) {
+                    setAction('mintNft');
+                } else if (typeof tokenBalance !== 'undefined') {
+                    setAction(isNftChild ? 'send' : 'burn');
+                }
             }
         } catch (err) {
             console.error(
@@ -2288,6 +2289,7 @@ const Token: React.FC = () => {
                                 value={confirmationOfEtokenToBeBurnt}
                                 error={burnConfirmationError}
                                 handleInput={handleBurnConfirmationInput}
+                                autoFocus
                             />
                         </Modal>
                     )}
@@ -2990,189 +2992,205 @@ const Token: React.FC = () => {
                     )}
                     {isSupportedToken && isBlacklisted !== null && (
                         <>
-                            <TokenActionBar>
-                                {isBlacklisted === false && (
-                                    <>
-                                        <TokenActionBtn
-                                            $active={
-                                                activeTokenAction === 'buy'
-                                            }
-                                            disabled={isNftParent || isNftChild}
-                                            onClick={() => setAction('buy')}
-                                        >
-                                            + Buy
-                                        </TokenActionBtn>
-                                        <TokenActionBtn
-                                            $active={
-                                                tokenId ===
+                            {(isBlacklisted === false ||
+                                typeof tokenBalance !== 'undefined' ||
+                                isNftParent) && (
+                                <TokenActionBar>
+                                    {isBlacklisted === false && (
+                                        <>
+                                            <TokenActionBtn
+                                                $active={
+                                                    activeTokenAction === 'buy'
+                                                }
+                                                disabled={
+                                                    isNftParent || isNftChild
+                                                }
+                                                onClick={() => setAction('buy')}
+                                            >
+                                                + Buy
+                                            </TokenActionBtn>
+                                            <TokenActionBtn
+                                                $active={
+                                                    tokenId ===
+                                                        appConfig.vipTokens.xecx
+                                                            .tokenId ||
+                                                    tokenId === FIRMA.tokenId
+                                                        ? activeTokenAction ===
+                                                              'redeemXecx' ||
+                                                          activeTokenAction ===
+                                                              'redeemFirma'
+                                                        : [
+                                                              'sellSlp',
+                                                              'sellNft',
+                                                          ].includes(
+                                                              activeTokenAction,
+                                                          )
+                                                }
+                                                disabled={
+                                                    typeof tokenBalance ===
+                                                    'undefined'
+                                                }
+                                                onClick={() => {
+                                                    if (
+                                                        typeof tokenBalance ===
+                                                        'undefined'
+                                                    )
+                                                        return;
+                                                    if (
+                                                        tokenId ===
+                                                        appConfig.vipTokens.xecx
+                                                            .tokenId
+                                                    )
+                                                        setAction('redeemXecx');
+                                                    else if (
+                                                        tokenId ===
+                                                        FIRMA.tokenId
+                                                    )
+                                                        setAction(
+                                                            'redeemFirma',
+                                                        );
+                                                    else if (isNftChild)
+                                                        setAction('sellNft');
+                                                    else if (
+                                                        tokenType?.type ===
+                                                            'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                                                        tokenType?.type ===
+                                                            'SLP_TOKEN_TYPE_MINT_VAULT' ||
+                                                        isAlp
+                                                    )
+                                                        setAction('sellSlp');
+                                                }}
+                                            >
+                                                {tokenId ===
                                                     appConfig.vipTokens.xecx
                                                         .tokenId ||
                                                 tokenId === FIRMA.tokenId
-                                                    ? activeTokenAction ===
-                                                          'redeemXecx' ||
-                                                      activeTokenAction ===
-                                                          'redeemFirma'
-                                                    : [
-                                                          'sellSlp',
-                                                          'sellNft',
-                                                      ].includes(
-                                                          activeTokenAction,
-                                                      )
-                                            }
-                                            disabled={
-                                                typeof tokenBalance ===
-                                                'undefined'
-                                            }
-                                            onClick={() => {
-                                                if (
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                )
-                                                    return;
-                                                if (
-                                                    tokenId ===
-                                                    appConfig.vipTokens.xecx
-                                                        .tokenId
-                                                )
-                                                    setAction('redeemXecx');
-                                                else if (
-                                                    tokenId === FIRMA.tokenId
-                                                )
-                                                    setAction('redeemFirma');
-                                                else if (isNftChild)
-                                                    setAction('sellNft');
-                                                else if (
-                                                    tokenType?.type ===
-                                                        'SLP_TOKEN_TYPE_FUNGIBLE' ||
-                                                    tokenType?.type ===
-                                                        'SLP_TOKEN_TYPE_MINT_VAULT' ||
-                                                    isAlp
-                                                )
-                                                    setAction('sellSlp');
-                                            }}
+                                                    ? '− Redeem'
+                                                    : '− Sell'}
+                                            </TokenActionBtn>
+                                        </>
+                                    )}
+                                    {(typeof tokenBalance !== 'undefined' ||
+                                        isNftParent) && (
+                                        <TokenActionMoreWrap
+                                            ref={moreDropdownRef}
                                         >
-                                            {tokenId ===
-                                                appConfig.vipTokens.xecx
-                                                    .tokenId ||
-                                            tokenId === FIRMA.tokenId
-                                                ? '− Redeem'
-                                                : '− Sell'}
-                                        </TokenActionBtn>
-                                    </>
-                                )}
-                                <TokenActionMoreWrap ref={moreDropdownRef}>
-                                    <TokenActionBtn
-                                        $active={[
-                                            'send',
-                                            'airdrop',
-                                            'burn',
-                                            'mint',
-                                            'mintNft',
-                                        ].includes(activeTokenAction)}
-                                        onClick={() =>
-                                            setMoreDropdownOpen(o => !o)
-                                        }
-                                    >
-                                        ⋯
-                                    </TokenActionBtn>
-                                    <TokenActionDropdown
-                                        $open={moreDropdownOpen}
-                                    >
-                                        {!isNftParent && (
-                                            <TokenActionDropdownItem
-                                                $disabled={
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                }
+                                            <TokenActionBtn
+                                                $active={[
+                                                    'send',
+                                                    'airdrop',
+                                                    'burn',
+                                                    'mint',
+                                                    'mintNft',
+                                                ].includes(activeTokenAction)}
                                                 onClick={() =>
-                                                    setAction('send')
+                                                    setMoreDropdownOpen(o => !o)
                                                 }
                                             >
-                                                Send
-                                            </TokenActionDropdownItem>
-                                        )}
-                                        {isNftParent && (
-                                            <TokenActionDropdownItem
-                                                onClick={() =>
-                                                    setAction('mintNft')
-                                                }
+                                                ⋯
+                                            </TokenActionBtn>
+                                            <TokenActionDropdown
+                                                $open={moreDropdownOpen}
                                             >
-                                                Mint NFT
-                                            </TokenActionDropdownItem>
-                                        )}
-                                        {!isNftChild && (
-                                            <TokenActionDropdownItem
-                                                $disabled={
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                }
-                                                onClick={() =>
-                                                    setAction('airdrop')
-                                                }
-                                            >
-                                                Airdrop
-                                            </TokenActionDropdownItem>
-                                        )}
-                                        {!isNftParent && !isNftChild && (
-                                            <TokenActionDropdownItem
-                                                $disabled={
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                }
-                                                onClick={() =>
-                                                    setAction('burn')
-                                                }
-                                            >
-                                                Burn
-                                            </TokenActionDropdownItem>
-                                        )}
-                                        {mintBatons.length > 0 && (
-                                            <TokenActionDropdownItem
-                                                $disabled={
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                }
-                                                onClick={() =>
-                                                    setAction('mint')
-                                                }
-                                            >
-                                                Mint
-                                            </TokenActionDropdownItem>
-                                        )}
-                                        {isBlacklisted === false &&
-                                            isNftChild && (
-                                                <TokenActionDropdownItem
-                                                    $disabled={
-                                                        typeof tokenBalance ===
-                                                        'undefined'
-                                                    }
-                                                    onClick={() =>
-                                                        setAction('sellNft')
-                                                    }
-                                                >
-                                                    Sell NFT
-                                                </TokenActionDropdownItem>
-                                            )}
-                                        {isBlacklisted === false &&
-                                            (tokenId ===
-                                                appConfig.vipTokens.xecx
-                                                    .tokenId ||
-                                                tokenId === FIRMA.tokenId) && (
-                                                <TokenActionDropdownItem
-                                                    $disabled={
-                                                        typeof tokenBalance ===
-                                                        'undefined'
-                                                    }
-                                                    onClick={() =>
-                                                        setAction('sellSlp')
-                                                    }
-                                                >
-                                                    List token
-                                                </TokenActionDropdownItem>
-                                            )}
-                                    </TokenActionDropdown>
-                                </TokenActionMoreWrap>
-                            </TokenActionBar>
+                                                {!isNftParent &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'send',
+                                                                )
+                                                            }
+                                                        >
+                                                            Send
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                                {isNftParent && (
+                                                    <TokenActionDropdownItem
+                                                        onClick={() =>
+                                                            setAction('mintNft')
+                                                        }
+                                                    >
+                                                        Mint NFT
+                                                    </TokenActionDropdownItem>
+                                                )}
+                                                {!isNftChild &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'airdrop',
+                                                                )
+                                                            }
+                                                        >
+                                                            Airdrop
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                                {!isNftParent &&
+                                                    !isNftChild &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'burn',
+                                                                )
+                                                            }
+                                                        >
+                                                            Burn
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                                {mintBatons.length > 0 &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'mint',
+                                                                )
+                                                            }
+                                                        >
+                                                            Mint
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                                {isBlacklisted === false &&
+                                                    isNftChild &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'sellNft',
+                                                                )
+                                                            }
+                                                        >
+                                                            Sell NFT
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                                {isBlacklisted === false &&
+                                                    (tokenId ===
+                                                        appConfig.vipTokens.xecx
+                                                            .tokenId ||
+                                                        tokenId ===
+                                                            FIRMA.tokenId) &&
+                                                    typeof tokenBalance !==
+                                                        'undefined' && (
+                                                        <TokenActionDropdownItem
+                                                            onClick={() =>
+                                                                setAction(
+                                                                    'sellSlp',
+                                                                )
+                                                            }
+                                                        >
+                                                            List token
+                                                        </TokenActionDropdownItem>
+                                                    )}
+                                            </TokenActionDropdown>
+                                        </TokenActionMoreWrap>
+                                    )}
+                                </TokenActionBar>
+                            )}
                             {isBlacklisted === false && isNftChild && (
                                 <>
                                     {nftActiveOffer === null &&

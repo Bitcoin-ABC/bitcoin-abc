@@ -491,6 +491,7 @@ interface ModalInputProps {
     spellCheck?: boolean;
     autoCorrect?: string;
     autoCapitalize?: string;
+    autoFocus?: boolean;
 }
 export const ModalInput: React.FC<ModalInputProps> = ({
     placeholder = '',
@@ -504,6 +505,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({
     spellCheck = false,
     autoCorrect = 'off',
     autoCapitalize = 'off',
+    autoFocus = false,
 }) => {
     return (
         <CashtabInputWrapper>
@@ -520,6 +522,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({
                     spellCheck={spellCheck}
                     autoCorrect={autoCorrect}
                     autoCapitalize={autoCapitalize}
+                    autoFocus={autoFocus}
                 />
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>

@@ -1604,11 +1604,14 @@ describe('<Token /> available actions rendered', () => {
             await screen.findByRole('button', { name: /Burn tCRD/ }),
         );
 
-        // We see a modal and enter the correct confirmation msg
-        await userEvent.type(
-            screen.getByPlaceholderText(`Type "burn tCRD" to confirm`),
-            'burn tCRD',
+        // Confirm modal autofocuses the type-to-confirm input
+        const burnConfirmInput = screen.getByPlaceholderText(
+            `Type "burn tCRD" to confirm`,
         );
+        expect(burnConfirmInput).toHaveFocus();
+
+        // We see a modal and enter the correct confirmation msg
+        await userEvent.type(burnConfirmInput, 'burn tCRD');
 
         // Click the Confirm button
         await userEvent.click(screen.getByRole('button', { name: /OK/ }));
