@@ -3332,7 +3332,6 @@ const SendXec: React.FC = () => {
                                     >
                                         <SendToOneHolder>
                                             <SendRecipientInput
-                                                label="Address"
                                                 placeholder="Address or contact"
                                                 name="address"
                                                 value={tokenFormData.address}
@@ -3356,7 +3355,6 @@ const SendXec: React.FC = () => {
                                                 wallets={wallets}
                                             />
                                             <SendTokenInput
-                                                label="Amount"
                                                 name="amount"
                                                 placeholder="Amount"
                                                 value={tokenFormData.amount}
@@ -3415,7 +3413,6 @@ const SendXec: React.FC = () => {
                                 ) : (
                                     <>
                                         <SendRecipientInput
-                                            label="Address"
                                             placeholder="Address or contact"
                                             name="address"
                                             value={tokenFormData.address}
@@ -3434,7 +3431,6 @@ const SendXec: React.FC = () => {
                                             wallets={wallets}
                                         />
                                         <SendTokenInput
-                                            label="Amount"
                                             name="amount"
                                             placeholder="Amount"
                                             value={tokenFormData.amount}
@@ -3840,7 +3836,6 @@ const SendXec: React.FC = () => {
                             <SendToOneHolder>
                                 <SendToOneInputForm>
                                     <SendRecipientInput
-                                        label="Send to"
                                         placeholder="Address or contact"
                                         name="address"
                                         value={formData.address}
@@ -3872,7 +3867,6 @@ const SendXec: React.FC = () => {
                                         </Info>
                                     ) : (
                                         <SendXecInput
-                                            label="Amount"
                                             name="amount"
                                             value={formData.amount}
                                             userLocale={userLocale}
