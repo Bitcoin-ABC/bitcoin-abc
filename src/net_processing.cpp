@@ -3106,6 +3106,17 @@ void PeerManagerImpl::RelayAddress(NodeId originator, const CAddress &addr,
 
 void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
                                           Peer &peer, const CInv &inv) {
+    // First perform the stateless checks:
+    // A filtered-block can only ever be requested if we offer NODE_BLOOM
+    if (inv.IsMsgFilteredBlk() && !(peer.m_our_services & NODE_BLOOM)) {
+        LogDebug(BCLog::NET,
+                 "filtered block request received when NODE_BLOOM service "
+                 "disabled, disconnecting peer=%d\n",
+                 pfrom.GetId());
+        pfrom.fDisconnect = true;
+        return;
+    }
+
     const BlockHash hash(inv.hash);
 
     std::shared_ptr<const CBlock> a_recent_block;
@@ -5457,6 +5468,16 @@ void PeerManagerImpl::ProcessMessage(
     if (msg_type == NetMsgType::GETBLOCKTXN) {
         BlockTransactionsRequest req;
         vRecv >> req;
+
+        // No legitimate reason to send indexes empty
+        if (req.indices.empty()) {
+            LogDebug(BCLog::NET,
+                     "getblocktxn received with no transaction indexes, "
+                     "disconnecting peer=%d\n",
+                     pfrom.GetId());
+            pfrom.fDisconnect = true;
+            return;
+        }
 
         std::shared_ptr<const CBlock> recent_block;
         {
