@@ -105,7 +105,7 @@ public:
     /**
      * Register that a request is being made regarding that item.
      * The method is made const so that it can be accessed via a read only view
-     * of blockVoteRecords. It's not a problem as it is made thread safe.
+     * of voteRecords. It's not a problem as it is made thread safe.
      */
     bool registerPoll() const;
 
@@ -116,8 +116,10 @@ public:
 
     /**
      * Clear `count` inflight requests.
+     * The method is made const so that it can be accessed via a read only view
+     * of voteRecords. It's not a problem as it is made thread safe.
      */
-    void clearInflightRequest(uint8_t count = 1) { inflight -= count; }
+    void clearInflightRequest(uint8_t count = 1) const { inflight -= count; }
 
 private:
     /**

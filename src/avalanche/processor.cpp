@@ -1348,7 +1348,7 @@ void Processor::clearTimedoutRequests() {
     }
 
     // In flight request accounting.
-    auto voteRecordsWriteView = voteRecords.getWriteView();
+    auto voteRecordsReadView = voteRecords.getReadView();
     for (const auto &p : timedout_items) {
         auto item = getVoteItemFromInv(p.first);
 
@@ -1356,8 +1356,8 @@ void Processor::clearTimedoutRequests() {
             continue;
         }
 
-        auto it = voteRecordsWriteView->find(item);
-        if (it == voteRecordsWriteView.end()) {
+        auto it = voteRecordsReadView->find(item);
+        if (it == voteRecordsReadView.end()) {
             continue;
         }
 
