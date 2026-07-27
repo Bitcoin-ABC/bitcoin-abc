@@ -43,10 +43,11 @@ namespace {
     struct AvalancheTest {
         static void runEventLoop(avalanche::Processor &p) { p.runEventLoop(); }
 
-        static std::vector<CInv> getInvsForNextPoll(Processor &p) {
+        static std::vector<CInv> getInvsForNextPoll(Processor &p,
+                                                    bool forPoll = false) {
             auto r = p.voteRecords.getReadView();
             return p.getInvsForNextPoll(r, DEFAULT_AVALANCHE_MAX_ELEMENT_POLL,
-                                        false);
+                                        forPoll);
         }
 
         static NodeId getSuitableNodeToQuery(Processor &p) {
@@ -109,6 +110,12 @@ namespace {
 
         static void clearInvsNotWorthPolling(Processor &p) {
             p.clearInvsNotWorthPolling();
+        }
+
+        static void
+        clearInflightRequests(Processor &p,
+                              const std::map<CInv, uint8_t> &itemCounts) {
+            p.clearInflightRequests(itemCounts);
         }
     };
 } // namespace
@@ -213,8 +220,8 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
         return AvalancheTest::getSuitableNodeToQuery(*m_node.avalanche);
     }
 
-    std::vector<CInv> getInvsForNextPoll() {
-        return AvalancheTest::getInvsForNextPoll(*m_node.avalanche);
+    std::vector<CInv> getInvsForNextPoll(bool forPoll = false) {
+        return AvalancheTest::getInvsForNextPoll(*m_node.avalanche, forPoll);
     }
 
     uint64_t getRound() const {
@@ -243,6 +250,10 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
 
     void clearInvsNotWorthPolling() {
         AvalancheTest::clearInvsNotWorthPolling(*m_node.avalanche);
+    }
+
+    void clearInflightRequests(const std::map<CInv, uint8_t> &itemCounts) {
+        AvalancheTest::clearInflightRequests(*m_node.avalanche, itemCounts);
     }
 };
 
@@ -1244,6 +1255,119 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_count, P, VoteItemProviders) {
     BOOST_CHECK(registerVotes(it->first, resp, updates));
     node_round_map.erase(it);
 
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(clear_inflight_requests, P, VoteItemProviders) {
+    P provider(this);
+
+    constexpr size_t numItems = 3;
+    std::vector<CInv> itemInvs;
+    itemInvs.reserve(numItems);
+    for (size_t i = 0; i < numItems; i++) {
+        const auto item = provider.buildVoteItem();
+        BOOST_CHECK(addToReconcile(item));
+        itemInvs.emplace_back(provider.invType, provider.getVoteItemId(item));
+    }
+
+    auto contains = [](const std::vector<CInv> &invs, const CInv &target) {
+        return std::find_if(invs.begin(), invs.end(), [&](const CInv &inv) {
+                   return inv.type == target.type && inv.hash == target.hash;
+               }) != invs.end();
+    };
+
+    // Saturate the inflight counter for every item.
+    for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        auto invs = getInvsForNextPoll(/*forPoll=*/true);
+        BOOST_CHECK_EQUAL(invs.size(), numItems);
+    }
+    BOOST_CHECK(getInvsForNextPoll().empty());
+
+    // Clear with different counts so the items have different remaining
+    // headroom (1, 2 and 3 polls respectively).
+    clearInflightRequests(
+        {{itemInvs[0], 1}, {itemInvs[1], 2}, {itemInvs[2], 3}});
+    BOOST_CHECK_EQUAL(getInvsForNextPoll().size(), numItems);
+
+    // Exhaust items one by one according to remaining headroom.
+    BOOST_CHECK_EQUAL(getInvsForNextPoll(/*forPoll=*/true).size(), numItems);
+    {
+        auto remaining = getInvsForNextPoll();
+        BOOST_CHECK_EQUAL(remaining.size(), 2);
+        BOOST_CHECK(!contains(remaining, itemInvs[0]));
+        BOOST_CHECK(contains(remaining, itemInvs[1]));
+        BOOST_CHECK(contains(remaining, itemInvs[2]));
+    }
+
+    BOOST_CHECK_EQUAL(getInvsForNextPoll(/*forPoll=*/true).size(), 2);
+    {
+        auto remaining = getInvsForNextPoll();
+        BOOST_CHECK_EQUAL(remaining.size(), 1);
+        BOOST_CHECK(!contains(remaining, itemInvs[1]));
+        BOOST_CHECK(contains(remaining, itemInvs[2]));
+    }
+
+    BOOST_CHECK_EQUAL(getInvsForNextPoll(/*forPoll=*/true).size(), 1);
+    BOOST_CHECK(getInvsForNextPoll().empty());
+
+    // Clearing the remaining requests restores full poll headroom.
+    clearInflightRequests({{itemInvs[0], AVALANCHE_MAX_INFLIGHT_POLL},
+                           {itemInvs[1], AVALANCHE_MAX_INFLIGHT_POLL},
+                           {itemInvs[2], AVALANCHE_MAX_INFLIGHT_POLL}});
+    for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        BOOST_CHECK_EQUAL(getInvsForNextPoll(/*forPoll=*/true).size(),
+                          numItems);
+    }
+    BOOST_CHECK(getInvsForNextPoll().empty());
+
+    // Unknown inventory and empty maps are no-ops.
+    clearInflightRequests({});
+    clearInflightRequests({{CInv(provider.invType, GetRandHash()), 5}});
+    BOOST_CHECK(getInvsForNextPoll().empty());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_accounting, P, VoteItemProviders) {
+    P provider(this);
+    const uint32_t invType = provider.invType;
+
+    auto proof = GetProof();
+    BOOST_CHECK(m_node.avalanche->withPeerManager(
+        [&](avalanche::PeerManager &pm) { return pm.registerProof(proof); }));
+
+    // More nodes than the inflight cap so a single event-loop pass can attempt
+    // enough failed dispatches to saturate inflight if counters leak.
+    constexpr size_t numNodes = 8 + AVALANCHE_MAX_INFLIGHT_POLL;
+    std::vector<CNode *> nodes;
+    nodes.reserve(numNodes);
+    for (size_t i = 0; i < numNodes; i++) {
+        CNode *n = ConnectNode(NODE_AVALANCHE);
+        BOOST_CHECK(addNode(n->GetId(), proof->getId()));
+        nodes.push_back(n);
+    }
+
+    const auto item = provider.buildVoteItem();
+    const auto itemid = provider.getVoteItemId(item);
+    BOOST_CHECK(addToReconcile(item));
+
+    // Make ForNode fail for every peer while they are still selectable.
+    for (CNode *n : nodes) {
+        n->fDisconnect = true;
+    }
+
+    runEventLoop();
+
+    // Inflight must not have leaked: the item remains pollable.
+    auto invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
+
+    // A fresh connected quorum can still poll the item successfully.
+    ConnectNodes();
+    runEventLoop();
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, invType);

@@ -1241,77 +1241,90 @@ void Processor::runEventLoop() {
 
     NodeId nodeid{NO_NODE};
     do {
-        // Build a unique pointer to the read view of vote records.
-        // This is so we can release the lock immediately after we have gathered
-        // the invs to poll and avoid a lock inversion with the peer manager
-        // lock.
-        auto voteRecordsReadView =
-            std::make_unique<decltype(voteRecords.getReadView())>(
-                voteRecords.getReadView());
+        std::vector<CInv> invs;
 
-        LOCK(cs_peerManager);
+        {
+            // Build a unique pointer to the read view of vote records.
+            // This is so we can release the lock immediately after we have
+            // gathered the invs to poll and avoid a lock inversion with the
+            // peer manager lock.
+            auto voteRecordsReadView =
+                std::make_unique<decltype(voteRecords.getReadView())>(
+                    voteRecords.getReadView());
 
-        // Make sure there is at least one suitable node to query before
-        // gathering invs.
-        nodeid = peerManager->selectNode();
-        if (nodeid == NO_NODE) {
-            return;
-        }
+            LOCK(cs_peerManager);
 
-        size_t max_elements = AVALANCHE_MAX_ELEMENT_POLL_LEGACY;
-        peerManager->forNode(nodeid, [&max_elements](const Node &node) {
-            max_elements = node.maxElements;
-            return true;
-        });
+            // Make sure there is at least one suitable node to query before
+            // gathering invs.
+            nodeid = peerManager->selectNode();
+            if (nodeid == NO_NODE) {
+                return;
+            }
 
-        std::vector<CInv> invs =
-            getInvsForNextPoll(*voteRecordsReadView, max_elements);
-        if (invs.empty()) {
-            return;
-        }
-
-        // Release the read lock on vote records
-        voteRecordsReadView.reset();
-
-        /**
-         * If we lost contact to that node, then we remove it from nodeids, but
-         * never add the request to queries, which ensures bad nodes get cleaned
-         * up over time.
-         */
-        bool hasSent = connman->ForNode(
-            nodeid,
-            [this, invs = std::move(invs)](
-                CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_peerManager) mutable {
-                uint64_t current_round = round++;
-
-                {
-                    // Compute the time at which this requests times out.
-                    auto timeout = Now<SteadyMilliseconds>() +
-                                   avaconfig.queryTimeoutDuration;
-                    // Register the query.
-                    queries.getWriteView()->insert(
-                        {pnode->GetId(), current_round, timeout, invs});
-                    // Set the timeout.
-                    peerManager->updateNextRequestTimeForPoll(
-                        pnode->GetId(), timeout, current_round);
-                }
-
-                pnode->invsPolled(invs.size());
-
-                // Send the query to the node.
-                connman->PushMessage(
-                    pnode, NetMsg::Make(NetMsgType::AVAPOLL,
-                                        Poll(current_round, std::move(invs))));
+            size_t max_elements = AVALANCHE_MAX_ELEMENT_POLL_LEGACY;
+            peerManager->forNode(nodeid, [&max_elements](const Node &node) {
+                max_elements = node.maxElements;
                 return true;
             });
 
-        // Success!
-        if (hasSent) {
-            return;
+            invs = getInvsForNextPoll(*voteRecordsReadView, max_elements);
+            if (invs.empty()) {
+                return;
+            }
+
+            // Release the read lock on vote records
+            voteRecordsReadView.reset();
+
+            /**
+             * If we lost contact to that node, then we remove it from nodeids,
+             * but never add the request to queries, which ensures bad nodes get
+             * cleaned up over time. Keep a copy of invs for inflight rollback
+             * if the send fails (registerPoll already ran during gather).
+             */
+            bool hasSent = connman->ForNode(
+                nodeid, [this, invs](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(
+                            cs_peerManager) mutable {
+                    uint64_t current_round = round++;
+
+                    {
+                        // Compute the time at which this requests times out.
+                        auto timeout = Now<SteadyMilliseconds>() +
+                                       avaconfig.queryTimeoutDuration;
+                        // Register the query.
+                        queries.getWriteView()->insert(
+                            {pnode->GetId(), current_round, timeout, invs});
+                        // Set the timeout.
+                        peerManager->updateNextRequestTimeForPoll(
+                            pnode->GetId(), timeout, current_round);
+                    }
+
+                    pnode->invsPolled(invs.size());
+
+                    // Send the query to the node.
+                    connman->PushMessage(
+                        pnode,
+                        NetMsg::Make(NetMsgType::AVAPOLL,
+                                     Poll(current_round, std::move(invs))));
+                    return true;
+                });
+
+            // Success!
+            if (hasSent) {
+                return;
+            }
+
+            // This node is obsolete, delete it.
+            peerManager->removeNode(nodeid);
         }
 
-        // This node is obsolete, delete it.
-        peerManager->removeNode(nodeid);
+        // Roll back inflight counters for the polls that were never dispatched.
+        // Done after releasing cs_peerManager to avoid lock inversion with
+        // voteRecords.
+        std::map<CInv, uint8_t> undelivered;
+        for (const CInv &inv : invs) {
+            undelivered[inv]++;
+        }
+        clearInflightRequests(undelivered);
     } while (nodeid != NO_NODE);
 }
 
@@ -1343,14 +1356,18 @@ void Processor::clearTimedoutRequests() {
         }
     }
 
-    if (timedout_items.empty()) {
+    clearInflightRequests(timedout_items);
+}
+
+void Processor::clearInflightRequests(
+    const std::map<CInv, uint8_t> &inflightRequests) {
+    if (inflightRequests.empty()) {
         return;
     }
 
-    // In flight request accounting.
     auto voteRecordsReadView = voteRecords.getReadView();
-    for (const auto &p : timedout_items) {
-        auto item = getVoteItemFromInv(p.first);
+    for (const auto &inflightRequest : inflightRequests) {
+        auto item = getVoteItemFromInv(inflightRequest.first);
 
         if (isNull(item)) {
             continue;
@@ -1361,7 +1378,7 @@ void Processor::clearTimedoutRequests() {
             continue;
         }
 
-        it->second.clearInflightRequest(p.second);
+        it->second.clearInflightRequest(inflightRequest.second);
     }
 }
 

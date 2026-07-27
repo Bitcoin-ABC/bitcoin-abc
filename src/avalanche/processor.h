@@ -433,6 +433,11 @@ private:
     void clearInvsNotWorthPolling()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
+    /**
+     * Decrement VoteRecord::inflight for each inventory by the given count.
+     */
+    void clearInflightRequests(const std::map<CInv, uint8_t> &inflightRequests)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     std::vector<CInv>
     getInvsForNextPoll(RWCollection<VoteMap>::ReadView &voteRecordsReadView,
                        size_t max_elements, bool forPoll = true) const;
