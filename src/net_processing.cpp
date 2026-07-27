@@ -4255,7 +4255,12 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
             return;
         }
     }
-    assert(pindexLast);
+
+    if (!pindexLast) {
+        LogError("headers message processed but no pindexLast\n");
+        // Nothing to do here
+        return;
+    }
 
     // Consider fetching more headers if we are not using our headers-sync
     // mechanism.
@@ -5648,7 +5653,12 @@ void PeerManagerImpl::ProcessMessage(
             // If height is above MAX_BLOCKTXN_DEPTH then this block cannot get
             // pruned after we release cs_main above, so this read should never
             // fail.
-            assert(ret);
+            if (!ret) {
+                LogError("getblocktxn: block read failed for block %s\n",
+                         req.blockhash.ToString());
+                // Nothing to do here
+                return;
+            }
 
             SendBlockTransactions(pfrom, *peer, block, req);
             return;
@@ -6120,8 +6130,16 @@ void PeerManagerImpl::ProcessMessage(
 
         {
             LOCK(cs_main);
+
             // If AcceptBlockHeader returned true, it set pindex
-            assert(pindex);
+            if (!pindex) {
+                LogError(
+                    "cmpctblock: header accepted but no pindex for block %s\n",
+                    blockhash.ToString());
+                // Nothing to do here
+                return;
+            }
+
             UpdateBlockAvailability(pfrom.GetId(), pindex->GetBlockHash());
 
             CNodeState *nodestate = State(pfrom.GetId());
@@ -6966,7 +6984,8 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
-            auto getBlockFromIndex = [this](const CBlockIndex *pindex) {
+            auto getBlockFromIndex = [this](const CBlockIndex *pindex)
+                -> std::shared_ptr<const CBlock> {
                 // First check if the block is cached before reading
                 // from disk.
                 std::shared_ptr<const CBlock> pblock = WITH_LOCK(
@@ -6977,7 +6996,10 @@ void PeerManagerImpl::ProcessMessage(
                         std::make_shared<CBlock>();
                     if (!m_chainman.m_blockman.ReadBlock(*pblockRead,
                                                          *pindex)) {
-                        assert(!"cannot load block from disk");
+                        LogError("getBlockFromIndex: cannot load block from "
+                                 "disk %s\n",
+                                 pindex->GetBlockHash().ToString());
+                        return nullptr;
                     }
                     pblock = pblockRead;
                 }
@@ -7011,7 +7033,11 @@ void PeerManagerImpl::ProcessMessage(
                         }
 
                         auto pblock = getBlockFromIndex(pindex);
-                        assert(pblock);
+                        if (!pblock) {
+                            LogError("avaresponse: failed to get invalidated "
+                                     "block from index\n");
+                            break;
+                        }
 
                         WITH_LOCK(cs_main, GetMainSignals().BlockInvalidated(
                                                pindex, pblock));
@@ -7040,71 +7066,80 @@ void PeerManagerImpl::ProcessMessage(
                             // Skip if the block is already finalized, aka an
                             // ancestor of the finalized tip.
                             if (fPreconsensus && newlyFinalized) {
-                                auto pblock = getBlockFromIndex(pindex);
-                                assert(pblock);
-
-                                {
-                                    // If the finalized block is not the tip, we
-                                    // need to keep track of the transactions
-                                    // from the non final blocks, so that we can
-                                    // check if they were finalized by
-                                    // pre-consensus. If these transactions were
-                                    // pruned from the radix tree, their
-                                    // finalization status could be lost in the
-                                    // case the non final blocks are later
-                                    // rejected.
-                                    CBlockIndex *tip = m_chainman.ActiveTip();
-                                    std::unordered_set<TxId, SaltedTxIdHasher>
-                                        confirmedTxIdsInNonFinalizedBlocks;
-                                    for (const CBlockIndex *block = tip;
-                                         block != nullptr && block != pindex;
-                                         block = block->pprev) {
-                                        auto currentBlock =
-                                            getBlockFromIndex(block);
-                                        assert(currentBlock);
-                                        for (const auto &tx :
-                                             currentBlock->vtx) {
-                                            confirmedTxIdsInNonFinalizedBlocks
-                                                .insert(tx->GetId());
-                                        }
+                                // If the finalized block is not the tip, we
+                                // need to keep track of the transactions from
+                                // the non final blocks, so that we can check if
+                                // they were finalized by pre-consensus.
+                                // If these transactions were pruned from the
+                                // radix tree, their finalization status could
+                                // be lost in the case the non final blocks are
+                                // later rejected.
+                                CBlockIndex *tip = m_chainman.ActiveTip();
+                                std::unordered_set<TxId, SaltedTxIdHasher>
+                                    confirmedTxIdsInNonFinalizedBlocks;
+                                bool missing_block = false;
+                                for (const CBlockIndex *block = tip;
+                                     block != nullptr && block != pindex;
+                                     block = block->pprev) {
+                                    auto currentBlock =
+                                        getBlockFromIndex(block);
+                                    if (!currentBlock) {
+                                        LogError(
+                                            "avaresponse: failed to get "
+                                            "finalized block descendant from "
+                                            "index %s\n",
+                                            block->GetBlockHash().ToString());
+                                        missing_block = true;
+                                        break;
                                     }
-
-                                    // Remove the transactions that are not
-                                    // confirmed
-                                    LOCK(m_mempool.cs);
-                                    m_mempool.removeForFinalizedBlock(
-                                        confirmedTxIdsInNonFinalizedBlocks);
-
-                                    // Now add mempool transactions to the poll.
-                                    // To determine which transaction to add, we
-                                    // leverage the legacy block template
-                                    // construction method and build a template
-                                    // with the most valuable txs in it. These
-                                    // transactions are sorted topologically;
-                                    // parents come before children, so we can
-                                    // poll for children first and optimize the
-                                    // number of polls.
-                                    node::BlockAssembler blockAssembler(
-                                        config, chainstate, &m_mempool,
-                                        m_avalanche);
-                                    blockAssembler.pblocktemplate.reset(
-                                        new node::CBlockTemplate());
-
-                                    if (blockAssembler.pblocktemplate) {
-                                        blockAssembler.addTxs(m_mempool);
-                                        blockTemplate = std::move(
-                                            blockAssembler.pblocktemplate);
+                                    for (const auto &tx : currentBlock->vtx) {
+                                        confirmedTxIdsInNonFinalizedBlocks
+                                            .insert(tx->GetId());
                                     }
+                                }
+
+                                if (missing_block) {
+                                    // If any block data is missing, the cleanup
+                                    // procedure will leave us in an
+                                    // inconsistent state. Better skip the
+                                    // procedure entirely.
+                                    break;
+                                }
+
+                                // Remove the transactions that are not
+                                // confirmed
+                                LOCK(m_mempool.cs);
+                                m_mempool.removeForFinalizedBlock(
+                                    confirmedTxIdsInNonFinalizedBlocks);
+
+                                // Now add mempool transactions to the poll.
+                                // To determine which transaction to add, we
+                                // leverage the legacy block template
+                                // construction method and build a template with
+                                // the most valuable txs in it. These
+                                // transactions are sorted topologically;
+                                // parents come before children, so we can poll
+                                // for children first and optimize the number of
+                                // polls.
+                                node::BlockAssembler blockAssembler(
+                                    config, chainstate, &m_mempool,
+                                    m_avalanche);
+                                blockAssembler.pblocktemplate.reset(
+                                    new node::CBlockTemplate());
+
+                                if (blockAssembler.pblocktemplate) {
+                                    blockAssembler.addTxs(m_mempool);
+                                    blockTemplate = std::move(
+                                        blockAssembler.pblocktemplate);
                                 }
                             }
                         } // release cs_main
 
                         if (blockTemplate) {
-                            // We could check if the tx is final already
-                            // but addToReconcile will skip the recently
-                            // finalized txs, so let's abuse this
-                            // feature and avoid a tree lookup for each
-                            // tx as an optimization.
+                            // We could check if the tx is final already but
+                            // addToReconcile will skip the recently finalized
+                            // txs, so let's abuse this feature and avoid a tree
+                            // lookup for each tx as an optimization.
                             for (const auto &templateEntry :
                                  reverse_iterate(blockTemplate->entries)) {
                                 m_avalanche->addToReconcile(templateEntry.tx);
@@ -7273,7 +7308,13 @@ void PeerManagerImpl::ProcessMessage(
                                 m_mempool.removeConflicts(*tx);
 
                                 auto result = m_chainman.ProcessTransaction(tx);
-                                assert(result.m_state.IsValid());
+                                if (!result.m_state.IsValid()) {
+                                    LogError("accepted tx %s failed mempool "
+                                             "acceptance: %s\n",
+                                             txid.ToString(),
+                                             result.m_state.ToString());
+                                    break;
+                                }
 
                                 m_mempool.withConflicting(
                                     [&txid, &mempool_conflicting_txs](
@@ -9330,7 +9371,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
 bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
                                              const avalanche::ProofRef &proof) {
-    assert(proof != nullptr);
+    if (!proof) {
+        LogError("ReceivedAvalancheProof: proof is null\n");
+        return false;
+    }
 
     const avalanche::ProofId &proofid = proof->getId();
 
