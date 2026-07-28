@@ -152,10 +152,12 @@ should ship tests a reviewer can run locally.
    seller / slush (`m/44'/1899'/{0,1}'/0/0`); required `feeAddress`
    (off-server; need not be hot); `print-addresses` script; reject
    fee/seller/slush collisions.
-5. **Chronik sync + genesis** — `chronikUrls` in config; genesis fetch;
-   allowlisted `TradedTokens`; wallet `sync()` against mock Chronik.
-6. **Pricing** — Wire local seller+slush reserves into constant-product
-   quotes (reuse `ecash-wallet` CP helpers; do not re-prove the math here).
+5. **Chronik sync + genesis [D20380](https://reviews.bitcoinabc.org/D20380)** —
+   `chronikUrls` in config; genesis fetch; allowlisted `TradedTokens`; wallet
+   `sync()` against mock Chronik.
+6. **Pricing** — Seller+slush fungible atom reserves; bigint constant-product
+   exact-in / exact-out + spot (SPEC formulas); maker fee on top of the price
+   leg. Pure unit tests (no HTTP quote routes yet).
 7. **Inventory automation** — Classify seller UTXOs; reshape wrong sizes via
    slush; mint inventory + postage; misc → fee; mocked-wallet tests.
 8. **Quote API** — Read-only routes: available, inventory, spot, size quotes,

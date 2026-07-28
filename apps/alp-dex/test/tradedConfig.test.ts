@@ -258,6 +258,18 @@ describe('tradedConfig', () => {
         );
     });
 
+    it('rejects same-token pairs at config load (startup)', () => {
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
+                        pairs: [pair(TOKEN_A, TOKEN_A, 0.01, 1, 1)],
+                    }),
+                ),
+            /must differ/,
+        );
+    });
+
     it('loadTradedConfig throws when config.json is missing', () => {
         const missing = path.join(
             os.tmpdir(),

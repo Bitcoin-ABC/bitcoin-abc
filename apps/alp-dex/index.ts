@@ -5,6 +5,8 @@
 import { createApp } from './src/app';
 import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
+import { pairSpotPrices } from './src/pricing/quotes';
+import { pricingReserveAtoms } from './src/pricing/reserves';
 import { loadTradedTokens } from './src/tokens/tradedTokens';
 import { createLpWallets } from './src/wallet/accounts';
 
@@ -30,9 +32,40 @@ const main = async (): Promise<void> => {
             console.log(`slush  ${addresses.slushAddress}`);
             console.log(`fee    ${addresses.feeAddress}`);
             for (const token of tradedTokens.values()) {
+                const reserve = pricingReserveAtoms(
+                    seller.utxos,
+                    slush.utxos,
+                    token.tokenId,
+                );
                 console.log(
                     `token  ${token.tokenId} ${token.tokenTicker} ` +
-                        `decimals=${token.decimals} utxoAtoms=${token.utxoAtoms}`,
+                        `decimals=${token.decimals} utxoAtoms=${token.utxoAtoms} ` +
+                        `reserveAtoms=${reserve}`,
+                );
+            }
+            for (const pair of tradedConfig.pairs) {
+                const tokenA = tradedTokens.get(pair.tokenIdA)!;
+                const tokenB = tradedTokens.get(pair.tokenIdB)!;
+                const reserveA = pricingReserveAtoms(
+                    seller.utxos,
+                    slush.utxos,
+                    pair.tokenIdA,
+                );
+                const reserveB = pricingReserveAtoms(
+                    seller.utxos,
+                    slush.utxos,
+                    pair.tokenIdB,
+                );
+                const { spotAtoB, spotBtoA } = pairSpotPrices(
+                    reserveA,
+                    reserveB,
+                    tokenA.decimals,
+                    tokenB.decimals,
+                );
+                console.log(
+                    `pair   ${pair.tokenIdA.slice(0, 8)}…/${pair.tokenIdB.slice(0, 8)}… ` +
+                        `feePct=${pair.feePct} reserves=${reserveA}/${reserveB} ` +
+                        `spotA→B=${spotAtoB} spotB→A=${spotBtoA}`,
                 );
             }
             resolve();
