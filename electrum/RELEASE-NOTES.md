@@ -1,5 +1,16 @@
 # Release notes
 
+## Release 5.5.1
+
+- Changing the gap limit now affects also the change addresses (D19906).
+- Fix an error when changing the fiat currency (D19973).
+- Fix a sorting issue causing removal of the wrong stake in the Avalanche proof
+  editor (D20197).
+- Bump the tor binary to 0.4.9.11, delete the existing tor 0.4.8 binary from the
+  user data directory, if present. Tor 0.4.8 is being sunset in September 2026
+  (D20226, D20227).
+
+
 ## Release 5.5.0
 
 - Build 64-bit binaries for Windows (D19530, D19577).
