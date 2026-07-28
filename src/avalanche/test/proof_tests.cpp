@@ -18,15 +18,20 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <limits>
+
 using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(proof_tests, TestChain100Setup)
 
 BOOST_AUTO_TEST_CASE(proof_random) {
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    const uint32_t maxScore = Proof::amountToScore(MAX_MONEY);
 
     for (int i = 0; i < 1000; i++) {
-        const uint32_t score = m_rng.rand32();
+        // The randrage upper bound is exclusive, so we add 1 to include the
+        // maximum score.
+        const uint32_t score = m_rng.randrange(maxScore + 1);
         auto p = buildRandomProof(active_chainstate, score);
         BOOST_CHECK_EQUAL(p->getScore(), score);
 
@@ -205,7 +210,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "ad8450ba57e11dfb61b1f5a7325094d5ffda1f5830e0990dcc2ebb9be8",
          ProofId::fromHex("5d4919b43a1afb6acdeddaf1678397eaa10562125db6b911ec4e"
                           "35fd8598ad73"),
-         3280755132, ProofValidationResult::DUPLICATE_STAKE},
+         // Stake amounts sum above MAX_MONEY (3280755132); score is saturated.
+         Proof::amountToScore(MAX_MONEY),
+         ProofValidationResult::DUPLICATE_STAKE},
         {"Properly signed 3 UTXO proof",
          "c964aa6fde575e4ce8404581c7be874e21023beefdde700a6bc02036335b4df141c8b"
          "c67bb05a971f5ac2745fd683797dde3030b1e5f35704cb63360aa3d5f444ee35eea4c"
@@ -916,6 +923,57 @@ BOOST_AUTO_TEST_CASE(get_staked_amount) {
     {
         ProofRef p = pb.build();
         BOOST_CHECK_EQUAL(p->getStakedAmount(), 55 * COIN);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(amount_to_score) {
+    BOOST_CHECK_EQUAL(Proof::amountToScore(Amount::zero()), 0);
+    BOOST_CHECK_EQUAL(Proof::amountToScore(-SATOSHI), 0);
+    BOOST_CHECK_EQUAL(Proof::amountToScore(PROOF_DUST_THRESHOLD),
+                      MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK_EQUAL(Proof::amountToScore(MAX_MONEY),
+                      uint32_t((100 * MAX_MONEY) / COIN));
+    BOOST_CHECK_EQUAL(Proof::amountToScore(MAX_MONEY + SATOSHI),
+                      Proof::amountToScore(MAX_MONEY));
+}
+
+BOOST_AUTO_TEST_CASE(stake_amount_overflow) {
+    const CKey key = CKey::MakeCompressedKey();
+    const CPubKey pubkey = key.GetPubKey();
+    const SchnorrSig dummySig{};
+
+    auto makeProof = [&](std::vector<SignedStake> stakes) {
+        return Proof(0, 0, pubkey, std::move(stakes),
+                     UNSPENDABLE_ECREG_PAYOUT_SCRIPT, dummySig);
+    };
+
+    // Two stakes large enough that their sum overflows int64.
+    const Amount huge = (std::numeric_limits<int64_t>::max() / 2 + 1) * SATOSHI;
+    {
+        Proof proof = makeProof({
+            SignedStake(
+                Stake(COutPoint(TxId(uint256::ONE), 0), huge, 1, false, pubkey),
+                dummySig),
+            SignedStake(
+                Stake(COutPoint(TxId(uint256(2)), 0), huge, 1, false, pubkey),
+                dummySig),
+        });
+        BOOST_CHECK_EQUAL(proof.getStakedAmount(), MAX_MONEY);
+        BOOST_CHECK_EQUAL(proof.getScore(), Proof::amountToScore(MAX_MONEY));
+    }
+
+    // Negative stake amounts are clamped to zero.
+    {
+        Proof proof = makeProof({
+            SignedStake(Stake(COutPoint(TxId(uint256::ONE), 0), -COIN, 1, false,
+                              pubkey),
+                        dummySig),
+            SignedStake(Stake(COutPoint(TxId(uint256(2)), 0), -SATOSHI, 1,
+                              false, pubkey),
+                        dummySig),
+        });
+        BOOST_CHECK_EQUAL(proof.getStakedAmount(), Amount::zero());
+        BOOST_CHECK_EQUAL(proof.getScore(), 0);
     }
 }
 

@@ -9,6 +9,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <array>
+#include <limits>
 
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
 
@@ -108,6 +109,20 @@ BOOST_AUTO_TEST_CASE(MoneyRangeTest) {
     BOOST_CHECK_EQUAL(MoneyRange(SATOSHI), true);
     BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY), true);
     BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY + SATOSHI), false);
+}
+
+BOOST_AUTO_TEST_CASE(MoneyClampTest) {
+    BOOST_CHECK_EQUAL(MoneyClamp(-SATOSHI), Amount::zero());
+    BOOST_CHECK_EQUAL(MoneyClamp(Amount::zero()), Amount::zero());
+    BOOST_CHECK_EQUAL(MoneyClamp(SATOSHI), SATOSHI);
+    BOOST_CHECK_EQUAL(MoneyClamp(COIN), COIN);
+    BOOST_CHECK_EQUAL(MoneyClamp(MAX_MONEY), MAX_MONEY);
+    BOOST_CHECK_EQUAL(MoneyClamp(MAX_MONEY + SATOSHI), MAX_MONEY);
+    BOOST_CHECK_EQUAL(MoneyClamp(-MAX_MONEY), Amount::zero());
+    BOOST_CHECK_EQUAL(MoneyClamp(std::numeric_limits<int64_t>::min() * SATOSHI),
+                      Amount::zero());
+    BOOST_CHECK_EQUAL(MoneyClamp(std::numeric_limits<int64_t>::max() * SATOSHI),
+                      MAX_MONEY);
 }
 
 BOOST_AUTO_TEST_CASE(CheckedAddTest) {

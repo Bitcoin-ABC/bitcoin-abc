@@ -17,6 +17,7 @@
 
 #include <tinyformat.h>
 
+#include <limits>
 #include <numeric>
 #include <unordered_set>
 #include <variant>
@@ -90,23 +91,29 @@ void Proof::computeProofId() {
 }
 
 void Proof::computeScore() {
-    Amount total = Amount::zero();
-    for (const SignedStake &s : stakes) {
-        total += s.getStake().getAmount();
-    }
-
-    score = amountToScore(total);
+    score = amountToScore(getStakedAmount());
 }
 
 uint32_t Proof::amountToScore(Amount amount) {
+    amount = MoneyClamp(amount);
+    // After clamping, (100 * amount) is guaranteed not to overflow int64_t,
+    // and the resulting score fits in uint32_t.
+    static_assert(MAX_MONEY <=
+                  (std::numeric_limits<int64_t>::max() / 100) * SATOSHI);
+    static_assert((100 * MAX_MONEY) / COIN <=
+                  std::numeric_limits<uint32_t>::max());
     return (100 * amount) / COIN;
 }
 
 Amount Proof::getStakedAmount() const {
-    return std::accumulate(stakes.begin(), stakes.end(), Amount::zero(),
-                           [](const Amount current, const SignedStake &ss) {
-                               return current + ss.getStake().getAmount();
-                           });
+    // Each add is at most MAX_MONEY + MAX_MONEY, which fits in int64_t.
+    static_assert(MAX_MONEY <=
+                  (std::numeric_limits<int64_t>::max() / 2) * SATOSHI);
+    return std::accumulate(
+        stakes.begin(), stakes.end(), Amount::zero(),
+        [](Amount total, const SignedStake &ss) {
+            return MoneyClamp(total + MoneyClamp(ss.getStake().getAmount()));
+        });
 }
 
 static bool IsStandardPayoutScript(const CScript &scriptPubKey) {

@@ -10,6 +10,7 @@
 #include <serialize.h>
 #include <util/overflow.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <optional>
 #include <ostream>
@@ -170,6 +171,10 @@ struct Currency {
 static constexpr Amount MAX_MONEY = 21000000 * COIN;
 inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
+}
+
+inline Amount MoneyClamp(const Amount nValue) {
+    return std::clamp(nValue, Amount::zero(), MAX_MONEY);
 }
 
 #endif // BITCOIN_CONSENSUS_AMOUNT_H
