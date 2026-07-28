@@ -47,7 +47,7 @@ Must provide:
 |                    | Electrum ABC CashFusion (XEC)                                                | alp-fusion (ALP)                                                                      |
 | ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Asset              | Native XEC only                                                              | One ALP `tokenId` per pool / round                                                    |
-| Status             | Production in Electrum ABC (and some third-party wallets)                    | Docs landed; [protocol primitives D20318](https://reviews.bitcoinabc.org/D20318)      |
+| Status             | Production in Electrum ABC (and some third-party wallets)                    | Docs + primitives landed; [tx assembly D20400](https://reviews.bitcoinabc.org/D20400) |
 | Token UTXOs        | **Excluded** — ALP/SLP coins are frozen out of fusion so they are not burned | **Target** — fuse ALP deliberately with correct `alpSend` coloring                    |
 | Coordinator        | Public fusion servers; long-lived desktop/daemon clients keep pools warm     | Same role expected; public coordinators + continuous clients required                 |
 | Covert / Tor       | Separate covert channel over Tor                                             | Required before claiming CashFusion-class privacy                                     |
@@ -84,8 +84,10 @@ fuses ALP without burning tokens.
 2. **Protocol primitives [D20318](https://reviews.bitcoinabc.org/D20318)** —
    Pedersen over sats + token atoms, blind Schnorr, and component hashing in
    `ecash-lib`, plus alp-fusion session/round constants; unit tests only.
-3. **Tx assembly** — build/validate fused ALP `SEND` + fee/dust rules against
-   `ecash-lib` / `ecash-wallet` limits (`ALP_POLICY_MAX_OUTPUTS`, etc.).
+3. **Tx assembly [D20400](https://reviews.bitcoinabc.org/D20400)** — build/validate
+   fused ALP `SEND` + fee/dust rules against `ecash-lib` limits
+   (`ALP_POLICY_MAX_OUTPUTS`, dust, atom conservation); unsigned single-tx only
+   (no coordinator / signing / chained rounds yet).
 4. **Coordinator + one-shot client** — pool match → one round → broadcast;
    integration tests; no Tor yet (correctness first).
 5. **Continuous client + deploy notes** — keep pools warm (CashFusion parity).
