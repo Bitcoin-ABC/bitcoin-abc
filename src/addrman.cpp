@@ -839,7 +839,8 @@ std::pair<CAddress, NodeSeconds> AddrManImpl::Select_(bool newOnly) const {
                 continue;
             }
             // Find the entry to return.
-            int nId = vvNew[nUBucket][(nUBucketPos + i) % ADDRMAN_BUCKET_SIZE];
+            nid_type nId =
+                vvNew[nUBucket][(nUBucketPos + i) % ADDRMAN_BUCKET_SIZE];
             const auto it_found{mapInfo.find(nId)};
             assert(it_found != mapInfo.end());
             const AddrInfo &info{it_found->second};
