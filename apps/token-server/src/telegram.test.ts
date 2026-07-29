@@ -15,6 +15,7 @@ import {
 } from '../src/db';
 import {
     alertNewTokenIcon,
+    appendStatusToCaption,
     buildNewTokenIconCaption,
     formatTokenTypeLabel,
     initializeTelegramBot,
@@ -99,6 +100,9 @@ const installTelegramApiTestDouble = (
                     },
                 },
             };
+        }
+        if (method === 'editMessageCaption') {
+            return { ok: true, result: true };
         }
         if (method === 'sendPhoto') {
             const payloadRecord = payload as {
@@ -213,6 +217,14 @@ const createCommandMessageUpdate = (options: {
     };
 };
 
+const TEST_ICON_CAPTION = [
+    `<a href="https://explorer.e.cash/tx/${TEST_TOKEN_ID}">Test Token</a> (TST)`,
+    'Minter: <a href="https://explorer.e.cash/address/ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2">qp...ku2</a>',
+    '1 tokens minted, 0 blacklisted',
+    'SLP, fixed supply',
+    `<code>${TEST_TOKEN_ID}</code>`,
+].join('\n');
+
 const createCallbackQueryUpdate = (options: {
     tokenId: string;
     userId: number;
@@ -221,6 +233,7 @@ const createCallbackQueryUpdate = (options: {
     chatId?: number;
     updateId?: number;
     callbackQueryId?: string;
+    caption?: string;
 }) => {
     const {
         tokenId,
@@ -230,6 +243,7 @@ const createCallbackQueryUpdate = (options: {
         chatId = -1001234567890,
         updateId = 1,
         callbackQueryId = 'callback-query-1',
+        caption = TEST_ICON_CAPTION,
     } = options;
 
     return {
@@ -250,7 +264,15 @@ const createCallbackQueryUpdate = (options: {
                     type: 'supergroup',
                     title: 'Token Icons',
                 },
-                text: 'New token icon',
+                caption,
+                photo: [
+                    {
+                        file_id: 'photo-file-id',
+                        file_unique_id: 'photo-unique-id',
+                        width: 512,
+                        height: 512,
+                    },
+                ],
             },
             chat_instance: 'chat-instance-1',
             data: tokenId,
@@ -330,23 +352,30 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                 `Processing token icon deny for ${TEST_TOKEN_ID}`,
             );
 
-            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
-            assert.ok(sendMessageCall);
-            const sendPayload = sendMessageCall.payload as {
-                text?: string;
-                reply_to_message_id?: number;
+            const editCaptionCall = findApiCall(
+                recorder.calls,
+                'editMessageCaption',
+            );
+            assert.ok(editCaptionCall);
+            const editPayload = editCaptionCall.payload as {
+                caption?: string;
+                parse_mode?: string;
                 reply_markup?: {
                     inline_keyboard: Array<Array<{ callback_data: string }>>;
                 };
             };
             assert.equal(
-                sendPayload.text,
-                'Icon denied and removed from server',
+                editPayload.caption,
+                `${TEST_ICON_CAPTION}\n\n🚫 Icon denied`,
             );
-            assert.equal(sendPayload.reply_to_message_id, 42);
+            assert.equal(editPayload.parse_mode, 'HTML');
             assert.equal(
-                sendPayload.reply_markup?.inline_keyboard[0][0].callback_data,
+                editPayload.reply_markup?.inline_keyboard[0][0].callback_data,
                 TEST_TOKEN_ID,
+            );
+            assert.equal(
+                recorder.calls.some(call => call.method === 'sendMessage'),
+                false,
             );
         });
 
@@ -392,11 +421,18 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
                 );
             }
 
-            const sendMessageCall = findApiCall(recorder.calls, 'sendMessage');
-            assert.ok(sendMessageCall);
+            const editCaptionCall = findApiCall(
+                recorder.calls,
+                'editMessageCaption',
+            );
+            assert.ok(editCaptionCall);
             assert.equal(
-                (sendMessageCall.payload as { text?: string }).text,
-                'Icon un-denied and restored to served endpoint',
+                (editCaptionCall.payload as { caption?: string }).caption,
+                `${TEST_ICON_CAPTION}\n\n✅ Icon un-denied and restored to served endpoint`,
+            );
+            assert.equal(
+                recorder.calls.some(call => call.method === 'sendMessage'),
+                false,
             );
         });
 
@@ -451,6 +487,12 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.equal(answerPayload.show_alert, true);
             assert.equal(
                 recorder.calls.some(call => call.method === 'sendMessage'),
+                false,
+            );
+            assert.equal(
+                recorder.calls.some(
+                    call => call.method === 'editMessageCaption',
+                ),
                 false,
             );
         });
@@ -858,6 +900,29 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.match(
                 sendPhotoPayload.caption ?? '',
                 /2 tokens minted, 1 blacklisted/,
+            );
+        });
+    });
+
+    describe('appendStatusToCaption', () => {
+        it('appends a status line under an existing caption', () => {
+            assert.equal(
+                appendStatusToCaption('Token caption', '🚫 Icon denied'),
+                'Token caption\n\n🚫 Icon denied',
+            );
+        });
+
+        it('returns only the status when caption is missing', () => {
+            assert.equal(
+                appendStatusToCaption(undefined, '🚫 Icon denied'),
+                '🚫 Icon denied',
+            );
+            assert.equal(
+                appendStatusToCaption(
+                    '',
+                    '✅ Icon un-denied and restored to served endpoint',
+                ),
+                '✅ Icon un-denied and restored to served endpoint',
             );
         });
     });

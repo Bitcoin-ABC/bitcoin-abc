@@ -184,42 +184,42 @@ export const initializeTelegramBot = (
             } by mod.`,
         );
 
-        let msgChannel = callbackQuery.message?.chat?.id;
-        if (typeof msgChannel === 'undefined') {
-            msgChannel = callbackQuery.message?.sender_chat?.id;
-        }
-        if (typeof msgId !== 'undefined' && typeof msgChannel !== 'undefined') {
+        // Edit the original alert caption in place so reviewers see
+        // deny/restore status without scrolling to a reply thread under
+        // the last 100 icons.
+        if (typeof msgId !== 'undefined') {
             try {
+                const originalCaption = callbackQuery.message?.caption;
                 if (isRemovalRequest) {
                     const restoreKeyboard = new InlineKeyboard().text(
                         'Changed your mind? Approve it.',
                         tokenId,
                     );
-                    await telegramBot.api.sendMessage(
-                        msgChannel,
-                        'Icon denied and removed from server',
-                        {
-                            reply_to_message_id: msgId,
-                            reply_markup: restoreKeyboard,
-                        },
-                    );
+                    await ctx.editMessageCaption({
+                        caption: appendStatusToCaption(
+                            originalCaption,
+                            '🚫 Icon denied',
+                        ),
+                        parse_mode: 'HTML',
+                        reply_markup: restoreKeyboard,
+                    });
                 } else {
                     const rejectKeyboard = new InlineKeyboard().text(
                         'Changed your mind? Reject it again.',
                         tokenId,
                     );
-                    await telegramBot.api.sendMessage(
-                        msgChannel,
-                        'Icon un-denied and restored to served endpoint',
-                        {
-                            reply_to_message_id: msgId,
-                            reply_markup: rejectKeyboard,
-                        },
-                    );
+                    await ctx.editMessageCaption({
+                        caption: appendStatusToCaption(
+                            originalCaption,
+                            '✅ Icon un-denied and restored to served endpoint',
+                        ),
+                        parse_mode: 'HTML',
+                        reply_markup: rejectKeyboard,
+                    });
                 }
             } catch (err) {
                 logTelegramError(
-                    `sendMessage after token icon ${
+                    `editMessageCaption after token icon ${
                         isRemovalRequest ? 'deny' : 'restore'
                     } for ${tokenId}`,
                     err,
@@ -227,7 +227,7 @@ export const initializeTelegramBot = (
             }
         } else {
             console.error(
-                `Missing Telegram message context for token icon callback on ${tokenId} (msgId=${msgId}, msgChannel=${msgChannel})`,
+                `Missing Telegram message id for token icon callback on ${tokenId}`,
             );
         }
     });
@@ -366,6 +366,21 @@ const EXPLORER_BASE_URL = 'https://explorer.e.cash';
  */
 export const escapeTelegramHtml = (text: string): string =>
     text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * Append a moderation status line to an existing Telegram photo caption
+ * so deny/restore is visible on the original alert without scrolling to
+ * a reply.
+ */
+export const appendStatusToCaption = (
+    caption: string | undefined,
+    statusHtml: string,
+): string => {
+    if (typeof caption !== 'string' || caption === '') {
+        return statusHtml;
+    }
+    return `${caption}\n\n${statusHtml}`;
+};
 
 /**
  * Abbreviate a minter address for display in Telegram captions.
