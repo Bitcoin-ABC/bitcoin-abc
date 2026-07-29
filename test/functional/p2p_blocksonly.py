@@ -5,7 +5,7 @@
 
 import time
 
-from test_framework.messages import MSG_TX, CInv, msg_inv, msg_tx
+from test_framework.messages import MSG_TX, CInv, msg_getdata, msg_inv, msg_tx
 from test_framework.p2p import P2PInterface, P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
@@ -124,6 +124,16 @@ class P2PBlocksOnly(BitcoinTestFramework):
         )
         assert_equal(self.nodes[0].getpeerinfo()[0]["relaytxes"], False)
         self.check_p2p_inv_violation(conn)
+
+        self.log.info(
+            "Check that getdata(tx) from a block-relay-only connection is ignored"
+        )
+        conn = self.nodes[0].add_outbound_p2p_connection(
+            P2PInterface(), p2p_idx=0, connection_type="block-relay-only"
+        )
+        conn.send_and_ping(msg_getdata([CInv(t=MSG_TX, h=0x12345)]))
+        assert_equal(self.nodes[0].getpeerinfo()[0]["relaytxes"], False)
+        assert "notfound" not in conn.last_message
 
         self.log.info("Check that txs from RPC are not sent to blockrelay connection")
         conn = self.nodes[0].add_outbound_p2p_connection(
