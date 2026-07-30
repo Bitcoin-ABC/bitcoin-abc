@@ -60,7 +60,7 @@
         "react-ga4": "^3.0.1",
         "react-google-recaptcha": "^3.1.0",
         "react-google-recaptcha-v3": "^1.11.0",
-        "react-router": "^7.15.0",
+        "react-router": "^7.18.0",
         "react-toastify": "^11.0.2",
         "react-tooltip": "^5.28.0",
         "set-cookie-parser": "^3.0.1",
