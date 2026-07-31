@@ -30,7 +30,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "chainparams -> protocol -> config -> chainparams"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "kernel/coinstats -> validation -> kernel/coinstats"
-    "kernel/mempool_persist -> validation -> kernel/mempool_persist"
     "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"
 
     # Temporary, removed in a followup
