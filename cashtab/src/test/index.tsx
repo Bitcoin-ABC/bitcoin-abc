@@ -110,6 +110,65 @@ export const mockFirmaApy = (averageApySpot: number) => {
         } as Response);
 };
 
+/** CoinGecko exchange_rates URL used for USD→fiat FIRMA conversion */
+export const FIRMA_FOREX_API_URL =
+    'https://api.coingecko.com/api/v3/exchange_rates';
+
+type CoinGeckoExchangeRate = {
+    name: string;
+    unit: string;
+    value: number;
+    type: string;
+};
+
+/**
+ * Build a CoinGecko-shaped exchange_rates table (BTC-indexed).
+ * Pass fiatCode → units of that fiat per 1 USD (e.g. inr: 98.27).
+ * usd.value is intentionally not 1 so tests fail if callers use the raw
+ * fiat value instead of fiat/usd.
+ */
+export const buildFirmaForexRates = (
+    fiatPerUsd: Record<string, number>,
+): Record<string, CoinGeckoExchangeRate> => {
+    // Non-unit BTC→USD rate (CoinGecko contract); only the fiat/usd ratio
+    // is consumed by fetchFirmaPrice.
+    const usdBtcValue = 60_000;
+    const rates: Record<string, CoinGeckoExchangeRate> = {
+        btc: { name: 'Bitcoin', unit: 'BTC', value: 1, type: 'crypto' },
+        usd: {
+            name: 'US Dollar',
+            unit: '$',
+            value: usdBtcValue,
+            type: 'fiat',
+        },
+    };
+    for (const [code, perUsd] of Object.entries(fiatPerUsd)) {
+        rates[code] = {
+            name: code.toUpperCase(),
+            unit: code.toUpperCase(),
+            value: usdBtcValue * perUsd,
+            type: 'fiat',
+        };
+    }
+    return rates;
+};
+
+/**
+ * Mock CoinGecko exchange_rates for FIRMA (USD-pegged) forex conversion.
+ * Pass fiatCode → units of that fiat per 1 USD (e.g. inr: 98.27).
+ * Returns the rates payload so callers can assert BTC-relative scaling.
+ */
+export const mockFirmaForex = (fiatPerUsd: Record<string, number>) => {
+    const rates = buildFirmaForexRates(fiatPerUsd);
+    when(fetch)
+        .calledWith(FIRMA_FOREX_API_URL)
+        .mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ rates }),
+        } as Response);
+    return rates;
+};
+
 /**
  * Prepare chronik calls for a wallet of Cashtab version >= 2.9.0
  *

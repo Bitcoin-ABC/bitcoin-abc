@@ -1084,7 +1084,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         if (selectedFiatCurrency === 'usd') {
             setFirmaPrice(1);
         } else {
-            await fetchFirmaPrice();
+            await fetchFirmaPrice(selectedFiatCurrency);
         }
         // Set interval for updating the price with given currency
 
@@ -1093,7 +1093,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         const thisFiatInterval = setInterval(function () {
             fetchXecPrice(selectedFiatCurrency);
             if (selectedFiatCurrency !== 'usd') {
-                fetchFirmaPrice();
+                fetchFirmaPrice(selectedFiatCurrency);
             }
         }, appConfig.fiatUpdateIntervalMs);
 
@@ -1152,13 +1152,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
     /**
      * If the user does not have USD as fiat currency,
-     * we need to get an exchange rate for Firma
+     * we need to get an exchange rate for Firma (USD-pegged).
+     *
+     * Use CoinGecko exchange_rates (BTC-indexed fiat table). Do NOT use
+     * simple/price?ids=usd — that id is an unrelated crypto token, not the
+     * US dollar, and returns nonsense forex (e.g. ~0.11 INR per "usd").
      */
     const fetchFirmaPrice = async (
         fiatCode = cashtabState.settings.fiatCurrency,
     ) => {
         // Keep this in the code, because different URLs will have different outputs require different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=${fiatCode}`;
+        const priceApiUrl = 'https://api.coingecko.com/api/v3/exchange_rates';
         try {
             const firmaPrice = await fetch(priceApiUrl);
             if (firmaPrice.ok === false) {
@@ -1169,11 +1173,18 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                 return setFirmaPrice(null);
             }
             const firmaPriceJson = await firmaPrice.json();
-            const firmaPriceInFiat = firmaPriceJson.usd[fiatCode];
+            const rates = firmaPriceJson?.rates;
+            const usdRate = rates?.usd?.value;
+            const fiatRate = rates?.[fiatCode]?.value;
 
-            if (typeof firmaPriceInFiat === 'number') {
-                // If we have a good fetch
-                return setFirmaPrice(firmaPriceInFiat);
+            if (
+                Number.isFinite(usdRate) &&
+                usdRate > 0 &&
+                Number.isFinite(fiatRate) &&
+                fiatRate > 0
+            ) {
+                // Rates are BTC-indexed; USD→fiat is the ratio of fiat/usd values
+                return setFirmaPrice(fiatRate / usdRate);
             }
         } catch (err) {
             if (

@@ -12,7 +12,7 @@ import { WalletProvider } from 'wallet/context';
 import App from 'components/App/App';
 import CashtabSettings from 'config/CashtabSettings';
 import { ActiveCashtabWallet } from 'wallet';
-import { prepareContext, mockPrice } from 'test';
+import { prepareContext, mockPrice, mockFirmaForex } from 'test';
 import { when } from 'jest-when';
 import {
     walletWithXecAndTokensActive,
@@ -573,10 +573,48 @@ describe('<Header />', () => {
     });
 
     it('includes forex-adjusted FIRMA fiat price for a non-USD currency', async () => {
+        // Regression: simple/price?ids=usd is a junk crypto token (~0.11 INR),
+        // not USD forex — FIRMA header showed ₹1.75 for ~$16 instead of ~₹1,575.
         const nonUsdSettings = new CashtabSettings();
-        nonUsdSettings.fiatCurrency = 'gbp';
+        nonUsdSettings.fiatCurrency = 'inr';
 
-        // Create token mocks for the wallet
+        const firmaBalanceDecimal = '16.0290';
+        const inrPerUsd = 98.27;
+        const walletWithFirma: ActiveCashtabWallet = {
+            ...walletWithXecAndTokensActive,
+            name: 'MyWallet',
+            state: {
+                ...walletWithXecAndTokensActive.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokensActive.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: FIRMA.tokenId,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 160290n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...walletWithXecAndTokensActive.state.tokens,
+                    [FIRMA.tokenId, firmaBalanceDecimal],
+                ]),
+            },
+        };
+
         const tokenMocks = new Map();
         tokenMocks.set(
             '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
@@ -585,14 +623,20 @@ describe('<Header />', () => {
                 tokenInfo: bearTokenAndTx.token,
             },
         );
+        tokenMocks.set(FIRMA.tokenId, {
+            tx: FIRMA.tx,
+            tokenInfo: FIRMA.token,
+        });
 
-        await prepareContext(localforage, mockWallets, tokenMocks);
+        const testMockChronik = await prepareContext(
+            localforage,
+            [walletWithFirma],
+            tokenMocks,
+        );
         await localforage.setItem('settings', nonUsdSettings);
 
-        // Mock both XEC and FIRMA price API calls for GBP
         const cryptoId = 'ecash';
-        const xecPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=gbp&include_last_updated_at=true`;
-        const firmaPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=gbp`;
+        const xecPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=inr&include_last_updated_at=true`;
 
         when(fetch)
             .calledWith(xecPriceApiUrl)
@@ -600,26 +644,20 @@ describe('<Header />', () => {
                 json: () =>
                     Promise.resolve({
                         ecash: {
-                            gbp: 0.00024,
+                            inr: 0.0025,
                             last_updated_at: 1706644626,
                         },
                     }),
             } as Response);
 
-        when(fetch)
-            .calledWith(firmaPriceApiUrl)
-            .mockResolvedValue({
-                json: () =>
-                    Promise.resolve({
-                        usd: {
-                            gbp: 0.79,
-                        },
-                    }),
-            } as Response);
+        const forexRates = mockFirmaForex({ inr: inrPerUsd });
+        // Fixture is BTC-indexed like CoinGecko — raw INR value != INR/USD
+        expect(forexRates.inr.value).not.toBe(inrPerUsd);
+        expect(forexRates.inr.value / forexRates.usd.value).toBe(inrPerUsd);
 
         render(
             <HeaderTestWrapper
-                chronik={mockChronik}
+                chronik={testMockChronik}
                 agora={mockAgora}
                 ecc={mockEcc}
                 route="/"
@@ -627,15 +665,14 @@ describe('<Header />', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTitle('Balance XEC')).toBeInTheDocument();
+            expect(screen.getByTitle('Balance USD')).toBeInTheDocument();
         });
 
-        const balanceXec = screen.getByTitle('Balance XEC');
-        expect(balanceXec).toHaveTextContent('9,513.12');
-
-        // Wait for fiat prices to load and check for GBP symbols
+        // 16.0290 FIRMA * ₹98.27/USD = ₹1,575.17 (not the junk-token ~₹1.75)
         await waitFor(() => {
-            expect(screen.getAllByText(/£/).length).toBeGreaterThan(0);
+            expect(screen.getByTitle('Balance USD Fiat')).toHaveTextContent(
+                '₹1,575.17 INR',
+            );
         });
     });
 

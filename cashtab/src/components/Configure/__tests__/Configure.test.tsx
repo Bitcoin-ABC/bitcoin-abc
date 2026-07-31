@@ -16,7 +16,7 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
-import { prepareContext, mockPrice } from 'test';
+import { prepareContext, mockPrice, mockFirmaForex } from 'test';
 import { ThemeProvider } from 'styled-components';
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import { theme } from 'assets/styles/theme';
@@ -91,20 +91,8 @@ describe('<Configure />', () => {
                 json: () => Promise.resolve(altFiatPriceResponse),
             } as Response);
 
-        // Mock firma price API call
-        const firmaPriceGbp = 0.5;
-        const firmaPriceResponse = {
-            usd: {
-                gbp: firmaPriceGbp,
-            },
-        };
-        when(fetch)
-            .calledWith(
-                `https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=${altFiat}`,
-            )
-            .mockResolvedValue({
-                json: () => Promise.resolve(firmaPriceResponse),
-            } as Response);
+        // Mock firma forex (CoinGecko exchange_rates) for non-USD fiat
+        mockFirmaForex({ gbp: 0.5 });
     });
 
     afterEach(async () => {
