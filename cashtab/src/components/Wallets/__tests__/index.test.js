@@ -727,7 +727,11 @@ describe('<Wallets />', () => {
             await screen.findByText('“Transaction Fixtures” deleted'),
         ).toBeInTheDocument();
 
-        const expectedNextActive = validSavedWallets[0];
+        // Next row after active "Transaction Fixtures" is alpha (A–Z among remaining)
+        const expectedNextActive = validSavedWallets.find(
+            wallet => wallet.name === 'alpha',
+        );
+        expect(expectedNextActive).toBeDefined();
         await waitFor(async () => {
             expect(await localforage.getItem('activeWalletAddress')).toBe(
                 expectedNextActive.address,

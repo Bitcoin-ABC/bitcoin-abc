@@ -329,12 +329,14 @@ const Wallets = () => {
             if (updatedWallets.length === 0) {
                 updates.activeWalletAddress = null;
             } else {
-                // Match wallet list order: active first, then alphabetical — activate the next row
-                const displayOrder = sortWalletsForDisplay(
-                    activeStoredWallet,
-                    wallets,
-                );
-                const nextWallet = displayOrder[1];
+                // List order is active first, then A–Z — so the next row is the
+                // first remaining wallet by name. Sort updatedWallets directly
+                // (not displayOrder[1]): if active briefly mismatches wallets,
+                // sortWalletsForDisplay falls back to a full A–Z list and [1]
+                // is the wrong wallet.
+                const nextWallet = [...updatedWallets].sort((a, b) =>
+                    a.name.localeCompare(b.name),
+                )[0];
                 updates.activeWalletAddress = nextWallet.address;
             }
         }
