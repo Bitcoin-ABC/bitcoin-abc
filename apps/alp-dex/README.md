@@ -63,7 +63,7 @@ Must provide:
 | Wallet-agnostic API             | Cashtab, bots, and other clients share one HTTP contract                      |
 | Coordinator discovery           | Users find liquid nodes without each wallet hardcoding every LP URL           |
 | Combined multi-server liquidity | Coordinators (and wallets) can quote/route across many independent LPs        |
-| Hot-wallet automation           | Inventory reshape, postage mint, and misc sweep run without manual UTXO craft |
+| Hot-wallet automation           | Inventory reshape, fund postage, and misc sweep run without manual UTXO craft |
 | Reviewable, open implementation | Operators and wallets can audit the same code they run                        |
 
 ## Trust model (important)
@@ -155,11 +155,14 @@ should ship tests a reviewer can run locally.
 5. **Chronik sync + genesis [D20380](https://reviews.bitcoinabc.org/D20380)** —
    `chronikUrls` in config; genesis fetch; allowlisted `TradedTokens`; wallet
    `sync()` against mock Chronik.
-6. **Pricing** — Seller+slush fungible atom reserves; bigint constant-product
-   exact-in / exact-out + spot (SPEC formulas); maker fee on top of the price
-   leg. Pure unit tests (no HTTP quote routes yet).
-7. **Inventory automation** — Classify seller UTXOs; reshape wrong sizes via
-   slush; mint inventory + postage; misc → fee; mocked-wallet tests.
+6. **Pricing [D20398](https://reviews.bitcoinabc.org/D20398)** — Seller+slush
+   fungible atom reserves; bigint constant-product exact-in / exact-out + spot
+   (SPEC formulas); maker fee on top of the price leg. Pure unit tests (no
+   HTTP quote routes yet).
+7. **Inventory automation [D20421](https://reviews.bitcoinabc.org/D20421)** —
+   Classify seller UTXOs; reshape wrong sizes via slush; fund inventory +
+   create postage; misc → fee; run at startup and on a maintain interval;
+   mocked-wallet tests.
 8. **Quote API** — Read-only routes: available, inventory, spot, size quotes,
    settleable output templates (no broadcast).
 9. **Settle** — Parse/validate postage-ready ALP txs; settle queue; fuel +

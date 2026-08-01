@@ -1,0 +1,395 @@
+// Copyright (c) 2026 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+import * as assert from 'assert';
+import type { ChronikClient } from 'chronik-client';
+import { ALP_TOKEN_TYPE_STANDARD, DEFAULT_DUST_SATS, Script } from 'ecash-lib';
+import { MockChronikClient } from 'mock-chronik-client';
+import { POSTAGE_SATS } from '../src/constants';
+import {
+    actionCleanupSellerToSlush,
+    actionFundInventory,
+    actionFundPostage,
+    actionSweepMiscToFee,
+} from '../src/inventory/actions';
+import {
+    classifySellerUtxos,
+    isExactInventory,
+    isPostageStamp,
+    type SellerUtxoLike,
+} from '../src/inventory/classify';
+import {
+    MaintainInventoryError,
+    maintainInventory,
+} from '../src/inventory/maintain';
+import {
+    inventoryUnitCount,
+    POSTAGE_FUND_BATCH,
+    POSTAGE_STAMP_TARGET,
+    postageFundBatchCount,
+} from '../src/inventory/plan';
+import type { TradedToken, TradedTokens } from '../src/tokens/tradedTokens';
+import { createLpWallets } from '../src/wallet/accounts';
+
+const TOKEN_A = 'aa'.repeat(32);
+const TOKEN_B = 'bb'.repeat(32);
+const TOKEN_OTHER = 'cc'.repeat(32);
+
+const MNEMONIC =
+    'shift satisfy hammer fit plunge swear athlete gentle tragic sorry blush cheap';
+const FEE = 'ecash:qrwzys2q6xq98vwz0kjn6ulu5m6yljr5fyc909kalg';
+
+const traded = (tokenId: string, utxoAtoms: bigint): TradedToken => ({
+    tokenId,
+    decimals: 0,
+    utxoQty: Number(utxoAtoms),
+    utxoAtoms,
+    tokenTicker: 'T',
+    tokenName: 'Token',
+    tokenType: ALP_TOKEN_TYPE_STANDARD,
+});
+
+const tokens = (...list: TradedToken[]): TradedTokens => {
+    const map: TradedTokens = new Map();
+    for (const t of list) {
+        map.set(t.tokenId, t);
+    }
+    return map;
+};
+
+const utxo = (
+    outIdx: number,
+    sats: bigint,
+    token?: SellerUtxoLike['token'],
+): SellerUtxoLike => ({
+    outpoint: { txid: '11'.repeat(32), outIdx },
+    sats,
+    token,
+});
+
+describe('inventory classify', () => {
+    const allow = tokens(traded(TOKEN_A, 100n), traded(TOKEN_B, 50n));
+
+    it('isPostageStamp / isExactInventory basics', () => {
+        assert.strictEqual(isPostageStamp(utxo(0, POSTAGE_SATS)), true);
+        assert.strictEqual(isPostageStamp(utxo(0, 2000n)), false);
+        assert.strictEqual(
+            isExactInventory(
+                utxo(0, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 100n,
+                    isMintBaton: false,
+                }),
+                TOKEN_A,
+                100n,
+            ),
+            true,
+        );
+        assert.strictEqual(
+            isExactInventory(
+                utxo(0, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 99n,
+                    isMintBaton: false,
+                }),
+                TOKEN_A,
+                100n,
+            ),
+            false,
+        );
+    });
+
+    it('partitions fill-eligible, postage, wrong-sized, misc, below-dust; skips batons', () => {
+        const classified = classifySellerUtxos(
+            [
+                utxo(0, POSTAGE_SATS),
+                utxo(1, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 100n,
+                    isMintBaton: false,
+                }),
+                utxo(2, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 40n,
+                    isMintBaton: false,
+                }),
+                utxo(3, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_B,
+                    atoms: 50n,
+                    isMintBaton: false,
+                }),
+                utxo(4, 5_000n),
+                utxo(5, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_OTHER,
+                    atoms: 7n,
+                    isMintBaton: false,
+                }),
+                utxo(6, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 0n,
+                    isMintBaton: true,
+                }),
+                utxo(7, DEFAULT_DUST_SATS - 1n),
+            ],
+            allow,
+        );
+
+        assert.strictEqual(classified.postage.length, 1);
+        assert.strictEqual(classified.fillEligible.length, 2);
+        assert.strictEqual(classified.wrongSizedTraded.length, 1);
+        assert.strictEqual(classified.wrongSizedTraded[0].outpoint.outIdx, 2);
+        assert.strictEqual(classified.misc.length, 2);
+        assert.strictEqual(classified.belowDust.length, 1);
+        assert.strictEqual(classified.belowDust[0].outpoint.outIdx, 7);
+        assert.strictEqual(classified.skippedBatons.length, 1);
+    });
+
+    it('never treats batons as fill-eligible or misc', () => {
+        const classified = classifySellerUtxos(
+            [
+                utxo(0, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_A,
+                    atoms: 100n,
+                    isMintBaton: true,
+                }),
+            ],
+            allow,
+        );
+        assert.deepStrictEqual(classified.fillEligible, []);
+        assert.deepStrictEqual(classified.misc, []);
+        assert.deepStrictEqual(classified.belowDust, []);
+        assert.deepStrictEqual(classified.wrongSizedTraded, []);
+        assert.strictEqual(classified.skippedBatons.length, 1);
+    });
+});
+
+describe('inventory plan', () => {
+    it('inventoryUnitCount floors and rejects bad sizes', () => {
+        assert.strictEqual(inventoryUnitCount(250n, 100n), 2);
+        assert.strictEqual(inventoryUnitCount(99n, 100n), 0);
+        assert.throws(() => inventoryUnitCount(1n, 0n), /positive/);
+        assert.throws(() => inventoryUnitCount(-1n, 1n), /non-negative/);
+        assert.throws(
+            () =>
+                inventoryUnitCount(
+                    (BigInt(Number.MAX_SAFE_INTEGER) + 1n) * 2n,
+                    2n,
+                ),
+            /overflow/,
+        );
+    });
+
+    it('postageFundBatchCount funds a full batch only under target when funded', () => {
+        assert.strictEqual(POSTAGE_STAMP_TARGET, 1000);
+        assert.strictEqual(POSTAGE_FUND_BATCH, 1000);
+        const need = BigInt(POSTAGE_FUND_BATCH) * POSTAGE_SATS + 100_000n;
+        assert.strictEqual(postageFundBatchCount(0, need), POSTAGE_FUND_BATCH);
+        assert.strictEqual(
+            postageFundBatchCount(POSTAGE_STAMP_TARGET - 1, need),
+            POSTAGE_FUND_BATCH,
+        );
+        assert.strictEqual(
+            postageFundBatchCount(POSTAGE_STAMP_TARGET, need),
+            0,
+        );
+        assert.strictEqual(postageFundBatchCount(0, need - 1n), 0);
+        assert.throws(() => postageFundBatchCount(-1, need), /non-negative/);
+    });
+});
+
+describe('inventory actions', () => {
+    const slushScript = Script.fromAddress(
+        'ecash:qp2m77hpkfz4zpeeqpfw4k0fs203yw6h7gxj6aydch',
+    );
+    const sellerScript = Script.fromAddress(
+        'ecash:qq86jv6h0y97q8l63ndynvk3fn9aq8fqru3exew8gl',
+    );
+    const feeScript = Script.fromAddress(FEE);
+
+    it('actionCleanupSellerToSlush consolidates per token', () => {
+        const wrong = [
+            utxo(1, DEFAULT_DUST_SATS, {
+                tokenId: TOKEN_A,
+                atoms: 40n,
+                isMintBaton: false,
+            }),
+            utxo(2, DEFAULT_DUST_SATS, {
+                tokenId: TOKEN_A,
+                atoms: 10n,
+                isMintBaton: false,
+            }),
+            utxo(3, DEFAULT_DUST_SATS, {
+                tokenId: TOKEN_B,
+                atoms: 7n,
+                isMintBaton: false,
+            }),
+        ];
+        const action = actionCleanupSellerToSlush(wrong, slushScript);
+        assert.ok(action);
+        assert.deepStrictEqual(action.requiredUtxos, [
+            wrong[0].outpoint,
+            wrong[1].outpoint,
+            wrong[2].outpoint,
+        ]);
+        assert.strictEqual(action.outputs[0].sats, 0n);
+        assert.strictEqual(action.tokenActions?.length, 2);
+        const tokenOuts = action.outputs.slice(1);
+        const aOut = tokenOuts.find(o => o.tokenId === TOKEN_A);
+        const bOut = tokenOuts.find(o => o.tokenId === TOKEN_B);
+        assert.strictEqual(aOut?.atoms, 50n);
+        assert.strictEqual(bOut?.atoms, 7n);
+        assert.strictEqual(actionCleanupSellerToSlush([], slushScript), null);
+    });
+
+    it('actionFundInventory is outputs-only (wallet selects inputs)', () => {
+        const inv = actionFundInventory(TOKEN_A, 100n, 3, sellerScript);
+        assert.ok(inv);
+        assert.strictEqual(inv.outputs.length, 4); // OP_RETURN + 3
+        assert.strictEqual(inv.requiredUtxos, undefined);
+        assert.ok(
+            inv.outputs
+                .slice(1)
+                .every(o => o.atoms === 100n && o.tokenId === TOKEN_A),
+        );
+        assert.strictEqual(
+            actionFundInventory(TOKEN_A, 100n, 0, sellerScript),
+            null,
+        );
+        assert.throws(
+            () => actionFundInventory(TOKEN_A, 100n, Infinity, sellerScript),
+            /safe integer/,
+        );
+        assert.throws(
+            () => actionFundInventory(TOKEN_A, 100n, -1, sellerScript),
+            /must not be negative/,
+        );
+    });
+
+    it('actionFundPostage builds XEC-only outs', () => {
+        const postage = actionFundPostage(2, sellerScript);
+        assert.ok(postage);
+        assert.strictEqual(postage.outputs.length, 2);
+        assert.ok(postage.outputs.every(o => o.sats === POSTAGE_SATS));
+        assert.deepStrictEqual(postage.tokenActions, []);
+        assert.strictEqual(actionFundPostage(0, sellerScript), null);
+        assert.throws(
+            () => actionFundPostage(Infinity, sellerScript),
+            /safe integer/,
+        );
+        assert.throws(
+            () => actionFundPostage(-1, sellerScript),
+            /must not be negative/,
+        );
+    });
+
+    it('actionSweepMiscToFee skips batons and sends XEC + non-traded tokens', () => {
+        assert.throws(
+            () =>
+                actionSweepMiscToFee(
+                    [
+                        utxo(0, DEFAULT_DUST_SATS, {
+                            tokenId: TOKEN_A,
+                            atoms: 1n,
+                            isMintBaton: true,
+                        }),
+                    ],
+                    feeScript,
+                ),
+            /batons/,
+        );
+
+        const misc = [
+            utxo(0, 5_000n),
+            utxo(1, DEFAULT_DUST_SATS, {
+                tokenId: TOKEN_OTHER,
+                atoms: 9n,
+                isMintBaton: false,
+            }),
+        ];
+        const action = actionSweepMiscToFee(misc, feeScript);
+        assert.ok(action);
+        assert.deepStrictEqual(action.requiredUtxos, [
+            misc[0].outpoint,
+            misc[1].outpoint,
+        ]);
+        const xecOut = action.outputs.find(
+            o => o.tokenId === undefined && o.sats === 5_000n,
+        );
+        assert.ok(xecOut);
+        const tokenOut = action.outputs.find(o => o.tokenId === TOKEN_OTHER);
+        assert.strictEqual(tokenOut?.atoms, 9n);
+
+        const dusty = [
+            utxo(2, DEFAULT_DUST_SATS - 1n),
+            utxo(3, DEFAULT_DUST_SATS, {
+                tokenId: TOKEN_OTHER,
+                atoms: 1n,
+                isMintBaton: false,
+            }),
+        ];
+        const dustyAction = actionSweepMiscToFee(dusty, feeScript);
+        assert.ok(dustyAction);
+        assert.strictEqual(
+            dustyAction.outputs.some(
+                o => o.tokenId === undefined && (o.sats ?? 0n) > 0n,
+            ),
+            false,
+        );
+    });
+});
+
+describe('inventory maintain (MockChronik)', () => {
+    it('MaintainInventoryError carries partial progress', () => {
+        const err = new MaintainInventoryError('boom', {
+            cleanedToSlush: 1,
+            fundedInventory: { [TOKEN_A]: 2 },
+            fundedPostage: 3,
+            sweptMisc: 0,
+            belowDust: 0,
+            txids: ['aa'.repeat(32)],
+        });
+        assert.strictEqual(err.message, 'boom');
+        assert.strictEqual(err.partial.cleanedToSlush, 1);
+        assert.strictEqual(err.partial.fundedPostage, 3);
+        assert.strictEqual(err.partial.txids.length, 1);
+    });
+
+    it('funds postage stamps from loose slush XEC when under target', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        mock.broadcastTxs = async (txsHex: string[]) => ({
+            txids: txsHex.map((_, i) => i.toString(16).padStart(64, '0')),
+        });
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const slushSats = BigInt(POSTAGE_FUND_BATCH) * POSTAGE_SATS + 100_000n;
+        mock.setUtxosByAddress(seller.address, []);
+        mock.setUtxosByAddress(slush.address, [
+            {
+                outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: slushSats,
+                isFinal: true,
+            },
+        ]);
+
+        const result = await maintainInventory({
+            seller,
+            slush,
+            feeAddress: FEE,
+            tradedTokens: new Map(),
+        });
+
+        assert.strictEqual(result.fundedPostage, POSTAGE_FUND_BATCH);
+        assert.strictEqual(result.cleanedToSlush, 0);
+        assert.strictEqual(result.sweptMisc, 0);
+        assert.ok(result.txids.length >= 1);
+    });
+});

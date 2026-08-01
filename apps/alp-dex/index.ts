@@ -5,10 +5,52 @@
 import { createApp } from './src/app';
 import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
+import {
+    MAINTAIN_DELAY_MS,
+    MaintainInventoryError,
+    maintainInventory,
+    type MaintainInventoryResult,
+} from './src/inventory/maintain';
 import { pairSpotPrices } from './src/pricing/quotes';
 import { pricingReserveAtoms } from './src/pricing/reserves';
 import { loadTradedTokens } from './src/tokens/tradedTokens';
 import { createLpWallets } from './src/wallet/accounts';
+
+const logMaintainResult = (
+    label: string,
+    inventory: MaintainInventoryResult,
+): void => {
+    console.log(
+        `inventory maintain (${label}): cleanup→slush=${inventory.cleanedToSlush} ` +
+            `postage=${inventory.fundedPostage} ` +
+            `misc→fee=${inventory.sweptMisc} ` +
+            `belowDust=${inventory.belowDust} txs=${inventory.txids.length}`,
+    );
+    for (const [tokenId, units] of Object.entries(inventory.fundedInventory)) {
+        console.log(`inventory funded ${units}× ${tokenId.slice(0, 8)}…`);
+    }
+};
+
+const logMaintainError = (label: string, error: unknown): void => {
+    if (error instanceof MaintainInventoryError) {
+        console.error(
+            `inventory maintain failed (${label})`,
+            error.message,
+            `partial txs=${error.partial.txids.length}`,
+            `cleanup=${error.partial.cleanedToSlush}`,
+            `postage=${error.partial.fundedPostage}`,
+            `misc=${error.partial.sweptMisc}`,
+            `belowDust=${error.partial.belowDust}`,
+            `funded=${JSON.stringify(error.partial.fundedInventory)}`,
+            `txids=${error.partial.txids.join(',')}`,
+        );
+        return;
+    }
+    console.error(
+        `inventory maintain failed (${label})`,
+        error instanceof Error ? error.message : String(error),
+    );
+};
 
 const main = async (): Promise<void> => {
     const tradedConfig = loadTradedConfig();
@@ -22,6 +64,8 @@ const main = async (): Promise<void> => {
     await Promise.all([seller.sync(), slush.sync()]);
     const tradedTokens = await loadTradedTokens(chronik, tradedConfig);
 
+    // Listen before inventory maintain so a Chronik/broadcast failure does not
+    // prevent health / status from coming up (maintain is housekeeping).
     const app = createApp();
     await new Promise<void>((resolve, reject) => {
         const server = app.listen(tradedConfig.port, () => {
@@ -72,6 +116,29 @@ const main = async (): Promise<void> => {
         });
         server.once('error', reject);
     });
+
+    console.log(
+        `inventory maintain delay: ${MAINTAIN_DELAY_MS / 1000}s between passes`,
+    );
+    // Startup pass, then delay after each pass so they cannot overlap.
+    let label = 'startup';
+    for (;;) {
+        try {
+            const inventory = await maintainInventory({
+                seller,
+                slush,
+                feeAddress: tradedConfig.feeAddress,
+                tradedTokens,
+            });
+            logMaintainResult(label, inventory);
+        } catch (error: unknown) {
+            logMaintainError(label, error);
+        }
+        label = 'scheduled';
+        await new Promise<void>(resolve => {
+            setTimeout(resolve, MAINTAIN_DELAY_MS);
+        });
+    }
 };
 
 main().catch((error: unknown) => {
