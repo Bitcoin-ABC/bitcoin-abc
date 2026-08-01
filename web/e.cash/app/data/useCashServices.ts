@@ -117,15 +117,15 @@ export const useCashServices: ServiceContent[] = [
   },
   {
     id: "firma",
-    title: "Firma Alpha",
+    title: "Firma",
     image: "/firma.png",
     content: {
       paragraphs: [
-        "Firma Alpha is a stablecoin that pays daily yield. Firma Alpha can be instantly bought or sold for XEC on the Agora marketplace. Users can also buy Firma Alpha with USDT or USDC (Solana) and redeem Firma Alpha for USDT (Solana) at firmaprotocol.com.",
+        "Firma is a stablecoin that pays daily yield. Firma can be instantly bought or sold for XEC on the Agora marketplace. Users can also buy Firma with USDT or USDC (Solana) and redeem Firma for USDT (Solana) at firmaprotocol.com.",
         "Built using eCash's ALP technology.",
       ],
       disclaimer:
-        "Firma Alpha is a token project built on XEC by a third-party. Firma Alpha's US dollar peg, and operation of its Solana USDT/USDC bridge, are based on trust in the operators and their incentives. It is not risk-free.",
+        "Firma is a token project built on XEC by a third-party. Firma's US dollar peg, and operation of its Solana USDT/USDC bridge, are based on trust in the operators and their incentives. It is not risk-free.",
       buttons: [
         {
           text: "Learn more",
@@ -133,7 +133,7 @@ export const useCashServices: ServiceContent[] = [
           variant: "gradient",
         },
         {
-          text: "Get Firma Alpha",
+          text: "Get Firma",
           href: "https://cashtab.com/#/token/0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0",
           variant: "white",
         },

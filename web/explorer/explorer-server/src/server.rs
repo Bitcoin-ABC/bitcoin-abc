@@ -49,7 +49,6 @@ use crate::{
         TestnetFaucetTemplate, TokenEntryTemplate, TokenTemplate,
         TransactionTemplate,
     },
-    token_display::apply_token_display_overrides,
 };
 
 pub struct Server {
@@ -288,8 +287,7 @@ impl Server {
         let tx_history =
             self.chronik.token_history(&token_id, page, take).await?;
 
-        let token =
-            apply_token_display_overrides(self.chronik.token(&token_id).await?);
+        let token = self.chronik.token(&token_id).await?;
         let json_token =
             tokens_to_json(&HashMap::from([(id.to_string(), token)]))?
                 .get(&id.to_string())
@@ -596,13 +594,7 @@ impl Server {
             entry: token_entry,
             genesis_info: token_data
                 .as_ref()
-                .and_then(|token_data| token_data.genesis_info.clone())
-                .map(|genesis_info| {
-                    crate::token_display::apply_genesis_display_overrides(
-                        &token_entry.token_id,
-                        genesis_info,
-                    )
-                }),
+                .and_then(|token_data| token_data.genesis_info.clone()),
             token_input,
             token_output,
             action_str,
@@ -787,10 +779,7 @@ impl Server {
         let token_map: HashMap<String, TokenInfo> = tokens
             .into_iter()
             .filter_map(|token| token.ok())
-            .map(|token| {
-                let token = apply_token_display_overrides(token);
-                (token.token_id.clone(), token)
-            })
+            .map(|token| (token.token_id.clone(), token))
             .collect();
 
         Ok(token_map)
@@ -917,8 +906,7 @@ impl Server {
 
     pub async fn token(&self, id: &str) -> Result<String> {
         let token_id = Sha256d::from_be_hex(id)?;
-        let token =
-            apply_token_display_overrides(self.chronik.token(&token_id).await?);
+        let token = self.chronik.token(&token_id).await?;
 
         let token_type_inner = token
             .token_type

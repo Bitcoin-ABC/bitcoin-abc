@@ -13,7 +13,6 @@ import {
 } from 'wallet';
 import { ChronikClient, Tx } from 'chronik-client';
 import { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { applyTokenDisplayOverrides } from 'constants/tokenDisplayOverrides';
 import { parseTx } from 'ecash-parse';
 
 export {
@@ -211,11 +210,7 @@ export const getTokenGenesisInfo = async (
     const tokenInfo = await chronik.token(tokenId);
     const genesisTxInfo = await chronik.tx(tokenId);
 
-    const { timeFirstSeen, tokenType } = tokenInfo;
-    const genesisInfo = applyTokenDisplayOverrides(
-        tokenId,
-        tokenInfo.genesisInfo,
-    );
+    const { timeFirstSeen, genesisInfo, tokenType } = tokenInfo;
     const decimals = genesisInfo.decimals;
 
     // Initialize variables for determined quantities we want to cache

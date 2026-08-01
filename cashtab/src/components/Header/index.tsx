@@ -11,7 +11,6 @@ import appConfig from 'config/app';
 import PopOut from 'assets/popout.png';
 import { toXec } from 'wallet';
 import { FIRMA } from 'constants/tokens';
-import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
 import { ReactComponent as EcashIcon } from 'assets/ecash-icon.svg';
 import { ReactComponent as SavingsIcon } from 'assets/dollar-sign.svg';
 import { sortWalletsForDisplay } from 'wallet';
@@ -259,7 +258,7 @@ interface BalanceCardsProps {
 
 /**
  * Balance cards with count-roll animation on total XEC (incl. staked XECX)
- * and Firma Alpha when balances change (e.g. incoming websocket tx +
+ * and Firma when balances change (e.g. incoming websocket tx +
  * notification). Isolated so useCountRoll mounts only after the wallet is
  * loaded.
  *
@@ -354,7 +353,7 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
             <AssetBalanceCard
                 title="USD"
                 logo={<SavingsIcon />}
-                tokenLabel={FIRMA_BALANCE_LABEL}
+                tokenLabel="USD"
                 balanceAmount={firmaBalanceAmount}
                 fiatAmount={
                     showFirmaFiat && firmaPrice !== null

@@ -13,8 +13,36 @@ import {
 import { Script } from 'ecash-lib';
 import appConfig from 'config/app';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
-import { applyDisplayOverridesToTokenCache } from 'constants/tokenDisplayOverrides';
+import { FIRMA } from 'constants/tokens';
 import { toSatoshis } from 'wallet';
+
+/**
+ * Legacy display-override strings written into cashtabCache while Firma Alpha
+ * rebrand overlays were active. Drop matching FIRMA entries on restore so the
+ * next sync refetches on-chain Firma / FIRMA genesis info.
+ */
+const LEGACY_FIRMA_ALPHA_TOKEN_NAME = 'Firma Alpha';
+const LEGACY_FIRMA_ALPHA_TOKEN_TICKER = 'FIRMA ALPHA';
+
+/**
+ * Remove pre-migration Firma Alpha cache rows from a token map.
+ * @param tokens Token cache map (mutated in place)
+ */
+export const invalidateLegacyFirmaAlphaCacheEntries = (
+    tokens: Map<string, CashtabCachedTokenInfo>,
+): void => {
+    const cachedFirma = tokens.get(FIRMA.tokenId);
+    if (cachedFirma === undefined) {
+        return;
+    }
+    const { tokenName, tokenTicker } = cachedFirma.genesisInfo;
+    if (
+        tokenName === LEGACY_FIRMA_ALPHA_TOKEN_NAME ||
+        tokenTicker === LEGACY_FIRMA_ALPHA_TOKEN_TICKER
+    ) {
+        tokens.delete(FIRMA.tokenId);
+    }
+};
 
 /**
  * the userAgentData key is supported by recent
@@ -103,11 +131,11 @@ export const cashtabCacheToJSON = (
 export const storedCashtabCacheToMap = (
     storedCashtabCache: CashtabCacheJson,
 ): CashtabCache => {
+    const tokens = new Map(storedCashtabCache.tokens);
+    invalidateLegacyFirmaAlphaCacheEntries(tokens);
     return {
         ...storedCashtabCache,
-        tokens: applyDisplayOverridesToTokenCache(
-            new Map(storedCashtabCache.tokens),
-        ),
+        tokens,
     };
 };
 

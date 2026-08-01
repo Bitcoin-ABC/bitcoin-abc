@@ -974,7 +974,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             () =>
                 expect(
                     screen.getByText(
-                        `Sending ${token_decimalized_qty} Firma Alpha (FIRMA ALPHA) to ${addressPreview}`,
+                        `Sending ${token_decimalized_qty} Firma (FIRMA) to ${addressPreview}`,
                     ),
                 ).toBeInTheDocument(),
             { timeout: 5000 },
@@ -1050,9 +1050,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Wait for firma redeem tx UI to appear
         await waitFor(
             () => {
-                expect(
-                    screen.getByAltText('Firma Alpha reward'),
-                ).toBeInTheDocument();
+                expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
                 expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
             },
             { timeout: 5000 },
@@ -1078,7 +1076,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // We see the valid firma redeem tx info (full redeem qty as USDC)
-        expect(screen.getByAltText('Firma Alpha reward')).toBeInTheDocument();
+        expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
         expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
         // The text is split across multiple elements, so we check for parts of it
         expect(screen.getByText(/On tx finalized/)).toBeInTheDocument();
@@ -1235,7 +1233,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             () =>
                 expect(
                     screen.getByText(
-                        `Sending ${token_decimalized_qty} Firma Alpha (FIRMA ALPHA) to ${addressPreview}`,
+                        `Sending ${token_decimalized_qty} Firma (FIRMA) to ${addressPreview}`,
                     ),
                 ).toBeInTheDocument(),
             { timeout: 5000 },

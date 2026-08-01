@@ -53,7 +53,7 @@ const projects: Project[] = [
   },
   { name: "XECX", logo: "/xecx-icon.png", href: "https://stakedxec.com" },
   {
-    name: "FIRMA ALPHA",
+    name: "FIRMA",
     logo: "/firma-icon.png",
     href: "https://firmaprotocol.com",
   },

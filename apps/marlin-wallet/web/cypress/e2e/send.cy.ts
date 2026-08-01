@@ -261,7 +261,7 @@ describe('Send', () => {
                 selectFirmaAsset();
                 openManualSendScreen();
 
-                cy.get('#ticker-label').should('contain', 'Firma α');
+                cy.get('#ticker-label').should('contain', 'FIRMA');
                 pasteBip21UriIntoRecipient(uri);
                 cy.get('#ticker-label').should('contain', 'XEC');
                 cy.get('#recipient-address')
@@ -292,7 +292,7 @@ describe('Send', () => {
                     .should('have.value', WALLET_ADDRESS)
                     .and('have.attr', 'readonly');
                 cy.get('#recipient-address').should('have.class', 'valid');
-                cy.get('#ticker-label').should('contain', 'Firma α');
+                cy.get('#ticker-label').should('contain', 'FIRMA');
                 cy.get('#send-amount')
                     .should('have.value', tokenQty)
                     .and('have.attr', 'readonly');
@@ -316,7 +316,7 @@ describe('Send', () => {
                     .should('have.value', WALLET_ADDRESS)
                     .and('have.attr', 'readonly');
                 cy.get('#recipient-address').should('have.class', 'valid');
-                cy.get('#ticker-label').should('contain', 'Firma α');
+                cy.get('#ticker-label').should('contain', 'FIRMA');
                 cy.get('#send-amount').should(
                     'have.value',
                     MIN_FIRMA_SLIDER_PRIMARY.toFixed(FIRMA_TOKEN.decimals),
@@ -341,7 +341,7 @@ describe('Send', () => {
                 cy.get('#recipient-address')
                     .should('have.value', WALLET_ADDRESS)
                     .and('have.attr', 'readonly');
-                cy.get('#ticker-label').should('contain', 'Firma α');
+                cy.get('#ticker-label').should('contain', 'FIRMA');
                 cy.get('#send-amount').should(
                     'have.value',
                     MIN_FIRMA_SLIDER_PRIMARY.toFixed(FIRMA_TOKEN.decimals),
@@ -1036,7 +1036,7 @@ describe('Send', () => {
             openManualSendScreen();
             fillRecipientAndMaxSlider();
 
-            cy.get('#ticker-label').should('contain', 'Firma α');
+            cy.get('#ticker-label').should('contain', 'FIRMA');
             cy.get('#send-amount').should('have.attr', 'step', '0.0001');
 
             cy.get('#fee-display')

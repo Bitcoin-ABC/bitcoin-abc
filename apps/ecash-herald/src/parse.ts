@@ -16,7 +16,6 @@ import {
 } from 'ecash-lib';
 import knownMinersJson, { KnownMiners, MinerInfo } from '../constants/miners';
 import cachedTokenInfoMap from '../constants/tokens';
-import { applyDisplayOverridesToTokenInfoMap } from '../constants/tokenDisplayOverrides';
 import {
     jsonReviver,
     bigNumberAmountToLocaleString,
@@ -1745,10 +1744,6 @@ export const getBlockTgMessage = (
     const { hash, height, miner, staker, numTxs, parsedTxs } = parsedBlock;
     const { emojis } = config;
 
-    if (tokenInfoMap !== false) {
-        tokenInfoMap = applyDisplayOverridesToTokenInfoMap(tokenInfoMap);
-    }
-
     const xecPrice = fetchedPrices.find(
         fetchedPrice =>
             fetchedPrice.ticker.toString() === CryptoTicker.XEC.toString(),
@@ -2790,10 +2785,6 @@ export const summarizeTxHistory = (
 ): string[] => {
     const xecPriceUsd =
         statistics !== null ? statistics.currentPrice : undefined;
-
-    if (tokenInfoMap !== false) {
-        tokenInfoMap = applyDisplayOverridesToTokenInfoMap(tokenInfoMap);
-    }
 
     // Throw out any unconfirmed txs
     txs = txs.filter(tx => typeof tx.block !== 'undefined');

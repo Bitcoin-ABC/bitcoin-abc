@@ -15,6 +15,11 @@ import {
     parseTokenMultisendRows,
 } from 'helpers';
 import vectors from 'helpers/fixtures/vectors';
+import { FIRMA } from 'constants/tokens';
+import {
+    UNKNOWN_TOKEN_ID,
+    UNKNOWN_TOKEN_CACHED_INFO,
+} from 'config/CashtabCache';
 
 describe('Cashtab helper functions', () => {
     describe('Detect mobile or desktop devices', () => {
@@ -61,6 +66,52 @@ describe('Cashtab helper functions', () => {
                     cashtabCache,
                 );
             });
+        });
+
+        it('storedCashtabCacheToMap drops pre-migration Firma Alpha cache entries', () => {
+            const onChainFirmaCachedInfo = {
+                tokenType: FIRMA.token.tokenType,
+                timeFirstSeen: FIRMA.token.timeFirstSeen,
+                genesisInfo: {
+                    ...FIRMA.token.genesisInfo,
+                },
+                block: FIRMA.token.block,
+                genesisSupply: '0',
+                genesisMintBatons: 0,
+                genesisOutputScripts: [],
+            };
+            const legacyFirmaAlphaCachedInfo = {
+                ...onChainFirmaCachedInfo,
+                genesisInfo: {
+                    ...onChainFirmaCachedInfo.genesisInfo,
+                    tokenName: 'Firma Alpha',
+                    tokenTicker: 'FIRMA ALPHA',
+                    url: 'firmaprotocol.com',
+                },
+            };
+
+            const restored = storedCashtabCacheToMap({
+                tokens: [
+                    [UNKNOWN_TOKEN_ID, UNKNOWN_TOKEN_CACHED_INFO],
+                    [FIRMA.tokenId, legacyFirmaAlphaCachedInfo],
+                ],
+            });
+
+            expect(restored.tokens.has(FIRMA.tokenId)).toBe(false);
+            expect(restored.tokens.get(UNKNOWN_TOKEN_ID)).toEqual(
+                UNKNOWN_TOKEN_CACHED_INFO,
+            );
+
+            // On-chain Firma / FIRMA rows are kept
+            const kept = storedCashtabCacheToMap({
+                tokens: [
+                    [UNKNOWN_TOKEN_ID, UNKNOWN_TOKEN_CACHED_INFO],
+                    [FIRMA.tokenId, onChainFirmaCachedInfo],
+                ],
+            });
+            expect(kept.tokens.get(FIRMA.tokenId)).toEqual(
+                onChainFirmaCachedInfo,
+            );
         });
     });
     describe('Address and token ID preview functions', () => {

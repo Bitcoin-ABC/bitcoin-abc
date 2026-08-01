@@ -8,13 +8,11 @@ import type { GenesisInfo } from 'chronik-client';
  * High-volume tokens hard-coded so push copy does not wait on chronik.token
  * for every notification. IDs/metadata match Cashtab fixtures
  * (`cashtab/src/constants/tokens.ts`, Agora/App mocks).
- *
- * FIRMA uses Cashtab display overrides (Firma Alpha), not raw on-chain names.
  */
 export const CACHET_TOKEN_ID =
     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
 
-export const FIRMA_ALPHA_TOKEN_ID =
+export const FIRMA_TOKEN_ID =
     '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0';
 
 export const XECX_TOKEN_ID =
@@ -33,11 +31,11 @@ export const HOT_TOKEN_GENESIS_INFO: ReadonlyMap<string, GenesisInfo> = new Map(
             },
         ],
         [
-            FIRMA_ALPHA_TOKEN_ID,
+            FIRMA_TOKEN_ID,
             {
-                tokenTicker: 'FIRMA ALPHA',
-                tokenName: 'Firma Alpha',
-                url: 'firmaprotocol.com',
+                tokenTicker: 'FIRMA',
+                tokenName: 'Firma',
+                url: 'firma.cash',
                 decimals: 4,
                 data: '',
                 authPubkey:

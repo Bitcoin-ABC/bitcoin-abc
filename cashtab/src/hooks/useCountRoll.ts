@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
  * whenever the target changes. No animation on first render, and none
  * for users with prefers-reduced-motion.
  *
- * Used so XEC / XECX / Firma Alpha balances roll up when a tx arrives
+ * Used so XEC / XECX / Firma balances roll up when a tx arrives
  * (same moment as the websocket notification toast).
  *
  * @param target The value to display.

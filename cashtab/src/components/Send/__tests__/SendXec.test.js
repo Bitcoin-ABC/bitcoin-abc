@@ -38,7 +38,6 @@ import {
     xecxMocks,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
-import { FIRMA_DISPLAY_TICKER } from 'constants/tokenDisplayOverrides';
 import { previewAddress } from 'helpers';
 import {
     BLITZ_CHIPS_GAME_ADDRESS,
@@ -2226,7 +2225,7 @@ describe('<SendXec />', () => {
             ),
         );
     });
-    it('Send Token: Firma Alpha and XECX appear at the top of the token select list when held', async () => {
+    it('Send Token: Firma and XECX appear at the top of the token select list when held', async () => {
         // tokenTestWallet holds FIRMA, XECX, and tCRD (among others). Without
         // pinning, tCRD sorts before XECX alphabetically.
         const mockedChronik = await initializeCashtabStateForTests(
@@ -2288,7 +2287,7 @@ describe('<SendXec />', () => {
             'data-testid',
             `token-select-option-${xecxMocks.tokenId}`,
         );
-        expect(options[0]).toHaveTextContent(FIRMA_DISPLAY_TICKER);
+        expect(options[0]).toHaveTextContent('FIRMA');
         expect(options[1]).toHaveTextContent('XECX');
         // tCRD is held and sorts before XECX alphabetically — still below pins
         expect(
@@ -3305,7 +3304,7 @@ describe('<SendXec />', () => {
         ).not.toBeInTheDocument();
 
         // We see the valid firma redeem tx info
-        expect(screen.getByAltText('Firma Alpha reward')).toBeInTheDocument();
+        expect(screen.getByAltText('Firma reward')).toBeInTheDocument();
         expect(screen.getByAltText('USDC logo')).toBeInTheDocument();
 
         await waitFor(() => {

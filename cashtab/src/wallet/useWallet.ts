@@ -87,7 +87,7 @@ export interface UseWalletReturnType {
     ecc: Ecc;
     fiatPrice: number | null;
     firmaPrice: number | null;
-    /** Average Firma Alpha APY from firmaprotocol.com/api/apy, or null. */
+    /** Average Firma APY from firmaprotocol.com/api/apy, or null. */
     firmaApy: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
@@ -1206,7 +1206,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     /**
-     * Fetch average Firma Alpha APY from firmaprotocol.com (AVG of past
+     * Fetch average Firma APY from firmaprotocol.com (AVG of past
      * daily apy_spot payouts — same endpoint as the marketing site hero).
      * APY updates once per day; call only once on app load.
      */

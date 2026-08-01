@@ -35,7 +35,7 @@ export const navbarLinks: NavbarLink[] = [
   { title: "PayButton", href: "https://paybutton.org", category: "tools" },
   { title: "XECX", href: "https://stakedxec.com/", category: "tools" },
   {
-    title: "Firma Alpha",
+    title: "Firma",
     href: "https://firmaprotocol.com/",
     category: "tools",
   },

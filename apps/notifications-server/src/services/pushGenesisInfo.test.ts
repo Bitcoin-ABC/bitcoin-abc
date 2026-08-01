@@ -6,7 +6,7 @@ import * as assert from 'assert';
 import { ChronikClient, type GenesisInfo } from 'chronik-client';
 import {
     CACHET_TOKEN_ID,
-    FIRMA_ALPHA_TOKEN_ID,
+    FIRMA_TOKEN_ID,
     XECX_TOKEN_ID,
 } from '../constants/hotTokenGenesisInfo';
 import { buildGenesisInfoMapForTokenIds } from './pushGenesisInfo';
@@ -40,7 +40,7 @@ describe('pushGenesisInfo', () => {
         assert.strictEqual(tokenCalls, 1);
     });
 
-    it('serves CACHET, Firma Alpha, and XECX from the hot map without chronik', async () => {
+    it('serves CACHET, Firma, and XECX from the hot map without chronik', async () => {
         let tokenCalls = 0;
         const chronik = {
             token: async () => {
@@ -51,7 +51,7 @@ describe('pushGenesisInfo', () => {
 
         const map = await buildGenesisInfoMapForTokenIds(chronik, [
             CACHET_TOKEN_ID,
-            FIRMA_ALPHA_TOKEN_ID,
+            FIRMA_TOKEN_ID,
             XECX_TOKEN_ID,
             CACHET_TOKEN_ID,
         ]);
@@ -59,9 +59,9 @@ describe('pushGenesisInfo', () => {
         assert.strictEqual(tokenCalls, 0);
         assert.strictEqual(map.get(CACHET_TOKEN_ID)?.tokenTicker, 'CACHET');
         assert.strictEqual(map.get(CACHET_TOKEN_ID)?.decimals, 2);
-        assert.strictEqual(map.get(FIRMA_ALPHA_TOKEN_ID)?.tokenTicker, 'FIRMA ALPHA');
-        assert.strictEqual(map.get(FIRMA_ALPHA_TOKEN_ID)?.tokenName, 'Firma Alpha');
-        assert.strictEqual(map.get(FIRMA_ALPHA_TOKEN_ID)?.decimals, 4);
+        assert.strictEqual(map.get(FIRMA_TOKEN_ID)?.tokenTicker, 'FIRMA');
+        assert.strictEqual(map.get(FIRMA_TOKEN_ID)?.tokenName, 'Firma');
+        assert.strictEqual(map.get(FIRMA_TOKEN_ID)?.decimals, 4);
         assert.strictEqual(map.get(XECX_TOKEN_ID)?.tokenTicker, 'XECX');
         assert.strictEqual(map.get(XECX_TOKEN_ID)?.decimals, 2);
         assert.strictEqual(map.size, 3);

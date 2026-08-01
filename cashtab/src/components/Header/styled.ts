@@ -4,8 +4,6 @@
 
 import { Link } from 'react-router';
 import styled, { css } from 'styled-components';
-import { FIRMA_BALANCE_LABEL } from 'constants/tokenDisplayOverrides';
-
 export const HeaderCtn = styled.div`
     display: flex;
     width: 100%;
@@ -192,7 +190,7 @@ const balanceCardStyles = css<{ tokenLabel?: string }>`
     text-decoration: none;
     color: ${props => props.theme.primaryText};
     background: ${props =>
-        (props.tokenLabel === FIRMA_BALANCE_LABEL
+        (props.tokenLabel === 'USD'
             ? props.theme.firmaAccent
             : props.theme.accent) + '4D'};
     @media (max-width: 1100px) {

@@ -12,4 +12,3 @@ pub mod server_error;
 pub mod server_http;
 pub mod server_primitives;
 mod templating;
-mod token_display;

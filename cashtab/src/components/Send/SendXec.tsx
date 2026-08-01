@@ -622,7 +622,7 @@ const parseCashtabTxInfoFromSendHash = (
     };
 };
 
-/** Held Firma Alpha / XECX stay at the top of Send Token select (then A–Z). */
+/** Held Firma / XECX stay at the top of Send Token select (then A–Z). */
 const PINNED_SEND_TOKEN_IDS: readonly string[] = [
     FIRMA.tokenId,
     appConfig.vipTokens.xecx.tokenId,
