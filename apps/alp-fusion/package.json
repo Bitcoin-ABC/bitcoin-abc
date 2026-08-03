@@ -5,9 +5,9 @@
     "type": "module",
     "scripts": {
         "build": "tsc",
-        "test": "mocha --import=tsx './test/**/*.test.ts'",
-        "coverage": "c8 mocha --import=tsx './test/**/*.test.ts'",
-        "junit": "mocha --import=tsx './test/**/*.test.ts' --reporter mocha-junit-reporter"
+        "test": "NODE_ENV=test mocha --import=tsx './test/**/*.test.ts'",
+        "coverage": "NODE_ENV=test c8 mocha --import=tsx './test/**/*.test.ts'",
+        "junit": "NODE_ENV=test mocha --import=tsx './test/**/*.test.ts' --reporter mocha-junit-reporter"
     },
     "engines": {
         "node": ">=20"

@@ -16,8 +16,8 @@ inputs cannot be reliably linked to outputs.
 
 - A pool key is `(tokenId, atomTier)`.
 - Participants register only for tiers they can fund.
-- A round starts when `minPlayers` is reached (CashFusion-class defaults later;
-  early correctness may use a lower floor such as 4).
+- A round starts when `minPlayers` is reached (default
+  `DEFAULT_MIN_PLAYERS = 8`, matching CashFusion; tests may use `2`).
 - One round = one fused transaction for one `tokenId`.
 
 ## Round sketch (CashFusion-shaped)

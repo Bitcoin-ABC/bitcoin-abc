@@ -59,3 +59,10 @@ export const NUM_COMPONENTS = 23;
  * `ALP_POLICY_MAX_OUTPUTS`). Irrelevant to XEC CashFusion (no ALP coloring).
  */
 export const ALP_MAX_OUTPUTS = 29;
+
+/**
+ * Default players per round (Electrum CashFusion `Params.min_clients = 8`).
+ * Two-player rounds leak the counterparty’s inputs/outputs to each participant;
+ * keep `2` only as an explicit test / debug override on `PoolMatcher`.
+ */
+export const DEFAULT_MIN_PLAYERS = 8;
