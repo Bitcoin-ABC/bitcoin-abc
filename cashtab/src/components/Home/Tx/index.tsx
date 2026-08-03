@@ -105,6 +105,8 @@ import {
 } from 'constants/tokens';
 import { Alert } from 'components/Common/Atoms';
 import { UpdateCashtabState } from 'wallet/useWallet';
+import { shouldFilterAirdropMsg } from 'components/Home/hideAirdropBelowMin';
+import { DEFAULT_MIN_AIRDROP_XEC } from 'config/CashtabSettings';
 
 interface TxProps {
     tx: CashtabTx;
@@ -132,7 +134,8 @@ const Tx: React.FC<TxProps> = ({
         replyAddress,
         parsedTokenEntries,
     } = parsed;
-    const { cashtabCache, contactList } = cashtabState;
+    const { cashtabCache, contactList, settings } = cashtabState;
+    const minAirdropXec = settings?.minAirdropXec ?? DEFAULT_MIN_AIRDROP_XEC;
 
     const replyAddressPreview =
         typeof replyAddress !== 'undefined'
@@ -461,6 +464,17 @@ const Tx: React.FC<TxProps> = ({
                 break;
             }
             case opReturn.appPrefixesHex.airdrop: {
+                if (shouldFilterAirdropMsg(tx, minAirdropXec)) {
+                    renderedAppActions.push(
+                        <IconAndLabel>
+                            <AirdropIcon />
+                            <AppDescLabel>
+                                Spam airdrop - filtered by settings
+                            </AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                    break;
+                }
                 if (!isValid) {
                     renderedAppActions.push(
                         <IconAndLabel>

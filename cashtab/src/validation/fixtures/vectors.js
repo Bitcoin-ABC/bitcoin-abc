@@ -1375,6 +1375,7 @@ export default {
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
                     pushNotificationsEnabled: true,
+                    minAirdropXec: 100,
                 },
             },
             {
@@ -1391,6 +1392,7 @@ export default {
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
                     pushNotificationsEnabled: true,
+                    minAirdropXec: 100,
                 },
             },
             {
@@ -1418,6 +1420,7 @@ export default {
                     satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                     biometricLockEnabled: false,
                     pushNotificationsEnabled: true,
+                    minAirdropXec: 100,
                 },
             },
         ],
@@ -1450,7 +1453,8 @@ export default {
                 isValid: false,
             },
             {
-                description: 'A current settings object is valid',
+                description:
+                    'A settings object with pushNotifications but without minAirdropXec is invalid',
                 settings: {
                     fiatCurrency: 'usd',
                     sendModal: false,
@@ -1461,7 +1465,38 @@ export default {
                     biometricLockEnabled: false,
                     pushNotificationsEnabled: true,
                 },
+                isValid: false,
+            },
+            {
+                description: 'A current settings object is valid',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
+                    biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
+                    minAirdropXec: 100,
+                },
                 isValid: true,
+            },
+            {
+                description:
+                    'Rejects an otherwise-valid settings object if minAirdropXec is not a supported notch',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
+                    biometricLockEnabled: false,
+                    pushNotificationsEnabled: true,
+                    minAirdropXec: 50,
+                },
+                isValid: false,
             },
             {
                 description:

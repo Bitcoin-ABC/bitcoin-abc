@@ -28,6 +28,12 @@ import {
     isPushNotificationsSupported,
     registerPushNotifications,
 } from 'services/pushNotificationService';
+import {
+    AIRDROP_HISTORY_MIN_XEC_OPTIONS,
+    AirdropHistoryMinXec,
+    DEFAULT_MIN_AIRDROP_XEC,
+} from 'config/CashtabSettings';
+import { getUserLocale } from 'helpers';
 
 const VersionContainer = styled.div`
     color: ${props => props.theme.primaryText};
@@ -108,6 +114,30 @@ const SettingsRowControl = styled.div`
     align-items: center;
 `;
 
+const AirdropMinControl = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 140px;
+    @media (min-width: 400px) {
+        width: 180px;
+    }
+`;
+
+const AirdropMinSlider = styled.input`
+    width: 100%;
+    accent-color: ${props => props.theme.accent};
+    cursor: pointer;
+`;
+
+const AirdropMinValue = styled.span`
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: ${props => props.theme.secondaryText};
+    text-align: right;
+`;
+
 const SettingsLinkRow = styled(Link)`
     display: flex;
     align-items: center;
@@ -165,6 +195,12 @@ const Configure: React.FC = () => {
     const showPushNotifications =
         isPushNotificationsSupported() &&
         import.meta.env.VITE_BUILD_ENV !== 'extension';
+    const minAirdropXec = settings.minAirdropXec ?? DEFAULT_MIN_AIRDROP_XEC;
+    const minAirdropIndex = Math.max(
+        0,
+        AIRDROP_HISTORY_MIN_XEC_OPTIONS.indexOf(minAirdropXec),
+    );
+    const userLocale = getUserLocale(navigator);
 
     return (
         <StyledConfigure title="Settings">
@@ -339,6 +375,44 @@ const Configure: React.FC = () => {
                         </SettingsRowControl>
                     </SettingsRow>
                 )}
+                <SettingsRow>
+                    <SettingsRowLabel>
+                        Min value airdrop display
+                    </SettingsRowLabel>
+                    <SettingsRowControl>
+                        <AirdropMinControl>
+                            <AirdropMinSlider
+                                type="range"
+                                name="min-airdrop-xec"
+                                aria-label="Min value airdrop display"
+                                min={0}
+                                max={AIRDROP_HISTORY_MIN_XEC_OPTIONS.length - 1}
+                                step={1}
+                                value={minAirdropIndex}
+                                onChange={e => {
+                                    const next =
+                                        AIRDROP_HISTORY_MIN_XEC_OPTIONS[
+                                            Number(e.target.value)
+                                        ] as AirdropHistoryMinXec;
+                                    updateCashtabState({
+                                        settings: {
+                                            ...settings,
+                                            minAirdropXec: next,
+                                        },
+                                    });
+                                }}
+                            />
+                            <AirdropMinValue>
+                                {minAirdropXec ===
+                                AIRDROP_HISTORY_MIN_XEC_OPTIONS[0]
+                                    ? 'No filter'
+                                    : `${minAirdropXec.toLocaleString(
+                                          userLocale,
+                                      )} XEC`}
+                            </AirdropMinValue>
+                        </AirdropMinControl>
+                    </SettingsRowControl>
+                </SettingsRow>
             </SettingsList>
 
             {(hasEnoughToken(

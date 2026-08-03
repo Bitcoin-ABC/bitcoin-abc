@@ -300,6 +300,7 @@ export const migrateLegacyCashtabSettings = (
         settings.satsPerKb,
         settings.biometricLockEnabled,
         settings.pushNotificationsEnabled,
+        settings.minAirdropXec,
     );
 };
 

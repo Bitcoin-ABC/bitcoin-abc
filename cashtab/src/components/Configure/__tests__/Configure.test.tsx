@@ -9,7 +9,7 @@ import {
     bearTokenAndTx,
     requiredUtxoThisToken,
 } from 'components/App/fixtures/mocks';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';
@@ -32,6 +32,8 @@ import {
 import App from 'components/App/App';
 import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount, ActiveCashtabWallet } from 'wallet';
+import { AIRDROP_HISTORY_MIN_XEC_OPTIONS } from 'config/CashtabSettings';
+import { getUserLocale } from 'helpers';
 
 interface ConfigureTestWrapperProps {
     chronik: MockChronikClient;
@@ -360,6 +362,74 @@ describe('<Configure />', () => {
                 `icon for ${appConfig.vipTokens.cachet.tokenId}`,
             ),
         ).toBeInTheDocument();
+    });
+
+    it('We can set min value airdrop display via slider', async () => {
+        const tokenMocks = new Map();
+        tokenMocks.set(bearTokenAndTx.token.tokenId, {
+            tx: bearTokenAndTx.tx,
+            tokenInfo: bearTokenAndTx.token,
+        });
+
+        const mockedChronik = await prepareContext(
+            localforage,
+            [walletWithXecAndTokensActive],
+            tokenMocks,
+        );
+
+        render(
+            <ConfigureTestWrapper
+                chronik={mockedChronik}
+                agora={mockAgora}
+                ecc={ecc}
+                theme={theme}
+                route="/configure"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        expect(
+            screen.getByText('Min value airdrop display'),
+        ).toBeInTheDocument();
+        // Default notch is 100 XEC
+        expect(screen.getByText('100 XEC')).toBeInTheDocument();
+
+        const slider = screen.getByRole('slider', {
+            name: 'Min value airdrop display',
+        });
+        // Index 4 = 10000 XEC (locale-formatted)
+        fireEvent.change(slider, {
+            target: {
+                value: String(AIRDROP_HISTORY_MIN_XEC_OPTIONS.length - 1),
+            },
+        });
+
+        const userLocale = getUserLocale(navigator);
+        expect(
+            screen.getByText(`${(10000).toLocaleString(userLocale)} XEC`),
+        ).toBeInTheDocument();
+        await waitFor(async () =>
+            expect(
+                ((await localforage.getItem('settings')) as any).minAirdropXec,
+            ).toEqual(10000),
+        );
+
+        // Lowest notch (dust) renders as "No filter", not "5.46 XEC"
+        fireEvent.change(slider, {
+            target: { value: '0' },
+        });
+        expect(screen.getByText('No filter')).toBeInTheDocument();
+        expect(screen.queryByText('5.46 XEC')).not.toBeInTheDocument();
+        await waitFor(async () =>
+            expect(
+                ((await localforage.getItem('settings')) as any).minAirdropXec,
+            ).toEqual(5.46),
+        );
     });
 
     it('We can choose a new fiat currency', async () => {

@@ -7,6 +7,18 @@ import {
     FEE_SATS_PER_KB_MAXIMUM,
 } from 'constants/transactions';
 
+/**
+ * Discrete XEC floors for filtering low-value airdrop messages in history.
+ * The lowest notch (dust / 5.46 XEC) is "No filter" in the UI.
+ * Default is 100 XEC.
+ */
+export const AIRDROP_HISTORY_MIN_XEC_OPTIONS = [
+    5.46, 10, 100, 1000, 10000,
+] as const;
+export type AirdropHistoryMinXec =
+    (typeof AIRDROP_HISTORY_MIN_XEC_OPTIONS)[number];
+export const DEFAULT_MIN_AIRDROP_XEC: AirdropHistoryMinXec = 100;
+
 interface CashtabSettingsInterface {
     fiatCurrency: string;
     sendModal: boolean;
@@ -16,6 +28,7 @@ interface CashtabSettingsInterface {
     satsPerKb: number;
     biometricLockEnabled: boolean;
     pushNotificationsEnabled: boolean;
+    minAirdropXec: AirdropHistoryMinXec;
 }
 
 // Default settings which can be modified within Cashtab
@@ -28,6 +41,7 @@ class CashtabSettings implements CashtabSettingsInterface {
     satsPerKb: number;
     biometricLockEnabled: boolean;
     pushNotificationsEnabled: boolean;
+    minAirdropXec: AirdropHistoryMinXec;
     constructor(
         fiatCurrency = 'usd',
         sendModal = false,
@@ -37,6 +51,7 @@ class CashtabSettings implements CashtabSettingsInterface {
         satsPerKb = FEE_SATS_PER_KB_XEC_MINIMUM,
         biometricLockEnabled = false,
         pushNotificationsEnabled = true,
+        minAirdropXec: AirdropHistoryMinXec = DEFAULT_MIN_AIRDROP_XEC,
     ) {
         this.fiatCurrency = fiatCurrency;
         this.sendModal = sendModal;
@@ -46,6 +61,7 @@ class CashtabSettings implements CashtabSettingsInterface {
         this.satsPerKb = satsPerKb;
         this.biometricLockEnabled = biometricLockEnabled;
         this.pushNotificationsEnabled = pushNotificationsEnabled;
+        this.minAirdropXec = minAirdropXec;
     }
 }
 export default CashtabSettings;
@@ -98,6 +114,7 @@ export interface CashtabSettingsValidation {
     balanceVisible: boolean[];
     biometricLockEnabled: boolean[];
     pushNotificationsEnabled: boolean[];
+    minAirdropXec: readonly AirdropHistoryMinXec[];
     satsPerKb: {
         min: number;
         max: number;
@@ -113,6 +130,7 @@ export const cashtabSettingsValidation: CashtabSettingsValidation = {
     balanceVisible: [true, false],
     biometricLockEnabled: [true, false],
     pushNotificationsEnabled: [true, false],
+    minAirdropXec: AIRDROP_HISTORY_MIN_XEC_OPTIONS,
     // Note: satsPerKb is not currently exposed to users in the UI
     satsPerKb: {
         min: FEE_SATS_PER_KB_XEC_MINIMUM,

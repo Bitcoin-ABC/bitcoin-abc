@@ -818,6 +818,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('Received')).toBeInTheDocument();
     });
     it('Received airdrop with msg (legacy push) with no token info in cache', async () => {
+        const state = new CashtabState();
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
@@ -834,7 +835,12 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={{
-                            ...new CashtabState(),
+                            ...state,
+                            // 5.69 XEC airdrop is above the lowest floor
+                            settings: {
+                                ...state.settings,
+                                minAirdropXec: 5.46,
+                            },
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
                     />
@@ -879,6 +885,51 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
         // The token icon itself is abbreviated to show first and last 3 chars
         expect(screen.getByText('bdb...37c')).toBeInTheDocument();
+    });
+    it('Received airdrop below min display floor shows filtered label instead of msg', async () => {
+        // Default minAirdropXec is 100; legacy fixture is 5.69 XEC
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...legacyAirdropTx.tx,
+                            parsed: legacyAirdropTx.parsed,
+                        }}
+                        hashes={[
+                            mockParseTxWalletAirdrop.paths.find(
+                                p => p.path === 1899,
+                            ).hash,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: { tokens: mockParseTxTokenCache },
+                        }}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // Tx still renders (not removed from history)
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+        expect(screen.getByText('5.69 XEC')).toBeInTheDocument();
+
+        // Airdrop icon + filtered label; no airdrop msg content
+        expect(screen.getByTitle('tx-airdrop')).toBeInTheDocument();
+        expect(
+            screen.getByText('Spam airdrop - filtered by settings'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('Airdrop to holders of'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(
+                'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
+            ),
+        ).not.toBeInTheDocument();
     });
     it('Sent airdrop with msg with token info in cache', async () => {
         render(

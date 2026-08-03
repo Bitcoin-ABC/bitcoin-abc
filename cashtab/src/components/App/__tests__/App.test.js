@@ -478,6 +478,7 @@ describe('<App />', () => {
                 satsPerKb: FEE_SATS_PER_KB_XEC_MINIMUM,
                 biometricLockEnabled: false,
                 pushNotificationsEnabled: true,
+                minAirdropXec: 100,
             }),
         );
     });
