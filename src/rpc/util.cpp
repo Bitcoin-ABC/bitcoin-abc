@@ -1437,7 +1437,7 @@ EvalDescriptorStringOrObject(const UniValue &scanobject,
         range.second = 0;
     }
     std::vector<CScript> ret;
-    for (int i = range.first; i <= range.second; ++i) {
+    for (int64_t i = range.first; i <= range.second; ++i) {
         std::vector<CScript> scripts;
         if (!desc->Expand(i, provider, scripts, provider)) {
             throw JSONRPCError(
