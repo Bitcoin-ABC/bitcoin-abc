@@ -18,6 +18,7 @@ overrides:
     '@vercel/rust>smol-toml@<1.6.1': '>=1.6.1'
     'serialize-javascript@<7.0.5': '>=7.0.5'
     'postcss@<8.5.18': '>=8.5.18'
+    'ip-address@<=10.3.0': '>=10.3.1'
     'brace-expansion@>=5.0.0 <5.0.6': '>=5.0.6'
     'uuid@<11.1.1': '>=11.1.1'
     'qs@>=6.11.1 <=6.15.1': '>=6.15.2'
