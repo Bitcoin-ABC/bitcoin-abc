@@ -18,6 +18,12 @@ const { validate, ValidationError } = validation;
  */
 
 /**
+ * Cashaddr checksum size in 5-bit characters.
+ * @private
+ */
+const CHECKSUM_SIZE = 8;
+
+/**
  * Encodes a hash from a given type into an eCash address with the given prefix.
  *
  * @param prefix Cash address prefix. E.g.: 'ecash'.
@@ -52,7 +58,7 @@ export function encodeCashAddress(
     );
     const checksumData = concat(
         concat(prefixData, payloadData),
-        new Uint8Array(8),
+        new Uint8Array(CHECKSUM_SIZE),
     );
     const payload = concat(
         payloadData,
@@ -77,10 +83,18 @@ export function decodeCashAddress(address: string): DecodedAddress {
     let prefix, payload;
     if (pieces.length === 1) {
         // Check and see if it has a valid checksum for accepted prefixes
+        const prefixlessPayload = base32.decode(pieces[0]);
+        // Skip checksum calculation when the payload is shorter than the
+        // checksum (mirrors bitcoin-abc cashaddr::Decode / D20433).
+        validate(
+            prefixlessPayload.length >= CHECKSUM_SIZE,
+            `Prefixless address ${address} does not have valid checksum for any valid prefix (${VALID_PREFIXES.join(
+                ', ',
+            )})`,
+        );
         let hasValidChecksum = false;
         for (let i = 0; i < VALID_PREFIXES.length; i += 1) {
             const testedPrefix = VALID_PREFIXES[i];
-            const prefixlessPayload = base32.decode(pieces[0]);
             hasValidChecksum = validChecksum(testedPrefix, prefixlessPayload);
             if (hasValidChecksum) {
                 // Here's your prefix
@@ -100,6 +114,13 @@ export function decodeCashAddress(address: string): DecodedAddress {
         validate(pieces.length === 2, 'Invalid address: ' + address + '.');
         prefix = pieces[0];
         payload = base32.decode(pieces[1]);
+        // Skip checksum calculation when the payload is shorter than the
+        // checksum. Some crafted short strings (see D20433) can otherwise
+        // spuriously pass polymod before the hash-size check rejects them.
+        validate(
+            payload.length >= CHECKSUM_SIZE,
+            'Invalid checksum: ' + address + '.',
+        );
         validate(
             validChecksum(prefix, payload),
             'Invalid checksum: ' + address + '.',
@@ -107,7 +128,21 @@ export function decodeCashAddress(address: string): DecodedAddress {
     }
 
     // We assert that payload will be defined here, as we validate above
-    const payloadData = fromUint5Array((payload as Uint8Array).subarray(0, -8));
+    const payloadWithoutChecksum = (payload as Uint8Array).subarray(
+        0,
+        -CHECKSUM_SIZE,
+    );
+    // A non-empty 8-bit payload needs at least 8 bits (2 five-bit groups).
+    // Zero groups is an empty payload (e.g. p:gpf8m4h7). One leftover
+    // group (e.g. ecash:q9mcgrsqm) cannot form a version byte;
+    // fromUint5Array would throw a padding error instead.
+    validate(
+        payloadWithoutChecksum.length * 5 >= 8,
+        'Invalid payload: ' + address + '.',
+    );
+    const payloadData = fromUint5Array(payloadWithoutChecksum);
+    // Version-byte-only payloads are fine here; getHashSize catches those.
+    validate(payloadData.length > 0, 'Invalid payload: ' + address + '.');
     const versionByte = payloadData[0];
     const hash = payloadData.subarray(1);
     validate(
@@ -176,10 +211,10 @@ function prefixToUint5Array(prefix: string): Uint8Array {
  * TODO update big-integer so we can use correct types
  */
 function checksumToUint5Array(checksum: bigint): Uint8Array {
-    const result = new Uint8Array(8);
-    for (let i = 0; i < 8; ++i) {
+    const result = new Uint8Array(CHECKSUM_SIZE);
+    for (let i = 0; i < CHECKSUM_SIZE; ++i) {
         // Extract the least significant 5 bits (31 is 11111 in binary)
-        result[7 - i] = Number(checksum & 31n);
+        result[CHECKSUM_SIZE - 1 - i] = Number(checksum & 31n);
         // Shift right by 5 bits
         checksum >>= 5n;
     }

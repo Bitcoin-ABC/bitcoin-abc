@@ -94,3 +94,8 @@ function convertBitcoincashToEcash(bitcoincashAddress) {
 - Remove support for uppercase address type inputs 'P2PKH' and 'P2SH'
 - New function `getOutputScriptFromTypeAndHash`
 - Remove validation against accepted prefix types
+
+    2.0.1 [D20442](https://reviews.bitcoinabc.org/D20442)
+
+- Reject cashaddrs with a payload shorter than the 8-character checksum
+- Reject valid-checksum encodings with an empty 8-bit payload

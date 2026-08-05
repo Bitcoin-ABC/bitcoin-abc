@@ -414,6 +414,36 @@ describe('cashaddr', () => {
             }, ValidationError);
         });
 
+        // Last 3 new invalid vectors from bitcoin-abc D20433 (payload shorter
+        // than the 8-character cashaddr checksum). rpzrrzpr: / rqiqkqiqr: are
+        // empty after the colon; c:qvdy2z3 has only 7 payload chars.
+        it('should reject addresses with payload shorter than the checksum', () => {
+            const shortPayloadCases = ['rpzrrzpr:', 'rqiqkqiqr:', 'c:qvdy2z3'];
+            for (const address of shortPayloadCases) {
+                assert.throws(() => {
+                    decodeCashAddress(address);
+                }, ValidationError);
+                assert.isFalse(isValidCashAddress(address));
+            }
+        });
+
+        // Both have valid checksums and an empty 8-bit payload (no version
+        // byte). p:gpf8m4h7 is checksum-only; ecash:q9mcgrsqm has one
+        // leftover 5-bit group after the checksum, which cannot form a byte.
+        it('should reject valid-checksum encodings with an empty payload', () => {
+            const emptyPayloadCases = ['p:gpf8m4h7', 'ecash:q9mcgrsqm'];
+            for (const address of emptyPayloadCases) {
+                assert.throws(
+                    () => {
+                        decodeCashAddress(address);
+                    },
+                    ValidationError,
+                    'Invalid payload: ' + address + '.',
+                );
+                assert.isFalse(isValidCashAddress(address));
+            }
+        });
+
         it('should fail when decoding for a different network', () => {
             for (const network of NETWORKS) {
                 for (const anotherNetwork of NETWORKS) {
