@@ -1250,7 +1250,7 @@ void SetupServerArgs(NodeContext &node) {
                              DEFAULT_MAX_BLOCK_SIZE),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::NODE_RELAY);
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     argsman.AddArg(
         "-dustrelayfee=<amt>",
         strprintf("Fee rate (in %s/kB) used to define dust, the value of an "

@@ -387,7 +387,7 @@ static RPCHelpMan decodeavalancheproof() {
                  "A hash of the limitedid and master key."},
                 {RPCResult::Type::STR_AMOUNT, "staked_amount",
                  "The total staked amount of this proof in " +
-                     Currency::get().ticker + "."},
+                     Currency::getTicker() + "."},
                 {RPCResult::Type::NUM, "score", "The score of this proof."},
                 {RPCResult::Type::ARR,
                  "stakes",
@@ -685,25 +685,25 @@ static RPCHelpMan getavalancheinfo() {
                       "utxos."},
                      {RPCResult::Type::STR_AMOUNT, "total_stake_amount",
                       "The total staked amount over all the valid proofs in " +
-                          Currency::get().ticker +
+                          Currency::getTicker() +
                           " (including this node's local proof if "
                           "applicable)."},
                      {RPCResult::Type::STR_AMOUNT, "connected_stake_amount",
                       "The total staked amount over all the connected proofs "
                       "in " +
-                          Currency::get().ticker +
+                          Currency::getTicker() +
                           " (including this node's local proof if "
                           "applicable)."},
                      {RPCResult::Type::STR_AMOUNT, "dangling_stake_amount",
                       "The total staked amount over all the dangling proofs "
                       "in " +
-                          Currency::get().ticker +
+                          Currency::getTicker() +
                           " (including this node's local proof if "
                           "applicable)."},
                      {RPCResult::Type::STR_AMOUNT, "immature_stake_amount",
                       "The total staked amount over all the immature proofs "
                       "in " +
-                          Currency::get().ticker +
+                          Currency::getTicker() +
                           " (including this node's local proof if "
                           "applicable)."},
                      {RPCResult::Type::NUM, "node_count",

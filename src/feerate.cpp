@@ -59,5 +59,5 @@ std::string CFeeRate::ToString() const {
     return strprintf("%d.%0*d %s/kB", nSatoshisPerK / currency.baseunit,
                      currency.decimals,
                      (nSatoshisPerK % currency.baseunit) / currency.subunit,
-                     currency.ticker);
+                     Currency::getTicker());
 }

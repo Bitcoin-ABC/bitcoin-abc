@@ -713,7 +713,7 @@ static UniValue GetNetworksInfo() {
 }
 
 static RPCHelpMan getnetworkinfo() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "getnetworkinfo",
         "Returns an object containing various state info regarding P2P "

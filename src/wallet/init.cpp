@@ -56,7 +56,7 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
     argsman.AddArg("-disablewallet",
                    "Do not load the wallet and disable wallet RPC calls",
                    ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     argsman.AddArg("-fallbackfee=<amt>",
                    strprintf("A fee rate (in %s/kB) that will be used when fee "
                              "estimation has insufficient data. 0 to entirely "

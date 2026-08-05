@@ -287,7 +287,7 @@ static RPCHelpMan createrawtransaction() {
                           "A key-value pair. The key (string) is the "
                           "bitcoin address, the value (float or string) is "
                           "the amount in " +
-                              Currency::get().ticker},
+                              Currency::getTicker()},
                      },
                  },
                  {
@@ -708,7 +708,7 @@ static RPCHelpMan decodepsbt() {
                            "Transaction output for UTXOs",
                            {
                                {RPCResult::Type::NUM, "amount",
-                                "The value in " + Currency::get().ticker},
+                                "The value in " + Currency::getTicker()},
                                {RPCResult::Type::OBJ,
                                 "scriptPubKey",
                                 "",
@@ -1181,7 +1181,7 @@ static RPCHelpMan createpsbt() {
                           "A key-value pair. The key (string) is the "
                           "bitcoin address, the value (float or string) is "
                           "the amount in " +
-                              Currency::get().ticker},
+                              Currency::getTicker()},
                      },
                  },
                  {
@@ -1576,7 +1576,7 @@ RPCHelpMan analyzepsbt() {
                 {RPCResult::Type::STR_AMOUNT, "estimated_feerate",
                  /* optional */ true,
                  "Estimated feerate of the final signed transaction in " +
-                     Currency::get().ticker +
+                     Currency::getTicker() +
                      "/kB. Shown only if all UTXO slots in the PSBT have been "
                      "filled"},
                 {RPCResult::Type::STR_AMOUNT, "fee", /* optional */ true,

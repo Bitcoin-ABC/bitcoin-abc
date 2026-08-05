@@ -15,6 +15,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 class UniValue;
@@ -156,9 +157,10 @@ struct Currency {
     Amount baseunit;
     Amount subunit;
     uint8_t decimals;
-    std::string ticker;
+    std::string_view ticker;
 
     static const Currency &get();
+    static std::string getTicker() { return std::string{get().ticker}; }
 };
 
 /**

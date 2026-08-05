@@ -788,7 +788,7 @@ static RPCHelpMan getblock() {
                                      "verbosity = 1 \"tx\" result"},
                                     {RPCResult::Type::STR_AMOUNT, "fee",
                                      "The transaction fee in " +
-                                         Currency::get().ticker +
+                                         Currency::getTicker() +
                                          ", omitted if block undo data is not "
                                          "available"},
                                 }},
@@ -1240,7 +1240,7 @@ RPCHelpMan gettxout() {
                     {RPCResult::Type::NUM, "confirmations",
                      "The number of confirmations"},
                     {RPCResult::Type::STR_AMOUNT, "value",
-                     "The transaction value in " + Currency::get().ticker},
+                     "The transaction value in " + Currency::getTicker()},
                     {RPCResult::Type::OBJ,
                      "scriptPubKey",
                      "",
@@ -2032,7 +2032,7 @@ static constexpr size_t PER_UTXO_OVERHEAD =
     sizeof(COutPoint) + sizeof(uint32_t) + sizeof(bool);
 
 static RPCHelpMan getblockstats() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "getblockstats",
         "Compute per block statistics for a given window. All amounts are "
@@ -2359,7 +2359,7 @@ public:
 };
 
 static RPCHelpMan scantxoutset() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "scantxoutset",
         "Scans the unspent transaction output set for entries that match "

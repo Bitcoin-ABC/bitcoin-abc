@@ -250,7 +250,7 @@ void TestGUI(interfaces::Node &node) {
                          ->QObject::findChild<QLabel *>("amount_content")
                          ->text(),
                      QString("0.01 ") +
-                         QString::fromStdString(Currency::get().ticker));
+                         QString::fromStdString(Currency::getTicker()));
 
             QCOMPARE(uri.count("label=TEST_LABEL_1"), 2);
             QCOMPARE(

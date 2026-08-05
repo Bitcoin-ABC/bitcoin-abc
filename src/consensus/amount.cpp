@@ -12,8 +12,10 @@
 
 #include <tinyformat.h>
 
-static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
-static const Currency XEC{100 * SATOSHI, SATOSHI, 2, "XEC"};
+using namespace std::string_view_literals;
+
+static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"sv};
+static const Currency XEC{100 * SATOSHI, SATOSHI, 2, "XEC"sv};
 
 const Currency &Currency::get() {
     return gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? XEC : BCHA;
@@ -23,7 +25,7 @@ std::string Amount::ToString() const {
     const auto &currency = Currency::get();
     return strprintf("%d.%0*d %s", *this / currency.baseunit, currency.decimals,
                      (*this % currency.baseunit) / currency.subunit,
-                     currency.ticker);
+                     std::string{currency.ticker});
 }
 
 Amount::operator UniValue() const {

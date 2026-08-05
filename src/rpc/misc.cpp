@@ -801,7 +801,7 @@ static RPCHelpMan getcurrencyinfo() {
             const Currency &currency = Currency::get();
 
             UniValue res(UniValue::VOBJ);
-            res.pushKV("ticker", currency.ticker);
+            res.pushKV("ticker", Currency::getTicker());
             res.pushKV("satoshisperunit", currency.baseunit / SATOSHI);
             res.pushKV("decimals", currency.decimals);
             return res;

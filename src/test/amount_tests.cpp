@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(ToStringTest) {
     CFeeRate feeRate;
     feeRate = CFeeRate(1 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.ToString(),
-                      "0.01 " + Currency::get().ticker + "/kB");
+                      "0.01 " + Currency::getTicker() + "/kB");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

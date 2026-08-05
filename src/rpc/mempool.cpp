@@ -46,7 +46,7 @@ static RPCHelpMan sendrawtransaction() {
                  FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK())},
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
-                 Currency::get().ticker +
+                 Currency::getTicker() +
                  "/kB\nSet to 0 to accept any fee rate.\n"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "", "The transaction hash in hex"},
@@ -100,7 +100,7 @@ static RPCHelpMan sendrawtransaction() {
 }
 
 static RPCHelpMan testmempoolaccept() {
-    const auto ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "testmempoolaccept",
         "\nReturns result of mempool acceptance tests indicating if raw "
@@ -325,7 +325,7 @@ static RPCHelpMan testmempoolaccept() {
 }
 
 static std::vector<RPCResult> MempoolEntryDescription() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return {
         RPCResult{RPCResult::Type::NUM, "size", "transaction size."},
         RPCResult{RPCResult::Type::NUM_TIME, "time",
@@ -708,7 +708,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
 }
 
 static RPCHelpMan getmempoolinfo() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "getmempoolinfo",
         "Returns details on the active state of the TX memory pool.\n",
@@ -883,7 +883,7 @@ static RPCHelpMan savemempool() {
 }
 
 static RPCHelpMan submitpackage() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "submitpackage",
         "Submit a package of raw transactions (serialized, hex-encoded) to "

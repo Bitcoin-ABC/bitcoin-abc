@@ -308,7 +308,7 @@ static RPCHelpMan sendtoaddress() {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to send to."},
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-             "The amount in " + Currency::get().ticker + " to send. eg 0.1"},
+             "The amount in " + Currency::getTicker() + " to send. eg 0.1"},
             {"comment", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
              "A comment used to store what the transaction is for.\n"
              "                             This is not part of the "
@@ -423,7 +423,7 @@ static RPCHelpMan listaddressgroupings() {
                                 {RPCResult::Type::STR, "address",
                                  "The bitcoin address"},
                                 {RPCResult::Type::STR_AMOUNT, "amount",
-                                 "The amount in " + Currency::get().ticker},
+                                 "The amount in " + Currency::getTicker()},
                                 {RPCResult::Type::STR, "label",
                                  /* optional */ true, "The label"},
                             }},
@@ -535,7 +535,7 @@ static RPCHelpMan getreceivedbyaddress() {
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + Currency::get().ticker +
+                  "The total amount in " + Currency::getTicker() +
                       " received at this address."},
         RPCExamples{
             "\nThe amount from transactions with at least 1 confirmation\n" +
@@ -585,7 +585,7 @@ static RPCHelpMan getreceivedbylabel() {
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + Currency::get().ticker +
+                  "The total amount in " + Currency::getTicker() +
                       " received for this label."},
         RPCExamples{"\nAmount received by the default label with at least 1 "
                     "confirmation\n" +
@@ -644,7 +644,7 @@ static RPCHelpMan getbalance() {
              "if they have previously been used in a transaction."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + Currency::get().ticker +
+                  "The total amount in " + Currency::getTicker() +
                       " received for this wallet."},
         RPCExamples{
             "\nThe total amount in the wallet with 0 or more confirmations\n" +
@@ -739,7 +739,7 @@ static RPCHelpMan sendmany() {
                     {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
                      "The bitcoin address is the key, the numeric amount (can "
                      "be string) in " +
-                         Currency::get().ticker + " is the value"},
+                         Currency::getTicker() + " is the value"},
                 },
             },
             {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
@@ -1151,7 +1151,7 @@ static RPCHelpMan listreceivedbyaddress() {
                       "in transaction"},
                      {RPCResult::Type::STR, "address", "The receiving address"},
                      {RPCResult::Type::STR_AMOUNT, "amount",
-                      "The total amount in " + Currency::get().ticker +
+                      "The total amount in " + Currency::getTicker() +
                           " received by the address"},
                      {RPCResult::Type::NUM, "confirmations",
                       "The number of confirmations of the most recent "
@@ -1396,7 +1396,7 @@ static std::vector<RPCResult> TransactionDescriptionString() {
 }
 
 RPCHelpMan listtransactions() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "listtransactions",
         "If a label name is provided, this will return only incoming "
@@ -1554,7 +1554,7 @@ RPCHelpMan listtransactions() {
 }
 
 static RPCHelpMan listsinceblock() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "listsinceblock",
         "Get all transactions in blocks since block [blockhash], or all "
@@ -1788,7 +1788,7 @@ static RPCHelpMan listsinceblock() {
 }
 
 static RPCHelpMan gettransaction() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "gettransaction",
         "Get detailed information about in-wallet transaction <txid>\n",
@@ -2314,7 +2314,7 @@ static RPCHelpMan settxfee() {
         "fee selection will be used by default.\n",
         {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-             "The transaction fee in " + Currency::get().ticker + "/kB"},
+             "The transaction fee in " + Currency::getTicker() + "/kB"},
         },
         RPCResult{RPCResult::Type::BOOL, "", "Returns true if successful"},
         RPCExamples{HelpExampleCli("settxfee", "0.00001") +
@@ -2362,7 +2362,7 @@ static RPCHelpMan settxfee() {
 static RPCHelpMan getbalances() {
     return RPCHelpMan{
         "getbalances",
-        "Returns an object with all balances in " + Currency::get().ticker +
+        "Returns an object with all balances in " + Currency::getTicker() +
             ".\n",
         {},
         RPCResult{RPCResult::Type::OBJ,
@@ -2494,7 +2494,7 @@ static RPCHelpMan getwalletinfo() {
                      "passphrase-encrypted wallets)"},
                 {RPCResult::Type::STR_AMOUNT, "paytxfee",
                  "the transaction fee configuration, set in " +
-                     Currency::get().ticker + "/kB"},
+                     Currency::getTicker() + "/kB"},
                 {RPCResult::Type::STR_HEX, "hdseedid", /* optional */ true,
                  "the Hash160 of the HD seed (only present when HD is "
                  "enabled)"},
@@ -2976,7 +2976,7 @@ static RPCHelpMan unloadwallet() {
 }
 
 static RPCHelpMan listunspent() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "listunspent",
         "Returns array of unspent transaction outputs\n"
@@ -3407,7 +3407,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
 }
 
 static RPCHelpMan fundrawtransaction() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "fundrawtransaction",
         "If the transaction has no inputs, they will be automatically selected "
@@ -4229,7 +4229,7 @@ static RPCHelpMan send() {
                           "A key-value pair. The key (string) is the "
                           "bitcoin address, the value (float or string) is "
                           "the amount in " +
-                              Currency::get().ticker + ""},
+                              Currency::getTicker() + ""},
                      },
                  },
                  {
@@ -4272,8 +4272,7 @@ static RPCHelpMan send() {
                  {"fee_rate", RPCArg::Type::AMOUNT,
                   RPCArg::DefaultHint{
                       "not set: makes wallet determine the fee"},
-                  "Set a specific fee rate in " + Currency::get().ticker +
-                      "/kB",
+                  "Set a specific fee rate in " + Currency::getTicker() + "/kB",
                   RPCArgOptions{.also_positional = true}},
                  {"include_watching", RPCArg::Type::BOOL,
                   RPCArg::DefaultHint{
@@ -4633,7 +4632,7 @@ static RPCHelpMan walletprocesspsbt() {
 }
 
 static RPCHelpMan walletcreatefundedpsbt() {
-    const auto &ticker = Currency::get().ticker;
+    const auto ticker = Currency::getTicker();
     return RPCHelpMan{
         "walletcreatefundedpsbt",
         "Creates and funds a transaction in the Partially Signed Transaction "
@@ -4878,7 +4877,7 @@ static RPCHelpMan createwallettransaction() {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to send to."},
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-             "The amount in " + Currency::get().ticker + " to send. eg 0.1"},
+             "The amount in " + Currency::getTicker() + " to send. eg 0.1"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "txid", "The transaction id."},
         RPCExamples{
