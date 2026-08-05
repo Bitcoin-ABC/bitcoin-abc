@@ -10,6 +10,8 @@ namespace {
 
 typedef std::vector<uint8_t> data;
 
+constexpr size_t CHECKSUM_SIZE = 8;
+
 /**
  * The cashaddr character set for encoding.
  */
@@ -176,11 +178,11 @@ bool VerifyChecksum(const std::string &prefix, const data &payload) {
 data CreateChecksum(const std::string &prefix, const data &payload) {
     data enc = Cat(ExpandPrefix(prefix), payload);
     // Append 8 zeroes.
-    enc.resize(enc.size() + 8);
+    enc.resize(enc.size() + CHECKSUM_SIZE);
     // Determine what to XOR into those 8 zeroes.
     uint64_t mod = PolyMod(enc);
-    data ret(8);
-    for (size_t i = 0; i < 8; ++i) {
+    data ret(CHECKSUM_SIZE);
+    for (size_t i = 0; i < CHECKSUM_SIZE; ++i) {
         // Convert the 5-bit groups in mod to checksum values.
         ret[i] = (mod >> (5 * (7 - i))) & 0x1f;
     }
@@ -270,6 +272,10 @@ std::pair<std::string, data> Decode(const std::string &str,
 
     // Decode values.
     const size_t valuesSize = str.size() - prefixSize;
+    if (valuesSize < CHECKSUM_SIZE) {
+        return {};
+    }
+
     data values(valuesSize);
     for (size_t i = 0; i < valuesSize; ++i) {
         uint8_t c = str[i + prefixSize];
@@ -286,7 +292,8 @@ std::pair<std::string, data> Decode(const std::string &str,
         return {};
     }
 
-    return {std::move(prefix), data(values.begin(), values.end() - 8)};
+    return {std::move(prefix),
+            data(values.begin(), values.end() - CHECKSUM_SIZE)};
 }
 
 } // namespace cashaddr
