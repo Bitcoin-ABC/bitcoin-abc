@@ -2,8 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
-import { Link, useParams } from 'react-router';
+import React, {
+    useState,
+    useEffect,
+    useContext,
+    useRef,
+    useMemo,
+    useCallback,
+} from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, {
     SecondaryButton,
@@ -123,6 +130,7 @@ import {
 import { InlineLoader } from 'components/Common/Spinner';
 import { AgoraOneshot, AgoraPartial, getAgoraPaymentAction } from 'ecash-agora';
 import OrderBook from 'components/Agora/OrderBook';
+import DeepLinkBuy from 'components/Agora/DeepLinkBuy';
 import Collection, {
     OneshotSwiper,
     OneshotOffer,
@@ -150,6 +158,7 @@ const Token: React.FC = () => {
         agora,
         fiatPrice,
         ecashWallet,
+        initialUtxoSyncComplete,
     } = ContextValue;
     const { settings, cashtabCache, tokens } = cashtabState;
     if (!ecashWallet || !tokens) {
@@ -162,6 +171,7 @@ const Token: React.FC = () => {
     const balanceSats = Number(ecashWallet.balanceSats);
 
     const { tokenId } = useParams();
+    const [searchParams] = useSearchParams();
 
     if (typeof tokenId === 'undefined') {
         // We can't render this component without tokenId, any tokenId
@@ -408,9 +418,23 @@ const Token: React.FC = () => {
     const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
     const moreDropdownRef = useRef<HTMLDivElement>(null);
 
+    // BUY deep link: open the dedicated DeepLinkBuy confirm screen (not the
+    // OrderBook). quantity is null when the link did not specify an amount.
+    const [showDeepLinkBuy, setShowDeepLinkBuy] = useState(false);
+    const [deepLinkBuyQty, setDeepLinkBuyQty] = useState<null | string>(null);
+
+    /** Clear confirm UI when DeepLinkBuy dismisses to the clean token route. */
+    const dismissDeepLinkBuy = useCallback(() => {
+        setShowDeepLinkBuy(false);
+        setDeepLinkBuyQty(null);
+    }, []);
+
     const setAction = (action: TokenActionType) => {
         setActiveTokenAction(action);
         setMoreDropdownOpen(false);
+        // Leaving the deep-link confirm screen for a manual action
+        setShowDeepLinkBuy(false);
+        setDeepLinkBuyQty(null);
         if (action === 'buy') {
             setSwitches(switchesOff);
             return;
@@ -797,7 +821,213 @@ const Token: React.FC = () => {
         setIsBlacklisted(null);
         setActiveTokenAction('buy');
         setSwitches(switchesOff);
+        // Clear any BUY deep-link confirm so it cannot leak into another token
+        setShowDeepLinkBuy(false);
+        setDeepLinkBuyQty(null);
     }, [tokenId]);
+
+    // Agora action deep links, per doc/standards/agora-deeplink.md
+    //
+    // A link may request an agora action on this token, e.g.
+    //     /token/<tokenId>?action=LIST&price=<xec>
+    //     /token/<tokenId>?action=BUY
+    //
+    // A deep link is only an intent. Cashtab decides whether the token
+    // actually supports the action and whether the user is able to perform it.
+    //
+    // SECURITY: the params only open a review UI (list form prefill, or the
+    // DeepLinkBuy confirm screen). Cashtab never auto-lists, auto-buys,
+    // auto-signs, or broadcasts from a deep link, so the user must review and
+    // confirm. A crafted link cannot move funds or create an offer.
+    // Keyed by tokenId + query so a native deep link to a different token (or a
+    // changed query) is applied again when React Router reuses this component,
+    // rather than being blocked by a one-time boolean.
+    const appliedDeepLinkKey = useRef<null | string>(null);
+
+    /**
+     * Which sell action a "LIST" deep link maps to for this token, or null if
+     * this token cannot be listed on Agora.
+     */
+    const getListActionForToken = (): TokenActionType | null => {
+        // XECX and Firma are primarily redeemed for XEC (their Sell button is
+        // a Redeem button), but the UI also offers listing them on Agora via
+        // the "List token" dropdown item, so a LIST deep link maps to the same
+        // sellSlp flow: both are fungible and fall through to it below.
+        if (isNftChild) {
+            return 'sellNft';
+        }
+        if (
+            tokenType?.type === 'SLP_TOKEN_TYPE_FUNGIBLE' ||
+            tokenType?.type === 'SLP_TOKEN_TYPE_MINT_VAULT' ||
+            isAlp
+        ) {
+            return 'sellSlp';
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        const deepLinkKey = `${tokenId}?${searchParams.toString()}`;
+        // Apply a given deep link once, and only once we know enough to decide
+        // safely: the token's info (type, decimals), whether it is blacklisted,
+        // and the user's synced balance. Acting before these resolve could open
+        // an action for a blacklisted token, or wrongly report that the user
+        // does not hold a token they in fact do.
+        if (
+            appliedDeepLinkKey.current === deepLinkKey ||
+            !cachedInfoLoaded ||
+            isBlacklisted === null ||
+            !initialUtxoSyncComplete
+        ) {
+            return;
+        }
+
+        const requestedAction = searchParams.get('action')?.toUpperCase();
+        if (requestedAction !== 'LIST' && requestedAction !== 'BUY') {
+            // Missing action: fall back to the default token screen (MUST).
+            // Present but unrecognized: do not act, and tell the user (SHOULD).
+            if (requestedAction) {
+                appliedDeepLinkKey.current = deepLinkKey;
+                toast.error(`Unsupported token action: ${requestedAction}`);
+            }
+            return;
+        }
+
+        // We have a supported action for this link. Whatever happens below, do
+        // not run this link again.
+        appliedDeepLinkKey.current = deepLinkKey;
+
+        // The token id is taken from the path (/token/<tokenId>). A tokenId in
+        // the query string is ambiguous — it may disagree with the path, and
+        // the path is what the user sees in the address bar. Refuse rather than
+        // silently acting on one of two token ids.
+        const queryTokenId = searchParams.get('tokenId');
+        if (queryTokenId !== null && queryTokenId !== tokenId) {
+            toast.error('This token action link has a conflicting token id');
+            return;
+        }
+
+        if (isBlacklisted || !isSupportedToken) {
+            // Cashtab does not offer trading for blacklisted or unsupported
+            // tokens, and the screen already says so, so do not apply the link.
+            return;
+        }
+
+        if (requestedAction === 'BUY') {
+            if (isNftParent) {
+                // An NFT collection (parent) is not itself bought on Agora; its
+                // child NFTs are, each on its own token screen. There is no buy
+                // flow for the collection token, so refuse the link rather than
+                // entering a no-op buy state. This mirrors LIST, which also
+                // refuses a collection. (Redeem-only tokens like XECX and Firma
+                // are NOT refused here: unlike listing, they do have an Agora
+                // orderbook a user can buy from.)
+                toast.error(`${tokenName ?? 'This token'} cannot be bought`);
+                return;
+            }
+            // A BUY never takes a price from the link; the price always comes
+            // from the on-chain offer. So a non-empty price param on a BUY is
+            // invalid. An empty ?price= is treated as absent, not an error.
+            if (searchParams.get('price')) {
+                toast.error('A buy link cannot specify a price');
+                return;
+            }
+            // Fungible BUY opens a dedicated confirm screen (DeepLinkBuy), not
+            // the OrderBook: the user sees the token, quantity and price as a
+            // fait accompli and may only OK or Reject — the same pattern as
+            // app-loaded txs. An optional quantity locks the amount; without
+            // one the amount is editable. NFT oneshots stay on the token page
+            // (OneshotSwiper); there is no OrderBook to prefill for them. An
+            // empty ?quantity= is treated as absent.
+            if (isNftChild) {
+                return;
+            }
+            setDeepLinkBuyQty(searchParams.get('quantity') || null);
+            setShowDeepLinkBuy(true);
+            return;
+        }
+
+        // LIST
+        // A LIST takes no quantity; the amount is chosen in the listing form.
+        // An empty ?quantity= is treated as absent, not an error.
+        if (searchParams.get('quantity')) {
+            toast.error('A list link cannot specify a quantity');
+            return;
+        }
+        const listAction = getListActionForToken();
+        if (listAction === null) {
+            // e.g. an NFT collection, which cannot itself be listed
+            toast.error(`${tokenName ?? 'This token'} cannot be listed`);
+            return;
+        }
+        if (typeof tokenBalance === 'undefined') {
+            // The user does not hold this token, so there is nothing to list
+            toast.error(`You do not hold ${tokenTicker ?? 'this token'}`);
+            return;
+        }
+
+        setAction(listAction);
+
+        const requestedPrice = searchParams.get('price');
+        if (
+            requestedPrice === null ||
+            (listAction !== 'sellNft' && listAction !== 'sellSlp')
+        ) {
+            // No price to prefill, or an action with no list price field
+            return;
+        }
+
+        // The URL price is a canonical decimal string ('.' separator) per the
+        // agora-deeplink spec, but the list form and its validators interpret
+        // field text in the user's locale. Prefill only when the locale reads
+        // the canonical string exactly as written; otherwise (comma-decimal
+        // locales, where '.' is a thousands separator and '5000.50' would be
+        // read as 500050 — a 100x error) leave the field empty, the spec's
+        // fallback for a value that cannot be prefilled as intended.
+        if (
+            normalizeDecimalInput(requestedPrice, userLocale) !== requestedPrice
+        ) {
+            return;
+        }
+
+        // Validate the price with the same rules the manual listing form uses,
+        // and prefill only if it is valid. If it is invalid we leave the field
+        // empty and let the normal field-level error path handle it.
+        if (listAction === 'sellNft') {
+            const priceError = getXecListPriceError(
+                requestedPrice,
+                selectedCurrency,
+                fiatPrice,
+                userLocale,
+            );
+            if (priceError === false) {
+                setFormData(previous => ({
+                    ...previous,
+                    nftListPrice: requestedPrice,
+                }));
+            }
+        } else {
+            const priceError = getAgoraPartialListPriceError(
+                requestedPrice,
+                selectedCurrency,
+                fiatPrice,
+                decimals as SlpDecimals,
+                userLocale,
+            );
+            if (priceError === false) {
+                setFormData(previous => ({
+                    ...previous,
+                    tokenListPrice: requestedPrice,
+                }));
+            }
+        }
+    }, [
+        cachedInfoLoaded,
+        isBlacklisted,
+        initialUtxoSyncComplete,
+        searchParams,
+        tokenId,
+    ]);
 
     useEffect(() => {
         if (formData.tokenListPrice === '' || agoraPartialTokenQty === '') {
@@ -2987,253 +3217,290 @@ const Token: React.FC = () => {
                             Cashtab does not support trading this token
                         </Alert>
                     )}
-                    {isSupportedToken && isBlacklisted !== null && (
-                        <>
-                            {(isBlacklisted === false ||
-                                typeof tokenBalance !== 'undefined' ||
-                                isNftParent) && (
-                                <TokenActionBar>
-                                    {isBlacklisted === false && (
-                                        <>
-                                            <TokenActionBtn
-                                                $active={
-                                                    activeTokenAction === 'buy'
-                                                }
-                                                disabled={
-                                                    isNftParent || isNftChild
-                                                }
-                                                onClick={() => setAction('buy')}
-                                            >
-                                                + Buy
-                                            </TokenActionBtn>
-                                            <TokenActionBtn
-                                                $active={
-                                                    tokenId ===
+                    {isSupportedToken &&
+                        isBlacklisted === false &&
+                        showDeepLinkBuy &&
+                        !isNftParent &&
+                        !isNftChild && (
+                            <DeepLinkBuy
+                                tokenId={tokenId as string}
+                                quantity={deepLinkBuyQty}
+                                userLocale={userLocale}
+                                onDismiss={dismissDeepLinkBuy}
+                            />
+                        )}
+                    {isSupportedToken &&
+                        isBlacklisted !== null &&
+                        !showDeepLinkBuy && (
+                            <>
+                                {(isBlacklisted === false ||
+                                    typeof tokenBalance !== 'undefined' ||
+                                    isNftParent) && (
+                                    <TokenActionBar>
+                                        {isBlacklisted === false && (
+                                            <>
+                                                <TokenActionBtn
+                                                    $active={
+                                                        activeTokenAction ===
+                                                        'buy'
+                                                    }
+                                                    disabled={
+                                                        isNftParent ||
+                                                        isNftChild
+                                                    }
+                                                    onClick={() =>
+                                                        setAction('buy')
+                                                    }
+                                                >
+                                                    + Buy
+                                                </TokenActionBtn>
+                                                <TokenActionBtn
+                                                    $active={
+                                                        tokenId ===
+                                                            appConfig.vipTokens
+                                                                .xecx.tokenId ||
+                                                        tokenId ===
+                                                            FIRMA.tokenId
+                                                            ? activeTokenAction ===
+                                                                  'redeemXecx' ||
+                                                              activeTokenAction ===
+                                                                  'redeemFirma'
+                                                            : [
+                                                                  'sellSlp',
+                                                                  'sellNft',
+                                                              ].includes(
+                                                                  activeTokenAction,
+                                                              )
+                                                    }
+                                                    disabled={
+                                                        typeof tokenBalance ===
+                                                        'undefined'
+                                                    }
+                                                    onClick={() => {
+                                                        if (
+                                                            typeof tokenBalance ===
+                                                            'undefined'
+                                                        )
+                                                            return;
+                                                        if (
+                                                            tokenId ===
+                                                            appConfig.vipTokens
+                                                                .xecx.tokenId
+                                                        )
+                                                            setAction(
+                                                                'redeemXecx',
+                                                            );
+                                                        else if (
+                                                            tokenId ===
+                                                            FIRMA.tokenId
+                                                        )
+                                                            setAction(
+                                                                'redeemFirma',
+                                                            );
+                                                        else if (isNftChild)
+                                                            setAction(
+                                                                'sellNft',
+                                                            );
+                                                        else if (
+                                                            tokenType?.type ===
+                                                                'SLP_TOKEN_TYPE_FUNGIBLE' ||
+                                                            tokenType?.type ===
+                                                                'SLP_TOKEN_TYPE_MINT_VAULT' ||
+                                                            isAlp
+                                                        )
+                                                            setAction(
+                                                                'sellSlp',
+                                                            );
+                                                    }}
+                                                >
+                                                    {tokenId ===
                                                         appConfig.vipTokens.xecx
                                                             .tokenId ||
                                                     tokenId === FIRMA.tokenId
-                                                        ? activeTokenAction ===
-                                                              'redeemXecx' ||
-                                                          activeTokenAction ===
-                                                              'redeemFirma'
-                                                        : [
-                                                              'sellSlp',
-                                                              'sellNft',
-                                                          ].includes(
-                                                              activeTokenAction,
-                                                          )
-                                                }
-                                                disabled={
-                                                    typeof tokenBalance ===
-                                                    'undefined'
-                                                }
-                                                onClick={() => {
-                                                    if (
-                                                        typeof tokenBalance ===
-                                                        'undefined'
-                                                    )
-                                                        return;
-                                                    if (
-                                                        tokenId ===
-                                                        appConfig.vipTokens.xecx
-                                                            .tokenId
-                                                    )
-                                                        setAction('redeemXecx');
-                                                    else if (
-                                                        tokenId ===
-                                                        FIRMA.tokenId
-                                                    )
-                                                        setAction(
-                                                            'redeemFirma',
-                                                        );
-                                                    else if (isNftChild)
-                                                        setAction('sellNft');
-                                                    else if (
-                                                        tokenType?.type ===
-                                                            'SLP_TOKEN_TYPE_FUNGIBLE' ||
-                                                        tokenType?.type ===
-                                                            'SLP_TOKEN_TYPE_MINT_VAULT' ||
-                                                        isAlp
-                                                    )
-                                                        setAction('sellSlp');
-                                                }}
+                                                        ? '− Redeem'
+                                                        : '− Sell'}
+                                                </TokenActionBtn>
+                                            </>
+                                        )}
+                                        {(typeof tokenBalance !== 'undefined' ||
+                                            isNftParent) && (
+                                            <TokenActionMoreWrap
+                                                ref={moreDropdownRef}
                                             >
-                                                {tokenId ===
-                                                    appConfig.vipTokens.xecx
-                                                        .tokenId ||
-                                                tokenId === FIRMA.tokenId
-                                                    ? '− Redeem'
-                                                    : '− Sell'}
-                                            </TokenActionBtn>
-                                        </>
-                                    )}
-                                    {(typeof tokenBalance !== 'undefined' ||
-                                        isNftParent) && (
-                                        <TokenActionMoreWrap
-                                            ref={moreDropdownRef}
-                                        >
-                                            <TokenActionBtn
-                                                $active={[
-                                                    'send',
-                                                    'airdrop',
-                                                    'burn',
-                                                    'mint',
-                                                    'mintNft',
-                                                ].includes(activeTokenAction)}
-                                                onClick={() =>
-                                                    setMoreDropdownOpen(o => !o)
-                                                }
-                                            >
-                                                ⋯
-                                            </TokenActionBtn>
-                                            <TokenActionDropdown
-                                                $open={moreDropdownOpen}
-                                            >
-                                                {!isNftParent &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
+                                                <TokenActionBtn
+                                                    $active={[
+                                                        'send',
+                                                        'airdrop',
+                                                        'burn',
+                                                        'mint',
+                                                        'mintNft',
+                                                    ].includes(
+                                                        activeTokenAction,
+                                                    )}
+                                                    onClick={() =>
+                                                        setMoreDropdownOpen(
+                                                            o => !o,
+                                                        )
+                                                    }
+                                                >
+                                                    ⋯
+                                                </TokenActionBtn>
+                                                <TokenActionDropdown
+                                                    $open={moreDropdownOpen}
+                                                >
+                                                    {!isNftParent &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'send',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Send
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                    {isNftParent && (
                                                         <TokenActionDropdownItem
                                                             onClick={() =>
                                                                 setAction(
-                                                                    'send',
+                                                                    'mintNft',
                                                                 )
                                                             }
                                                         >
-                                                            Send
+                                                            Mint NFT
                                                         </TokenActionDropdownItem>
                                                     )}
-                                                {isNftParent && (
-                                                    <TokenActionDropdownItem
-                                                        onClick={() =>
-                                                            setAction('mintNft')
-                                                        }
-                                                    >
-                                                        Mint NFT
-                                                    </TokenActionDropdownItem>
-                                                )}
-                                                {!isNftChild &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
-                                                        <TokenActionDropdownItem
-                                                            onClick={() =>
-                                                                setAction(
-                                                                    'airdrop',
-                                                                )
-                                                            }
-                                                        >
-                                                            Airdrop
-                                                        </TokenActionDropdownItem>
-                                                    )}
-                                                {!isNftParent &&
-                                                    !isNftChild &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
-                                                        <TokenActionDropdownItem
-                                                            onClick={() =>
-                                                                setAction(
-                                                                    'burn',
-                                                                )
-                                                            }
-                                                        >
-                                                            Burn
-                                                        </TokenActionDropdownItem>
-                                                    )}
-                                                {mintBatons.length > 0 &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
-                                                        <TokenActionDropdownItem
-                                                            onClick={() =>
-                                                                setAction(
-                                                                    'mint',
-                                                                )
-                                                            }
-                                                        >
-                                                            Mint
-                                                        </TokenActionDropdownItem>
-                                                    )}
-                                                {isBlacklisted === false &&
-                                                    isNftChild &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
-                                                        <TokenActionDropdownItem
-                                                            onClick={() =>
-                                                                setAction(
-                                                                    'sellNft',
-                                                                )
-                                                            }
-                                                        >
-                                                            Sell NFT
-                                                        </TokenActionDropdownItem>
-                                                    )}
-                                                {isBlacklisted === false &&
-                                                    (tokenId ===
-                                                        appConfig.vipTokens.xecx
-                                                            .tokenId ||
-                                                        tokenId ===
-                                                            FIRMA.tokenId) &&
-                                                    typeof tokenBalance !==
-                                                        'undefined' && (
-                                                        <TokenActionDropdownItem
-                                                            onClick={() =>
-                                                                setAction(
-                                                                    'sellSlp',
-                                                                )
-                                                            }
-                                                        >
-                                                            List token
-                                                        </TokenActionDropdownItem>
-                                                    )}
-                                            </TokenActionDropdown>
-                                        </TokenActionMoreWrap>
-                                    )}
-                                </TokenActionBar>
-                            )}
-                            {isBlacklisted === false && isNftChild && (
-                                <>
-                                    {nftActiveOffer === null &&
-                                    !nftOfferAgoraQueryError ? (
-                                        <InlineLoader />
-                                    ) : nftOfferAgoraQueryError ? (
-                                        <Alert>Error querying NFT offers</Alert>
-                                    ) : // Note that nftActiveOffer will not be null here
-                                    (
-                                          nftActiveOffer as unknown as OneshotOffer[]
-                                      ).length === 0 ? (
-                                        <NftOfferWrapper>
-                                            <Info>
-                                                This NFT is not for sale
-                                            </Info>
-                                        </NftOfferWrapper>
-                                    ) : (
-                                        <NftOfferWrapper>
-                                            <OneshotSwiper
-                                                offers={
-                                                    nftActiveOffer as unknown as OneshotOffer[]
-                                                }
-                                                ecashWallet={ecashWallet}
-                                                cashtabCache={cashtabCache}
-                                                userLocale={userLocale}
-                                                fiatPrice={fiatPrice}
-                                                settings={settings}
-                                                setOffers={setNftActiveOffer}
-                                            />
-                                        </NftOfferWrapper>
-                                    )}
-                                </>
-                            )}
-                            {isBlacklisted === false &&
-                                activeTokenAction === 'buy' &&
-                                !isNftParent &&
-                                !isNftChild && (
-                                    <OrderBook
-                                        tokenId={tokenId as string}
-                                        noIcon
-                                        userLocale={userLocale}
-                                        priceInFiat={tokenId === FIRMA.tokenId}
-                                    />
+                                                    {!isNftChild &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'airdrop',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Airdrop
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                    {!isNftParent &&
+                                                        !isNftChild &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'burn',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Burn
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                    {mintBatons.length > 0 &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'mint',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Mint
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                    {isBlacklisted === false &&
+                                                        isNftChild &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'sellNft',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Sell NFT
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                    {isBlacklisted === false &&
+                                                        (tokenId ===
+                                                            appConfig.vipTokens
+                                                                .xecx.tokenId ||
+                                                            tokenId ===
+                                                                FIRMA.tokenId) &&
+                                                        typeof tokenBalance !==
+                                                            'undefined' && (
+                                                            <TokenActionDropdownItem
+                                                                onClick={() =>
+                                                                    setAction(
+                                                                        'sellSlp',
+                                                                    )
+                                                                }
+                                                            >
+                                                                List token
+                                                            </TokenActionDropdownItem>
+                                                        )}
+                                                </TokenActionDropdown>
+                                            </TokenActionMoreWrap>
+                                        )}
+                                    </TokenActionBar>
                                 )}
-                        </>
-                    )}
+                                {isBlacklisted === false && isNftChild && (
+                                    <>
+                                        {nftActiveOffer === null &&
+                                        !nftOfferAgoraQueryError ? (
+                                            <InlineLoader />
+                                        ) : nftOfferAgoraQueryError ? (
+                                            <Alert>
+                                                Error querying NFT offers
+                                            </Alert>
+                                        ) : // Note that nftActiveOffer will not be null here
+                                        (
+                                              nftActiveOffer as unknown as OneshotOffer[]
+                                          ).length === 0 ? (
+                                            <NftOfferWrapper>
+                                                <Info>
+                                                    This NFT is not for sale
+                                                </Info>
+                                            </NftOfferWrapper>
+                                        ) : (
+                                            <NftOfferWrapper>
+                                                <OneshotSwiper
+                                                    offers={
+                                                        nftActiveOffer as unknown as OneshotOffer[]
+                                                    }
+                                                    ecashWallet={ecashWallet}
+                                                    cashtabCache={cashtabCache}
+                                                    userLocale={userLocale}
+                                                    fiatPrice={fiatPrice}
+                                                    settings={settings}
+                                                    setOffers={
+                                                        setNftActiveOffer
+                                                    }
+                                                />
+                                            </NftOfferWrapper>
+                                        )}
+                                    </>
+                                )}
+                                {isBlacklisted === false &&
+                                    activeTokenAction === 'buy' &&
+                                    !isNftParent &&
+                                    !isNftChild && (
+                                        <OrderBook
+                                            tokenId={tokenId as string}
+                                            noIcon
+                                            userLocale={userLocale}
+                                            priceInFiat={
+                                                tokenId === FIRMA.tokenId
+                                            }
+                                        />
+                                    )}
+                            </>
+                        )}
                     {isNftParent && (
                         <>
                             <NftTitle>Your NFTs in this Collection</NftTitle>

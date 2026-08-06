@@ -43,11 +43,12 @@ import {
     paybuttonDeepLinkToBip21Uri,
     payecashDeepLinkToBip21Uri,
     payecashDeepLinkToConnectRequest,
+    payecashDeepLinkToAgoraAction,
 } from 'deeplinks';
 import WebApp from 'components/AppModes/WebApp';
 import Extension from 'components/AppModes/Extension';
 import Header from 'components/Header';
-import { Bounce, ToastContainer } from 'react-toastify';
+import { Bounce, ToastContainer, toast } from 'react-toastify';
 import PullToRefresh from 'components/Common/PullToRefresh';
 import BiometricStartupGate from 'components/App/BiometricStartupGate';
 import PushNotificationRegistrar from 'components/App/PushNotificationRegistrar';
@@ -161,6 +162,33 @@ const App = () => {
                     params.set('returnToBrowser', '1');
                 }
                 navigate(`/wallets?${params.toString()}`);
+                return;
+            }
+
+            // Agora action deep links, see doc/standards/agora-deeplink.md
+            // The token screen validates the token and the action; here we
+            // only route to it.
+            const agoraResult = payecashDeepLinkToAgoraAction(trimmedUrl);
+            if (agoraResult.error !== null) {
+                // A recognized-but-invalid agora action link (e.g. a price on a
+                // BUY). Surface the error rather than acting on it.
+                toast.error(agoraResult.error);
+                return;
+            }
+            if (agoraResult.tokenId !== null && agoraResult.action !== null) {
+                const params = new URLSearchParams({
+                    action: agoraResult.action,
+                });
+                if (agoraResult.price !== null) {
+                    params.set('price', agoraResult.price);
+                }
+                if (agoraResult.quantity !== null) {
+                    params.set('quantity', agoraResult.quantity);
+                }
+                if (agoraResult.returnToBrowser) {
+                    params.set('returnToBrowser', '1');
+                }
+                navigate(`/token/${agoraResult.tokenId}?${params.toString()}`);
                 return;
             }
 

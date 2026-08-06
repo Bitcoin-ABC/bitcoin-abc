@@ -20,6 +20,23 @@ To connect a user's wallet address from your web app on Android:
 
 Your page stays open while Cashtab opens. After approval, Cashtab opens `<return_url>#cashtab_connect=<ecash-address>` in the browser and exits. Parse the hash on load (see `parsePayEcashConnectCallback` in `cashtab-connect`).
 
+## Agora action links
+
+Agora action links open a token action in the user's wallet. They use the `/token` path:
+
+`https://pay.e.cash/token?action=<LIST|BUY>&tokenId=<tokenId>`
+
+See the [Agora action deep links](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/agora-deeplink.md) spec for the full definition.
+
+- `action` (required) — `LIST` to sell a token, `BUY` to buy one from an existing offer.
+- `tokenId` (required) — the token the action applies to.
+- `price` (optional, `LIST` only) — the list price in XEC.
+- `quantity` (optional, `BUY` only) — the token quantity to buy, for fungible tokens.
+
+Agora actions use their own path so that supporting them is optional for a wallet: a wallet can handle payment links at the root without handling `/token`.
+
+The link may preselect an offer and prefill the form; it never submits or signs on its own. The wallet checks that the token exists, that it supports the action, and that the user can perform it, and the user confirms before anything is signed. For `BUY` the price always comes from the on-chain offer, never from the link.
+
 ## How to use pay.e.cash deep links in your App
 
 You can programmatically generate intended txs for your users and encode them in a link. A user clicking the link will open the tx for their review and approval in Cashtab.
@@ -50,6 +67,32 @@ All examples use the same demo address; adjust `bip21` for your integration.
     title="Send XEC then return to the browser payment page"
     description="Prepared XEC send with amount an return to browser indicator"
     url="https://pay.e.cash?bip21=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=12.34&b=1"
+/>
+
+## Example Agora action links
+
+<PaySampleUrlRow
+    title="List an NFT for sale"
+    description="Opens the token screen with the sell form and the price prefilled"
+    url="https://pay.e.cash/token?action=LIST&tokenId=5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326&price=5000"
+/>
+
+<PaySampleUrlRow
+    title="List a fungible token without suggesting a price"
+    description="Opens the sell form and lets the user enter the price per token"
+    url="https://pay.e.cash/token?action=LIST&tokenId=0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0"
+/>
+
+<PaySampleUrlRow
+    title="Buy an NFT"
+    description="Opens the NFT's active offer, priced from the chain"
+    url="https://pay.e.cash/token?action=BUY&tokenId=5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326"
+/>
+
+<PaySampleUrlRow
+    title="Buy a specific quantity of a fungible token"
+    description="Preselects the cheapest offer that can fill the quantity and that you can afford"
+    url="https://pay.e.cash/token?action=BUY&tokenId=0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0&quantity=100"
 />
 
 ## Landing page

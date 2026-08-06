@@ -11,10 +11,35 @@ Use query-parameter BIP21 links:
         - `https://pay.e.cash/?bip21=ecash:qq...?token_id=...&token_decimalized_qty=1`
 - `https://pay.e.cash/?connect=1&return_url=<https-url>&b=1` — wallet connect (native app opens callback URL with `#cashtab_connect=<address>`, then exits)
 
+Agora action links use the `/token` path:
+
+- `https://pay.e.cash/token?action=LIST&tokenId=<tokenId>&price=<xec>` — list a token for sale
+- `https://pay.e.cash/token?action=BUY&tokenId=<tokenId>` — buy a token from an active offer
+
+Agora actions have their own path so that supporting them is optional for a
+wallet: a wallet can handle the payment links at the root without handling
+`/token`. See the [Agora action deep links](https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/agora-deeplink.md) spec.
+The link only prefills; the wallet validates the token and the user confirms
+before anything is signed.
+
 With verified Android App Links in place:
 
 1. App installed -> URL opens a linked wallet app (Cashtab or Marlin Wallet) directly
 2. App not installed -> URL opens fallback web page on `pay.e.cash`
+
+## Testing the `/token` path locally
+
+`/token` is a route, not a file, so a plain static server (e.g. `python3 -m http.server`) returns 404 for it. Serve the site with its nginx config, which falls back to `index.html`. From repo root:
+
+```bash
+cd web/pay.e.cash
+docker build -t pay-ecash . && docker run --rm -p 8080:80 pay-ecash
+```
+
+Then try, for example:
+
+- `http://localhost:8080/token?action=LIST&tokenId=<tokenId>&price=100`
+- `http://localhost:8080/token?action=BUY&tokenId=<tokenId>`
 
 ## Current behavior
 

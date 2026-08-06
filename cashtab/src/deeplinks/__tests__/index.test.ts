@@ -6,6 +6,7 @@ import {
     paybuttonDeepLinkToBip21Uri,
     payecashDeepLinkToBip21Uri,
     payecashDeepLinkToConnectRequest,
+    payecashDeepLinkToAgoraAction,
     buildConnectCallbackUrl,
 } from 'deeplinks';
 
@@ -337,6 +338,323 @@ describe('payecashDeepLinkToConnectRequest', () => {
             returnUrl: null,
             returnToBrowser: false,
         });
+    });
+});
+
+describe('payecashDeepLinkToAgoraAction', () => {
+    const TOKEN_ID =
+        '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326';
+    const NOT_AN_AGORA_ACTION = {
+        tokenId: null,
+        action: null,
+        price: null,
+        quantity: null,
+        error: null,
+        returnToBrowser: false,
+    };
+
+    it('parses a LIST action with a price', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=LIST&tokenId=${TOKEN_ID}&price=5000`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'LIST',
+            price: '5000',
+            quantity: null,
+            error: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('parses a BUY action with no price', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('parses a BUY action with a quantity', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&quantity=100`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'BUY',
+            price: null,
+            quantity: '100',
+            error: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('is invalid, with an error, for a price on a BUY', () => {
+        // The standard forbids a price on a BUY; surface it as an error
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&price=5000`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: 'A buy link cannot specify a price',
+            returnToBrowser: false,
+        });
+    });
+
+    it('is invalid, with an error, for a quantity on a LIST', () => {
+        // The standard forbids a quantity on a LIST; surface it as an error
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=LIST&tokenId=${TOKEN_ID}&quantity=100`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'LIST',
+            price: null,
+            quantity: null,
+            error: 'A list link cannot specify a quantity',
+            returnToBrowser: false,
+        });
+    });
+
+    it('accepts a lowercase action', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=buy&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('is invalid, with an error, for an uppercase tokenId (matching Cashtab)', () => {
+        // Cashtab's isValidTokenId only accepts lowercase hex. The action is
+        // recognized, so a malformed tokenId is a broken agora link, surfaced
+        // as an error rather than a silent fall-through.
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID.toUpperCase()}`,
+            ),
+        ).toEqual({
+            tokenId: null,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: 'This token action link has an invalid token id',
+            returnToBrowser: false,
+        });
+    });
+
+    it('sets returnToBrowser true when b=1', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&b=1`,
+            ).returnToBrowser,
+        ).toBe(true);
+    });
+
+    it('is invalid, with an error, if the tokenId is not a tokenId', () => {
+        // A recognized action with a malformed tokenId is a broken agora link,
+        // surfaced as an error rather than a silent fall-through.
+        expect(
+            payecashDeepLinkToAgoraAction(
+                'https://pay.e.cash/token?action=BUY&tokenId=notatokenid',
+            ),
+        ).toEqual({
+            tokenId: null,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: 'This token action link has an invalid token id',
+            returnToBrowser: false,
+        });
+    });
+
+    it('is invalid, with an error, if the tokenId is missing', () => {
+        // A recognized action with no tokenId is a broken agora link, surfaced
+        // as an error rather than a silent fall-through.
+        expect(
+            payecashDeepLinkToAgoraAction(
+                'https://pay.e.cash/token?action=BUY',
+            ),
+        ).toEqual({
+            tokenId: null,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: 'This token action link has an invalid token id',
+            returnToBrowser: false,
+        });
+    });
+
+    it('is invalid, with an error, for a present but unsupported action', () => {
+        // A recognized path with an unknown action is surfaced (it may be a
+        // future action), not silently dropped
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=SELLNFT&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual({
+            tokenId: null,
+            action: null,
+            price: null,
+            quantity: null,
+            error: 'This token action is not supported',
+            returnToBrowser: false,
+        });
+    });
+
+    it('treats an empty action as absent, not as an unrecognized action', () => {
+        // Per the spec's empty-value rule, ?action= with no value is absent,
+        // so the link falls back like any non-agora link
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('is invalid, with an error, if a parameter is repeated', () => {
+        // A repeated param is ambiguous; we do not silently take the first
+        const repeatedError = {
+            tokenId: null,
+            action: null,
+            price: null,
+            quantity: null,
+            error: 'This token action link has a repeated parameter',
+            returnToBrowser: false,
+        };
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(repeatedError);
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&action=LIST&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(repeatedError);
+        // Malformed links never honor b=1 — stay in-app so the error is seen
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&tokenId=${TOKEN_ID}&b=1`,
+            ),
+        ).toEqual(repeatedError);
+        // A repeated b is itself ambiguous, and an ambiguous b is not honored
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&b=0&b=1`,
+            ),
+        ).toEqual(repeatedError);
+    });
+
+    it('treats an empty price/quantity as absent, not as a provided value', () => {
+        // ?price= on a BUY must not trip the "cannot specify a price" error
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}&price=`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'BUY',
+            price: null,
+            quantity: null,
+            error: null,
+            returnToBrowser: false,
+        });
+        // ?quantity= on a LIST must not trip the "cannot specify a quantity" error
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?action=LIST&tokenId=${TOKEN_ID}&quantity=`,
+            ),
+        ).toEqual({
+            tokenId: TOKEN_ID,
+            action: 'LIST',
+            price: null,
+            quantity: null,
+            error: null,
+            returnToBrowser: false,
+        });
+    });
+
+    it('is not an agora action for a bip21 payment link', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?bip21=ecash:qq&action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('is not an agora action for a connect link', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token?connect=1&action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('is not an agora action for the wrong host or protocol', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://notpay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `http://pay.e.cash/token?action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('accepts a trailing slash on the /token path', () => {
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token/?action=BUY&tokenId=${TOKEN_ID}`,
+            ).action,
+        ).toBe('BUY');
+    });
+
+    it('is not an agora action for a doubled slash on the path', () => {
+        // Only /token and /token/ are accepted, exactly
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash/token//?action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('is not an agora action at the root path', () => {
+        // Agora actions live on /token so that supporting them is optional.
+        // The root path is for payment and connect links.
+        expect(
+            payecashDeepLinkToAgoraAction(
+                `https://pay.e.cash?action=BUY&tokenId=${TOKEN_ID}`,
+            ),
+        ).toEqual(NOT_AN_AGORA_ACTION);
+    });
+
+    it('is not an agora action for an invalid URL', () => {
+        expect(payecashDeepLinkToAgoraAction('not a url')).toEqual(
+            NOT_AN_AGORA_ACTION,
+        );
     });
 });
 

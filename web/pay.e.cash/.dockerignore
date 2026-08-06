@@ -1,0 +1,9 @@
+# Keep build/config/docs files out of the image web root that `COPY .`
+# populates, so they are not publicly downloadable from pay.e.cash.
+# nginx.conf is NOT ignored here: the Dockerfile needs it in the build context
+# to install as the nginx config. It is removed from the web root in the
+# Dockerfile instead.
+Dockerfile
+.dockerignore
+README.md
+.git

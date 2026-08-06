@@ -21,7 +21,7 @@
  * This component is tested in the tests for its parent component, Agora/index.js
  */
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { WsEndpoint, WsMsgClient } from 'chronik-client';
 import BigNumber from 'bignumber.js';
 import { WalletContext, isWalletContextLoaded } from 'wallet/context';
@@ -430,6 +430,11 @@ const OrderBook: React.FC<OrderBookProps> = ({
     // This component sorts offers by spot price; so this is the spot offer
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [askedSats, setAskedSats] = useState<number>(0);
+
+    // The selectedIndex the buy-amount effect last acted on, so we can tell an
+    // actual selection change apart from a mere offers refresh (which gets a new
+    // activeOffers array reference) and not clobber an amount the user typed.
+    const buyAmountSelectedIndex = useRef<null | number>(null);
 
     // User input for token qty they want to buy. In token units (decimalized).
     const [takeTokenDecimalizedQty, setTakeTokenDecimalizedQty] =
@@ -953,6 +958,15 @@ const OrderBook: React.FC<OrderBookProps> = ({
         };
     }, [tokenId, ws]);
 
+    // Reset the offer selection when the orderbook switches tokens. This
+    // component is reused across /token/<a> -> /token/<b> navigation (it has no
+    // key), so the previous token's selected offer index would otherwise carry
+    // over into the new token's offer list. The selection is deliberately NOT
+    useEffect(() => {
+        setSelectedIndex(0);
+        buyAmountSelectedIndex.current = null;
+    }, [tokenId]);
+
     /**
      * Update validation and asking price if the selected offer or qty
      * changes
@@ -1027,33 +1041,53 @@ const OrderBook: React.FC<OrderBookProps> = ({
         // the correct price
         setAskedSats(Number(spotPriceSatsThisQty));
 
-        // Update when token qty changes
-        // In practice, this means we also update when selectedOffer changes,
-        // as changing selectedOffer will reset takeTokenDecimalizedQty to the min accept
-        // qty of the new selected offer
-    }, [takeTokenDecimalizedQty]);
+        // Recompute when the buy quantity changes, when the user selects a
+        // different offer (selectedIndex), and when the offers themselves
+        // refresh (activeOffers gets a new array on every websocket trade or
+        // balance update). Depending on activeOffers/selectedIndex directly —
+        // rather than relying on a selection change to reset the qty — keeps the
+        // "For X XEC" total in sync with the current offer even when the qty is
+        // preserved across a refresh. activeOffers/selectedIndex are state, so
+        // these deps are stable between renders and do not loop.
+    }, [takeTokenDecimalizedQty, activeOffers, selectedIndex]);
 
     // Update the slider when the user selects a different offer
     useEffect(() => {
         if (
-            Array.isArray(activeOffers) &&
-            activeOffers.length > 0 &&
-            typeof decimals !== 'undefined'
+            !Array.isArray(activeOffers) ||
+            activeOffers.length === 0 ||
+            typeof decimals === 'undefined'
         ) {
-            // Select the minAcceptedTokens amount every time the order changes
-            // Locale-format so EU decimal-comma users do not lose fractional digits
-            setTakeTokenDecimalizedQty(
-                formatAmountFromWire(
-                    decimalizeTokenAmount(
-                        activeOffers[selectedIndex].variant.params
-                            .minAcceptedAtoms()
-                            .toString(),
-                        decimals as SlpDecimals,
-                    ),
-                    userLocale,
-                ),
-            );
+            return;
         }
+
+        // Only reset to the default amount when the selection actually changed
+        // (initial load, or the user picking a different offer) — never on a
+        // mere offers refresh, which hands us a new activeOffers array on every
+        // websocket trade or balance update. Resetting on refresh would wipe an
+        // amount the user typed out from under them. Validation of a now-stale
+        // amount is handled separately by the takeTokenDecimalizedQty effect.
+        const selectionChanged =
+            buyAmountSelectedIndex.current !== selectedIndex;
+        buyAmountSelectedIndex.current = selectedIndex;
+        if (!selectionChanged) {
+            return;
+        }
+
+        // Default: the minAcceptedTokens amount of the selected offer, when the
+        // order changes.
+        // Locale-format so EU decimal-comma users do not lose fractional digits
+        setTakeTokenDecimalizedQty(
+            formatAmountFromWire(
+                decimalizeTokenAmount(
+                    activeOffers[selectedIndex].variant.params
+                        .minAcceptedAtoms()
+                        .toString(),
+                    decimals as SlpDecimals,
+                ),
+                userLocale,
+            ),
+        );
         // Include decimals: cache may load after activeOffers, and we must
         // re-run once decimals are available or the slider stays at "0".
     }, [activeOffers, selectedIndex, decimals, userLocale]);

@@ -5,6 +5,10 @@
 const CASHTAB_WEB_SEND_BASE = 'https://cashtab.com/#/send';
 const CASHTAB_WEB_CONNECT_BASE =
     'https://cashtab.com/#/wallets?shareAddresses=true';
+const CASHTAB_WEB_TOKEN_BASE = 'https://cashtab.com/#/token';
+
+/** A tokenId is 32 bytes as lowercase hex (matches Cashtab's isValidTokenId) */
+const TOKEN_ID_REGEX = /^[a-f0-9]{64}$/;
 const homeViewEl = document.getElementById('home-view');
 const fallbackViewEl = document.getElementById('fallback-view');
 const fallbackTitleEl = document.getElementById('fallback-title');
@@ -66,9 +70,127 @@ const parseConnectFromQuery = () => {
     }
 };
 
+/**
+ * Parse an agora action link, see
+ * doc/standards/agora-deeplink.md
+ *
+ * https://pay.e.cash/token?action=LIST&tokenId=<tokenId>&price=<xec>
+ * https://pay.e.cash/token?action=BUY&tokenId=<tokenId>
+ *
+ * Agora actions live on the /token path, and not at the root with the payment
+ * links, so that supporting them is optional for a wallet.
+ */
+const parseAgoraActionFromQuery = () => {
+    // Accept exactly /token and /token/, nothing else
+    if (
+        window.location.pathname !== '/token' &&
+        window.location.pathname !== '/token/'
+    ) {
+        return null;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+
+    // A payment or connect link is not an agora action. Check by presence, so
+    // that an empty ?bip21= or ?connect= still counts.
+    if (params.has('bip21') || params.has('connect')) {
+        return null;
+    }
+
+    // A parameter given more than once is ambiguous (which value wins?). On the
+    // dedicated agora path this is a broken agora link, so surface it rather
+    // than silently taking the first value or falling back.
+    for (const key of ['action', 'tokenId', 'price', 'quantity', 'b']) {
+        if (params.getAll(key).length > 1) {
+            return {
+                action: null,
+                tokenId: null,
+                price: null,
+                quantity: null,
+                error: 'This token action link has a repeated parameter',
+            };
+        }
+    }
+
+    // An empty ?action= is treated as absent, like every other empty-valued
+    // parameter (the spec's empty-value rule), so it falls back rather than
+    // surfacing an unrecognized-action error
+    const action = (params.get('action') || null)?.toUpperCase();
+    if (action === undefined) {
+        // No action at all: not an agora action link, fall back.
+        return null;
+    }
+    if (action !== 'LIST' && action !== 'BUY') {
+        // A present but unrecognized action (e.g. a future action this version
+        // does not implement). We must not act on it, but surface it rather
+        // than silently showing the home view with no feedback.
+        return {
+            action: null,
+            tokenId: null,
+            price: null,
+            quantity: null,
+            error: 'This token action is not supported',
+        };
+    }
+
+    // The action is recognized, so this link is meant as an agora action. A
+    // missing or malformed tokenId is a broken agora link, not a fall-through:
+    // surface it as an error rather than returning null, which would silently
+    // show the home view with no feedback.
+    const tokenId = params.get('tokenId');
+    if (!tokenId || !TOKEN_ID_REGEX.test(tokenId)) {
+        return {
+            action,
+            tokenId: null,
+            price: null,
+            quantity: null,
+            error: 'This token action link has an invalid token id',
+        };
+    }
+
+    // An empty value (e.g. ?price=) means the parameter was not really
+    // provided; treat it as absent so it is not mistaken for a real value.
+    const price = params.get('price') || null;
+    const quantity = params.get('quantity') || null;
+
+    // A BUY takes its price from the on-chain offer, so a price on a BUY is
+    // invalid; LIST likewise takes no quantity. Flag either here rather than
+    // forwarding it to Cashtab.
+    let error = null;
+    if (action === 'BUY' && price !== null) {
+        error = 'A buy link cannot specify a price';
+    } else if (action === 'LIST' && quantity !== null) {
+        error = 'A list link cannot specify a quantity';
+    }
+    if (error !== null) {
+        return { action, tokenId, price: null, quantity: null, error };
+    }
+
+    return {
+        action,
+        tokenId,
+        // price applies to LIST, quantity to BUY
+        price: action === 'LIST' ? price : null,
+        quantity: action === 'BUY' ? quantity : null,
+        error: null,
+    };
+};
+
 /** Matches Cashtab web hash-route format (`#/send?bip21=ecash:...?...`), not %-encoded params */
 const buildCashtabWebSendUrl = bip21 =>
     `${CASHTAB_WEB_SEND_BASE}?bip21=${bip21}`;
+
+/** Matches Cashtab web hash-route format (`#/token/<tokenId>?action=...`) */
+const buildCashtabWebTokenUrl = ({ action, tokenId, price, quantity }) => {
+    const params = new URLSearchParams({ action });
+    if (price !== null) {
+        params.set('price', price);
+    }
+    if (quantity !== null && quantity !== undefined) {
+        params.set('quantity', quantity);
+    }
+    return `${CASHTAB_WEB_TOKEN_BASE}/${tokenId}?${params.toString()}`;
+};
 
 const showPaymentFallbackView = bip21 => {
     currentBip21 = bip21;
@@ -132,6 +254,70 @@ const showConnectFallbackView = returnUrl => {
     }
 };
 
+const previewTokenId = tokenId =>
+    `${tokenId.slice(0, 6)}...${tokenId.slice(-6)}`;
+
+const showAgoraActionErrorView = message => {
+    currentBip21 = null;
+    if (homeViewEl) {
+        homeViewEl.classList.add('hidden');
+    }
+    if (fallbackViewEl) {
+        fallbackViewEl.classList.remove('hidden');
+    }
+    if (fallbackTitleEl) {
+        fallbackTitleEl.textContent = 'This link is not valid';
+    }
+    if (paymentSummaryEl) {
+        paymentSummaryEl.textContent = message;
+    }
+    if (fullBip21BoxEl) {
+        fullBip21BoxEl.classList.add('hidden');
+    }
+    // There is no valid action to open, so hide the wallet link
+    if (openWebLinkEl) {
+        openWebLinkEl.classList.add('hidden');
+    }
+    if (copyBip21ButtonEl) {
+        copyBip21ButtonEl.classList.add('hidden');
+    }
+};
+
+const showAgoraActionFallbackView = agoraAction => {
+    currentBip21 = null;
+    const { action, tokenId, price, quantity } = agoraAction;
+    if (homeViewEl) {
+        homeViewEl.classList.add('hidden');
+    }
+    if (fallbackViewEl) {
+        fallbackViewEl.classList.remove('hidden');
+    }
+    if (fallbackTitleEl) {
+        fallbackTitleEl.textContent =
+            'Open this token action in a supported eCash wallet';
+    }
+    if (paymentSummaryEl) {
+        paymentSummaryEl.textContent =
+            action === 'LIST'
+                ? `List token ${previewTokenId(tokenId)} for sale${
+                      price !== null ? ` at ${price} XEC` : ''
+                  }. Your wallet checks the token and you confirm before anything is signed.`
+                : `Buy token ${previewTokenId(tokenId)}${
+                      quantity !== null ? ` (quantity ${quantity})` : ''
+                  }. Your wallet takes the price from the active offer, and you confirm before anything is signed.`;
+    }
+    if (fullBip21BoxEl) {
+        fullBip21BoxEl.classList.add('hidden');
+    }
+    if (openWebLinkEl) {
+        openWebLinkEl.textContent = 'Open in Cashtab Web';
+        openWebLinkEl.href = buildCashtabWebTokenUrl(agoraAction);
+    }
+    if (copyBip21ButtonEl) {
+        copyBip21ButtonEl.classList.add('hidden');
+    }
+};
+
 const copyBip21 = async () => {
     if (!currentBip21 || !copyBip21ButtonEl) {
         return;
@@ -152,6 +338,16 @@ const copyBip21 = async () => {
 };
 
 const run = () => {
+    const agoraAction = parseAgoraActionFromQuery();
+    if (agoraAction) {
+        if (agoraAction.error) {
+            showAgoraActionErrorView(agoraAction.error);
+        } else {
+            showAgoraActionFallbackView(agoraAction);
+        }
+        return;
+    }
+
     const connectReturnUrl = parseConnectFromQuery();
     if (connectReturnUrl) {
         showConnectFallbackView(connectReturnUrl);
