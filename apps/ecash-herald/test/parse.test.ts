@@ -13,7 +13,7 @@ import { jsonReviver } from '../src/utils';
 import memoFixtures from './mocks/memo';
 import { getStackArray } from 'ecash-lib';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
-import { Block, ChronikClient, TxOutput } from 'chronik-client';
+import { Block, ChronikClient, Tx, TxOutput } from 'chronik-client';
 import { caching } from 'cache-manager';
 import { StoredMock } from '../src/events';
 import {
@@ -36,6 +36,7 @@ import {
 } from '../src/parse';
 import appTxSamples from './mocks/appTxSamples';
 import { dailyTxs, tokenInfoMap } from './mocks/dailyTxs';
+import { BLITZCHIPS_OUTPUTSCRIPT } from '../constants/games';
 import { CryptoTicker, Fiat } from 'ecash-price';
 
 const {
@@ -777,5 +778,121 @@ describe('parse.js functions', function () {
                 null,
             ),
         );
+    });
+    it('summarizeTxHistory sorts app txs most to least including Blitzchips', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        const senderScript = '76a914' + '11'.repeat(20) + '88ac';
+        const recipientScript = '76a914' + '22'.repeat(20) + '88ac';
+        const makeLokadTx = (
+            txidSuffix: string,
+            lokadOpReturn: string,
+            height: number,
+        ): Tx => ({
+            txid: txidSuffix.padStart(64, '0'),
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '00'.repeat(32),
+                        outIdx: 0,
+                    },
+                    inputScript: '00',
+                    sats: 10000n,
+                    sequenceNo: 4294967295,
+                    outputScript: senderScript,
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript: lokadOpReturn,
+                },
+                {
+                    sats: 546n,
+                    outputScript: recipientScript,
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 200,
+            isCoinbase: false,
+            isFinal: true,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            block: {
+                height,
+                hash: '00'.repeat(32),
+                timestamp: 1728950400,
+            },
+        });
+        const makeBlitzchipsTx = (txidSuffix: string, height: number): Tx => ({
+            txid: txidSuffix.padStart(64, '0'),
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '00'.repeat(32),
+                        outIdx: 0,
+                    },
+                    inputScript: '00',
+                    sats: 10000n,
+                    sequenceNo: 4294967295,
+                    outputScript: senderScript,
+                },
+            ],
+            outputs: [
+                {
+                    sats: 546n,
+                    outputScript: BLITZCHIPS_OUTPUTSCRIPT,
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 200,
+            isCoinbase: false,
+            isFinal: true,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            block: {
+                height,
+                hash: '00'.repeat(32),
+                timestamp: 1728950400,
+            },
+        });
+        // 3 PayButton, 2 Blitzchips, 1 CashFusion — order must be most → least
+        const txs: Tx[] = [
+            dailyTxs[0], // coinbase for miner/staker section
+            makeLokadTx('a1', '6a045041590000000863a9892c7792fbfd', 867294),
+            makeLokadTx('a2', '6a045041590000000863a9892c7792fbfd', 867295),
+            makeLokadTx('a3', '6a045041590000000863a9892c7792fbfd', 867296),
+            makeBlitzchipsTx('b1', 867297),
+            makeBlitzchipsTx('b2', 867298),
+            makeLokadTx(
+                'c1',
+                '6a0446555a0020194246d7e7a3e1c8b88559ee210b390ceb8b9ab82f860d9c9d6f9daa01f6c82f',
+                867299,
+            ),
+        ];
+        const msgs = summarizeTxHistory(
+            mockUtcNewDayTimestampSeconds,
+            txs,
+            new Map(),
+            10,
+            10,
+            null,
+        );
+        const text = msgs.join('\n');
+        const payButtonIdx = text.indexOf('🛒 <b>3</b> PayButton txs');
+        const blitzIdx = text.indexOf(
+            '🎲 <b>2</b> <a href="https://blitzchips.com">Blitzchips</a> txs',
+        );
+        const fusionIdx = text.indexOf('⚛️ <b>1</b> CashFusion');
+        assert.notStrictEqual(payButtonIdx, -1);
+        assert.notStrictEqual(blitzIdx, -1);
+        assert.notStrictEqual(fusionIdx, -1);
+        assert.ok(payButtonIdx < blitzIdx);
+        assert.ok(blitzIdx < fusionIdx);
     });
 });

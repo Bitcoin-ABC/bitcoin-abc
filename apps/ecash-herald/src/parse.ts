@@ -4426,24 +4426,12 @@ export const summarizeTxHistory = (
         blitzchipsTxCount +
         everydayjackpotTxCount;
     if (totalAppTxs > 0) {
-        // Sort appTxMap by most common app txs
-        const sortedAppTxMap = new Map(
-            [...appTxMap.entries()].sort(
-                (keyValueArrayA, keyValueArrayB) =>
-                    keyValueArrayB[1] - keyValueArrayA[1],
-            ),
-        );
-        tgMsg.push(
-            `${config.emojis.app} <b><i>${totalAppTxs.toLocaleString(
-                'en-US',
-            )} app tx${totalAppTxs > 1 ? 's' : ''}</i></b>`,
-        );
-        sortedAppTxMap.forEach((count, lokadId) => {
-            // Do we recognize this app?
+        // Collect known app lines (incl. address-based games), then sort most → least
+        const appTxLines: { count: number; line: string }[] = [];
+        appTxMap.forEach((count, lokadId) => {
             const supportedLokadApp = lokadMap.get(lokadId);
             if (typeof supportedLokadApp === 'undefined') {
                 unknownLokadTxs += count;
-                // Go to the next lokadId
                 return;
             }
             // DICE/ROLL batch under Blitzchips, don't show as separate line
@@ -4451,39 +4439,47 @@ export const summarizeTxHistory = (
                 return;
             }
             const { name, emoji, url } = supportedLokadApp;
-            if (typeof url === 'undefined') {
-                tgMsg.push(
-                    `${emoji} <b>${count.toLocaleString('en-US')}</b> ${name}${
-                        count > 1 ? 's' : ''
-                    }`,
-                );
-            } else {
-                tgMsg.push(
-                    `${emoji} <b>${count.toLocaleString(
-                        'en-US',
-                    )}</b> <a href="${url}">${name}${count > 1 ? 's' : ''}</a>`,
-                );
-            }
+            const countStr = count.toLocaleString('en-US');
+            const nameStr = `${name}${count > 1 ? 's' : ''}`;
+            appTxLines.push({
+                count,
+                line:
+                    typeof url === 'undefined'
+                        ? `${emoji} <b>${countStr}</b> ${nameStr}`
+                        : `${emoji} <b>${countStr}</b> <a href="${url}">${nameStr}</a>`,
+            });
         });
         if (blitzchipsTxCount > 0) {
-            tgMsg.push(
-                `🎲 <b>${blitzchipsTxCount.toLocaleString(
+            appTxLines.push({
+                count: blitzchipsTxCount,
+                line: `🎲 <b>${blitzchipsTxCount.toLocaleString(
                     'en-US',
                 )}</b> <a href="https://blitzchips.com">Blitzchips</a> tx${
                     blitzchipsTxCount > 1 ? 's' : ''
                 }`,
-            );
+            });
         }
         if (everydayjackpotTxCount > 0) {
-            tgMsg.push(
-                `💰 <b>${everydayjackpotTxCount.toLocaleString(
+            appTxLines.push({
+                count: everydayjackpotTxCount,
+                line: `💰 <b>${everydayjackpotTxCount.toLocaleString(
                     'en-US',
                 )}</b> <a href="https://everydayjackpot.com">everydayjackpot.com</a> tx${
                     everydayjackpotTxCount > 1 ? 's' : ''
                 }`,
-            );
+            });
         }
-        // Add line for unknown txs
+        appTxLines.sort((a, b) => b.count - a.count);
+
+        tgMsg.push(
+            `${config.emojis.app} <b><i>${totalAppTxs.toLocaleString(
+                'en-US',
+            )} app tx${totalAppTxs > 1 ? 's' : ''}</i></b>`,
+        );
+        for (const { line } of appTxLines) {
+            tgMsg.push(line);
+        }
+        // Unknown lokads always last
         if (unknownLokadTxs > 0) {
             tgMsg.push(
                 `${config.emojis.unknown} <b>${unknownLokadTxs.toLocaleString(
