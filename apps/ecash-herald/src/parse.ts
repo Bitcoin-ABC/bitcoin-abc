@@ -3,7 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import config from '../config';
-import opReturn, { CASHTAB_MSG_DISPLAY_LIMIT } from '../constants/op_return';
+import opReturn, {
+    APP_TX_INDIVIDUAL_DISPLAY_LIMIT,
+} from '../constants/op_return';
 import {
     fromHex,
     toHex,
@@ -1694,38 +1696,56 @@ export const getSwapTgMsg = (
     return msg;
 };
 
-type OpReturnAppLine =
-    | { kind: 'cashtabMsg'; line: string }
-    | { kind: 'other'; line: string };
+type AppTxGroup = {
+    emoji: string;
+    name: string;
+    url?: string;
+    countNoun: string;
+    lines: string[];
+};
 
-function applyCashtabMsgDisplayLimit(
-    lines: OpReturnAppLine[],
-    limit: number,
-): string[] {
-    const totalCashtabMsgs = lines.reduce(
-        (n, l) => n + (l.kind === 'cashtabMsg' ? 1 : 0),
-        0,
-    );
+/**
+ * Render parsed app txs: show individual lines when a group is at or under
+ * the limit, otherwise a single count line. Removes per-app always-batch
+ * special casing (PayButton, Blitzchips, Cashtab Msg, POW, etc.).
+ */
+export const renderAppTxGroups = (
+    groups: Map<string, AppTxGroup>,
+    individualLimit: number,
+): string[] => {
     const out: string[] = [];
-    let shown = 0;
-    for (const entry of lines) {
-        if (entry.kind !== 'cashtabMsg') {
-            out.push(entry.line);
-            continue;
-        }
-        if (shown < limit) {
-            out.push(entry.line);
-            shown += 1;
-            if (shown === limit && totalCashtabMsgs > limit) {
-                const more = totalCashtabMsgs - limit;
-                out.push(
-                    `...and ${more} more Cashtab Msg${more > 1 ? 's' : ''}`,
-                );
-            }
+    for (const group of groups.values()) {
+        const count = group.lines.length;
+        if (count > individualLimit) {
+            const nameHtml =
+                typeof group.url === 'undefined'
+                    ? group.name
+                    : `<a href="${group.url}">${group.name}</a>`;
+            out.push(
+                `${group.emoji} <b>${count.toLocaleString(
+                    'en-US',
+                )}</b> ${nameHtml} ${group.countNoun}${count > 1 ? 's' : ''}`,
+            );
+        } else {
+            out.push(...group.lines);
         }
     }
     return out;
-}
+};
+
+const addAppTxLine = (
+    groups: Map<string, AppTxGroup>,
+    key: string,
+    meta: Omit<AppTxGroup, 'lines'>,
+    line: string,
+): void => {
+    const existing = groups.get(key);
+    if (typeof existing === 'undefined') {
+        groups.set(key, { ...meta, lines: [line] });
+        return;
+    }
+    existing.lines.push(line);
+};
 
 /**
  * Build a string formatted for Telegram's API using HTML encoding
@@ -1757,11 +1777,8 @@ export const getBlockTgMessage = (
     let cashtabXecRewardsTotalSats = 0n;
     const tokenSendTxTgMsgLines: string[] = [];
     const tokenBurnTxTgMsgLines = [];
-    const opReturnTxTgMsgLines: OpReturnAppLine[] = [];
+    const appTxGroups = new Map<string, AppTxGroup>();
     let xecSendTxTgMsgLines = [];
-    let payButtonTxCount = 0;
-    let blitzchipsPlayCount = 0;
-    let blitzchipsPayoutCount = 0;
 
     // We do not get that much newsworthy value from a long list of individual token send txs
     // So, we organize token send txs by tokenId
@@ -1823,8 +1840,12 @@ export const getBlockTgMessage = (
         if (opReturnInfo) {
             let { app, msg } = opReturnInfo;
             const { stackArray, tokenId } = opReturnInfo;
-            const isCashtabMsgTx = app === opReturn.knownApps.cashtabMsg.app;
+            // Group key uses the base app name (before display-only mutations).
+            const appGroupKey = app;
             let appEmoji = '';
+            let groupUrl: string | undefined;
+            const countNoun = 'tx';
+            const groupName = app;
 
             switch (app) {
                 case opReturn.memo.app: {
@@ -1836,10 +1857,8 @@ export const getBlockTgMessage = (
                     break;
                 }
                 case opReturn.knownApps.payButton.app: {
-                    // Count PayButton transactions instead of displaying individually
-                    payButtonTxCount += 1;
-                    // Skip adding to opReturnTxTgMsgLines, continue to next tx
-                    continue;
+                    appEmoji = emojis.payButton;
+                    break;
                 }
                 case opReturn.knownApps.paywall.app: {
                     appEmoji = emojis.paywall;
@@ -1851,6 +1870,7 @@ export const getBlockTgMessage = (
                 }
                 case opReturn.knownApps.pow.app: {
                     appEmoji = emojis.pow;
+                    groupUrl = 'https://proofofwriting.com/';
                     break;
                 }
                 case opReturn.knownApps.cashtabMsg.app: {
@@ -1919,23 +1939,66 @@ export const getBlockTgMessage = (
                     break;
                 }
                 case 'Blitzchips': {
-                    // Batch Blitzchips txs instead of displaying individually
                     if (msg === 'DICE play') {
-                        blitzchipsPlayCount += 1;
+                        addAppTxLine(
+                            appTxGroups,
+                            'blitzchips-play',
+                            {
+                                emoji: '🎲',
+                                name: 'blitzchips.com',
+                                url: 'https://blitzchips.com',
+                                countNoun: 'play',
+                            },
+                            `🎲<a href="${config.blockExplorer}/tx/${txid}">Blitzchips:</a> ${msg}`,
+                        );
                     } else if (msg === 'ROLL payout') {
-                        blitzchipsPayoutCount += 1;
+                        addAppTxLine(
+                            appTxGroups,
+                            'blitzchips-payout',
+                            {
+                                emoji: '💰',
+                                name: 'blitzchips.com',
+                                url: 'https://blitzchips.com',
+                                countNoun: 'payout',
+                            },
+                            `💰<a href="${config.blockExplorer}/tx/${txid}">Blitzchips:</a> ${msg}`,
+                        );
                     }
                     continue;
                 }
                 case 'EMPP': {
-                    // EMPP may contain Blitzchips DICE/ROLL pushes - batch those
+                    // EMPP may contain Blitzchips DICE/ROLL pushes — group those
                     const diceMatches = msg.match(/Blitzchips: DICE play/g);
                     const rollMatches = msg.match(/Blitzchips: ROLL payout/g);
                     if (diceMatches) {
-                        blitzchipsPlayCount += diceMatches.length;
+                        for (let d = 0; d < diceMatches.length; d += 1) {
+                            addAppTxLine(
+                                appTxGroups,
+                                'blitzchips-play',
+                                {
+                                    emoji: '🎲',
+                                    name: 'blitzchips.com',
+                                    url: 'https://blitzchips.com',
+                                    countNoun: 'play',
+                                },
+                                `🎲<a href="${config.blockExplorer}/tx/${txid}">Blitzchips:</a> DICE play`,
+                            );
+                        }
                     }
                     if (rollMatches) {
-                        blitzchipsPayoutCount += rollMatches!.length;
+                        for (let r = 0; r < rollMatches.length; r += 1) {
+                            addAppTxLine(
+                                appTxGroups,
+                                'blitzchips-payout',
+                                {
+                                    emoji: '💰',
+                                    name: 'blitzchips.com',
+                                    url: 'https://blitzchips.com',
+                                    countNoun: 'payout',
+                                },
+                                `💰<a href="${config.blockExplorer}/tx/${txid}">Blitzchips:</a> ROLL payout`,
+                            );
+                        }
                     }
                     if (diceMatches || rollMatches) {
                         const nonBlitzchipsParts = msg
@@ -1961,10 +2024,16 @@ export const getBlockTgMessage = (
             }
 
             const opReturnLineText = `${appEmoji}<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
-            opReturnTxTgMsgLines.push(
-                isCashtabMsgTx
-                    ? { kind: 'cashtabMsg', line: opReturnLineText }
-                    : { kind: 'other', line: opReturnLineText },
+            addAppTxLine(
+                appTxGroups,
+                appGroupKey,
+                {
+                    emoji: appEmoji,
+                    name: groupName,
+                    url: groupUrl,
+                    countNoun,
+                },
+                opReturnLineText,
             );
             // This parsed tx has a tg msg line. Move on to the next one.
             continue;
@@ -2507,26 +2576,11 @@ export const getBlockTgMessage = (
         tgMsg = tgMsg.concat(tokenBurnTxTgMsgLines);
     }
 
-    if (payButtonTxCount > 0) {
-        tgMsg.push('');
-
-        tgMsg.push(
-            `${emojis.payButton} <b>${payButtonTxCount.toLocaleString('en-US')} Paybutton tx${
-                payButtonTxCount > 1 ? 's' : ''
-            }</b>`,
-        );
+    // OP_RETURN / app txs — count when above threshold, else list individually
+    let totalAppTxs = 0;
+    for (const group of appTxGroups.values()) {
+        totalAppTxs += group.lines.length;
     }
-
-    const opReturnTxTgMsgStrings = applyCashtabMsgDisplayLimit(
-        opReturnTxTgMsgLines,
-        CASHTAB_MSG_DISPLAY_LIMIT,
-    );
-
-    // OP_RETURN txs
-    const totalAppTxs =
-        opReturnTxTgMsgLines.length +
-        blitzchipsPlayCount +
-        blitzchipsPayoutCount;
     if (totalAppTxs > 0) {
         // Line break for new section
         tgMsg.push('');
@@ -2536,22 +2590,13 @@ export const getBlockTgMessage = (
         // App tx
         tgMsg.push(`<b>${totalAppTxs} app tx${totalAppTxs > 1 ? `s` : ''}</b>`);
 
-        // Blitzchips batched summary (plays = DICE, payouts = ROLL)
-        if (blitzchipsPlayCount > 0) {
-            tgMsg.push(
-                `🎲 ${blitzchipsPlayCount.toLocaleString('en-US')} <a href="https://blitzchips.com">blitzchips.com</a> play${blitzchipsPlayCount > 1 ? 's' : ''}`,
-            );
-        }
-        if (blitzchipsPayoutCount > 0) {
-            tgMsg.push(
-                `💰 ${blitzchipsPayoutCount.toLocaleString('en-US')} <a href="https://blitzchips.com">blitzchips.com</a> payout${blitzchipsPayoutCount > 1 ? 's' : ''}`,
-            );
-        }
-
         // <appName> : <parsedAppData>
         // alias: newlyregisteredalias
         // Cashtab Msg: This is a Cashtab Msg
-        tgMsg = tgMsg.concat(opReturnTxTgMsgStrings);
+        // Or a count line when an app exceeds APP_TX_INDIVIDUAL_DISPLAY_LIMIT
+        tgMsg = tgMsg.concat(
+            renderAppTxGroups(appTxGroups, APP_TX_INDIVIDUAL_DISPLAY_LIMIT),
+        );
     }
 
     // XEC txs

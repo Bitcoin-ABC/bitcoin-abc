@@ -31,12 +31,15 @@ import {
     guessRejectReason,
     summarizeTxHistory,
     getMinerOutputScript,
+    renderAppTxGroups,
     IFP_OUTPUTSCRIPT,
     STAKING_ACTIVATION_HEIGHT,
+    HeraldParsedBlock,
 } from '../src/parse';
 import appTxSamples from './mocks/appTxSamples';
 import { dailyTxs, tokenInfoMap } from './mocks/dailyTxs';
 import { BLITZCHIPS_OUTPUTSCRIPT } from '../constants/games';
+import { APP_TX_INDIVIDUAL_DISPLAY_LIMIT } from '../constants/op_return';
 import { CryptoTicker, Fiat } from 'ecash-price';
 
 const {
@@ -92,6 +95,134 @@ describe('parse.js functions', function () {
             ),
             blockSummaryTgMsgs,
         );
+    });
+    it('renderAppTxGroups lists individually at or under the limit', function () {
+        const groups = new Map([
+            [
+                'Proof of Writing',
+                {
+                    emoji: '✍️',
+                    name: 'Proof of Writing',
+                    url: 'https://proofofwriting.com/',
+                    countNoun: 'tx',
+                    lines: [
+                        '✍️<a href="https://explorer.e.cash/tx/aa">Proof of Writing:</a> Post',
+                        '✍️<a href="https://explorer.e.cash/tx/bb">Proof of Writing:</a> Like',
+                        '✍️<a href="https://explorer.e.cash/tx/cc">Proof of Writing:</a> Reply',
+                    ],
+                },
+            ],
+        ]);
+        assert.deepEqual(
+            renderAppTxGroups(groups, APP_TX_INDIVIDUAL_DISPLAY_LIMIT),
+            [
+                '✍️<a href="https://explorer.e.cash/tx/aa">Proof of Writing:</a> Post',
+                '✍️<a href="https://explorer.e.cash/tx/bb">Proof of Writing:</a> Like',
+                '✍️<a href="https://explorer.e.cash/tx/cc">Proof of Writing:</a> Reply',
+            ],
+        );
+    });
+    it('renderAppTxGroups counts when above the individual display limit', function () {
+        const lines = [
+            '✍️<a href="https://explorer.e.cash/tx/aa">Proof of Writing:</a> Post',
+            '✍️<a href="https://explorer.e.cash/tx/bb">Proof of Writing:</a> Like',
+            '✍️<a href="https://explorer.e.cash/tx/cc">Proof of Writing:</a> Reply',
+            '✍️<a href="https://explorer.e.cash/tx/dd">Proof of Writing:</a> Quote',
+        ];
+        const groups = new Map([
+            [
+                'Proof of Writing',
+                {
+                    emoji: '✍️',
+                    name: 'Proof of Writing',
+                    url: 'https://proofofwriting.com/',
+                    countNoun: 'tx',
+                    lines,
+                },
+            ],
+        ]);
+        assert.deepEqual(
+            renderAppTxGroups(groups, APP_TX_INDIVIDUAL_DISPLAY_LIMIT),
+            [
+                '✍️ <b>4</b> <a href="https://proofofwriting.com/">Proof of Writing</a> txs',
+            ],
+        );
+    });
+    it('getBlockTgMessage counts Proof of Writing txs above the display limit', function () {
+        const makePowTx = (txid: string, msg: string) => ({
+            txid,
+            genesisInfo: false as const,
+            opReturnInfo: {
+                app: opReturn.knownApps.pow.app,
+                msg,
+                stackArray: ['504f5752'],
+                tokenId: false as const,
+            },
+            txFee: 200,
+            xecSendingOutputScripts: new Set(['76a91400']),
+            xecReceivingOutputs: new Map<string, bigint>([['76a91401', 546n]]),
+            totalSatsSent: 546n,
+            tokenSendInfo: false as const,
+            agoraInfo: false as const,
+            tokenBurnInfo: false as const,
+        });
+        const parsedBlock: HeraldParsedBlock = {
+            hash: '00'.repeat(32),
+            height: 900000,
+            miner: 'test',
+            staker: false,
+            numTxs: 5,
+            parsedTxs: [
+                makePowTx('aa'.repeat(32), 'Post'),
+                makePowTx('bb'.repeat(32), 'Like'),
+                makePowTx('cc'.repeat(32), 'Reply'),
+                makePowTx('dd'.repeat(32), 'Quote'),
+            ],
+            tokenIds: new Set(),
+            outputScripts: new Set(),
+        };
+        const msg = getBlockTgMessage(parsedBlock, [], false, false).join('\n');
+        assert.match(
+            msg,
+            /✍️ <b>4<\/b> <a href="https:\/\/proofofwriting\.com\/">Proof of Writing<\/a> txs/,
+        );
+        assert.doesNotMatch(msg, /Proof of Writing:<\/a> Post/);
+    });
+    it('getBlockTgMessage lists Proof of Writing txs at or under the display limit', function () {
+        const makePowTx = (txid: string, msg: string) => ({
+            txid,
+            genesisInfo: false as const,
+            opReturnInfo: {
+                app: opReturn.knownApps.pow.app,
+                msg,
+                stackArray: ['504f5752'],
+                tokenId: false as const,
+            },
+            txFee: 200,
+            xecSendingOutputScripts: new Set(['76a91400']),
+            xecReceivingOutputs: new Map<string, bigint>([['76a91401', 546n]]),
+            totalSatsSent: 546n,
+            tokenSendInfo: false as const,
+            agoraInfo: false as const,
+            tokenBurnInfo: false as const,
+        });
+        const parsedBlock: HeraldParsedBlock = {
+            hash: '00'.repeat(32),
+            height: 900000,
+            miner: 'test',
+            staker: false,
+            numTxs: 3,
+            parsedTxs: [
+                makePowTx('aa'.repeat(32), 'Post'),
+                makePowTx('bb'.repeat(32), 'Like'),
+            ],
+            tokenIds: new Set(),
+            outputScripts: new Set(),
+        };
+        const msg = getBlockTgMessage(parsedBlock, [], false, false).join('\n');
+        assert.match(msg, /Proof of Writing:<\/a> Post/);
+        assert.match(msg, /Proof of Writing:<\/a> Like/);
+        assert.doesNotMatch(msg, /✍️ <b>2<\/b>/);
     });
     it('parseOpReturn handles all types of SWaP txs', function () {
         for (let i = 0; i < swaps.length; i += 1) {

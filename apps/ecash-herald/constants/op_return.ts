@@ -80,7 +80,10 @@ const opReturnConstants: OpReturnConstants = {
     },
 };
 
-/** Max Cashtab Msg lines shown in a block summary; additional msgs are summarized. */
-export const CASHTAB_MSG_DISPLAY_LIMIT = 3;
+/**
+ * Max individual lines per app type in a block summary.
+ * Above this, txs for that app are shown as a single count line.
+ */
+export const APP_TX_INDIVIDUAL_DISPLAY_LIMIT = 3;
 
 export default opReturnConstants;
