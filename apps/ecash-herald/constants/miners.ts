@@ -260,6 +260,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '6d6b706f6f6c2e636f6d', // ascii mkpool.com
             },
         ],
+        [
+            '76a914dd65146cdecf824fdc300f9bf89fb56367d0d3d088ac',
+            {
+                miner: 'minepoolis.com',
+                coinbaseHexFragment: '6d696e65706f6f6c69732e636f6d', // ascii minepoolis.com
+            },
+        ],
     ],
 };
 

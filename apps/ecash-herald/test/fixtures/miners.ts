@@ -610,6 +610,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'mkpool.com',
     },
+    // minepoolis.com - parsed from payout script
+    {
+        height: '960537',
+        coinbaseHex:
+            '0319a80e04c1ac6e6a0800000050000353d10f6d696e65706f6f6c69732e636f6d00',
+        payoutOutputScript:
+            '76a914dd65146cdecf824fdc300f9bf89fb56367d0d3d088ac',
+        parsed: 'minepoolis.com',
+    },
+    // minepoolis.com - parsed from coinbase hex fragment
+    {
+        height: '960844',
+        coinbaseHex:
+            '034ca90e0435e3716a08000000349e4800000f6d696e65706f6f6c69732e636f6d00',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'minepoolis.com',
+    },
 ];
 
 export default minerTestFixtures;

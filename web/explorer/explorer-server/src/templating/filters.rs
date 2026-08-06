@@ -157,6 +157,7 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "HashedMax",
         "AlphaSoloPool.com",
         "mkpool.com",
+        "minepoolis.com",
         // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
@@ -578,6 +579,15 @@ mod tests {
             b"\x03\x93\xa0\x0e\x0c/mkpool.com/\xd8\x10<\xa8a\xff\x00\x00\x00\
             x00\x00\x00";
         assert_eq!(render_miner(mkpool_coinbase_hex).unwrap(), "mkpool.com");
+
+        // minepoolis.com 960537
+        let minepoolis_coinbase_hex =
+            b"\x03\x19\xa8\x0e\x04\xc1\xacnj\x08\x00\x00\x00P\x00\x03S\xd1\x0f\
+            minepoolis.com\x00";
+        assert_eq!(
+            render_miner(minepoolis_coinbase_hex).unwrap(),
+            "minepoolis.com"
+        );
 
         // Unknown miner
         // genesis block 0
