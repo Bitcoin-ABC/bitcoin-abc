@@ -39,7 +39,7 @@ Bitcoin ABC development takes place at [reviews.bitcoinabc.org](https://reviews.
 
 If you would like to contribute, please read [CONTRIBUTING](CONTRIBUTING.md).
 
-Disclosure Policy
------------------
+Security & Disclosure Policy
+----------------------------
 
-See [DISCLOSURE_POLICY](DISCLOSURE_POLICY.md)
+See [SECURITY](SECURITY.md).
