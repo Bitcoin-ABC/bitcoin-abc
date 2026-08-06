@@ -48,7 +48,6 @@ class ConfigKeys:
     CONSOLE_HISTORY = ConfigKey("console-history", [])
     CURRENCY = ConfigKey("currency", "USD")
     DECIMAL_POINT = ConfigKey("decimal_point", XEC.decimals)
-    ENABLE_ALIASES = ConfigKey("enable_aliases", False)
     ENABLE_CURRENT_BLOCK_LOCKTIME = ConfigKey("enable_current_block_locktime", False)
     ENABLE_OPRETURN = ConfigKey("enable_opreturn", False)
     FETCH_INPUT_DATA = ConfigKey("fetch_input_data")

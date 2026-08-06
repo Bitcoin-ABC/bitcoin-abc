@@ -24,68 +24,19 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 import dns
-import requests
 from dns.exception import DNSException
 
 from . import dnssec
-from .address import Address, AddressError
+from .address import Address
 from .printerror import print_error
-from .simple_config import ConfigKeys, SimpleConfig
-
-ALIAS_SERVER = "https://alias.etokens.cash"
-
-ALIAS_VALIDATOR_REGEXP = "[a-z0-9]{1,21}"
 
 OA1_PREFIX = "oa1:xec"
 
 
-@dataclass
-class AliasResponse:
-    alias: str
-    status_code: int
-
-    # Attributes set for valid registered aliases
-    address: Optional[str] = None
-    txid: Optional[str] = None
-    blockheight: Optional[int] = None
-
-    # Attributes set for valid unregistered aliases
-    registration_fee_sats: Optional[int] = None
-    processed_block_height: Optional[int] = None
-
-    # Attribute set for invalid aliases
-    error: Optional[str] = None
-
-
-def fetch_alias_data(alias: str) -> AliasResponse:
-    """Query the alias server about an alias.
-
-    This function may raise a requests.exceptions.Timeout exception.
-    """
-    url = f"{ALIAS_SERVER}/alias/{alias}"
-    response = requests.get(url, timeout=10.0)
-    data = response.json()
-
-    # sanity check
-    assert "alias" not in data or data["alias"] == alias
-
-    return AliasResponse(
-        alias,
-        response.status_code,
-        address=data.get("address"),
-        txid=data.get("txid"),
-        blockheight=data.get("blockheight"),
-        registration_fee_sats=data.get("registrationFeeSats"),
-        processed_block_height=data.get("processedBlockheight"),
-        error=data.get("error"),
-    )
-
-
-def resolve(k: str, config: SimpleConfig) -> Dict:
+def resolve(k: str) -> Dict:
     if Address.is_valid(k):
         return {"address": Address.from_string(k), "type": "address"}
     out = resolve_openalias(k)
@@ -97,17 +48,6 @@ def resolve(k: str, config: SimpleConfig) -> Dict:
             "type": "openalias",
             "validated": validated,
         }
-    if config.get(ConfigKeys.ENABLE_ALIASES) and k.endswith(".xec"):
-        # strip .xec suffix
-        alias = k[:-4]
-        address = resolve_ecash_alias(alias)
-        if address is not None:
-            return {
-                "address": address,
-                "name": alias,
-                "type": "ecash",
-                "validated": True,
-            }
     raise RuntimeWarning(f"Invalid eCash address or alias {k}")
 
 
@@ -137,20 +77,3 @@ def resolve_openalias(url):
             if not address:
                 continue
             return Address.from_string(address), name, validated
-
-
-def resolve_ecash_alias(alias: str) -> Optional[Address]:
-    try:
-        response: AliasResponse = fetch_alias_data(alias)
-    except requests.exceptions.Timeout:
-        return None
-
-    if response.status_code != 200:
-        return None
-
-    if response.address is None:
-        return None
-    try:
-        return Address.from_string(response.address)
-    except AddressError:
-        return None

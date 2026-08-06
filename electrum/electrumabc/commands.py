@@ -645,7 +645,7 @@ class Commands:
     def _resolver(self, x):
         if x is None:
             return None
-        out = alias.resolve(x, self.config)
+        out = alias.resolve(x)
         if (
             out.get("type") == "openalias"
             and self.nocheck is False
@@ -897,7 +897,7 @@ class Commands:
     @command("w")
     def getalias(self, key):
         """Retrieve alias. Lookup in your list of contacts, and for an OpenAlias DNS record."""
-        return alias.resolve(key, self.config)
+        return alias.resolve(key)
 
     @command("w")
     def searchcontacts(self, query):
@@ -1087,7 +1087,7 @@ class Commands:
         alias_ = self.config.get(ConfigKeys.ALIAS)
         if not alias_:
             raise ValueError("No alias in your configuration")
-        data = alias.resolve(alias_, self.config)
+        data = alias.resolve(alias_)
         alias_addr = (data and data.get("address")) or None
         if not alias_addr:
             raise RuntimeError("Alias could not be resolved")
@@ -1401,11 +1401,6 @@ def add_global_options(parser):
         "--test-release-notification",
         action="store_true",
         help="fetch release notification data from current source tree",
-    )
-    group.add_argument(
-        "--enable-aliases",
-        action="store_true",
-        help="Enable support for eCash aliases",
     )
 
 

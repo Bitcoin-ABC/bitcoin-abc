@@ -34,7 +34,6 @@ from qtpy.QtGui import QFontMetrics
 
 from electrumabc import alias, bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
-from electrumabc.contacts import Contact, Contacts
 from electrumabc.printerror import PrintError
 from electrumabc.transaction import TxOutput
 
@@ -57,13 +56,11 @@ normal_style = "PayToEdit { }"
 
 class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
     alias_resolved = Signal(dict)
-    new_contact_added = Signal()
 
-    def __init__(self, send_tab: SendTab, contact_manager: Contacts):
+    def __init__(self, send_tab: SendTab):
         CompletionTextEdit.__init__(self)
         ScanQRTextEdit.__init__(self, send_tab.config)
         self.send_tab = send_tab
-        self.contact_manager = contact_manager
         self.amount_edit = send_tab.amount_e
         document = self.document()
         document.contentsChanged.connect(self.update_size)
@@ -289,7 +286,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         """This is called by the main window periodically from a timer. See
         main_window.py function `timer_actions`.
 
-        It will resolve OpenAliases and eCash aliases in the send tab.
+        It will resolve OpenAliases in the send tab.
 
         Note that aliases are assumed to be a single-line payto.
 
@@ -315,8 +312,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
             return self.is_alias
         self.previous_payto = key
         if "." not in key or "<" in key or " " in key:
-            # not an openalias or eCash aliase or an openalias with extra info in it,
-            # bail..!
+            # not an openalias, or an openalias with extra info in it, bail..!
             return
         parts = key.split(sep=",")  # assuming single line
         if parts and len(parts) > 0 and Address.is_valid(parts[0]):
@@ -324,7 +320,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
 
         def resolve_in_thread():
             try:
-                return alias.resolve(key, self.send_tab.config)
+                return alias.resolve(key)
             except Exception as e:
                 return e
 
@@ -345,7 +341,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         name = data.get("name")
         _type = data.get("type")
 
-        if _type not in ("openalias", "ecash"):
+        if _type != "openalias":
             return
 
         if isinstance(address, str):
@@ -364,13 +360,8 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         # Don't save OpenAliases to this wallet's contacts, because the address may not
         # be immutable.
         # TODO: save the url/alias as the address, and support parsing of the resulting
-        #       contact string (e.g. "Monero Development" <donate.monero.org>) or alias
-        #       (e.g. "john <john.xec>") in the "Pay To" field.
-        if _type != "openalias":
-            self.contact_manager.add(
-                Contact(name=name, address=address_str, type=_type), unique=True
-            )
-            self.new_contact_added.emit()
+        #       contact string (e.g. "Monero Development" <donate.monero.org>) in the
+        #       "Pay To" field.
 
         self.setFrozen(True)
 
