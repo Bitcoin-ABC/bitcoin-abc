@@ -2,10 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ValidationError } from './errors';
+
 /** ALP genesis decimals are an integer in 0..9 inclusive. */
 export const assertDecimals = (decimals: number): void => {
     if (!Number.isInteger(decimals) || decimals < 0 || decimals > 9) {
-        throw new Error(
+        throw new ValidationError(
             `decimals must be an integer in [0, 9] (got ${decimals})`,
         );
     }
@@ -15,10 +17,12 @@ export const assertDecimals = (decimals: number): void => {
 const normalizeDecimalizedQty = (decimalizedQty: string): string => {
     const trimmed = decimalizedQty.trim();
     if (trimmed === '') {
-        throw new Error('decimalizedQty must be a non-empty string');
+        throw new ValidationError('decimalizedQty must be a non-empty string');
     }
     if (/e/i.test(trimmed)) {
-        throw new Error('decimalizedQty must not use scientific notation');
+        throw new ValidationError(
+            'decimalizedQty must not use scientific notation',
+        );
     }
     return trimmed;
 };
@@ -36,7 +40,9 @@ export const decimalizedQtyToAtoms = (
     assertDecimals(decimals);
     const s = normalizeDecimalizedQty(decimalizedQty);
     if (!/^-?\d+(\.\d+)?$/.test(s)) {
-        throw new Error(`decimalizedQty is not a valid decimal: ${s}`);
+        throw new ValidationError(
+            `decimalizedQty is not a valid decimal: ${s}`,
+        );
     }
 
     const negative = s.startsWith('-');
@@ -46,7 +52,7 @@ export const decimalizedQtyToAtoms = (
     if (fracRaw.length > decimals) {
         const extra = fracRaw.slice(decimals);
         if (!/^0*$/.test(extra)) {
-            throw new Error(
+            throw new ValidationError(
                 `decimalizedQty ${s} exceeds ${decimals} decimal places`,
             );
         }

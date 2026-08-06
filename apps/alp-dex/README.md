@@ -12,7 +12,7 @@ cp config.sample.json config.json
 pnpm print-addresses
 ```
 
-All runtime settings live in `config.json` (see SPEC). It is required at the
+All runtime settings live in `config.json` (see SPEC.md). It is required at the
 package root and is gitignored. The app exits on startup if it is missing.
 `config.sample.json` uses placeholders — set a valid BIP39 English mnemonic and
 fee address before the config will parse. The fee wallet should be off the
@@ -48,10 +48,10 @@ Must provide:
    inventory only.
 3. **Permissionless pairs** — operators copy `config.sample.json` →
    `config.json` and set which `tokenId` pairs to trade (no default
-   allowlist in-repo — see SPEC).
-4. **Postage-protocol settle (SPEC v1)** — taker builds and signs their side;
+   allowlist in-repo — see SPEC.md).
+4. **Postage-protocol settle (SPEC.md v1)** — taker builds and signs their side;
    the node adds XEC fuel + exact-size token UTXOs and broadcasts. Taker-pays
-   all fees is possible in principle but out of scope for SPEC v1.
+   all fees is possible in principle but out of scope for SPEC.md v1.
 5. **Coordinator-optional** — platform fee and listing are opt-in; a lone
    node is useful without any aggregator.
 
@@ -141,7 +141,7 @@ Docs-first, then implementation slices sized for review. Each later diff
 should ship tests a reviewer can run locally.
 
 1. **Docs [D20325](https://reviews.bitcoinabc.org/D20325)** — motivation,
-   trust model, end state, roadmap, SPEC (API + inventory + settle contract).
+   trust model, end state, roadmap, SPEC.md (API + inventory + settle contract).
 2. **Scaffold [D20354](https://reviews.bitcoinabc.org/D20354)** — TypeScript
    package under `apps/alp-dex`, mocha, Express stub (`GET /`,
    `GET /api/v1/status` health), TeamCity `alp-dex-tests`.
@@ -157,14 +157,16 @@ should ship tests a reviewer can run locally.
    `sync()` against mock Chronik.
 6. **Pricing [D20398](https://reviews.bitcoinabc.org/D20398)** — Seller+slush
    fungible atom reserves; bigint constant-product exact-in / exact-out + spot
-   (SPEC formulas); maker fee on top of the price leg. Pure unit tests (no
+   (SPEC.md formulas); maker fee on top of the price leg. Pure unit tests (no
    HTTP quote routes yet).
 7. **Inventory automation [D20421](https://reviews.bitcoinabc.org/D20421)** —
    Classify seller UTXOs; reshape wrong sizes via slush; fund inventory +
    create postage; misc → fee; run at startup and on a maintain interval;
    mocked-wallet tests.
-8. **Quote API** — Read-only routes: available, inventory, spot, size quotes,
-   settleable output templates (no broadcast).
+8. **Quote API [D20450](https://reviews.bitcoinabc.org/D20450)** — Read-only
+   routes: available, inventory, spot, size quotes, settleable output
+   templates (no broadcast). Status advertises seller / pairs / postage;
+   `platformFeeEnabled` stays false until coordinator opt-in.
 9. **Settle** — Parse/validate postage-ready ALP txs; settle queue; fuel +
    sign + broadcast (mocked Chronik/broadcast); ±1% CP band; maker fee
    schema.

@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ValidationError } from '../methods/errors';
+
 /** Minimal UTXO shape needed to sum fungible token atoms. */
 export type TokenUtxoLike = {
     token?: {
@@ -69,7 +71,7 @@ export const pairPricingReserves = (
     const normalizedFromTokenId = fromTokenId.toLowerCase();
     const normalizedToTokenId = toTokenId.toLowerCase();
     if (normalizedFromTokenId === normalizedToTokenId) {
-        throw new Error('Pair token ids must differ');
+        throw new ValidationError('Pair token ids must differ');
     }
     let reserveIn = 0n;
     let reserveOut = 0n;

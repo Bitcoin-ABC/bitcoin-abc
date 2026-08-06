@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ValidationError } from '../methods/errors';
+
 import { assertDecimals, atomsToDecimalizedQty } from '../methods/atoms';
 import { cpExactInAmountOut, cpExactOutAmountIn, makerFeeAtoms } from './cp';
 import type { PairReserves } from './reserves';
@@ -38,12 +40,12 @@ export const spotToPerWholeFrom = (
     assertDecimals(decimalsFrom);
     assertDecimals(decimalsTo);
     if (reserveFrom <= 0n) {
-        throw new Error(
+        throw new ValidationError(
             `spot requires positive from-reserve (got ${reserveFrom})`,
         );
     }
     if (reserveTo < 0n) {
-        throw new Error(
+        throw new ValidationError(
             `spot requires non-negative to-reserve (got ${reserveTo})`,
         );
     }

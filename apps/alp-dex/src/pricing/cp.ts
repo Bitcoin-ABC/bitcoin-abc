@@ -2,34 +2,42 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ValidationError } from '../methods/errors';
+
 /**
  * Constant-product AMM helpers (atom units, bigint floor/ceil).
  *
  * Exact-in:  amountOut = amountIn * reserveOut / (reserveIn + amountIn)
  * Exact-out: amountIn  = ceil(amountOut * reserveIn / (reserveOut - amountOut))
  *
- * Maker / platform fees are applied outside these helpers (see SPEC).
+ * Maker / platform fees are applied outside these helpers (see SPEC.md).
  */
 
 const assertPositiveAtoms = (value: bigint, label: string): void => {
     if (value <= 0n) {
-        throw new Error(`${label} must be positive (got ${value})`);
+        throw new ValidationError(`${label} must be positive (got ${value})`);
     }
 };
 
 const assertNonNegativeAtoms = (value: bigint, label: string): void => {
     if (value < 0n) {
-        throw new Error(`${label} must be non-negative (got ${value})`);
+        throw new ValidationError(
+            `${label} must be non-negative (got ${value})`,
+        );
     }
 };
 
 /** Ceil division for positive bigints: ceil(num / den). */
 export const ceilDiv = (num: bigint, den: bigint): bigint => {
     if (den <= 0n) {
-        throw new Error(`ceilDiv denominator must be positive (got ${den})`);
+        throw new ValidationError(
+            `ceilDiv denominator must be positive (got ${den})`,
+        );
     }
     if (num < 0n) {
-        throw new Error(`ceilDiv numerator must be non-negative (got ${num})`);
+        throw new ValidationError(
+            `ceilDiv numerator must be non-negative (got ${num})`,
+        );
     }
     return (num + den - 1n) / den;
 };
@@ -46,7 +54,7 @@ export const cpExactInAmountOut = (
     assertNonNegativeAtoms(reserveIn, 'reserveIn');
     assertNonNegativeAtoms(reserveOut, 'reserveOut');
     if (reserveIn === 0n || reserveOut === 0n) {
-        throw new Error('CP reserves must be positive for exact-in');
+        throw new ValidationError('CP reserves must be positive for exact-in');
     }
     return (amountIn * reserveOut) / (reserveIn + amountIn);
 };
@@ -64,10 +72,10 @@ export const cpExactOutAmountIn = (
     assertNonNegativeAtoms(reserveIn, 'reserveIn');
     assertNonNegativeAtoms(reserveOut, 'reserveOut');
     if (reserveIn === 0n || reserveOut === 0n) {
-        throw new Error('CP reserves must be positive for exact-out');
+        throw new ValidationError('CP reserves must be positive for exact-out');
     }
     if (amountOut >= reserveOut) {
-        throw new Error(
+        throw new ValidationError(
             `amountOut ${amountOut} must be less than reserveOut ${reserveOut}`,
         );
     }
@@ -84,7 +92,7 @@ export const makerFeeAtoms = (
 ): bigint => {
     assertNonNegativeAtoms(priceLegAtoms, 'priceLegAtoms');
     if (!Number.isFinite(feePct) || feePct < 0 || feePct > 1) {
-        throw new Error(`feePct must be in [0, 1] (got ${feePct})`);
+        throw new ValidationError(`feePct must be in [0, 1] (got ${feePct})`);
     }
     if (feePct === 0 || priceLegAtoms === 0n) {
         return 0n;

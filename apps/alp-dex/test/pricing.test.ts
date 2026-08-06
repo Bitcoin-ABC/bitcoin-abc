@@ -25,7 +25,7 @@ const TOKEN_A = 'aa'.repeat(32);
 const TOKEN_B = 'bb'.repeat(32);
 
 describe('pricing CP math', () => {
-    it('exact-in matches SPEC floor formula', () => {
+    it('exact-in matches SPEC.md floor formula', () => {
         // amountOut = 100 * 200 / (100 + 100) = 100
         assert.strictEqual(cpExactInAmountOut(100n, 100n, 200n), 100n);
         // 50 * 200 / (100 + 50) = 10000/150 = 66

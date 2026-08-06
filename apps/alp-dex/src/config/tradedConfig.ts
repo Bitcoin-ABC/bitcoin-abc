@@ -4,6 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { ValidationError } from '../methods/errors';
 import { assertTokenId } from '../methods/tokenId';
 import { assertEcashAddress, resolveLpAddresses } from '../wallet/accounts';
 import { assertBip39Mnemonic, MNEMONIC_PLACEHOLDER } from './mnemonic';
@@ -308,7 +309,7 @@ export const assertTokenIdInConfig = (
 ): string => {
     const id = assertTokenId(tokenId);
     if (!config.utxoQtyByToken.has(id)) {
-        throw new Error(`Token ${id} is not in traded config`);
+        throw new ValidationError(`Token ${id} is not in traded config`);
     }
     return id;
 };

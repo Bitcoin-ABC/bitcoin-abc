@@ -172,10 +172,15 @@ Concurrency note: a process-local settle queue avoids double-spending the
 same seller UTXOs; it is **not** an on-chain reservation. Concurrent quotes
 can still race.
 
-## HTTP API (planned)
+## HTTP API
 
 Listen port from `config.json` `port` (sample default **3003**).
-CORS open for browser takers. Rate-limited.
+CORS open for browser takers. Rate limiting lands with deploy ops.
+
+**Implemented (quote API):** `GET /`, `GET /api/v1/status`, available,
+inventory, spot, amm discovery, exact-in/out templates, and settleable
+`?from|to&feePct` templates. **Still planned:** `POST` settle, DB audit,
+coordinator platform-fee fields beyond `platformFeeEnabled: false`.
 
 | Method | Path                                     | Purpose                                              |
 | ------ | ---------------------------------------- | ---------------------------------------------------- |

@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ValidationError } from './errors';
+
 /** 64-char hex ALP token ID */
 const TOKEN_ID_RE = /^[0-9a-f]{64}$/i;
 
@@ -19,7 +21,7 @@ export const isTokenId = (value: string): boolean => {
 export const assertTokenId = (value: string): string => {
     const trimmed = value.trim().toLowerCase();
     if (!isTokenId(trimmed)) {
-        throw new Error(
+        throw new ValidationError(
             `Invalid tokenId "${value}": expected 64-character hex ALP token id`,
         );
     }
@@ -37,7 +39,7 @@ export const assertDistinctTokenPair = (
     const from = assertTokenId(fromTokenId);
     const to = assertTokenId(toTokenId);
     if (from === to) {
-        throw new Error('fromTokenId and toTokenId must differ');
+        throw new ValidationError('fromTokenId and toTokenId must differ');
     }
     return { fromTokenId: from, toTokenId: to };
 };

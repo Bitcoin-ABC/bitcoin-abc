@@ -66,7 +66,13 @@ const main = async (): Promise<void> => {
 
     // Listen before inventory maintain so a Chronik/broadcast failure does not
     // prevent health / status from coming up (maintain is housekeeping).
-    const app = createApp();
+    const app = createApp({
+        seller,
+        slush,
+        feeAddress: tradedConfig.feeAddress,
+        tradedConfig,
+        tradedTokens,
+    });
     await new Promise<void>((resolve, reject) => {
         const server = app.listen(tradedConfig.port, () => {
             console.log(
