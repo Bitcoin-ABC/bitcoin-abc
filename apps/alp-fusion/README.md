@@ -91,7 +91,9 @@ fuses ALP without burning tokens.
    in-process pool match → collect contributions → shuffle outs →
    `assembleAlpSend`; unit tests. No network, signing, broadcast, or Tor yet
    (those follow).
-5. **Continuous client + deploy notes** — keep pools warm (CashFusion parity).
+5. **Continuous client + deploy notes** — `runFuseLoop` / `ContinuousClient`
+   (Electrum-ABC-style rejoin delays) + [DEPLOY.md](./DEPLOY.md) ops target.
+   Network / Chronik / signing still follow.
 6. **Covert channel + Tor (or equivalent)** — network unlinkability.
 7. **Shared client library** — drop CLI-only assumptions.
 8. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;

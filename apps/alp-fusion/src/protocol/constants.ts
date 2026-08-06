@@ -66,3 +66,16 @@ export const ALP_MAX_OUTPUTS = 29;
  * keep `2` only as an explicit test / debug override on `PoolMatcher`.
  */
 export const DEFAULT_MIN_PLAYERS = 8;
+
+/**
+ * Delays for the continuous fuse loop (Electrum-ABC-style daemon client).
+ * Used by `runFuseLoop` / `ContinuousClient`.
+ */
+export const FUSE_LOOP = {
+    /** Pause after a successful round before rejoining. */
+    successDelayMs: 5_000,
+    /** Pause after a failed round / connection error. */
+    failureDelayMs: 15_000,
+    /** Pause when there is nothing fuseable (no tokens / no tiers). */
+    idleDelayMs: 30_000,
+};
