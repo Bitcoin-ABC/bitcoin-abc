@@ -5,7 +5,8 @@ packages:
     - 'modules/**/*'
 overrides:
     'tar': '>=7.5.19'
-    '@vercel/node>undici@<6.24.0': '>=6.25.0'
+    'undici@>=5.0.0 <6.28.0': '6.28.0'
+    'undici@>=7.0.0 <7.29.0': '7.29.0'
     '@vercel/python-analysis>minimatch@<10.2.3': '>=10.2.5'
     '@vercel/backends>path-to-regexp@<8.4.0': '>=8.4.2'
     '@vercel/fun>path-to-regexp@<8.4.0': '>=8.4.2'
