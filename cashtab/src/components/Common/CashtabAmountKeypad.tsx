@@ -6,6 +6,23 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { getDecimalSeparator } from 'formatting';
+import {
+    AmountKeypadScrollMarginRestore,
+    CASHTAB_AMOUNT_KEYPAD_OFFSET_PX,
+    CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR,
+    CASHTAB_FIXED_CTA_OFFSET_VAR,
+    CASHTAB_MOBILE_FOOTER_OFFSET_PX,
+    getMobileFooterOffsetPx,
+    measureFixedCtaOffsetPx,
+    scrollFocusedAmountFieldAboveKeypad,
+} from './cashtabAmountKeypadScroll';
+
+export {
+    CASHTAB_AMOUNT_KEYPAD_OFFSET_PX,
+    CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR,
+    CASHTAB_FIXED_CTA_ATTR,
+    CASHTAB_FIXED_CTA_OFFSET_VAR,
+} from './cashtabAmountKeypadScroll';
 
 export interface CashtabAmountKeypadProps {
     userLocale: string;
@@ -16,40 +33,23 @@ export interface CashtabAmountKeypadProps {
 }
 
 /**
- * Dock height used for scroll clearance while the keypad is open.
- * Keep in sync with KeypadDock padding + 4×52px keys + 3×8px gaps.
- */
-export const CASHTAB_AMOUNT_KEYPAD_OFFSET_PX = 255;
-
-export const CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR =
-    '--cashtab-amount-keypad-offset';
-
-/**
- * Optional extra bottom inset (e.g. fixed Send CTA height) so the keypad
- * sits above page actions instead of covering them. Set by the host screen.
- */
-export const CASHTAB_FIXED_CTA_OFFSET_VAR = '--cashtab-fixed-cta-offset';
-
-/**
  * Fixed dock above the Cashtab footer (70px) and any fixed CTA
  * (--cashtab-fixed-cta-offset). Portaled to document.body so parent
  * overflow/max-height (e.g. Send InputModesHolder) cannot clip keys.
+ * Bottom is also set inline from a live CTA measurement so iOS Chrome
+ * cannot leave the dock covering the Send button when the CSS var is stale.
  */
-const KeypadDock = styled.div`
+const KeypadDock = styled.div<{ $bottomPx: number }>`
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(70px + var(--cashtab-fixed-cta-offset, 0px));
+    bottom: ${props => props.$bottomPx}px;
     z-index: 200;
     padding: 10px 16px 12px;
     background: ${props => props.theme.primaryBackground};
     border-top: 1px solid ${props => props.theme.border};
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
     box-sizing: border-box;
-
-    @media (min-width: 769px) {
-        bottom: var(--cashtab-fixed-cta-offset, 0px);
-    }
 `;
 
 const KeypadShell = styled.div`
@@ -162,14 +162,54 @@ const CashtabAmountKeypad: React.FC<CashtabAmountKeypadProps> = ({
     className = '',
 }) => {
     const [pressedKey, setPressedKey] = useState<string | null>(null);
+    const [dockBottomPx, setDockBottomPx] = useState(
+        CASHTAB_MOBILE_FOOTER_OFFSET_PX,
+    );
     const decimalLabel = getDecimalSeparator(userLocale);
 
     useEffect(() => {
-        document.documentElement.style.setProperty(
-            CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR,
-            `${CASHTAB_AMOUNT_KEYPAD_OFFSET_PX}px`,
-        );
+        let scrollMarginRestore: AmountKeypadScrollMarginRestore | null = null;
+
+        const syncDockAndScroll = () => {
+            const ctaOffset = measureFixedCtaOffsetPx(document);
+            if (ctaOffset > 0) {
+                document.documentElement.style.setProperty(
+                    CASHTAB_FIXED_CTA_OFFSET_VAR,
+                    `${ctaOffset}px`,
+                );
+            }
+            const footerOffset = getMobileFooterOffsetPx();
+            setDockBottomPx(footerOffset + ctaOffset);
+
+            document.documentElement.style.setProperty(
+                CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR,
+                `${CASHTAB_AMOUNT_KEYPAD_OFFSET_PX}px`,
+            );
+
+            // After CSS vars + Send padding-bottom reflow, keep the focused
+            // amount field above this dock (custom keypad ≠ OS keyboard).
+            // Reuse the first restore so later rAF passes do not capture the
+            // keypad clearance as the "previous" inline margin.
+            const restore = scrollFocusedAmountFieldAboveKeypad(
+                document,
+                scrollMarginRestore,
+            );
+            if (restore) {
+                scrollMarginRestore = restore;
+            }
+        };
+
+        syncDockAndScroll();
+        let raf2 = 0;
+        const raf1 = window.requestAnimationFrame(() => {
+            syncDockAndScroll();
+            raf2 = window.requestAnimationFrame(syncDockAndScroll);
+        });
+
         return () => {
+            window.cancelAnimationFrame(raf1);
+            window.cancelAnimationFrame(raf2);
+            scrollMarginRestore?.();
             document.documentElement.style.removeProperty(
                 CASHTAB_AMOUNT_KEYPAD_OFFSET_VAR,
             );
@@ -202,7 +242,7 @@ const CashtabAmountKeypad: React.FC<CashtabAmountKeypadProps> = ({
     );
 
     const keypad = (
-        <KeypadDock className={className}>
+        <KeypadDock className={className} $bottomPx={dockBottomPx}>
             <KeypadShell
                 data-cashtab-amount-keypad
                 role="group"

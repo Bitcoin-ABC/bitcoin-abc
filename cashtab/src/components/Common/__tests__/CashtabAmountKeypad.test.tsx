@@ -89,6 +89,53 @@ describe('<CashtabAmountKeypad />', () => {
         ).toBeInTheDocument();
     });
 
+    it('publishes keypad offset and scrolls the focused amount input', () => {
+        const input = document.createElement('input');
+        document.body.appendChild(input);
+        input.focus();
+        const scrollIntoView = jest.fn();
+        input.scrollIntoView = scrollIntoView;
+
+        const { unmount } = renderKeypad();
+
+        expect(
+            document.documentElement.style.getPropertyValue(
+                '--cashtab-amount-keypad-offset',
+            ),
+        ).toBe('255px');
+        expect(scrollIntoView).toHaveBeenCalled();
+        expect(input.style.scrollMarginBottom).not.toBe('');
+
+        unmount();
+        expect(input.style.scrollMarginBottom).toBe('');
+        expect(
+            document.documentElement.style.getPropertyValue(
+                '--cashtab-amount-keypad-offset',
+            ),
+        ).toBe('');
+
+        input.remove();
+    });
+
+    it('docks above a marked fixed CTA instead of covering it', () => {
+        const cta = document.createElement('div');
+        cta.setAttribute('data-cashtab-fixed-cta', '');
+        Object.defineProperty(cta, 'offsetHeight', {
+            configurable: true,
+            value: 72,
+        });
+        document.body.appendChild(cta);
+
+        renderKeypad();
+
+        const dock = screen.getByRole('group', {
+            name: 'Amount keypad',
+        }).parentElement;
+        expect(dock).toHaveStyle({ bottom: '142px' }); // 70 footer + 72 CTA
+
+        cta.remove();
+    });
+
     it('prevents mousedown default so parent inputs keep focus', () => {
         renderKeypad();
 

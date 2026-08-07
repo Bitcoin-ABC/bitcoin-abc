@@ -68,7 +68,10 @@ const fadeInUp = keyframes`
 // Time in MS it takes for the extension or webapp tx modal to close
 export const SUCCESS_MODAL_DURATION_MS = 2100;
 
-export const SendButtonContainer = styled.div`
+export const SendButtonContainer = styled.div.attrs({
+    // Measured by CashtabAmountKeypad so the dock sits above this CTA.
+    'data-cashtab-fixed-cta': '',
+})`
     position: sticky;
     bottom: 0;
     left: 0;
