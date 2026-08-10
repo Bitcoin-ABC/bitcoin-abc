@@ -32,13 +32,15 @@ use itertools::izip;
 use karyon_jsonrpc::{
     client::ClientBuilder,
     error::RPCError,
-    message,
-    net::{Addr, Endpoint},
-    rpc_impl, rpc_method, rpc_pubsub_impl,
+    message, rpc_impl, rpc_method, rpc_pubsub_impl,
     server::{
         channel::{Channel, NewNotification},
         ServerBuilder,
     },
+};
+use karyon_net::{
+    tls::{ClientTlsConfig, ServerTlsConfig},
+    Addr, Endpoint,
 };
 use rustls::{
     pki_types::{
@@ -274,11 +276,33 @@ impl ChronikElectrumServer {
                             Endpoint::Tls(Addr::Ip(host.ip()), host.port())
                         }
                         ChronikElectrumProtocol::Ws => {
-                            Endpoint::Ws(Addr::Ip(host.ip()), host.port())
+                            // Prefer constructing via URL: Ws/Wss take Url in
+                            // karyon_net 1.0. Bracket IPv6 for a valid URL.
+                            let url = match host.ip() {
+                                IpAddr::V4(ip) => {
+                                    format!("ws://{}:{}", ip, host.port())
+                                }
+                                IpAddr::V6(ip) => {
+                                    format!("ws://[{}]:{}", ip, host.port())
+                                }
+                            };
+                            url.parse::<Endpoint>().map_err(|err| {
+                                FailedBindingAddress(host, err.to_string())
+                            })?
                         }
                         ChronikElectrumProtocol::Wss => {
                             require_tls_config = true;
-                            Endpoint::Wss(Addr::Ip(host.ip()), host.port())
+                            let url = match host.ip() {
+                                IpAddr::V4(ip) => {
+                                    format!("wss://{}:{}", ip, host.port())
+                                }
+                                IpAddr::V6(ip) => {
+                                    format!("wss://[{}]:{}", ip, host.port())
+                                }
+                            };
+                            url.parse::<Endpoint>().map_err(|err| {
+                                FailedBindingAddress(host, err.to_string())
+                            })?
                         }
                     };
 
@@ -286,9 +310,8 @@ impl ChronikElectrumServer {
                         endpoint,
                         ElectrumCodec {},
                     )
-                    .map_err(|err| {
-                        FailedBindingAddress(host, err.to_string())
-                    })?;
+                    .map_err(|err| FailedBindingAddress(host, err.to_string()))?
+                    .with_ws_codec(ElectrumCodec {});
 
                     if require_tls_config {
                         if tls_cert_path.is_empty() {
@@ -325,8 +348,11 @@ impl ChronikElectrumServer {
                             .map_err(|err| {
                                 InvalidTlsConfiguration(err.to_string())
                             })?;
-                        builder =
-                            builder.tls_config(tls_config).map_err(|err| {
+                        builder = builder
+                            .tls_config(ServerTlsConfig {
+                                server_config: tls_config,
+                            })
+                            .map_err(|err| {
                                 TlsConfigurationFailed(err.to_string())
                             })?;
                     }
@@ -515,7 +541,10 @@ impl ChronikElectrumRPCServerEndpoint {
                                 .with_root_certificates(root_store)
                                 .with_no_client_auth();
                             let Ok(client) =
-                                client.tls_config(tls_config, &peer.url)
+                                client.tls_config(ClientTlsConfig {
+                                    client_config: tls_config,
+                                    dns_name: peer.url.clone(),
+                                })
                             else {
                                 return false;
                             };
