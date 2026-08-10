@@ -11,8 +11,9 @@ This document is the ops target for that model.
 | Piece                                                          | Status                                                   |
 | -------------------------------------------------------------- | -------------------------------------------------------- |
 | Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430)) |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | This slice — unit-tested; inject `runOnce`               |
-| TCP/TLS coordinator + client wire protocol                     | Not yet                                                  |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449)) |
+| Framed TCP/TLS control channel (`FusionConnection`)            | This slice — framing only; no RPCs yet                   |
+| Coordinator + client wire protocol (protobuf / round messages) | Not yet                                                  |
 | Chronik sync / signing / broadcast                             | Not yet                                                  |
 | Covert channel + Tor                                           | Later roadmap                                            |
 

@@ -91,11 +91,14 @@ fuses ALP without burning tokens.
    in-process pool match → collect contributions → shuffle outs →
    `assembleAlpSend`; unit tests. No network, signing, broadcast, or Tor yet
    (those follow).
-5. **Continuous client + deploy notes** — `runFuseLoop` / `ContinuousClient`
-   (Electrum-ABC-style rejoin delays) + [DEPLOY.md](./DEPLOY.md) ops target.
-   Network / Chronik / signing still follow.
-6. **Covert channel + Tor (or equivalent)** — network unlinkability.
-7. **Shared client library** — drop CLI-only assumptions.
-8. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
+5. **Continuous client + deploy notes [D20449](https://reviews.bitcoinabc.org/D20449)** —
+   `runFuseLoop` / `ContinuousClient` (Electrum-ABC-style rejoin delays) +
+   [DEPLOY.md](./DEPLOY.md) ops target.
+6. **Control-channel TCP/TLS framing** — CashFusion-shaped framed sockets
+   (`FusionConnection`, `connect` / `listen`); no protobuf RPCs, covert/Tor,
+   Chronik, or signing yet.
+7. **Covert channel + Tor (or equivalent)** — network unlinkability.
+8. **Shared client library** — drop CLI-only assumptions.
+9. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
    opportunistic background where the OS allows.
-9. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.
+10. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.

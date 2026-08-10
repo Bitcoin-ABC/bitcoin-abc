@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { strToBytes } from 'ecash-lib';
+import { fromHex, strToBytes } from 'ecash-lib';
 
 export { CURVE_ORDER } from 'ecash-lib';
 
@@ -79,3 +79,24 @@ export const FUSE_LOOP = {
     /** Pause when there is nothing fuseable (no tokens / no tiers). */
     idleDelayMs: 30_000,
 };
+
+/**
+ * Electrum CashFusion TCP frame magic (`fusion.py` / protocol framing).
+ * Wire: 8 magic bytes + uint32 BE length + payload.
+ */
+export const FRAME_MAGIC = fromHex('765be8b4e4396dcf');
+
+/** Reject framed payloads larger than this (DoS guard). */
+export const MAX_FRAME_PAYLOAD_BYTES = 200 * 1024;
+
+/**
+ * Cap on buffered unread bytes per connection (header + two max frames).
+ * Exceeding this closes the socket — simpler than pause/resume backpressure.
+ */
+export const MAX_RECV_BUFFER_BYTES = 12 + 2 * MAX_FRAME_PAYLOAD_BYTES;
+
+/**
+ * TLS handshake deadline for `listen({ ssl: true })` (`tls.Server`
+ * `handshakeTimeout`). Plain TCP ignores this — framing starts on accept.
+ */
+export const HANDSHAKE_TIMEOUT_MS = 30_000;
