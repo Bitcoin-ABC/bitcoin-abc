@@ -29,6 +29,15 @@ use crate::{
     server::{ChronikIndexerRef, ChronikSettings},
 };
 
+/// Consensus maximum script size in bytes.
+/// Keep in sync with C++ `MAX_SCRIPT_SIZE`.
+pub const MAX_SCRIPT_SIZE: usize = 10_000;
+
+/// Maximum client WebSocket message size in bytes.
+/// Set to twice the maximum script size to allow for a max-size `other` script
+/// protobuf overhead.
+pub const MAX_WS_MESSAGE_SIZE: usize = 2 * MAX_SCRIPT_SIZE;
+
 /// Errors for [`ChronikServer`].
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum ChronikWsError {

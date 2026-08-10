@@ -232,7 +232,7 @@ class ChronikWs:
         self.is_open = True
 
     def on_close(self, ws, close_status_code, close_message):
-        pass
+        self.is_open = False
 
     def on_ping(self, ws, message):
         pass

@@ -13,6 +13,8 @@ from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+# Keep in sync with chronik-http MAX_REQUEST_BODY_SIZE (2 * MAX_TX_SIZE).
+MAX_REQUEST_BODY_SIZE = 2_000_000
 
 
 class ChronikBroadcastTx(BitcoinTestFramework):
@@ -43,6 +45,14 @@ class ChronikBroadcastTx(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+
+        # Oversized protobuf POST is rejected before broadcast/validation.
+        # BroadcastTxRequest adds a few framing bytes, so raw_tx of
+        # MAX_REQUEST_BODY_SIZE + 1 is safely over the limit.
+        assert_equal(
+            chronik.broadcast_tx(bytes(MAX_REQUEST_BODY_SIZE + 1)).err(413).msg,
+            f"413: Request body exceeds maximum size of {MAX_REQUEST_BODY_SIZE} bytes",
+        )
 
         now = int(time.time())
         node.setmocktime(now)

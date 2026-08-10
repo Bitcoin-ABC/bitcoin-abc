@@ -33,6 +33,9 @@ from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
 
+# Keep in sync with chronik-http MAX_WS_MESSAGE_SIZE (2 * MAX_SCRIPT_SIZE).
+MAX_WS_MESSAGE_SIZE = 2 * 10_000
+
 
 class ChronikWsTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -62,6 +65,15 @@ class ChronikWsTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+
+        # Oversized client WS messages are rejected (connection closed).
+        ws_oversized = chronik.ws()
+        ws_oversized.send_bytes(bytes(MAX_WS_MESSAGE_SIZE + 1))
+        self.wait_until(lambda: not ws_oversized.is_open)
+        # Connection is already closed; ignore leftover close errors.
+        ws_oversized.errors.clear()
+        # This should be a no-op at this point
+        ws_oversized.close()
 
         now = int(time.time())
         node.setmocktime(now)

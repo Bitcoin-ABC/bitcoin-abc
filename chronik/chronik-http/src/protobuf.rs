@@ -7,17 +7,30 @@
 use abc_rust_error::Report;
 use async_trait::async_trait;
 use axum::{
-    body::Body,
-    extract::FromRequest,
+    body::{Body, Bytes},
+    extract::{
+        rejection::{BytesRejection, FailedToBufferBody},
+        FromRequest,
+    },
     http::{HeaderValue, Request},
     response::{IntoResponse, Response},
 };
-use http_body_util::BodyExt;
 use hyper::header::CONTENT_TYPE;
 use prost::Message;
 use thiserror::Error;
 
 use crate::{error::ReportError, validation::check_content_type};
+
+/// Consensus maximum transaction size in bytes.
+/// Keep in sync with C++ `MAX_TX_SIZE`.
+pub const MAX_TX_SIZE: usize = 1_000_000;
+
+/// Maximum HTTP request body size for Chronik protobuf POSTs.
+/// This is set to twice the maximum transaction size to allow for a full-sized
+/// transaction to fit and several standard-sized transactions.
+/// Note: at the time of writing this is mostly the same as Axum's default
+/// (2 MiB), but it's better to have the limit explicit.
+pub const MAX_REQUEST_BODY_SIZE: usize = 2 * MAX_TX_SIZE;
 
 /// Struct for en-/decoding a specific protobuf message `P`:
 ///
@@ -61,6 +74,13 @@ pub enum ChronikProtobufError {
     /// Couldn't decode request body as protobuf
     #[error("400: Bad protobuf: {0}")]
     BadProtobuf(String),
+
+    /// Request body exceeds [`MAX_REQUEST_BODY_SIZE`]
+    #[error(
+        "413: Request body exceeds maximum size of {MAX_REQUEST_BODY_SIZE} \
+         bytes"
+    )]
+    BodyTooLarge,
 }
 
 use self::ChronikProtobufError::*;
@@ -71,16 +91,20 @@ impl<P: Message + Default, S: Send + Sync> FromRequest<S> for Protobuf<P> {
 
     async fn from_request(
         req: Request<Body>,
-        _: &S,
+        state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let headers = req.headers();
-        check_content_type(headers, CONTENT_TYPE_PROTOBUF)?;
-        let mut body_bytes = req
-            .into_body()
-            .collect()
-            .await
-            .map_err(|err| Report::from(InvalidBody(err.to_string())))?
-            .to_bytes();
+        check_content_type(req.headers(), CONTENT_TYPE_PROTOBUF)?;
+        // Use Bytes so DefaultBodyLimit / into_limited_body applies. A raw
+        // Body::collect bypasses Axum's request size limit.
+        let mut body_bytes =
+            Bytes::from_request(req, state)
+                .await
+                .map_err(|err| match err {
+                    BytesRejection::FailedToBufferBody(
+                        FailedToBufferBody::LengthLimitError(_),
+                    ) => Report::from(BodyTooLarge),
+                    err => Report::from(InvalidBody(err.to_string())),
+                })?;
         let proto = P::decode(&mut body_bytes)
             .map_err(|err| Report::from(BadProtobuf(err.to_string())))?;
         Ok(Protobuf(proto))
@@ -103,7 +127,7 @@ impl<P: Message + Default> IntoResponse for Protobuf<P> {
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
-    use axum::{body::Body, routing::get, Router};
+    use axum::{body::Body, extract::DefaultBodyLimit, routing::get, Router};
     use chronik_proto::proto;
     use http_body_util::BodyExt;
     use hyper::{header::CONTENT_TYPE, Request, StatusCode};
@@ -111,7 +135,9 @@ mod tests {
     use thiserror::Error;
     use tower_service::Service;
 
-    use crate::protobuf::{Protobuf, CONTENT_TYPE_PROTOBUF};
+    use crate::protobuf::{
+        Protobuf, CONTENT_TYPE_PROTOBUF, MAX_REQUEST_BODY_SIZE,
+    };
 
     #[tokio::test]
     async fn test_protobuf() -> Result<()> {
@@ -134,8 +160,9 @@ mod tests {
             })
         }
 
-        let mut router =
-            Router::<()>::new().route("/", get(handle_protobuf_response));
+        let mut router = Router::<()>::new()
+            .route("/", get(handle_protobuf_response))
+            .layer(DefaultBodyLimit::max(MAX_REQUEST_BODY_SIZE));
 
         // No Content-Type
         let response =
@@ -205,11 +232,11 @@ mod tests {
             .await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
         let body = response.into_body().collect().await?.to_bytes();
-        assert_eq!(
-            proto::Error::decode(body)?,
-            proto::Error {
-                msg: "400: Invalid body: Test bad body error".to_string(),
-            },
+        let proto_error = proto::Error::decode(body)?;
+        assert!(
+            proto_error.msg.starts_with("400: Invalid body:"),
+            "unexpected error: {}",
+            proto_error.msg,
         );
 
         // Bad protobuf
@@ -228,6 +255,26 @@ mod tests {
                 msg: "400: Bad protobuf: failed to decode Protobuf message: \
                       invalid varint"
                     .to_string(),
+            },
+        );
+
+        // Oversized body
+        let response = router
+            .call(
+                Request::builder()
+                    .header(CONTENT_TYPE, CONTENT_TYPE_PROTOBUF)
+                    .body(Body::from(vec![0u8; MAX_REQUEST_BODY_SIZE + 1]))?,
+            )
+            .await?;
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let body = response.into_body().collect().await?.to_bytes();
+        assert_eq!(
+            proto::Error::decode(body)?,
+            proto::Error {
+                msg: format!(
+                    "413: Request body exceeds maximum size of {} bytes",
+                    MAX_REQUEST_BODY_SIZE,
+                ),
             },
         );
 

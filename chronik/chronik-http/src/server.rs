@@ -10,7 +10,7 @@ use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
 use axum::{
-    extract::{Path, Query, WebSocketUpgrade},
+    extract::{DefaultBodyLimit, Path, Query, WebSocketUpgrade},
     response::IntoResponse,
     routing::{self, MethodFilter},
     Extension, Router,
@@ -28,8 +28,10 @@ use tokio::sync::RwLock;
 use tower_http::cors::{AllowMethods, AllowOrigin, CorsLayer};
 
 use crate::{
-    error::ReportError, handlers, protobuf::Protobuf,
-    ws::handle_subscribe_socket,
+    error::ReportError,
+    handlers,
+    protobuf::{Protobuf, MAX_REQUEST_BODY_SIZE},
+    ws::{handle_subscribe_socket, MAX_WS_MESSAGE_SIZE},
 };
 
 /// Ref-counted indexer with read or write access
@@ -269,7 +271,8 @@ impl ChronikServer {
             .layer(Extension(indexer))
             .layer(Extension(node))
             .layer(Extension(pause_notify))
-            .layer(Extension(settings));
+            .layer(Extension(settings))
+            .layer(DefaultBodyLimit::max(MAX_REQUEST_BODY_SIZE));
         if enable_cors {
             router = router.layer(
                 CorsLayer::new()
@@ -819,7 +822,9 @@ async fn handle_ws(
     Extension(indexer): Extension<ChronikIndexerRef>,
     Extension(settings): Extension<ChronikSettings>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(|ws| handle_subscribe_socket(ws, indexer, settings))
+    ws.max_message_size(MAX_WS_MESSAGE_SIZE)
+        .max_frame_size(MAX_WS_MESSAGE_SIZE)
+        .on_upgrade(|ws| handle_subscribe_socket(ws, indexer, settings))
 }
 
 async fn handle_post_options(
