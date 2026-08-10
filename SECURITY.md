@@ -69,16 +69,26 @@ Neighboring projects that may be affected by bugs, potential exploits, or other 
   * [Security Contact(s)](https://z.cash/support/security/)
   * [Disclosure Policy](https://github.com/zcash/zcash/blob/master/responsible_disclosure.md)
 
-## Bounty Payments
-
-Bitcoin ABC cannot commit to bounty payments ahead of time.  However, we will use our best judgement and do intend on rewarding those who provide valuable disclosures (with a strong emphasis on easy to read and reproduce disclosures).
-
 ## Deviations from the Standard
 
 While Bitcoin ABC believes that strong cohesion among neighboring projects and ethical behavior can be standardized to reduce poorly handled disclosure incidents, we also believe that it's in the best interest of eCash for us to deviate from the standard in the following ways:
 
 * The standard calls for coordinated releases. While Bitcoin ABC will make attempts to coordinate releases when possible, it's not always feasible to coordinate urgent fixes for catastrophic exploits (ie. chain splitting events).  For critical fixes, Bitcoin ABC will release them in the next release when possible.
 
-## Making changes to this disclosure
+## Bounty Payments
 
-Note that any changes to this disclosure should be mirrored in a pull request to the [bitcoinabc.org repo](https://github.com/Bitcoin-ABC/bitcoinabc.org).
+Bitcoin ABC cannot commit to bounty payments ahead of time.  However, we will use our best judgement and do intend on rewarding those who provide valuable disclosures (with a strong emphasis on easy to read and reproduce disclosures).
+
+Please note that reports for website, email, social engineering or other domains not directly related to the software will not be eligible for bounty unless it can be demonstrated that users are at direct and immediate risk.
+
+### AI disclosures
+
+With the progress of AI capabilities, we expect to see more automated reports from AI investigations and/or tooling.
+This may lead to more bugs being discovered, but unfortunately also to more false positive reports.
+Evaluating false positive reports is a costly operation as a proper security review implies that a knowledgeable developer spends time investigating the reports.
+
+As a consequence, the following rules are applicable to AI reports:
+ - False positive reports may not receive any response from the Bitcoin ABC team
+ - False positive reports may reduce or eliminate any bug bounty the reporter might be eligible to receive
+
+This policy applies to reports that are obviously AI-generated according to Bitcoin ABC's judgment.
