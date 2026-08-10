@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -51,7 +51,6 @@ import {
 import { previewAddress } from 'helpers';
 import { sortWalletsForDisplay } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
-import debounce from 'lodash.debounce';
 import {
     SettingsPageHeaderLink,
     BackIcon,
@@ -133,6 +132,10 @@ const Wallets = () => {
         string | null
     >(null);
     const [searchParams] = useSearchParams();
+    // Guard double-clicks / overlapping activates. Do not debounce in render:
+    // lodash.debounce created per render leaks timers across unmount and can
+    // activate a wallet after a later delete (flaky cashtab-tests).
+    const activateWalletInFlight = useRef(false);
 
     // Check for address sharing URL parameter on component mount
     useEffect(() => {
@@ -593,6 +596,13 @@ const Wallets = () => {
     };
 
     const activateWallet = async (walletToActivate: StoredCashtabWallet) => {
+        if (activateWalletInFlight.current) {
+            return;
+        }
+        if (walletToActivate.address === activeStoredWallet.address) {
+            return;
+        }
+        activateWalletInFlight.current = true;
         setLoading(true);
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
@@ -608,6 +618,7 @@ const Wallets = () => {
             console.error('Error activating wallet:', error);
             toast.error('Failed to activate wallet. Please try again.');
         } finally {
+            activateWalletInFlight.current = false;
             setLoading(false);
         }
     };
@@ -851,13 +862,8 @@ const Wallets = () => {
                                             onClick={
                                                 isActive
                                                     ? undefined
-                                                    : debounce(
-                                                          () =>
-                                                              activateWallet(
-                                                                  wallet,
-                                                              ),
-                                                          500,
-                                                      )
+                                                    : () =>
+                                                          activateWallet(wallet)
                                             }
                                             disabled={isActive}
                                         >
