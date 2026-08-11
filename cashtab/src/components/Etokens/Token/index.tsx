@@ -2520,6 +2520,16 @@ const Token: React.FC = () => {
                                 isListingFirmaBelowBid =
                                     actualPriceNumber < firmaBidPrice;
                             }
+                            // With bid spread, received XEC is not $1 per FIRMA
+                            const firmaRedeemReceiveXec = isRedeemingFirma
+                                ? toXec(
+                                      Number(
+                                          previewedAgoraPartial.askedSats(
+                                              previewedAgoraPartial.offeredAtoms(),
+                                          ),
+                                      ),
+                                  )
+                                : 0;
                             return (
                                 <Modal
                                     title={
@@ -2565,13 +2575,7 @@ const Token: React.FC = () => {
                                                         You receive:{' '}
                                                     </AgoraPreviewLabel>
                                                     <AgoraPreviewCol>
-                                                        {toXec(
-                                                            Number(
-                                                                previewedAgoraPartial.askedSats(
-                                                                    previewedAgoraPartial.offeredAtoms(),
-                                                                ),
-                                                            ),
-                                                        ).toLocaleString(
+                                                        {firmaRedeemReceiveXec.toLocaleString(
                                                             userLocale,
                                                             {
                                                                 minimumFractionDigits: 2,
@@ -2579,6 +2583,14 @@ const Token: React.FC = () => {
                                                             },
                                                         )}{' '}
                                                         XEC
+                                                        {fiatPrice !== null
+                                                            ? ` (${getFormattedFiatPrice(
+                                                                  settings.fiatCurrency,
+                                                                  userLocale,
+                                                                  firmaRedeemReceiveXec,
+                                                                  fiatPrice,
+                                                              )})`
+                                                            : ''}
                                                     </AgoraPreviewCol>
                                                 </AgoraPreviewRow>
                                                 <AgoraPreviewRow>

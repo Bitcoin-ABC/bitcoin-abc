@@ -2372,7 +2372,7 @@ describe('<Token /> available actions rendered', () => {
             ),
         ).not.toBeInTheDocument();
     });
-    it('We can redeem 1 Firma for $1 of XEC using a workflow unique to Firma', async () => {
+    it('We can redeem Firma for XEC using a workflow unique to Firma', async () => {
         // Mock Math.random()
         jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
 
@@ -2510,9 +2510,12 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.getByText(actualPricePerTokenForMinBuy),
         ).toBeInTheDocument();
-        // We see the full receive XEC amount
+        // We see the full receive XEC amount and its fiat value (bid spread
+        // means this is not assumed to be $1 of XEC per FIRMA)
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
+        expect(
+            screen.getByText('400,000.01 XEC ($12.00 USD)'),
+        ).toBeInTheDocument();
 
         // We can cancel and not create this listing
         await userEvent.click(screen.getByText('Cancel'));
@@ -2648,9 +2651,11 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.getByText(actualPricePerTokenForMinBuy),
         ).toBeInTheDocument();
-        // We see the full receive XEC amount
+        // We see the full receive XEC amount and its fiat value
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
+        expect(
+            screen.getByText('400,000.01 XEC ($12.00 USD)'),
+        ).toBeInTheDocument();
 
         // We see an alert as the hot wallet cannot cover this redemption
         expect(
