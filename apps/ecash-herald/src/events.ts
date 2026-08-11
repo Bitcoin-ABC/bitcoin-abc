@@ -25,7 +25,7 @@ import {
     PriceResponse,
     Period,
 } from 'ecash-price';
-import { sendBlockSummary } from './telegram';
+import { heraldSend, sendBlockSummary } from './telegram';
 import {
     getTokenInfoMap,
     getOutputscriptInfoMap,
@@ -122,11 +122,12 @@ export const handleBlockFinalized = async (
             `<a href="${config.blockExplorer}/block/${blockHash}">explorer</a>`;
 
         try {
-            return (await telegramBot.api.sendMessage(
+            return await heraldSend(
+                telegramBot,
                 channelId,
                 errorTgMsg,
                 config.tgMsgOptions,
-            )) as SendMessageResponse;
+            );
         } catch (err) {
             console.log(
                 `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions}) called from handleBlockFinalized`,
@@ -304,7 +305,8 @@ export const handleBlockInvalidated = async (
         `Guessed reject reason: ${reason}`;
 
     try {
-        return await telegramBot.api.sendMessage(
+        return await heraldSend(
+            telegramBot,
             channelId,
             errorTgMsg,
             config.tgMsgOptions,

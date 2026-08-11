@@ -14,6 +14,10 @@ import {
     handleBlockInvalidated,
     StoredMock,
 } from '../src/events';
+import {
+    resetHeraldSendStateForTests,
+    setHeraldSendRetryDefaultsForTests,
+} from '../src/telegram';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import { MockTelegramBot, mockChannelId } from './mocks/telegramBotMock';
 import axios from 'axios';
@@ -39,6 +43,9 @@ describe('ecash-herald events.js', function () {
 
     let clock: InstalledClock;
     beforeEach(() => {
+        resetHeraldSendStateForTests();
+        // FakeTimers freeze setTimeout; disable send pacing so heraldSend does not hang
+        setHeraldSendRetryDefaultsForTests({ minIntervalMs: 0, baseDelay: 0 });
         clock = FakeTimers.install();
     });
     afterEach(async () => {
@@ -46,6 +53,7 @@ describe('ecash-herald events.js', function () {
         await clock.runAllAsync();
         // Restore timers
         clock.uninstall();
+        resetHeraldSendStateForTests();
     });
     it('handleBlockFinalized creates and sends a telegram msg with price and token send info for mocked block if api call succeeds', async function () {
         // Initialize chronik mock
@@ -287,7 +295,7 @@ describe('ecash-herald events.js', function () {
         const telegramBot = new MockTelegramBot();
         telegramBot.api.setExpectedError(
             'sendMessage',
-            'Error: message failed to send',
+            "ETELEGRAM: 400 Bad Request: can't parse entities",
         );
         const channelId = mockChannelId;
 

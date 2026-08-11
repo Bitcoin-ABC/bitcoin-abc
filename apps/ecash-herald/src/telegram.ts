@@ -7,12 +7,215 @@ import { Bot } from 'grammy';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 import { SendMessageResponse } from './events';
 
-interface NetworkError extends Error {
-    code?: string;
-}
-
 // undocumented API behavior of HTML parsing mode, discovered through brute force
 const TG_MSG_MAX_LENGTH = 4096;
+
+/** Retry / rate-limit tunables for {@link heraldSend} */
+export interface HeraldSendRetryOptions {
+    /**
+     * Max send attempts for non-429 errors, including the first try
+     * (default 3).
+     */
+    maxAttempts?: number;
+    /** Base delay for non-429 exponential backoff in ms (default 1000) */
+    baseDelay?: number;
+    /** Cap for non-429 exponential backoff in ms (default 30000) */
+    maxDelay?: number;
+    /**
+     * Minimum gap after each successful send before the next API call (default
+     * 100). Reduces avoidable 429s when messages are sent in quick succession.
+     */
+    minIntervalMs?: number;
+    /**
+     * Max sendMessage attempts for one message, including 429 retries
+     * (default 100).
+     */
+    maxApiAttemptsPerMessage?: number;
+    /**
+     * If 429 is returned but retry_after cannot be parsed, wait this long in ms
+     * (default 5000).
+     */
+    fallback429WaitMs?: number;
+    /**
+     * Upper bound on a single honored retry_after wait in ms (default 60000).
+     */
+    max429WaitMs?: number;
+    /**
+     * Max wall-clock time one message may hold the shared send queue in ms
+     * (default 120000).
+     */
+    maxTotalWaitMs?: number;
+}
+
+const DEFAULT_RETRY_OPTIONS: Required<HeraldSendRetryOptions> = {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 30000,
+    minIntervalMs: 100,
+    maxApiAttemptsPerMessage: 100,
+    fallback429WaitMs: 5000,
+    max429WaitMs: 60000,
+    maxTotalWaitMs: 120000,
+};
+
+/** Active defaults (overridable in unit tests) */
+let retryDefaults: Required<HeraldSendRetryOptions> = {
+    ...DEFAULT_RETRY_OPTIONS,
+};
+
+/** Earliest time (epoch ms) the next sendMessage call is allowed */
+let nextSendEarliestAt = 0;
+/** Serialize sends so parallel callers do not stampede the API */
+let sendChain: Promise<void> = Promise.resolve();
+
+/**
+ * Override default retry / pacing options. For unit tests only (e.g. when
+ * FakeTimers are installed and minInterval sleeps would otherwise hang).
+ *
+ * @param overrides - Partial defaults to merge over production defaults
+ */
+export const setHeraldSendRetryDefaultsForTests = (
+    overrides: Partial<HeraldSendRetryOptions>,
+): void => {
+    retryDefaults = { ...DEFAULT_RETRY_OPTIONS, ...overrides };
+};
+
+/**
+ * Reset module-level send pacing state and retry defaults. For unit tests only.
+ */
+export const resetHeraldSendStateForTests = (): void => {
+    nextSendEarliestAt = 0;
+    sendChain = Promise.resolve();
+    retryDefaults = { ...DEFAULT_RETRY_OPTIONS };
+};
+
+/**
+ * Read Telegram's suggested wait time from a 429 response (seconds → ms).
+ * Prefers `parameters.retry_after` when present; falls back to parsing the
+ * description or error message.
+ *
+ * @param error - Caught value from Grammy / Telegram API
+ * @returns Milliseconds to wait, or null if not parseable
+ */
+export const extractTelegramRetryAfterMs = (error: unknown): number | null => {
+    if (!error || typeof error !== 'object') {
+        return null;
+    }
+    const err = error as {
+        message?: string;
+        /** Grammy GrammyError: Telegram API parameters (includes retry_after) */
+        parameters?: { retry_after?: number };
+        response?: {
+            body?: {
+                description?: string;
+                parameters?: { retry_after?: number };
+            };
+        };
+    };
+    const retryAfterSec =
+        typeof err.parameters?.retry_after === 'number' &&
+        err.parameters.retry_after > 0
+            ? err.parameters.retry_after
+            : err.response?.body?.parameters?.retry_after;
+    if (typeof retryAfterSec === 'number' && retryAfterSec > 0) {
+        return Math.round(retryAfterSec * 1000);
+    }
+    const desc = err.response?.body?.description;
+    if (typeof desc === 'string') {
+        const m = desc.match(/retry after (\d+)/i);
+        if (m) {
+            const sec = Number.parseInt(m[1], 10);
+            if (Number.isFinite(sec) && sec > 0) {
+                return sec * 1000;
+            }
+        }
+    }
+    const msg = err.message;
+    if (typeof msg === 'string') {
+        const m = msg.match(/retry after (\d+)/i);
+        if (m) {
+            const sec = Number.parseInt(m[1], 10);
+            if (Number.isFinite(sec) && sec > 0) {
+                return sec * 1000;
+            }
+        }
+    }
+    return null;
+};
+
+/**
+ * @param error - API error object
+ * @returns Whether this looks like a Telegram HTTP 429 / flood error
+ */
+export const isTelegram429Error = (error: unknown): boolean => {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+    const e = error as {
+        error_code?: number;
+        response?: { statusCode?: number; body?: { error_code?: number } };
+        message?: string;
+    };
+    if (
+        e.error_code === 429 ||
+        e.response?.statusCode === 429 ||
+        e.response?.body?.error_code === 429
+    ) {
+        return true;
+    }
+    // Anchor to Telegram flood / rate-limit phrasing — do not match bare "429"
+    // (chat ids, message ids, or echoed text can contain that number).
+    return (
+        typeof e.message === 'string' &&
+        /(?:ETELEGRAM:\s*)?\b429\b\s*(?:Too Many Requests|:)/i.test(e.message)
+    );
+};
+
+/**
+ * Client errors (4xx other than 429) are not worth retrying — e.g. bad HTML,
+ * unauthorized bot token.
+ *
+ * @param error - Caught send error
+ * @returns true if this should fail immediately without backoff retries
+ */
+export const isPermanentTelegramApiError = (error: unknown): boolean => {
+    if (!error || typeof error !== 'object' || isTelegram429Error(error)) {
+        return false;
+    }
+    const e = error as {
+        error_code?: number;
+        response?: { statusCode?: number; body?: { error_code?: number } };
+        message?: string;
+    };
+    const code =
+        e.error_code ?? e.response?.body?.error_code ?? e.response?.statusCode;
+    if (typeof code === 'number' && code >= 400 && code < 500) {
+        return true;
+    }
+    const msg = e.message ?? '';
+    return /ETELEGRAM:\s*4\d\d\b/.test(msg);
+};
+
+const calculateNon429BackoffDelay = (
+    attemptIndex: number,
+    baseDelay: number,
+    maxDelay: number,
+): number => {
+    const exponentialDelay = baseDelay * Math.pow(2, attemptIndex);
+    const jitter = exponentialDelay * 0.25 * (Math.random() - 0.5);
+    const delay = Math.min(exponentialDelay + jitter, maxDelay);
+    return Math.max(delay, baseDelay);
+};
+
+const waitUntilSendAllowed = async (): Promise<void> => {
+    const wait = nextSendEarliestAt - Date.now();
+    if (wait > 0) {
+        await new Promise(resolve => setTimeout(resolve, wait));
+    }
+};
+
+const sleep = (ms: number): Promise<void> =>
+    new Promise(resolve => setTimeout(resolve, ms));
 
 export const prepareStringForTelegramHTML = (string: string): string => {
     /*
@@ -32,13 +235,14 @@ export const prepareStringForTelegramHTML = (string: string): string => {
 };
 
 /**
- * Send a Telegram message with retry logic for network errors
+ * Send a Telegram message with serialized delivery, 429 retry_after handling,
+ * and exponential backoff for other transient errors.
+ *
  * @param telegramBot Telegram bot instance
  * @param channelId Channel ID to send to
  * @param message Message to send
  * @param options Send message options
- * @param maxRetries Maximum number of retry attempts (default: 3)
- * @param baseDelay Base delay in milliseconds (default: 1000)
+ * @param retryOptions Retry / rate-limit tunables
  * @returns Promise that resolves with the message result or rejects with the final error
  */
 export const heraldSend = async (
@@ -46,53 +250,141 @@ export const heraldSend = async (
     channelId: string,
     message: string,
     options: SendMessageOptions,
-    maxRetries: number = 3,
-    baseDelay: number = 1000,
+    retryOptions: HeraldSendRetryOptions = {},
 ): Promise<SendMessageResponse> => {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            return (await telegramBot.api.sendMessage(
-                channelId,
-                message,
-                options,
-            )) as SendMessageResponse;
-        } catch (error: unknown) {
-            // Don't retry on the last attempt
-            if (attempt === maxRetries) {
-                throw error;
-            }
+    const {
+        maxAttempts,
+        baseDelay,
+        maxDelay,
+        minIntervalMs,
+        maxApiAttemptsPerMessage,
+        fallback429WaitMs,
+        max429WaitMs,
+        maxTotalWaitMs,
+    } = { ...retryDefaults, ...retryOptions };
 
-            // Only retry on network errors, not API errors e.g telegram syntax failures
-            const networkError = error as NetworkError;
-            const isNetworkError =
-                networkError.code === 'EFATAL' ||
-                networkError.message?.includes('socket hang up') ||
-                networkError.message?.includes('ECONNRESET') ||
-                networkError.message?.includes('ETIMEDOUT') ||
-                networkError.message?.includes('ENOTFOUND') ||
-                networkError.message?.includes('ECONNREFUSED');
-
-            if (isNetworkError) {
-                const delay =
-                    baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
-                console.log(
-                    `Network error on attempt ${attempt}/${maxRetries}, retrying in ${Math.round(
-                        delay,
-                    )}ms:`,
-                    networkError.message,
-                );
-                if (baseDelay > 0) {
-                    await new Promise(resolve => setTimeout(resolve, delay));
+    return new Promise((resolve, reject) => {
+        sendChain = sendChain
+            .catch(() => undefined)
+            .then(async () => {
+                try {
+                    const result = await deliverWithRetries(
+                        () =>
+                            telegramBot.api.sendMessage(
+                                channelId,
+                                message,
+                                options,
+                            ) as Promise<SendMessageResponse>,
+                        {
+                            maxAttempts,
+                            baseDelay,
+                            maxDelay,
+                            minIntervalMs,
+                            maxApiAttemptsPerMessage,
+                            fallback429WaitMs,
+                            max429WaitMs,
+                            maxTotalWaitMs,
+                        },
+                    );
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
                 }
+            });
+    });
+};
+
+const deliverWithRetries = async (
+    deliver: () => Promise<SendMessageResponse>,
+    opts: Required<HeraldSendRetryOptions>,
+): Promise<SendMessageResponse> => {
+    let apiAttempts = 0;
+    let non429Failures = 0;
+    let lastError: unknown;
+    const deadline = Date.now() + opts.maxTotalWaitMs;
+
+    while (true) {
+        await waitUntilSendAllowed();
+
+        if (
+            apiAttempts >= opts.maxApiAttemptsPerMessage ||
+            Date.now() >= deadline
+        ) {
+            throw (
+                lastError ??
+                new Error(
+                    `Abandoned Telegram send after ${opts.maxApiAttemptsPerMessage} API attempts`,
+                )
+            );
+        }
+        apiAttempts += 1;
+
+        try {
+            const result = await deliver();
+            nextSendEarliestAt = Date.now() + opts.minIntervalMs;
+            return result;
+        } catch (error: unknown) {
+            lastError = error;
+
+            if (isTelegram429Error(error)) {
+                const parsed = extractTelegramRetryAfterMs(error);
+                const baseWait =
+                    parsed !== null ? parsed : opts.fallback429WaitMs;
+                // Clamp after jitter so max429WaitMs is a true upper bound
+                const waitMs = Math.min(
+                    baseWait + Math.random() * 500,
+                    opts.max429WaitMs,
+                );
+                // Do not schedule waits past the per-message deadline
+                const remainingMs = Math.max(0, deadline - Date.now());
+                if (remainingMs === 0) {
+                    throw error;
+                }
+                const boundedWaitMs = Math.min(waitMs, remainingMs);
+                nextSendEarliestAt = Date.now() + boundedWaitMs;
+                const source = parsed !== null ? 'retry_after' : 'fallback';
+                console.log(
+                    `Telegram 429: waiting ${Math.round(
+                        boundedWaitMs,
+                    )}ms before retry (${source}, attempt ${apiAttempts}/${
+                        opts.maxApiAttemptsPerMessage
+                    })`,
+                );
+                await sleep(boundedWaitMs);
                 continue;
             }
 
-            // Don't retry API errors (like 400 Bad Request, 401 Unauthorized, etc.)
-            throw error;
+            if (isPermanentTelegramApiError(error)) {
+                throw error;
+            }
+
+            non429Failures += 1;
+            if (non429Failures >= opts.maxAttempts) {
+                throw error;
+            }
+
+            const delay = calculateNon429BackoffDelay(
+                non429Failures - 1,
+                opts.baseDelay,
+                opts.maxDelay,
+            );
+            const boundedDelay = Math.min(
+                delay,
+                Math.max(0, deadline - Date.now()),
+            );
+            const errorMessage =
+                error instanceof Error ? error.message : 'Unknown error';
+            console.log(
+                `Telegram send error, retrying in ${Math.round(
+                    boundedDelay,
+                )}ms (non-429 ${non429Failures}/${opts.maxAttempts}):`,
+                errorMessage,
+            );
+            if (boundedDelay > 0) {
+                await sleep(boundedDelay);
+            }
         }
     }
-    // Not expected to happen, satisfies typescript
-    throw new Error('Retry logic failed unexpectedly');
 };
 
 export const splitOverflowTgMsg = (tgMsgArray: string[]): string[] => {

@@ -342,7 +342,7 @@ describe('ecash-herald chronikWsHandler.js', function () {
         const telegramBot = new MockTelegramBot();
         telegramBot.api.setExpectedError(
             'sendMessage',
-            'Error: message failed to send',
+            "ETELEGRAM: 400 Bad Request: can't parse entities",
         );
         const channelId = mockChannelId;
 
