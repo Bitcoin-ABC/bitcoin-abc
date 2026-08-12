@@ -8,14 +8,15 @@ This document is the ops target for that model.
 
 ## What is in-tree today
 
-| Piece                                                          | Status                                                   |
-| -------------------------------------------------------------- | -------------------------------------------------------- |
-| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430)) |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449)) |
-| Framed TCP/TLS control channel (`FusionConnection`)            | This slice — framing only; no RPCs yet                   |
-| Coordinator + client wire protocol (protobuf / round messages) | Not yet                                                  |
-| Chronik sync / signing / broadcast                             | Not yet                                                  |
-| Covert channel + Tor                                           | Later roadmap                                            |
+| Piece                                                          | Status                                                         |
+| -------------------------------------------------------------- | -------------------------------------------------------------- |
+| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))       |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))       |
+| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))       |
+| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | This slice — encode/decode + framed hello; no round driver yet |
+| Coordinator + client round RPCs over the wire                  | Not yet                                                        |
+| Chronik sync / signing / broadcast                             | Not yet                                                        |
+| Covert channel + Tor                                           | Later roadmap                                                  |
 
 Unit verification:
 

@@ -94,11 +94,13 @@ fuses ALP without burning tokens.
 5. **Continuous client + deploy notes [D20449](https://reviews.bitcoinabc.org/D20449)** —
    `runFuseLoop` / `ContinuousClient` (Electrum-ABC-style rejoin delays) +
    [DEPLOY.md](./DEPLOY.md) ops target.
-6. **Control-channel TCP/TLS framing** — CashFusion-shaped framed sockets
-   (`FusionConnection`, `connect` / `listen`); no protobuf RPCs, covert/Tor,
-   Chronik, or signing yet.
-7. **Covert channel + Tor (or equivalent)** — network unlinkability.
-8. **Shared client library** — drop CLI-only assumptions.
-9. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
-   opportunistic background where the OS allows.
-10. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.
+6. **Control-channel TCP/TLS framing [D20457](https://reviews.bitcoinabc.org/D20457)** —
+   CashFusion-shaped framed sockets (`FusionConnection`, `connect` / `listen`).
+7. **Control-channel protobuf messages** — CashFusion-shaped
+   `ClientMessage` / `ServerMessage` (+ ALP pool fields) encode/decode over
+   `FusionConnection`; no round driver, covert/Tor, Chronik, or signing yet.
+8. **Covert channel + Tor (or equivalent)** — network unlinkability.
+9. **Shared client library** — drop CLI-only assumptions.
+10. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
+    opportunistic background where the OS allows.
+11. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.

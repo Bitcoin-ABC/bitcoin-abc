@@ -15,7 +15,8 @@
     "author": "Bitcoin ABC",
     "license": "MIT",
     "dependencies": {
-        "ecash-lib": "workspace:^"
+        "ecash-lib": "workspace:^",
+        "protobufjs": "^8.7.2"
     },
     "devDependencies": {
         "@types/chai": "^4.3.14",

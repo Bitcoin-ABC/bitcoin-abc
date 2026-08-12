@@ -157,8 +157,6 @@ for example:
 
 ## Open questions
 
-1. Exact protobuf / message layout vs reuse of CashFusion messages with ALP
-   extensions.
-2. Default `minPlayers`, component count, and tier ladder for mainnet.
-3. Mobile transport: WebSocket gateway vs TLS-only; how much Tor is realistic
+1. Default `minPlayers`, component count, and tier ladder for mainnet.
+2. Mobile transport: WebSocket gateway vs TLS-only; how much Tor is realistic
    inside Cashtab.

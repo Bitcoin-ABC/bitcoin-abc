@@ -1,0 +1,202 @@
+// Copyright (c) 2026 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+syntax = "proto2";
+
+package alpfusion;
+
+// CashFusion-derived protocol extended for ALP token pools.
+
+message InputComponent {
+    required bytes prev_txid = 1;
+    required uint32 prev_index = 2;
+    required bytes pubkey = 3;
+    required uint64 sats = 4;
+    optional uint64 token_atoms = 5;
+}
+
+message OutputComponent {
+    required bytes scriptpubkey = 1;
+    required uint64 sats = 2;
+    optional uint64 token_atoms = 3;
+}
+
+message BlankComponent {}
+
+message Component {
+    required bytes salt_commitment = 1;
+    oneof component {
+        InputComponent input = 2;
+        OutputComponent output = 3;
+        BlankComponent blank = 4;
+    }
+}
+
+message InitialCommitment {
+    required bytes salted_component_hash = 1;
+    required bytes sats_commitment = 2;
+    required bytes token_commitment = 3;
+    required bytes communication_key = 4;
+}
+
+message Proof {
+    required fixed32 component_idx = 1;
+    required bytes salt = 2;
+    required bytes sats_pedersen_nonce = 3;
+    required bytes token_pedersen_nonce = 4;
+}
+
+message ClientHello {
+    required bytes version = 1;
+    optional bytes genesis_hash = 2;
+}
+
+message ServerHello {
+    required uint32 num_components = 1;
+    required uint64 component_feerate = 2;
+    required uint64 min_excess_fee = 3;
+    required uint64 max_excess_fee = 4;
+    repeated uint64 atom_tiers = 5;
+    required uint32 min_players = 6;
+}
+
+message PoolRequest {
+    required bytes token_id = 1;
+    required uint64 atom_tier = 2;
+}
+
+message PoolTag {
+    required bytes id = 1;
+    required uint32 limit = 2;
+    optional bool no_ip = 3;
+}
+
+message JoinPools {
+    repeated PoolRequest pools = 1;
+    repeated PoolTag tags = 2;
+}
+
+message PoolStatus {
+    optional uint32 players = 1;
+    optional uint32 min_players = 2;
+    optional uint32 time_remaining = 3;
+}
+
+message PoolStatusUpdate {
+    message Key {
+        required bytes token_id = 1;
+        required uint64 atom_tier = 2;
+    }
+    message Entry {
+        required Key key = 1;
+        required PoolStatus status = 2;
+    }
+    repeated Entry statuses = 1;
+}
+
+message FusionBegin {
+    required bytes token_id = 1;
+    required uint64 atom_tier = 2;
+    required bytes covert_domain = 3;
+    required uint32 covert_port = 4;
+    optional bool covert_ssl = 5;
+    required fixed64 server_time = 6;
+}
+
+message StartRound {
+    required bytes round_pubkey = 1;
+    repeated bytes blind_nonce_points = 2;
+    required fixed64 server_time = 3;
+}
+
+message PlayerCommit {
+    repeated bytes initial_commitments = 1;
+    required uint64 excess_fee = 2;
+    required bytes sats_pedersen_total_nonce = 3;
+    required bytes token_pedersen_total_nonce = 4;
+    required bytes random_number_commitment = 5;
+    repeated bytes blind_sig_requests = 6;
+}
+
+message BlindSigResponses {
+    repeated bytes scalars = 1;
+}
+
+message AllCommitments {
+    repeated bytes initial_commitments = 1;
+}
+
+message CovertComponent {
+    optional bytes round_pubkey = 1;
+    required bytes signature = 2;
+    required bytes component = 3;
+}
+
+message ShareCovertComponents {
+    repeated bytes components = 1;
+    optional bool skip_signatures = 2;
+    optional bytes session_hash = 3;
+}
+
+message CovertTransactionSignature {
+    optional bytes round_pubkey = 1;
+    required uint32 which_input = 2;
+    required bytes txsignature = 3;
+}
+
+message FusionResult {
+    required bool ok = 1;
+    optional bytes raw_tx = 2;
+    optional string txid = 3;
+    repeated uint32 bad_components = 4;
+    optional string error = 5;
+}
+
+message RestartRound {}
+
+message Error {
+    optional string message = 1;
+}
+
+message Ping {}
+
+message OK {}
+
+message ClientMessage {
+    oneof msg {
+        ClientHello clienthello = 1;
+        JoinPools joinpools = 2;
+        PlayerCommit playercommit = 3;
+    }
+}
+
+message ServerMessage {
+    oneof msg {
+        ServerHello serverhello = 1;
+        PoolStatusUpdate poolstatusupdate = 2;
+        FusionBegin fusionbegin = 3;
+        StartRound startround = 4;
+        BlindSigResponses blindsigresponses = 5;
+        AllCommitments allcommitments = 6;
+        ShareCovertComponents sharecovertcomponents = 7;
+        FusionResult fusionresult = 8;
+        RestartRound restartround = 9;
+        Error error = 10;
+    }
+}
+
+message CovertMessage {
+    oneof msg {
+        CovertComponent component = 1;
+        CovertTransactionSignature signature = 2;
+        Ping ping = 3;
+    }
+}
+
+message CovertResponse {
+    oneof msg {
+        OK ok = 1;
+        Error error = 2;
+    }
+}
