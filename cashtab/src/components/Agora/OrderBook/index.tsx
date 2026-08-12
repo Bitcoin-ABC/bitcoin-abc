@@ -90,10 +90,14 @@ import { toast } from 'react-toastify';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
-import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
-import { FIRMA, FIRMA_MINTER_PK_HEX } from 'constants/tokens';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
+import {
+    PartialOffer,
+    prepareBuyableOffers,
+} from 'components/Agora/partialOffers';
+
+export type { PartialOffer };
 
 /**
  * Allow users to buy above spot (within reason)
@@ -113,51 +117,6 @@ import { confirmBiometricBroadcast } from 'services/biometricLockService';
  * 1.25 = users can buy offers up to 25% above spot
  */
 const ALLOW_BUYS_ABOVE_SPOT_RATIO = 1.25;
-
-export interface PartialOffer extends AgoraOffer {
-    variant: {
-        type: 'PARTIAL';
-        params: AgoraPartial;
-    };
-    /**
-     * Calculated value
-     * Allows us to render depth at the price of this order, like most
-     * exchange orderbooks
-     */
-    depthPercent?: number;
-    spotPriceNanoSatsPerTokenSat?: bigint;
-    /**
-     * It is possible for an Agora offer to be "unacceptable" if
-     * the min accepted tokens is less than the total offered tokens
-     * Cashtab UI (should) prevent this from ever happening, i.e. we have
-     * validation checks for creation and accepting offers, though likely
-     * we have some missed edge cases that must be cleaned up
-     * But even if we prevent this in Cashtab, anyone could make this kind of offer
-     * We do not want buyers to see these offers. But we do want the makers to see them
-     * and know they need to be canceled
-     */
-    isUnacceptable: boolean;
-    /**
-     * Indicates if the user cannot afford even the minimum buy amount for this offer
-     * These offers are still shown to the user but visually indicated as unaffordable
-     */
-    isUnaffordable: boolean;
-    /**
-     * Cumulative quantity of token available on the market
-     * In units of base tokens (aka "token satoshis") so we
-     * can decide to render when decimals are available
-     * Used to render tooltip for exchange-like UX
-     *
-     * e.g. if you have 3 offers
-     * - Cheapest sells 10
-     * - Next cheapest sells 20
-     * - Most expensive sells 30
-     *
-     * cumulativeBaseTokens will be 10 for the cheapest, (10+20=30) for the next cheapest,
-     * and (10+20+30) 60 for the most expensive
-     */
-    cumulativeBaseTokens?: bigint;
-}
 
 export interface OrderBookInfo {
     offerCount: number;
@@ -735,115 +694,21 @@ const OrderBook: React.FC<OrderBookProps> = ({
      */
     const fetchAndPrepareActiveOffers = async () => {
         try {
-            const activeOffers = (await agora.activeOffersByTokenId(
+            const activeOffers = await agora.activeOffersByTokenId(tokenId);
+
+            // Shared filter/sort/spot/affordability (also used by DeepLinkBuy)
+            const renderedActiveOffers = prepareBuyableOffers(
+                activeOffers,
                 tokenId,
-            )) as PartialOffer[];
+                balanceSats,
+                toHex(ecashWallet.pk),
+            );
 
-            // Calculate a spot price for each offer
-            // We need to do this because we need to sort them to get the "true" spot price, i.e. the lowest price
-            // Since we are doing it, we should save the info so we do not have to recalculate it
-            // Also get the largest offer of all the offers. This will help us build
-            // a styled orderbook.
-            let deepestActiveOfferedTokens = 0n;
+            // OrderBook-only: depth bars after cheapest-first sort
             let totalOfferedTokenSatoshis = 0n;
-            const renderedActiveOffers: PartialOffer[] = [];
-            for (const activeOffer of activeOffers) {
-                const maxOfferTokens = activeOffer.token.atoms;
-
-                const minOfferTokens =
-                    activeOffer.variant.params.minAcceptedAtoms();
-
-                // If the active pk made this offer, flag is as unacceptable
-                // Otherwise exclude it entirely
-                const isMakerThisOffer =
-                    toHex(ecashWallet.pk) ===
-                    toHex(activeOffer.variant.params.makerPk);
-                const isUnacceptable = minOfferTokens > maxOfferTokens;
-                if (isUnacceptable) {
-                    if (isMakerThisOffer) {
-                        activeOffer.isUnacceptable =
-                            minOfferTokens > maxOfferTokens;
-                    } else {
-                        continue;
-                    }
-                }
-
-                const askedSats = activeOffer.askedSats(maxOfferTokens);
-
-                // We convert to askedNanoSats before calculating the spot price,
-                // so that we get a bigint spot price
-                const askedNanoSats = askedSats * BigInt(1e9);
-
-                // Note this price is nanosatoshis per token satoshi
-                const spotPriceNanoSatsPerTokenSat =
-                    askedNanoSats / maxOfferTokens;
-
-                // XECX: same spot-XEC figure shown on each bar; skip off‑1:1 unless maker (cancel path).
-                if (
-                    tokenId === appConfig.vipTokens.xecx.tokenId &&
-                    !isMakerThisOffer &&
-                    askedSats !== maxOfferTokens
-                ) {
-                    // If this is XECX
-                    // and the active wallet did not make this offer
-                    // and the spot price is not 1:1, do not render
-                    continue;
-                }
-
-                // FIRMA: only minter or active-wallet offers
-                if (
-                    tokenId === FIRMA.tokenId &&
-                    !isMakerThisOffer &&
-                    toHex(activeOffer.variant.params.makerPk) !==
-                        FIRMA_MINTER_PK_HEX
-                ) {
-                    continue;
-                }
-
-                // Check if user can afford the minimum amount of this offer
-                const minPriceSats = activeOffer.askedSats(minOfferTokens);
-                const canAffordMin = minPriceSats <= balanceSats;
-
-                // Mark offers as unaffordable if user cannot afford even the minimum (unless they made it)
-                if (!canAffordMin && !isMakerThisOffer) {
-                    activeOffer.isUnaffordable = true;
-                } else {
-                    activeOffer.isUnaffordable = false;
-                }
-
-                totalOfferedTokenSatoshis += maxOfferTokens;
-                if (maxOfferTokens > deepestActiveOfferedTokens) {
-                    deepestActiveOfferedTokens = maxOfferTokens;
-                }
-
-                activeOffer.spotPriceNanoSatsPerTokenSat =
-                    spotPriceNanoSatsPerTokenSat;
-
-                renderedActiveOffers.push(activeOffer);
+            for (const offer of renderedActiveOffers) {
+                totalOfferedTokenSatoshis += offer.token.atoms;
             }
-            // Add relative depth to each offer. If you only have one offer, it's 1.
-            // This helps us to style the orderbook
-            // We do not use a bignumber library because accuracy is not critical here, only used
-            // for rendering depth bars
-
-            // Sort renderedActiveOffers by spot price, lowest to highest
-            renderedActiveOffers.sort((a, b) => {
-                // Primary sort by spot price
-                const spotPriceDiff =
-                    Number(a.spotPriceNanoSatsPerTokenSat) -
-                    Number(b.spotPriceNanoSatsPerTokenSat);
-                if (spotPriceDiff !== 0) {
-                    return spotPriceDiff;
-                }
-                // If spot prices are equal, sort by minAcceptedAtoms
-                return (
-                    Number(a.variant.params.minAcceptedAtoms()) -
-                    Number(b.variant.params.minAcceptedAtoms())
-                );
-            });
-
-            // Now that we have sorted by spot price, we can properly calculate cumulative depth
-            // The most expensive offer will be at 1
             let cumulativeOfferedTokenSatoshis = 0n;
             for (const offer of renderedActiveOffers) {
                 const thisOfferAmountTokenSatoshis = offer.token.atoms;

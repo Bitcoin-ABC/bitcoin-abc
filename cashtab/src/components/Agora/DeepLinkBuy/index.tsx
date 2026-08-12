@@ -43,8 +43,6 @@ import {
 } from 'formatting';
 import { getAgoraPartialAcceptTokenQtyError } from 'validation';
 import { explorer } from 'config/explorer';
-import appConfig from 'config/app';
-import { FIRMA, FIRMA_MINTER_PK_HEX } from 'constants/tokens';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
@@ -60,7 +58,11 @@ import {
     SuccessModalOverlay,
     TransactionIdLink,
 } from 'components/Send/styled';
-import { PartialOffer } from 'components/Agora/OrderBook';
+import {
+    PartialOffer,
+    findFillableOfferIndex,
+    prepareBuyableOffers,
+} from 'components/Agora/partialOffers';
 import {
     DeepLinkBuyActions,
     DeepLinkBuyAmountCtn,
@@ -89,109 +91,6 @@ export interface DeepLinkBuyProps {
      */
     onDismiss: () => void;
 }
-
-/**
- * Filter and sort active partial offers the way OrderBook does for buying:
- * drop unacceptable non-maker offers, apply XECX/FIRMA rules, mark
- * unaffordable, cheapest first.
- */
-const prepareBuyableOffers = (
-    activeOffers: PartialOffer[],
-    tokenId: string,
-    balanceSats: number,
-    walletPkHex: string,
-): PartialOffer[] => {
-    const rendered: PartialOffer[] = [];
-    for (const activeOffer of activeOffers) {
-        const maxOfferTokens = activeOffer.token.atoms;
-        const minOfferTokens = activeOffer.variant.params.minAcceptedAtoms();
-        const isMakerThisOffer =
-            walletPkHex === toHex(activeOffer.variant.params.makerPk);
-        // Always set the flag so later filters never see undefined. Drop
-        // unacceptable offers from other makers; keep our own so the user can
-        // still see (and cancel) a broken listing.
-        activeOffer.isUnacceptable = minOfferTokens > maxOfferTokens;
-        if (activeOffer.isUnacceptable && !isMakerThisOffer) {
-            continue;
-        }
-
-        const askedSats = activeOffer.askedSats(maxOfferTokens);
-        // XECX: only show 1:1 spot offers to buyers; makers still see their
-        // own off-peg listings (cancel path). Same rule as OrderBook.
-        if (
-            tokenId === appConfig.vipTokens.xecx.tokenId &&
-            !isMakerThisOffer &&
-            askedSats !== maxOfferTokens
-        ) {
-            continue;
-        }
-        // FIRMA: buyers only see the official minter's offers; makers still
-        // see their own. Same rule as OrderBook.
-        if (
-            tokenId === FIRMA.tokenId &&
-            !isMakerThisOffer &&
-            toHex(activeOffer.variant.params.makerPk) !== FIRMA_MINTER_PK_HEX
-        ) {
-            continue;
-        }
-
-        activeOffer.isUnaffordable =
-            activeOffer.askedSats(minOfferTokens) > balanceSats &&
-            !isMakerThisOffer;
-
-        activeOffer.spotPriceNanoSatsPerTokenSat =
-            (askedSats * BigInt(1e9)) / maxOfferTokens;
-        rendered.push(activeOffer);
-    }
-
-    rendered.sort((a, b) => {
-        const spotPriceDiff =
-            Number(a.spotPriceNanoSatsPerTokenSat) -
-            Number(b.spotPriceNanoSatsPerTokenSat);
-        if (spotPriceDiff !== 0) {
-            return spotPriceDiff;
-        }
-        return (
-            Number(a.variant.params.minAcceptedAtoms()) -
-            Number(b.variant.params.minAcceptedAtoms())
-        );
-    });
-    return rendered;
-};
-
-/**
- * Cheapest non-maker, acceptable offer that can fill quantityAtoms and that
- * the user can afford. Null if none.
- */
-const findFillableOfferIndex = (
-    offers: PartialOffer[],
-    quantityAtoms: bigint,
-    balanceSats: number,
-    walletPkHex: string,
-): { index: number; sizeFillableExists: boolean } => {
-    let sizeFillableExists = false;
-    const index = offers.findIndex(offer => {
-        const { params } = offer.variant;
-        if (offer.isUnacceptable) {
-            return false;
-        }
-        if (walletPkHex === toHex(params.makerPk)) {
-            return false;
-        }
-        const minAtoms = params.minAcceptedAtoms();
-        const maxAtoms = offer.token.atoms;
-        if (quantityAtoms < minAtoms || quantityAtoms > maxAtoms) {
-            return false;
-        }
-        const preparedAtoms = params.prepareAcceptedAtoms(quantityAtoms);
-        if (preparedAtoms < minAtoms || preparedAtoms > maxAtoms) {
-            return false;
-        }
-        sizeFillableExists = true;
-        return Number(offer.askedSats(preparedAtoms)) <= balanceSats;
-    });
-    return { index, sizeFillableExists };
-};
 
 const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
     tokenId,
@@ -307,9 +206,7 @@ const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
             setAgoraQueryError(false);
             setLoadError(null);
             try {
-                const activeOffers = (await agora.activeOffersByTokenId(
-                    tokenId,
-                )) as PartialOffer[];
+                const activeOffers = await agora.activeOffersByTokenId(tokenId);
                 if (cancelled) {
                     return;
                 }
