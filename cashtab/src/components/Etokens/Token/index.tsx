@@ -141,6 +141,7 @@ import {
     FIRMA,
     XECX_SWEEPER_ADDRESS,
     FIRMA_REDEEM_ADDRESS,
+    FIRMA_BID_API_URL,
 } from 'constants/tokens';
 import UncontrolledLink from 'components/Common/UncontrolledLink';
 
@@ -744,9 +745,7 @@ const Token: React.FC = () => {
 
     const getFirmaBidPrice = async () => {
         try {
-            const firmaBidPriceResp = await fetch(
-                `https://firmaprotocol.com/api/bid`,
-            );
+            const firmaBidPriceResp = await fetch(FIRMA_BID_API_URL);
             const firmaBidPriceJson = await firmaBidPriceResp.json();
             const bidPrice = firmaBidPriceJson.bid;
             console.info(`FIRMA buys at: ${bidPrice} XEC`);
@@ -2053,9 +2052,7 @@ const Token: React.FC = () => {
 
         let firmaBidPrice;
         try {
-            const firmaBidPriceResp = await fetch(
-                `https://firmaprotocol.com/api/bid`,
-            );
+            const firmaBidPriceResp = await fetch(FIRMA_BID_API_URL);
             const firmaBidPriceJson = await firmaBidPriceResp.json();
             firmaBidPrice = firmaBidPriceJson.bid;
             console.info(`FIRMA buys at: ${firmaBidPrice} XEC`);

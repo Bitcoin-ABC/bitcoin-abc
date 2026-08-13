@@ -137,7 +137,7 @@ describe('<Header />', () => {
         // Firma is USD-pegged — no redundant fiat line when currency is USD
         expect(screen.queryByTitle('Balance USD Fiat')).not.toBeInTheDocument();
 
-        // Same average APY as firmaprotocol.com/api/apy
+        // Same average APY as FIRMA_APY_API_URL
         await waitFor(() => {
             expect(screen.getByTitle('Firma APY')).toHaveTextContent(
                 '6.29% APY',

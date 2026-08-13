@@ -87,7 +87,7 @@ export interface UseWalletReturnType {
     ecc: Ecc;
     fiatPrice: number | null;
     firmaPrice: number | null;
-    /** Average Firma APY from firmaprotocol.com/api/apy, or null. */
+    /** Average Firma APY from FIRMA_APY_API_URL, or null. */
     firmaApy: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
@@ -1206,8 +1206,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     /**
-     * Fetch average Firma APY from firmaprotocol.com (AVG of past
-     * daily apy_spot payouts — same endpoint as the marketing site hero).
+     * Fetch average Firma APY from FIRMA_APY_API_URL (AVG of past
+     * daily apy_spot payouts).
      * APY updates once per day; call only once on app load.
      */
     const fetchFirmaApy = async () => {
@@ -1215,7 +1215,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             const response = await fetch(FIRMA_APY_API_URL);
             if (response.ok === false) {
                 console.error(
-                    `Failed to fetch Firma APY: Bad response from firmaprotocol.com`,
+                    `Failed to fetch Firma APY: Bad response from stakedxec.com`,
                 );
                 return setFirmaApy(null);
             }

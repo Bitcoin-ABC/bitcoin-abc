@@ -26,10 +26,16 @@ export const FIRMA_REDEEM_ADDRESS =
     'ecash:qr8hdk8rxjc5nj6f450eth3nnslxa8k4gysrtyfxc5';
 
 /**
- * Average spot APY from firmaprotocol.com (same source as the marketing site
- * hero). CORS allows any origin.
+ * Average spot APY from FIRMA_APY_API_URL (AVG of firma_metrics
+ * apy_spot). CORS allows any origin. Distinct from /api/apy (XECX).
  */
-export const FIRMA_APY_API_URL = 'https://firmaprotocol.com/api/apy';
+export const FIRMA_APY_API_URL = 'https://stakedxec.com/api/firma-apy';
+
+/**
+ * Firma-mint Agora autobuy price (XEC per FIRMA): CoinEx XECUSDT last *
+ * (1 - spreadPct). Cashtab lists FIRMA→XEC redeems at this bid.
+ */
+export const FIRMA_BID_API_URL = 'https://stakedxec.com/api/bid';
 
 /** EDJ token - everydayjackpot.com bets (100 EDJ = 1 FIRMA) */
 export const EDJ_TOKEN_ID =

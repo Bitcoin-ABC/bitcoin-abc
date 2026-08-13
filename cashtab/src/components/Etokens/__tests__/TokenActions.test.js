@@ -44,6 +44,7 @@ import { explorer } from 'config/explorer';
 import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
+    FIRMA_BID_API_URL,
     XECX_SWEEPER_ADDRESS,
 } from 'constants/tokens';
 
@@ -2378,7 +2379,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firmaprotocol.com/api/bid`)
+            .calledWith(FIRMA_BID_API_URL)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });
@@ -2546,7 +2547,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firmaprotocol.com/api/bid`)
+            .calledWith(FIRMA_BID_API_URL)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });
@@ -2676,7 +2677,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firmaprotocol.com/api/bid`)
+            .calledWith(FIRMA_BID_API_URL)
             .mockResolvedValue(new Error('error getting firma bid price'));
 
         // Make sure FIRMA is cached
@@ -3042,7 +3043,7 @@ describe('<Token /> available actions rendered', () => {
 
         // Mock a bid price
         when(fetch)
-            .calledWith(`https://firmaprotocol.com/api/bid`)
+            .calledWith(FIRMA_BID_API_URL)
             .mockResolvedValue({
                 json: () => Promise.resolve({ bid: 40000.0 }),
             });

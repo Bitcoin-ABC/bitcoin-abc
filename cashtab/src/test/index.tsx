@@ -95,7 +95,7 @@ export const mockPrice = (price: number) => {
 };
 
 /**
- * Mock firmaprotocol.com /api/apy (same source as the marketing site hero)
+ * Mock FIRMA_APY_API_URL (AVG of firma_metrics apy_spot)
  */
 export const mockFirmaApy = (averageApySpot: number) => {
     when(fetch)
