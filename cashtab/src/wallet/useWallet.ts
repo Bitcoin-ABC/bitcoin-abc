@@ -15,6 +15,7 @@ import {
     parseTx,
     getTokenGenesisInfo,
     getTxNotificationMsg,
+    ParsedTokenTxType,
 } from 'chronik';
 import appConfig from 'config/app';
 import { chronik as chronikConfig } from 'config/chronik';
@@ -40,6 +41,7 @@ import {
 import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import { TokenIconToast } from 'components/Etokens/TokenIcon';
+import { shouldSuppressInstantRedeemSaleToast } from 'components/Etokens/pendingRedeems';
 import { getUserLocale } from 'helpers';
 import { FIRMA_APY_API_URL, XECX_APY_API_URL } from 'constants/tokens';
 import {
@@ -412,6 +414,16 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
                         numPages: newNumPages,
                     };
                 });
+
+                // Instant XECX/FIRMA redeems show a dedicated progress toast;
+                // skip the generic "Sold ..." websocket notification.
+                if (
+                    parsedTx.parsedTokenEntries[0]?.renderedTxType ===
+                        ParsedTokenTxType.AgoraSale &&
+                    shouldSuppressInstantRedeemSaleToast(incomingTxDetails)
+                ) {
+                    return true;
+                }
 
                 // parse tx for notification msg
                 const notificationMsg = getTxNotificationMsg(

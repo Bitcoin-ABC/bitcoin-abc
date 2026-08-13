@@ -144,6 +144,8 @@ import {
     FIRMA_BID_API_URL,
 } from 'constants/tokens';
 import UncontrolledLink from 'components/Common/UncontrolledLink';
+import { showInstantRedeemToast } from 'components/Etokens/RedeemToast';
+import { isHotWalletCoveredRedeem } from 'components/Etokens/pendingRedeems';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -2236,23 +2238,49 @@ const Token: React.FC = () => {
                 offeredTokens.toString(),
                 decimals as SlpDecimals,
             );
-
-            // Maintain this notification as we do not parse listing prices in websocket
-            toast(
-                <a
-                    href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {`${decimalizedTokenQtyToLocaleFormat(
-                        decimalizedOfferedTokens,
-                        userLocale,
-                    )} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
-                </a>,
-                {
-                    icon: <TokenIcon size={32} tokenId={tokenId as string} />,
-                },
+            const amountLabel = decimalizedTokenQtyToLocaleFormat(
+                decimalizedOfferedTokens,
+                userLocale,
             );
+            const askedSats = previewedAgoraPartial.askedSats(offeredTokens);
+
+            // When the hot wallet can cover this XECX/FIRMA redeem, show a
+            // progress toast instead of the generic listing notification.
+            if (
+                isHotWalletCoveredRedeem({
+                    isXecxRedeem: switches.showRedeemXecx,
+                    isFirmaRedeem: isRedeemingFirma,
+                    offeredAtoms: offeredTokens,
+                    askedSats,
+                    xecxSweeperBalanceSats,
+                    maxFirmaRedeemSats,
+                })
+            ) {
+                showInstantRedeemToast({
+                    amountLabel,
+                    ticker:
+                        tokenTicker ?? (isRedeemingFirma ? 'FIRMA' : 'XECX'),
+                    chronik,
+                    offerTxid,
+                });
+            } else {
+                // Maintain this notification as we do not parse listing prices
+                // in websocket
+                toast(
+                    <a
+                        href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {`${amountLabel} ${tokenName} listed for ${getAgoraPartialActualPrice()} per token`}
+                    </a>,
+                    {
+                        icon: (
+                            <TokenIcon size={32} tokenId={tokenId as string} />
+                        ),
+                    },
+                );
+            }
 
             // We stay on this token page as, unlike with NFTs, we may still have more of this token
         } catch (err) {

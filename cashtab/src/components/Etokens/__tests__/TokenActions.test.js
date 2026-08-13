@@ -2067,6 +2067,11 @@ describe('<Token /> available actions rendered', () => {
         // Mock Math.random()
         jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
 
+        // Hot wallet can cover this 10k XECX redeem
+        mockedChronik.setUtxosByAddress(XECX_SWEEPER_ADDRESS, [
+            { sats: 1_000_000_00n },
+        ]);
+
         // XECX offer tx
         const offerHex =
             '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441338c58600f2e17d0d960855cd4c7c53064d0f7013605b1f5e1d051275f8c76aad64f9745fe3c19d947ac79726620ba8ec18fe7eebd12e3e86bd93d17f30d7fe24121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff88bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441031c4dcb7fea6c8f947e2534c24ea9f60e55879cd2a403355797681ee3c6944c8535e3576aeefb99c365033be5132bbcc731b1a9368623b074a930fa9e2fc69e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c00002a9e437b630800002a9e437b63080000805e24849cf7ff7f2099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e44d44ecf795494b063aa10be876868880df8ef822577c1a546fb1cd9b6c2f57bc60140420f000000220200000000000017a9146bb29d3d6088183f80fceb07bd5e203f166d954687f6320f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -2188,12 +2193,16 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
         await userEvent.click(screen.getByText('OK'));
 
-        // We see the expected toast notification for the successful listing tx
+        // Instant redeem: progress toast, not the generic listing toast
         expect(
-            await screen.findByText(
+            await screen.findByText('Redeeming 10,000.00 XECX'),
+        ).toBeInTheDocument();
+        expect(screen.getByTitle('Redeeming')).toBeInTheDocument();
+        expect(
+            screen.queryByText(
                 `10,000.00 Staked XEC listed for 1 XEC per token`,
             ),
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
     });
     it('We see expected alert in XECX redemption workflow for hot wallet balance', async () => {
         // Mock Math.random()
@@ -2297,6 +2306,12 @@ describe('<Token /> available actions rendered', () => {
             new Error('we do not get the balance'),
         );
 
+        const offerHex =
+            '0200000002ef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441338c58600f2e17d0d960855cd4c7c53064d0f7013605b1f5e1d051275f8c76aad64f9745fe3c19d947ac79726620ba8ec18fe7eebd12e3e86bd93d17f30d7fe24121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff88bb5c0d60e11b4038b00af152f9792fa954571ffdd2413a85f1c26bfd930c25010000006441031c4dcb7fea6c8f947e2534c24ea9f60e55879cd2a403355797681ee3c6944c8535e3576aeefb99c365033be5132bbcc731b1a9368623b074a930fa9e2fc69e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000806a504b41475230075041525449414c00002a9e437b630800002a9e437b63080000805e24849cf7ff7f2099c53f031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d31534c5032000453454e44d44ecf795494b063aa10be876868880df8ef822577c1a546fb1cd9b6c2f57bc60140420f000000220200000000000017a9146bb29d3d6088183f80fceb07bd5e203f166d954687f6320f00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const offerTxid =
+            '781fde086adc3894b783698e7732e662bef9aec345facbd57422e1b3e9f13201';
+        mockedChronik.setBroadcastTx(offerHex, offerTxid);
+
         // Mock response for agora select params check
         // Note
         // We obtain EXPECTED_OFFER_P2SH by adding
@@ -2378,6 +2393,17 @@ describe('<Token /> available actions rendered', () => {
             screen.queryByText(
                 '⚠️ XECX redemption larger than hot wallet balance of 10k XEC. Execution may take up to 24 hours.',
             ),
+        ).not.toBeInTheDocument();
+
+        // Unknown hot wallet balance: fall back to the listing toast
+        await userEvent.click(screen.getByText('OK'));
+        expect(
+            await screen.findByText(
+                `10,000.00 Staked XEC listed for 1 XEC per token`,
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('Redeeming 10,000.00 XECX'),
         ).not.toBeInTheDocument();
     });
     it('We can redeem Firma for XEC using a workflow unique to Firma', async () => {
@@ -2541,12 +2567,16 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
         await userEvent.click(screen.getByText('OK'));
 
-        // We see the expected toast notification for the successful listing tx
+        // Instant redeem: progress toast, not the generic listing toast
         expect(
-            await screen.findByText(
+            await screen.findByText(`Redeeming ${actualOfferedQty} FIRMA`),
+        ).toBeInTheDocument();
+        expect(screen.getByTitle('Redeeming')).toBeInTheDocument();
+        expect(
+            screen.queryByText(
                 `${actualOfferedQty} Firma listed for ${actualPricePerTokenForMinBuy} per token`,
             ),
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
     });
     it('FIRMA redeem is disabled if the hot wallet cannot cover redeem amount', async () => {
         // Mock Math.random()
