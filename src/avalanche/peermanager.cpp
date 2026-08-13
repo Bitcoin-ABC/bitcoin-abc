@@ -110,9 +110,7 @@ bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
 
 bool PeerManager::removeNode(NodeId nodeid) {
     // Remove all the remote proofs from this node
-    auto &remoteProofsView = remoteProofs.get<by_nodeid>();
-    auto [begin, end] = remoteProofsView.equal_range(nodeid);
-    remoteProofsView.erase(begin, end);
+    clearRemoteProofs(nodeid);
 
     if (pendingNodes.get<by_nodeid>().erase(nodeid) > 0) {
         // If this was a pending node, there is nothing else to do.
@@ -756,6 +754,12 @@ bool PeerManager::isRemotelyPresentProof(const ProofId &proofid) const {
     return std::any_of(begin, end, [](const auto &remoteProof) {
         return remoteProof.present;
     });
+}
+
+void PeerManager::clearRemoteProofs(NodeId nodeid) {
+    auto &remoteProofsView = remoteProofs.get<by_nodeid>();
+    auto [begin, end] = remoteProofsView.equal_range(nodeid);
+    remoteProofsView.erase(begin, end);
 }
 
 bool PeerManager::removePeer(const PeerId peerid) {

@@ -11,6 +11,7 @@ from test_framework.avatools import (
     can_find_inv_in_poll,
     gen_proof,
     get_ava_p2p_interface,
+    get_proof_ids,
     wait_for_proof,
 )
 from test_framework.messages import (
@@ -253,6 +254,62 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         for proof in proofs:
             wait_for_finalized_proof(node, quorum, proof.proofid)
 
+        self.log.info("Compact avaproofs marks omitted dangling proofs as absent")
+
+        _, dangling_proof = gen_proof(self, node)
+        dangling_proofid_hex = uint256_hex(dangling_proof.proofid)
+        node.sendavalancheproof(dangling_proof.serialize().hex())
+        assert dangling_proofid_hex in node.getavalancheproofs()["valid"]
+
+        # No attached nodes and no remote presence → cleanup moves it to the
+        # dangling pool after the timeout.
+        now = int(time.time()) + AVALANCHE_DANGLING_PROOF_TIMEOUT + 1
+        node.setmocktime(now)
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(lambda: dangling_proof.proofid not in get_proof_ids(node))
+        assert dangling_proofid_hex not in node.getavalancheproofs()["valid"]
+
+        def get_remote_proof(nodeid, proofid_hex):
+            for remote_proof in node.getremoteproofs(nodeid):
+                if remote_proof["proofid"] == proofid_hex:
+                    return remote_proof
+            return None
+
+        def peers_got_getavaproofs():
+            with p2p_lock:
+                return [p for p in quorum if p.message_count.get("getavaproofs", 0) > 0]
+
+        # First compact includes the dangling proof → present.
+        for p in quorum:
+            with p2p_lock:
+                p.message_count["getavaproofs"] = 0
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(lambda: len(peers_got_getavaproofs()) > 0)
+        peer = peers_got_getavaproofs()[0]
+
+        peer.send_and_ping(
+            build_msg_avaproofs(
+                [node0_proof, dangling_proof] + [p.proof for p in quorum]
+            )
+        )
+        status = get_remote_proof(peer.nodeid, dangling_proofid_hex)
+        assert status is not None
+        assert_equal(status["present"], True)
+
+        # A later compact that omits it must report absent (matched against the
+        # dangling pool).
+        with p2p_lock:
+            peer.message_count["getavaproofs"] = 0
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        peer.wait_until(lambda: peer.message_count.get("getavaproofs", 0) > 0)
+
+        peer.send_and_ping(
+            build_msg_avaproofs([node0_proof] + [p.proof for p in quorum])
+        )
+        status = get_remote_proof(peer.nodeid, dangling_proofid_hex)
+        assert status is not None
+        assert_equal(status["present"], False)
+
         node1 = self.nodes[1]
 
         self.connect_nodes(1, 0)
@@ -344,11 +401,16 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
         nodeid = node1.getpeerinfo()[-1]["id"]
         proofs_present = [node0_proof] + [peer.proof for peer in quorum[5:]]
+        proofs_absent = [peer.proof for peer in quorum[:5]]
+
+        # Need a compact avaproofs snapshot from node0 so remotes are rebuilt for
+        # both peers and dangling proofs (not only sticky AVAPROOF rows).
+        node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
         wait_for_remote_proofs(
             [
                 remoteFromProof(proof, present=(proof in proofs_present))
-                for proof in proofs_present + node1_proofs
+                for proof in proofs_present + proofs_absent + node1_proofs
             ],
             nodeid=nodeid,
         )

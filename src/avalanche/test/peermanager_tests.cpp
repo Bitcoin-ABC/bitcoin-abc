@@ -2666,6 +2666,15 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
         !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 1));
     BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 1));
 
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ONE), 0, false));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 1, true));
+    pm.clearRemoteProofs(0);
+    BOOST_CHECK(
+        !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 0));
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+    checkRemoteProof(ProofId(uint256::ZERO), 1, true, mockTime);
+
     for (size_t i = 0; i < avalanche::PeerManager::MAX_REMOTE_PROOFS; i++) {
         mockTime += 1s;
         SetMockTime(mockTime);

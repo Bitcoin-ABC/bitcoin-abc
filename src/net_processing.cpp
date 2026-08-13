@@ -64,6 +64,7 @@
 #include <memory>
 #include <numeric>
 #include <typeinfo>
+#include <unordered_set>
 #include <utility>
 
 /**
@@ -7557,27 +7558,39 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         std::vector<std::pair<avalanche::ProofId, bool>> remoteProofsStatus;
+        auto matchKnownProof = [&](const avalanche::ProofRef &proof) {
+            assert(proof);
+            const avalanche::ProofId &proofid = proof->getId();
+            uint64_t shortid = compactProofs.getShortID(proofid);
+
+            int added = shortIdProcessor.matchKnownItem(shortid, proof);
+
+            // On shortid collision (added < 0) present/absent is ambiguous;
+            // leave this proof out of the remote snapshot for this round.
+            // The compact slot is cleared so we request the full proof.
+            if (added < 0) {
+                return;
+            }
+
+            // Because we know the proof, we can determine if our peer has it
+            // (added = 1) or not (added = 0) and update the remote proof status
+            // accordingly.
+            remoteProofsStatus.emplace_back(proofid, added > 0);
+        };
+
         m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
             pm.forEachPeer([&](const avalanche::Peer &peer) {
-                assert(peer.proof);
-                uint64_t shortid = compactProofs.getShortID(peer.getProofId());
-
-                int added =
-                    shortIdProcessor.matchKnownItem(shortid, peer.proof);
-
-                // No collision
-                if (added >= 0) {
-                    // Because we know the proof, we can determine if our peer
-                    // has it (added = 1) or not (added = 0) and update the
-                    // remote proof status accordingly.
-                    remoteProofsStatus.emplace_back(peer.getProofId(),
-                                                    added > 0);
-                }
-
-                // In order to properly determine which proof is missing, we
-                // need to keep scanning for all our proofs.
+                matchKnownProof(peer.proof);
+                // Keep scanning all proofs so missing ones are detected.
                 return true;
             });
+
+            // Also match dangling proofs so compact avaproofs can refresh
+            // remote presence for pullback without relying on sticky rows.
+            pm.getDanglingProofPool().forEachProof(
+                [&](const avalanche::ProofRef &proof) {
+                    matchKnownProof(proof);
+                });
         });
 
         avalanche::ProofsRequest req;
@@ -7601,6 +7614,8 @@ void PeerManagerImpl::ProcessMessage(
                       return pfrom.m_avalanche_pubkey.has_value())) {
             m_avalanche->withPeerManager(
                 [&remoteProofsStatus, nodeid](avalanche::PeerManager &pm) {
+                    // Full snapshot replace for this node.
+                    pm.clearRemoteProofs(nodeid);
                     for (const auto &[proofid, present] : remoteProofsStatus) {
                         pm.saveRemoteProof(proofid, nodeid, present);
                     }

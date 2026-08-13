@@ -453,6 +453,7 @@ public:
     std::vector<RemoteProof> getRemoteProofs(const NodeId nodeid) const;
     bool hasRemoteProofStatus(const ProofId &proofid) const;
     bool isRemotelyPresentProof(const ProofId &proofid) const;
+    void clearRemoteProofs(NodeId nodeid);
 
     bool setFlaky(const ProofId &proofid);
     bool unsetFlaky(const ProofId &proofid);
@@ -514,6 +515,7 @@ public:
         return conflictingProofPool;
     }
     const ProofPool &getImmatureProofPool() const { return immatureProofPool; }
+    const ProofPool &getDanglingProofPool() const { return danglingProofPool; }
 
     ProofRef getProof(const ProofId &proofid) const;
     bool isBoundToPeer(const ProofId &proofid) const;
