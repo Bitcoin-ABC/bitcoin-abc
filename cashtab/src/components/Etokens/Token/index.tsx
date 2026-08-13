@@ -158,6 +158,7 @@ const Token: React.FC = () => {
         chronik,
         agora,
         fiatPrice,
+        xecxApy,
         ecashWallet,
         initialUtxoSyncComplete,
     } = ContextValue;
@@ -3043,6 +3044,21 @@ const Token: React.FC = () => {
                                         ` ${tokenTicker}`}
                                 </div>
                             </TokenInfoRow>
+                            {tokenId === appConfig.vipTokens.xecx.tokenId &&
+                                typeof xecxApy === 'number' && (
+                                    <TokenInfoRow title="XECX APY">
+                                        <label>APY</label>
+                                        <div>
+                                            {`${xecxApy.toLocaleString(
+                                                userLocale,
+                                                {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                },
+                                            )}%`}
+                                        </div>
+                                    </TokenInfoRow>
+                                )}
                             <TokenInfoRow
                                 expand
                                 role="button"

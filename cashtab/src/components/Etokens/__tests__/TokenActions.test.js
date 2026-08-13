@@ -45,6 +45,7 @@ import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
     FIRMA_BID_API_URL,
+    XECX_APY_API_URL,
     XECX_SWEEPER_ADDRESS,
 } from 'constants/tokens';
 
@@ -101,6 +102,12 @@ describe('<Token /> available actions rendered', () => {
             .calledWith(priceApiUrl)
             .mockResolvedValue({
                 json: () => Promise.resolve(priceResponse),
+            });
+        when(fetch)
+            .calledWith(XECX_APY_API_URL)
+            .mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ apy: 0.040114 }),
             });
     });
     afterEach(async () => {

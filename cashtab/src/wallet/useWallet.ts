@@ -41,7 +41,7 @@ import { toast } from 'react-toastify';
 import CashtabState, { CashtabContact } from 'config/CashtabState';
 import { TokenIconToast } from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
-import { FIRMA_APY_API_URL } from 'constants/tokens';
+import { FIRMA_APY_API_URL, XECX_APY_API_URL } from 'constants/tokens';
 import {
     ChronikClient,
     WsEndpoint,
@@ -89,6 +89,8 @@ export interface UseWalletReturnType {
     firmaPrice: number | null;
     /** Average Firma APY from FIRMA_APY_API_URL, or null. */
     firmaApy: number | null;
+    /** XECX APY percent from XECX_APY_API_URL (100 * fraction), or null. */
+    xecxApy: number | null;
     cashtabLoaded: boolean;
     loading: boolean;
     initialUtxoSyncComplete: boolean;
@@ -128,6 +130,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const [fiatPrice, setFiatPrice] = useState<null | number>(null);
     const [firmaPrice, setFirmaPrice] = useState<null | number>(null);
     const [firmaApy, setFirmaApy] = useState<null | number>(null);
+    const [xecxApy, setXecxApy] = useState<null | number>(null);
     const [apiError, setApiError] = useState<boolean>(false);
     const [checkFiatInterval, setCheckFiatInterval] =
         useState<null | NodeJS.Timeout>(null);
@@ -1230,6 +1233,35 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         return setFirmaApy(null);
     };
 
+    /**
+     * Fetch XECX APY from XECX_APY_API_URL (same endpoint as the marketing
+     * site hero). The API returns a decimal fraction; we store percent.
+     * APY updates once per day; call only once on app load.
+     */
+    const fetchXecxApy = async () => {
+        try {
+            const response = await fetch(XECX_APY_API_URL);
+            if (response.ok === false) {
+                console.error(
+                    `Failed to fetch XECX APY: Bad response from ${XECX_APY_API_URL}`,
+                );
+                return setXecxApy(null);
+            }
+            const apyJson = await response.json();
+            const apyFraction = apyJson.apy;
+            if (
+                typeof apyFraction === 'number' &&
+                Number.isFinite(apyFraction)
+            ) {
+                // Hero displays 100 * apy with 2 decimals.
+                return setXecxApy(100 * apyFraction);
+            }
+        } catch (err) {
+            console.error(`Failed to fetch XECX APY`, err);
+        }
+        return setXecxApy(null);
+    };
+
     const cashtabBootup = async () => {
         // Initialize platform storage
         const storageInit = await initializeStorage();
@@ -1277,17 +1309,19 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
     }, [cashtabLoaded, cashtabState.settings.fiatCurrency]);
 
-    // Firma APY updates once per day — fetch once on app load only (not on
-    // fiat-currency re-init or the price interval).
+    // Firma and XECX APY update once per day — fetch once on app load only
+    // (not on fiat-currency re-init or the price interval).
     useEffect(() => {
         if (cashtabLoaded !== true) {
             return;
         }
         if (import.meta.env.VITE_TESTNET === 'true') {
             setFirmaApy(null);
+            setXecxApy(null);
             return;
         }
         fetchFirmaApy();
+        fetchXecxApy();
     }, [cashtabLoaded]);
 
     /**
@@ -1466,6 +1500,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         fiatPrice,
         firmaPrice,
         firmaApy,
+        xecxApy,
         cashtabLoaded,
         loading,
         setLoading,

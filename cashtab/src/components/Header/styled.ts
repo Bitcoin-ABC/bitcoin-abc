@@ -326,6 +326,21 @@ export const StakedLink = styled(Link)`
 `;
 
 /**
+ * XECX APY next to "% staked". Hidden on narrow screens where the eCash
+ * card is too tight for a second figure.
+ */
+export const HeaderApy = styled.span`
+    &::before {
+        content: '·';
+        margin: 0 4px;
+        opacity: 0.6;
+    }
+    @media (max-width: 768px) {
+        display: none;
+    }
+`;
+
+/**
  * Fixed-height slot for combined total + "% staked" vs stacked XEC/XECX so
  * toggling does not change the eCash card height. Fiat stays below this slot.
  *

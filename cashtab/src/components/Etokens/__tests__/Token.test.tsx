@@ -13,6 +13,7 @@ import {
     bearTokenAndTx,
 } from 'components/App/fixtures/mocks';
 import { slp1FixedCachet } from 'components/Etokens/fixtures/mocks';
+import { tokenMockXecx } from 'components/Agora/fixtures/mocks';
 import { Ecc } from 'ecash-lib';
 import {
     MockAgora,
@@ -1085,5 +1086,32 @@ describe('<Token />', () => {
         expect(
             screen.queryByRole('button', { name: /Buy/ }),
         ).not.toBeInTheDocument();
+    });
+
+    it('XECX token page shows APY from stakedXec.com', async () => {
+        mockedChronik.setToken(tokenMockXecx.tokenId, tokenMockXecx.tokenInfo);
+        mockedChronik.setTx(tokenMockXecx.tokenId, tokenMockXecx.tx);
+        mockedChronik.setUtxosByTokenId(tokenMockXecx.tokenId, []);
+        mockedChronik.setTxHistoryByTokenId(tokenMockXecx.tokenId, []);
+        mockedAgora.setActiveOffersByTokenId(tokenMockXecx.tokenId, []);
+
+        render(
+            <TokenTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+                theme={theme}
+                route={`/token/${tokenMockXecx.tokenId}`}
+            />,
+        );
+
+        expect(
+            (await screen.findAllByText(/Staked XEC/))[0],
+        ).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByTitle('Token Stats')).toHaveTextContent('4.01%');
+        });
+        expect(screen.getByTitle('Token Stats')).toHaveTextContent('APY');
     });
 });

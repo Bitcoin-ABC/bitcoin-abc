@@ -37,6 +37,12 @@ export const FIRMA_APY_API_URL = 'https://stakedxec.com/api/firma-apy';
  */
 export const FIRMA_BID_API_URL = 'https://stakedxec.com/api/bid';
 
+/**
+ * XECX APY from stakedXec.com (same source as the marketing site hero).
+ * Response is `{ apy: number }` as a decimal fraction (e.g. 0.040114 → 4.01%).
+ */
+export const XECX_APY_API_URL = 'https://stakedxec.com/api/apy';
+
 /** EDJ token - everydayjackpot.com bets (100 EDJ = 1 FIRMA) */
 export const EDJ_TOKEN_ID =
     '411f07171b98e8e1e0c368dc88673bb7228e56fb96079f838ca57c2022777d84';

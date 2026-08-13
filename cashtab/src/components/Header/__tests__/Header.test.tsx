@@ -144,6 +144,9 @@ describe('<Header />', () => {
             );
         });
 
+        // Same APY as XECX_APY_API_URL (0.040114 → 4.01%)
+        expect(screen.getByTitle('XECX APY')).toHaveTextContent('4.01% APY');
+
         // Web/extension: hover tooltip anywhere on the eCash card
         const ecashCard = screen.getByRole('button', {
             name: 'Toggle XEC and XECX balances',

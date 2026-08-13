@@ -34,6 +34,7 @@ import {
     BalanceFiat,
     StakedPercent,
     StakedLink,
+    HeaderApy,
     BalanceToggleArea,
     BalanceBreakdown,
     BreakdownAmount,
@@ -127,6 +128,8 @@ type EcashBalanceCardProps = {
     stakedAmount: string;
     stakedPercentLabel: string;
     stakedHref: string;
+    /** Optional XECX APY (hidden on narrow screens). */
+    apyLabel?: string;
     /** Stacked XEC/XECX HTML for web/extension hover tooltip. */
     breakdownTooltipHtml: string;
     /** Hover tooltip only on web/extension (Android uses tap-to-expand). */
@@ -151,6 +154,7 @@ const EcashBalanceCard = ({
     stakedAmount,
     stakedPercentLabel,
     stakedHref,
+    apyLabel,
     breakdownTooltipHtml,
     enableHoverTooltip,
     showBreakdown,
@@ -226,6 +230,11 @@ const EcashBalanceCard = ({
                             >
                                 staked
                             </StakedLink>
+                            {typeof apyLabel === 'string' && (
+                                <HeaderApy title="XECX APY">
+                                    {apyLabel}
+                                </HeaderApy>
+                            )}
                         </StakedPercent>
                     </>
                 )}
@@ -251,6 +260,7 @@ interface BalanceCardsProps {
     fiatPrice: number | null;
     firmaPrice: number | null;
     firmaApy: number | null;
+    xecxApy: number | null;
     balanceVisible: boolean;
     fiatCurrency: string;
     userLocale: string;
@@ -274,6 +284,7 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
     fiatPrice,
     firmaPrice,
     firmaApy,
+    xecxApy,
     balanceVisible,
     fiatCurrency,
     userLocale,
@@ -345,6 +356,14 @@ const BalanceCards: React.FC<BalanceCardsProps> = ({
                 stakedAmount={stakedLabel}
                 stakedPercentLabel={formatStakedPercent(stakedPercent)}
                 stakedHref={xecxHref}
+                apyLabel={
+                    typeof xecxApy === 'number'
+                        ? `${xecxApy.toLocaleString(userLocale, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                          })}% APY`
+                        : undefined
+                }
                 breakdownTooltipHtml={breakdownTooltipHtml}
                 enableHoverTooltip={enableHoverTooltip}
                 showBreakdown={showBreakdown}
@@ -393,6 +412,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
         fiatPrice,
         firmaPrice,
         firmaApy,
+        xecxApy,
         ecashWallet,
         getWalletByAddress,
     } = ContextValue;
@@ -506,6 +526,7 @@ const Header: React.FC<HeaderProps> = ({ path }) => {
                     fiatPrice={fiatPrice}
                     firmaPrice={firmaPrice}
                     firmaApy={firmaApy}
+                    xecxApy={xecxApy}
                     balanceVisible={settings.balanceVisible === false}
                     fiatCurrency={settings.fiatCurrency}
                     userLocale={userLocale}

@@ -6,7 +6,7 @@ import { when } from 'jest-when';
 import { Tx, TokenInfo, Block, BlockchainInfo } from 'chronik-client';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import appConfig from 'config/app';
-import { FIRMA_APY_API_URL } from 'constants/tokens';
+import { FIRMA_APY_API_URL, XECX_APY_API_URL } from 'constants/tokens';
 import { ActiveCashtabWallet, StoredCashtabWallet } from 'wallet';
 
 /**
@@ -90,8 +90,9 @@ export const mockPrice = (price: number) => {
             json: () => Promise.resolve(priceResponse),
         } as Response);
 
-    // Firma APY is fetched on the same boot path as fiat price
+    // Firma and XECX APY are fetched on the same boot path as fiat price
     mockFirmaApy(6.29);
+    mockXecxApy(0.040114);
 };
 
 /**
@@ -106,6 +107,22 @@ export const mockFirmaApy = (averageApySpot: number) => {
                 Promise.resolve({
                     average_apy_spot: averageApySpot,
                     payment_count: 100,
+                }),
+        } as Response);
+};
+
+/**
+ * Mock XECX_APY_API_URL (decimal fraction, same source as the
+ * marketing site hero)
+ */
+export const mockXecxApy = (apyFraction: number) => {
+    when(fetch)
+        .calledWith(XECX_APY_API_URL)
+        .mockResolvedValue({
+            ok: true,
+            json: () =>
+                Promise.resolve({
+                    apy: apyFraction,
                 }),
         } as Response);
 };
