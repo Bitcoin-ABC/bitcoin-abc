@@ -6,44 +6,48 @@
 
 #include <avalanche/peermanager.h>
 #include <avalanche/proofcomparator.h>
+#include <util/check.h>
 
 namespace avalanche {
+
+ProofPool::ConflictingProofSet
+ProofPool::getConflicts(const ProofRef &proof) const {
+    ConflictingProofSet conflictingProofs;
+    if (!proof) {
+        return conflictingProofs;
+    }
+
+    for (const auto &s : proof->getStakes()) {
+        const ProofRef conflicting = getProof(s.getStake().getUTXO());
+        if (conflicting && conflicting->getId() != proof->getId()) {
+            conflictingProofs.insert(conflicting);
+        }
+    }
+    return conflictingProofs;
+}
 
 ProofPool::AddProofStatus
 ProofPool::addProofIfNoConflict(const ProofRef &proof,
                                 ConflictingProofSet &conflictingProofs) {
-    const ProofId &proofid = proof->getId();
-
     // Make sure the set is empty before we add items
     conflictingProofs.clear();
 
     auto &poolView = pool.get<by_proofid>();
-    if (poolView.find(proofid) != poolView.end()) {
+    if (poolView.find(proof->getId()) != poolView.end()) {
         return AddProofStatus::DUPLICATED;
+    }
+
+    conflictingProofs = getConflicts(proof);
+    if (!conflictingProofs.empty()) {
+        return AddProofStatus::REJECTED;
     }
 
     // Attach UTXOs to this proof.
     for (size_t i = 0; i < proof->getStakes().size(); i++) {
         auto p = pool.emplace(i, proof);
-        if (!p.second) {
-            // We have a collision with an existing proof.
-            conflictingProofs.insert(p.first->proof);
-        }
-    }
-
-    // If there is a conflict, just cleanup the mess.
-    if (conflictingProofs.size() > 0) {
-        for (const auto &s : proof->getStakes()) {
-            auto it = pool.find(s.getStake().getUTXO());
-            assert(it != pool.end());
-
-            // We need to delete that one.
-            if (it->proof->getId() == proofid) {
-                pool.erase(it);
-            }
-        }
-
-        return AddProofStatus::REJECTED;
+        // After getConflicts, failure means a duplicate UTXO within the proof
+        // itself (or a logic bug), not a conflict with another pool entry.
+        Assume(p.second);
     }
 
     cacheClean = false;
@@ -67,7 +71,7 @@ ProofPool::addProofIfPreferred(const ProofRef &proof,
     }
 
     status = addProofIfNoConflict(proof);
-    assert(status == AddProofStatus::SUCCEED);
+    Assume(status == AddProofStatus::SUCCEED);
 
     cacheClean = false;
     return AddProofStatus::SUCCEED;

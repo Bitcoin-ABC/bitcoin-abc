@@ -407,6 +407,17 @@ bool PeerManager::registerProof(const ProofRef &proof,
     // exist in the conflicting pool, but use belt and suspenders.
     conflictingProofPool.removeProof(proofid);
 
+    // A preferred peer owning these UTXOs supersedes any dangling proof that
+    // was parked earlier for the same stakes.
+    for (const ProofRef &conflicting : danglingProofPool.getConflicts(proof)) {
+        const ProofId &conflictingProofId = conflicting->getId();
+        danglingProofPool.removeProof(conflictingProofId);
+        LogPrint(BCLog::AVALANCHE,
+                 "Evicted dangling proof %s due to conflict with peer proof "
+                 "%s\n",
+                 conflictingProofId.GetHex(), proofid.GetHex());
+    }
+
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
 
@@ -544,6 +555,16 @@ void PeerManager::cleanupDanglingProofs(
 
     for (const ProofRef &proof : newlyDanglingProofs) {
         rejectProof(proof->getId(), RejectionMode::INVALIDATE);
+
+        // If a preferred peer already owns any of these UTXOs, do not park the
+        // proof as dangling — it can never be pulled back usefully.
+        // Note that since peer registration also checks for conflicts in the
+        // dangling pool, this condition should never be true. It is kept as a
+        // belt and suspenders check in the case this assumption is violated.
+        if (!validProofPool.getConflicts(proof).empty()) {
+            continue;
+        }
+
         if (danglingProofPool.addProofIfPreferred(proof)) {
             // If the proof is added, it means there is no better conflicting
             // dangling proof and this is not a duplicated, so it's worth

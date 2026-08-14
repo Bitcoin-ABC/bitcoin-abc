@@ -22,6 +22,53 @@ using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(proofpool_tests, TestChain100Setup)
 
+BOOST_AUTO_TEST_CASE(get_conflicts) {
+    ProofPool testPool;
+
+    const CKey key = CKey::MakeCompressedKey();
+    const COutPoint outpointA{TxId(GetRandHash()), 0};
+    const COutPoint outpointB{TxId(GetRandHash()), 0};
+    const COutPoint otherOutpoint{TxId(GetRandHash()), 0};
+
+    auto buildProof = [&](uint64_t sequence,
+                          const std::vector<COutPoint> &outpoints) {
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+        for (const COutPoint &outpoint : outpoints) {
+            BOOST_CHECK(pb.addUTXO(outpoint, 10 * COIN, 123456, false, key));
+        }
+        return pb.build();
+    };
+
+    auto proofA = buildProof(1, {outpointA});
+    auto proofB = buildProof(1, {outpointB});
+    auto proofAB = buildProof(2, {outpointA, outpointB});
+    auto proofOther = buildProof(1, {otherOutpoint});
+
+    BOOST_CHECK(testPool.getConflicts(proofA).empty());
+    BOOST_CHECK(testPool.getConflicts(ProofRef()).empty());
+
+    BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proofA),
+                      ProofPool::AddProofStatus::SUCCEED);
+
+    // Same proof is excluded from conflicts
+    BOOST_CHECK(testPool.getConflicts(proofA).empty());
+
+    auto conflicts = testPool.getConflicts(proofAB);
+    BOOST_CHECK_EQUAL(conflicts.size(), 1);
+    BOOST_CHECK_EQUAL((*conflicts.begin())->getId(), proofA->getId());
+
+    BOOST_CHECK(testPool.getConflicts(proofOther).empty());
+
+    BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proofB),
+                      ProofPool::AddProofStatus::SUCCEED);
+
+    // A proof that shares UTXOs with several pool entries returns all of them
+    conflicts = testPool.getConflicts(proofAB);
+    BOOST_CHECK_EQUAL(conflicts.size(), 2);
+    BOOST_CHECK_EQUAL(conflicts.count(proofA), 1);
+    BOOST_CHECK_EQUAL(conflicts.count(proofB), 1);
+}
+
 BOOST_AUTO_TEST_CASE(get_proof_ids) {
     ProofPool testPool;
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();

@@ -111,6 +111,12 @@ public:
 
     bool removeProof(ProofId proofid);
 
+    /**
+     * Return proofs in this pool that share any UTXO with proof. The proof
+     * itself is excluded if it is already in the pool.
+     */
+    ConflictingProofSet getConflicts(const ProofRef &proof) const;
+
     std::unordered_set<ProofRef, SaltedProofHasher>
     rescan(PeerManager &peerManager);
 

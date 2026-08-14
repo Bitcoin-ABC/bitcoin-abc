@@ -82,6 +82,11 @@ namespace {
             pm.cleanupDanglingProofs(dummy);
         }
 
+        static bool addDanglingProof(PeerManager &pm, const ProofRef &proof) {
+            return pm.danglingProofPool.addProofIfPreferred(proof) ==
+                   ProofPool::AddProofStatus::SUCCEED;
+        }
+
         static std::optional<RemoteProof> getRemoteProof(const PeerManager &pm,
                                                          const ProofId &proofid,
                                                          NodeId nodeid) {
@@ -3200,6 +3205,102 @@ BOOST_AUTO_TEST_CASE(dangling_proof_invalidation) {
     // The now expired proof is removed
     BOOST_CHECK(!pm.exists(proof->getId()));
     BOOST_CHECK(!pm.isDangling(proof->getId()));
+}
+
+BOOST_FIXTURE_TEST_CASE(dangling_evicted_on_preferred_peer, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+
+    SetMockTime(GetTime<std::chrono::seconds>());
+
+    CKey key = CKey::MakeCompressedKey();
+    auto utxo = createUtxo(chainman.ActiveChainstate(), key);
+    auto danglingProof = buildProofWithSequence(key, {utxo}, 1);
+    auto preferredProof = buildProofWithSequence(key, {utxo}, 2);
+
+    BOOST_CHECK(pm.registerProof(danglingProof));
+    BOOST_CHECK(pm.isBoundToPeer(danglingProof->getId()));
+
+    // Park the lower-sequence proof in the dangling pool
+    SetMockTime(GetTime<std::chrono::seconds>() +
+                avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    BOOST_CHECK(!pm.isBoundToPeer(danglingProof->getId()));
+    BOOST_CHECK(pm.isDangling(danglingProof->getId()));
+
+    // Preferred proof can join the peer set because dangling UTXOs are not in
+    // the valid pool. Registering it must evict the conflicting dangling proof.
+    BOOST_CHECK(pm.registerProof(preferredProof));
+    BOOST_CHECK(pm.isBoundToPeer(preferredProof->getId()));
+    BOOST_CHECK(!pm.isDangling(danglingProof->getId()));
+    BOOST_CHECK(!pm.isDangling(preferredProof->getId()));
+
+    // The superseded proof can be accepted again later (e.g. after the
+    // preferred peer leaves), and is not stuck behind a dangling tombstone.
+    BOOST_CHECK(
+        pm.rejectProof(preferredProof->getId(),
+                       avalanche::PeerManager::RejectionMode::INVALIDATE));
+    ProofRegistrationState state;
+    BOOST_CHECK(pm.registerProof(danglingProof, state));
+    BOOST_CHECK_EQUAL(state.GetResult(), ProofRegistrationResult::NONE);
+    BOOST_CHECK(pm.isBoundToPeer(danglingProof->getId()));
+}
+
+BOOST_FIXTURE_TEST_CASE(cleanup_dangling_conflict, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    SetMockTime(GetTime<std::chrono::seconds>());
+
+    CKey key = CKey::MakeCompressedKey();
+    auto utxo = createUtxo(active_chainstate, key);
+    auto lowSeqProof = buildProofWithSequence(key, {utxo}, 1);
+    auto highSeqProof = buildProofWithSequence(key, {utxo}, 2);
+
+    BOOST_CHECK(pm.registerProof(lowSeqProof));
+    BOOST_CHECK(pm.isBoundToPeer(lowSeqProof->getId()));
+
+    // Park the high-sequence proof as dangling while the low-sequence proof is
+    // still a peer. Registering the high-sequence proof would normally evict it
+    // from the dangling pool; keep this state via the test helper so cleanup
+    // can pull it back in the same pass that ages out the low-sequence peer.
+    BOOST_CHECK(TestPeerManager::addDanglingProof(pm, highSeqProof));
+    BOOST_CHECK(pm.isDangling(highSeqProof->getId()));
+
+    // Remotes: high-sequence is present (pullback), low-sequence is absent
+    // (newly dangling)
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        auto localProof =
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(localProof));
+        BOOST_CHECK(pm.addNode(nodeid, localProof->getId(),
+                               DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
+        BOOST_CHECK(pm.saveRemoteProof(highSeqProof->getId(), nodeid, true));
+        BOOST_CHECK(pm.saveRemoteProof(lowSeqProof->getId(), nodeid, false));
+    }
+
+    BOOST_CHECK(
+        TestPeerManager::getRemotePresenceStatus(pm, highSeqProof->getId())
+            .value());
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, lowSeqProof->getId())
+             .value());
+
+    SetMockTime(GetTime<std::chrono::seconds>() +
+                avalanche::Peer::DANGLING_TIMEOUT);
+
+    std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
+    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs);
+
+    // High-sequence proof is pulled back as a peer and the low-sequence proof
+    // is rejected without being re-parked as dangling (valid pool already owns
+    // the UTXOs).
+    BOOST_CHECK(pm.isBoundToPeer(highSeqProof->getId()));
+    BOOST_CHECK_EQUAL(registeredProofs.count(highSeqProof), 1);
+    BOOST_CHECK(!pm.isBoundToPeer(lowSeqProof->getId()));
+    BOOST_CHECK(!pm.isDangling(lowSeqProof->getId()));
+    BOOST_CHECK(!pm.exists(lowSeqProof->getId()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
