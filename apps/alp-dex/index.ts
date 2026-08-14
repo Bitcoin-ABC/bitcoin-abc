@@ -11,6 +11,7 @@ import {
     maintainInventory,
     type MaintainInventoryResult,
 } from './src/inventory/maintain';
+import { AsyncQueue } from './src/methods/queue';
 import { pairSpotPrices } from './src/pricing/quotes';
 import { pricingReserveAtoms } from './src/pricing/reserves';
 import { loadTradedTokens } from './src/tokens/tradedTokens';
@@ -64,6 +65,25 @@ const main = async (): Promise<void> => {
     await Promise.all([seller.sync(), slush.sync()]);
     const tradedTokens = await loadTradedTokens(chronik, tradedConfig);
 
+    // One queue for settle + scheduled/post-settle maintain so they never
+    // race on seller UTXO selection / broadcast.
+    const walletQueue = new AsyncQueue();
+    const enqueueMaintain = async (label: string): Promise<void> => {
+        await walletQueue.enqueue(async () => {
+            try {
+                const inventory = await maintainInventory({
+                    seller,
+                    slush,
+                    feeAddress: tradedConfig.feeAddress,
+                    tradedTokens,
+                });
+                logMaintainResult(label, inventory);
+            } catch (error: unknown) {
+                logMaintainError(label, error);
+            }
+        });
+    };
+
     // Listen before inventory maintain so a Chronik/broadcast failure does not
     // prevent health / status from coming up (maintain is housekeeping).
     const app = createApp({
@@ -72,6 +92,8 @@ const main = async (): Promise<void> => {
         feeAddress: tradedConfig.feeAddress,
         tradedConfig,
         tradedTokens,
+        walletQueue,
+        maintainInventory: () => enqueueMaintain('post-settle'),
     });
     await new Promise<void>((resolve, reject) => {
         const server = app.listen(tradedConfig.port, () => {
@@ -126,20 +148,9 @@ const main = async (): Promise<void> => {
     console.log(
         `inventory maintain delay: ${MAINTAIN_DELAY_MS / 1000}s between passes`,
     );
-    // Startup pass, then delay after each pass so they cannot overlap.
     let label = 'startup';
     for (;;) {
-        try {
-            const inventory = await maintainInventory({
-                seller,
-                slush,
-                feeAddress: tradedConfig.feeAddress,
-                tradedTokens,
-            });
-            logMaintainResult(label, inventory);
-        } catch (error: unknown) {
-            logMaintainError(label, error);
-        }
+        await enqueueMaintain(label);
         label = 'scheduled';
         await new Promise<void>(resolve => {
             setTimeout(resolve, MAINTAIN_DELAY_MS);

@@ -118,8 +118,10 @@ Maker `feePct` is **on top of** the price leg (paid in `fromToken` to the
 fee script). Optional coordinator platform fee is likewise an explicit
 mid-output the taker can inspect.
 
-Settle accepts the buyer’s `toToken` atoms within a small band of the CP
-expectation for the price leg (planned default **±1%**).
+Settle accepts the buyer’s `toToken` atoms within a small band of the
+**constant-product** expectation for the price leg (**±1%**,
+`SETTLE_BAND_BPS = 100`). That cushions small reserve moves between quote
+and settle; fills outside the band are rejected.
 
 ## Inventory automation
 
@@ -159,28 +161,36 @@ Flow:
 1. Taker `GET`s a settleable output template (scripts + atoms + fees).
 2. Taker builds an ALP send (EMPP), signs own inputs, `POST`s hex +
    `prePostageInputSats` + expected `tokenId` / `atoms`.
-3. Node parses EMPP/ALP, validates schema / fees / CP band, serializes
-   settle through a queue, selects N exact-size `toToken` seller UTXOs,
-   adds postage fuel, signs, broadcasts.
+3. Node parses EMPP/ALP, validates schema / fees / ±1% constant-product
+   settle band, serializes settle through a queue, selects N exact-size
+   `toToken` seller UTXOs, adds postage fuel, signs, broadcasts.
 4. On success: audit row + optional post-swap inventory pass.
 
-Exact-size seller inventory (advertised `utxoQty` per `tokenId`) lets the
-taker construct outs including any token change before the server attaches
-a variable number of inputs.
+Exact-size seller inventory (advertised `utxoQty` / `utxoAtoms` per
+`tokenId`) lets the taker construct outs including any token change before
+the server attaches a variable number of inputs. Settle requires the sum of
+all `toToken` outs to be an exact multiple of `utxoAtoms` (bigint math; no
+float/`Math.ceil`) so attached inventory matches the fixed ALP section.
 
-Concurrency note: a process-local settle queue avoids double-spending the
-same seller UTXOs; it is **not** an on-chain reservation. Concurrent quotes
-can still race.
+Concurrency note: a process-local queue serializes settle fuel/sign/broadcast
+**and** inventory maintain so they cannot double-spend the same seller
+UTXOs; it is **not** an on-chain reservation. Concurrent quotes can still
+race.
+
+Postage funding: every token mid-out must carry exactly `DEFAULT_DUST_SATS`
+(546); OP_RETURN must be 0 sats. Non-token mid-outs with sats are rejected.
+That keeps `addFuelAndSign` from funding inflated taker outs with LP postage.
 
 ## HTTP API
 
 Listen port from `config.json` `port` (sample default **3003**).
 CORS open for browser takers. Rate limiting lands with deploy ops.
 
-**Implemented (quote API):** `GET /`, `GET /api/v1/status`, available,
-inventory, spot, amm discovery, exact-in/out templates, and settleable
-`?from|to&feePct` templates. **Still planned:** `POST` settle, DB audit,
-coordinator platform-fee fields beyond `platformFeeEnabled: false`.
+**Implemented:** `GET /`, `GET /api/v1/status`, available, inventory, spot,
+amm discovery, exact-in/out templates, settleable `?from|to&feePct`
+templates, and **`POST` settle** (parse/validate, queue, fuel+sign+broadcast).
+**Still planned:** DB audit, Telegram ops, coordinator platform-fee fields
+beyond `platformFeeEnabled: false`.
 
 | Method | Path                                     | Purpose                                              |
 | ------ | ---------------------------------------- | ---------------------------------------------------- |
@@ -195,28 +205,35 @@ coordinator platform-fee fields beyond `platformFeeEnabled: false`.
 | GET    | `/api/v1/swap/:from/:to?from\|to&feePct` | Settleable CP output template                        |
 | POST   | `/api/v1/swap/:from/:to`                 | Settle postage-ready tx                              |
 
-### Settle body (planned)
+### Settle body
 
 - `serializedTxHex` — taker-signed, postage-ready tx hex
 - `prePostageInputSats` — sats already covered by taker inputs
 - `tokenId` — must equal receiving (`to`) token
-- `atoms` — atoms of `to` expected by taker
+- `atoms` — buyer-receive `toToken` atoms (must match the parsed buyer
+  output). Inventory selection covers all `toToken` outs on the tx
+  (buyer + optional change to slush).
 
-### Settle responses (planned)
+### Settle responses
 
 - Success: `{ success, txid, postagePaidSats }`
-- Validation failure: `400` (+ optional audit row `is_valid=false`)
-- Fuel/broadcast failure: `500` (+ optional audit row `broadcasted=false`)
+- Validation failure: `400` (`{ error }`; audit row planned later)
+- Fuel/broadcast failure: `500` (`{ error }`; audit row planned later)
 
 ## Output schema (parsed, excl. OP_RETURN)
 
-Planned mid-tx shape the node validates:
+Mid-tx shape the node validates:
 
 1. Price leg → slush (`fromToken`)
 2. Maker fee → fee script (`fromToken`), if `feePct > 0`
 3. Platform fee → coordinator fee script (`fromToken`), if enabled
-4. Buyer receive → taker script (`toToken`)
-5. Optional change outs (schema-allowed)
+4. Buyer receive → taker script (`toToken`) (must not be slush, seller,
+   fee, or platform)
+5. Optional change outs (0–2), after the buyer receive:
+    - **One optional:** either `toToken` → slush, **or** `fromToken` → a
+      non-reserved script (taker change)
+    - **Two optionals (order required):** `toToken` → slush **then**
+      `fromToken` → taker change. Reverse order is rejected.
 
 `feePct` on template/settle must match the configured pair fee.
 

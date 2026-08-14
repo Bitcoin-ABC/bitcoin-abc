@@ -78,7 +78,8 @@ market maker with a public API.
 - The taker builds outputs and signs their own inputs before settle. They
   can inspect maker fee (and optional coordinator fee) outs before signing.
 - At settle time the node checks the price leg against constant-product
-  expectations (planned: ±1% band) using its current local reserves.
+  expectations (±1% band, `SETTLE_BAND_BPS`) using its current local
+  reserves.
 
 ### What still requires trust / reputation
 
@@ -167,9 +168,11 @@ should ship tests a reviewer can run locally.
    routes: available, inventory, spot, size quotes, settleable output
    templates (no broadcast). Status advertises seller / pairs / postage;
    `platformFeeEnabled` stays false until coordinator opt-in.
-9. **Settle** — Parse/validate postage-ready ALP txs; settle queue; fuel +
-   sign + broadcast (mocked Chronik/broadcast); ±1% CP band; maker fee
-   schema.
+9. **Settle [D20478](https://reviews.bitcoinabc.org/D20478)** — Parse/validate
+   postage-ready ALP txs; settle queue; fuel + sign + broadcast (mocked
+   Chronik/broadcast); ±1% constant-product settle band; maker fee schema.
+   `POST /api/v1/swap/:from/:to` via `PostageTx`; no DB audit / Telegram
+   yet; `platformFeeEnabled` stays false.
 10. **DB + ops** — `schema.sql`, swap audit inserts, summarize / rebalance
     scripts, optional Telegram message builders.
 11. **Coordinator opt-in + deploy** — Platform-fee source (mockable fetch),
@@ -188,5 +191,5 @@ change.
 - Inventory reshape never spends batons; only exact-size seller UTXOs are
   fill-eligible.
 - Settle rejects wrong fee pct, wrong platform fee (when enabled), and
-  price legs outside the CP band.
+  price legs outside the ±1% constant-product settle band.
 - Mocked end-to-end: template → taker-signed hex → fuel → broadcast shape.

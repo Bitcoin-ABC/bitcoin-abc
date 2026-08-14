@@ -12,7 +12,9 @@ import express, {
 } from 'express';
 import type { ParsedTradedConfig } from './config/tradedConfig';
 import { POSTAGE_SATS, SPEC_VERSION } from './constants';
+import type { AsyncQueue } from './methods/queue';
 import { createQuoteRouter } from './routes/quotes';
+import { createSettleRouter } from './routes/settle';
 import type { TradedTokens } from './tokens/tradedTokens';
 
 export type CreateAppDeps = {
@@ -21,6 +23,17 @@ export type CreateAppDeps = {
     feeAddress: string;
     tradedConfig: ParsedTradedConfig;
     tradedTokens: TradedTokens;
+    /**
+     * Shared FIFO for settle fuel/sign/broadcast and inventory maintain so
+     * both paths cannot select/broadcast the same seller UTXOs concurrently.
+     * When omitted, settle creates its own queue (tests).
+     */
+    walletQueue?: AsyncQueue;
+    /**
+     * Optional post-settle inventory maintain (fire-and-forget).
+     * Errors are logged and must not fail the settle HTTP response.
+     */
+    maintainInventory?: () => Promise<unknown>;
 };
 
 /**
@@ -39,12 +52,19 @@ const openCors = (_req: Request, res: Response, next: NextFunction): void => {
 /**
  * Create the Express app for alp-dex.
  *
- * Quote API: discovery + settleable templates.
- *
- * All versioned API routes are mounted under `/api/v1`.
+ * Quote API + postage-protocol settle. All versioned API routes are mounted
+ * under `/api/v1`.
  */
 export const createApp = (deps: CreateAppDeps): Express => {
-    const { seller, slush, feeAddress, tradedConfig, tradedTokens } = deps;
+    const {
+        seller,
+        slush,
+        feeAddress,
+        tradedConfig,
+        tradedTokens,
+        walletQueue,
+        maintainInventory,
+    } = deps;
     const app = express();
 
     app.use(openCors);
@@ -104,6 +124,18 @@ export const createApp = (deps: CreateAppDeps): Express => {
             feeAddress,
             tradedConfig,
             tradedTokens,
+        }),
+    );
+
+    v1.use(
+        createSettleRouter({
+            seller,
+            slush,
+            feeAddress,
+            tradedConfig,
+            tradedTokens,
+            walletQueue,
+            maintainInventory,
         }),
     );
 

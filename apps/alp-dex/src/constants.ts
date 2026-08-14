@@ -16,3 +16,11 @@ export const SPEC_VERSION = 1;
  * XEC into this denomination.
  */
 export const POSTAGE_SATS = 1000n;
+
+/**
+ * Settle CP band half-width in basis points (100 = ±1%).
+ *
+ * `atomsTo` must fall in
+ * `[floor(expected * (10000 - bps) / 10000), ceil(expected * (10000 + bps) / 10000)]`.
+ */
+export const SETTLE_BAND_BPS = 100n;
