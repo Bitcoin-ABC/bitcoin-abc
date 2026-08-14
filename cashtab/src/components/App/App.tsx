@@ -50,6 +50,7 @@ import Extension from 'components/AppModes/Extension';
 import Header from 'components/Header';
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import PullToRefresh from 'components/Common/PullToRefresh';
+import AppUpdatePrompt from 'components/App/AppUpdatePrompt';
 import BiometricStartupGate from 'components/App/BiometricStartupGate';
 import PushNotificationRegistrar from 'components/App/PushNotificationRegistrar';
 import {
@@ -309,6 +310,7 @@ const App = () => {
                         cashtabState.settings.biometricLockEnabled
                     }
                 >
+                    <AppUpdatePrompt />
                     <WalletBody>
                         <WalletCtn showFooter={hasWallet}>
                             {!cashtabLoaded ? (

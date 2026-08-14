@@ -153,6 +153,8 @@ interface ModalProps {
     disabled?: boolean;
     paddingPx?: number;
     isConfirmLoading?: boolean;
+    okText?: string;
+    cancelText?: string;
 }
 export const Modal: React.FC<ModalProps> = ({
     title,
@@ -165,6 +167,8 @@ export const Modal: React.FC<ModalProps> = ({
     disabled = false,
     paddingPx,
     isConfirmLoading = false,
+    okText = 'OK',
+    cancelText = 'Cancel',
 }) => {
     return (
         <>
@@ -189,15 +193,15 @@ export const Modal: React.FC<ModalProps> = ({
                 {showButtons && (
                     <ButtonHolder>
                         <ModalConfirm
-                            aria-label="OK"
+                            aria-label={okText}
                             disabled={disabled || isConfirmLoading}
                             onClick={handleOk}
                         >
-                            {isConfirmLoading ? <InlineLoader /> : 'OK'}
+                            {isConfirmLoading ? <InlineLoader /> : okText}
                         </ModalConfirm>
                         {showCancelButton && (
                             <ModalCancel onClick={handleCancel}>
-                                Cancel
+                                {cancelText}
                             </ModalCancel>
                         )}
                     </ButtonHolder>

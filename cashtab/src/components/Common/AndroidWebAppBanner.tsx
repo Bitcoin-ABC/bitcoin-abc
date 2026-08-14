@@ -11,15 +11,13 @@ import React, {
 } from 'react';
 import styled from 'styled-components';
 import { Capacitor } from '@capacitor/core';
+import { ANDROID_STORE_URL } from 'constants/store';
 import { isAndroidMobileWebUserAgent } from 'helpers';
 
 /** Incremented each time the user dismisses the bar; hidden permanently at 3. */
 const DISMISS_COUNT_KEY = 'cashtabAndroidAppBannerDismissCount';
 
 const MAX_DISMISSALS_BEFORE_HIDE = 3;
-
-const PLAY_STORE_URL =
-    'https://play.google.com/store/apps/details?id=com.cashtab.app';
 
 const MESSAGE_FIRST =
     'For the best experience on your phone, use the Cashtab Android app.';
@@ -183,7 +181,7 @@ const AndroidWebAppBanner: React.FC = () => {
                     : MESSAGE_AFTER_FIRST_DISMISS}
             </BannerText>
             <DownloadLink
-                href={PLAY_STORE_URL}
+                href={ANDROID_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
             >

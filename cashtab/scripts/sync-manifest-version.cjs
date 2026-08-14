@@ -15,6 +15,11 @@ const manifestPath = path.join(
     'public',
     'manifest.json',
 );
+const nativeLatestPath = path.join(
+    packageRoot,
+    'public',
+    'native-latest.json',
+);
 
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -27,3 +32,13 @@ if (manifest.version !== newVersion) {
 } else {
     console.log(`Extension manifest version already ${newVersion}`);
 }
+
+const nativeLatest = {
+    ios: newVersion,
+    android: newVersion,
+};
+fs.writeFileSync(
+    nativeLatestPath,
+    `${JSON.stringify(nativeLatest, null, 4)}\n`,
+);
+console.log(`Updated native-latest.json to ${newVersion}`);
