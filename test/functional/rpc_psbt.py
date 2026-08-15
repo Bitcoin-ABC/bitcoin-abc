@@ -22,6 +22,7 @@ class PSBTTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 3
         self.supports_cli = False
+        self.noban_tx_relay = True
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -542,6 +543,40 @@ class PSBTTest(BitcoinTestFramework):
         )
         assert_equal(analysis["next"], "creator")
         assert_equal(analysis["error"], "PSBT is not valid. Output amount invalid")
+
+        self.test_sighash_single()
+
+    def test_sighash_single(self):
+        self.log.info(
+            "Test that SIGHASH_SINGLE won't sign an input with no matching output"
+        )
+        node = self.nodes[0]
+        node.createwallet("sighash_single")
+        wallet = node.get_wallet_rpc("sighash_single")
+        def_wallet = node.get_wallet_rpc(self.default_wallet_name)
+
+        addrs = [wallet.getnewaddress() for _ in range(2)]
+        for addr in addrs:
+            def_wallet.sendtoaddress(addr, 1_000_000)
+        self.generatetoaddress(node, 1, def_wallet.getnewaddress())
+        node.syncwithvalidationinterfacequeue()
+        ins = [
+            {"txid": u["txid"], "vout": u["vout"]}
+            for u in wallet.listunspent(addresses=addrs)
+        ]
+        assert_equal(len(ins), 2)
+
+        raw = node.createrawtransaction(ins, [{wallet.getnewaddress(): 1_999_900}])
+        signed = wallet.walletprocesspsbt(
+            node.converttopsbt(raw), True, "SINGLE|FORKID"
+        )["psbt"]
+        state = wallet.analyzepsbt(signed)["inputs"]
+        # Output at index 0 exist, so input 0 signs and finalizes
+        assert state[0]["is_final"]
+        # No output at index 1, so SIGHASH_SINGLE won't sign input 1
+        assert not state[1]["is_final"]
+
+        wallet.unloadwallet()
 
 
 if __name__ == "__main__":

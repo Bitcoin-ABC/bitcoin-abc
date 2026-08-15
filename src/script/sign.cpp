@@ -29,6 +29,15 @@ bool MutableTransactionSignatureCreator::CreateSig(
         return false;
     }
 
+    // If an input is signed with SIGHASH_SINGLE but there is no output at
+    // the same index, the signature commits to no output at all. Which means
+    // such a signature stays valid if the output is swapped, which is a
+    // footgun. So don't produce it.
+    if (sigHashType.getBaseType() == BaseSigHashType::SINGLE &&
+        nIn >= txTo->vout.size()) {
+        return false;
+    }
+
     uint256 hash = SignatureHash(scriptCode, *txTo, nIn, sigHashType, amount);
     if (!key.SignECDSA(hash, vchSig)) {
         return false;
@@ -460,14 +469,10 @@ bool SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
 
         SignatureData sigdata =
             DataFromTransaction(mtx, i, coin->second.GetTxOut());
-        // Only sign SIGHASH_SINGLE if there's a corresponding output:
-        if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
-            (i < mtx.vout.size())) {
-            ProduceSignature(*keystore,
-                             MutableTransactionSignatureCreator(&mtx, i, amount,
-                                                                sigHashType),
-                             prevPubKey, sigdata);
-        }
+        ProduceSignature(
+            *keystore,
+            MutableTransactionSignatureCreator(&mtx, i, amount, sigHashType),
+            prevPubKey, sigdata);
 
         UpdateInput(txin, sigdata);
 
