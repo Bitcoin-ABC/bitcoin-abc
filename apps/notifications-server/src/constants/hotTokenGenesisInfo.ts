@@ -15,6 +15,14 @@ export const CACHET_TOKEN_ID =
 export const FIRMA_TOKEN_ID =
     '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0';
 
+/**
+ * P2PKH output script of the Firma yield wallet. Daily FIRMA rewards are
+ * identified the same way as Cashtab history (sender script + FIRMA tokenId),
+ * not by OP_RETURN.
+ */
+export const FIRMA_YIELD_OUTPUT_SCRIPT =
+    '76a91438d2e1501a485814e2849552093bb0588ed9acbb88ac';
+
 export const XECX_TOKEN_ID =
     'c67bf5c2b6d91cfb46a5c1772582eff80d88686887be10aa63b0945479cf4ed4';
 

@@ -11,6 +11,10 @@ import {
     XecTxType,
     type ParsedTx,
 } from 'ecash-parse';
+import {
+    FIRMA_TOKEN_ID,
+    FIRMA_YIELD_OUTPUT_SCRIPT,
+} from './constants/hotTokenGenesisInfo';
 
 export type PushTxSummary = {
     title: string;
@@ -30,6 +34,30 @@ export type SummarizePushTxOptions = {
 };
 
 const DEFAULT_PUSH_TITLE = 'Payment received';
+const XECX_PAYOUT_PUSH_TITLE = 'Daily XECX Payout';
+const FIRMA_REWARDS_PUSH_TITLE = 'Daily Firma Rewards';
+
+const isXecxPayout = (parsedTx: ParsedTx): boolean => {
+    const action = parsedTx.appActions[0];
+    return (
+        parsedTx.parsedTokenEntries.length === 0 &&
+        typeof action !== 'undefined' &&
+        action.app === 'XECX' &&
+        action.isValid === true
+    );
+};
+
+const isFirmaYield = (tx: Tx, parsedTx: ParsedTx): boolean => {
+    if (tx.isCoinbase || tx.inputs.length === 0) {
+        return false;
+    }
+    const entry = parsedTx.parsedTokenEntries[0];
+    return (
+        tx.inputs[0].outputScript === FIRMA_YIELD_OUTPUT_SCRIPT &&
+        typeof entry !== 'undefined' &&
+        entry.tokenId === FIRMA_TOKEN_ID
+    );
+};
 
 const getTokenTickerForPush = (
     tokenId: string,
@@ -48,9 +76,16 @@ const getTokenTickerForPush = (
 };
 
 const getPushTitle = (
+    tx: Tx,
     parsedTx: ParsedTx,
     genesisInfo?: GenesisInfo,
 ): string => {
+    if (isXecxPayout(parsedTx)) {
+        return XECX_PAYOUT_PUSH_TITLE;
+    }
+    if (isFirmaYield(tx, parsedTx)) {
+        return FIRMA_REWARDS_PUSH_TITLE;
+    }
     if (parsedTx.parsedTokenEntries.length === 0) {
         return DEFAULT_PUSH_TITLE;
     }
@@ -61,7 +96,34 @@ const getPushTitle = (
     return DEFAULT_PUSH_TITLE;
 };
 
+/**
+ * XECX payouts: drop the "XECX |" prefix and say "You received".
+ * Firma yield: use the token name ("Firma") instead of the ticker ("FIRMA").
+ */
+const getPushBody = (
+    tx: Tx,
+    parsedTx: ParsedTx,
+    body: string,
+    genesisInfo?: GenesisInfo,
+): string => {
+    if (isXecxPayout(parsedTx)) {
+        return body.replace(/^XECX \| Received /, 'You received ');
+    }
+    if (isFirmaYield(tx, parsedTx) && typeof genesisInfo !== 'undefined') {
+        const { tokenTicker, tokenName } = genesisInfo;
+        if (
+            tokenTicker !== '' &&
+            tokenName !== '' &&
+            body.endsWith(tokenTicker)
+        ) {
+            return `${body.slice(0, -tokenTicker.length)}${tokenName}`;
+        }
+    }
+    return body;
+};
+
 const buildPushSummary = (
+    tx: Tx,
     parsedTx: ParsedTx,
     options?: SummarizePushTxOptions,
 ): PushTxSummary | null => {
@@ -94,8 +156,8 @@ const buildPushSummary = (
     }
 
     return {
-        title: getPushTitle(parsedTx, genesisInfo),
-        body,
+        title: getPushTitle(tx, parsedTx, genesisInfo),
+        body: getPushBody(tx, parsedTx, body, genesisInfo),
         ...(tokenId !== undefined ? { tokenId } : {}),
     };
 };
@@ -107,7 +169,8 @@ export const summarizePushTxForWalletHash = (
     tx: Tx,
     walletHash: string,
     options?: SummarizePushTxOptions,
-): PushTxSummary | null => buildPushSummary(parseTx(tx, [walletHash]), options);
+): PushTxSummary | null =>
+    buildPushSummary(tx, parseTx(tx, [walletHash]), options);
 
 /**
  * Build push notification copy for an incoming tx to address.
