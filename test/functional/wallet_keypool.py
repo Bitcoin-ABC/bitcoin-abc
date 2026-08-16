@@ -19,6 +19,29 @@ class KeyPoolTest(BitcoinTestFramework):
 
     def run_test(self):
         nodes = self.nodes
+
+        # A refill to INT32_MAX only overflows the range end once a descriptor has advanced
+        # past index 0, because at next_index 0 the sum is exactly INT32_MAX. Advance every
+        # descriptor by one first so that the addition in TopUp is 1 + INT32_MAX.
+        nodes[0].createwallet(wallet_name="keypool_overflow", descriptors=True)
+        overflow_wallet = nodes[0].get_wallet_rpc("keypool_overflow")
+        overflow_wallet.getnewaddress()
+        overflow_wallet.getrawchangeaddress()
+
+        # The refill cannot be satisfied, so it is reported as an error and the range is left
+        # as it was. Without the bound this addition is undefined behavior, detected by UBSan.
+        info_before = overflow_wallet.getwalletinfo()
+        assert_raises_rpc_error(
+            -4, "Error refreshing keypool.", overflow_wallet.keypoolrefill, 2**31 - 1
+        )
+        info_after = overflow_wallet.getwalletinfo()
+        assert_equal(info_after["keypoolsize"], info_before["keypoolsize"])
+        assert_equal(
+            info_after["keypoolsize_hd_internal"],
+            info_before["keypoolsize_hd_internal"],
+        )
+        overflow_wallet.unloadwallet()
+
         addr_before_encrypting = nodes[0].getnewaddress()
         addr_before_encrypting_data = nodes[0].getaddressinfo(addr_before_encrypting)
         wallet_info_old = nodes[0].getwalletinfo()

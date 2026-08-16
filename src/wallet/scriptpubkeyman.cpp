@@ -18,6 +18,8 @@
 #include <util/translation.h>
 #include <wallet/scriptpubkeyman.h>
 
+#include <limits>
+
 using common::PSBTError;
 using util::ToString;
 
@@ -1812,10 +1814,17 @@ bool DescriptorScriptPubKeyMan::TopUp(unsigned int size) {
             gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE), int64_t(1));
     }
 
-    // Calculate the new range_end
-    int32_t new_range_end =
-        std::max(m_wallet_descriptor.next_index + int32_t(target_size),
-                 m_wallet_descriptor.range_end);
+    // Calculate the new range_end. next_index can be as high as 2^31-1 on an
+    // imported descriptor and target_size is user controlled, so compute the
+    // end in a wider type. The range is left unchanged if that end does not fit
+    // in the int32_t it is stored in.
+    const int64_t target_end{int64_t{m_wallet_descriptor.next_index} +
+                             target_size};
+    int32_t new_range_end = m_wallet_descriptor.range_end;
+    if (target_end <= std::numeric_limits<int32_t>::max()) {
+        new_range_end = std::max(static_cast<int32_t>(target_end),
+                                 m_wallet_descriptor.range_end);
+    }
 
     // If the descriptor is not ranged, we actually just want to fill the first
     // cache item
