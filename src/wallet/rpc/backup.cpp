@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -2044,6 +2045,13 @@ static UniValue ProcessDescriptorImport(CWallet *const pwallet,
                     "Range not given, using default keypool range");
                 range_start = 0;
                 range_end = gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE);
+            }
+            // WalletDescriptor stores the range as int32_t with an exclusive
+            // end, so an end past the maximum index would be truncated to a
+            // negative range.
+            if (range_end > std::numeric_limits<int32_t>::max()) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "End of range is too high");
             }
             next_index = range_start;
 
