@@ -13,7 +13,7 @@ import vectors from 'airdrop/fixtures/vectors';
 import {
     MockAgora,
     MockChronikClient,
-} from '../../../../modules/mock-chronik-client/dist';
+} from '../../../../modules/mock-chronik-client';
 import {
     agoraOfferCachetAlphaOne,
     agoraOfferCachetBetaOne,
