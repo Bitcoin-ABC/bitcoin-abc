@@ -9,6 +9,7 @@ import { WalletIcon, ContactsIcon } from 'components/Common/CustomIcons';
 import { CashtabContact } from 'config/CashtabState';
 import { StoredCashtabWallet } from 'wallet';
 import { previewAddress } from 'helpers';
+import RevealableAddress from 'components/Common/RevealableAddress';
 import {
     getRecipientDisplayLabel,
     looksLikeAddressInput,
@@ -76,14 +77,14 @@ const ResolvedDisplay = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 0 18px 0 12px;
+    padding: 8px 18px 8px 12px;
     background-color: ${props => props.theme.inputBackground};
     border-radius: 10px;
     width: 100%;
-    height: 60px;
+    min-height: 60px;
     @media (max-width: 768px) {
-        height: 52px;
-        padding: 0 12px 0 6px;
+        min-height: 52px;
+        padding: 8px 12px 8px 6px;
     }
 `;
 
@@ -104,11 +105,6 @@ const ResolvedName = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
-`;
-
-const ResolvedPreview = styled.div`
-    color: ${props => props.theme.secondaryText};
-    font-size: 12px;
 `;
 
 const ClearButton = styled.button`
@@ -411,9 +407,16 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                         ) : null}
                     </IconSlot>
                     <ResolvedInfo>
-                        <ResolvedName>{resolvedLabel}</ResolvedName>
-                        {resolvedLabel !== resolvedPreview && (
-                            <ResolvedPreview>{resolvedPreview}</ResolvedPreview>
+                        {resolvedLabel !== resolvedPreview ? (
+                            <>
+                                <ResolvedName>{resolvedLabel}</ResolvedName>
+                                <RevealableAddress address={resolvedAddress} />
+                            </>
+                        ) : (
+                            <RevealableAddress
+                                address={resolvedAddress}
+                                primary
+                            />
                         )}
                     </ResolvedInfo>
                     {!disabled && (

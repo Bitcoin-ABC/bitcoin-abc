@@ -4,7 +4,9 @@
 
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
 import { walletWithXecAndTokensActive } from 'components/App/fixtures/mocks';
 import {
     SEND_ADDRESS_VALIDATION_ERRORS,
@@ -1350,5 +1352,88 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(
             await screen.findByRole('button', { name: 'Accept' }),
         ).toBeEnabled();
+    });
+    it('Confirmation modal for BIP21 token send to many does not present a single recipient', async () => {
+        const user = userEvent.setup();
+        const cachetWallet = {
+            ...tokenTestWallet,
+            state: {
+                ...tokenTestWallet.state,
+                slpUtxos: [
+                    ...tokenTestWallet.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: slp1FixedCachet.tokenId,
+                            outIdx: 2,
+                        },
+                        blockHeight: 838200,
+                        isCoinbase: false,
+                        isFinal: true,
+                        sats: 546n,
+                        token: {
+                            tokenId: slp1FixedCachet.tokenId,
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            atoms: 10000000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...Array.from(tokenTestWallet.state.tokens.entries()),
+                    [slp1FixedCachet.tokenId, '100000'],
+                ]),
+            },
+        };
+        const destinationAddress =
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
+        const secondAddress =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        const thirdAddress = 'ecash:qqgsuw6q6y2szxvg5kf4ccf6tzsf8dqh4vlcd636sl';
+        const token_id = slp1FixedCachet.tokenId;
+        const bip21Str = `${destinationAddress}?token_id=${token_id}&token_decimalized_qty=0.01&addr=${secondAddress}&token_decimalized_qty=0.02&addr=${thirdAddress}&token_decimalized_qty=0.03`;
+        setLocationHash(`#/send?bip21=${bip21Str}`);
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            cachetWallet,
+            localforage,
+        );
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: true,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+        mockedChronik.setTx(slp1FixedCachet.tx.txid, slp1FixedCachet.tx);
+        mockedChronik.setToken(slp1FixedCachet.tokenId, slp1FixedCachet.token);
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        expect(
+            await screen.findByText('BIP21: Sending 0.06 CACHET to 3 outputs'),
+        ).toBeInTheDocument();
+
+        await user.click(await screen.findByRole('button', { name: 'Accept' }));
+
+        // Total of all BIP21 token outputs, not the first-output qty alone
+        expect(
+            await screen.findByText('Send 0.06 Cachet (CACHET) to 3 outputs?'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('Send 0.01 Cachet (CACHET)?'),
+        ).not.toBeInTheDocument();
+        // Eye stays on the send field only; modal must not imply a single payee
+        expect(
+            screen.getAllByRole('button', { name: 'Show full address' }),
+        ).toHaveLength(1);
     });
 });

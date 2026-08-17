@@ -182,6 +182,45 @@ export interface TxJson extends Omit<
 }
 
 /**
+ * CashAddr checksum is 8 base32 characters (40 bits).
+ * Highlight this many payload chars at the start and the checksum at the end.
+ */
+export const CASHADDR_CHECKSUM_CHAR_COUNT = 8;
+
+export interface HighlightedAddressParts {
+    prefix: string;
+    leading: string;
+    middle: string;
+    checksum: string;
+}
+
+/**
+ * Split a cashaddr so the checksum and an equal-length prefix of the
+ * payload (excluding "ecash:") can be highlighted.
+ */
+export const getHighlightedAddressParts = (
+    address: string,
+): HighlightedAddressParts => {
+    const trimmed = address.split('?')[0].trim();
+    const colonIndex = trimmed.indexOf(':');
+    const prefix = colonIndex === -1 ? '' : trimmed.slice(0, colonIndex + 1);
+    const payload = colonIndex === -1 ? trimmed : trimmed.slice(colonIndex + 1);
+    const highlightLen = Math.min(
+        CASHADDR_CHECKSUM_CHAR_COUNT,
+        Math.floor(payload.length / 2),
+    );
+    return {
+        prefix,
+        leading: payload.slice(0, highlightLen),
+        middle: payload.slice(highlightLen, payload.length - highlightLen),
+        checksum:
+            highlightLen === 0
+                ? ''
+                : payload.slice(payload.length - highlightLen),
+    };
+};
+
+/**
  * Create a standardized preview of an address for display purposes
  * @param address Full address string (e.g., "ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep")
  * @returns Abbreviated address in format "XXX...XXX" (e.g., "qzs...jep")

@@ -173,10 +173,13 @@ describe('<Configure />', () => {
         await user.type(screen.getByPlaceholderText('Amount'), '55');
         // click send
         await user.click(screen.getByRole('button', { name: 'Send' }));
-        // we see a modal with the resolved recipient preview
+        // we see a modal with the resolved recipient preview and eye toggle
+        expect(await screen.findByText('Confirm Send')).toBeInTheDocument();
+        expect(screen.getByText('Send 55 XEC')).toBeInTheDocument();
+        expect(screen.getAllByText('qph...72y').length).toBeGreaterThan(0);
         expect(
-            await screen.findByText(`Send 55 XEC to qph...72y`),
-        ).toBeInTheDocument();
+            screen.getAllByRole('button', { name: 'Show full address' }).length,
+        ).toBeGreaterThan(0);
 
         // We can click ok to send the tx
         await user.click(screen.getByText('OK'));

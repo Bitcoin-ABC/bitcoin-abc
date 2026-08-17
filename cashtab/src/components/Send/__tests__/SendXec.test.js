@@ -38,7 +38,7 @@ import {
     xecxMocks,
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
-import { previewAddress } from 'helpers';
+import { previewAddress, getHighlightedAddressParts } from 'helpers';
 import {
     BLITZ_CHIPS_GAME_ADDRESS,
     EVERY_DAY_JACKPOT_GAME_ADDRESS,
@@ -180,6 +180,25 @@ describe('<SendXec />', () => {
         await expectResolvedRecipient(
             previewAddress(addressInput.split('?')[0]),
         );
+
+        // Eye toggle reveals the full address with checksum highlights
+        await user.click(
+            screen.getByRole('button', { name: 'Show full address' }),
+        );
+        const parts = getHighlightedAddressParts(addressInput);
+        expect(screen.getByTestId('full-address')).toHaveTextContent(
+            addressInput,
+        );
+        expect(screen.getByTestId('address-leading')).toHaveTextContent(
+            parts.leading,
+        );
+        expect(screen.getByTestId('address-checksum')).toHaveTextContent(
+            parts.checksum,
+        );
+        await user.click(
+            screen.getByRole('button', { name: 'Hide full address' }),
+        );
+        expect(screen.queryByTestId('full-address')).not.toBeInTheDocument();
 
         // Amount input is untouched
         expect(amountInputEl).toHaveValue('');
@@ -1363,6 +1382,140 @@ describe('<SendXec />', () => {
         );
 
         // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('Confirmation modal includes an eye toggle to view the full address', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: true,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064413b207f573a7abb9ec0d149fa71cbde63272a0e6b58298a81bc39ac2001729205bd1e9284c9d5a268f7abe63c5c953bf932ac06c13e408341bde4e4807d7f2fe94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acf7d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'a6e905185097cc1ffb289ca366ff7322f8aaf95713d1e5d1a4e89663e609530f';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(await getRecipientInput(), addressInput);
+        await expectResolvedRecipient(previewAddress(addressInput));
+
+        await user.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+        await user.type(screen.getByPlaceholderText('Amount'), '0.21');
+
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+
+        expect(await screen.findByText('Confirm Send')).toBeInTheDocument();
+        const showButtons = screen.getAllByRole('button', {
+            name: 'Show full address',
+        });
+        expect(showButtons.length).toBe(2);
+
+        await user.click(showButtons[1]);
+        expect(screen.getByTestId('full-address')).toHaveTextContent(
+            addressInput,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'OK' }));
+
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('Confirmation modal for BIP21 multiple outputs does not present a single recipient', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: true,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441d95dfbf01e233d19684fd525d1cc39eb82a53ebfc97b8f2f9160f418ce863f4360f9fd1d6c182abde1d582ed39c6998ec5e4cdbde1b09736f6abe390a6ab8d8f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac40e20100000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acca980c00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'f153119862f52dbe765ed5d66a5ff848d0386c5d987af9bef5e49a7e62a2c889';
+        mockedChronik.setBroadcastTx(hex, txid);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const op_return_raw =
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}&addr=ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035&amount=1234.56`;
+        await user.type(await getRecipientInput(), addressInput);
+        await expectResolvedRecipient(
+            previewAddress(addressInput.split('?')[0]),
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+
+        expect(await screen.findByText('Confirm Send')).toBeInTheDocument();
+        // Total of both BIP21 outputs, not the first-output amount alone
+        expect(
+            screen.getByText('Send 1,251.56 XEC to 2 outputs?'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('Send 17 XEC')).not.toBeInTheDocument();
+        // Eye stays on the send field only; modal must not imply a single payee
+        expect(
+            screen.getAllByRole('button', { name: 'Show full address' }),
+        ).toHaveLength(1);
+
+        await user.click(screen.getByRole('button', { name: 'OK' }));
+
         const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(

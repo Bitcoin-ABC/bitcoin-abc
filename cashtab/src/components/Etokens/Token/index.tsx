@@ -60,6 +60,7 @@ import {
     ScriptUtxoWithToken,
 } from 'wallet';
 import Modal from 'components/Common/Modal';
+import RevealableAddress from 'components/Common/RevealableAddress';
 import { toast } from 'react-toastify';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import {
@@ -2493,16 +2494,12 @@ const Token: React.FC = () => {
                     {isModalVisible && (
                         <Modal
                             title="Confirm Send"
-                            description={`Send ${formData.amount}${' '}
-                                ${tokenTicker} to ${formData.address}?`}
+                            description={`Send ${formData.amount} ${tokenTicker}`}
                             handleOk={handleOk}
                             handleCancel={handleCancel}
                             showCancelButton
                         >
-                            <p>
-                                Are you sure you want to send {formData.amount}{' '}
-                                {tokenTicker} to {formData.address}?
-                            </p>
+                            <RevealableAddress address={formData.address} />
                         </Modal>
                     )}
                     {confirmMintModalVisible && (

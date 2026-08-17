@@ -31,8 +31,10 @@ import {
     sumOneToManyXec,
     confirmRawTx,
     getRecipientDisplayLabel,
+    getAddressFromRecipientInput,
 } from './helpers';
 import SendRecipientInput from './SendRecipientInput';
+import RevealableAddress from 'components/Common/RevealableAddress';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
     isValidMultiSendUserInput,
@@ -45,7 +47,11 @@ import {
     isValidTokenSendOrBurnAmount,
 } from 'validation';
 import { Alert, AlertMsg, Info } from 'components/Common/Atoms';
-import { getMultisendTargetOutputs, parseTokenMultisendRows } from 'helpers';
+import {
+    getMultisendTargetOutputs,
+    parseTokenMultisendRows,
+    previewAddress,
+} from 'helpers';
 import { ChronikClient } from 'chronik-client';
 import {
     getCashtabMsgTargetOutput,
@@ -3066,6 +3072,29 @@ const SendXec: React.FC = () => {
         ? parsedAddressInput.token_decimalized_qty.value
         : '';
 
+    const confirmSendAddress = getAddressFromRecipientInput(
+        isTokenMode && selectedTokenId
+            ? tokenFormData.address
+            : formData.address,
+    );
+    const confirmSendLabel = getRecipientDisplayLabel(
+        confirmSendAddress,
+        contactList,
+        wallets,
+    );
+    const confirmSendIsNamed =
+        confirmSendLabel !== '' &&
+        confirmSendLabel !== previewAddress(confirmSendAddress);
+    const confirmSendIsMulti =
+        (isTokenMode && selectedTokenId && isOneToManyTokenSend) ||
+        isOneToManyXECSend ||
+        isBip21MultipleOutputsSafe(parsedAddressInput);
+    const bip21MultipleOutputsCount = isBip21MultipleOutputsSafe(
+        parsedAddressInput,
+    )
+        ? parsedAddressInput.parsedAdditionalXecOutputs.value.length + 1
+        : 0;
+
     if (cachedInfoLoaded && isBip21TokenSend(parsedAddressInput)) {
         ({ tokenType, genesisInfo } = cachedInfo);
         ({ protocol, type } = tokenType);
@@ -3108,11 +3137,29 @@ const SendXec: React.FC = () => {
                 <SendContentWrapper>
                     {showConfirmSendModal && (
                         <Modal
-                            title={`Send ${decimalizedTokenQty} ${nameAndTicker} to ${addressPreview}?`}
+                            title={
+                                isBip21TokenSendToMany(parsedAddressInput)
+                                    ? `Send ${bip21TokenSendToManyTotal.toLocaleString(
+                                          userLocale,
+                                          {
+                                              maximumFractionDigits: 9,
+                                          },
+                                      )} ${nameAndTicker} to ${bip21TokenSendToManyOutputCount} outputs?`
+                                    : `Send ${decimalizedTokenQty} ${nameAndTicker}?`
+                            }
                             handleOk={sendToken}
                             handleCancel={() => setShowConfirmSendModal(false)}
                             showCancelButton
-                        />
+                        >
+                            {!isBip21TokenSendToMany(parsedAddressInput) && (
+                                <RevealableAddress
+                                    address={
+                                        parsedAddressInput.address
+                                            .value as string
+                                    }
+                                />
+                            )}
+                        </Modal>
                     )}
                     {isModalVisible && (
                         <Modal
@@ -3131,23 +3178,32 @@ const SendXec: React.FC = () => {
                                                   selectedTokenId,
                                               )?.genesisInfo.tokenTicker ||
                                               'token'
-                                          } to ${getRecipientDisplayLabel(
-                                              tokenFormData.address,
-                                              contactList,
-                                              wallets,
-                                          )}`
+                                          }${
+                                              confirmSendIsNamed
+                                                  ? ` to ${confirmSendLabel}`
+                                                  : ''
+                                          }`
                                     : isOneToManyXECSend
                                       ? `Send
                                 ${multiSendTotal.toLocaleString(userLocale, {
                                     maximumFractionDigits: 2,
                                 })} 
                                 XEC to multiple recipients?`
-                                      : `Send ${formData.amount}${' '}
-                  ${selectedCurrency} to ${getRecipientDisplayLabel(
-                      formData.address,
-                      contactList,
-                      wallets,
-                  )}`
+                                      : isBip21MultipleOutputsSafe(
+                                              parsedAddressInput,
+                                          )
+                                        ? `Send ${bip21MultipleOutputsFormattedTotalSendXec.toLocaleString(
+                                              userLocale,
+                                              {
+                                                  maximumFractionDigits: 2,
+                                                  minimumFractionDigits: 2,
+                                              },
+                                          )} XEC to ${bip21MultipleOutputsCount} outputs?`
+                                        : `Send ${formData.amount} ${selectedCurrency}${
+                                              confirmSendIsNamed
+                                                  ? ` to ${confirmSendLabel}`
+                                                  : ''
+                                          }`
                             }
                             handleOk={
                                 isTokenMode && selectedTokenId
@@ -3156,7 +3212,13 @@ const SendXec: React.FC = () => {
                             }
                             handleCancel={handleCancel}
                             showCancelButton
-                        />
+                        >
+                            {!confirmSendIsMulti && (
+                                <RevealableAddress
+                                    address={confirmSendAddress}
+                                />
+                            )}
+                        </Modal>
                     )}
                     {showSuccessModal && (
                         <SuccessModalOverlay

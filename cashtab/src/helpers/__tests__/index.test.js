@@ -11,6 +11,7 @@ import {
     previewAddress,
     previewTokenId,
     previewSolAddr,
+    getHighlightedAddressParts,
     getMultisendTargetOutputs,
     parseTokenMultisendRows,
 } from 'helpers';
@@ -123,6 +124,34 @@ describe('Cashtab helper functions', () => {
         it('previewAddress: should handle addresses without prefix', () => {
             const address = 'qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep';
             expect(previewAddress(address)).toBe('qzs...jep');
+        });
+
+        it('getHighlightedAddressParts: highlights checksum and matching payload prefix', () => {
+            const address = 'ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep';
+            expect(getHighlightedAddressParts(address)).toEqual({
+                prefix: 'ecash:',
+                leading: 'qzs4zzxs',
+                middle: '0gvfrc6e2wqhkmvj4dmmh332cv',
+                checksum: 'fpd7yjep',
+            });
+        });
+
+        it('getHighlightedAddressParts: handles addresses without prefix', () => {
+            const address = 'qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep';
+            expect(getHighlightedAddressParts(address)).toEqual({
+                prefix: '',
+                leading: 'qzs4zzxs',
+                middle: '0gvfrc6e2wqhkmvj4dmmh332cv',
+                checksum: 'fpd7yjep',
+            });
+        });
+
+        it('getHighlightedAddressParts: strips BIP21 query params', () => {
+            const address =
+                'ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep?amount=1';
+            expect(getHighlightedAddressParts(address).checksum).toBe(
+                'fpd7yjep',
+            );
         });
 
         it('previewTokenId: should format token IDs correctly', () => {
