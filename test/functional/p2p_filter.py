@@ -52,6 +52,7 @@ class P2PBloomFilter(P2PInterface):
         super().__init__()
         self._tx_received = False
         self._merkleblock_received = False
+        self._block_received = False
 
     def on_inv(self, message):
         want = msg_getdata()
@@ -67,6 +68,9 @@ class P2PBloomFilter(P2PInterface):
 
     def on_merkleblock(self, message):
         self._merkleblock_received = True
+
+    def on_block(self, message):
+        self._block_received = True
 
     def on_tx(self, message):
         self._tx_received = True
@@ -90,6 +94,16 @@ class P2PBloomFilter(P2PInterface):
     def merkleblock_received(self, value):
         with p2p_lock:
             self._merkleblock_received = value
+
+    @property
+    def block_received(self):
+        with p2p_lock:
+            return self._block_received
+
+    @block_received.setter
+    def block_received(self, value):
+        with p2p_lock:
+            self._block_received = value
 
 
 class FilterTest(BitcoinTestFramework):
@@ -204,6 +218,26 @@ class FilterTest(BitcoinTestFramework):
         txid = self.nodes[0].getblock(block_hash)["tx"][0]
         filter_peer.wait_for_merkleblock(block_hash)
         filter_peer.wait_for_tx(txid)
+
+        self.log.info(
+            "Check that we receive merkleblock (not a full block) for a filtered "
+            "getdata of a non-tip block"
+        )
+        # Mine another block so the previous one is no longer the most-recent
+        # cached block used by the raw-disk fast path.
+        self.generate(self.nodes[0], 1)
+        filter_peer.sync_with_ping()
+        with p2p_lock:
+            filter_peer.last_message.pop("merkleblock", None)
+            filter_peer.last_message.pop("tx", None)
+            filter_peer.last_message.pop("block", None)
+        filter_peer.block_received = False
+        filter_peer.send_and_ping(
+            msg_getdata([CInv(MSG_FILTERED_BLOCK, int(block_hash, 16))])
+        )
+        filter_peer.wait_for_merkleblock(block_hash)
+        filter_peer.wait_for_tx(txid)
+        assert not filter_peer.block_received
 
         self.log.info(
             "Check that we only receive a merkleblock if the filter does not match a tx"

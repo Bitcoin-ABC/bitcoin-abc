@@ -3407,9 +3407,10 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
 
     if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
         pblock = a_recent_block;
-    } else if (!inv.IsMsgCmpctBlk()) {
+    } else if (inv.IsMsgBlk()) {
         // Fast-path: in this case it is possible to serve the block directly
-        // from disk, as the network format matches the format on disk
+        // from disk, as the network format matches the format on disk.
+        // Filtered and compact block requests need a deserialized block.
         std::vector<uint8_t> block_data;
         if (!m_chainman.m_blockman.ReadRawBlock(block_data, block_pos)) {
             handle_block_read_error();
