@@ -55,6 +55,14 @@ export const CACHET_TOKEN_ID =
 export const BLITZ_CHIPS_TOKEN_ID =
     'd1952270af59eb0ae6b07c6ff93c19e1b3ff53fd0595d2ca6f239c55d4b3fd69';
 
+/** Firma CHF (fCHF) — same id as apps/firma FIRMA_CHF_TOKEN_ID. */
+export const FIRMA_CHF_TOKEN_ID =
+    'a8c83ebe937b9c1b0a7cb7645f43459f57a10043744ddfbc2357e1bd43fe2465';
+
+/** Firma EUR (fEUR) — same id as apps/firma FIRMA_EUR_TOKEN_ID. */
+export const FIRMA_EUR_TOKEN_ID =
+    'cd751e3dfc23da5344bf66cb8433c31464ab4adbdbc9082f22c71bb53eafa7e8';
+
 /** EDJ.com game addresses - CACHET/EDJ/FIRMA sent here = bet */
 export const EDJ_COM_GAME_ADDRESSES = [EVERY_DAY_JACKPOT_GAME_ADDRESS];
 
@@ -232,3 +240,23 @@ export const FIRMA: TokenConst = {
 /** FIRMA genesis minter pubkey — order book only lists this maker or the active wallet. */
 export const FIRMA_MINTER_PK_HEX =
     '03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105';
+
+/**
+ * Tokens that may resolve Patron usernames on send.
+ * XEC and every other token stay address / contact only.
+ */
+export const FIRMA_USERNAME_TOKEN_IDS: ReadonlySet<string> = new Set([
+    FIRMA.tokenId,
+    FIRMA_CHF_TOKEN_ID,
+    FIRMA_EUR_TOKEN_ID,
+]);
+
+/**
+ * True when this tokenId is FIRMA, fCHF, or fEUR.
+ *
+ * @param tokenId Selected or BIP21 token_id
+ */
+export const isFirmaUsernameTokenId = (
+    tokenId: string | null | undefined,
+): boolean =>
+    typeof tokenId === 'string' && FIRMA_USERNAME_TOKEN_IDS.has(tokenId);

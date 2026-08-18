@@ -8,6 +8,7 @@ import PayButton from 'assets/paybutton.webp';
 import XecxSrc from 'assets/xecx-logomark.png';
 import SolSrc from 'assets/solanaLogoMark.png';
 import FirmaSrc from 'assets/firma-icon.png';
+import FirmaLogoSrc from 'assets/firma-logo.png';
 import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
 import { ReactComponent as CopyPaste } from 'assets/copy.svg';
@@ -166,6 +167,9 @@ export const PayButtonIcon: React.FC = () => (
 export const XecxIcon: React.FC = () => <img src={XecxSrc} alt="XECX reward" />;
 export const FirmaIcon: React.FC = () => (
     <img src={FirmaSrc} alt="Firma reward" />
+);
+export const FirmaLogoIcon: React.FC = () => (
+    <img src={FirmaLogoSrc} alt="Firma" />
 );
 export const SolIcon: React.FC = () => <img src={SolSrc} alt="SOL logo" />;
 export const UsdcIcon: React.FC = () => <img src={usdcSrc} alt="USDC logo" />;

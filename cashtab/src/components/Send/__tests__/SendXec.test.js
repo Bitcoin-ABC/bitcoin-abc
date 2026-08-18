@@ -43,12 +43,51 @@ import {
     BLITZ_CHIPS_GAME_ADDRESS,
     EVERY_DAY_JACKPOT_GAME_ADDRESS,
 } from 'constants/recipients';
+import {
+    getFirmaHandleLookupUrl,
+    FIRMA_USERNAME_NOT_FOUND,
+    FIRMA_USERNAME_TOKEN_ONLY,
+} from 'config/firma';
 
 describe('<SendXec />', () => {
     const ecc = new Ecc();
 
     const getRecipientInput = async () =>
         screen.findByPlaceholderText('Address or contact');
+
+    const getFirmaRecipientInput = async () =>
+        screen.findByPlaceholderText('Address, contact, or @username');
+
+    const mockOccupiedAlice = address => {
+        when(fetch)
+            .calledWith(getFirmaHandleLookupUrl('alice'), expect.any(Object))
+            .mockResolvedValue({
+                ok: true,
+                json: async () => ({
+                    status: 'OCCUPIED',
+                    address,
+                }),
+            });
+    };
+
+    const selectTokenByTicker = async (tokenTicker, tokenId) => {
+        await user.click(
+            await screen.findByRole('link', { name: /Send Token/i }),
+        );
+        await waitFor(() =>
+            expect(
+                screen.getByPlaceholderText('Search by token ticker or name'),
+            ).toBeInTheDocument(),
+        );
+        await user.type(
+            screen.getByPlaceholderText('Search by token ticker or name'),
+            tokenTicker,
+        );
+        const option = await screen.findByTestId(
+            `token-select-option-${tokenId}`,
+        );
+        await user.click(option);
+    };
 
     const expectResolvedRecipient = async expectedLabel => {
         // Blur so the send field collapses to the resolved label
@@ -68,7 +107,17 @@ describe('<SendXec />', () => {
         // Set up userEvent
         user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
-        global.fetch = jest.fn();
+        // Patron lookups default to AVAILABLE. Anything else is an unexpected URL.
+        global.fetch = jest.fn(async input => {
+            const url = String(input);
+            if (url.includes('patron.firma.cash')) {
+                return {
+                    ok: true,
+                    json: async () => ({ status: 'AVAILABLE' }),
+                };
+            }
+            throw new Error(`Unexpected fetch: ${url}`);
+        });
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
         const cryptoId = appConfig.coingeckoId;
         // Keep this in the code, because different URLs will have different outputs requiring different parsing
@@ -265,6 +314,13 @@ describe('<SendXec />', () => {
 
         await user.click(screen.getByRole('button', { name: 'alpha' }));
         await expectResolvedRecipient('alpha');
+        expect(
+            jest
+                .mocked(fetch)
+                .mock.calls.some(call =>
+                    String(call[0]).includes('patron.firma.cash'),
+                ),
+        ).toBe(false);
 
         const amountInputEl = screen.getByPlaceholderText('Amount');
         await user.selectOptions(
@@ -438,6 +494,276 @@ describe('<SendXec />', () => {
         await user.click(screen.getByRole('button', { name: 'bravo' }));
         await expectResolvedRecipient('bravo');
         expect(screen.getByTitle('My wallet')).toBeInTheDocument();
+    });
+    it('Does not resolve a Firma username when sending XEC', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        mockOccupiedAlice('ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6');
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await user.type(await getRecipientInput(), '@alice');
+        expect(
+            await screen.findByText(FIRMA_USERNAME_TOKEN_ONLY),
+        ).toBeInTheDocument();
+        expect(
+            jest
+                .mocked(fetch)
+                .mock.calls.some(call =>
+                    String(call[0]).includes('patron.firma.cash'),
+                ),
+        ).toBe(false);
+        expect(
+            screen.queryByRole('status', { name: 'Recipient @alice' }),
+        ).not.toBeInTheDocument();
+    });
+    it('Resolves a Firma @username when sending FIRMA', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        mockOccupiedAlice(addressInput);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await selectTokenByTicker('FIRMA', FIRMA.tokenId);
+        await user.type(await getFirmaRecipientInput(), '@alice');
+        await expectResolvedRecipient('@alice');
+        expect(screen.getByTitle('Firma username')).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Show full address' }),
+        );
+        expect(screen.getByTestId('full-address')).toHaveTextContent(
+            addressInput,
+        );
+    });
+    it('Resolves a Firma username without @ from the suggestion dropdown when sending FIRMA', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+        mockOccupiedAlice('ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6');
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await selectTokenByTicker('FIRMA', FIRMA.tokenId);
+        await user.type(await getFirmaRecipientInput(), 'alice');
+        await user.click(await screen.findByRole('button', { name: '@alice' }));
+        await expectResolvedRecipient('@alice');
+        expect(
+            screen.getByRole('button', { name: 'Show full address' }),
+        ).toBeInTheDocument();
+    });
+    it('Shows an error when a Firma username does not exist', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await selectTokenByTicker('FIRMA', FIRMA.tokenId);
+        await user.type(await getFirmaRecipientInput(), '@nobody');
+        expect(
+            await screen.findByText(FIRMA_USERNAME_NOT_FOUND),
+        ).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Send' })).toHaveStyle(
+            'cursor: not-allowed',
+        );
+    });
+    it('Confirmation modal for a Firma username includes the handle and an eye toggle', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+
+        await localforage.setItem('settings', {
+            fiatCurrency: 'usd',
+            sendModal: true,
+            autoCameraOn: false,
+            hideMessagesFromUnknownSenders: false,
+            balanceVisible: true,
+            satsPerKb: FEE_SATS_PER_KB_CASHTAB_LEGACY,
+        });
+
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        mockOccupiedAlice(addressInput);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        await selectTokenByTicker('FIRMA', FIRMA.tokenId);
+        await user.type(await getFirmaRecipientInput(), '@alice');
+        await expectResolvedRecipient('@alice');
+
+        await user.type(screen.getByPlaceholderText('Amount'), '1');
+
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+
+        expect(await screen.findByText('Confirm Send')).toBeInTheDocument();
+        expect(screen.getByText(/to @alice/)).toBeInTheDocument();
+        const showButtons = screen.getAllByRole('button', {
+            name: 'Show full address',
+        });
+        expect(showButtons.length).toBe(2);
+
+        await user.click(showButtons[1]);
+        expect(screen.getByTestId('full-address')).toHaveTextContent(
+            addressInput,
+        );
+    });
+    it('Keeps a Firma username when BIP21 FIRMA params switch to token mode', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            tokenTestWallet,
+            localforage,
+        );
+        mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+        mockedChronik.setTx(FIRMA.tokenId, FIRMA.tx);
+
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        mockOccupiedAlice(addressInput);
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const token_decimalized_qty = '1';
+        const recipientInput = `@alice?token_id=${FIRMA.tokenId}&token_decimalized_qty=${token_decimalized_qty}`;
+        const addressInputEl = await getRecipientInput();
+        fireEvent.input(addressInputEl, { target: { value: recipientInput } });
+        fireEvent.change(addressInputEl, { target: { value: recipientInput } });
+
+        await expectResolvedRecipient('@alice');
+        expect(screen.getByTitle('Firma username')).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Send to many' }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue(
+            token_decimalized_qty,
+        );
+    });
+    it('Does not resolve a Firma username when BIP21 is for another token', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        mockedChronik.setToken(slp1FixedBear.tokenId, slp1FixedBear.token);
+        mockedChronik.setTx(slp1FixedBear.tokenId, slp1FixedBear.tx);
+        mockOccupiedAlice('ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6');
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const recipientInput = `@alice?token_id=${slp1FixedBear.tokenId}&token_decimalized_qty=1`;
+        const addressInputEl = await getRecipientInput();
+        fireEvent.input(addressInputEl, { target: { value: recipientInput } });
+        fireEvent.change(addressInputEl, { target: { value: recipientInput } });
+
+        expect(
+            await screen.findByText(FIRMA_USERNAME_TOKEN_ONLY),
+        ).toBeInTheDocument();
+        expect(
+            jest
+                .mocked(fetch)
+                .mock.calls.some(call =>
+                    String(call[0]).includes('patron.firma.cash'),
+                ),
+        ).toBe(false);
+        expect(
+            screen.queryByRole('status', { name: 'Recipient @alice' }),
+        ).not.toBeInTheDocument();
     });
     it('Pasting a known destination address resolves to its display name', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

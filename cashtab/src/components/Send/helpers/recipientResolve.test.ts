@@ -4,10 +4,23 @@
 
 import {
     getAddressFromRecipientInput,
+    getBip21TokenId,
+    getFirmaHandleForRecipient,
+    getFirmaUsernameCandidate,
     getRecipientDisplayLabel,
+    isExplicitFirmaUsernameInput,
     looksLikeAddressInput,
+    looksLikeFirmaUsernameInput,
     searchSendRecipients,
+    shouldResolveFirmaUsername,
+    validateFirmaUsername,
 } from 'components/Send/helpers/recipientResolve';
+import {
+    FIRMA,
+    FIRMA_CHF_TOKEN_ID,
+    FIRMA_EUR_TOKEN_ID,
+    isFirmaUsernameTokenId,
+} from 'constants/tokens';
 import {
     BLITZ_CHIPS_GAME_ADDRESS,
     EVERY_DAY_JACKPOT_GAME_ADDRESS,
@@ -80,6 +93,59 @@ describe('recipientResolve helpers', () => {
         );
     });
 
+    it('getRecipientDisplayLabel prefers a resolved Firma username', () => {
+        expect(
+            getRecipientDisplayLabel(contacts[0].address, contacts, wallets, {
+                handle: 'alice',
+                address: contacts[0].address,
+            }),
+        ).toBe('@alice');
+    });
+
+    it('getRecipientDisplayLabel ignores a Firma handle for a different address', () => {
+        expect(
+            getRecipientDisplayLabel(contacts[0].address, contacts, wallets, {
+                handle: 'alice',
+                address: contacts[1].address,
+            }),
+        ).toBe('Alice');
+    });
+
+    it('getFirmaHandleForRecipient matches cashaddr including BIP21 suffix', () => {
+        expect(
+            getFirmaHandleForRecipient(
+                `${contacts[0].address}?token_id=abc&token_decimalized_qty=1`,
+                { handle: 'alice', address: contacts[0].address },
+            ),
+        ).toBe('alice');
+        expect(
+            getFirmaHandleForRecipient(contacts[0].address, {
+                handle: 'alice',
+                address: contacts[1].address,
+            }),
+        ).toBeNull();
+    });
+
+    it('parses Firma username candidates like apps/firma', () => {
+        expect(getFirmaUsernameCandidate('@Alice')).toBe('alice');
+        expect(getFirmaUsernameCandidate('alice?amount=10')).toBe('alice');
+        expect(getFirmaUsernameCandidate(contacts[0].address)).toBeNull();
+        expect(getFirmaUsernameCandidate('ali ce')).toBeNull();
+        expect(getFirmaUsernameCandidate('@@alice')).toBeNull();
+        expect(getFirmaUsernameCandidate('@ali@ce')).toBeNull();
+        expect(isExplicitFirmaUsernameInput('@alice')).toBe(true);
+        expect(isExplicitFirmaUsernameInput('alice')).toBe(false);
+        expect(isExplicitFirmaUsernameInput('@@alice')).toBe(false);
+        expect(isExplicitFirmaUsernameInput('@ali@ce')).toBe(false);
+        expect(looksLikeFirmaUsernameInput('@alice')).toBe(true);
+        expect(looksLikeFirmaUsernameInput('alice')).toBe(true);
+        expect(looksLikeFirmaUsernameInput('alice-bob')).toBe(false);
+        expect(validateFirmaUsername('alice')).toBe(false);
+        expect(validateFirmaUsername('Alice')).toBe(
+            'Username must contain only lowercase letters and numbers',
+        );
+    });
+
     it('looksLikeAddressInput detects address-like strings', () => {
         expect(looksLikeAddressInput('Alice')).toBe(false);
         expect(looksLikeAddressInput('ecash:qp89')).toBe(true);
@@ -117,5 +183,51 @@ describe('recipientResolve helpers', () => {
                 address: BLITZ_CHIPS_GAME_ADDRESS,
             },
         ]);
+    });
+
+    it('isFirmaUsernameTokenId allows FIRMA, fCHF, and fEUR only', () => {
+        expect(isFirmaUsernameTokenId(FIRMA.tokenId)).toBe(true);
+        expect(isFirmaUsernameTokenId(FIRMA_CHF_TOKEN_ID)).toBe(true);
+        expect(isFirmaUsernameTokenId(FIRMA_EUR_TOKEN_ID)).toBe(true);
+        expect(isFirmaUsernameTokenId(null)).toBe(false);
+        expect(isFirmaUsernameTokenId('')).toBe(false);
+        expect(
+            isFirmaUsernameTokenId(
+                '2222222222222222222222222222222222222222222222222222222222222222',
+            ),
+        ).toBe(false);
+    });
+
+    it('shouldResolveFirmaUsername uses selected token or BIP21 token_id', () => {
+        expect(shouldResolveFirmaUsername(null, '@alice')).toBe(false);
+        expect(shouldResolveFirmaUsername(FIRMA.tokenId, '@alice')).toBe(true);
+        expect(
+            shouldResolveFirmaUsername(
+                null,
+                `@alice?token_id=${FIRMA.tokenId}&token_decimalized_qty=1`,
+            ),
+        ).toBe(true);
+        expect(
+            shouldResolveFirmaUsername(
+                null,
+                `@alice?token_id=${FIRMA_CHF_TOKEN_ID}`,
+            ),
+        ).toBe(true);
+        expect(
+            shouldResolveFirmaUsername(
+                null,
+                `@alice?token_id=${FIRMA_EUR_TOKEN_ID}`,
+            ),
+        ).toBe(true);
+        expect(
+            shouldResolveFirmaUsername(
+                null,
+                '@alice?token_id=2222222222222222222222222222222222222222222222222222222222222222',
+            ),
+        ).toBe(false);
+        expect(getBip21TokenId('@alice')).toBeNull();
+        expect(getBip21TokenId(`@alice?token_id=${FIRMA.tokenId}`)).toBe(
+            FIRMA.tokenId,
+        );
     });
 });

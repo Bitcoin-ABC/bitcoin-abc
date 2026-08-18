@@ -7,13 +7,21 @@ import { toast } from 'react-toastify';
 
 export {
     getAddressFromRecipientInput,
+    getBip21TokenId,
+    getFirmaHandleForRecipient,
     getRecipientDisplayLabel,
+    getFirmaUsernameCandidate,
+    isExplicitFirmaUsernameInput,
     looksLikeAddressInput,
+    looksLikeFirmaUsernameInput,
     searchSendRecipients,
+    shouldResolveFirmaUsername,
+    validateFirmaUsername,
 } from './recipientResolve';
 export type {
     RecipientMatchKind,
     RecipientSearchMatch,
+    ResolvedFirmaRecipient,
 } from './recipientResolve';
 
 /**

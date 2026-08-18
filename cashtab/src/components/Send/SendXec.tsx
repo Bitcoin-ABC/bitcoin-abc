@@ -32,6 +32,8 @@ import {
     confirmRawTx,
     getRecipientDisplayLabel,
     getAddressFromRecipientInput,
+    shouldResolveFirmaUsername,
+    ResolvedFirmaRecipient,
 } from './helpers';
 import SendRecipientInput from './SendRecipientInput';
 import RevealableAddress from 'components/Common/RevealableAddress';
@@ -115,6 +117,7 @@ import {
     FIRMA,
     FIRMA_REDEEM_ADDRESS,
     FIRMA_REDEEM_EMPP_RAW_LENGTH,
+    isFirmaUsernameTokenId,
 } from 'constants/tokens';
 import { FirmaIcon, UsdcIcon } from 'components/Common/CustomIcons';
 import Burst from 'assets/burst.png';
@@ -786,6 +789,8 @@ const SendXec: React.FC = () => {
     );
     const [parsedAddressInput, setParsedAddressInput] =
         useState<CashtabParsedAddressInfo>(parseAddressInput('', 0));
+    const [resolvedFirmaRecipient, setResolvedFirmaRecipient] =
+        useState<ResolvedFirmaRecipient | null>(null);
 
     // input_data_raw is only parsed from BIP21 (URL or address field), not manually entered
     const parsedInputDataRaw = useMemo((): ParsedOpReturnRaw => {
@@ -1243,12 +1248,14 @@ const SendXec: React.FC = () => {
     const clearInputForms = () => {
         setFormData(emptyFormData);
         setParsedAddressInput(parseAddressInput('', 0));
+        setResolvedFirmaRecipient(null);
         // Reset to XEC
         // Note, this ensures we never are in fiat send mode for multi-send
         setSelectedCurrency(appConfig.ticker);
     };
 
     const _clearTokenInputForms = () => {
+        setResolvedFirmaRecipient(null);
         setTokenFormData(emptyTokenFormData);
         setSelectedTokenId(null);
         setTokenSearch('');
@@ -1265,6 +1272,7 @@ const SendXec: React.FC = () => {
 
     const _clearTokenFormFields = () => {
         // Clear form fields but keep tokenId selected
+        setResolvedFirmaRecipient(null);
         setTokenFormData({ ...emptyTokenFormData });
         setSendTokenAmountError(false);
         setSendAddressError(false);
@@ -3077,10 +3085,19 @@ const SendXec: React.FC = () => {
             ? tokenFormData.address
             : formData.address,
     );
+    const firmaUsernameTokenId = isTokenMode ? selectedTokenId : null;
+    const sendRecipientPlaceholder = isFirmaUsernameTokenId(
+        firmaUsernameTokenId,
+    )
+        ? 'Address, contact, or @username'
+        : 'Address or contact';
     const confirmSendLabel = getRecipientDisplayLabel(
         confirmSendAddress,
         contactList,
         wallets,
+        shouldResolveFirmaUsername(firmaUsernameTokenId, confirmSendAddress)
+            ? resolvedFirmaRecipient
+            : null,
     );
     const confirmSendIsNamed =
         confirmSendLabel !== '' &&
@@ -3394,7 +3411,9 @@ const SendXec: React.FC = () => {
                                     >
                                         <SendToOneHolder>
                                             <SendRecipientInput
-                                                placeholder="Address or contact"
+                                                placeholder={
+                                                    sendRecipientPlaceholder
+                                                }
                                                 name="address"
                                                 value={tokenFormData.address}
                                                 disabled={
@@ -3415,6 +3434,15 @@ const SendXec: React.FC = () => {
                                                 error={sendAddressError}
                                                 contactList={contactList}
                                                 wallets={wallets}
+                                                firmaResolved={
+                                                    resolvedFirmaRecipient
+                                                }
+                                                onFirmaResolvedChange={
+                                                    setResolvedFirmaRecipient
+                                                }
+                                                firmaUsernameTokenId={
+                                                    firmaUsernameTokenId
+                                                }
                                             />
                                             <SendTokenInput
                                                 name="amount"
@@ -3475,7 +3503,9 @@ const SendXec: React.FC = () => {
                                 ) : (
                                     <>
                                         <SendRecipientInput
-                                            placeholder="Address or contact"
+                                            placeholder={
+                                                sendRecipientPlaceholder
+                                            }
                                             name="address"
                                             value={tokenFormData.address}
                                             disabled={
@@ -3491,6 +3521,15 @@ const SendXec: React.FC = () => {
                                             error={sendAddressError}
                                             contactList={contactList}
                                             wallets={wallets}
+                                            firmaResolved={
+                                                resolvedFirmaRecipient
+                                            }
+                                            onFirmaResolvedChange={
+                                                setResolvedFirmaRecipient
+                                            }
+                                            firmaUsernameTokenId={
+                                                firmaUsernameTokenId
+                                            }
                                         />
                                         <SendTokenInput
                                             name="amount"
@@ -3898,7 +3937,7 @@ const SendXec: React.FC = () => {
                             <SendToOneHolder>
                                 <SendToOneInputForm>
                                     <SendRecipientInput
-                                        placeholder="Address or contact"
+                                        placeholder={sendRecipientPlaceholder}
                                         name="address"
                                         value={formData.address}
                                         disabled={txInfoFromUrl !== false}
@@ -3906,6 +3945,13 @@ const SendXec: React.FC = () => {
                                         error={sendAddressError}
                                         contactList={contactList}
                                         wallets={wallets}
+                                        firmaResolved={resolvedFirmaRecipient}
+                                        onFirmaResolvedChange={
+                                            setResolvedFirmaRecipient
+                                        }
+                                        firmaUsernameTokenId={
+                                            firmaUsernameTokenId
+                                        }
                                     />
                                     {isBip21MultipleOutputsSafe(
                                         parsedAddressInput,

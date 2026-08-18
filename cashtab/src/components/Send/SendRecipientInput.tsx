@@ -5,16 +5,28 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ScanQRCode from 'components/Common/ScanQRCode';
-import { WalletIcon, ContactsIcon } from 'components/Common/CustomIcons';
+import {
+    WalletIcon,
+    ContactsIcon,
+    FirmaLogoIcon,
+} from 'components/Common/CustomIcons';
 import { CashtabContact } from 'config/CashtabState';
 import { StoredCashtabWallet } from 'wallet';
 import { previewAddress } from 'helpers';
 import RevealableAddress from 'components/Common/RevealableAddress';
+import { useFirmaUsernameSearch } from 'hooks/useFirmaUsernameSearch';
+import { FIRMA_USERNAME_TOKEN_ONLY } from 'config/firma';
 import {
+    getAddressFromRecipientInput,
+    getFirmaHandleForRecipient,
     getRecipientDisplayLabel,
+    isExplicitFirmaUsernameInput,
     looksLikeAddressInput,
+    looksLikeFirmaUsernameInput,
     searchSendRecipients,
+    shouldResolveFirmaUsername,
     RecipientSearchMatch,
+    ResolvedFirmaRecipient,
 } from 'components/Send/helpers/recipientResolve';
 
 const Wrapper = styled.div`
@@ -135,7 +147,8 @@ const IconSlot = styled.div`
     width: 32px;
     height: 32px;
     flex-shrink: 0;
-    svg {
+    svg,
+    img {
         width: 24px;
         height: 24px;
     }
@@ -202,6 +215,14 @@ interface SendRecipientInputProps {
     error: false | string;
     contactList: CashtabContact[];
     wallets: StoredCashtabWallet[];
+    /** Handle + cashaddr when this recipient was resolved from Firma */
+    firmaResolved?: ResolvedFirmaRecipient | null;
+    onFirmaResolvedChange?: (resolved: ResolvedFirmaRecipient | null) => void;
+    /**
+     * Selected Send Token id, or null on XEC send.
+     * Patron lookup only for FIRMA / fCHF / fEUR (or those token_ids in BIP21).
+     */
+    firmaUsernameTokenId?: string | null;
 }
 
 const emptyAddressEvent = (name: string): React.ChangeEvent<HTMLInputElement> =>
@@ -230,10 +251,52 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
     error = false,
     contactList,
     wallets,
+    firmaResolved = null,
+    onFirmaResolvedChange,
+    firmaUsernameTokenId = null,
 }) => {
     const [query, setQuery] = useState('');
     const [isEditing, setIsEditing] = useState(value === '');
     const [searchFocused, setSearchFocused] = useState(false);
+
+    const setFirmaResolved = (
+        handle: string | null,
+        addressOrBip21?: string,
+    ) => {
+        if (handle === null || typeof addressOrBip21 !== 'string') {
+            onFirmaResolvedChange?.(null);
+            return;
+        }
+        const address = getAddressFromRecipientInput(addressOrBip21);
+        if (address === '') {
+            onFirmaResolvedChange?.(null);
+            return;
+        }
+        onFirmaResolvedChange?.({ handle, address });
+    };
+
+    const localMatches: RecipientSearchMatch[] =
+        isEditing && query.trim() !== ''
+            ? searchSendRecipients(query, contactList, wallets)
+            : [];
+
+    const allowFirmaResolve = shouldResolveFirmaUsername(
+        firmaUsernameTokenId,
+        query,
+    );
+
+    // Explicit @… always looks up. Bare usernames only if nothing local matches,
+    // so typing a contact/wallet name is not sent to Patron.
+    const firmaSearch = useFirmaUsernameSearch({
+        query,
+        enabled:
+            allowFirmaResolve &&
+            isEditing &&
+            !disabled &&
+            (isExplicitFirmaUsernameInput(query) ||
+                (looksLikeFirmaUsernameInput(query) &&
+                    localMatches.length === 0)),
+    });
 
     // Resolve when parent fills address (deep link / extension / contact nav),
     // or after the user leaves the field with a valid recipient. Stay in edit
@@ -254,40 +317,107 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
         }
         if (value === '') {
             setIsEditing(true);
-            setQuery('');
+            // Do not setQuery('') here: that wipes an in-progress @username
+            // when the field blurs before Patron resolves.
         }
     }, [value, error, searchFocused]);
 
-    const matches: RecipientSearchMatch[] =
-        isEditing && query.trim() !== ''
-            ? searchSendRecipients(query, contactList, wallets)
-            : [];
+    const firmaMatch: RecipientSearchMatch | null =
+        firmaSearch.status === 'found' &&
+        !localMatches.some(match => match.address === firmaSearch.address)
+            ? {
+                  kind: 'firma',
+                  name: `@${firmaSearch.handle}`,
+                  address: firmaSearch.address,
+              }
+            : null;
+
+    const matches: RecipientSearchMatch[] = firmaMatch
+        ? [...localMatches, firmaMatch]
+        : localMatches;
 
     const showDropdown =
-        searchFocused && isEditing && !disabled && matches.length > 0;
+        searchFocused &&
+        isEditing &&
+        !disabled &&
+        (matches.length > 0 ||
+            (isExplicitFirmaUsernameInput(query) &&
+                (firmaSearch.status === 'checking' ||
+                    firmaSearch.status === 'found')));
 
     const showResolved = value !== '' && !isEditing && error === false;
+    const resolvedForLabel = allowFirmaResolve ? firmaResolved : null;
+    const displayFirmaHandle = getFirmaHandleForRecipient(
+        value,
+        resolvedForLabel,
+    );
     const resolvedLabel = showResolved
-        ? getRecipientDisplayLabel(value, contactList, wallets)
+        ? getRecipientDisplayLabel(
+              value,
+              contactList,
+              wallets,
+              resolvedForLabel,
+          )
         : '';
     const resolvedAddress = value.split('?')[0];
     const resolvedPreview =
         resolvedAddress !== '' ? previewAddress(resolvedAddress) : '';
     const isOwnWallet =
-        showResolved && wallets.some(w => w.address === resolvedAddress);
+        showResolved &&
+        displayFirmaHandle === null &&
+        wallets.some(w => w.address === resolvedAddress);
     const isContact =
-        showResolved && contactList.some(c => c.address === resolvedAddress);
+        showResolved &&
+        displayFirmaHandle === null &&
+        contactList.some(c => c.address === resolvedAddress);
+    const isFirma = showResolved && displayFirmaHandle !== null;
 
-    const selectMatch = (match: RecipientSearchMatch) => {
+    const applyRecipient = (
+        nextAddress: string,
+        nextFirmaHandle: string | null,
+    ) => {
         setQuery('');
         setIsEditing(false);
         setSearchFocused(false);
-        handleInput(addressEvent(name, match.address));
+        setFirmaResolved(nextFirmaHandle, nextAddress);
+        handleInput(addressEvent(name, nextAddress));
     };
+
+    const selectMatch = (match: RecipientSearchMatch) => {
+        const queryString = query.includes('?') ? query.split('?')[1] : '';
+        const nextAddress =
+            queryString !== '' && match.kind === 'firma'
+                ? `${match.address}?${queryString}`
+                : match.address;
+        applyRecipient(
+            nextAddress,
+            match.kind === 'firma' ? match.name.replace(/^@/, '') : null,
+        );
+    };
+
+    // Explicit @username: apply as soon as Patron resolves (apps/firma continue).
+    useEffect(() => {
+        if (!isEditing || disabled) {
+            return;
+        }
+        if (!isExplicitFirmaUsernameInput(query)) {
+            return;
+        }
+        if (firmaSearch.status !== 'found') {
+            return;
+        }
+        const queryString = query.includes('?') ? query.split('?')[1] : '';
+        const nextAddress =
+            queryString !== ''
+                ? `${firmaSearch.address}?${queryString}`
+                : firmaSearch.address;
+        applyRecipient(nextAddress, firmaSearch.handle);
+    }, [firmaSearch, query, isEditing, disabled]);
 
     const clearRecipient = () => {
         setQuery('');
         setIsEditing(true);
+        setFirmaResolved(null);
         handleInput(emptyAddressEvent(name));
     };
 
@@ -297,18 +427,30 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
         setIsEditing(true);
 
         if (next === '') {
+            setFirmaResolved(null);
             handleInput(emptyAddressEvent(name));
+            return;
+        }
+
+        // Username (optional @ / BIP21) — wait for Patron only for FIRMA / fCHF / fEUR
+        if (looksLikeFirmaUsernameInput(next)) {
+            if (value !== '') {
+                setFirmaResolved(null);
+                handleInput(emptyAddressEvent(name));
+            }
             return;
         }
 
         // Forward address / BIP21 attempts to existing validation
         if (looksLikeAddressInput(next)) {
+            setFirmaResolved(null);
             handleInput(e);
             return;
         }
 
         // Name search: clear any previously confirmed address, no validation error
         if (value !== '') {
+            setFirmaResolved(null);
             handleInput(emptyAddressEvent(name));
         }
     };
@@ -343,7 +485,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
     };
 
     const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (!showDropdown) {
+        if (!showDropdown || matches.length === 0) {
             return;
         }
         if (e.key === 'Enter') {
@@ -381,10 +523,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
     };
 
     const onScan = (result: string) => {
-        setQuery('');
-        setIsEditing(false);
-        setSearchFocused(false);
-        handleInput(addressEvent(name, result));
+        applyRecipient(result, null);
     };
 
     if (showResolved) {
@@ -396,7 +535,11 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                     aria-label={`Recipient ${resolvedLabel}`}
                 >
                     <IconSlot>
-                        {isOwnWallet ? (
+                        {isFirma ? (
+                            <span title="Firma username">
+                                <FirmaLogoIcon />
+                            </span>
+                        ) : isOwnWallet ? (
                             <span title="My wallet">
                                 <WalletIcon />
                             </span>
@@ -435,7 +578,27 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
         );
     }
 
-    const showError = typeof error === 'string' && looksLikeAddressInput(query);
+    const firmaTokenOnlyError =
+        isExplicitFirmaUsernameInput(query) &&
+        !shouldResolveFirmaUsername(firmaUsernameTokenId, query)
+            ? FIRMA_USERNAME_TOKEN_ONLY
+            : false;
+    const firmaError =
+        firmaTokenOnlyError !== false
+            ? firmaTokenOnlyError
+            : isExplicitFirmaUsernameInput(query) &&
+                (firmaSearch.status === 'none' ||
+                    firmaSearch.status === 'invalid' ||
+                    firmaSearch.status === 'error')
+              ? firmaSearch.message
+              : false;
+    const displayError =
+        firmaError !== false
+            ? firmaError
+            : typeof error === 'string' && looksLikeAddressInput(query)
+              ? error
+              : '';
+    const showError = displayError !== '';
     const inputId = `${name}-input`;
 
     return (
@@ -468,6 +631,25 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
             </InputRow>
             {showDropdown && (
                 <DropdownList aria-label="Matching recipients">
+                    {firmaSearch.status === 'checking' &&
+                        isExplicitFirmaUsernameInput(query) && (
+                            <DropdownItem
+                                type="button"
+                                disabled
+                                aria-label={`Resolving @${firmaSearch.handle}`}
+                            >
+                                <IconSlot>
+                                    <span title="Firma username">
+                                        <FirmaLogoIcon />
+                                    </span>
+                                </IconSlot>
+                                <DropdownItemInfo>
+                                    <DropdownItemName>
+                                        Resolving @{firmaSearch.handle}...
+                                    </DropdownItemName>
+                                </DropdownItemInfo>
+                            </DropdownItem>
+                        )}
                     {matches.map(match => (
                         <DropdownItem
                             key={`${match.kind}-${match.address}`}
@@ -488,6 +670,10 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                                     <span title="Contact">
                                         <ContactsIcon />
                                     </span>
+                                ) : match.kind === 'firma' ? (
+                                    <span title="Firma username">
+                                        <FirmaLogoIcon />
+                                    </span>
                                 ) : null}
                             </IconSlot>
                             <DropdownItemInfo>
@@ -502,7 +688,7 @@ const SendRecipientInput: React.FC<SendRecipientInputProps> = ({
                     ))}
                 </DropdownList>
             )}
-            <ErrorMsg>{showError ? error : ''}</ErrorMsg>
+            <ErrorMsg>{showError ? displayError : ''}</ErrorMsg>
         </Wrapper>
     );
 };
