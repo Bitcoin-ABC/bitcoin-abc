@@ -3430,6 +3430,16 @@ bool Chainstate::ActivateBestChainStep(
 
                 if (blockPolicyState.IsInvalid()) {
                     // The block violates a policy rule.
+                    CBlockIndex *pindexParkedDescendant = pindexMostWork;
+                    while (pindexParkedDescendant &&
+                           pindexParkedDescendant != pindexConnect) {
+                        pindexParkedDescendant->nStatus =
+                            pindexParkedDescendant->nStatus.withParkedParent();
+                        m_blockman.m_dirty_blockindex.insert(
+                            pindexParkedDescendant);
+                        setBlockIndexCandidates.erase(pindexParkedDescendant);
+                        pindexParkedDescendant = pindexParkedDescendant->pprev;
+                    }
                     fContinue = false;
                     break;
                 }
@@ -3611,7 +3621,8 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 blocks_connected = true;
 
                 if (fInvalidFound ||
-                    (pindexMostWork && pindexMostWork->nStatus.isParked())) {
+                    (pindexMostWork &&
+                     pindexMostWork->nStatus.isOnParkedChain())) {
                     // Wipe cache, we may need another branch now.
                     pindexMostWork = nullptr;
                 }
