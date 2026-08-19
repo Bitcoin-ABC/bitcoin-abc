@@ -3058,8 +3058,8 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
                 if (m_mempool) {
                     parkingPolicies.emplace_back(
                         std::make_unique<PreConsensusPolicy>(
-                            *avalanche, *pindexNew, blockConnecting,
-                            m_mempool));
+                            *avalanche, *pindexNew, blockConnecting, m_mempool,
+                            &disconnectpool));
                 }
             }
 

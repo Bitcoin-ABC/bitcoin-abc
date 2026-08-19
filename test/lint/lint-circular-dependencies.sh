@@ -31,6 +31,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "kernel/coinstats -> validation -> kernel/coinstats"
     "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"
+    "kernel/disconnected_transactions -> validation -> policy/block/preconsensus -> kernel/disconnected_transactions"
 
     # Temporary, removed in a followup
     "index/base -> node/context -> net_processing -> index/blockfilterindex -> index/base"

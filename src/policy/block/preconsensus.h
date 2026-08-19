@@ -13,6 +13,7 @@
 #include <txmempool.h>
 
 class CBlockIndex;
+class DisconnectedBlockTransactions;
 
 namespace avalanche {
 class Processor;
@@ -24,13 +25,15 @@ private:
     const CBlock &m_block;
     const CBlockIndex &m_blockIndex;
     const CTxMemPool *m_mempool;
+    const DisconnectedBlockTransactions *m_disconnectpool;
 
 public:
     PreConsensusPolicy(const avalanche::Processor &avalanche,
                        const CBlockIndex &blockIndex, const CBlock &block,
-                       const CTxMemPool *mempool)
+                       const CTxMemPool *mempool,
+                       const DisconnectedBlockTransactions *disconnectpool)
         : m_avalanche(avalanche), m_block(block), m_blockIndex(blockIndex),
-          m_mempool(mempool) {}
+          m_mempool(mempool), m_disconnectpool(disconnectpool) {}
 
     bool operator()(BlockPolicyValidationState &state) override
         EXCLUSIVE_LOCKS_REQUIRED(m_mempool->cs);

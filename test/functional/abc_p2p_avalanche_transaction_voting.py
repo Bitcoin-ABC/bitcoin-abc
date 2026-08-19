@@ -715,6 +715,70 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         # It will be polled again and can now be finalized
         self.wait_until(lambda: has_finalized_tx(stalled_txid))
 
+        self.log.info(
+            "The node parks a block that contains a tx conflicting with a disconnected finalized one"
+        )
+
+        tip = self.generate(node, 1, sync_fun=self.no_op)[0]
+        self.wait_until(lambda: has_finalized_block(tip))
+        wallet.rescan_utxos()
+
+        parent_txid = node.getbestblockhash()
+        parent_height = node.getblockcount()
+        parent_time = node.getblock(parent_txid)["time"]
+
+        # Finalize a tx A
+        utxo = wallet.get_utxo(confirmed_only=True)
+        tx_a = wallet.send_self_transfer(from_node=node, utxo_to_spend=utxo)
+        txid_a = tx_a["txid"]
+        self.wait_until(lambda: has_finalized_tx(txid_a))
+        assert txid_a in node.getrawmempool()
+
+        # Mine the finalized tx into a block, but don't finalize the block
+        blockhash_x = self.generate(node, 1, sync_fun=self.no_op)[0]
+        assert txid_a not in node.getrawmempool()
+        assert_equal(node.isfinaltransaction(txid_a, blockhash_x), True)
+        assert_equal(node.isfinalblock(blockhash_x), False)
+
+        # Build a conflicting tx B
+        tx_b = wallet.create_self_transfer(utxo_to_spend=utxo)
+        assert tx_b["txid"] != txid_a
+
+        # Create a competing block Y containing tx B. This block is invalid by
+        # preconsensus policy.
+        block_y = create_block(
+            int(parent_txid, 16),
+            create_coinbase(parent_height + 1),
+            ntime=parent_time + 1,
+            txlist=[tx_b["tx"]],
+        )
+        make_conform_to_ctor(block_y)
+        block_y.hashMerkleRoot = block_y.calc_merkle_root()
+        block_y.solve()
+
+        # Build another block Y2 on top of Y. This block is valid.
+        block_y2 = create_block(
+            block_y.hash_int,
+            create_coinbase(parent_height + 2),
+            ntime=parent_time + 2,
+        )
+        block_y2.solve()
+
+        # Send both blocks at the same time. Since X is not finalized, and Y2
+        # has more work, the node will attempt to switch the tip to Y2. The node
+        # will first disconnect X, then attempt to connect Y2. This will fail
+        # because Y is rejected by preconsensus policy.
+        peer.send_blocks_and_test(
+            [block_y, block_y2],
+            node,
+            success=False,
+            force_send=True,
+            reject_reason="finalized-tx-conflict",
+        )
+
+        assert_equal(node.getbestblockhash(), blockhash_x)
+        assert_equal(node.isfinaltransaction(txid_a, blockhash_x), True)
+
 
 if __name__ == "__main__":
     AvalancheTransactionVotingTest().main()
