@@ -9,3 +9,8 @@ Bitcoin ABC version 0.34.1 is now available from:
   - `%h` - the height of the block containing the transaction (`-1` if a mempool transaction)
 - Add a `shutdownnotify` option to specify a command to execute synchronously
   before Bitcoin ABC has begun its shutdown sequence.
+- On non-Windows systems, an authenticated RPC caller allowed to create wallets
+  could execute arbitrary commands as the node process account when
+  `-walletnotify` was configured, by crafting a wallet name with regex
+  replacement characters. Wallet notification placeholder replacement now
+  treats wallet names literally.

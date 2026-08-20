@@ -5,6 +5,7 @@
 """Test the -alertnotify, -blocknotify and -walletnotify options."""
 
 import os
+import platform
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, keyhash_to_p2pkh
 from test_framework.blocktools import COINBASE_MATURITY
@@ -29,6 +30,7 @@ class NotificationsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
+        self.noban_tx_relay = True
 
     def setup_network(self):
         self.wallet = "".join(
@@ -169,10 +171,10 @@ class NotificationsTest(BitcoinTestFramework):
             balance = self.nodes[0].getbalance()
             self.disconnect_nodes(0, 1)
             tx2_node0 = self.nodes[0].sendtoaddress(
-                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 20
+                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 200
             )
             tx2_node1 = self.nodes[1].sendtoaddress(
-                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 21
+                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 210
             )
             assert tx2_node0 != tx2_node1
             self.expect_wallet_notify([(tx2_node1, -1, UNCONFIRMED_HASH_STRING)])
@@ -199,6 +201,34 @@ class NotificationsTest(BitcoinTestFramework):
                     (tx2_node1, -1, UNCONFIRMED_HASH_STRING),
                 ]
             )
+
+            if platform.system() != "Windows":
+                self.log.info(
+                    "test -walletnotify replacement metacharacters in wallet name"
+                )
+                self.nodes[1].unloadwallet(self.wallet)
+                command_marker = os.path.join(
+                    self.options.tmpdir, "walletnotify_injected"
+                )
+                # The previous regex replacement expanded `$'` to the command suffix,
+                # breaking the shell-escaped wallet name's quote accounting
+                wallet_name = self.nodes[1].createwallet(
+                    f"$'$'; echo Pwned > {os.path.basename(command_marker)}; #"
+                )["name"]
+                txid = self.nodes[0].sendtoaddress(
+                    self.nodes[1].get_wallet_rpc(wallet_name).getnewaddress(), 100
+                )
+                self.sync_mempools()
+                notify_path = os.path.join(
+                    self.walletnotify_dir, notify_outputname(wallet_name, txid)
+                )
+                self.wait_until(
+                    lambda: (
+                        os.path.exists(command_marker) or os.path.exists(notify_path)
+                    )
+                )
+                assert not os.path.exists(command_marker)
+                assert os.path.exists(notify_path)
 
         # Create an invalid chain and ensure the node warns.
         self.log.info("test -alertnotify for forked chain")
