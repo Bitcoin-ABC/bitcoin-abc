@@ -8,15 +8,26 @@ Protocol and API detail: [SPEC.md](./SPEC.md) (**spec version 1**).
 cp config.sample.json config.json
 # edit config.json — mnemonic, feeAddress, chronikUrls, pairs, port
 # feeAddress: off-server fee wallet (not seller/slush; need not be hot)
+# optional telegram: { adminChat, botToken, opsChat } (all three or omit)
 
 pnpm print-addresses
 ```
 
 All runtime settings live in `config.json` (see SPEC.md). It is required at the
 package root and is gitignored. The app exits on startup if it is missing.
-`config.sample.json` uses placeholders — set a valid BIP39 English mnemonic and
-fee address before the config will parse. The fee wallet should be off the
-server and does not need to be a hot wallet.
+`config.sample.json` uses placeholders — set a valid BIP39 English mnemonic
+and fee address before the config will parse. The fee wallet should be off
+the server and does not need to be a hot wallet.
+
+### Settle logs
+
+Every settle (`200` / `400` / `500`) writes a structured log line: client
+IP, pair, taker, qty, postage, rate, txid, and the error on failures.
+Successes go to stdout; failures go to stderr.
+
+Optional `telegram` in `config.json` sends HTML ops messages after the log
+via grammy (fire-and-forget, FIFO queue, 429/`retry_after` backoff). If the
+object is present, `adminChat`, `botToken`, and `opsChat` are all required.
 
 ## Why ALP needs an open AMM node
 
@@ -41,8 +52,7 @@ liquidity source.
 Must provide:
 
 1. **Self-hosted LP** — one mnemonic for seller + slush HD roles, plus an
-   external `feeAddress` (off-server; need not be hot). Postgres for audit,
-   Chronik for sync. No shared custody with a coordinator.
+   external `feeAddress` (off-server; need not be hot). Chronik for sync.
 2. **Local-liquidity pricing** — spot and size quotes from **seller +
    slush** atom reserves (constant-product). Fills spend **seller**
    inventory only.
@@ -112,7 +122,7 @@ will settle.
 
 | Role                  | Responsibility                                                                             |
 | --------------------- | ------------------------------------------------------------------------------------------ |
-| **LP operator**       | Runs alp-dex, funds slush, sets pairs/fees, keeps Chronik/Postgres healthy                 |
+| **LP operator**       | Runs alp-dex, funds slush, sets pairs/fees, keeps Chronik healthy                          |
 | **Taker / wallet**    | Quotes, builds postage-ready txs, verifies outs, posts settle                              |
 | **Coordinator**       | Optional: lists/whitelists LP URLs, aggregates liquidity across nodes, platform fee params |
 | **Chronik / network** | Ordinary UTXO and ALP validity; not an LP honesty oracle                                   |
@@ -133,8 +143,7 @@ will settle.
    discover many independent alp-dex instances for the same pair, pick the
    best quote, and — where useful — split or failover a trade across nodes
    so depth is not capped by a single operator’s reserves.
-7. **Deploy path** — Docker/nginx notes, env sample, mnemonic helper, ops
-   scripts for recovery.
+7. **Deploy path** — Docker/nginx notes, env sample, mnemonic helper.
 
 ## Roadmap
 
@@ -173,8 +182,8 @@ should ship tests a reviewer can run locally.
    Chronik/broadcast); ±1% constant-product settle band; maker fee schema.
    `POST /api/v1/swap/:from/:to` via `PostageTx`; no DB audit / Telegram
    yet; `platformFeeEnabled` stays false.
-10. **DB + ops** — `schema.sql`, swap audit inserts, summarize / rebalance
-    scripts, optional Telegram message builders.
+10. **Ops + logs (this package)** — stdout settle logs and optional
+    Telegram ops messages.
 11. **Coordinator opt-in + deploy** — Platform-fee source (mockable fetch),
     status flag for whitelist discovery, Docker/nginx, public HTTPS checklist.
 12. **Wallet + multi-server liquidity** — Cashtab (and others) consume

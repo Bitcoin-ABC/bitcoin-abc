@@ -56,12 +56,14 @@ describe('tradedConfig', () => {
             feeAddress: string;
             chronikUrls: string[];
             pairs: unknown[];
+            telegram?: unknown;
         };
         assert.strictEqual(sample.port, 3003);
         assert.strictEqual(sample.mnemonic, MNEMONIC_PLACEHOLDER);
         assert.ok(sample.feeAddress.includes('REPLACE_WITH_YOUR'));
         assert.ok(Array.isArray(sample.chronikUrls));
         assert.ok(sample.chronikUrls.length > 0);
+        assert.strictEqual(sample.telegram, undefined);
         assert.strictEqual(sample.pairs.length, 1);
         assert.throws(
             () => parseTradedConfigJson(raw),
@@ -255,6 +257,53 @@ describe('tradedConfig', () => {
                     }),
                 ),
             /conflicting utxoQty/,
+        );
+    });
+
+    it('requires telegram all-or-nothing and parses a complete block', () => {
+        const config = parseTradedConfigJson(withBase());
+        assert.strictEqual(config.telegram, undefined);
+
+        const withTg = parseTradedConfigJson(
+            withBase({
+                telegram: {
+                    adminChat: '-1001',
+                    botToken: '123:ABC',
+                    opsChat: '-1002',
+                },
+            }),
+        );
+        assert.deepStrictEqual(withTg.telegram, {
+            adminChat: '-1001',
+            botToken: '123:ABC',
+            opsChat: '-1002',
+        });
+
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
+                        telegram: { adminChat: '-1001', botToken: '123:ABC' },
+                    }),
+                ),
+            /adminChat, botToken, and opsChat/,
+        );
+        assert.throws(
+            () =>
+                parseTradedConfigJson(
+                    withBase({
+                        telegram: {
+                            adminChat: '-1001',
+                            botToken: '',
+                            opsChat: '-1002',
+                        },
+                    }),
+                ),
+            /telegram.botToken/,
+        );
+        assert.throws(
+            () => parseTradedConfigJson(withBase({ telegram: 'ops' })),
+            /must be an object/,
         );
     });
 

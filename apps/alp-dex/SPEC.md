@@ -74,6 +74,7 @@ root, gitignored). No `.env` file.
 | `mnemonic`    | Valid BIP39 English mnemonic; seeds seller + slush only                                 |
 | `feeAddress`  | Required `ecash:` fee / misc-sweep payout (≠ seller/slush; off-server; need not be hot) |
 | `chronikUrls` | Non-empty Chronik URL list (primary first, then failover; no trailing slash)            |
+| `telegram`    | Optional. If present, all of `adminChat`, `botToken`, `opsChat` are required            |
 | `pairs`       | Non-empty pair list                                                                     |
 
 No global default fee or utxo size. Each pair must set:
@@ -137,8 +138,7 @@ Planned maintain loop (startup, sync interval, after successful settle):
 4. Periodic misc seller UTXOs (non-traded tokens, odd XEC; batons skipped)
    → fee script.
 
-**Operator habit:** fund **slush** only. Do not hand-build seller inventory
-except recovery scripts.
+**Operator habit:** fund **slush** only. Do not hand-build seller inventory.
 
 ## Settlement flow (postage)
 
@@ -164,7 +164,7 @@ Flow:
 3. Node parses EMPP/ALP, validates schema / fees / ±1% constant-product
    settle band, serializes settle through a queue, selects N exact-size
    `toToken` seller UTXOs, adds postage fuel, signs, broadcasts.
-4. On success: audit row + optional post-swap inventory pass.
+4. On success: stdout settle log + optional post-swap inventory pass.
 
 Exact-size seller inventory (advertised `utxoQty` / `utxoAtoms` per
 `tokenId`) lets the taker construct outs including any token change before
@@ -188,9 +188,10 @@ CORS open for browser takers. Rate limiting lands with deploy ops.
 
 **Implemented:** `GET /`, `GET /api/v1/status`, available, inventory, spot,
 amm discovery, exact-in/out templates, settleable `?from|to&feePct`
-templates, and **`POST` settle** (parse/validate, queue, fuel+sign+broadcast).
-**Still planned:** DB audit, Telegram ops, coordinator platform-fee fields
-beyond `platformFeeEnabled: false`.
+templates, **`POST` settle** (parse/validate, queue, fuel+sign+broadcast),
+stdout settle logs, and optional Telegram ops.
+**Still planned:** coordinator platform-fee fields beyond
+`platformFeeEnabled: false`.
 
 | Method | Path                                     | Purpose                                              |
 | ------ | ---------------------------------------- | ---------------------------------------------------- |
@@ -217,8 +218,14 @@ beyond `platformFeeEnabled: false`.
 ### Settle responses
 
 - Success: `{ success, txid, postagePaidSats }`
-- Validation failure: `400` (`{ error }`; audit row planned later)
-- Fuel/broadcast failure: `500` (`{ error }`; audit row planned later)
+- Validation failure: `400` (`{ error }`)
+- Fuel/broadcast failure: `500` (`{ error }`)
+
+Every settle writes a structured log line: outcome, client IP (`req.ip`),
+from/to token ids, taker, valid/broadcasted/txid, human qty, postage, rate,
+and the error on failures. Successes go to stdout; failures go to stderr.
+Optional Telegram ops messages fire after the log (grammy FIFO send with
+429 backoff; settle HTTP does not wait).
 
 ## Output schema (parsed, excl. OP_RETURN)
 
@@ -239,13 +246,13 @@ Mid-tx shape the node validates:
 
 ## Dependencies (planned)
 
-| Dependency       | Role                                              |
-| ---------------- | ------------------------------------------------- |
-| `ecash-lib`      | HD, ALP/EMPP, scripts, tx ser/deser               |
-| `ecash-wallet`   | Chronik sync, `PostageTx` fuel + sign + broadcast |
-| `chronik-client` | Genesis + UTXO sync                               |
-| Express stack    | HTTP API, helmet, CORS, rate limit                |
-| Postgres         | Swap audit log                                    |
+| Dependency       | Role                                               |
+| ---------------- | -------------------------------------------------- |
+| `ecash-lib`      | HD, ALP/EMPP, scripts, tx ser/deser                |
+| `ecash-wallet`   | Chronik sync, `PostageTx` fuel + sign + broadcast  |
+| `chronik-client` | Genesis + UTXO sync                                |
+| `grammy`         | Optional Telegram ops `sendMessage` (HTML, queued) |
+| Express stack    | HTTP API, CORS (helmet / rate limit with deploy)   |
 
 ## Coordinator integration points
 
@@ -254,8 +261,7 @@ Mid-tx shape the node validates:
    pct + address (short TTL cache). Failures fail settle when enabled.
 3. Templates inject the platform fee out; settle requires exact atoms +
    script when enabled, and rejects unexpected platform fee when disabled.
-4. Audit columns record platform fee fields.
-5. Coordinator whitelist is **out of band**: operators register their public
+4. Coordinator whitelist is **out of band**: operators register their public
    LP base URL with the coordinator. alp-dex only advertises
    `platformFeeEnabled` and enforces fee outs when opted in.
 

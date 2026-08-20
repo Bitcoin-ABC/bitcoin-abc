@@ -12,6 +12,7 @@ import express, {
 } from 'express';
 import type { ParsedTradedConfig } from './config/tradedConfig';
 import { POSTAGE_SATS, SPEC_VERSION } from './constants';
+import type { SendOpsFn } from './routes/settle';
 import type { AsyncQueue } from './methods/queue';
 import { createQuoteRouter } from './routes/quotes';
 import { createSettleRouter } from './routes/settle';
@@ -34,6 +35,8 @@ export type CreateAppDeps = {
      * Errors are logged and must not fail the settle HTTP response.
      */
     maintainInventory?: () => Promise<unknown>;
+    /** Optional Telegram ops send (fire-and-forget after stdout audit). */
+    sendOps?: SendOpsFn;
 };
 
 /**
@@ -64,8 +67,11 @@ export const createApp = (deps: CreateAppDeps): Express => {
         tradedTokens,
         walletQueue,
         maintainInventory,
+        sendOps,
     } = deps;
     const app = express();
+    // One hop (typical nginx) so req.ip is the client, not 127.0.0.1.
+    app.set('trust proxy', 1);
 
     app.use(openCors);
     app.use(express.json({ limit: '1mb' }));
@@ -136,6 +142,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             tradedTokens,
             walletQueue,
             maintainInventory,
+            sendOps,
         }),
     );
 

@@ -105,6 +105,9 @@ importers:
       express:
         specifier: ^5.2.1
         version: 5.2.1
+      grammy:
+        specifier: ^1.44.0
+        version: 1.44.0
     devDependencies:
       '@types/express':
         specifier: ^5.0.6

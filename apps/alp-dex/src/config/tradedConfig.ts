@@ -14,6 +14,15 @@ export const CONFIG_FILENAME = 'config.json';
 export const CONFIG_SAMPLE_FILENAME = 'config.sample.json';
 export { MNEMONIC_PLACEHOLDER };
 
+export type TelegramConfig = {
+    /** Admin alert chat id (required if `telegram` is present) */
+    adminChat: string;
+    /** Bot token used for admin + ops sends */
+    botToken: string;
+    /** Ops alert chat id (settle audit messages) */
+    opsChat: string;
+};
+
 export type ParsedTradedConfig = {
     /** HTTP listen port */
     port: number;
@@ -27,6 +36,11 @@ export type ParsedTradedConfig = {
     feeAddress: string;
     /** Chronik HTTP URLs (primary first, then failover). */
     chronikUrls: string[];
+    /**
+     * Optional Telegram ops/admin alerts. All three fields are required when
+     * this object is present; omit the key entirely to disable.
+     */
+    telegram?: TelegramConfig;
     /** tokenId → inventory UTXO size in human units */
     utxoQtyByToken: Map<string, number>;
     pairs: TradedPair[];
@@ -137,12 +151,54 @@ export const getAlpDexRoot = (startDir: string = __dirname): string => {
     }
 };
 
+const parseRequiredString = (raw: unknown, label: string): string => {
+    if (typeof raw !== 'string' || raw.trim() === '') {
+        throw new Error(`${label} must be a non-empty string`);
+    }
+    return raw.trim();
+};
+
+/**
+ * Optional Telegram block: omit entirely, or supply all of adminChat,
+ * botToken, and opsChat.
+ */
+const parseTelegram = (raw: unknown): TelegramConfig | undefined => {
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+        throw new Error(
+            'config.json telegram must be an object with adminChat, botToken, and opsChat',
+        );
+    }
+    const obj = raw as {
+        adminChat?: unknown;
+        botToken?: unknown;
+        opsChat?: unknown;
+    };
+    if (
+        obj.adminChat === undefined ||
+        obj.botToken === undefined ||
+        obj.opsChat === undefined
+    ) {
+        throw new Error(
+            'config.json telegram requires adminChat, botToken, and opsChat (or omit telegram entirely)',
+        );
+    }
+    return {
+        adminChat: parseRequiredString(obj.adminChat, 'telegram.adminChat'),
+        botToken: parseRequiredString(obj.botToken, 'telegram.botToken'),
+        opsChat: parseRequiredString(obj.opsChat, 'telegram.opsChat'),
+    };
+};
+
 /**
  * Parse config JSON (see `config.sample.json`).
  *
  * Top-level `port`, `mnemonic` (valid BIP39 English), `feeAddress`, and
  * `chronikUrls` are required. `feeAddress` must not be seller/slush (fee
  * wallet should be off the server and does not need to be a hot wallet).
+ * Optional `telegram` is all-or-nothing.
  * Each pair must set `aTokenId`, `bTokenId`, `feePct`, `aUtxoQty`, and
  * `bUtxoQty`. Postage stamp size is fixed in code (`POSTAGE_SATS`), not
  * config.
@@ -170,6 +226,7 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         mnemonic?: unknown;
         feeAddress?: unknown;
         chronikUrls?: unknown;
+        telegram?: unknown;
         pairs?: unknown;
     };
 
@@ -199,6 +256,8 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         throw new Error('config.json chronikUrls is required');
     }
     const chronikUrls = parseChronikUrls(obj.chronikUrls);
+
+    const telegram = parseTelegram(obj.telegram);
 
     if (!Array.isArray(obj.pairs) || obj.pairs.length === 0) {
         throw new Error('config.json pairs must be a non-empty array');
@@ -275,6 +334,7 @@ export const parseTradedConfigJson = (raw: string): ParsedTradedConfig => {
         mnemonic,
         feeAddress,
         chronikUrls,
+        ...(telegram !== undefined ? { telegram } : {}),
         utxoQtyByToken,
         pairs,
     };

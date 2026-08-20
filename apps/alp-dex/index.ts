@@ -12,6 +12,7 @@ import {
     type MaintainInventoryResult,
 } from './src/inventory/maintain';
 import { AsyncQueue } from './src/methods/queue';
+import { createTelegramBot, createTelegramOpsSender } from './src/ops/telegram';
 import { pairSpotPrices } from './src/pricing/quotes';
 import { pricingReserveAtoms } from './src/pricing/reserves';
 import { loadTradedTokens } from './src/tokens/tradedTokens';
@@ -65,6 +66,21 @@ const main = async (): Promise<void> => {
     await Promise.all([seller.sync(), slush.sync()]);
     const tradedTokens = await loadTradedTokens(chronik, tradedConfig);
 
+    const telegram = tradedConfig.telegram;
+    const telegramBot =
+        telegram === undefined
+            ? undefined
+            : createTelegramBot(telegram.botToken);
+    const telegramOps =
+        telegram === undefined || telegramBot === undefined
+            ? undefined
+            : createTelegramOpsSender(telegramBot, telegram.opsChat);
+    if (telegram === undefined) {
+        console.log('Telegram not configured — ops alerts disabled');
+    } else {
+        console.log('Telegram ops alerts enabled');
+    }
+
     // One queue for settle + scheduled/post-settle maintain so they never
     // race on seller UTXO selection / broadcast.
     const walletQueue = new AsyncQueue();
@@ -94,6 +110,12 @@ const main = async (): Promise<void> => {
         tradedTokens,
         walletQueue,
         maintainInventory: () => enqueueMaintain('post-settle'),
+        sendOps:
+            telegramOps === undefined
+                ? undefined
+                : async message => {
+                      await telegramOps.send(message);
+                  },
     });
     await new Promise<void>((resolve, reject) => {
         const server = app.listen(tradedConfig.port, () => {

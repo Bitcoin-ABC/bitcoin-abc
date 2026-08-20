@@ -7,18 +7,33 @@ import { PostageTx, type Wallet } from 'ecash-wallet';
 import { Router, type Request, type Response } from 'express';
 import type { ParsedTradedConfig } from '../config/tradedConfig';
 import { POSTAGE_SATS } from '../constants';
+import { atomsToDecimalizedQty } from '../methods/atoms';
 import { AsyncQueue } from '../methods/queue';
 import { HttpError, ValidationError } from '../methods/errors';
 import { assertTokenId } from '../methods/tokenId';
+import {
+    getBroadcastFailedMessage,
+    getInvalidSwapMessage,
+    getSwapFailedMessage,
+    getSwapSuccessfulMessage,
+} from '../ops/telegramMessages';
 import { quoteExactIn } from '../pricing/quotes';
 import { pairPricingReserves } from '../pricing/reserves';
 import { assertConfiguredPair } from './quotes';
 import {
+    humanExchangeRate,
+    logSwapOutcome,
+    type SwapRecord,
+} from '../settle/audit';
+import {
     extractUserAddress,
     parsePartiallySignedSwap,
     validatePartiallySignedTx,
+    type ParsedPartiallySignedSwap,
 } from '../settle/parseSwap';
 import type { TradedTokens } from '../tokens/tradedTokens';
+
+export type SendOpsFn = (message: string) => Promise<void>;
 
 export type SettleRouteDeps = {
     seller: Wallet;
@@ -36,6 +51,10 @@ export type SettleRouteDeps = {
      * Errors are logged and must not fail the HTTP response.
      */
     maintainInventory?: () => Promise<unknown>;
+    /**
+     * Optional Telegram ops send. Fire-and-forget after the stdout audit log.
+     */
+    sendOps?: SendOpsFn;
 };
 
 type SwapTokenParams = {
@@ -91,6 +110,20 @@ const parseBodyInteger = (
     return parsed;
 };
 
+/**
+ * Client IP from Express (`req.ip`). Set `trust proxy` in createApp when a
+ * reverse proxy sits in front.
+ */
+export const clientIpFromRequest = (req: Request): string =>
+    req.ip ?? req.socket.remoteAddress ?? 'unknown';
+
+const humanQty = (atoms: bigint, decimals: number | undefined): number => {
+    if (decimals === undefined) {
+        return 0;
+    }
+    return Number(atomsToDecimalizedQty(atoms, decimals));
+};
+
 const sendSettleError = (
     res: Response,
     error: unknown,
@@ -119,6 +152,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
         tradedConfig,
         tradedTokens,
         maintainInventory,
+        sendOps,
     } = deps;
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
     // Prefer the process-wide wallet queue so maintain cannot race settle.
@@ -128,6 +162,123 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
     router.post(
         '/swap/:fromTokenId/:toTokenId',
         async (req: Request<SwapTokenParams>, res: Response) => {
+            const clientIp = clientIpFromRequest(req);
+            let fromTokenId = req.params.fromTokenId;
+            let toTokenId = req.params.toTokenId;
+            let serializedTxHex = '';
+            let parsedSwap: ParsedPartiallySignedSwap | undefined;
+            let takerAddress = 'Unknown';
+            let currentRate = 0;
+            let displayRate = 0;
+            let pairFeePct = 0;
+            let postagePaidSats = 0n;
+            let txid: string | null = null;
+            let validated = false;
+
+            const recordOutcome = async (
+                isValid: boolean,
+                broadcasted: boolean,
+                outcome: 'invalid' | 'success' | 'broadcast-failed' | 'failed',
+                errorMsg?: string,
+            ): Promise<void> => {
+                const fromToken = tradedTokens.get(fromTokenId);
+                const toToken = tradedTokens.get(toTokenId);
+                const record: SwapRecord = {
+                    serializedTxHex,
+                    isValid,
+                    broadcasted,
+                    txid,
+                    fromTokenId,
+                    toTokenId,
+                    postagePaidSats: Number(postagePaidSats),
+                    clientIp,
+                    takerAddress,
+                    qtyFrom: parsedSwap
+                        ? humanQty(parsedSwap.atomsFrom, fromToken?.decimals)
+                        : 0,
+                    qtyTo: parsedSwap
+                        ? humanQty(parsedSwap.atomsTo, toToken?.decimals)
+                        : 0,
+                    qtyFee: parsedSwap
+                        ? humanQty(
+                              parsedSwap.feeInFromAtoms,
+                              fromToken?.decimals,
+                          )
+                        : 0,
+                    serverExchangeRate: displayRate,
+                    serverFee:
+                        isValid &&
+                        broadcasted &&
+                        parsedSwap !== undefined &&
+                        parsedSwap.feeInFromAtoms > 0n
+                            ? pairFeePct
+                            : 0,
+                };
+                logSwapOutcome(outcome, record, errorMsg);
+                if (sendOps === undefined) {
+                    return;
+                }
+                const fromDecimals = fromToken?.decimals ?? 0;
+                const toDecimals = toToken?.decimals ?? 0;
+                const fromTicker = fromToken?.tokenTicker;
+                const toTicker = toToken?.tokenTicker;
+                let message: string | undefined;
+                if (outcome === 'success') {
+                    if (parsedSwap !== undefined) {
+                        message = getSwapSuccessfulMessage({
+                            parsedSwap,
+                            currentRate: displayRate,
+                            postagePaidSats,
+                            txid: txid ?? '',
+                            fromDecimals,
+                            toDecimals,
+                            fromTicker,
+                            toTicker,
+                        });
+                    }
+                } else if (outcome === 'invalid' && parsedSwap !== undefined) {
+                    message = getInvalidSwapMessage({
+                        parsedSwap,
+                        currentRate: displayRate,
+                        fromDecimals,
+                        toDecimals,
+                        fromTicker,
+                        toTicker,
+                    });
+                } else if (
+                    outcome === 'broadcast-failed' &&
+                    parsedSwap !== undefined
+                ) {
+                    message = getBroadcastFailedMessage({
+                        parsedSwap,
+                        errorMsg: errorMsg ?? 'Unknown error',
+                        fromDecimals,
+                        toDecimals,
+                        fromTicker,
+                        toTicker,
+                    });
+                } else {
+                    message = getSwapFailedMessage({
+                        parsedSwap: parsedSwap ?? null,
+                        errorMsg: errorMsg ?? 'Unknown error',
+                        fromDecimals,
+                        toDecimals,
+                        fromTokenId,
+                        toTokenId,
+                        fromTicker,
+                        toTicker,
+                    });
+                }
+                if (message !== undefined) {
+                    void sendOps(message).catch((tgError: unknown) => {
+                        console.error(
+                            'Failed to send Telegram ops message:',
+                            tgError,
+                        );
+                    });
+                }
+            };
+
             try {
                 const pair = assertConfiguredPair(
                     tradedConfig,
@@ -135,17 +286,25 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     req.params.fromTokenId,
                     req.params.toTokenId,
                 );
-                const { fromTokenId, toTokenId, feePct } = pair;
+                fromTokenId = pair.fromTokenId;
+                toTokenId = pair.toTokenId;
+                pairFeePct = pair.feePct;
+                const { feePct } = pair;
 
                 const body = req.body as SettleBody;
-                const { serializedTxHex, prePostageInputSats, tokenId, atoms } =
-                    body;
+                const {
+                    serializedTxHex: bodyHex,
+                    prePostageInputSats,
+                    tokenId,
+                    atoms,
+                } = body;
 
-                if (!serializedTxHex || typeof serializedTxHex !== 'string') {
+                if (!bodyHex || typeof bodyHex !== 'string') {
                     throw new ValidationError(
                         'Missing serializedTxHex in request body (expected hex string)',
                     );
                 }
+                serializedTxHex = bodyHex;
                 if (!tokenId || typeof tokenId !== 'string') {
                     throw new ValidationError(
                         'Missing tokenId in request body (expected string)',
@@ -178,9 +337,10 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                 }
 
                 // platformFeeEnabled stays false: do not classify platform outs.
-                const parsedSwap = parsePartiallySignedSwap(deserializedTx);
+                const swap = parsePartiallySignedSwap(deserializedTx);
+                parsedSwap = swap;
 
-                const hasMakerFee = parsedSwap.feeInFromAtoms > 0n;
+                const hasMakerFee = swap.feeInFromAtoms > 0n;
                 const minOutputs = 3 + (hasMakerFee ? 1 : 0);
                 if (deserializedTx.outputs.length < minOutputs) {
                     throw new ValidationError(
@@ -188,18 +348,18 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     );
                 }
 
-                if (parsedSwap.fromTokenId.toLowerCase() !== fromTokenId) {
+                if (swap.fromTokenId.toLowerCase() !== fromTokenId) {
                     throw new ValidationError(
-                        `Token sold mismatch: expected ${fromTokenId}, got ${parsedSwap.fromTokenId}`,
+                        `Token sold mismatch: expected ${fromTokenId}, got ${swap.fromTokenId}`,
                     );
                 }
-                if (parsedSwap.toTokenId.toLowerCase() !== toTokenId) {
+                if (swap.toTokenId.toLowerCase() !== toTokenId) {
                     throw new ValidationError(
-                        `Token bought mismatch: expected ${toTokenId}, got ${parsedSwap.toTokenId}`,
+                        `Token bought mismatch: expected ${toTokenId}, got ${swap.toTokenId}`,
                     );
                 }
 
-                const takerAddress = extractUserAddress(parsedSwap);
+                takerAddress = extractUserAddress(swap);
                 if (takerAddress === 'Unknown') {
                     throw new ValidationError(
                         'Could not determine user address from swap transaction',
@@ -207,180 +367,178 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                 }
 
                 const priceLegAtoms =
-                    parsedSwap.atomsFrom -
-                    parsedSwap.feeInFromAtoms -
-                    parsedSwap.platformFeeInFromAtoms;
+                    swap.atomsFrom -
+                    swap.feeInFromAtoms -
+                    swap.platformFeeInFromAtoms;
+                if (priceLegAtoms > 0n) {
+                    currentRate = Number(swap.atomsTo) / Number(priceLegAtoms);
+                    displayRate = humanExchangeRate(
+                        swap.atomsTo,
+                        priceLegAtoms,
+                        tradedTokens.get(fromTokenId)?.decimals ?? 0,
+                        tradedTokens.get(toTokenId)?.decimals ?? 0,
+                    );
+                }
 
                 // Body `atoms` is the buyer receive amount (SPEC). Inventory
                 // must cover every toToken out on the tx (buyer + optional
                 // change to slush).
-                if (toTokenAtomsNeeded !== parsedSwap.atomsTo) {
+                if (toTokenAtomsNeeded !== swap.atomsTo) {
                     throw new ValidationError(
                         `atoms mismatch: body ${toTokenAtomsNeeded}, ` +
-                            `tx buyer output ${parsedSwap.atomsTo}`,
+                            `tx buyer output ${swap.atomsTo}`,
                     );
                 }
-                const parsedToTokenAtoms = parsedSwap.outputs
-                    .filter(output => output.tokenId === parsedSwap.toTokenId)
+                const parsedToTokenAtoms = swap.outputs
+                    .filter(output => output.tokenId === swap.toTokenId)
                     .reduce((sum, output) => sum + output.atoms, 0n);
 
-                const { postagePaidSats, txid } = await settleQueue.enqueue(
-                    async () => {
-                        // Band + inventory selection share one post-sync
-                        // snapshot so concurrent settles cannot validate
-                        // against reserves the previous fill already moved.
-                        await Promise.all([seller.sync(), slush.sync()]);
+                const settled = await settleQueue.enqueue(async () => {
+                    // Band + inventory selection share one post-sync
+                    // snapshot so concurrent settles cannot validate
+                    // against reserves the previous fill already moved.
+                    await Promise.all([seller.sync(), slush.sync()]);
 
-                        const reserves = pairPricingReserves(
-                            seller.utxos,
-                            slush.utxos,
-                            fromTokenId,
-                            toTokenId,
+                    const reserves = pairPricingReserves(
+                        seller.utxos,
+                        slush.utxos,
+                        fromTokenId,
+                        toTokenId,
+                    );
+                    const quote = quoteExactIn(priceLegAtoms, reserves, feePct);
+                    const expectedToAtoms = quote.amountOut;
+
+                    validatePartiallySignedTx(swap, {
+                        slushScriptHex: slush.script.toHex(),
+                        feeScriptHex,
+                        sellerScriptHex: seller.script.toHex(),
+                        currentRate,
+                        expectedToAtoms,
+                        makerFeePct: feePct,
+                        // platformFeeEnabled false: reject unexpected platform outs
+                        platformFeePct: 0,
+                    });
+                    validated = true;
+
+                    const sellerToTokenUtxos = seller.utxos.filter(
+                        (
+                            utxo,
+                        ): utxo is typeof utxo & {
+                            token: NonNullable<typeof utxo.token>;
+                        } =>
+                            utxo.token?.tokenId.toLowerCase() === toTokenId &&
+                            utxo.token !== undefined &&
+                            !utxo.token.isMintBaton,
+                    );
+
+                    const totalToTokenAvailable = sellerToTokenUtxos.reduce(
+                        (sum, utxo) => sum + utxo.token.atoms,
+                        0n,
+                    );
+                    if (totalToTokenAvailable < parsedToTokenAtoms) {
+                        throw new Error(
+                            `Insufficient ${toTokenId} balance: need ${parsedToTokenAtoms} atoms, have ${totalToTokenAvailable} atoms`,
                         );
-                        const quote = quoteExactIn(
-                            priceLegAtoms,
-                            reserves,
-                            feePct,
+                    }
+
+                    const toToken = tradedTokens.get(toTokenId)!;
+                    const atomsPerUtxo = toToken.utxoAtoms;
+                    if (atomsPerUtxo <= 0n) {
+                        throw new Error(
+                            `Invalid inventory size for ${toTokenId}: ${atomsPerUtxo}`,
                         );
-                        const expectedToAtoms = quote.amountOut;
-                        const currentRate =
-                            Number(parsedSwap.atomsTo) / Number(priceLegAtoms);
-
-                        validatePartiallySignedTx(parsedSwap, {
-                            slushScriptHex: slush.script.toHex(),
-                            feeScriptHex,
-                            sellerScriptHex: seller.script.toHex(),
-                            currentRate,
-                            expectedToAtoms,
-                            makerFeePct: feePct,
-                            // platformFeeEnabled false: reject unexpected platform outs
-                            platformFeePct: 0,
-                        });
-
-                        const sellerToTokenUtxos = seller.utxos.filter(
-                            (
-                                utxo,
-                            ): utxo is typeof utxo & {
-                                token: NonNullable<typeof utxo.token>;
-                            } =>
-                                utxo.token?.tokenId.toLowerCase() ===
-                                    toTokenId &&
-                                utxo.token !== undefined &&
-                                !utxo.token.isMintBaton,
+                    }
+                    // Exact-size inventory: outs consume whole UTXOs; the
+                    // node cannot mint toToken change after the taker
+                    // fixed the ALP section.
+                    if (parsedToTokenAtoms % atomsPerUtxo !== 0n) {
+                        throw new ValidationError(
+                            `toToken outputs must total a multiple of ` +
+                                `${atomsPerUtxo} atoms (inventory size)`,
                         );
+                    }
+                    const numUtxosNeededBig = parsedToTokenAtoms / atomsPerUtxo;
+                    if (numUtxosNeededBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+                        throw new ValidationError(
+                            `toToken outputs require too many UTXOs (${numUtxosNeededBig})`,
+                        );
+                    }
+                    const numUtxosNeeded = Number(numUtxosNeededBig);
 
-                        const totalToTokenAvailable = sellerToTokenUtxos.reduce(
-                            (sum, utxo) => sum + utxo.token.atoms,
+                    const selectedToTokenUtxos = sellerToTokenUtxos.filter(
+                        utxo => utxo.token.atoms === atomsPerUtxo,
+                    );
+                    if (selectedToTokenUtxos.length < numUtxosNeeded) {
+                        throw new Error(
+                            `Insufficient DEX ${toTokenId} UTXOs ` +
+                                `(${toToken.utxoQty} qty / ${atomsPerUtxo} atoms): ` +
+                                `need ${numUtxosNeeded}, have ${selectedToTokenUtxos.length}`,
+                        );
+                    }
+
+                    const utxosToUse = selectedToTokenUtxos.slice(
+                        0,
+                        numUtxosNeeded,
+                    );
+
+                    const postageTx = new PostageTx(deserializedTx);
+                    const builtTx = postageTx.addFuelAndSign(
+                        seller,
+                        calculatedPrePostageInputSats,
+                        utxosToUse,
+                    );
+
+                    // Postage = node-added fuel only. Exclude taker inputs
+                    // and the toToken inventory UTXOs we attached (those
+                    // are dust-sized today, but role — not sats — is the
+                    // source of truth; SignData has no tokenId field).
+                    const takerPrevOuts = new Set(
+                        deserializedTx.inputs.map(
+                            input =>
+                                `${input.prevOut.txid}:${input.prevOut.outIdx}`,
+                        ),
+                    );
+                    const inventoryPrevOuts = new Set(
+                        utxosToUse.map(
+                            utxo =>
+                                `${utxo.outpoint.txid}:${utxo.outpoint.outIdx}`,
+                        ),
+                    );
+                    const paidSats = builtTx.txs[0].inputs
+                        .filter(input => {
+                            const key = `${input.prevOut.txid}:${input.prevOut.outIdx}`;
+                            return (
+                                !takerPrevOuts.has(key) &&
+                                !inventoryPrevOuts.has(key)
+                            );
+                        })
+                        .filter(
+                            input =>
+                                (input.signData?.sats ?? 0n) === POSTAGE_SATS,
+                        )
+                        .reduce(
+                            (a, input) => a + (input.signData?.sats ?? 0n),
                             0n,
                         );
-                        if (totalToTokenAvailable < parsedToTokenAtoms) {
-                            throw new Error(
-                                `Insufficient ${toTokenId} balance: need ${parsedToTokenAtoms} atoms, have ${totalToTokenAvailable} atoms`,
-                            );
-                        }
 
-                        const toToken = tradedTokens.get(toTokenId)!;
-                        const atomsPerUtxo = toToken.utxoAtoms;
-                        if (atomsPerUtxo <= 0n) {
-                            throw new Error(
-                                `Invalid inventory size for ${toTokenId}: ${atomsPerUtxo}`,
-                            );
-                        }
-                        // Exact-size inventory: outs consume whole UTXOs; the
-                        // node cannot mint toToken change after the taker
-                        // fixed the ALP section.
-                        if (parsedToTokenAtoms % atomsPerUtxo !== 0n) {
-                            throw new ValidationError(
-                                `toToken outputs must total a multiple of ` +
-                                    `${atomsPerUtxo} atoms (inventory size)`,
-                            );
-                        }
-                        const numUtxosNeededBig =
-                            parsedToTokenAtoms / atomsPerUtxo;
-                        if (
-                            numUtxosNeededBig > BigInt(Number.MAX_SAFE_INTEGER)
-                        ) {
-                            throw new ValidationError(
-                                `toToken outputs require too many UTXOs (${numUtxosNeededBig})`,
-                            );
-                        }
-                        const numUtxosNeeded = Number(numUtxosNeededBig);
+                    const broadcastResp = await builtTx.broadcast();
+                    if (
+                        !broadcastResp.success ||
+                        !broadcastResp.broadcasted ||
+                        broadcastResp.broadcasted.length === 0
+                    ) {
+                        const errorMsg =
+                            broadcastResp.errors?.join(', ') || 'Unknown error';
+                        throw new Error(`Broadcast failed: ${errorMsg}`);
+                    }
 
-                        const selectedToTokenUtxos = sellerToTokenUtxos.filter(
-                            utxo => utxo.token.atoms === atomsPerUtxo,
-                        );
-                        if (selectedToTokenUtxos.length < numUtxosNeeded) {
-                            throw new Error(
-                                `Insufficient DEX ${toTokenId} UTXOs ` +
-                                    `(${toToken.utxoQty} qty / ${atomsPerUtxo} atoms): ` +
-                                    `need ${numUtxosNeeded}, have ${selectedToTokenUtxos.length}`,
-                            );
-                        }
-
-                        const utxosToUse = selectedToTokenUtxos.slice(
-                            0,
-                            numUtxosNeeded,
-                        );
-
-                        const postageTx = new PostageTx(deserializedTx);
-                        const builtTx = postageTx.addFuelAndSign(
-                            seller,
-                            calculatedPrePostageInputSats,
-                            utxosToUse,
-                        );
-
-                        // Postage = node-added fuel only. Exclude taker inputs
-                        // and the toToken inventory UTXOs we attached (those
-                        // are dust-sized today, but role — not sats — is the
-                        // source of truth; SignData has no tokenId field).
-                        const takerPrevOuts = new Set(
-                            deserializedTx.inputs.map(
-                                input =>
-                                    `${input.prevOut.txid}:${input.prevOut.outIdx}`,
-                            ),
-                        );
-                        const inventoryPrevOuts = new Set(
-                            utxosToUse.map(
-                                utxo =>
-                                    `${utxo.outpoint.txid}:${utxo.outpoint.outIdx}`,
-                            ),
-                        );
-                        const paidSats = builtTx.txs[0].inputs
-                            .filter(input => {
-                                const key = `${input.prevOut.txid}:${input.prevOut.outIdx}`;
-                                return (
-                                    !takerPrevOuts.has(key) &&
-                                    !inventoryPrevOuts.has(key)
-                                );
-                            })
-                            .filter(
-                                input =>
-                                    (input.signData?.sats ?? 0n) ===
-                                    POSTAGE_SATS,
-                            )
-                            .reduce(
-                                (a, input) => a + (input.signData?.sats ?? 0n),
-                                0n,
-                            );
-
-                        const broadcastResp = await builtTx.broadcast();
-                        if (
-                            !broadcastResp.success ||
-                            !broadcastResp.broadcasted ||
-                            broadcastResp.broadcasted.length === 0
-                        ) {
-                            const errorMsg =
-                                broadcastResp.errors?.join(', ') ||
-                                'Unknown error';
-                            throw new Error(`Broadcast failed: ${errorMsg}`);
-                        }
-
-                        return {
-                            postagePaidSats: paidSats,
-                            txid: broadcastResp.broadcasted[0],
-                        };
-                    },
-                );
+                    return {
+                        postagePaidSats: paidSats,
+                        txid: broadcastResp.broadcasted[0],
+                    };
+                });
+                postagePaidSats = settled.postagePaidSats;
+                txid = settled.txid;
 
                 if (maintainInventory !== undefined) {
                     void maintainInventory().catch((error: unknown) => {
@@ -398,7 +556,37 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     txid,
                     postagePaidSats: postagePaidSats.toString(),
                 });
+
+                // Logs / Telegram must not turn a broadcast swap into a 500.
+                await recordOutcome(true, true, 'success').catch(
+                    (recordError: unknown) => {
+                        console.error(
+                            'Failed to record settle outcome:',
+                            recordError,
+                        );
+                    },
+                );
             } catch (error: unknown) {
+                const status = error instanceof HttpError ? error.status : 500;
+                const errorMsg =
+                    error instanceof Error ? error.message : String(error);
+                const record =
+                    status === 400
+                        ? recordOutcome(false, false, 'invalid', errorMsg)
+                        : errorMsg.includes('Broadcast failed')
+                          ? recordOutcome(
+                                validated,
+                                false,
+                                'broadcast-failed',
+                                errorMsg,
+                            )
+                          : recordOutcome(validated, false, 'failed', errorMsg);
+                await record.catch((recordError: unknown) => {
+                    console.error(
+                        'Failed to record settle outcome:',
+                        recordError,
+                    );
+                });
                 sendSettleError(res, error, 'Error in POST /api/v1/swap:');
             }
         },
