@@ -2595,6 +2595,153 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(stake_contender_vote, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman,
+                              /*stakingPreConsensus=*/true);
+
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now);
+
+    CBlockIndex *tip = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    BOOST_CHECK(tip != nullptr);
+    tip->nTime = now.count();
+    const BlockHash tipHash = tip->GetBlockHash();
+    BlockHash outHash;
+    NodeId nextNodeId = 0;
+
+    struct ContenderOption {
+        bool accept{true};
+        bool invalid{false};
+        bool attachNode{true};
+        bool finalize{true};
+        bool knownForLongEnough{true};
+    };
+
+    // Build a bound peer contender that would be voted yes (0) by default
+    auto makeEligibleContender = [&](const ContenderOption &opt = {}) {
+        const ProofRef proof =
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+
+        // Contender cache stores tip time at first insert (registerProof with
+        // staking preconsensus). Set the tip time ahead before registering so
+        // registration_time is early and the proof is old enough to be
+        // eligible.
+        tip->nTime =
+            opt.knownForLongEnough
+                ? (now + 4 * avalanche::Peer::DANGLING_TIMEOUT + 1s).count()
+                : now.count();
+
+        const PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+        if (opt.finalize) {
+            BOOST_CHECK(pm.setFinalized(peerid));
+        }
+        if (opt.attachNode) {
+            BOOST_CHECK(pm.addNode(nextNodeId++, proof->getId(),
+                                   DEFAULT_AVALANCHE_MAX_ELEMENT_POLL));
+        }
+        if (opt.knownForLongEnough) {
+            now += 4 * avalanche::Peer::DANGLING_TIMEOUT + 1s;
+            SetMockTime(now);
+        }
+
+        const StakeContenderId contenderId(tipHash, proof->getId());
+        if (opt.accept) {
+            pm.acceptStakeContender(contenderId);
+        }
+        if (opt.invalid) {
+            pm.setInvalid(proof->getId());
+        }
+        return std::make_tuple(proof, contenderId, peerid);
+    };
+
+    // Contender not found -> -1
+    {
+        const StakeContenderId contenderId(tipHash, ProofId(uint256::ZERO));
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), -1);
+    }
+
+    // Baseline: eligible finalized peer -> yes (0)
+    {
+        auto [proof, contenderId, peerid] = makeEligibleContender();
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 0);
+    }
+
+    // Cache rejection -> 1
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.accept = false});
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 1);
+    }
+
+    // Cache rejection takes precedence over any other rejection
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.accept = false,
+                                   .invalid = true,
+                                   .attachNode = false,
+                                   .finalize = false,
+                                   .knownForLongEnough = false});
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 1);
+    }
+
+    // Invalid -> 2
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.invalid = true});
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 2);
+    }
+
+    // Conflicting (needs a preferred replacement on the same UTXO) -> 3
+    {
+        const CKey key = CKey::MakeCompressedKey();
+        const COutPoint conflictingOutpoint =
+            createUtxo(active_chainstate, key);
+        auto preferredProof =
+            buildProofWithSequence(key, {conflictingOutpoint}, 20);
+        auto conflictingProof =
+            buildProofWithSequence(key, {conflictingOutpoint}, 10);
+        BOOST_CHECK(pm.registerProof(preferredProof));
+        BOOST_CHECK(!pm.registerProof(conflictingProof));
+        BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
+
+        pm.addStakeContender(conflictingProof);
+        const StakeContenderId contenderId(tipHash, conflictingProof->getId());
+        pm.acceptStakeContender(contenderId);
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 3);
+    }
+
+    // Dangling -> 4 (even if remotely present; quorum peers with the proof
+    // bound can still vote yes and finalize)
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.attachNode = false});
+        now += avalanche::Peer::DANGLING_TIMEOUT + 1s;
+        SetMockTime(now);
+        tip->nTime = now.count();
+        TestPeerManager::cleanupDanglingProofs(pm);
+        BOOST_CHECK(pm.isDangling(proof->getId()));
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 4);
+        BOOST_CHECK(pm.saveRemoteProof(proof->getId(), 0, true));
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 4);
+    }
+
+    // Not finalized -> 5
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.finalize = false});
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 5);
+    }
+
+    // Too young for paid slot -> 6
+    {
+        auto [proof, contenderId, peerid] =
+            makeEligibleContender({.knownForLongEnough = false});
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 6);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(remote_proof) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);

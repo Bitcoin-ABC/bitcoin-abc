@@ -1492,7 +1492,49 @@ void PeerManager::addStakeContender(const ProofRef &proof) {
 
 int PeerManager::getStakeContenderStatus(const StakeContenderId &contenderId,
                                          BlockHash &prevblockhashout) const {
-    return stakeContenderCache.getVoteStatus(contenderId, prevblockhashout);
+    const auto contender = stakeContenderCache.getContenderInfo(contenderId);
+    if (!contender) {
+        return -1;
+    }
+
+    prevblockhashout = contender->prevblockhash;
+    if (contender->voteStatus != 0) {
+        return contender->voteStatus;
+    }
+
+    const ProofId &proofid = contender->proofid;
+
+    if (isInvalid(proofid)) {
+        return 2;
+    }
+    if (isInConflictingPool(proofid)) {
+        return 3;
+    }
+    if (isDangling(proofid)) {
+        return 4;
+    }
+
+    // Bound peers need to be finalized and registered more than
+    // 4 * DANGLING_TIMEOUT before the prev block.
+    if (isBoundToPeer(proofid)) {
+        auto &pview = peers.get<by_proofid>();
+        auto it = pview.find(proofid);
+        if (it == pview.end() || !it->hasFinalized) {
+            return 5;
+        }
+
+        const int64_t refTime = std::min(contender->prevblocktime, GetTime());
+        const int64_t targetRegistrationTime =
+            refTime - std::chrono::duration_cast<std::chrono::seconds>(
+                          4 * Peer::DANGLING_TIMEOUT)
+                          .count();
+        if (it->registration_time.count() >= targetRegistrationTime) {
+            return 6;
+        }
+    }
+
+    // Cache-only contenders keep cache acceptance.
+    return 0;
 }
 
 void PeerManager::acceptStakeContender(const StakeContenderId &contenderId) {
@@ -1506,7 +1548,7 @@ void PeerManager::finalizeStakeContender(
 
     // Get block hash related to this contender. We should not assume the
     // current chain tip is the block this contender is a winner for.
-    getStakeContenderStatus(contenderId, prevblockhash);
+    stakeContenderCache.getVoteStatus(contenderId, prevblockhash);
 
     // Calculate the new winners for this block
     stakeContenderCache.getWinners(prevblockhash, newWinners);
@@ -1547,7 +1589,8 @@ bool PeerManager::setContenderStatusForLocalWinners(
 
     // Treat the highest ranking contender similarly to local winners except
     // that it is not automatically included in the winner set (unless it
-    // happens to be selected as a local winner).
+    // happens to be selected as a local winner). Vote-side eligibility is
+    // enforced in getStakeContenderStatus.
     if (stakeContenderCache.getPollableContenders(prevblockhash, maxPollable,
                                                   pollableContenders) > 0) {
         // Accept the highest ranking contender. This is a no-op if the highest

@@ -2986,13 +2986,13 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     BOOST_CHECK(std::find(winners.begin(), winners.end(),
                           bestproof->getPayoutScript()) == winners.end());
 
-    // Best contender is still accepted because it is a high ranking contender
-    // with a remote proof
+    // Best contender is still polled but we vote no while it is dangling
+    // locally
     {
         const StakeContenderId bestcontender =
             StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());
         BOOST_CHECK_EQUAL(
-            m_node.avalanche->getStakeContenderStatus(bestcontender), 0);
+            m_node.avalanche->getStakeContenderStatus(bestcontender), 4);
     }
 }
 
@@ -3012,9 +3012,12 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
     ProofId localWinnerProofId = localWinnerProof->getId();
     const StakeContenderId localWinnerContenderId(chaintipHash,
                                                   localWinnerProof->getId());
-    m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.addStakeContender(localWinnerProof);
-    });
+
+    // Contender cache stores tip time at first insert (registerProof with
+    // staking preconsensus). Set the tip time ahead before registering so
+    // registration_time is early and the proof is old enough to be eligible.
+    auto registration_delay = 4 * avalanche::Peer::DANGLING_TIMEOUT + 1s;
+    chaintip->nTime = (now + registration_delay).count();
 
     // Prepare the proof so that it becomes the local stake winner
     m_node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
@@ -3030,9 +3033,8 @@ BOOST_AUTO_TEST_CASE(stake_contender_local_winners) {
     });
 
     // Make proof old enough to be considered for staking rewards
-    now += 1h + 1s;
+    now += registration_delay;
     SetMockTime(now);
-    chaintip->nTime = now.count();
 
     // Compute local stake winner
     BOOST_CHECK(m_node.avalanche->isQuorumEstablished());

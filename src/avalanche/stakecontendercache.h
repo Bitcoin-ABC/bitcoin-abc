@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -36,6 +37,7 @@ enum StakeContenderStatus : uint8_t {
 struct StakeContenderCacheEntry {
     BlockHash prevblockhash;
     int blockheight;
+    int64_t prevblocktime;
     ProofId proofid;
     uint8_t status;
     // Cache payout script and proof score because the peer manager does not
@@ -44,11 +46,12 @@ struct StakeContenderCacheEntry {
     uint32_t score;
 
     StakeContenderCacheEntry(const BlockHash &_prevblockhash, int _blockheight,
-                             const ProofId &_proofid, uint8_t _status,
+                             int64_t _prevblocktime, const ProofId &_proofid,
+                             uint8_t _status,
                              const CScript &_payoutScriptPubkey,
                              uint32_t _score)
         : prevblockhash(_prevblockhash), blockheight(_blockheight),
-          proofid(_proofid), status(_status),
+          prevblocktime(_prevblocktime), proofid(_proofid), status(_status),
           payoutScriptPubkey(_payoutScriptPubkey), score(_score) {}
 
     double computeRewardRank() const {
@@ -90,6 +93,13 @@ namespace bmi = boost::multi_index;
 /**
  * Cache to track stake contenders for recent blocks.
  */
+struct StakeContenderCacheInfo {
+    BlockHash prevblockhash;
+    int64_t prevblocktime;
+    ProofId proofid;
+    int voteStatus;
+};
+
 class StakeContenderCache {
     int lastPromotedHeight{0};
 
@@ -166,6 +176,9 @@ public:
     bool accept(const StakeContenderId &contenderId);
     bool finalize(const StakeContenderId &contenderId);
     bool reject(const StakeContenderId &contenderId);
+
+    std::optional<StakeContenderCacheInfo>
+    getContenderInfo(const StakeContenderId &contenderId) const;
 
     /**
      * Get contender acceptance state for avalanche voting.

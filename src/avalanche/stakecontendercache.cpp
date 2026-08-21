@@ -45,8 +45,9 @@ void StakeContenderCache::cleanup(const int requestedMinHeight) {
 bool StakeContenderCache::add(const CBlockIndex *pindex, const ProofRef &proof,
                               uint8_t status) {
     return contenders
-        .emplace(pindex->GetBlockHash(), pindex->nHeight, proof->getId(),
-                 status, proof->getPayoutScript(), proof->getScore())
+        .emplace(pindex->GetBlockHash(), pindex->nHeight,
+                 pindex->GetBlockTime(), proof->getId(), status,
+                 proof->getPayoutScript(), proof->getScore())
         .second;
 }
 
@@ -60,6 +61,7 @@ void StakeContenderCache::promoteToBlock(
     // are not guaranteed to be stored in the event they become remote proofs.
     const BlockHash &blockhash = activeTip->GetBlockHash();
     const int height = activeTip->nHeight;
+    const int64_t blocktime = activeTip->GetBlockTime();
     lastPromotedHeight = height;
 
     // Gather entries to promote and then insert them afterwards so we don't
@@ -71,8 +73,9 @@ void StakeContenderCache::promoteToBlock(
         bool promoted = false;
         if (shouldPromote(proofid)) {
             promotedEntries.push_back(StakeContenderCacheEntry(
-                blockhash, height, proofid, StakeContenderStatus::UNKNOWN,
-                contender.payoutScriptPubkey, contender.score));
+                blockhash, height, blocktime, proofid,
+                StakeContenderStatus::UNKNOWN, contender.payoutScriptPubkey,
+                contender.score));
             promoted = true;
         }
         LogTrace(BCLog::AVALANCHE,
@@ -137,34 +140,49 @@ bool StakeContenderCache::reject(const StakeContenderId &contenderId) {
     });
 }
 
-int StakeContenderCache::getVoteStatus(const StakeContenderId &contenderId,
-                                       BlockHash &prevblockhashout) const {
+std::optional<StakeContenderCacheInfo> StakeContenderCache::getContenderInfo(
+    const StakeContenderId &contenderId) const {
     auto &view = contenders.get<by_stakecontenderid>();
     auto it = view.find(contenderId);
     if (it == view.end()) {
-        return -1;
+        return std::nullopt;
     }
 
-    prevblockhashout = it->prevblockhash;
+    StakeContenderCacheInfo contenderInfo{
+        it->prevblockhash,
+        it->prevblocktime,
+        it->proofid,
+        1,
+    };
 
-    // Contender is accepted
     if (it->isAccepted()) {
-        return 0;
+        contenderInfo.voteStatus = 0;
+        return contenderInfo;
     }
 
-    // If the contender matches a manual winner, it is accepted.
     auto &manualWinnersView = manualWinners.get<by_prevblockhash>();
     auto manualWinnerIt = manualWinnersView.find(it->prevblockhash);
     if (manualWinnerIt != manualWinners.end()) {
         for (auto &payoutScript : manualWinnerIt->payoutScripts) {
             if (payoutScript == it->payoutScriptPubkey) {
-                return 0;
+                contenderInfo.voteStatus = 0;
+                return contenderInfo;
             }
         }
     }
 
-    // Contender is rejected
-    return 1;
+    return contenderInfo;
+}
+
+int StakeContenderCache::getVoteStatus(const StakeContenderId &contenderId,
+                                       BlockHash &prevblockhashout) const {
+    const auto contenderInfo = getContenderInfo(contenderId);
+    if (!contenderInfo) {
+        return -1;
+    }
+
+    prevblockhashout = contenderInfo->prevblockhash;
+    return contenderInfo->voteStatus;
 }
 
 size_t StakeContenderCache::getPollableContenders(
