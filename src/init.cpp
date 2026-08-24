@@ -2095,6 +2095,11 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                 _("Restricting the outbound network is not supported when "
                   "running a staking node. Please disable -onlynet."));
         }
+        if (args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY)) {
+            return InitError(
+                _("Running a staking node in -blocksonly mode is not "
+                  "supported. Please disable -blocksonly."));
+        }
     }
 
     // Also report errors from parsing before daemonization

@@ -86,6 +86,15 @@ class AvalancheOptionsTest(BitcoinTestFramework):
             expected_msg="Error: Restricting the outbound network is not supported when running a staking node. Please disable -onlynet.",
         )
 
+        node.assert_start_raises_init_error(
+            extra_args=[
+                f"-avaproof={proof.serialize().hex()}",
+                f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
+                "-blocksonly",
+            ],
+            expected_msg="Error: Running a staking node in -blocksonly mode is not supported. Please disable -blocksonly.",
+        )
+
 
 if __name__ == "__main__":
     AvalancheOptionsTest().main()
