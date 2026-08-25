@@ -134,7 +134,7 @@ bool CScheduler::AreThreadsServicingQueue() const {
     return nThreadsServicingQueue;
 }
 
-void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {
+void SerialTaskRunner::MaybeScheduleProcessQueue() {
     {
         LOCK(m_callbacks_mutex);
         // Try to avoid scheduling too many copies here, but if we
@@ -151,7 +151,7 @@ void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {
                          std::chrono::steady_clock::now());
 }
 
-void SingleThreadedSchedulerClient::ProcessQueue() {
+void SerialTaskRunner::ProcessQueue() {
     std::function<void()> callback;
     {
         LOCK(m_callbacks_mutex);
@@ -171,8 +171,8 @@ void SingleThreadedSchedulerClient::ProcessQueue() {
     // MaybeScheduleProcessQueue to ensure both happen safely even if callback()
     // throws.
     struct RAIICallbacksRunning {
-        SingleThreadedSchedulerClient *instance;
-        explicit RAIICallbacksRunning(SingleThreadedSchedulerClient *_instance)
+        SerialTaskRunner *instance;
+        explicit RAIICallbacksRunning(SerialTaskRunner *_instance)
             : instance(_instance) {}
         ~RAIICallbacksRunning() {
             {
@@ -186,8 +186,7 @@ void SingleThreadedSchedulerClient::ProcessQueue() {
     callback();
 }
 
-void SingleThreadedSchedulerClient::AddToProcessQueue(
-    std::function<void()> func) {
+void SerialTaskRunner::insert(std::function<void()> func) {
     {
         LOCK(m_callbacks_mutex);
         m_callbacks_pending.emplace_back(std::move(func));
@@ -195,7 +194,7 @@ void SingleThreadedSchedulerClient::AddToProcessQueue(
     MaybeScheduleProcessQueue();
 }
 
-void SingleThreadedSchedulerClient::EmptyQueue() {
+void SerialTaskRunner::flush() {
     assert(!m_scheduler.AreThreadsServicingQueue());
     bool should_continue = true;
     while (should_continue) {
@@ -205,7 +204,7 @@ void SingleThreadedSchedulerClient::EmptyQueue() {
     }
 }
 
-size_t SingleThreadedSchedulerClient::CallbacksPending() {
+size_t SerialTaskRunner::size() {
     LOCK(m_callbacks_mutex);
     return m_callbacks_pending.size();
 }

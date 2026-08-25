@@ -140,7 +140,7 @@ private:
  * B() will be able to observe all of the effects of callback A() which executed
  * before it.
  */
-class SingleThreadedSchedulerClient {
+class SerialTaskRunner {
 private:
     CScheduler &m_scheduler;
 
@@ -154,7 +154,7 @@ private:
     void ProcessQueue() EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
 
 public:
-    explicit SingleThreadedSchedulerClient(CScheduler &scheduler LIFETIMEBOUND)
+    explicit SerialTaskRunner(CScheduler &scheduler LIFETIMEBOUND)
         : m_scheduler{scheduler} {}
 
     /**
@@ -163,7 +163,7 @@ public:
      * Practially, this means that callbacks can behave as if they are executed
      * in order by a single thread.
      */
-    void AddToProcessQueue(std::function<void()> func)
+    void insert(std::function<void()> func)
         EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
 
     /**
@@ -171,9 +171,9 @@ public:
      * until queue is empty.
      * Must be called after the CScheduler has no remaining processing threads!
      */
-    void EmptyQueue() EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
+    void flush() EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
 
-    size_t CallbacksPending() EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
+    size_t size() EXCLUSIVE_LOCKS_REQUIRED(!m_callbacks_mutex);
 };
 
 #endif // BITCOIN_SCHEDULER_H
