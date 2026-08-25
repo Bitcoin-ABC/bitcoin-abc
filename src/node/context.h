@@ -19,7 +19,7 @@ class AddrMan;
 class BanMan;
 class BaseIndex;
 class CConnman;
-class CMainSignals;
+class ValidationSignals;
 class CScheduler;
 class CTxMemPool;
 class ChainstateManager;
@@ -71,7 +71,7 @@ struct NodeContext {
     //! Issues blocking calls about sync status, errors and warnings
     std::unique_ptr<KernelNotifications> notifications;
     //! Issues calls about blocks and transactions
-    std::unique_ptr<CMainSignals> validation_signals;
+    std::unique_ptr<ValidationSignals> validation_signals;
     std::atomic<int> exit_status{EXIT_SUCCESS};
 
     std::unique_ptr<avalanche::Processor> avalanche;

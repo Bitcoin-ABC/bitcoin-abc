@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(unregister_validation_interface_race) {
 class TestInterface : public CValidationInterface {
 public:
     TestInterface(
-        CMainSignals &signals,
+        ValidationSignals &signals,
         std::function<void()> onBlockChecked_call = nullptr,
         std::function<void(const CBlockIndex *)> onBlockFinalized_call =
             nullptr,
@@ -172,7 +172,7 @@ public:
                        std::shared_ptr<const std::vector<Coin>>)>
         m_onTransactionInvalidated_call;
     std::function<void()> m_on_destroy;
-    CMainSignals &m_signals;
+    ValidationSignals &m_signals;
 };
 
 // Regression test to ensure UnregisterAllValidationInterfaces calls don't

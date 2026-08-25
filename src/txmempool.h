@@ -42,7 +42,7 @@ class CBlockIndex;
 class CChain;
 class Chainstate;
 class ChainstateManager;
-class CMainSignals;
+class ValidationSignals;
 class Config;
 
 namespace Consensus {
@@ -360,7 +360,7 @@ public:
     const std::optional<unsigned> m_max_datacarrier_bytes;
     const bool m_require_standard;
 
-    CMainSignals *const m_signals;
+    ValidationSignals *const m_signals;
 
     /**
      * Create a new CTxMemPool.

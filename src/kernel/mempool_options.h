@@ -10,7 +10,7 @@
 #include <chrono>
 #include <cstdint>
 
-class CMainSignals;
+class ValidationSignals;
 
 /** Default for -maxmempool, maximum megabytes of mempool memory usage */
 static constexpr unsigned int DEFAULT_MAX_MEMPOOL_SIZE_MB{300};
@@ -53,7 +53,7 @@ struct MemPoolOptions {
     bool permit_bare_multisig{DEFAULT_PERMIT_BAREMULTISIG};
     bool require_standard{true};
 
-    CMainSignals *signals{nullptr};
+    ValidationSignals *signals{nullptr};
 };
 } // namespace kernel
 

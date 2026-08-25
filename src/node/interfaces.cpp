@@ -476,7 +476,7 @@ namespace {
     class NotificationsHandlerImpl : public Handler {
     public:
         explicit NotificationsHandlerImpl(
-            CMainSignals &signals,
+            ValidationSignals &signals,
             std::shared_ptr<Chain::Notifications> notifications)
             : m_signals{signals}, m_proxy{std::make_shared<NotificationsProxy>(
                                       std::move(notifications))} {
@@ -489,7 +489,7 @@ namespace {
                 m_proxy.reset();
             }
         }
-        CMainSignals &m_signals;
+        ValidationSignals &m_signals;
         std::shared_ptr<NotificationsProxy> m_proxy;
     };
 
@@ -819,7 +819,7 @@ namespace {
         }
         const CChainParams &params() const override { return m_params; }
         NodeContext *context() override { return &m_node; }
-        CMainSignals &validation_signals() {
+        ValidationSignals &validation_signals() {
             return *Assert(m_node.validation_signals);
         }
         NodeContext &m_node;

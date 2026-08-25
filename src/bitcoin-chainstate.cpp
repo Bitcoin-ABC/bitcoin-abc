@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     scheduler.m_service_thread = std::thread(util::TraceThread, "scheduler",
                                              [&] { scheduler.serviceQueue(); });
 
-    CMainSignals validation_signals{scheduler};
+    ValidationSignals validation_signals{scheduler};
 
     // Gather some entropy once per minute.
     scheduler.scheduleEvery(

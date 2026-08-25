@@ -163,19 +163,19 @@ protected:
         const CTransactionRef &tx,
         std::shared_ptr<const std::vector<Coin>> spent_coins){};
 
-    friend class CMainSignals;
+    friend class ValidationSignals;
     friend class ValidationInterfaceTest;
 };
 
-class MainSignalsImpl;
-class CMainSignals {
+class ValidationSignalsImpl;
+class ValidationSignals {
 private:
-    std::unique_ptr<MainSignalsImpl> m_internals;
+    std::unique_ptr<ValidationSignalsImpl> m_internals;
 
 public:
-    CMainSignals(CScheduler &scheduler LIFETIMEBOUND);
+    ValidationSignals(CScheduler &scheduler LIFETIMEBOUND);
 
-    ~CMainSignals();
+    ~ValidationSignals();
 
     /** Call any remaining callbacks on the calling thread */
     void FlushBackgroundCallbacks();

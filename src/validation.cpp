@@ -3535,7 +3535,7 @@ static bool NotifyHeaderTip(ChainstateManager &chainman)
     return fNotify;
 }
 
-static void LimitValidationInterfaceQueue(CMainSignals &signals)
+static void LimitValidationInterfaceQueue(ValidationSignals &signals)
     LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
 

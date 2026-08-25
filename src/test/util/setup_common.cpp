@@ -167,7 +167,7 @@ ChainTestingSetup::ChainTestingSetup(
         std::thread(util::TraceThread, "scheduler",
                     [&] { m_node.scheduler->serviceQueue(); });
     m_node.validation_signals =
-        std::make_unique<CMainSignals>(*m_node.scheduler);
+        std::make_unique<ValidationSignals>(*m_node.scheduler);
 
     m_node.mempool =
         std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
