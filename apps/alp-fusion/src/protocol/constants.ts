@@ -100,3 +100,33 @@ export const MAX_RECV_BUFFER_BYTES = 12 + 2 * MAX_FRAME_PAYLOAD_BYTES;
  * `handshakeTimeout`). Plain TCP ignores this — framing starts on accept.
  */
 export const HANDSHAKE_TIMEOUT_MS = 30_000;
+
+/**
+ * Default covert listener port (Electrum CashFusion uses a second socket;
+ * control stays on 8788).
+ */
+export const DEFAULT_COVERT_PORT = 8789;
+
+/**
+ * Electrum `Protocol` covert timescales (`electrumabc_plugins/fusion/protocol.py`)
+ * and `TIMEOUT_INACTIVE_CONNECTION` / `TOR_COOLDOWN_TIME` from `covert.py`.
+ *
+ * Tests override with short windows. Live Tor is not required — SOCKS5 is
+ * the isolation hook.
+ */
+export const COVERT = {
+    /** `Protocol.COVERT_CONNECT_TIMEOUT`. */
+    connectTimeoutMs: 15_000,
+    /** `Protocol.COVERT_CONNECT_WINDOW`. */
+    connectWindowMs: 15_000,
+    /** `Protocol.COVERT_SUBMIT_TIMEOUT`. */
+    submitTimeoutMs: 3_000,
+    /** `Protocol.COVERT_SUBMIT_WINDOW`. */
+    submitWindowMs: 5_000,
+    /** `Protocol.COVERT_CONNECT_SPARES`. */
+    connectSpares: 6,
+    /** `TIMEOUT_INACTIVE_CONNECTION` — sanity close if a slot idles. */
+    timeoutInactiveMs: 120_000,
+    /** `TOR_COOLDOWN_TIME` — remember recent SOCKS/Tor connect attempts. */
+    torCooldownMs: 660_000,
+};

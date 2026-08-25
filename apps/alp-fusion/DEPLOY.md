@@ -8,15 +8,15 @@ This document is the ops target for that model.
 
 ## What is in-tree today
 
-| Piece                                                          | Status                                                         |
-| -------------------------------------------------------------- | -------------------------------------------------------------- |
-| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))       |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))       |
-| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))       |
-| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | This slice — encode/decode + framed hello; no round driver yet |
-| Coordinator + client round RPCs over the wire                  | Not yet                                                        |
-| Chronik sync / signing / broadcast                             | Not yet                                                        |
-| Covert channel + Tor                                           | Later roadmap                                                  |
+| Piece                                                          | Status                                                      |
+| -------------------------------------------------------------- | ----------------------------------------------------------- |
+| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))    |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))    |
+| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))    |
+| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466))    |
+| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | This slice — second listen + Tor hook; no live Tor required |
+| Coordinator + client round RPCs over the wire                  | Not yet                                                     |
+| Chronik sync / signing / broadcast                             | Not yet                                                     |
 
 Unit verification:
 
@@ -82,4 +82,7 @@ delays and stop/abort behavior already covered by unit tests.
   deanonymize the counterparty.
 - `tokenId` remains public in every ALP `SEND`.
 - Covert/Tor is required before claiming CashFusion-class network privacy —
-  plain TCP control channels are correctness-only.
+  plain TCP control channels are correctness-only. `CovertSubmitter` +
+  SOCKS5 are the hook; participants point `socks5` at a Tor SOCKS port
+  (typically `127.0.0.1:9050`) when they dial a public coordinator. The
+  coordinator side still needs an inbound Tor path (onion service).

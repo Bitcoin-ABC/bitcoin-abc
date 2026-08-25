@@ -24,6 +24,7 @@ import {
     MAX_FRAME_PAYLOAD_BYTES,
     MAX_RECV_BUFFER_BYTES,
 } from './constants.js';
+import { socks5Connect, type Socks5Options } from './socks5.js';
 
 const FRAME_HEADER_LEN = 12;
 
@@ -207,6 +208,11 @@ export interface ConnectOptions {
     /** Extra CA / trust store: PEM Buffer(s) or filesystem path(s). */
     ca?: string | Buffer | Array<string | Buffer>;
     timeoutMs?: number;
+    /**
+     * Dial via SOCKS5 (Tor or equivalent). Handshake, then optional TLS on
+     * the tunneled socket. Unique `username`/`password` isolate Tor circuits.
+     */
+    socks5?: Socks5Options;
 }
 
 export interface ListenOptions {
@@ -265,12 +271,22 @@ function resolvePemList(
     return resolvePem(value);
 }
 
-export function connect(
+export async function connect(
     host: string,
     port: number,
     opts: ConnectOptions = {},
 ): Promise<FusionConnection> {
     const timeoutMs = opts.timeoutMs ?? 10_000;
+    if (opts.socks5) {
+        const tunneled = await socks5Connect(host, port, {
+            ...opts.socks5,
+            timeoutMs: opts.socks5.timeoutMs ?? timeoutMs,
+        });
+        if (!opts.ssl) {
+            return new FusionConnection(tunneled);
+        }
+        return wrapTls(tunneled, host, opts, timeoutMs);
+    }
     if (opts.ssl) {
         return new Promise((resolve, reject) => {
             const socket = tlsConnect({
@@ -309,6 +325,47 @@ export function connect(
             clearTimeout(timer);
             reject(err);
         });
+    });
+}
+
+function wrapTls(
+    socket: Socket,
+    host: string,
+    opts: ConnectOptions,
+    timeoutMs: number,
+): Promise<FusionConnection> {
+    return new Promise((resolve, reject) => {
+        const tlsSock = tlsConnect({
+            socket,
+            servername: opts.servername ?? host,
+            rejectUnauthorized: opts.rejectUnauthorized ?? true,
+            ca: resolvePemList(opts.ca),
+        });
+        let settled = false;
+        const fail = (err: Error) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(timer);
+            tlsSock.destroy();
+            // tunneled TCP / SOCKS circuit — TLSSocket.destroy() does not
+            // always take the pre-existing socket with it.
+            socket.destroy();
+            reject(err);
+        };
+        const timer = setTimeout(() => {
+            fail(new Error(`TLS connect timeout to ${host}`));
+        }, timeoutMs);
+        tlsSock.once('secureConnect', () => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(timer);
+            resolve(new FusionConnection(tlsSock));
+        });
+        tlsSock.once('error', err => fail(err));
     });
 }
 

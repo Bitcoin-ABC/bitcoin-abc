@@ -12,7 +12,9 @@
  * atom tiers, sats, token atoms, fees, timestamps). Decoded 64-bit fields
  * are always returned as `bigint` (never `Long`).
  *
- * Round orchestration, covert/Tor, Chronik, and signing are out of scope here.
+ * Round orchestration, Chronik, and signing are out of scope here.
+ * Covert-channel wrappers (`CovertMessage` / `CovertResponse`) are encoded
+ * here; slot scheduling and SOCKS5 live in `covert.ts`.
  */
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

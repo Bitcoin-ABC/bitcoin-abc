@@ -154,6 +154,8 @@ for example:
 - Multi-player round fixture (mocked network) producing a valid fused tx shape
 - Explicit tests that ALP UTXOs are included deliberately (inverse of Electrum’s
   “exclude tokens from CashFusion” behavior)
+- Covert submit over a second socket (not the control channel); SOCKS5 path
+  with unique credentials per connection (Tor circuit isolation hook)
 
 ## Open questions
 
