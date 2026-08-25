@@ -22,7 +22,6 @@
 class CBlock;
 class CRollingBloomFilter;
 class CTxMemPool;
-class FastRandomContext;
 class TxValidationState;
 struct TxId;
 
@@ -42,9 +41,6 @@ static constexpr DataRequestParameters TX_REQUEST_PARAMS{
 struct TxDownloadOptions {
     /** Read-only reference to mempool. */
     const CTxMemPool &m_mempool;
-    /** RNG provided by caller. */
-    // fixme: backport core##36077 before core#35986
-    FastRandomContext &m_rng;
     /** Maximum number of transactions allowed in orphanage. */
     const uint32_t m_max_orphan_txs;
     /** Instantiate TxRequestTracker as deterministic (used for tests). */

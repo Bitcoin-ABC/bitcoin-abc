@@ -11,6 +11,7 @@
 #include <invrequest.h>
 #include <primitives/block.h>
 #include <primitives/txid.h>
+#include <random.h>
 
 #include <map>
 
@@ -19,6 +20,7 @@ namespace node {
 class TxDownloadManagerImpl {
 public:
     TxDownloadOptions m_opts;
+    FastRandomContext m_rng;
 
     /** Tracks candidates for requesting and downloading transaction data. */
     InvRequestTracker<TxId> m_txrequest;
@@ -90,7 +92,8 @@ public:
     }
 
     TxDownloadManagerImpl(const TxDownloadOptions &options)
-        : m_opts{options}, m_txrequest{options.m_deterministic_txrequest} {}
+        : m_opts{options}, m_rng{options.m_deterministic_txrequest},
+          m_txrequest{options.m_deterministic_txrequest} {}
 
     struct PeerInfo {
         /** Information relevant to scheduling tx requests. */

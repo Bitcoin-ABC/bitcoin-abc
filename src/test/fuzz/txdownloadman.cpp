@@ -166,9 +166,8 @@ FUZZ_TARGET_INIT(txdownloadman, initialize) {
     CTxMemPool pool{GetConfig(), MemPoolOptionsForTest(g_setup->m_node)};
     const auto max_orphan_count =
         fuzzed_data_provider.ConsumeIntegralInRange<unsigned int>(0, 300);
-    FastRandomContext det_rand{true};
     node::TxDownloadManager txdownloadman{
-        node::TxDownloadOptions{pool, det_rand, max_orphan_count, true}};
+        node::TxDownloadOptions{pool, max_orphan_count, true}};
 
     std::chrono::microseconds time{244466666};
 
@@ -313,9 +312,8 @@ FUZZ_TARGET_INIT(txdownloadman_impl, initialize) {
     CTxMemPool pool{GetConfig(), MemPoolOptionsForTest(g_setup->m_node)};
     const auto max_orphan_count =
         fuzzed_data_provider.ConsumeIntegralInRange<unsigned int>(0, 300);
-    FastRandomContext det_rand{true};
     node::TxDownloadManagerImpl txdownload_impl{
-        node::TxDownloadOptions{pool, det_rand, max_orphan_count, true}};
+        node::TxDownloadOptions{pool, max_orphan_count, true}};
 
     std::chrono::microseconds time{244466666};
 

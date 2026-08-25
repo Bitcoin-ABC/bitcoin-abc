@@ -295,7 +295,7 @@ TxDownloadManagerImpl::Find1P1CPackage(const CTransactionRef &ptx,
     // Create a random permutation of the indices.
     std::vector<size_t> tx_indices(cpfp_candidates_different_peer.size());
     std::iota(tx_indices.begin(), tx_indices.end(), 0);
-    Shuffle(tx_indices.begin(), tx_indices.end(), m_opts.m_rng);
+    Shuffle(tx_indices.begin(), tx_indices.end(), m_rng);
 
     for (const auto index : tx_indices) {
         // If we already tried a package and failed for any reason, the combined
@@ -407,7 +407,7 @@ RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
                         // AddTx returns false because the tx was already there
                         add_extra_compact_tx &= orphanage.AddTx(ptx, nodeid);
                         return orphanage.LimitTxs(m_opts.m_max_orphan_txs,
-                                                  m_opts.m_rng);
+                                                  m_rng);
                     });
                 if (nEvicted > 0) {
                     LogDebug(BCLog::TXPACKAGES,

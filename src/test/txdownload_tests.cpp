@@ -135,9 +135,8 @@ static CTransactionRef CreatePlaceholderTx() {
 
 BOOST_FIXTURE_TEST_CASE(tx_rejection_types, TestChain100Setup) {
     CTxMemPool &pool = *Assert(m_node.mempool);
-    FastRandomContext det_rand{true};
-    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
-                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, DEFAULT_MAX_ORPHAN_TRANSACTIONS,
+                                         true};
 
     // A new TxDownloadManagerImpl is created for each tx so we can just reuse
     // the same one.
@@ -195,9 +194,8 @@ BOOST_FIXTURE_TEST_CASE(tx_rejection_types, TestChain100Setup) {
 
 BOOST_FIXTURE_TEST_CASE(handle_missing_inputs, TestChain100Setup) {
     CTxMemPool &pool = *Assert(m_node.mempool);
-    FastRandomContext det_rand{true};
-    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
-                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, DEFAULT_MAX_ORPHAN_TRANSACTIONS,
+                                         true};
     NodeId nodeid{1};
     node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
                                                 /*m_relay_permissions=*/false};
@@ -426,9 +424,8 @@ BOOST_FIXTURE_TEST_CASE(handle_missing_inputs, TestChain100Setup) {
 
 BOOST_AUTO_TEST_CASE(reconsiderable_parent_already_have) {
     CTxMemPool &pool = *Assert(m_node.mempool);
-    FastRandomContext det_rand{true};
-    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
-                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, DEFAULT_MAX_ORPHAN_TRANSACTIONS,
+                                         true};
     NodeId nodeid{0};
     node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
                                                 /*m_relay_permissions=*/false};
@@ -481,9 +478,8 @@ BOOST_AUTO_TEST_CASE(reconsiderable_parent_already_have) {
 
 BOOST_AUTO_TEST_CASE(orphan_in_recent_rejects) {
     CTxMemPool &pool = *Assert(m_node.mempool);
-    FastRandomContext det_rand{true};
-    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
-                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, DEFAULT_MAX_ORPHAN_TRANSACTIONS,
+                                         true};
     NodeId nodeid{0};
     node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
                                                 /*m_relay_permissions=*/false};
@@ -517,9 +513,8 @@ BOOST_AUTO_TEST_CASE(orphan_in_recent_rejects) {
 
 BOOST_AUTO_TEST_CASE(find_1p1c_child_in_recent_rejects) {
     CTxMemPool &pool = *Assert(m_node.mempool);
-    FastRandomContext det_rand{true};
-    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
-                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, DEFAULT_MAX_ORPHAN_TRANSACTIONS,
+                                         true};
     NodeId nodeid{0};
     NodeId other_nodeid{1};
     node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
