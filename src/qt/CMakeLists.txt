@@ -113,6 +113,10 @@ add_library(bitcoin-qt-base
 	${QRC_BITCOIN_CPP}
 	qrc_bitcoin_locale.cpp
 )
+target_compile_definitions(bitcoin-qt-base
+	PUBLIC
+	QT_NO_KEYWORDS
+)
 
 # Add the minimal integration plugin, and other plugins according to the target
 # platform.
