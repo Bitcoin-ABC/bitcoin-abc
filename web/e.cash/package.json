@@ -21,7 +21,7 @@
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "react-syntax-highlighter": "^16.1.0",
-    "sharp": "^0.34.3",
+    "sharp": "^0.35.0",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
