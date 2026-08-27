@@ -830,7 +830,25 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     )
                     return
             else:
-                proofbuilder.add_signed_stake(ss)
+                # This is an already signed stake, loaded from an existing proof.
+                # See if we can find this outpoint in the wallet, so we can
+                # add the address and potentially update the signature if
+                # the stake commitment data changed.
+                stake_wallet_addr = self.wallet.get_address_for_outpoint(
+                    ss.stake.outpoint
+                )
+
+                if stake_wallet_addr is not None:
+                    proofbuilder.sign_and_add_stake(
+                        StakeAndSigningData(ss.stake, stake_wallet_addr)
+                    )
+                else:
+                    # No luck. This must be an offline wallet, or else the stake
+                    # belongs to another wallet.
+                    # Add the signed stake as is. If the stake commitment
+                    # data changed, the signature will be invalidated and there is
+                    # nothing this wallet can do to update it.
+                    proofbuilder.add_signed_stake(ss)
 
         proofbuilder.build(on_completion=on_completion)
 

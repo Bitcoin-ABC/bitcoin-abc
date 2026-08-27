@@ -100,6 +100,7 @@ from .tokens import alp, slp
 from .transaction import (
     DUST_THRESHOLD,
     InputValueMissing,
+    OutPoint,
     Transaction,
     TxInput,
     TxOutput,
@@ -3130,6 +3131,17 @@ class AbstractWallet(PrintError, SPVDelegate):
             return False
         sh = addr.to_scripthash_hex()
         return sh in self.synchronizer.change_scripthashes_that_are_retired
+
+    def get_address_for_outpoint(self, outpoint: OutPoint) -> Optional[Address]:
+        """Look for an outpoint in this wallet and return the corresponding address.
+        Return None if the outpoint is not found in the wallet.
+        """
+        txid_str = outpoint.txid.to_string()
+        for addr, coins in self.txo[txid_str].items():
+            for vout, amount, is_coinbase in coins:
+                if vout == outpoint.n:
+                    return addr
+        return None
 
 
 class SimpleWallet(AbstractWallet):
