@@ -260,7 +260,10 @@ endif(HAVE_CLANG_THREAD_SAFETY)
 include(AddCompilerFlags)
 add_target_compiler_flags(leveldb
 	PRIVATE
+    # For clang
 		-Wno-conditional-uninitialized
+    # For GCC
+    -Wno-maybe-uninitialized
 )
 add_target_cxx_compiler_flags(leveldb
 	PRIVATE

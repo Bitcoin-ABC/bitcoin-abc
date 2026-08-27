@@ -167,7 +167,11 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
         rcopy.set_signature(std::string(""));
         // Everything but the signature
         std::string data_to_verify;
-        rcopy.SerializeToString(&data_to_verify);
+        if (!rcopy.SerializeToString(&data_to_verify)) {
+            qWarning() << "PaymentRequestPlus::getMerchant: Payment request: "
+                          "error serializing payment request";
+            return false;
+        }
 
 #if HAVE_DECL_EVP_MD_CTX_NEW
         EVP_MD_CTX *ctx = EVP_MD_CTX_new();
