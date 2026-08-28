@@ -293,7 +293,7 @@ class TestSweep(unittest.TestCase):
 class TestAddInputInfo(WalletTestCase):
     def get_mock_wallet_and_tx(self, use_hw_keystore=False, use_complete_tx=True):
         dummy_pubkey = b"\x03" + b"\x00" * 32
-        dummy_address = Address.from_pubkey(dummy_pubkey)
+        self.dummy_address = Address.from_pubkey(dummy_pubkey)
         self.prev_amount = 13371337
         self.prev_tx = Transaction.from_io(
             inputs=[],
@@ -318,11 +318,11 @@ class TestAddInputInfo(WalletTestCase):
             x_pubkeys=[b""],
             signatures=signatures,
             pubkeys=[dummy_pubkey],
-            address=dummy_address,
+            address=self.dummy_address,
         )
         tx = Transaction.from_io(
             inputs=[dummy_txin],
-            outputs=[TxOutput(TYPE_ADDRESS, dummy_address, amount)],
+            outputs=[TxOutput(TYPE_ADDRESS, self.dummy_address, amount)],
         )
 
         d = create_new_wallet(path=self.wallet_path)
@@ -335,6 +335,15 @@ class TestAddInputInfo(WalletTestCase):
             keystore.can_sign = lambda tx: True
             wallet.get_keystores = lambda: [keystore]
         wallet.get_input_tx = lambda tx_hash: self.prev_tx
+        self.dummy_txid = UInt256.from_hex("aa" * 32)
+        wallet.txo = {
+            self.dummy_txid.to_string(): {
+                self.dummy_address: [
+                    [0, 1337, False],
+                    [42, 1337, False],
+                ]
+            }
+        }
 
         return wallet, tx
 
@@ -371,6 +380,21 @@ class TestAddInputInfo(WalletTestCase):
         wallet.add_hw_info(tx)
         self.assertIs(tx.inputs()[0]["prev_tx"], self.prev_tx)
         self.assertIs(tx.txinputs()[0].get_prev_tx(), self.prev_tx)
+
+    def test_get_address_for_outpoint(self):
+        wallet, _ = self.get_mock_wallet_and_tx()
+        self.assertEqual(
+            wallet.get_address_for_outpoint(OutPoint(self.dummy_txid, 42)),
+            self.dummy_address,
+        )
+        self.assertEqual(
+            wallet.get_address_for_outpoint(OutPoint(self.dummy_txid, 0)),
+            self.dummy_address,
+        )
+        self.assertIsNone(
+            wallet.get_address_for_outpoint(OutPoint(UInt256.from_hex("bb" * 32), 42))
+        )
+        self.assertIsNone(wallet.get_address_for_outpoint(OutPoint(self.dummy_txid, 1)))
 
 
 if __name__ == "__main__":

@@ -3137,7 +3137,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         Return None if the outpoint is not found in the wallet.
         """
         txid_str = outpoint.txid.to_string()
-        for addr, coins in self.txo[txid_str].items():
+        for addr, coins in self.txo.get(txid_str, {}).items():
             for vout, amount, is_coinbase in coins:
                 if vout == outpoint.n:
                     return addr
