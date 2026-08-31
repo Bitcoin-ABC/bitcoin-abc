@@ -45,6 +45,31 @@ export class MaintainInventoryError extends Error {
  */
 export const MAINTAIN_DELAY_MS = 5 * 60 * 1000;
 
+/**
+ * True when this pass broadcast or moved inventory. A sync-only pass
+ * is not activity — scheduled maintain should stay silent.
+ */
+export const maintainHadActivity = (
+    inventory: MaintainInventoryResult,
+): boolean => {
+    if (inventory.txids.length > 0) {
+        return true;
+    }
+    if (inventory.cleanedToSlush > 0) {
+        return true;
+    }
+    if (inventory.fundedPostage > 0) {
+        return true;
+    }
+    if (inventory.sweptMisc > 0) {
+        return true;
+    }
+    if (inventory.belowDust > 0) {
+        return true;
+    }
+    return Object.keys(inventory.fundedInventory).length > 0;
+};
+
 const acceptBroadcastResult = (
     result: {
         success: boolean;

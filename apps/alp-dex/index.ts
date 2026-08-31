@@ -8,6 +8,7 @@ import { loadTradedConfig } from './src/config/tradedConfig';
 import {
     MAINTAIN_DELAY_MS,
     MaintainInventoryError,
+    maintainHadActivity,
     maintainInventory,
     type MaintainInventoryResult,
 } from './src/inventory/maintain';
@@ -22,6 +23,9 @@ const logMaintainResult = (
     label: string,
     inventory: MaintainInventoryResult,
 ): void => {
+    if (!maintainHadActivity(inventory)) {
+        return;
+    }
     console.log(
         `inventory maintain (${label}): cleanup→slush=${inventory.cleanedToSlush} ` +
             `postage=${inventory.fundedPostage} ` +

@@ -21,6 +21,7 @@ import {
 } from '../src/inventory/classify';
 import {
     MaintainInventoryError,
+    maintainHadActivity,
     maintainInventory,
 } from '../src/inventory/maintain';
 import {
@@ -353,6 +354,30 @@ describe('inventory maintain (MockChronik)', () => {
         assert.strictEqual(err.partial.cleanedToSlush, 1);
         assert.strictEqual(err.partial.fundedPostage, 3);
         assert.strictEqual(err.partial.txids.length, 1);
+    });
+
+    it('maintainHadActivity is false for a no-op pass', () => {
+        const idle: Parameters<typeof maintainHadActivity>[0] = {
+            cleanedToSlush: 0,
+            fundedInventory: {},
+            fundedPostage: 0,
+            sweptMisc: 0,
+            belowDust: 0,
+            txids: [],
+        };
+        assert.strictEqual(maintainHadActivity(idle), false);
+        assert.strictEqual(
+            maintainHadActivity({ ...idle, txids: ['aa'.repeat(32)] }),
+            true,
+        );
+        assert.strictEqual(
+            maintainHadActivity({ ...idle, fundedInventory: { [TOKEN_A]: 1 } }),
+            true,
+        );
+        assert.strictEqual(
+            maintainHadActivity({ ...idle, fundedPostage: 1 }),
+            true,
+        );
     });
 
     it('funds postage stamps from loose slush XEC when under target', async () => {
