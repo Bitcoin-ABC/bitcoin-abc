@@ -10,6 +10,7 @@ import {
 } from 'ecash-lib';
 import { POSTAGE_SATS } from '../constants';
 import type { SellerUtxoLike } from './classify';
+import { assertPositiveCountOrNone } from './plan';
 
 const groupFungibleAtomsByToken = (
     utxos: SellerUtxoLike[],
@@ -65,17 +66,6 @@ const buildTokenSendOutputs = (
         });
     }
     return outputs;
-};
-
-/** Throws on invalid count; returns false when count === 0 (no action). */
-const assertPositiveCountOrNone = (count: number, name: string): boolean => {
-    if (!Number.isSafeInteger(count)) {
-        throw new Error(`${name} must be a safe integer (got ${count})`);
-    }
-    if (count < 0) {
-        throw new Error(`${name} must not be negative (got ${count})`);
-    }
-    return count > 0;
 };
 
 /**

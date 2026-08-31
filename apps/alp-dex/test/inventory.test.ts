@@ -28,7 +28,12 @@ import {
     maintainInventory,
 } from '../src/inventory/maintain';
 import {
+    assertPositiveCountOrNone,
+    INVENTORY_FUND_BATCH,
+    INVENTORY_FUND_MAX_BATCHES_PER_TOKEN,
+    inventoryFundBatchCount,
     inventoryUnitCount,
+    MISC_SWEEP_BATCH,
     POSTAGE_FUND_BATCH,
     POSTAGE_STAMP_TARGET,
     postageFundBatchCount,
@@ -278,6 +283,45 @@ describe('inventory plan', () => {
         assert.strictEqual(postageFundBatchCount(0, need - 1n), 0);
         assert.throws(() => postageFundBatchCount(-1, need), /non-negative/);
     });
+
+    it('inventoryFundBatchCount caps under ALP max to leave change room', () => {
+        assert.strictEqual(INVENTORY_FUND_BATCH, 28);
+        assert.strictEqual(inventoryFundBatchCount(0), 0);
+        assert.strictEqual(inventoryFundBatchCount(1), 1);
+        assert.strictEqual(inventoryFundBatchCount(28), 28);
+        assert.strictEqual(inventoryFundBatchCount(29), 28);
+        assert.strictEqual(inventoryFundBatchCount(3378), 28);
+        assert.throws(
+            () => inventoryFundBatchCount(-1),
+            /must not be negative/,
+        );
+        assert.throws(() => inventoryFundBatchCount(1.5), /safe integer/);
+        assert.strictEqual(MISC_SWEEP_BATCH, 400);
+        assert.strictEqual(INVENTORY_FUND_MAX_BATCHES_PER_TOKEN, 8);
+    });
+
+    it('assertPositiveCountOrNone treats min as inclusive', () => {
+        assert.strictEqual(
+            assertPositiveCountOrNone(0, 'remainingUnits', 0),
+            true,
+        );
+        assert.strictEqual(
+            assertPositiveCountOrNone(1, 'remainingUnits', 0),
+            true,
+        );
+        assert.strictEqual(
+            assertPositiveCountOrNone(0, 'maxFundBatchesPerToken'),
+            false,
+        );
+        assert.strictEqual(
+            assertPositiveCountOrNone(1, 'maxFundBatchesPerToken'),
+            true,
+        );
+        assert.throws(
+            () => assertPositiveCountOrNone(-1, 'remainingUnits', 0),
+            /must not be negative/,
+        );
+    });
 });
 
 describe('inventory actions', () => {
@@ -445,6 +489,7 @@ describe('inventory maintain (MockChronik)', () => {
             fundedPostage: 0,
             sweptMisc: 0,
             belowDust: 0,
+            formerInventory: [],
             txids: [],
         };
         assert.strictEqual(maintainHadActivity(idle), false);
@@ -554,5 +599,112 @@ describe('inventory maintain (MockChronik)', () => {
         );
         assert.strictEqual(result.sweptMisc, 0);
         assert.strictEqual(result.txids.length, 0);
+    });
+
+    it('funds slush tokens in ALP-sized inventory batches', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        mock.broadcastTxs = async (txsHex: string[]) => ({
+            txids: txsHex.map((_, i) =>
+                (i + 100).toString(16).padStart(64, '0'),
+            ),
+        });
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const units = INVENTORY_FUND_BATCH + 1;
+        mock.setUtxosByAddress(seller.address, []);
+        mock.setUtxosByAddress(slush.address, [
+            {
+                outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: DEFAULT_DUST_SATS,
+                isFinal: true,
+                token: {
+                    tokenId: TOKEN_A,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 100n * BigInt(units),
+                    isMintBaton: false,
+                },
+            },
+            {
+                outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: 500_000n,
+                isFinal: true,
+            },
+        ]);
+
+        const result = await maintainInventory({
+            seller,
+            slush,
+            feeAddress: FEE,
+            tradedTokens: tokens(traded(TOKEN_A, 100n)),
+        });
+
+        assert.strictEqual(result.fundedInventory[TOKEN_A], units);
+        assert.ok(result.txids.length >= 2);
+        assert.strictEqual(result.fundedPostage, 0);
+    });
+
+    it('defers leftover slush units after the per-token fund-batch cap', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        mock.broadcastTxs = async (txsHex: string[]) => ({
+            txids: txsHex.map((_, i) =>
+                (i + 200).toString(16).padStart(64, '0'),
+            ),
+        });
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const units = INVENTORY_FUND_BATCH + 1;
+        mock.setUtxosByAddress(seller.address, []);
+        mock.setUtxosByAddress(slush.address, [
+            {
+                outpoint: { txid: '22'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: DEFAULT_DUST_SATS,
+                isFinal: true,
+                token: {
+                    tokenId: TOKEN_A,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 100n * BigInt(units),
+                    isMintBaton: false,
+                },
+            },
+            {
+                outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: 500_000n,
+                isFinal: true,
+            },
+        ]);
+
+        const result = await maintainInventory({
+            seller,
+            slush,
+            feeAddress: FEE,
+            tradedTokens: tokens(traded(TOKEN_A, 100n)),
+            maxFundBatchesPerToken: 1,
+        });
+
+        assert.strictEqual(
+            result.fundedInventory[TOKEN_A],
+            INVENTORY_FUND_BATCH,
+        );
+        assert.strictEqual(result.txids.length, 1);
     });
 });

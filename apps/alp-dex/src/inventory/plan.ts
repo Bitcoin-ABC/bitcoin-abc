@@ -2,13 +2,58 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { ALP_POLICY_MAX_OUTPUTS } from 'ecash-lib';
 import { POSTAGE_SATS } from '../constants';
 
 /** Fund postage only when seller has fewer than this many stamps. */
 export const POSTAGE_STAMP_TARGET = 1000;
 
+/**
+ * Max exact-size inventory UTXOs per slush→seller fund action.
+ * `ALP_POLICY_MAX_OUTPUTS - 1` leaves room for token change so `build()`
+ * stays a single SEND (29 recipient outs + change exceeds the ALP cap and
+ * forces a chained token send).
+ */
+export const INVENTORY_FUND_BATCH = ALP_POLICY_MAX_OUTPUTS - 1;
+
+/**
+ * Max slush→seller fund txs per token per maintain pass. Remaining units
+ * stay on slush (still pricing reserve) for the next scheduled pass so one
+ * reshape cannot monopolize the settle queue.
+ */
+export const INVENTORY_FUND_MAX_BATCHES_PER_TOKEN = 8;
+
+/**
+ * Max seller UTXOs per misc→fee action. A 9006-input tx exceeds
+ * `MAX_TX_SERSIZE`; wallet auto-consolidate then re-selects the original
+ * `requiredUtxos` (now partly spent) and used to crash on `.sats`.
+ */
+export const MISC_SWEEP_BATCH = 400;
+
 /** Fixed stamp count to create when under target and slush can fund it. */
 export const POSTAGE_FUND_BATCH = 1000;
+
+/**
+ * Throws if `count` is not a safe integer or is negative.
+ * Returns whether `count` is at least `min` (callers treat false as "no action").
+ *
+ * @param min - Inclusive lower bound. Defaults to `1` so zero returns false
+ * instead of throwing. Pass `0` when zero should return true (e.g. remaining
+ * inventory units).
+ */
+export const assertPositiveCountOrNone = (
+    count: number,
+    name: string,
+    min: number = 1,
+): boolean => {
+    if (!Number.isSafeInteger(count)) {
+        throw new Error(`${name} must be a safe integer (got ${count})`);
+    }
+    if (count < 0) {
+        throw new Error(`${name} must not be negative (got ${count})`);
+    }
+    return count >= min;
+};
 
 /**
  * How many exact-size inventory UTXOs can be funded from `atoms`.
@@ -31,6 +76,16 @@ export const inventoryUnitCount = (
         );
     }
     return Number(quotient);
+};
+
+/**
+ * How many inventory UTXOs to mint in the next fund action.
+ * Caps at {@link INVENTORY_FUND_BATCH} so alp-dex does not ask
+ * ecash-wallet to chain thousands of ALP outputs in one `build()`.
+ */
+export const inventoryFundBatchCount = (remainingUnits: number): number => {
+    assertPositiveCountOrNone(remainingUnits, 'remainingUnits', 0);
+    return Math.min(INVENTORY_FUND_BATCH, remainingUnits);
 };
 
 /**

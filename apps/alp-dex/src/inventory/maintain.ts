@@ -17,14 +17,21 @@ import {
     splitMiscFromFormerInventory,
     type FormerInventoryPile,
 } from './classify';
-import { inventoryUnitCount, postageFundBatchCount } from './plan';
+import {
+    assertPositiveCountOrNone,
+    INVENTORY_FUND_MAX_BATCHES_PER_TOKEN,
+    inventoryFundBatchCount,
+    inventoryUnitCount,
+    MISC_SWEEP_BATCH,
+    postageFundBatchCount,
+} from './plan';
 
 export type MaintainInventoryResult = {
     cleanedToSlush: number;
     fundedInventory: Record<string, number>;
     fundedPostage: number;
     sweptMisc: number;
-    /** Sub-dust XEC seen on seller — not expected; burned with misc when present. */
+    /** Sub-dust XEC seen on seller — not expected; burned as fee with misc. */
     belowDust: number;
     /** Same-size non-traded token piles left on seller (not swept). */
     formerInventory: FormerInventoryPile[];
@@ -38,8 +45,12 @@ export type MaintainInventoryResult = {
 export class MaintainInventoryError extends Error {
     readonly partial: MaintainInventoryResult;
 
-    constructor(message: string, partial: MaintainInventoryResult) {
-        super(message);
+    constructor(
+        message: string,
+        partial: MaintainInventoryResult,
+        cause?: unknown,
+    ) {
+        super(message, cause instanceof Error ? { cause } : undefined);
         this.name = 'MaintainInventoryError';
         this.partial = partial;
     }
@@ -119,8 +130,25 @@ export const maintainInventory = async (opts: {
     slush: Wallet;
     feeAddress: string;
     tradedTokens: TradedTokens;
+    /**
+     * Override {@link INVENTORY_FUND_MAX_BATCHES_PER_TOKEN} (tests).
+     */
+    maxFundBatchesPerToken?: number;
 }): Promise<MaintainInventoryResult> => {
     const { seller, slush, feeAddress, tradedTokens } = opts;
+    const maxFundBatchesPerToken =
+        opts.maxFundBatchesPerToken ?? INVENTORY_FUND_MAX_BATCHES_PER_TOKEN;
+    if (
+        !assertPositiveCountOrNone(
+            maxFundBatchesPerToken,
+            'maxFundBatchesPerToken',
+        )
+    ) {
+        throw new Error(
+            `maxFundBatchesPerToken must be a positive safe integer ` +
+                `(got ${maxFundBatchesPerToken})`,
+        );
+    }
     const sellerScript = Script.fromAddress(seller.address);
     const slushScript = Script.fromAddress(slush.address);
     const feeScript = Script.fromAddress(feeAddress);
@@ -168,29 +196,68 @@ export const maintainInventory = async (opts: {
             }
         }
 
-        // 2. Slush traded tokens → exact-size seller inventory (wallet chains)
+        // 2. Slush traded tokens → exact-size seller inventory, ALP-sized
+        //    batches (avoids one chained build of thousands of token outs).
         for (const token of tradedTokens.values()) {
-            const atoms = sumFungibleAtoms(slush.utxos, token.tokenId);
-            const unitCount = inventoryUnitCount(atoms, token.utxoAtoms);
-            const action = actionFundInventory(
-                token.tokenId,
+            let remaining = inventoryUnitCount(
+                sumFungibleAtoms(slush.utxos, token.tokenId),
                 token.utxoAtoms,
-                unitCount,
-                sellerScript,
             );
-            if (action === null) {
-                continue;
+            let minted = 0;
+            let batches = 0;
+            while (remaining > 0 && batches < maxFundBatchesPerToken) {
+                const unitCount = inventoryFundBatchCount(remaining);
+                const action = actionFundInventory(
+                    token.tokenId,
+                    token.utxoAtoms,
+                    unitCount,
+                    sellerScript,
+                );
+                if (action === null) {
+                    break;
+                }
+                await broadcastAction(slush, action, txids);
+                minted += unitCount;
+                const nextRemaining = inventoryUnitCount(
+                    sumFungibleAtoms(slush.utxos, token.tokenId),
+                    token.utxoAtoms,
+                );
+                if (nextRemaining >= remaining) {
+                    throw new Error(
+                        `inventory fund did not reduce slush units for ` +
+                            `${token.tokenTicker} (${token.tokenId}): ` +
+                            `still ${nextRemaining} after minting ${unitCount}`,
+                    );
+                }
+                remaining = nextRemaining;
+                batches += 1;
             }
-            await broadcastAction(slush, action, txids);
-            fundedInventory[token.tokenId] = unitCount;
+            if (minted > 0) {
+                fundedInventory[token.tokenId] = minted;
+            }
+            if (minted > 0 && remaining > 0) {
+                console.log(
+                    `inventory maintain: deferred ${remaining} ` +
+                        `${token.tokenTicker} inventory units to later pass`,
+                );
+            }
         }
 
         // 3. Postage: fixed batch when seller is under target
         {
             const { postage } = classifySellerUtxos(seller.utxos, tradedTokens);
-            const spendableSats = slush
-                .spendableSatsOnlyUtxos()
-                .reduce((sum, u) => sum + u.sats, 0n);
+            const spendable = slush.spendableSatsOnlyUtxos();
+            let spendableSats = 0n;
+            for (let i = 0; i < spendable.length; i++) {
+                const utxo = spendable[i];
+                if (utxo === undefined || utxo.sats === undefined) {
+                    throw new Error(
+                        `slush spendable UTXO[${i}] missing sats ` +
+                            `(len=${spendable.length})`,
+                    );
+                }
+                spendableSats += utxo.sats;
+            }
             const stamps = postageFundBatchCount(postage.length, spendableSats);
             const action = actionFundPostage(stamps, sellerScript);
             if (action !== null) {
@@ -201,6 +268,8 @@ export const maintainInventory = async (opts: {
 
         // 4. Misc seller → fee. Same-size leftover token piles look like
         //    a pair this node used to trade — leave them, notify ops.
+        //    Sweep the rest in MISC_SWEEP_BATCH chunks so a large pile
+        //    cannot exceed MAX_TX_SERSIZE.
         {
             const classified = classifySellerUtxos(seller.utxos, tradedTokens);
             belowDust = classified.belowDust.length;
@@ -213,16 +282,24 @@ export const maintainInventory = async (opts: {
             const split = splitMiscFromFormerInventory(classified.misc);
             formerInventory = split.formerInventory;
             const toSweep = [...split.toSweep, ...classified.belowDust];
-            const action = actionSweepMiscToFee(toSweep, feeScript);
-            if (action !== null) {
+            for (let i = 0; i < toSweep.length; i += MISC_SWEEP_BATCH) {
+                const batch = toSweep.slice(i, i + MISC_SWEEP_BATCH);
+                const action = actionSweepMiscToFee(batch, feeScript);
+                if (action === null) {
+                    continue;
+                }
                 await broadcastAction(seller, action, txids);
-                sweptMisc = split.toSweep.length;
+                for (const utxo of batch) {
+                    if (!classified.belowDust.includes(utxo)) {
+                        sweptMisc += 1;
+                    }
+                }
             }
         }
 
         return partial();
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        throw new MaintainInventoryError(message, partial());
+        throw new MaintainInventoryError(message, partial(), err);
     }
 };
