@@ -383,3 +383,8 @@ Optional `broadcast({ finalizationTimeoutSecs: 60 })` uses chronik-client's `bro
 Add optional `onAddress` callback to `syncAndDiscoverAddresses()` (`SyncAndDiscoverOptions`): invoked for each address as it is scanned during HD gap-limit discovery (including the final address that completes the gap), then stops for that chain once the gap limit is reached. Each call receives an `AddressSummary` (`forChange`, `index`, `address`, and Chronik `BatchSummaryRow` data). Useful for app-specific heuristics such as WebSocket subscribe lists without a separate gap scan.
 
 Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.33.4**, **chronik-client >= 4.3.0**); if the endpoint is unavailable, gap discovery falls back to per-script queries and the callback is not invoked.
+
+# 6.1.1 [D20521](https://reviews.bitcoinabc.org/D20521)
+
+- Default omitted `PaymentOutput.sats` to `dustSats` in chained XEC size-limit builds, matching `paymentOutputsToTxOutputs`. A large XEC action with default-dust recipients previously undercounted the chain and failed to build.
+- Honor the action `dustSats` when deciding whether chained alpha user change is above dust, and fill omitted sats on finalized payment outputs so a chained self-send updates the in-memory UTXO set correctly.

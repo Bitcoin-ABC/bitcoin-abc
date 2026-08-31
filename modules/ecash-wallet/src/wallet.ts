@@ -2064,6 +2064,7 @@ export class WalletAction {
 
         const feePerKb = this.action.feePerKb || DEFAULT_FEE_SATS_PER_KB;
         const maxTxSersize = this.action.maxTxSersize || MAX_TX_SERSIZE;
+        const dustSats = this.action.dustSats || DEFAULT_DUST_SATS;
 
         // Throw if we have a token tx that is (somehow) breaking size limits
         // Only expected in edge case as pure token send txs are restricted by OP_RETURN limits
@@ -2115,8 +2116,18 @@ export class WalletAction {
             chainedTxInputsAndFees.fees.reduce((a, b) => a + b, 0n);
 
         // Total sats we need for the outputs
+        // Omitted sats default to dust, same as paymentOutputsToTxOutputs
         const totalSatsNeededForOutputsForAllChainedTxs =
-            this.action.outputs.reduce((a, b) => a + (b.sats || 0n), 0n);
+            this.action.outputs.reduce(
+                (a, b, i) =>
+                    a +
+                    paymentOutputSats(
+                        b,
+                        dustSats,
+                        `_buildSizeLimitExceededChained outputs[${i}]`,
+                    ),
+                0n,
+            );
 
         // To size the required sats for the next-chain-input output in chainTxAlpha, we remove chainTxAlpha fees and chainTxAlpha output sats
         const chainTxAlphaActionOutputCount =
@@ -2127,7 +2138,13 @@ export class WalletAction {
         );
         const chainedTxAlphaCoveredOutputsSats =
             chainedTxAlphaCoveredOutputs.reduce(
-                (a, b) => a + (b.sats || 0n),
+                (a, b, i) =>
+                    a +
+                    paymentOutputSats(
+                        b,
+                        dustSats,
+                        `_buildSizeLimitExceededChained alpha outputs[${i}]`,
+                    ),
                 0n,
             );
         const chainedTxAlphaFeeSats = chainedTxInputsAndFees.fees[0];
@@ -2150,7 +2167,7 @@ export class WalletAction {
             nextTxInputSats -
             chainedTxAlphaFeeSats;
 
-        const needsUserChange = userChange >= DEFAULT_DUST_SATS;
+        const needsUserChange = userChange >= dustSats;
 
         // Build chainedTxAlpha
         const chainedTxAlphaOutputs = this.action.outputs.slice(
@@ -2188,6 +2205,8 @@ export class WalletAction {
             outputs: chainedTxAlphaOutputs,
             // We are manually specifying change so we do not allow ecash-wallet to "help" us figure it out
             noChange: true,
+            dustSats,
+            feePerKb,
         };
 
         const chainedTxAlpha = this._wallet
@@ -2208,10 +2227,10 @@ export class WalletAction {
         // Build the first tx in the chain, "chainTxAlpha"
         const chainedTxs: Tx[] = [chainedTxAlpha.txs[0]];
 
-        // Iterate through remaining outputs and build the other txs in the chain
+        // Remaining action outputs only — do not assume a user-change slot
+        // was filled (needsUserChange may be false).
         const remainingOutputs = this.action.outputs.slice(
-            chainedTxAlpha.txs[0].outputs.length -
-                CHAINED_TX_ALPHA_RESERVED_OUTPUTS,
+            chainTxAlphaActionOutputCount,
         );
 
         // Use a while loop to build the rest of the chain
@@ -2231,6 +2250,8 @@ export class WalletAction {
                     outputs: remainingOutputs,
                     requiredUtxos: [nextTxUtxoOutpoint],
                     noChange: true,
+                    dustSats,
+                    feePerKb,
                 };
                 const chainedTxOmega = this._wallet
                     .action(chainedTxOmegaAction)
@@ -2248,7 +2269,16 @@ export class WalletAction {
                 const feeThisTx = chainedTxFeeArray.splice(0, 1);
 
                 const coveredOutputSatsThisTx = outputsInThisTx.reduce(
-                    (a, b) => a + b.sats!,
+                    (a, b, i) =>
+                        a +
+                        paymentOutputSats(
+                            b,
+                            dustSats,
+                            `_buildSizeLimitExceededChained thisTx outputs[${i}] ` +
+                                `thisTxOutputs=${outputsInThisTx.length} ` +
+                                `remaining=${remainingOutputs.length} ` +
+                                `chainedTxMaxOutputs=${chainedTxMaxOutputs}`,
+                        ),
                     0n,
                 );
 
@@ -2263,6 +2293,8 @@ export class WalletAction {
                     outputs: [...outputsInThisTx, chainedTxNextInputAsOutput],
                     requiredUtxos: [nextTxUtxoOutpoint],
                     noChange: true,
+                    dustSats,
+                    feePerKb,
                 };
                 const chainedTx = this._wallet
                     .action(chainedTxAction)
@@ -5752,6 +5784,28 @@ export const batchTokenSendOutputs = (
     return batched;
 };
 
+/**
+ * Satoshis for a user-specified PaymentOutput.
+ * Omitted sats default to dustSats, matching paymentOutputsToTxOutputs.
+ * A missing array element is an error.
+ *
+ * @param output - PaymentOutput, or undefined if the array slot is missing
+ * @param dustSats - Default when sats is omitted
+ * @param context - Included in the error if output is missing
+ */
+export const paymentOutputSats = (
+    output: payment.PaymentOutput | undefined,
+    dustSats: bigint,
+    context: string,
+): bigint => {
+    if (output === undefined) {
+        throw new Error(
+            `ecash-wallet: missing output when reading sats (${context})`,
+        );
+    }
+    return output.sats ?? dustSats;
+};
+
 // Convert user-specified ecash-wallet Output[] to TxOutput[], so we can build
 // and sign the tx that fulfills this Action
 export const paymentOutputsToTxOutputs = (
@@ -5761,7 +5815,11 @@ export const paymentOutputsToTxOutputs = (
     const txBuilderOutputs: TxOutput[] = [];
     for (const output of outputs) {
         txBuilderOutputs.push({
-            sats: output.sats ?? dustSats,
+            sats: paymentOutputSats(
+                output,
+                dustSats,
+                'paymentOutputsToTxOutputs',
+            ),
             script: output.script as Script,
         });
     }
@@ -5819,8 +5877,15 @@ export const finalizeOutputs = (
      */
     ignoredTokenIds?: string[],
 ): { paymentOutputs: payment.PaymentOutput[]; txOutputs: TxOutput[] } => {
-    // Make a deep copy of outputs to avoid mutating the action object
+    // Make a deep copy of outputs to avoid mutating the action object.
+    // Fill omitted sats on the copy so paymentOutputs match the signed tx
+    // (paymentOutputsToTxOutputs / UTXO updates). Mutate in place so the
+    // array stays PaymentOutput[] — spreading sats into a new literal
+    // widens the union and breaks tsc.
     const outputs = action.outputs.map(output => ({ ...output }));
+    for (const output of outputs) {
+        output.sats = output.sats ?? dustSats;
+    }
     const tokenActions = action.tokenActions;
 
     if (outputs.length === 0) {

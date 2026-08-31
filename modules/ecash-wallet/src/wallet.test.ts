@@ -17,6 +17,7 @@ import {
     SLP_MAX_SEND_OUTPUTS,
     COINBASE_MATURITY,
     ALP_POLICY_MAX_OUTPUTS,
+    DEFAULT_DUST_SATS,
     payment,
     SLP_TOKEN_TYPE_FUNGIBLE,
     ALP_TOKEN_TYPE_STANDARD,
@@ -67,6 +68,7 @@ import {
     WalletUtxo,
     DEFAULT_GAP_LIMIT,
     PostageChain,
+    paymentOutputSats,
 } from './wallet';
 import { WalletBase } from './walletBase';
 import { GENESIS_TOKEN_ID_PLACEHOLDER } from 'ecash-lib/dist/payment';
@@ -784,6 +786,195 @@ describe('wallet.ts', () => {
 
         // Verify both transactions are valid
         expect(builtAction.builtTxs).to.have.length(2);
+    });
+
+    it('Chains an oversized XEC action when recipients omit sats', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // Small maxTxSersize so a few p2pkh outputs force a 3-tx chain
+        // (alpha + mid + omega) and hit every chained-output sats sum.
+        const maxTxSersize = 1500;
+        const dustSats = 1000n;
+        const maxOutsPerNthTx = getMaxP2pkhOutputs(1, 0, maxTxSersize);
+        const actionOutsAlpha = maxOutsPerNthTx - 2;
+        // Remaining after alpha must exceed maxOutsPerNthTx so we build a
+        // mid-chain tx (not only alpha + omega).
+        const outputCount = actionOutsAlpha + maxOutsPerNthTx + 1;
+
+        const omittedSatsOutputs: payment.PaymentOutput[] = [];
+        for (let i = 0; i < outputCount; i++) {
+            const hex = i.toString(16).padStart(40, '0');
+            omittedSatsOutputs.push({ script: Script.p2pkh(fromHex(hex)) });
+        }
+
+        mockChronik.setUtxosByAddress(DUMMY_ADDRESS, [
+            { ...DUMMY_UTXO, sats: 1_000_000n },
+        ]);
+        await testWallet.sync();
+
+        const built = testWallet
+            .action({
+                outputs: omittedSatsOutputs,
+                dustSats,
+                maxTxSersize,
+            })
+            .build();
+
+        expect(built.builtTxs.length).to.be.at.least(3);
+        for (const builtTx of built.builtTxs) {
+            expect(builtTx.size()).to.be.at.most(maxTxSersize);
+        }
+
+        const recipientScripts = new Set(
+            omittedSatsOutputs.map(o => (o.script as Script).toHex()),
+        );
+        const walletScriptHex = testWallet.script.toHex();
+        let recipientCount = 0;
+        for (const builtTx of built.builtTxs) {
+            for (const output of builtTx.tx.outputs) {
+                const scriptHex = output.script.toHex();
+                if (recipientScripts.has(scriptHex)) {
+                    expect(output.sats).to.equal(dustSats);
+                    recipientCount += 1;
+                } else {
+                    expect(scriptHex).to.equal(walletScriptHex);
+                }
+            }
+        }
+        expect(recipientCount).to.equal(outputCount);
+    });
+
+    it('Updates wallet UTXOs when a chained self-send omits sats', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        const maxTxSersize = 1500;
+        const dustSats = 1000n;
+        const maxOutsPerNthTx = getMaxP2pkhOutputs(1, 0, maxTxSersize);
+        const outputCount = maxOutsPerNthTx - 2 + maxOutsPerNthTx + 1;
+
+        const omittedSatsOutputs: payment.PaymentOutput[] = [
+            { script: testWallet.script },
+        ];
+        for (let i = 1; i < outputCount; i++) {
+            const hex = i.toString(16).padStart(40, '0');
+            omittedSatsOutputs.push({ script: Script.p2pkh(fromHex(hex)) });
+        }
+
+        mockChronik.setUtxosByAddress(DUMMY_ADDRESS, [
+            { ...DUMMY_UTXO, sats: 1_000_000n },
+        ]);
+        await testWallet.sync();
+        const fundingOut = testWallet.utxos[0].outpoint;
+
+        const built = testWallet
+            .action({
+                outputs: omittedSatsOutputs,
+                dustSats,
+                maxTxSersize,
+            })
+            .build();
+
+        expect(built.builtTxs.length).to.be.at.least(3);
+        expect(
+            testWallet.utxos.some(
+                u =>
+                    u.outpoint.txid === fundingOut.txid &&
+                    u.outpoint.outIdx === fundingOut.outIdx,
+            ),
+        ).to.equal(false);
+        const selfDust = testWallet.utxos.filter(u => u.sats === dustSats);
+        expect(selfDust.length).to.be.at.least(1);
+        expect(selfDust[0].address).to.equal(DUMMY_ADDRESS);
+    });
+
+    it('Does not emit chained user change below the action dustSats', async () => {
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+
+        // leftover 900 is >= DEFAULT_DUST_SATS (546) but < action dust (1000).
+        // Must also leave the pre-chain leftover above dust so the oversized
+        // single tx still has a change output (needed to cover chain fees).
+        const maxTxSersize = 1500;
+        const dustSats = 1000n;
+        const leftoverBetweenDust = 900n;
+        expect(leftoverBetweenDust).to.be.gte(DEFAULT_DUST_SATS);
+        expect(leftoverBetweenDust).to.be.lt(dustSats);
+
+        const maxOutsPerNthTx = getMaxP2pkhOutputs(1, 0, maxTxSersize);
+        // One more than a single 1-input tx can hold → alpha + omega.
+        const outputCount = maxOutsPerNthTx + 1;
+        const omittedSatsOutputs: payment.PaymentOutput[] = [];
+        for (let i = 0; i < outputCount; i++) {
+            const hex = i.toString(16).padStart(40, '0');
+            omittedSatsOutputs.push({ script: Script.p2pkh(fromHex(hex)) });
+        }
+
+        mockChronik.setUtxosByAddress(DUMMY_ADDRESS, [
+            { ...DUMMY_UTXO, sats: 10_000_000n },
+        ]);
+        await testWallet.sync();
+        const ample = testWallet
+            .clone()
+            .action({
+                outputs: omittedSatsOutputs,
+                dustSats,
+                maxTxSersize,
+            })
+            .build();
+        expect(ample.builtTxs).to.have.length(2);
+
+        const walletScriptHex = testWallet.script.toHex();
+        const ampleAlpha = ample.builtTxs[0].tx;
+        const ampleChange = ampleAlpha.outputs.find(
+            (o, i) =>
+                o.script.toHex() === walletScriptHex &&
+                i !== ampleAlpha.outputs.length - 1,
+        );
+        expect(ampleChange).to.not.equal(undefined);
+        // Shrink the input so leftover sits between default dust and action dust.
+        const inputSats = 10_000_000n - ampleChange!.sats + leftoverBetweenDust;
+
+        mockChronik.setUtxosByAddress(DUMMY_ADDRESS, [
+            { ...DUMMY_UTXO, sats: inputSats },
+        ]);
+        await testWallet.sync();
+        const built = testWallet
+            .action({
+                outputs: omittedSatsOutputs,
+                dustSats,
+                maxTxSersize,
+            })
+            .build();
+
+        const alphaWalletOuts = built.builtTxs[0].tx.outputs.filter(
+            o => o.script.toHex() === walletScriptHex,
+        );
+        // Only the next-chain input; no user-change below action dust.
+        expect(alphaWalletOuts).to.have.length(1);
+        expect(alphaWalletOuts[0].sats).to.be.gte(dustSats);
     });
 
     context('BuiltAction.broadcast', () => {
@@ -3341,6 +3532,48 @@ describe('Support functions', () => {
             expect(result).to.deep.equal([]);
         });
     });
+    context('paymentOutputSats', () => {
+        it('Returns explicit sats including 0n', () => {
+            expect(
+                paymentOutputSats(
+                    { sats: 1000n, script: MOCK_DESTINATION_SCRIPT },
+                    546n,
+                    'test',
+                ),
+            ).to.equal(1000n);
+            expect(
+                paymentOutputSats(
+                    { sats: 0n, script: MOCK_DESTINATION_SCRIPT },
+                    546n,
+                    'test',
+                ),
+            ).to.equal(0n);
+        });
+        it('Defaults omitted sats to dustSats', () => {
+            expect(
+                paymentOutputSats(
+                    { script: MOCK_DESTINATION_SCRIPT },
+                    546n,
+                    'test',
+                ),
+            ).to.equal(546n);
+            expect(
+                paymentOutputSats(
+                    { script: MOCK_DESTINATION_SCRIPT },
+                    1000n,
+                    'test',
+                ),
+            ).to.equal(1000n);
+        });
+        it('Throws if the output array element is missing', () => {
+            expect(() =>
+                paymentOutputSats(undefined, 546n, 'outputs[3]'),
+            ).to.throw(
+                Error,
+                'ecash-wallet: missing output when reading sats (outputs[3])',
+            );
+        });
+    });
     context('finalizeOutputs', () => {
         /**
          * NB in practice, "requiredUtxos" will be a calculated param in the class
@@ -3421,6 +3654,30 @@ describe('Support functions', () => {
                 expect(result.txOutputs[0].script).to.deep.equal(
                     MOCK_DESTINATION_SCRIPT,
                 );
+            });
+
+            it('Fills omitted sats with dustSats on paymentOutputs', () => {
+                const testAction = {
+                    outputs: [
+                        {
+                            script: MOCK_DESTINATION_SCRIPT,
+                        },
+                    ],
+                };
+                const dustSats = 1000n;
+
+                const result = finalizeOutputs(
+                    testAction,
+                    [DUMMY_UTXO],
+                    () => DUMMY_CHANGE_SCRIPT,
+                    dustSats,
+                );
+
+                expect(result.paymentOutputs[0].sats).to.equal(dustSats);
+                expect(result.txOutputs[0].sats).to.equal(dustSats);
+                expect(testAction.outputs[0]).to.deep.equal({
+                    script: MOCK_DESTINATION_SCRIPT,
+                });
             });
 
             it('Handles multiple outputs with mixed address and script fields', () => {
