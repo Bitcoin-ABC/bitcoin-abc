@@ -42,7 +42,9 @@ for careful takers, not a designed custodial loss path.
 
 ## Wallet model
 
-One BIP39 mnemonic on the LP server; HD path `m/44'/1899'/{account}'/0/0`:
+One BIP39 mnemonic on the LP server. Role addresses are derived at
+`m/44'/1899'/{account}'/0/0`. Each role is a **single-address** wallet so
+XEC and token change always return to that same address (no HD change chain):
 
 | Account      | Role                                                                                                              |
 | ------------ | ----------------------------------------------------------------------------------------------------------------- |

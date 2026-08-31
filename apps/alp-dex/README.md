@@ -51,7 +51,8 @@ liquidity source.
 
 Must provide:
 
-1. **Self-hosted LP** — one mnemonic for seller + slush HD roles, plus an
+1. **Self-hosted LP** — one mnemonic for seller + slush roles (single-address
+   wallets at BIP44 accounts 0 and 1), plus an
    external `feeAddress` (off-server; need not be hot). Chronik for sync.
 2. **Local-liquidity pricing** — spot and size quotes from **seller +
    slush** atom reserves (constant-product). Fills spend **seller**

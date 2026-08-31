@@ -48,13 +48,8 @@ export const assertEcashAddress = (address: string, label: string): string => {
     }
 };
 
-/**
- * Derive `m/44'/1899'/{account}'/0/0` for a BIP39 mnemonic (no Chronik needed).
- */
-export const deriveRoleAddress = (
-    mnemonic: string,
-    accountNumber: number,
-): string => {
+/** BIP44 `m/44'/1899'/{account}'/0/0` node for a BIP39 mnemonic. */
+const deriveRoleNode = (mnemonic: string, accountNumber: number): HdNode => {
     if (!Number.isInteger(accountNumber) || accountNumber < 0) {
         throw new Error(
             `accountNumber must be a non-negative integer (got ${accountNumber})`,
@@ -62,7 +57,17 @@ export const deriveRoleAddress = (
     }
     const validated = assertBip39Mnemonic(mnemonic);
     const master = HdNode.fromSeed(mnemonicToSeed(validated));
-    const node = master.derivePath(`m/44'/1899'/${accountNumber}'/0/0`);
+    return master.derivePath(`m/44'/1899'/${accountNumber}'/0/0`);
+};
+
+/**
+ * Derive `m/44'/1899'/{account}'/0/0` for a BIP39 mnemonic (no Chronik needed).
+ */
+export const deriveRoleAddress = (
+    mnemonic: string,
+    accountNumber: number,
+): string => {
+    const node = deriveRoleNode(mnemonic, accountNumber);
     return Address.p2pkh(node.pkh()!).toString();
 };
 
@@ -95,10 +100,13 @@ export const resolveLpAddresses = (
 };
 
 /**
- * Build seller + slush `Wallet` instances (HD accounts 0 and 1).
+ * Build seller + slush `Wallet` instances from BIP44 accounts 0 and 1.
  *
+ * Addresses are still `m/44'/1899'/{0,1}'/0/0`. Seller and slush are both
+ * single-address wallets (not HD) so change always returns to that same
+ * address. HD is only used to pick the two role keys from one mnemonic.
  * Chronik is required by the Wallet constructor but is not contacted until
- * `sync()` (roadmap step 5). Pass `MockChronikClient` in unit tests.
+ * `sync()`. Pass `MockChronikClient` in unit tests.
  * Fee payouts use config `feeAddress` only. The fee wallet should be off the
  * server and does not need to be a hot wallet.
  */
@@ -108,14 +116,13 @@ export const createLpWallets = (
     feeAddress: string,
 ): LpWallets => {
     const validated = assertBip39Mnemonic(mnemonic);
-    const seller = Wallet.fromMnemonic(validated, chronik, {
-        hd: true,
-        accountNumber: SELLER_ACCOUNT,
-    });
-    const slush = Wallet.fromMnemonic(validated, chronik, {
-        hd: true,
-        accountNumber: SLUSH_ACCOUNT,
-    });
+    const sellerSk = deriveRoleNode(validated, SELLER_ACCOUNT).seckey();
+    const slushSk = deriveRoleNode(validated, SLUSH_ACCOUNT).seckey();
+    if (sellerSk === undefined || slushSk === undefined) {
+        throw new Error('Failed to derive seller or slush secret key');
+    }
+    const seller = Wallet.fromSk(sellerSk, chronik);
+    const slush = Wallet.fromSk(slushSk, chronik);
 
     const addresses = resolveLpAddresses(validated, feeAddress);
 

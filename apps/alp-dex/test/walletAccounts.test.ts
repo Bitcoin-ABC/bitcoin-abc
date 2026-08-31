@@ -46,6 +46,8 @@ describe('wallet accounts', () => {
         assert.strictEqual(seller.address, SELLER);
         assert.strictEqual(slush.address, SLUSH);
         assert.strictEqual(addresses.feeAddress, FEE);
+        assert.strictEqual(seller.isHD, false);
+        assert.strictEqual(slush.isHD, false);
     });
 
     it('rejects feeAddress colliding with seller or slush', () => {
