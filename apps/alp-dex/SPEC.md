@@ -138,7 +138,8 @@ Planned maintain loop (startup, sync interval, after successful settle):
    (respect ALP max token outs per tx).
 3. Loose slush XEC → postage stamps on seller.
 4. Periodic misc seller UTXOs (non-traded tokens, odd XEC; batons skipped)
-   → fee script.
+   → fee script. Same-size leftover token piles (≥10 UTXOs) look like a
+   former book and stay on seller (log + Telegram); they are not swept.
 
 **Operator habit:** fund **slush** only. Do not hand-build seller inventory.
 

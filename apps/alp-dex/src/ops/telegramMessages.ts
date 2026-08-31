@@ -74,6 +74,35 @@ const formatRateLine = (
 export const formatXec = (sats: bigint): string =>
     `${(Number(sats) / 100).toFixed(2)} XEC`;
 
+export type FormerInventoryNoticePile = {
+    tokenId: string;
+    atoms: bigint;
+    utxoCount: number;
+    tokenTicker?: string | null;
+};
+
+/**
+ * Telegram HTML when seller holds same-size leftovers that look like a
+ * previously traded pair (not swept).
+ */
+export const getFormerInventoryNotice = (opts: {
+    sellerAddress: string;
+    piles: FormerInventoryNoticePile[];
+}): string => {
+    const { sellerAddress, piles } = opts;
+    const lines = piles.map(pile => {
+        const ticker = pile.tokenTicker?.trim();
+        const label = tokenLabelHtml(pile.tokenId, ticker);
+        return `• ${pile.utxoCount}× ${label} @ ${pile.atoms.toString()} atoms`;
+    });
+    return `⚠️ <b>Former inventory left on seller</b>
+
+${previewAddress(sellerAddress)}
+These same-size UTXOs look like a pair this node used to trade. They were <b>not</b> swept to fee.
+
+${lines.join('\n')}`;
+};
+
 export interface InvalidSwapMessageParams {
     parsedSwap: ParsedPartiallySignedSwap;
     currentRate: number;

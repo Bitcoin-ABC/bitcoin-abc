@@ -15,8 +15,11 @@ import {
 } from '../src/inventory/actions';
 import {
     classifySellerUtxos,
+    FORMER_INVENTORY_MIN_UTXOS,
+    formerInventoryKey,
     isExactInventory,
     isPostageStamp,
+    splitMiscFromFormerInventory,
     type SellerUtxoLike,
 } from '../src/inventory/classify';
 import {
@@ -162,6 +165,84 @@ describe('inventory classify', () => {
         assert.deepStrictEqual(classified.belowDust, []);
         assert.deepStrictEqual(classified.wrongSizedTraded, []);
         assert.strictEqual(classified.skippedBatons.length, 1);
+    });
+
+    it('splitMiscFromFormerInventory holds back same-size leftover piles', () => {
+        const leftover = Array.from(
+            { length: FORMER_INVENTORY_MIN_UTXOS },
+            (_, i) =>
+                utxo(i, DEFAULT_DUST_SATS, {
+                    tokenId: TOKEN_OTHER,
+                    atoms: 100n,
+                    isMintBaton: false,
+                }),
+        );
+        const singleton = utxo(50, DEFAULT_DUST_SATS, {
+            tokenId: TOKEN_OTHER,
+            atoms: 7n,
+            isMintBaton: false,
+        });
+        const oddXec = utxo(51, 5_000n);
+        const split = splitMiscFromFormerInventory([
+            ...leftover,
+            singleton,
+            oddXec,
+        ]);
+        assert.strictEqual(split.formerInventory.length, 1);
+        assert.strictEqual(split.formerInventory[0].tokenId, TOKEN_OTHER);
+        assert.strictEqual(split.formerInventory[0].atoms, 100n);
+        assert.strictEqual(
+            split.formerInventory[0].utxoCount,
+            FORMER_INVENTORY_MIN_UTXOS,
+        );
+        assert.strictEqual(split.toSweep.length, 2);
+        assert.strictEqual(
+            splitMiscFromFormerInventory(leftover.slice(0, 9)).formerInventory
+                .length,
+            0,
+        );
+        assert.throws(
+            () => splitMiscFromFormerInventory([], 0),
+            /positive safe integer/,
+        );
+    });
+
+    it('sorts former-inventory piles by count, tokenId, then atoms', () => {
+        const pile = (
+            tokenId: string,
+            atoms: bigint,
+            count: number,
+            start: number,
+        ): SellerUtxoLike[] =>
+            Array.from({ length: count }, (_, i) =>
+                utxo(start + i, DEFAULT_DUST_SATS, {
+                    tokenId,
+                    atoms,
+                    isMintBaton: false,
+                }),
+            );
+        const split = splitMiscFromFormerInventory([
+            ...pile(TOKEN_OTHER, 200n, FORMER_INVENTORY_MIN_UTXOS, 0),
+            ...pile(TOKEN_OTHER, 100n, FORMER_INVENTORY_MIN_UTXOS, 20),
+            ...pile(TOKEN_A, 50n, FORMER_INVENTORY_MIN_UTXOS + 1, 40),
+        ]);
+        assert.deepStrictEqual(
+            split.formerInventory.map(
+                p => `${p.tokenId}:${p.atoms}:${p.utxoCount}`,
+            ),
+            [
+                `${TOKEN_A}:50:${FORMER_INVENTORY_MIN_UTXOS + 1}`,
+                `${TOKEN_OTHER}:100:${FORMER_INVENTORY_MIN_UTXOS}`,
+                `${TOKEN_OTHER}:200:${FORMER_INVENTORY_MIN_UTXOS}`,
+            ],
+        );
+        assert.strictEqual(formerInventoryKey([]), '');
+        assert.strictEqual(
+            formerInventoryKey(split.formerInventory),
+            `${TOKEN_A}:50:${FORMER_INVENTORY_MIN_UTXOS + 1}|` +
+                `${TOKEN_OTHER}:100:${FORMER_INVENTORY_MIN_UTXOS}|` +
+                `${TOKEN_OTHER}:200:${FORMER_INVENTORY_MIN_UTXOS}`,
+        );
     });
 });
 
@@ -348,6 +429,7 @@ describe('inventory maintain (MockChronik)', () => {
             fundedPostage: 3,
             sweptMisc: 0,
             belowDust: 0,
+            formerInventory: [],
             txids: ['aa'.repeat(32)],
         });
         assert.strictEqual(err.message, 'boom');
@@ -415,6 +497,62 @@ describe('inventory maintain (MockChronik)', () => {
         assert.strictEqual(result.fundedPostage, POSTAGE_FUND_BATCH);
         assert.strictEqual(result.cleanedToSlush, 0);
         assert.strictEqual(result.sweptMisc, 0);
+        assert.deepStrictEqual(result.formerInventory, []);
         assert.ok(result.txids.length >= 1);
+    });
+
+    it('leaves same-size leftover token piles on seller (not swept to fee)', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        mock.broadcastTxs = async (txsHex: string[]) => ({
+            txids: txsHex.map((_, i) =>
+                (i + 50).toString(16).padStart(64, '0'),
+            ),
+        });
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const leftover = Array.from(
+            { length: FORMER_INVENTORY_MIN_UTXOS },
+            (_, i) => ({
+                outpoint: {
+                    txid: i.toString(16).padStart(64, '0'),
+                    outIdx: 0,
+                },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: DEFAULT_DUST_SATS,
+                isFinal: true,
+                token: {
+                    tokenId: TOKEN_OTHER,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 100n,
+                    isMintBaton: false,
+                },
+            }),
+        );
+        mock.setUtxosByAddress(seller.address, leftover);
+        mock.setUtxosByAddress(slush.address, []);
+
+        const result = await maintainInventory({
+            seller,
+            slush,
+            feeAddress: FEE,
+            tradedTokens: tokens(traded(TOKEN_A, 100n)),
+        });
+
+        assert.strictEqual(result.formerInventory.length, 1);
+        assert.strictEqual(result.formerInventory[0].tokenId, TOKEN_OTHER);
+        assert.strictEqual(result.formerInventory[0].atoms, 100n);
+        assert.strictEqual(
+            result.formerInventory[0].utxoCount,
+            FORMER_INVENTORY_MIN_UTXOS,
+        );
+        assert.strictEqual(result.sweptMisc, 0);
+        assert.strictEqual(result.txids.length, 0);
     });
 });

@@ -10,6 +10,7 @@ import {
     fallbackTokenLabel,
     formatXec,
     getBroadcastFailedMessage,
+    getFormerInventoryNotice,
     getInvalidSwapMessage,
     getSwapFailedMessage,
     getSwapSuccessfulMessage,
@@ -198,5 +199,26 @@ describe('telegram message builders', () => {
         );
         assert.ok(without.includes('nk.own'));
         assert.ok(!without.includes('<b>From:</b>'));
+    });
+
+    it('builds former-inventory notice with token links', () => {
+        const message = getFormerInventoryNotice({
+            sellerAddress: TEST_USER,
+            piles: [
+                {
+                    tokenId: TOKEN_A,
+                    atoms: 10000n,
+                    utxoCount: 5294,
+                    tokenTicker: 'BUTTER',
+                },
+            ],
+        });
+        assert.ok(message.includes('Former inventory left on seller'));
+        assert.ok(message.includes('5294×'));
+        assert.ok(message.includes('BUTTER'));
+        assert.ok(
+            message.includes(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_A}`),
+        );
+        assert.ok(message.includes('were <b>not</b> swept to fee'));
     });
 });

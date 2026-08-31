@@ -12,7 +12,11 @@ import {
     actionFundPostage,
     actionSweepMiscToFee,
 } from './actions';
-import { classifySellerUtxos } from './classify';
+import {
+    classifySellerUtxos,
+    splitMiscFromFormerInventory,
+    type FormerInventoryPile,
+} from './classify';
 import { inventoryUnitCount, postageFundBatchCount } from './plan';
 
 export type MaintainInventoryResult = {
@@ -22,6 +26,8 @@ export type MaintainInventoryResult = {
     sweptMisc: number;
     /** Sub-dust XEC seen on seller — not expected; burned with misc when present. */
     belowDust: number;
+    /** Same-size non-traded token piles left on seller (not swept). */
+    formerInventory: FormerInventoryPile[];
     txids: string[];
 };
 
@@ -102,7 +108,8 @@ const broadcastAction = async (
  * 1. Wrong-sized traded-token seller UTXOs → slush
  * 2. Slush traded tokens → exact-size seller inventory
  * 3. Postage stamps on seller when under target
- * 4. Misc seller UTXOs (and any unexpected below-dust XEC) → fee
+ * 4. Misc seller UTXOs (and any unexpected below-dust XEC) → fee.
+ *    Same-size leftover token piles look like a former book — leave them.
  *
  * Callers must not overlap concurrent maintain passes (await the sequential
  * loop in `index.ts`).
@@ -124,6 +131,7 @@ export const maintainInventory = async (opts: {
     let fundedPostage = 0;
     let sweptMisc = 0;
     let belowDust = 0;
+    let formerInventory: FormerInventoryPile[] = [];
 
     const partial = (): MaintainInventoryResult => ({
         cleanedToSlush,
@@ -131,6 +139,7 @@ export const maintainInventory = async (opts: {
         fundedPostage,
         sweptMisc,
         belowDust,
+        formerInventory: [...formerInventory],
         txids: [...txids],
     });
 
@@ -190,7 +199,8 @@ export const maintainInventory = async (opts: {
             }
         }
 
-        // 4. Misc seller → fee (include below-dust XEC if any; not expected)
+        // 4. Misc seller → fee. Same-size leftover token piles look like
+        //    a pair this node used to trade — leave them, notify ops.
         {
             const classified = classifySellerUtxos(seller.utxos, tradedTokens);
             belowDust = classified.belowDust.length;
@@ -200,11 +210,13 @@ export const maintainInventory = async (opts: {
                         `utxos=${belowDust} (burning as fee with misc)`,
                 );
             }
-            const toSweep = [...classified.misc, ...classified.belowDust];
+            const split = splitMiscFromFormerInventory(classified.misc);
+            formerInventory = split.formerInventory;
+            const toSweep = [...split.toSweep, ...classified.belowDust];
             const action = actionSweepMiscToFee(toSweep, feeScript);
             if (action !== null) {
                 await broadcastAction(seller, action, txids);
-                sweptMisc = classified.misc.length;
+                sweptMisc = split.toSweep.length;
             }
         }
 

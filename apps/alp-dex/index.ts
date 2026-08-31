@@ -5,6 +5,7 @@
 import { createApp } from './src/app';
 import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
+import { FormerInventoryNotify } from './src/inventory/formerInventoryNotify';
 import {
     MAINTAIN_DELAY_MS,
     MaintainInventoryError,
@@ -14,6 +15,7 @@ import {
 } from './src/inventory/maintain';
 import { AsyncQueue } from './src/methods/queue';
 import { createTelegramBot, createTelegramOpsSender } from './src/ops/telegram';
+import { getFormerInventoryNotice } from './src/ops/telegramMessages';
 import { pairSpotPrices } from './src/pricing/quotes';
 import { pricingReserveAtoms } from './src/pricing/reserves';
 import { loadTradedTokens } from './src/tokens/tradedTokens';
@@ -34,6 +36,13 @@ const logMaintainResult = (
     );
     for (const [tokenId, units] of Object.entries(inventory.fundedInventory)) {
         console.log(`inventory funded ${units}× ${tokenId.slice(0, 8)}…`);
+    }
+    for (const pile of inventory.formerInventory) {
+        console.warn(
+            `inventory maintain (${label}): leaving former inventory ` +
+                `${pile.utxoCount}× ${pile.tokenId} @ ${pile.atoms} atoms ` +
+                `(not sweeping to fee)`,
+        );
     }
 };
 
@@ -88,6 +97,7 @@ const main = async (): Promise<void> => {
     // One queue for settle + scheduled/post-settle maintain so they never
     // race on seller UTXO selection / broadcast.
     const walletQueue = new AsyncQueue();
+    const formerInventoryNotify = new FormerInventoryNotify();
     const enqueueMaintain = async (label: string): Promise<void> => {
         await walletQueue.enqueue(async () => {
             try {
@@ -98,6 +108,35 @@ const main = async (): Promise<void> => {
                     tradedTokens,
                 });
                 logMaintainResult(label, inventory);
+                if (telegramOps === undefined) {
+                    return;
+                }
+                const started = formerInventoryNotify.begin(
+                    label,
+                    inventory.formerInventory,
+                );
+                if (started === null) {
+                    return;
+                }
+                void telegramOps
+                    .send(
+                        getFormerInventoryNotice({
+                            sellerAddress: addresses.sellerAddress,
+                            piles: inventory.formerInventory,
+                        }),
+                    )
+                    .then(() => {
+                        formerInventoryNotify.complete(started, true);
+                    })
+                    .catch((error: unknown) => {
+                        formerInventoryNotify.complete(started, false);
+                        console.error(
+                            'Former-inventory Telegram notify failed:',
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                        );
+                    });
             } catch (error: unknown) {
                 logMaintainError(label, error);
             }
