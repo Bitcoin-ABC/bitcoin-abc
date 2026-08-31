@@ -650,10 +650,10 @@ importers:
         version: 5.106.2(webpack-cli@5.1.4)
       webpack-cli:
         specifier: ^5.1.4
-        version: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+        version: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
       webpack-dev-server:
-        specifier: ^5.2.4
-        version: 5.2.4(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
+        specifier: ^5.2.6
+        version: 5.2.6(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
       ws:
         specifier: ^8.21.0
         version: 8.21.1
@@ -9769,6 +9769,9 @@ packages:
   launch-editor@2.13.2:
     resolution: {integrity: sha512-4VVDnbOpLXy/s8rdRCSXb+zfMeFR0WlJWpET1iA9CQdlZDfwyLjUuGQzXU4VeOoey6AicSAluWan7Etga6Kcmg==}
 
+  launch-editor@2.14.1:
+    resolution: {integrity: sha512-QWBrQsMpH7gPr965dsKD/3cKWiNoTjpATQf++Xq63N6sKRGMwlVXz41O1IZTMfZQgBctD/K5Zt06+/I6pP6+HA==}
+
   lazy-ass@1.6.0:
     resolution: {integrity: sha512-cc8oEVoctTvsFZ/Oje/kGnHbpWHYBe8IAJe4C0QNc3t8uM/0Y8+erSz/7Y1ALuXTEZTMvxXwO6YbX1ey3ujiZw==}
     engines: {node: '> 0.8'}
@@ -13320,8 +13323,8 @@ packages:
       webpack:
         optional: true
 
-  webpack-dev-server@5.2.4:
-    resolution: {integrity: sha512-GqDPGZN9bRqKBTkp4aWkobDDHMsrXKoGSdOH56smIri8qR0JG8gfL8/v/f/OZR3/OKXjG8uwJbFVhKm/FNU/UA==}
+  webpack-dev-server@5.2.6:
+    resolution: {integrity: sha512-HNLRmamRvVavZQ+avceZifmv8hmdUjg43t6MI4SqJDwFdW7RPQwH5vzGhDRZSX59SgfbeHhLnq3g+uooWo7pVw==}
     engines: {node: '>= 18.12.0'}
     hasBin: true
     peerDependencies:
@@ -19486,19 +19489,19 @@ snapshots:
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.106.2)':
     dependencies:
       webpack: 5.106.2(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      webpack-cli: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.106.2)':
     dependencies:
       webpack: 5.106.2(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      webpack-cli: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
 
-  '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.2.4)(webpack@5.106.2)':
+  '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.2.6)(webpack@5.106.2)':
     dependencies:
       webpack: 5.106.2(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      webpack-cli: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
     optionalDependencies:
-      webpack-dev-server: 5.2.4(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
+      webpack-dev-server: 5.2.6(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
 
   '@xmldom/xmldom@0.9.10': {}
 
@@ -24323,6 +24326,11 @@ snapshots:
       picocolors: 1.1.1
       shell-quote: 1.10.0
 
+  launch-editor@2.14.1:
+    dependencies:
+      picocolors: 1.1.1
+      shell-quote: 1.10.0
+
   lazy-ass@1.6.0: {}
 
   leven@3.1.0: {}
@@ -28839,12 +28847,12 @@ snapshots:
 
   webidl-conversions@8.0.1: {}
 
-  webpack-cli@5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2):
+  webpack-cli@5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2):
     dependencies:
       '@discoveryjs/json-ext': 0.5.7
       '@webpack-cli/configtest': 2.1.1(webpack-cli@5.1.4)(webpack@5.106.2)
       '@webpack-cli/info': 2.0.2(webpack-cli@5.1.4)(webpack@5.106.2)
-      '@webpack-cli/serve': 2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      '@webpack-cli/serve': 2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.2.6)(webpack@5.106.2)
       colorette: 2.0.20
       commander: 10.0.1
       cross-spawn: 7.0.6
@@ -28856,7 +28864,7 @@ snapshots:
       webpack: 5.106.2(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
     optionalDependencies:
-      webpack-dev-server: 5.2.4(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
+      webpack-dev-server: 5.2.6(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2)
 
   webpack-dev-middleware@7.4.5(tslib@2.8.1)(webpack@5.106.2):
     dependencies:
@@ -28871,7 +28879,7 @@ snapshots:
     transitivePeerDependencies:
       - tslib
 
-  webpack-dev-server@5.2.4(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2):
+  webpack-dev-server@5.2.6(tslib@2.8.1)(webpack-cli@5.1.4)(webpack@5.106.2):
     dependencies:
       '@types/bonjour': 3.5.13
       '@types/connect-history-api-fallback': 1.5.4
@@ -28891,7 +28899,7 @@ snapshots:
       graceful-fs: 4.2.11
       http-proxy-middleware: 2.0.9(@types/express@4.17.25)
       ipaddr.js: 2.3.0
-      launch-editor: 2.13.2
+      launch-editor: 2.14.1
       open: 10.2.0
       p-retry: 6.2.1
       schema-utils: 4.3.3
@@ -28903,7 +28911,7 @@ snapshots:
       ws: 8.21.1
     optionalDependencies:
       webpack: 5.106.2(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      webpack-cli: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -28946,7 +28954,7 @@ snapshots:
       watchpack: 2.5.1
       webpack-sources: 3.3.4
     optionalDependencies:
-      webpack-cli: 5.1.4(webpack-dev-server@5.2.4)(webpack@5.106.2)
+      webpack-cli: 5.1.4(webpack-dev-server@5.2.6)(webpack@5.106.2)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
