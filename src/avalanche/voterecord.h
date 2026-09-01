@@ -119,7 +119,7 @@ public:
      * The method is made const so that it can be accessed via a read only view
      * of voteRecords. It's not a problem as it is made thread safe.
      */
-    void clearInflightRequest(uint8_t count = 1) const { inflight -= count; }
+    void clearInflightRequest(uint8_t count = 1) const;
 
 private:
     /**

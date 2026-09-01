@@ -6,6 +6,7 @@
 
 #include <util/bitmanip.h>
 
+#include <algorithm>
 #include <cstddef>
 
 namespace avalanche {
@@ -93,6 +94,14 @@ bool VoteRecord::registerPoll() const {
     }
 
     return false;
+}
+
+void VoteRecord::clearInflightRequest(uint8_t count) const {
+    uint8_t dec;
+    uint8_t current = inflight.load();
+    do {
+        dec = std::min(current, count);
+    } while (!inflight.compare_exchange_weak(current, current - dec));
 }
 
 } // namespace avalanche

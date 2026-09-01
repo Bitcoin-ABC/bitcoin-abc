@@ -136,6 +136,14 @@ BOOST_AUTO_TEST_CASE(vote_record) {
         BOOST_CHECK(vrinflight.registerPoll());
         BOOST_CHECK(!vrinflight.shouldPoll());
     }
+
+    // Check for inflight underflow
+    VoteRecord vrunderflow(false);
+    BOOST_CHECK(vrunderflow.shouldPoll());
+    vrunderflow.clearInflightRequest(AVALANCHE_MAX_INFLIGHT_POLL + 1);
+    // If an underflow occurred, the inflight count would be >
+    // AVALANCHE_MAX_INFLIGHT_POLL
+    BOOST_CHECK(vrunderflow.shouldPoll());
 }
 
 // Test some cases where confidence never advances
