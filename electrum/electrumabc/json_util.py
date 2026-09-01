@@ -6,6 +6,7 @@
 import json
 from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 
 from .transaction import Transaction
 
@@ -18,6 +19,8 @@ class MyEncoder(json.JSONEncoder):
             return obj.isoformat(" ")[:-3]
         if isinstance(obj, set):
             return list(obj)
+        if isinstance(obj, Enum):
+            return obj.value
         return super(MyEncoder, self).default(obj)
 
 
