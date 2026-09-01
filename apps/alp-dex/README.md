@@ -11,6 +11,7 @@ cp config.sample.json config.json
 # optional telegram: { adminChat, botToken, opsChat } (all three or omit)
 
 pnpm print-addresses
+pnpm summarize-wallets   # Chronik snapshot of seller / slush / fee UTXOs
 ```
 
 All runtime settings live in `config.json` (see SPEC.md). It is required at the

@@ -8,6 +8,7 @@
         "start": "node dist/index.js",
         "dev": "tsx index.ts",
         "print-addresses": "tsx scripts/printHdAddresses.ts",
+        "summarize-wallets": "tsx scripts/summarizeWallets.ts",
         "test": "mocha --import=tsx './test/**/*.test.ts'",
         "coverage": "c8 mocha --import=tsx './test/**/*.test.ts'",
         "junit": "mocha --import=tsx './test/**/*.test.ts' --reporter mocha-junit-reporter"
