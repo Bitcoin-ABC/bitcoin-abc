@@ -63,6 +63,8 @@
 #include <future>
 #include <memory>
 #include <numeric>
+#include <set>
+#include <tuple>
 #include <typeinfo>
 #include <unordered_set>
 #include <utility>
@@ -7718,38 +7720,39 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        auto availabilityScoreComparator = [](const CNode *lhs,
-                                              const CNode *rhs) {
-            double scoreLhs = lhs->getAvailabilityScore();
-            double scoreRhs = rhs->getAvailabilityScore();
+        using AvaNodeInfo = std::tuple<CAddress, NodeId, double>;
+        auto availabilityScoreComparator = [](const AvaNodeInfo &lhs,
+                                              const AvaNodeInfo &rhs) {
+            double scoreLhs = std::get<double>(lhs);
+            double scoreRhs = std::get<double>(rhs);
 
             if (scoreLhs != scoreRhs) {
                 return scoreLhs > scoreRhs;
             }
 
-            return lhs < rhs;
+            return std::get<NodeId>(lhs) < std::get<NodeId>(rhs);
         };
 
         // Get up to MAX_ADDR_TO_SEND addresses of the nodes which are the
         // most active in the avalanche network. Account for 0 availability as
         // well so we can send addresses even if we did not start polling yet.
-        std::set<const CNode *, decltype(availabilityScoreComparator)> avaNodes(
+        std::set<AvaNodeInfo, decltype(availabilityScoreComparator)> avaNodes(
             availabilityScoreComparator);
         m_connman.ForEachNode([&](const CNode *pnode) {
-            if (!pnode->m_avalanche_enabled ||
-                pnode->getAvailabilityScore() < 0.) {
+            const double score = pnode->getAvailabilityScore();
+            if (!pnode->m_avalanche_enabled || score < 0.) {
                 return;
             }
 
-            avaNodes.insert(pnode);
+            avaNodes.insert(AvaNodeInfo{pnode->addr, pnode->GetId(), score});
             if (avaNodes.size() > m_opts.max_addr_to_send) {
                 avaNodes.erase(std::prev(avaNodes.end()));
             }
         });
 
         peer->m_addrs_to_send.clear();
-        for (const CNode *pnode : avaNodes) {
-            PushAddress(*peer, pnode->addr);
+        for (const auto &nodeInfo : avaNodes) {
+            PushAddress(*peer, std::get<CAddress>(nodeInfo));
         }
 
         return;
