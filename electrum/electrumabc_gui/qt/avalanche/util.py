@@ -67,7 +67,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
         if self._pwd is not None:
             return self._pwd.decode("utf-8")
 
-        while self.wallet.has_password():
+        while self.wallet.has_keystore_encryption():
             password = PasswordDialog(parent=self).run()
             if password is None:
                 # dialog cancelled
