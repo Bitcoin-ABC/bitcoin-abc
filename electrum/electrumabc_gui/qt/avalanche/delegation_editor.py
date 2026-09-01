@@ -128,6 +128,8 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         self.tab_widget.setCurrentWidget(self.proof_edit)
 
     def maybe_prefill_delegator_key(self, pubkey: PublicKey):
+        if not self.wallet.can_export():
+            return
         idx = self.wallet.get_auxiliary_pubkey_index(
             address.PublicKey.from_pubkey(pubkey.keydata),
             self.pwd,
