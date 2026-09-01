@@ -1220,19 +1220,26 @@ export class Agora {
                     }
                 }
                 delete input.token?.entryIdx; // UTXO token has no entryIdx
-                const offer = this._parseOfferUtxo(
-                    {
-                        outpoint: input.prevOut,
-                        blockHeight: tx.block?.height ?? -1,
-                        isCoinbase: tx.isCoinbase,
-                        sats: input.sats,
-                        script: input.outputScript!,
-                        isFinal: false,
-                        plugins: input.plugins,
-                        token: input.token,
-                    },
-                    isCanceled ? 'CANCELED' : 'TAKEN',
-                );
+                let offer: AgoraOffer | undefined;
+                try {
+                    offer = this._parseOfferUtxo(
+                        {
+                            outpoint: input.prevOut,
+                            blockHeight: tx.block?.height ?? -1,
+                            isCoinbase: tx.isCoinbase,
+                            sats: input.sats,
+                            script: input.outputScript!,
+                            isFinal: false,
+                            plugins: input.plugins,
+                            token: input.token,
+                        },
+                        isCanceled ? 'CANCELED' : 'TAKEN',
+                    );
+                } catch {
+                    // Same guard as _activeOffersByGroup: one unreadable
+                    // spent covenant must not reject the whole history page.
+                    return [];
+                }
                 if (offer === undefined) {
                     return [];
                 }
@@ -1345,8 +1352,14 @@ export class Agora {
     ): Promise<AgoraOffer[]> {
         const utxos = await this.plugin.utxos(groupHex);
         return utxos.utxos.flatMap(utxo => {
-            const offer = this._parseOfferUtxo(utxo, 'OPEN');
-            return offer ? [offer] : [];
+            try {
+                const offer = this._parseOfferUtxo(utxo, 'OPEN');
+                return offer ? [offer] : [];
+            } catch {
+                // Skip a covenant we cannot parse so one unreadable utxo
+                // does not reject the whole group's book.
+                return [];
+            }
         });
     }
 
