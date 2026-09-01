@@ -5201,7 +5201,7 @@ export const selectUtxos = (
                         spendableUtxo.outpoint.outIdx ===
                             requiredUtxoOutpoint.outIdx,
                 );
-            if (typeof addedRequiredUtxoIndexInSpendableUtxos === 'undefined') {
+            if (addedRequiredUtxoIndexInSpendableUtxos === -1) {
                 throw new Error(
                     `Required UTXO ${requiredUtxoOutpoint.txid}:${requiredUtxoOutpoint.outIdx} not available in spendableUtxos`,
                 );

@@ -384,6 +384,10 @@ Add optional `onAddress` callback to `syncAndDiscoverAddresses()` (`SyncAndDisco
 
 Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.33.4**, **chronik-client >= 4.3.0**); if the endpoint is unavailable, gap discovery falls back to per-script queries and the callback is not invoked.
 
+# 6.1.2 [D20528](https://reviews.bitcoinabc.org/D20528)
+
+- Treat `findIndex === -1` as a missing `requiredUtxo` in `selectUtxos`. The previous `typeof index === 'undefined'` check never fired (`Array.prototype.findIndex` returns `-1`), so a missing outpoint was spliced as `undefined` and later crashed on `.sats`.
+
 # 6.1.1 [D20521](https://reviews.bitcoinabc.org/D20521)
 
 - Default omitted `PaymentOutput.sats` to `dustSats` in chained XEC size-limit builds, matching `paymentOutputsToTxOutputs`. A large XEC action with default-dust recipients previously undercounted the chain and failed to build.

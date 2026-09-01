@@ -1874,6 +1874,27 @@ describe('Support functions', () => {
                 config: { satsStrategy: SatsSelectionStrategy.REQUIRE_SATS },
             });
         });
+        it('Throws if a requiredUtxo is missing from spendableUtxos', () => {
+            expect(() =>
+                selectUtxos(
+                    {
+                        outputs: [
+                            { sats: 1_000n, script: MOCK_DESTINATION_SCRIPT },
+                        ],
+                        requiredUtxos: [{ txid: 'missing', outIdx: 0 }],
+                    },
+                    [
+                        {
+                            ...DUMMY_UTXO,
+                            sats: 10_000n,
+                            outpoint: { txid: '1', outIdx: 0 },
+                        },
+                    ],
+                ),
+            ).to.throw(
+                'Required UTXO missing:0 not available in spendableUtxos',
+            );
+        });
         it('Will return when accumulative selection has identified utxos that exactly equal the total output sats', () => {
             const action = {
                 outputs: [{ sats: 1_000n, script: MOCK_DESTINATION_SCRIPT }],
