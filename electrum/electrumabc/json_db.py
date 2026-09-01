@@ -91,7 +91,7 @@ class JsonDB(PrintError):
             json.dumps(value, cls=MyEncoder)
         except Exception:
             # note: "value" might be secret material, should probably not log it
-            self.logger.info(f"json error: cannot save {key=!r} ({type(value)})")
+            self.print_error(f"json error: cannot save {key=!r} ({type(value)})")
             return False
         if value is not None:
             if self.data.get(key) != value:
