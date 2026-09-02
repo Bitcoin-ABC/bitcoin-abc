@@ -10,6 +10,7 @@ import {
     CASHTAB_FIXED_CTA_ATTR,
     CASHTAB_FIXED_CTA_OFFSET_VAR,
     CASHTAB_MOBILE_FOOTER_OFFSET_PX,
+    CASHTAB_MOBILE_FOOTER_OFFSET_VAR,
     getAmountKeypadClearancePx,
     getMobileFooterOffsetPx,
     measureFixedCtaOffsetPx,
@@ -50,6 +51,28 @@ describe('cashtabAmountKeypadScroll', () => {
             expect(getMobileFooterOffsetPx(matchMedia)).toBe(
                 CASHTAB_MOBILE_FOOTER_OFFSET_PX,
             );
+        });
+
+        it('returns 0 on mobile when the OS keyboard offset var is 0px', () => {
+            const matchMedia = (() => ({
+                matches: false,
+            })) as unknown as typeof window.matchMedia;
+            document.documentElement.style.setProperty(
+                CASHTAB_MOBILE_FOOTER_OFFSET_VAR,
+                '0px',
+            );
+            try {
+                expect(
+                    getMobileFooterOffsetPx(
+                        matchMedia,
+                        document.documentElement,
+                    ),
+                ).toBe(0);
+            } finally {
+                document.documentElement.style.removeProperty(
+                    CASHTAB_MOBILE_FOOTER_OFFSET_VAR,
+                );
+            }
         });
     });
 

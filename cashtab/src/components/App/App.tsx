@@ -35,6 +35,7 @@ import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { useOsKeyboardChrome } from 'hooks/useOsKeyboardChrome';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';
@@ -68,6 +69,8 @@ import {
 } from 'components/App/styles';
 
 const App = () => {
+    // Hide the mobile bottom nav only while the OS keyboard is on screen.
+    useOsKeyboardChrome();
     const ContextValue = useContext(WalletContext);
     if (!isWalletContextLoaded(ContextValue)) {
         // Confirm we have all context required to load the page

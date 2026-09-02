@@ -116,7 +116,9 @@ export const WalletCtn = styled.div<{ showFooter?: boolean }>`
         overflow-y: unset;
         padding: 0 0 100px;
         min-height: ${props =>
-            props.showFooter ? 'calc(100vh - 70px)' : '100vh'};
+            props.showFooter
+                ? 'calc(100vh - var(--cashtab-mobile-footer-offset, 70px))'
+                : '100vh'};
     }
 `;
 
@@ -143,6 +145,10 @@ export const Footer = styled.div`
         bottom: 0;
         overflow: visible;
         border-right: none;
+        /* OS keyboard covers or hides the tab bar — see cashtabOsKeyboard */
+        html[data-cashtab-os-keyboard] & {
+            display: none;
+        }
         /* Hide Settings nav button on mobile */
         & > button:last-of-type {
             display: none;
@@ -217,7 +223,7 @@ export const NavIcon = styled.span<{ clicked?: boolean }>`
 export const NavMenu = styled.div<{ open?: boolean }>`
     @media (max-width: 768px) {
         position: absolute;
-        bottom: 70px;
+        bottom: var(--cashtab-mobile-footer-offset, 70px);
         right: ${props => (props.open ? '0' : '-300px')};
         display: flex;
         flex-direction: column;

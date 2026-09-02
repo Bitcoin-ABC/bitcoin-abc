@@ -24,6 +24,10 @@ export const CASHTAB_FIXED_CTA_ATTR = 'data-cashtab-fixed-cta';
 /** Cashtab bottom nav height on narrow viewports (see Footer / SendButtonContainer). */
 export const CASHTAB_MOBILE_FOOTER_OFFSET_PX = 70;
 
+/** Live footer height; 0px while the OS keyboard is open (see cashtabOsKeyboard). */
+export const CASHTAB_MOBILE_FOOTER_OFFSET_VAR =
+    '--cashtab-mobile-footer-offset';
+
 /** Extra gap so the amount field is not flush against the keypad top edge. */
 export const CASHTAB_AMOUNT_KEYPAD_SCROLL_PAD_PX = 12;
 
@@ -47,12 +51,22 @@ export const getMobileFooterOffsetPx = (
     'undefined'
         ? window.matchMedia
         : undefined,
+    root: HTMLElement | undefined = typeof document !== 'undefined'
+        ? document.documentElement
+        : undefined,
 ): number => {
     if (
         typeof matchMediaFn === 'function' &&
         matchMediaFn('(min-width: 769px)').matches
     ) {
         return 0;
+    }
+    if (root) {
+        return parseCssPxProperty(
+            getComputedStyle(root),
+            CASHTAB_MOBILE_FOOTER_OFFSET_VAR,
+            CASHTAB_MOBILE_FOOTER_OFFSET_PX,
+        );
     }
     return CASHTAB_MOBILE_FOOTER_OFFSET_PX;
 };
