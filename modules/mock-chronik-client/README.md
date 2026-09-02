@@ -142,3 +142,7 @@ If you have any implementation questions regarding this mock tool please check t
     3.4.0
 
 - Support for `broadcastAndFinalizeTx` and `broadcastAndFinalizeTxs` [D20014](https://reviews.bitcoinabc.org/D20014)
+
+    3.4.1 [D20538](https://reviews.bitcoinabc.org/D20538)
+
+- Patch bump to catch the latest `chronik-client`

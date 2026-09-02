@@ -364,3 +364,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.6 [D20535](https://reviews.bitcoinabc.org/D20535)
 
 - Skip unreadable covenants when reading offer groups so one unparseable utxo does not reject the whole active book or historicOffers page
+
+### 4.2.7 [D20538](https://reviews.bitcoinabc.org/D20538)
+
+- Patch bump to catch the latest `chronik-client`

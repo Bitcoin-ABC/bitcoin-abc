@@ -392,3 +392,7 @@ Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.
 
 - Default omitted `PaymentOutput.sats` to `dustSats` in chained XEC size-limit builds, matching `paymentOutputsToTxOutputs`. A large XEC action with default-dust recipients previously undercounted the chain and failed to build.
 - Honor the action `dustSats` when deciding whether chained alpha user change is above dust, and fill omitted sats on finalized payment outputs so a chained self-send updates the in-memory UTXO set correctly.
+
+# 6.1.3 [D20538](https://reviews.bitcoinabc.org/D20538)
+
+- Patch bump to catch the latest `chronik-client`
