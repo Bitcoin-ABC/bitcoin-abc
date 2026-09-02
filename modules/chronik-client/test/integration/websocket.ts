@@ -1000,6 +1000,12 @@ describe('Test expected websocket behavior of chronik-client', () => {
         // This is the only msg we receive
         expect(msgCollector.length).to.eql(0);
 
+        // pause()/resume() is a reconnect. The restore must re-send the
+        // existing script sub without recording it again.
+        expect(ws.subs.scripts).to.deep.equal([
+            { scriptType: 'p2pkh', payload: p2pkhHash },
+        ]);
+
         // Unsub from prev sub for next test
         ws.unsubscribeFromScript('p2pkh', p2pkhHash);
 

@@ -61,6 +61,11 @@ const ws = chronik.ws({
     onMessage: msg => {
         console.log('Got update: ', msg);
     },
+    onConnect: () => {
+        // Reconnect (including pause/resume) re-sends whatever is already
+        // in ws.subs. Do not call subscribeTo* again here — that would
+        // record a second copy of each subscription.
+    },
     onReconnect: e => {
         // Fired before a reconnect attempt is made:
         console.log('Reconnecting websocket, disconnection cause: ', e);
@@ -138,3 +143,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 - 4.1.0 - Add new methods `broadcastAndFinalizeTx` and `broadcastAndFinalizeTxs`. [D19136](https://reviews.bitcoinabc.org/D19136)
 - 4.2.0 - Add new method `batchUtxos` to fetch utxos for several scripts in a single request [D19909](https://reviews.bitcoinabc.org/D19909)
 - 4.3.0 - Add new method `batchSummary` to fetch a summary of the history/utxos for several scripts in a single request [D19983](https://reviews.bitcoinabc.org/D19983)
+- 4.3.1 - Fix reconnect re-subscription doubling every subscription and never restoring plugin subscriptions. Restore is send-only and automatic on socket open (including `pause()`/`resume()`). [D20536](https://reviews.bitcoinabc.org/D20536)

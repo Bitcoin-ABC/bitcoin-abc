@@ -296,34 +296,8 @@ export class FailoverProxy {
                 wsEndpoint.ws = ws;
                 wsEndpoint.connected = new Promise(resolve => {
                     ws.onopen = (msg: ws.Event) => {
-                        // Subscribe to all previously-subscribed scripts
-                        wsEndpoint.subs.scripts.forEach(sub =>
-                            wsEndpoint.subscribeToScript(
-                                sub.scriptType,
-                                sub.payload,
-                            ),
-                        );
-                        // Subscribe to all previously-subscribed lokadIds
-                        wsEndpoint.subs.lokadIds.forEach(lokadId =>
-                            wsEndpoint.subscribeToLokadId(lokadId),
-                        );
-                        // Subscribe to all previously-subscribed tokenIds
-                        wsEndpoint.subs.tokens.forEach(tokenId =>
-                            wsEndpoint.subscribeToTokenId(tokenId),
-                        );
-                        // Subscribe to all previously-subscribed txids
-                        wsEndpoint.subs.txids.forEach(txid =>
-                            wsEndpoint.subscribeToTxid(txid),
-                        );
-
-                        // Subscribe to blocks method, if previously subscribed
-                        if (wsEndpoint.subs.blocks === true) {
-                            wsEndpoint.subscribeToBlocks();
-                        }
-                        // Subscribe to txs method, if previously subscribed
-                        if (wsEndpoint.subs.txs === true) {
-                            wsEndpoint.subscribeToTxs();
-                        }
+                        // Send-only restore of this.subs, including plugins
+                        wsEndpoint._resubscribeAll();
                         resolve(msg);
                         if (wsEndpoint.onConnect !== undefined) {
                             wsEndpoint.onConnect(msg);

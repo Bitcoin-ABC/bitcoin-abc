@@ -1223,8 +1223,38 @@ export class WsEndpoint {
             this.ws.readyState === WebSocket.CLOSING ||
             this.ws.readyState === WebSocket.CLOSED
         ) {
+            // connectWs onopen re-sends this.subs
             await this._proxyInterface.connectWs(this);
             await this.connected;
+        }
+    }
+
+    /**
+     * Re-send every current subscription over the open socket.
+     *
+     * @internal Called from FailoverProxy.connectWs onopen. Public only
+     * so failoverProxy.ts can call it.
+     */
+    public _resubscribeAll() {
+        if (this.ws?.readyState !== WebSocket.OPEN) {
+            return;
+        }
+        this.subs.scripts.forEach(sub => this._subUnsubScript(false, sub));
+        this.subs.lokadIds.forEach(lokadId =>
+            this._subUnsubLokadId(false, lokadId),
+        );
+        this.subs.tokens.forEach(tokenId =>
+            this._subUnsubToken(false, tokenId),
+        );
+        this.subs.plugins.forEach(plugin =>
+            this._subUnsubPlugin(false, plugin),
+        );
+        this.subs.txids.forEach(txid => this._subUnsubTxid(false, txid));
+        if (this.subs.blocks === true) {
+            this._subUnsubBlocks(false);
+        }
+        if (this.subs.txs === true) {
+            this._subUnsubTxs(false);
         }
     }
 

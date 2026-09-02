@@ -4,7 +4,10 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as proto from '../proto/chronik';
+import { ChronikClient, WsEndpoint } from '../src/ChronikClient';
 import { FailoverProxy, appendWsUrls } from '../src/failoverProxy';
+import { toHex } from '../src/hex';
 import { isValidWsSubscription } from '../src/validation';
 import vectors from './vectors';
 
@@ -182,6 +185,7 @@ describe('FailoverProxy.connectWs failover', () => {
             manuallyClosed: false,
             autoReconnect: true,
             subs: { scripts: [], lokadIds: [], tokens: [], blocks: false },
+            _resubscribeAll: () => {},
         };
 
         await proxy.connectWs(wsEndpoint);
@@ -236,6 +240,7 @@ describe('FailoverProxy.connectWs with manuallyClosed', () => {
             manuallyClosed: false,
             autoReconnect: true,
             subs: { scripts: [], lokadIds: [], tokens: [], blocks: false },
+            _resubscribeAll: () => {},
         };
 
         await proxy.connectWs(wsEndpoint);
@@ -256,5 +261,118 @@ describe('FailoverProxy.connectWs with manuallyClosed', () => {
             wsEndpoint.ws.close();
             wsEndpoint.ws = null;
         }
+    });
+});
+
+describe('WsEndpoint._resubscribeAll', () => {
+    const SCRIPT_PAYLOAD = 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e';
+    const PLUGIN_NAME = 'my_plugin';
+    const PLUGIN_GROUP = Buffer.from('a').toString('hex');
+
+    // isomorphic-ws / browser WebSocket readyState values
+    const WS_OPEN = 1;
+    const WS_CLOSED = 3;
+
+    const mockOpenWs = (sent: Uint8Array[]) =>
+        ({
+            readyState: WS_OPEN,
+            send: (data: Uint8Array) => {
+                sent.push(data);
+            },
+            close: function (this: { readyState: number }) {
+                this.readyState = WS_CLOSED;
+            },
+        }) as any;
+
+    const openWsEndpoint = () => {
+        const chronik = new ChronikClient(['https://chronik.example.com']);
+        const wsEndpoint = chronik.ws({});
+        const sent: Uint8Array[] = [];
+        wsEndpoint.ws = mockOpenWs(sent);
+        return { wsEndpoint, sent };
+    };
+
+    const stubConnectWsOnResume = (
+        wsEndpoint: WsEndpoint,
+        sent: Uint8Array[],
+        onOpen: (endpoint: WsEndpoint) => void,
+    ) => {
+        const proxy = (wsEndpoint as any)._proxyInterface;
+        proxy.connectWs = async (endpoint: WsEndpoint) => {
+            endpoint.ws = mockOpenWs(sent);
+            onOpen(endpoint);
+            endpoint.connected = Promise.resolve({} as any);
+        };
+    };
+
+    const decodeSent = (sent: Uint8Array[]) =>
+        sent.map(frame => proto.WsSub.decode(frame));
+
+    it('does not grow this.subs after three reconnects and re-sends plugin frames', () => {
+        const { wsEndpoint, sent } = openWsEndpoint();
+
+        wsEndpoint.subscribeToScript('p2pkh', SCRIPT_PAYLOAD);
+        wsEndpoint.subscribeToPlugin(PLUGIN_NAME, PLUGIN_GROUP);
+
+        expect(wsEndpoint.subs.scripts).to.have.length(1);
+        expect(wsEndpoint.subs.plugins).to.have.length(1);
+        expect(sent).to.have.length(2);
+
+        for (let i = 0; i < 3; i += 1) {
+            wsEndpoint._resubscribeAll();
+        }
+
+        expect(wsEndpoint.subs.scripts).to.deep.equal([
+            { scriptType: 'p2pkh', payload: SCRIPT_PAYLOAD },
+        ]);
+        expect(wsEndpoint.subs.plugins).to.deep.equal([
+            { pluginName: PLUGIN_NAME, group: PLUGIN_GROUP },
+        ]);
+
+        // 1 initial subscribe + 3 reconnects for each kind
+        expect(sent).to.have.length(8);
+
+        const frames = decodeSent(sent);
+        const pluginFrames = frames.filter(
+            frame => typeof frame.plugin !== 'undefined',
+        );
+        const scriptFrames = frames.filter(
+            frame => typeof frame.script !== 'undefined',
+        );
+        expect(pluginFrames).to.have.length(4);
+        expect(scriptFrames).to.have.length(4);
+        pluginFrames.forEach(frame => {
+            expect(frame.isUnsub).to.equal(false);
+            expect(frame.plugin?.pluginName).to.equal(PLUGIN_NAME);
+            expect(toHex(frame.plugin!.group)).to.equal(PLUGIN_GROUP);
+        });
+        scriptFrames.forEach(frame => {
+            expect(frame.isUnsub).to.equal(false);
+            expect(frame.script?.scriptType).to.equal('p2pkh');
+            expect(toHex(frame.script!.payload)).to.equal(SCRIPT_PAYLOAD);
+        });
+    });
+
+    it('pause/resume via _resubscribeAll does not grow this.subs', async () => {
+        const { wsEndpoint, sent } = openWsEndpoint();
+
+        wsEndpoint.subscribeToScript('p2pkh', SCRIPT_PAYLOAD);
+        wsEndpoint.subscribeToPlugin(PLUGIN_NAME, PLUGIN_GROUP);
+
+        stubConnectWsOnResume(wsEndpoint, sent, endpoint =>
+            endpoint._resubscribeAll(),
+        );
+
+        for (let i = 0; i < 3; i += 1) {
+            wsEndpoint.pause();
+            await wsEndpoint.resume();
+        }
+
+        expect(wsEndpoint.subs.scripts).to.have.length(1);
+        expect(wsEndpoint.subs.plugins).to.have.length(1);
+        const pluginFrames = decodeSent(sent).filter(
+            frame => typeof frame.plugin !== 'undefined',
+        );
+        expect(pluginFrames).to.have.length(4);
     });
 });
