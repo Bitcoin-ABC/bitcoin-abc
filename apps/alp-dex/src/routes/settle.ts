@@ -17,8 +17,12 @@ import {
     getSwapFailedMessage,
     getSwapSuccessfulMessage,
 } from '../ops/telegramMessages';
-import { quoteExactIn } from '../pricing/quotes';
+import { quoteExactIn, spotToPerWholeFrom } from '../pricing/quotes';
 import { pairPricingReserves } from '../pricing/reserves';
+import {
+    effectiveRateToPerWholeFrom,
+    priceImpactPct,
+} from '../pricing/templates';
 import { assertConfiguredPair } from './quotes';
 import {
     humanExchangeRate,
@@ -174,6 +178,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
             let postagePaidSats = 0n;
             let txid: string | null = null;
             let validated = false;
+            let tradePriceImpactPct: number | undefined;
 
             const recordOutcome = async (
                 isValid: boolean,
@@ -234,6 +239,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                             toDecimals,
                             fromTicker,
                             toTicker,
+                            priceImpactPct: tradePriceImpactPct,
                         });
                     }
                 } else if (outcome === 'invalid' && parsedSwap !== undefined) {
@@ -244,6 +250,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         toDecimals,
                         fromTicker,
                         toTicker,
+                        priceImpactPct: tradePriceImpactPct,
                     });
                 } else if (
                     outcome === 'broadcast-failed' &&
@@ -256,6 +263,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         toDecimals,
                         fromTicker,
                         toTicker,
+                        priceImpactPct: tradePriceImpactPct,
                     });
                 } else {
                     message = getSwapFailedMessage({
@@ -267,6 +275,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         toTokenId,
                         fromTicker,
                         toTicker,
+                        priceImpactPct: tradePriceImpactPct,
                     });
                 }
                 if (message !== undefined) {
@@ -407,6 +416,26 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     );
                     const quote = quoteExactIn(priceLegAtoms, reserves, feePct);
                     const expectedToAtoms = quote.amountOut;
+                    if (priceLegAtoms > 0n) {
+                        const fromDecimals =
+                            tradedTokens.get(fromTokenId)?.decimals ?? 0;
+                        const toDecimals =
+                            tradedTokens.get(toTokenId)?.decimals ?? 0;
+                        tradePriceImpactPct = priceImpactPct(
+                            spotToPerWholeFrom(
+                                reserves.reserveIn,
+                                reserves.reserveOut,
+                                fromDecimals,
+                                toDecimals,
+                            ),
+                            effectiveRateToPerWholeFrom(
+                                priceLegAtoms,
+                                swap.atomsTo,
+                                fromDecimals,
+                                toDecimals,
+                            ),
+                        );
+                    }
 
                     validatePartiallySignedTx(swap, {
                         slushScriptHex: slush.script.toHex(),

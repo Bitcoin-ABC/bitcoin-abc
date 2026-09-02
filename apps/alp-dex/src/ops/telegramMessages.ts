@@ -44,12 +44,18 @@ const previewTxid = (txid: string, label: string): string =>
 const previewToken = (tokenId: string, label: string): string =>
     `<a href="${ECASH_EXPLORER_BASE_URL}/token/${escapeHtml(tokenId)}">${label}</a>`;
 
-const tokenLabelHtml = (tokenId: string, ticker?: string | null): string => {
-    const label = escapeHtml(
-        ticker?.trim() ? ticker.trim() : fallbackTokenLabel(tokenId),
-    );
-    return previewToken(tokenId, label);
-};
+/** Escaped ticker (or truncated tokenId). No explorer link. */
+export const tokenPlainLabel = (
+    tokenId: string,
+    ticker?: string | null,
+): string =>
+    escapeHtml(ticker?.trim() ? ticker.trim() : fallbackTokenLabel(tokenId));
+
+/** First (and only) explorer link for a tokenId in a message. */
+export const tokenLinkedLabel = (
+    tokenId: string,
+    ticker?: string | null,
+): string => previewToken(tokenId, tokenPlainLabel(tokenId, ticker));
 
 const formatSwapperLines = (
     userAddress: string,
@@ -63,16 +69,76 @@ const formatSwapperLines = (
     return lines.join('\n');
 };
 
+/** Group the integer part of an exact decimalized qty (e.g. 2171731.97 → 2,171,731.97). */
+export const formatTokenQty = (atoms: bigint, decimals: number): string => {
+    const qty = atomsToDecimalizedQty(atoms, decimals);
+    const negative = qty.startsWith('-');
+    const unsigned = negative ? qty.slice(1) : qty;
+    const [whole, frac] = unsigned.split('.');
+    const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
+    const body = frac === undefined ? grouped : `${grouped}.${frac}`;
+    return negative ? `-${body}` : body;
+};
+
+/**
+ * Format a number to `figures` significant digits without scientific notation.
+ * 147656 → 147,700; 0.00000677 → 0.000006770
+ */
+export const formatSignificantFigures = (
+    value: number,
+    figures = 4,
+): string => {
+    if (!Number.isFinite(value)) {
+        return 'n/a';
+    }
+    if (value === 0) {
+        return '0';
+    }
+    const asNumber = Number(value.toPrecision(figures));
+    if (!Number.isFinite(asNumber) || asNumber === 0) {
+        return '0';
+    }
+    const mag = Math.floor(Math.log10(Math.abs(asNumber)));
+    const fractionDigits = Math.max(0, figures - mag - 1);
+    return asNumber.toLocaleString('en-US', {
+        maximumFractionDigits: fractionDigits,
+        minimumFractionDigits: fractionDigits,
+    });
+};
+
+/** Price impact as a percent (2 d.p.; sub-0.01 shown as &lt;0.01%). */
+export const formatPriceImpact = (pct: number): string => {
+    if (!Number.isFinite(pct)) {
+        return 'n/a';
+    }
+    const abs = Math.abs(pct);
+    if (abs !== 0 && abs < 0.01) {
+        return `${pct < 0 ? '-' : ''}&lt;0.01%`;
+    }
+    return `${pct.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}%`;
+};
+
 const formatRateLine = (
     currentRate: number,
     fromLabel: string,
     toLabel: string,
 ): string =>
-    `<b>Rate:</b> 1 ${fromLabel} === ${currentRate.toFixed(6)} ${toLabel}`;
+    `<b>Rate:</b> 1 ${fromLabel} === ${formatSignificantFigures(currentRate)} ${toLabel}`;
+
+const formatPriceImpactLine = (priceImpactPct?: number): string =>
+    priceImpactPct === undefined
+        ? ''
+        : `<b>Price impact:</b> ${formatPriceImpact(priceImpactPct)}\n`;
 
 /** 100 sats = 1.00 XEC. */
 export const formatXec = (sats: bigint): string =>
-    `${(Number(sats) / 100).toFixed(2)} XEC`;
+    `${(Number(sats) / 100).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })} XEC`;
 
 export type FormerInventoryNoticePile = {
     tokenId: string;
@@ -92,7 +158,7 @@ export const getFormerInventoryNotice = (opts: {
     const { sellerAddress, piles } = opts;
     const lines = piles.map(pile => {
         const ticker = pile.tokenTicker?.trim();
-        const label = tokenLabelHtml(pile.tokenId, ticker);
+        const label = tokenLinkedLabel(pile.tokenId, ticker);
         return `• ${pile.utxoCount}× ${label} @ ${pile.atoms.toString()} atoms`;
     });
     return `⚠️ <b>Former inventory left on seller</b>
@@ -111,6 +177,7 @@ export interface InvalidSwapMessageParams {
     fromTicker?: string | null;
     toTicker?: string | null;
     username?: string | null;
+    priceImpactPct?: number;
 }
 
 /**
@@ -127,9 +194,12 @@ export const getInvalidSwapMessage = (
         fromTicker,
         toTicker,
         username,
+        priceImpactPct,
     } = params;
-    const fromLabel = tokenLabelHtml(parsedSwap.fromTokenId, fromTicker);
-    const toLabel = tokenLabelHtml(parsedSwap.toTokenId, toTicker);
+    const fromLinked = tokenLinkedLabel(parsedSwap.fromTokenId, fromTicker);
+    const toLinked = tokenLinkedLabel(parsedSwap.toTokenId, toTicker);
+    const fromPlain = tokenPlainLabel(parsedSwap.fromTokenId, fromTicker);
+    const toPlain = tokenPlainLabel(parsedSwap.toTokenId, toTicker);
 
     const userAddress = extractUserAddress(parsedSwap);
     const atomsFrom = parsedSwap.atomsFrom;
@@ -137,12 +207,13 @@ export const getInvalidSwapMessage = (
 
     return `❌ <b>Invalid Swap Attempt</b>
 
-<b>Pair:</b> ${fromLabel} → ${toLabel}
-<b>From:</b> ${atomsToDecimalizedQty(atomsFrom, fromDecimals)} ${fromLabel}
-<b>To:</b> ${atomsToDecimalizedQty(atomsTo, toDecimals)} ${toLabel}
+<b>Pair:</b> ${fromLinked} → ${toLinked}
+<b>From:</b> ${formatTokenQty(atomsFrom, fromDecimals)} ${fromPlain}
+<b>To:</b> ${formatTokenQty(atomsTo, toDecimals)} ${toPlain}
 ${formatSwapperLines(userAddress, username)}
 <b>Reason:</b> Swap validation failed (rate, conservation, or schema validation error)
-${formatRateLine(currentRate, fromLabel, toLabel)}`;
+${formatRateLine(currentRate, fromPlain, toPlain)}
+${formatPriceImpactLine(priceImpactPct)}`.trimEnd();
 };
 
 export interface BroadcastFailedMessageParams {
@@ -153,6 +224,7 @@ export interface BroadcastFailedMessageParams {
     fromTicker?: string | null;
     toTicker?: string | null;
     username?: string | null;
+    priceImpactPct?: number;
 }
 
 /**
@@ -169,9 +241,12 @@ export const getBroadcastFailedMessage = (
         fromTicker,
         toTicker,
         username,
+        priceImpactPct,
     } = params;
-    const fromLabel = tokenLabelHtml(parsedSwap.fromTokenId, fromTicker);
-    const toLabel = tokenLabelHtml(parsedSwap.toTokenId, toTicker);
+    const fromLinked = tokenLinkedLabel(parsedSwap.fromTokenId, fromTicker);
+    const toLinked = tokenLinkedLabel(parsedSwap.toTokenId, toTicker);
+    const fromPlain = tokenPlainLabel(parsedSwap.fromTokenId, fromTicker);
+    const toPlain = tokenPlainLabel(parsedSwap.toTokenId, toTicker);
 
     const qtyTokenBoughtToBuyer = parsedSwap.atomsTo;
 
@@ -180,11 +255,11 @@ export const getBroadcastFailedMessage = (
 
     return `❌ <b>Swap Broadcast Failed</b>
 
-<b>Pair:</b> ${fromLabel} → ${toLabel}
-<b>From:</b> ${atomsToDecimalizedQty(totalFrom, fromDecimals)} ${fromLabel}
-<b>To:</b> ${atomsToDecimalizedQty(qtyTokenBoughtToBuyer, toDecimals)} ${toLabel}
+<b>Pair:</b> ${fromLinked} → ${toLinked}
+<b>From:</b> ${formatTokenQty(totalFrom, fromDecimals)} ${fromPlain}
+<b>To:</b> ${formatTokenQty(qtyTokenBoughtToBuyer, toDecimals)} ${toPlain}
 ${formatSwapperLines(userAddress, username)}
-<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
+${formatPriceImpactLine(priceImpactPct)}<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
 };
 
 export interface SwapSuccessfulMessageParams {
@@ -197,6 +272,7 @@ export interface SwapSuccessfulMessageParams {
     fromTicker?: string | null;
     toTicker?: string | null;
     username?: string | null;
+    priceImpactPct?: number;
 }
 
 /**
@@ -215,9 +291,12 @@ export const getSwapSuccessfulMessage = (
         fromTicker,
         toTicker,
         username,
+        priceImpactPct,
     } = params;
-    const fromLabel = tokenLabelHtml(parsedSwap.fromTokenId, fromTicker);
-    const toLabel = tokenLabelHtml(parsedSwap.toTokenId, toTicker);
+    const fromLinked = tokenLinkedLabel(parsedSwap.fromTokenId, fromTicker);
+    const toLinked = tokenLinkedLabel(parsedSwap.toTokenId, toTicker);
+    const fromPlain = tokenPlainLabel(parsedSwap.fromTokenId, fromTicker);
+    const toPlain = tokenPlainLabel(parsedSwap.toTokenId, toTicker);
 
     const qtyTokenSoldToFee = parsedSwap.feeInFromAtoms;
     const qtyTokenBoughtToBuyer = parsedSwap.atomsTo;
@@ -233,16 +312,16 @@ export const getSwapSuccessfulMessage = (
 
     return `✅ <b>Swap Successful</b>
 
-<b>Pair:</b> ${fromLabel} → ${toLabel}
-<b>From:</b> ${atomsToDecimalizedQty(totalFrom, fromDecimals)} ${fromLabel}
-<b>To:</b> ${atomsToDecimalizedQty(qtyTokenBoughtToBuyer, toDecimals)} ${toLabel}
+<b>Pair:</b> ${fromLinked} → ${toLinked}
+<b>From:</b> ${formatTokenQty(totalFrom, fromDecimals)} ${fromPlain}
+<b>To:</b> ${formatTokenQty(qtyTokenBoughtToBuyer, toDecimals)} ${toPlain}
 ${
     !isZeroFeeSwap
-        ? `<b>Fee:</b> ${atomsToDecimalizedQty(qtyTokenSoldToFee, fromDecimals)} ${fromLabel} (${feeDisplay})`
+        ? `<b>Fee:</b> ${formatTokenQty(qtyTokenSoldToFee, fromDecimals)} ${fromPlain} (${feeDisplay})`
         : `<b>Fee:</b> ${feeDisplay}`
 }
-${formatRateLine(currentRate, fromLabel, toLabel)}
-<b>Postage:</b> ${formatXec(postagePaidSats)}
+${formatRateLine(currentRate, fromPlain, toPlain)}
+${formatPriceImpactLine(priceImpactPct)}<b>Postage:</b> ${formatXec(postagePaidSats)}
 ${formatSwapperLines(userAddress, username)}
 
 ${previewTxid(txid, 'View Transaction')}`;
@@ -258,6 +337,7 @@ export interface SwapFailedMessageParams {
     fromTicker?: string | null;
     toTicker?: string | null;
     username?: string | null;
+    priceImpactPct?: number;
 }
 
 /**
@@ -276,38 +356,45 @@ export const getSwapFailedMessage = (
         fromTicker,
         toTicker,
         username,
+        priceImpactPct,
     } = params;
 
-    let fromLabel = 'UNKNOWN';
-    let toLabel = 'UNKNOWN';
+    let fromLinked = 'UNKNOWN';
+    let toLinked = 'UNKNOWN';
+    let fromPlain = 'UNKNOWN';
+    let toPlain = 'UNKNOWN';
     let userAddress = 'Unknown';
     let atomsFrom = 0n;
     let atomsTo = 0n;
 
     if (parsedSwap) {
-        fromLabel = tokenLabelHtml(parsedSwap.fromTokenId, fromTicker);
-        toLabel = tokenLabelHtml(parsedSwap.toTokenId, toTicker);
+        fromLinked = tokenLinkedLabel(parsedSwap.fromTokenId, fromTicker);
+        toLinked = tokenLinkedLabel(parsedSwap.toTokenId, toTicker);
+        fromPlain = tokenPlainLabel(parsedSwap.fromTokenId, fromTicker);
+        toPlain = tokenPlainLabel(parsedSwap.toTokenId, toTicker);
         userAddress = extractUserAddress(parsedSwap);
         atomsFrom = parsedSwap.atomsFrom;
         atomsTo = parsedSwap.atomsTo;
     } else if (fromTokenId && toTokenId) {
-        fromLabel = tokenLabelHtml(fromTokenId, fromTicker);
-        toLabel = tokenLabelHtml(toTokenId, toTicker);
+        fromLinked = tokenLinkedLabel(fromTokenId, fromTicker);
+        toLinked = tokenLinkedLabel(toTokenId, toTicker);
+        fromPlain = tokenPlainLabel(fromTokenId, fromTicker);
+        toPlain = tokenPlainLabel(toTokenId, toTicker);
     }
 
     const fromLine =
         atomsFrom > 0n
-            ? `<b>From:</b> ${atomsToDecimalizedQty(atomsFrom, fromDecimals)} ${fromLabel}\n`
+            ? `<b>From:</b> ${formatTokenQty(atomsFrom, fromDecimals)} ${fromPlain}\n`
             : '';
     const toLine =
         atomsTo > 0n
-            ? `<b>To:</b> ${atomsToDecimalizedQty(atomsTo, toDecimals)} ${toLabel}\n`
+            ? `<b>To:</b> ${formatTokenQty(atomsTo, toDecimals)} ${toPlain}\n`
             : '';
     const amountLines = fromLine + toLine;
 
     return `❌ <b>Swap Failed</b>
 
-<b>Pair:</b> ${fromLabel} → ${toLabel}
+<b>Pair:</b> ${fromLinked} → ${toLinked}
 ${amountLines}${formatSwapperLines(userAddress, username)}
-<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
+${formatPriceImpactLine(priceImpactPct)}<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
 };

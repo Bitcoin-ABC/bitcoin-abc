@@ -110,6 +110,12 @@ export const isPermanentTelegramApiError = (error: unknown): boolean => {
 const defaultSleep = (ms: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms));
 
+/** Same as ecash-herald: HTML + no explorer OG image cards. */
+export const TELEGRAM_OPS_SEND_OPTIONS = {
+    parse_mode: 'HTML' as const,
+    link_preview_options: { is_disabled: true },
+};
+
 /**
  * One-shot HTML sendMessage. Prefer {@link createTelegramOpsSender} so
  * concurrent settles serialize and 429s back off.
@@ -119,7 +125,7 @@ export const sendTelegramOps = async (
     opsChat: string,
     html: string,
 ): Promise<void> => {
-    await bot.api.sendMessage(opsChat, html, { parse_mode: 'HTML' });
+    await bot.api.sendMessage(opsChat, html, TELEGRAM_OPS_SEND_OPTIONS);
 };
 
 const deliverWithRetries = async (

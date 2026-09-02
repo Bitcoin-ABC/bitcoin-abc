@@ -52,13 +52,23 @@ describe('telegram ops (grammy)', () => {
         const calls: Array<{
             chatId: string | number;
             text: string;
-            extra: { parse_mode?: string } | undefined;
+            extra:
+                | {
+                      parse_mode?: string;
+                      link_preview_options?: { is_disabled?: boolean };
+                  }
+                | undefined;
         }> = [];
         stubSend(bot, (async (chatId, text, extra) => {
             calls.push({
                 chatId,
                 text,
-                extra: extra as { parse_mode?: string } | undefined,
+                extra: extra as
+                    | {
+                          parse_mode?: string;
+                          link_preview_options?: { is_disabled?: boolean };
+                      }
+                    | undefined,
             });
             return { message_id: 1 } as Awaited<
                 ReturnType<Bot['api']['sendMessage']>
@@ -71,6 +81,10 @@ describe('telegram ops (grammy)', () => {
         assert.strictEqual(calls[0]!.chatId, '-100123');
         assert.strictEqual(calls[0]!.text, '<b>Swap Successful</b>');
         assert.strictEqual(calls[0]!.extra?.parse_mode, 'HTML');
+        assert.strictEqual(
+            calls[0]!.extra?.link_preview_options?.is_disabled,
+            true,
+        );
     });
 
     it('sendTelegramOps surfaces grammy errors to the caller', async () => {

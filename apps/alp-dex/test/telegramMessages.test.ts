@@ -8,6 +8,9 @@ import type { ParsedPartiallySignedSwap } from '../src/settle/parseSwap';
 import {
     ECASH_EXPLORER_BASE_URL,
     fallbackTokenLabel,
+    formatPriceImpact,
+    formatSignificantFigures,
+    formatTokenQty,
     formatXec,
     getBroadcastFailedMessage,
     getFormerInventoryNotice,
@@ -66,7 +69,30 @@ describe('telegram message builders', () => {
         assert.strictEqual(previewAddressLabel(TEST_USER), 'z2.035');
         assert.strictEqual(previewAddressLabel('Unknown'), 'nk.own');
         assert.strictEqual(formatXec(1000n), '10.00 XEC');
+        assert.strictEqual(formatXec(100_000n), '1,000.00 XEC');
         assert.ok(fallbackTokenLabel(TOKEN_A).includes('aaaaaaaa'));
+    });
+
+    it('formats token qtys with locale grouping', () => {
+        assert.strictEqual(formatTokenQty(100_0000n, 4), '100');
+        assert.strictEqual(formatTokenQty(51n, 4), '0.0051');
+        assert.strictEqual(formatTokenQty(2_171_731_97n, 2), '2,171,731.97');
+        assert.strictEqual(formatTokenQty(-14_92n, 2), '-14.92');
+    });
+
+    it('formats rates to 4 significant figures', () => {
+        assert.strictEqual(formatSignificantFigures(147656), '147,700');
+        assert.strictEqual(formatSignificantFigures(147014.796036), '147,000');
+        assert.strictEqual(formatSignificantFigures(0.95), '0.9500');
+        assert.strictEqual(formatSignificantFigures(0.00000677), '0.000006770');
+        assert.strictEqual(formatSignificantFigures(0), '0');
+    });
+
+    it('formats price impact percents', () => {
+        assert.strictEqual(formatPriceImpact(1.234), '1.23%');
+        assert.strictEqual(formatPriceImpact(0), '0.00%');
+        assert.strictEqual(formatPriceImpact(0.004), '&lt;0.01%');
+        assert.strictEqual(formatPriceImpact(-0.004), '-&lt;0.01%');
     });
 
     it('builds invalid swap HTML with explorer token links', () => {
@@ -88,11 +114,21 @@ describe('telegram message builders', () => {
             message.includes(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_A}`),
         );
         assert.ok(message.includes('>USD</a>'));
-        assert.ok(message.includes('<b>From:</b> 100 '));
-        assert.ok(message.includes('<b>To:</b> 95 '));
+        assert.strictEqual(
+            message.split(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_A}`)
+                .length - 1,
+            1,
+        );
+        assert.strictEqual(
+            message.split(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_B}`)
+                .length - 1,
+            1,
+        );
+        assert.ok(message.includes('<b>From:</b> 100 USD'));
+        assert.ok(message.includes('<b>To:</b> 95 CHF'));
         assert.ok(message.includes('z2.035'));
-        assert.ok(message.includes('1 '));
-        assert.ok(message.includes('0.950000'));
+        assert.ok(message.includes('0.9500'));
+        assert.ok(!message.includes('0.950000'));
         assert.ok(message.includes('validation error'));
     });
 
@@ -135,14 +171,53 @@ describe('telegram message builders', () => {
             fromTicker: 'BUTTER',
             toTicker: 'GUNS',
             username: 'alice',
+            priceImpactPct: 1.234,
         });
         assert.ok(message.includes('✅ <b>Swap Successful</b>'));
-        assert.ok(message.includes('<b>Fee:</b> 2 '));
+        assert.ok(message.includes('<b>Fee:</b> 2 BUTTER (2.0%)'));
         assert.ok(message.includes('(2.0%)'));
         assert.ok(message.includes('<b>Postage:</b> 10.00 XEC'));
         assert.ok(message.includes('<b>User:</b> @alice'));
+        assert.ok(message.includes('<b>Price impact:</b> 1.23%'));
         assert.ok(message.includes(`${ECASH_EXPLORER_BASE_URL}/tx/${txid}`));
         assert.ok(message.includes('View Transaction'));
+        assert.strictEqual(
+            message.split(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_A}`)
+                .length - 1,
+            1,
+        );
+        assert.strictEqual(
+            message.split(`${ECASH_EXPLORER_BASE_URL}/token/${TOKEN_B}`)
+                .length - 1,
+            1,
+        );
+        assert.ok(message.includes('<b>From:</b> 100 BUTTER'));
+        assert.ok(message.includes('0.9500 GUNS'));
+    });
+
+    it('locale-formats large token qtys and 4-sig-fig rates', () => {
+        const message = getSwapSuccessfulMessage({
+            parsedSwap: createMockParsedSwap(
+                TOKEN_A,
+                TOKEN_B,
+                14_9200n,
+                217_173_197n,
+                1478n,
+            ),
+            currentRate: 147014.796036,
+            postagePaidSats: 1000n,
+            txid: 'bigswap',
+            fromDecimals: 4,
+            toDecimals: 2,
+            fromTicker: 'FIRMA',
+            toTicker: 'XECX',
+            priceImpactPct: 0.004,
+        });
+        assert.ok(message.includes('<b>From:</b> 14.92 FIRMA'));
+        assert.ok(message.includes('<b>To:</b> 2,171,731.97 XECX'));
+        assert.ok(message.includes('147,000 XECX'));
+        assert.ok(message.includes('<b>Price impact:</b> &lt;0.01%'));
+        assert.ok(!message.includes('147014.796036'));
     });
 
     it('builds successful zero-fee swap HTML', () => {
