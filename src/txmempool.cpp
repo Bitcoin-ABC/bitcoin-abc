@@ -204,13 +204,15 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
 
     const TxId &txid = (*it)->GetTx().GetId();
 
-    if (reason != MemPoolRemovalReason::BLOCK && m_signals) {
-        // Notify clients that a transaction has been removed from the mempool
-        // for any reason except being included in a block. Clients interested
-        // in transactions included in blocks can subscribe to the
-        // BlockConnected notification.
-        m_signals->TransactionRemovedFromMempool((*it)->GetSharedTx(), reason,
-                                                 mempool_sequence);
+    if (reason != MemPoolRemovalReason::BLOCK) {
+        if (m_signals) {
+            // Notify clients that a transaction has been removed from the
+            // mempool for any reason except being included in a block. Clients
+            // interested in transactions included in blocks can subscribe to
+            // the BlockConnected notification.
+            m_signals->TransactionRemovedFromMempool((*it)->GetSharedTx(),
+                                                     reason, mempool_sequence);
+        }
 
         if (auto removed_tx = finalizedTxs.remove(txid)) {
             m_finalizedTxsFitter.removeTxUnchecked(removed_tx->GetTxSize(),
