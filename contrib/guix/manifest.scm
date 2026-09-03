@@ -4,7 +4,7 @@
              ((gnu packages bash) #:select (bash-minimal))
              (gnu packages bison)
              ((gnu packages nss) #:select (nss-certs))
-             ((gnu packages cmake) #:select (cmake-minimal))
+             ((gnu packages cmake) #:select (cmake-minimal corrosion))
              (gnu packages commencement)
              (gnu packages compression)
              (gnu packages cross-base)
@@ -439,6 +439,7 @@ inspecting signatures in Mach-O binaries.")
         libtool
         autoconf-2.71
         automake
+        corrosion
         (list gcc "lib")
         ;; Scripting
         python-minimal ;; (3.11)
