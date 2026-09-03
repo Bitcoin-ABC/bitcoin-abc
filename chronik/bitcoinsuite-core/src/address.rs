@@ -66,6 +66,10 @@ pub enum CashAddressError {
     /// The payload has an incorrect length
     #[error("Invalid payload length: {0}")]
     InvalidPayloadLength(usize),
+
+    /// Address contains both uppercase and lowercase letters
+    #[error("Mixed uppercase and lowercase")]
+    MixedCase,
 }
 
 impl CashAddress {
@@ -405,6 +409,11 @@ fn to_cash_addr(
 pub fn from_cash_addr(
     addr_string: &str,
 ) -> Result<(ShaRmd160, AddressType, String), CashAddressError> {
+    if addr_string.bytes().any(|b| b.is_ascii_lowercase())
+        && addr_string.bytes().any(|b| b.is_ascii_uppercase())
+    {
+        return Err(CashAddressError::MixedCase);
+    }
     let addr_string = addr_string.to_ascii_lowercase();
     let (prefix, payload_base32) = match addr_string.find(':') {
         Some(pos) => {
@@ -414,6 +423,10 @@ pub fn from_cash_addr(
         None => return Err(CashAddressError::MissingPrefix),
     };
     let decoded = map_from_b32(payload_base32)?;
+    // ShaRmd160 CashAddr: 34 data symbols + 8 checksum symbols
+    if decoded.len() != 42 {
+        return Err(CashAddressError::InvalidPayloadLength(decoded.len()));
+    }
     if !verify_checksum(&prefix, decoded.iter().cloned()) {
         return Err(CashAddressError::InvalidChecksum);
     }
@@ -423,7 +436,7 @@ pub fn from_cash_addr(
     let hash: [u8; 20] = match hash.try_into() {
         Ok(hash) => hash,
         Err(_) => {
-            return Err(CashAddressError::InvalidPayloadLength(hash.len()))
+            return Err(CashAddressError::InvalidPayloadLength(decoded.len()))
         }
     };
     Ok((
@@ -579,6 +592,45 @@ mod tests {
     }
 
     #[test]
+    fn test_cashaddr_testvectors_invalid() {
+        // Invalid cashaddr test vectors from cashaddr_tests.cpp
+        let cases = [
+            "prefix:x32nx6hz",
+            "prEfix:x64nx6hz",
+            "prefix:x64nx6Hz",
+            "pref1x:6m8cxv73",
+            "prefix:",
+            ":u9wsx07j",
+            "bchreg:555555555555555555x55555555555555555555555555udxmlmrz",
+            "bchreg:555555555555555555555555555555551555555555555udxmlmrz",
+            "pre:fix:x32nx6hz",
+            "prefixx64nx6hz",
+            "",
+            ":",
+            "p",
+            "p:",
+            "p:g",
+            "p:gp",
+            "p:gpf",
+            "p:gpf8",
+            "p:gpf8m",
+            "p:gpf8m4",
+            "p:gpf8m4h",
+            "rpzrrzpr:",
+            "rqiqkqiqr:",
+            "c:qvdy2z3",
+        ];
+
+        for case in cases {
+            assert!(
+                case.parse::<CashAddress>().is_err(),
+                "Expected parse failure for: {}",
+                case
+            );
+        }
+    }
+
+    #[test]
     fn test_parse_fail_wrong_prefix() {
         let err = "wrongprefix:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfnhks603"
             .parse::<CashAddress>()
@@ -594,12 +646,6 @@ mod tests {
         let err = "ecash:pqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8m7jvrjj"
             .parse::<CashAddress>()
             .unwrap_err();
-        match err {
-            CashAddressError::InvalidChecksum => {}
-            _ => panic!("Unexpected error: {}", err),
-        }
-
-        let err = "ecash:".parse::<CashAddress>().unwrap_err();
         match err {
             CashAddressError::InvalidChecksum => {}
             _ => panic!("Unexpected error: {}", err),
@@ -629,12 +675,37 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_fail_mixed_case() {
+        let err = "ecash:qQQQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx"
+            .parse::<CashAddress>()
+            .unwrap_err();
+        match err {
+            CashAddressError::MixedCase => {}
+            _ => panic!("Unexpected error: {}", err),
+        }
+    }
+
+    #[test]
     fn test_parse_fail_invalid_payload_length() {
         let err = "ecash:pqqqqqqqqqqqqqqqqqqqqzjzxkxw8"
             .parse::<CashAddress>()
             .unwrap_err();
         match err {
-            CashAddressError::InvalidPayloadLength(12) => {}
+            CashAddressError::InvalidPayloadLength(29) => {}
+            _ => panic!("Unexpected error: {}", err),
+        }
+
+        let err = "ecash:".parse::<CashAddress>().unwrap_err();
+        match err {
+            CashAddressError::InvalidPayloadLength(0) => {}
+            _ => panic!("Unexpected error: {}", err),
+        }
+
+        let err = "ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqa66l8sy3"
+            .parse::<CashAddress>()
+            .unwrap_err();
+        match err {
+            CashAddressError::InvalidPayloadLength(43) => {}
             _ => panic!("Unexpected error: {}", err),
         }
     }
