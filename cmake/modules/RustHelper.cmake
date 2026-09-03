@@ -13,6 +13,7 @@ else()
         Corrosion
         URL https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.5.1.tar.gz
         URL_HASH SHA256=843334a9f0f5efbc225dccfa88031fe0f2ec6fd787ca1e7d55ed27b2c25d9c97
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
 
     FetchContent_MakeAvailable(Corrosion)
