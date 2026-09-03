@@ -18,7 +18,7 @@ import { SatsSelectionStrategy, Wallet } from 'ecash-wallet';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import type { ParsedTradedConfig } from '../src/config/tradedConfig';
-import { POSTAGE_SATS } from '../src/constants';
+import { POSTAGE_SATS, SETTLE_MAX_QUEUE_AGE_MS } from '../src/constants';
 import type { TradedTokens } from '../src/tokens/tradedTokens';
 import { createLpWallets } from '../src/wallet/accounts';
 
@@ -168,6 +168,139 @@ const stubAcceptAnyBroadcast = (
             ensure(txHex);
         }
         return originalTxs(txsHex, skipTokenChecks);
+    };
+};
+
+type SettlePayload = {
+    serializedTxHex: string;
+    prePostageInputSats: string;
+    tokenId: string;
+    atoms: string;
+};
+
+/**
+ * Buyer postage-ready settle body for TOKEN_A → TOKEN_B at the 1.02 / 2%
+ * template. Shared by happy-path and queue-age E2E cases.
+ */
+const buildBuyerSettlePayload = async (
+    quoteApp: ReturnType<typeof createApp>,
+): Promise<SettlePayload> => {
+    const template = await request(quoteApp)
+        .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+        .expect(200);
+
+    const receivingTokenAtoms = BigInt(
+        template.body.outputs.find(
+            (o: { tokenId: string }) => o.tokenId === TOKEN_B,
+        )!.atoms,
+    );
+    const totalFromAtoms = template.body.outputs
+        .filter((o: { tokenId: string }) => o.tokenId === TOKEN_A)
+        .reduce(
+            (sum: bigint, o: { atoms: string }) => sum + BigInt(o.atoms),
+            0n,
+        );
+
+    const buyerMock = new MockChronikClient();
+    buyerMock.setBlockchainInfo({
+        tipHash: '00'.repeat(32),
+        tipHeight: 800_000,
+    });
+    const buyer = Wallet.fromSk(
+        fromHex(BUYER_SK),
+        buyerMock as unknown as ChronikClient,
+    );
+
+    const numBuyerUtxos =
+        Math.ceil(Number(totalFromAtoms) / Number(10_000n)) + 2;
+    const buyerUtxos: ScriptUtxo[] = Array.from(
+        { length: numBuyerUtxos },
+        (_, i) => ({
+            outpoint: {
+                txid: '11'.repeat(32),
+                outIdx: i,
+            },
+            blockHeight: 800_000,
+            isCoinbase: false,
+            sats: DEFAULT_DUST_SATS,
+            isFinal: true,
+            token: {
+                tokenId: TOKEN_A,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                atoms: 10_000n,
+                isMintBaton: false,
+            },
+        }),
+    );
+    buyerMock.setUtxosByAddress(buyer.address, buyerUtxos);
+    await buyer.sync();
+
+    const paymentOutputs: payment.PaymentOutput[] = [{ sats: 0n }];
+    for (const output of template.body.outputs) {
+        const paymentOutput: payment.PaymentOutput = {
+            sats: DEFAULT_DUST_SATS,
+            tokenId: output.tokenId,
+            atoms: BigInt(output.atoms),
+            isMintBaton: false,
+        };
+        if (output.script) {
+            paymentOutput.script = new Script(fromHex(output.script));
+        } else {
+            paymentOutput.script = buyer.script;
+        }
+        paymentOutputs.push(paymentOutput);
+    }
+
+    const numUtxosNeeded =
+        receivingTokenAtoms === 0n
+            ? 0
+            : Number((receivingTokenAtoms + UTXO_ATOMS - 1n) / UTXO_ATOMS);
+    const totalInputAtoms = UTXO_ATOMS * BigInt(numUtxosNeeded);
+    const changeAtoms = totalInputAtoms - receivingTokenAtoms;
+    if (changeAtoms > 0n && template.body.slushScript) {
+        paymentOutputs.push({
+            sats: DEFAULT_DUST_SATS,
+            script: new Script(fromHex(template.body.slushScript)),
+            tokenId: TOKEN_B,
+            atoms: changeAtoms,
+            isMintBaton: false,
+        });
+    }
+
+    const postageTx = buyer
+        .action(
+            {
+                outputs: paymentOutputs,
+                tokenActions: [
+                    {
+                        type: 'SEND',
+                        tokenId: TOKEN_A,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                    {
+                        type: 'SEND',
+                        tokenId: TOKEN_B,
+                        tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    },
+                ],
+            },
+            {
+                satsStrategy: SatsSelectionStrategy.NO_SATS,
+                ignoredTokenIds: [TOKEN_B],
+            },
+        )
+        .buildPostage()[0]
+        .buildStepPostage(0);
+
+    const prePostageInputSats = postageTx.partiallySignedTx.inputs
+        .map((input: TxInput) => input.signData!.sats ?? 0n)
+        .reduce((a: bigint, b: bigint) => a + b, 0n);
+
+    return {
+        serializedTxHex: toHex(postageTx.partiallySignedTx.ser()),
+        prePostageInputSats: prePostageInputSats.toString(),
+        tokenId: TOKEN_B,
+        atoms: receivingTokenAtoms.toString(),
     };
 };
 
@@ -334,12 +467,15 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
     let mock: MockChronikClient;
     let seller: Wallet;
     let slush: Wallet;
+    let feeAddress: string;
     let app: ReturnType<typeof createApp>;
     let maintainCalls = 0;
+    let broadcastCalls = 0;
     let audit: ReturnType<typeof installAuditSpies>;
 
     beforeEach(async () => {
         maintainCalls = 0;
+        broadcastCalls = 0;
         audit = installAuditSpies();
         mock = new MockChronikClient();
         mock.setBlockchainInfo({
@@ -347,10 +483,24 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
             tipHeight: 800_000,
         });
         stubAcceptAnyBroadcast(mock);
+        const origBroadcastTx = mock.broadcastTx.bind(mock);
+        mock.broadcastTx = async (txHex: string, skipTokenChecks?: boolean) => {
+            broadcastCalls += 1;
+            return origBroadcastTx(txHex, skipTokenChecks);
+        };
+        const origBroadcastTxs = mock.broadcastTxs.bind(mock);
+        mock.broadcastTxs = async (
+            txsHex: string[],
+            skipTokenChecks?: boolean,
+        ) => {
+            broadcastCalls += 1;
+            return origBroadcastTxs(txsHex, skipTokenChecks);
+        };
         const chronik = mock as unknown as ChronikClient;
         const wallets = createLpWallets(MNEMONIC, chronik, FEE);
         seller = wallets.seller;
         slush = wallets.slush;
+        feeAddress = wallets.addresses.feeAddress;
 
         const aUtxos = Array.from({ length: 100 }, (_, i) =>
             tokenUtxo(TOKEN_A, UTXO_ATOMS, i, '11'),
@@ -382,7 +532,7 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         app = createApp({
             seller,
             slush,
-            feeAddress: wallets.addresses.feeAddress,
+            feeAddress,
             tradedConfig: tradedConfig(),
             tradedTokens: tradedTokens(),
             maintainInventory: async () => {
@@ -550,6 +700,32 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         assert.ok(audit.logs[0]!.taker.startsWith('ecash:'));
         assert.ok(audit.logs[0]!.serializedTxHexLength > 0);
         assert.ok(!('serializedTxHex' in audit.logs[0]!));
+        assert.ok(broadcastCalls > 0);
+    });
+
+    it('returns 408 and does not broadcast a settle that sat in queue too long', async () => {
+        const payload = await buildBuyerSettlePayload(app);
+        const staleApp = createApp({
+            seller,
+            slush,
+            feeAddress,
+            tradedConfig: tradedConfig(),
+            tradedTokens: tradedTokens(),
+            createdAtMs: Date.now() - SETTLE_MAX_QUEUE_AGE_MS,
+        });
+
+        broadcastCalls = 0;
+        const settle = await request(staleApp)
+            .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+            .send(payload)
+            .expect(408);
+
+        assert.match(settle.body.error, /expired after 20000ms/);
+        assert.strictEqual(broadcastCalls, 0);
+        assert.strictEqual(audit.logs.length, 1);
+        assert.strictEqual(audit.logs[0]!.outcome, 'failed');
+        assert.strictEqual(audit.logs[0]!.broadcasted, false);
+        assert.strictEqual(audit.logs[0]!.txid, null);
     });
 
     it('rejects body atoms that do not match the buyer toToken out', async () => {

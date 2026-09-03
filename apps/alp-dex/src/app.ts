@@ -37,6 +37,12 @@ export type CreateAppDeps = {
     maintainInventory?: () => Promise<unknown>;
     /** Optional Telegram ops send (fire-and-forget after stdout audit). */
     sendOps?: SendOpsFn;
+    /**
+     * Stored settle receipt time. Production omits this so each request
+     * stamps `Date.now()`. Tests set a past timestamp so a queued job
+     * can expire without a real 20s sleep.
+     */
+    createdAtMs?: number;
 };
 
 /**
@@ -68,6 +74,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
         walletQueue,
         maintainInventory,
         sendOps,
+        createdAtMs,
     } = deps;
     const app = express();
     // One hop (typical nginx) so req.ip is the client, not 127.0.0.1.
@@ -143,6 +150,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             walletQueue,
             maintainInventory,
             sendOps,
+            createdAtMs,
         }),
     );
 

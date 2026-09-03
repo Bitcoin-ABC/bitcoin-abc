@@ -178,7 +178,10 @@ float/`Math.ceil`) so attached inventory matches the fixed ALP section.
 Concurrency note: a process-local queue serializes settle fuel/sign/broadcast
 **and** inventory maintain so they cannot double-spend the same seller
 UTXOs; it is **not** an on-chain reservation. Concurrent quotes can still
-race.
+race. A settle older than `SETTLE_MAX_QUEUE_AGE_MS` (20s, from request
+receipt) is rejected with HTTP 408 — once when the queue job starts, and
+again immediately before broadcast — so a client that already aborted
+cannot be filled late.
 
 Postage funding: every token mid-out must carry exactly `DEFAULT_DUST_SATS`
 (546); OP_RETURN must be 0 sats. Non-token mid-outs with sats are rejected.
@@ -222,6 +225,7 @@ stdout settle logs, and optional Telegram ops.
 
 - Success: `{ success, txid, postagePaidSats }`
 - Validation failure: `400` (`{ error }`)
+- Queue age exceeded (`SETTLE_MAX_QUEUE_AGE_MS`): `408` (`{ error }`)
 - Fuel/broadcast failure: `500` (`{ error }`)
 
 Every settle writes a structured log line: outcome, client IP (`req.ip`),

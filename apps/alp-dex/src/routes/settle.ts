@@ -10,6 +10,7 @@ import { POSTAGE_SATS } from '../constants';
 import { atomsToDecimalizedQty } from '../methods/atoms';
 import { AsyncQueue } from '../methods/queue';
 import { HttpError, ValidationError } from '../methods/errors';
+import { assertSettleRequestFresh } from '../methods/settleAge';
 import { assertTokenId } from '../methods/tokenId';
 import {
     getBroadcastFailedMessage,
@@ -59,6 +60,12 @@ export type SettleRouteDeps = {
      * Optional Telegram ops send. Fire-and-forget after the stdout audit log.
      */
     sendOps?: SendOpsFn;
+    /**
+     * Stored settle receipt time. Production omits this so each request
+     * stamps `Date.now()`. Tests set a past timestamp so expiry can be
+     * asserted without sleeping 20s.
+     */
+    createdAtMs?: number;
 };
 
 type SwapTokenParams = {
@@ -157,6 +164,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
         tradedTokens,
         maintainInventory,
         sendOps,
+        createdAtMs: createdAtMsOverride,
     } = deps;
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
     // Prefer the process-wide wallet queue so maintain cannot race settle.
@@ -167,6 +175,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
         '/swap/:fromTokenId/:toTokenId',
         async (req: Request<SwapTokenParams>, res: Response) => {
             const clientIp = clientIpFromRequest(req);
+            const createdAtMs = createdAtMsOverride ?? Date.now();
             let fromTokenId = req.params.fromTokenId;
             let toTokenId = req.params.toTokenId;
             let serializedTxHex = '';
@@ -403,6 +412,11 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     .reduce((sum, output) => sum + output.atoms, 0n);
 
                 const settled = await settleQueue.enqueue(async () => {
+                    // Drop jobs the taker has already timed out. Check
+                    // before inventory work and again immediately before
+                    // broadcast so a job that starts at t=19s cannot
+                    // still fill at t=25s.
+                    assertSettleRequestFresh(createdAtMs);
                     // Band + inventory selection share one post-sync
                     // snapshot so concurrent settles cannot validate
                     // against reserves the previous fill already moved.
@@ -550,6 +564,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                             0n,
                         );
 
+                    assertSettleRequestFresh(createdAtMs);
                     const broadcastResp = await builtTx.broadcast();
                     if (
                         !broadcastResp.success ||

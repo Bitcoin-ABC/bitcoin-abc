@@ -24,3 +24,9 @@ export const POSTAGE_SATS = 1000n;
  * `[floor(expected * (10000 - bps) / 10000), ceil(expected * (10000 + bps) / 10000)]`.
  */
 export const SETTLE_BAND_BPS = 100n;
+
+/**
+ * Max age of a queued settle before the node refuses to process or
+ * broadcast it (20s).
+ */
+export const SETTLE_MAX_QUEUE_AGE_MS = 20_000;
