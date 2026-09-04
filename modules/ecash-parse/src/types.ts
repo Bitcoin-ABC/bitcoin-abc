@@ -174,7 +174,7 @@ export type AlpSwapParsed =
           feeAtoms: string;
       }
     | {
-          /** LP sales wallet: provided to-token inventory + postage */
+          /** LP sales wallet: provided to-token inventory */
           role: 'seller';
           fromTokenId: string;
           toTokenId: string;

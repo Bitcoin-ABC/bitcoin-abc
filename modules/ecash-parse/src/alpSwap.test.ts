@@ -284,6 +284,31 @@ describe('AlpSwap parseTx', () => {
         assert.strictEqual(parsed.alpSwap, undefined);
     });
 
+    // FIRMA→XECX e02902d5... funded miner fee from token dust only; the
+    // postage-input heuristic missed to-token and the fee wallet fell through
+    // to generic SEND rows (0.0030 FIRMA + phantom 0.30 XECX).
+    it('Fee wallet: still makerFee when settle has no postage input', () => {
+        const noPostage = {
+            ...alpDexSettleTx,
+            inputs: alpDexSettleTx.inputs.filter(
+                input => typeof input.token !== 'undefined',
+            ),
+        };
+        const parsed = parseTx(noPostage, [MAKER_FEE_HASH]);
+        assert.deepStrictEqual(parsed.alpSwap, {
+            role: 'makerFee',
+            tokenId: TOKEN_BUTTER,
+            atoms: '99',
+        });
+        assert.deepStrictEqual(parseTx(noPostage, [SELLER_HASH]).alpSwap, {
+            role: 'seller',
+            fromTokenId: TOKEN_BUTTER,
+            toTokenId: TOKEN_GUNS,
+            fromAtoms: '9891',
+            toAtoms: '98',
+        });
+    });
+
     it('Notifications: buyer / seller / maker fee / platform fee', () => {
         const butterGenesis = {
             tokenTicker: 'BUTTER',

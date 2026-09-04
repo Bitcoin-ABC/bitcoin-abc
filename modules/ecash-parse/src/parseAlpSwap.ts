@@ -22,9 +22,13 @@ interface AlpSwapLegs {
 /**
  * Structural alp-dex settle legs from output order (buildSwapOutputs):
  * price (slush) → maker fee? → platform fee? → buyer to → …
+ *
+ * from-token is the first non-zero ALP SEND out. Do not require a seller
+ * postage input — some settles fund miner fee from token dust only
+ * (e.g. e02902d547debea9f2537c8fedfb5c7c13d74647b20af07bcfa5ad5438bbc81c).
  */
 export const extractAlpSwapLegs = (tx: Tx): AlpSwapLegs | null => {
-    const { inputs, tokenEntries, outputs } = tx;
+    const { tokenEntries, outputs } = tx;
 
     const alpSendEntries = tokenEntries.filter(
         entry =>
@@ -36,46 +40,27 @@ export const extractAlpSwapLegs = (tx: Tx): AlpSwapLegs | null => {
         return null;
     }
 
-    // Maker inventory script: script that spends a token UTXO and
-    // also contributes at least one non-token (postage / XEC) input.
-    type ScriptAgg = {
-        tokenId?: string;
-        hasNonToken: boolean;
-    };
-    const byScript = new Map<string, ScriptAgg>();
-    for (const input of inputs) {
-        if (typeof input.outputScript !== 'string') {
+    const sendTokenIds = new Set(alpSendEntries.map(entry => entry.tokenId));
+
+    let fromTokenId: string | undefined;
+    for (let i = 1; i < outputs.length; i++) {
+        const output = outputs[i];
+        if (typeof output.token === 'undefined' || output.token.atoms === 0n) {
             continue;
         }
-        const agg = byScript.get(input.outputScript) ?? { hasNonToken: false };
-        if (input.token) {
-            if (
-                input.token.tokenType.protocol === 'ALP' &&
-                typeof agg.tokenId === 'undefined'
-            ) {
-                agg.tokenId = input.token.tokenId;
-            }
-        } else {
-            agg.hasNonToken = true;
-        }
-        byScript.set(input.outputScript, agg);
-    }
-
-    let toTokenId: string | undefined;
-    for (const agg of byScript.values()) {
-        if (typeof agg.tokenId === 'string' && agg.hasNonToken) {
-            toTokenId = agg.tokenId;
+        if (sendTokenIds.has(output.token.tokenId)) {
+            fromTokenId = output.token.tokenId;
             break;
         }
     }
-    if (typeof toTokenId === 'undefined') {
+    if (typeof fromTokenId === 'undefined') {
         return null;
     }
 
-    const fromTokenId = alpSendEntries
+    const toTokenId = alpSendEntries
         .map(e => e.tokenId)
-        .find(id => id !== toTokenId);
-    if (typeof fromTokenId === 'undefined') {
+        .find(id => id !== fromTokenId);
+    if (typeof toTokenId === 'undefined') {
         return null;
     }
 
@@ -222,9 +207,8 @@ export const tryParseAlpSwap = (
         };
     }
 
-    // Seller / LP sales wallet: spent to-token inventory and postage
+    // Seller / LP sales wallet: spent to-token inventory (postage optional)
     let sellerSpentTo = false;
-    let sellerHasPostage = false;
     for (const input of tx.inputs) {
         if (
             typeof input.outputScript !== 'string' ||
@@ -234,12 +218,10 @@ export const tryParseAlpSwap = (
         }
         if (input.token && input.token.tokenId === toTokenId) {
             sellerSpentTo = true;
-        }
-        if (!input.token) {
-            sellerHasPostage = true;
+            break;
         }
     }
-    if (sellerSpentTo && sellerHasPostage) {
+    if (sellerSpentTo) {
         return {
             role: 'seller',
             fromTokenId,
