@@ -12,6 +12,7 @@ overrides:
     '@vercel/fun>path-to-regexp@<8.4.0': '>=8.4.2'
     '@vercel/express>path-to-regexp@<8.4.0': '>=8.4.2'
     '@vercel/hono>path-to-regexp@<8.4.0': '>=8.4.2'
+    'path-to-regexp@>=6.0.0 <6.3.0': '6.3.0'
     '@vercel/static-config>ajv@<8.18.0': '>=8.20.0'
     '@vercel/backends>srvx@<0.11.3': '>=0.11.15'
     'vercel>smol-toml@<1.6.1': '>=1.6.1'
