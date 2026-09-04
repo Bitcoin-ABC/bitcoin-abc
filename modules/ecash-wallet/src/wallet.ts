@@ -890,6 +890,10 @@ export class WalletAction {
             spendableUtxos,
         );
 
+        if (action.noChange === true && action.changeScript !== undefined) {
+            throw new Error('changeScript cannot be combined with noChange');
+        }
+
         if (
             wouldRequireAlpMultiTokenChainedSend(
                 preprocessedAction,
@@ -2183,7 +2187,7 @@ export class WalletAction {
             // already got our calcs sorted for this
             const userChangeOutput = {
                 sats: userChange,
-                script: this._wallet.script,
+                script: this.action.changeScript ?? this._wallet.script,
             };
             chainedTxAlphaOutputs.push(userChangeOutput);
         }
@@ -3408,12 +3412,15 @@ export class WalletAction {
         // Can you cover the tx without fuelUtxos?
         try {
             // For XEC change:
-            // - Non-HD wallets: use this._wallet.script directly (no changeIndex to worry about)
-            // - HD wallets: use this._wallet.script as dummy first, then rebuild with real change script
-            //   if change was added (to avoid incrementing changeIndex when change isn't needed)
+            // - changeScript: send change to that script (e.g. alp-dex slush)
+            // - Non-HD wallets: use this._wallet.script directly
+            // - HD wallets: use this._wallet.script as dummy first, then rebuild
+            //   with real change script if change was added (avoid incrementing
+            //   changeIndex when change isn't needed)
+            const changeScript = this.action.changeScript;
             const outputs = this.action.noChange
                 ? txOutputs
-                : [...txOutputs, this._wallet.script];
+                : [...txOutputs, changeScript ?? this._wallet.script];
 
             const txBuilder = new TxBuilder({
                 inputs,
@@ -3430,6 +3437,7 @@ export class WalletAction {
             if (
                 this._wallet.isHD &&
                 !this.action.noChange &&
+                changeScript === undefined &&
                 thisTx.outputs.length === txOutputs.length + 1
             ) {
                 // Change was added, rebuild with real change script

@@ -632,6 +632,81 @@ describe('wallet.ts', () => {
         );
         expect(tx.tx.outputs[1].sats).to.be.greaterThan(0);
     });
+
+    it('Can send XEC change to changeScript instead of the wallet', async () => {
+        const changeScript = Address.p2pkh('cafebabe'.repeat(5)).toScript();
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+        await testWallet.sync();
+
+        const builtAction = testWallet
+            .action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 1000n,
+                    },
+                ],
+                changeScript,
+            })
+            .build(ALL_BIP143);
+
+        const tx = builtAction.builtTxs[0];
+        expect(tx.tx.outputs).to.have.length(2);
+        expect(tx.tx.outputs[0].script.toHex()).to.equal(
+            MOCK_DESTINATION_SCRIPT.toHex(),
+        );
+        expect(tx.tx.outputs[1].script.toHex()).to.equal(changeScript.toHex());
+        expect(tx.tx.outputs[1].script.toHex()).to.not.equal(
+            testWallet.script.toHex(),
+        );
+        expect(tx.tx.outputs[1].sats).to.be.greaterThan(0);
+    });
+
+    it('Throws if changeScript is combined with noChange', async () => {
+        const changeScript = Address.p2pkh('cafebabe'.repeat(5)).toScript();
+        const mockChronik = new MockChronikClient();
+        const testWallet = Wallet.fromSk(
+            DUMMY_SK,
+            mockChronik as unknown as ChronikClient,
+        );
+
+        mockChronik.setBlockchainInfo({
+            tipHash: DUMMY_TIPHASH,
+            tipHeight: DUMMY_TIPHEIGHT,
+        });
+        mockChronik.setUtxosByAddress(
+            DUMMY_ADDRESS,
+            structuredClone(ALL_SUPPORTED_UTXOS),
+        );
+        await testWallet.sync();
+
+        expect(() =>
+            testWallet.action({
+                outputs: [
+                    {
+                        script: MOCK_DESTINATION_SCRIPT,
+                        sats: 1000n,
+                    },
+                ],
+                changeScript,
+                noChange: true,
+            }),
+        ).to.throw('changeScript cannot be combined with noChange');
+    });
+
     it('Throw error on sync() fail', async () => {
         const mockChronik = new MockChronikClient();
 

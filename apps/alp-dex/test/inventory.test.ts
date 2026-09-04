@@ -4,7 +4,12 @@
 
 import * as assert from 'assert';
 import type { ChronikClient } from 'chronik-client';
-import { ALP_TOKEN_TYPE_STANDARD, DEFAULT_DUST_SATS, Script } from 'ecash-lib';
+import {
+    ALP_TOKEN_TYPE_STANDARD,
+    DEFAULT_DUST_SATS,
+    Script,
+    Tx,
+} from 'ecash-lib';
 import { MockChronikClient } from 'mock-chronik-client';
 import { POSTAGE_SATS } from '../src/constants';
 import {
@@ -23,6 +28,7 @@ import {
     type SellerUtxoLike,
 } from '../src/inventory/classify';
 import {
+    formatMaintainTxLine,
     MaintainInventoryError,
     maintainHadActivity,
     maintainInventory,
@@ -365,6 +371,7 @@ describe('inventory actions', () => {
         const bOut = tokenOuts.find(o => o.tokenId === TOKEN_B);
         assert.strictEqual(aOut?.atoms, 50n);
         assert.strictEqual(bOut?.atoms, 7n);
+        assert.strictEqual(action.changeScript?.toHex(), slushScript.toHex());
         assert.strictEqual(actionCleanupSellerToSlush([], slushScript), null);
     });
 
@@ -421,6 +428,7 @@ describe('inventory actions', () => {
                         }),
                     ],
                     feeScript,
+                    slushScript,
                 ),
             /batons/,
         );
@@ -433,7 +441,8 @@ describe('inventory actions', () => {
                 isMintBaton: false,
             }),
         ];
-        const action = actionSweepMiscToFee(misc, feeScript);
+        const action = actionSweepMiscToFee(misc, feeScript, slushScript);
+        assert.strictEqual(action.changeScript?.toHex(), slushScript.toHex());
         assert.ok(action);
         assert.deepStrictEqual(action.requiredUtxos, [
             misc[0].outpoint,
@@ -454,7 +463,7 @@ describe('inventory actions', () => {
                 isMintBaton: false,
             }),
         ];
-        const dustyAction = actionSweepMiscToFee(dusty, feeScript);
+        const dustyAction = actionSweepMiscToFee(dusty, feeScript, slushScript);
         assert.ok(dustyAction);
         assert.strictEqual(
             dustyAction.outputs.some(
@@ -532,6 +541,73 @@ describe('inventory maintain (MockChronik)', () => {
             },
         ]);
 
+        const logs: string[] = [];
+        const origLog = console.log;
+        console.log = ((...args: unknown[]) => {
+            logs.push(args.map(String).join(' '));
+        }) as typeof console.log;
+        let result: Awaited<ReturnType<typeof maintainInventory>>;
+        try {
+            result = await maintainInventory({
+                seller,
+                slush,
+                feeAddress: FEE,
+                tradedTokens: new Map(),
+            });
+        } finally {
+            console.log = origLog;
+        }
+
+        assert.strictEqual(result.fundedPostage, POSTAGE_FUND_BATCH);
+        assert.strictEqual(result.cleanedToSlush, 0);
+        assert.strictEqual(result.sweptMisc, 0);
+        assert.deepStrictEqual(result.formerInventory, []);
+        assert.ok(result.txids.length >= 1);
+        for (const txid of result.txids) {
+            assert.ok(
+                logs.includes(formatMaintainTxLine('postage', txid)),
+                `expected postage txid log for ${txid}, got ${logs.join('\n')}`,
+            );
+        }
+    });
+
+    it('sweeps odd seller XEC leftover to slush (not back to seller)', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        const broadcastHex: string[] = [];
+        mock.broadcastTxs = async (txsHex: string[]) => {
+            broadcastHex.push(...txsHex);
+            return {
+                txids: txsHex.map((_, i) =>
+                    (i + 70).toString(16).padStart(64, '0'),
+                ),
+            };
+        };
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        mock.setUtxosByAddress(seller.address, [
+            {
+                outpoint: { txid: '33'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: 640n,
+                isFinal: true,
+            },
+            ...Array.from({ length: 3 }, (_, i) => ({
+                outpoint: { txid: '22'.repeat(32), outIdx: i },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: POSTAGE_SATS,
+                isFinal: true,
+            })),
+        ]);
+        mock.setUtxosByAddress(slush.address, []);
+
         const result = await maintainInventory({
             seller,
             slush,
@@ -539,11 +615,33 @@ describe('inventory maintain (MockChronik)', () => {
             tradedTokens: new Map(),
         });
 
-        assert.strictEqual(result.fundedPostage, POSTAGE_FUND_BATCH);
-        assert.strictEqual(result.cleanedToSlush, 0);
-        assert.strictEqual(result.sweptMisc, 0);
-        assert.deepStrictEqual(result.formerInventory, []);
+        assert.strictEqual(result.sweptMisc, 1);
         assert.ok(result.txids.length >= 1);
+        assert.ok(broadcastHex.length >= 1);
+
+        const classified = classifySellerUtxos(seller.utxos, new Map());
+        assert.deepStrictEqual(classified.misc, []);
+        assert.strictEqual(classified.belowDust.length, 0);
+        for (const utxo of seller.utxos) {
+            if (utxo.token === undefined) {
+                assert.strictEqual(utxo.sats, POSTAGE_SATS);
+            }
+        }
+
+        const slushHex = Script.fromAddress(slush.address).toHex();
+        const sellerHex = Script.fromAddress(seller.address).toHex();
+        const feeHex = Script.fromAddress(FEE).toHex();
+        const sweepTx = Tx.fromHex(broadcastHex[broadcastHex.length - 1]!);
+        const outScripts = sweepTx.outputs.map(out => out.script.toHex());
+        assert.ok(outScripts.includes(feeHex), 'sweep sends XEC to fee');
+        assert.ok(
+            outScripts.includes(slushHex),
+            'sweep leftover goes to slush',
+        );
+        assert.ok(
+            !outScripts.includes(sellerHex),
+            'sweep leftover must not return to seller',
+        );
     });
 
     it('leaves same-size leftover token piles on seller (not swept to fee)', async () => {

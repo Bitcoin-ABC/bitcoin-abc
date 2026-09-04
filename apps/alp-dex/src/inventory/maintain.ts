@@ -87,14 +87,45 @@ export const maintainHadActivity = (
     return Object.keys(inventory.fundedInventory).length > 0;
 };
 
+/**
+ * One-line journal summary after a maintain pass that had activity.
+ * Includes full txids so operators can look them up on an explorer.
+ */
+export const formatMaintainResultLine = (
+    label: string,
+    inventory: MaintainInventoryResult,
+): string => {
+    const txids =
+        inventory.txids.length === 0
+            ? ''
+            : ` txids=${inventory.txids.join(',')}`;
+    return (
+        `inventory maintain (${label}): cleanup→slush=${inventory.cleanedToSlush} ` +
+        `postage=${inventory.fundedPostage} ` +
+        `misc→fee=${inventory.sweptMisc} ` +
+        `belowDust=${inventory.belowDust} txs=${inventory.txids.length}` +
+        txids
+    );
+};
+
+/**
+ * Journal line for each maintain broadcast. Always include the full txid.
+ */
+export const formatMaintainTxLine = (step: string, txid: string): string =>
+    `inventory maintain tx ${step}: ${txid}`;
+
 const acceptBroadcastResult = (
     result: {
         success: boolean;
         broadcasted: string[];
     },
     txids: string[],
+    step: string,
 ): void => {
     txids.push(...result.broadcasted);
+    for (const txid of result.broadcasted) {
+        console.log(formatMaintainTxLine(step, txid));
+    }
     if (!result.success || result.broadcasted.length === 0) {
         throw new Error(
             `inventory maintain broadcast failed: ${JSON.stringify(result)}`,
@@ -107,10 +138,11 @@ const broadcastAction = async (
     spender: Wallet,
     action: NonNullable<ReturnType<typeof actionFundPostage>>,
     txids: string[],
+    step: string,
 ): Promise<void> => {
     const built = spender.action(action).build();
     const result = await built.broadcast();
-    acceptBroadcastResult(result, txids);
+    acceptBroadcastResult(result, txids, step);
 };
 
 /**
@@ -191,7 +223,7 @@ export const maintainInventory = async (opts: {
                 slushScript,
             );
             if (action !== null) {
-                await broadcastAction(seller, action, txids);
+                await broadcastAction(seller, action, txids, 'cleanup→slush');
                 cleanedToSlush = wrongSizedTraded.length;
             }
         }
@@ -216,7 +248,12 @@ export const maintainInventory = async (opts: {
                 if (action === null) {
                     break;
                 }
-                await broadcastAction(slush, action, txids);
+                await broadcastAction(
+                    slush,
+                    action,
+                    txids,
+                    `fund:${token.tokenTicker}`,
+                );
                 minted += unitCount;
                 const nextRemaining = inventoryUnitCount(
                     sumFungibleAtoms(slush.utxos, token.tokenId),
@@ -261,7 +298,7 @@ export const maintainInventory = async (opts: {
             const stamps = postageFundBatchCount(postage.length, spendableSats);
             const action = actionFundPostage(stamps, sellerScript);
             if (action !== null) {
-                await broadcastAction(slush, action, txids);
+                await broadcastAction(slush, action, txids, 'postage');
                 fundedPostage = stamps;
             }
         }
@@ -284,11 +321,15 @@ export const maintainInventory = async (opts: {
             const toSweep = [...split.toSweep, ...classified.belowDust];
             for (let i = 0; i < toSweep.length; i += MISC_SWEEP_BATCH) {
                 const batch = toSweep.slice(i, i + MISC_SWEEP_BATCH);
-                const action = actionSweepMiscToFee(batch, feeScript);
+                const action = actionSweepMiscToFee(
+                    batch,
+                    feeScript,
+                    slushScript,
+                );
                 if (action === null) {
                     continue;
                 }
-                await broadcastAction(seller, action, txids);
+                await broadcastAction(seller, action, txids, 'misc→fee');
                 for (const utxo of batch) {
                     if (!classified.belowDust.includes(utxo)) {
                         sweptMisc += 1;

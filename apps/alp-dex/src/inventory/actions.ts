@@ -73,7 +73,7 @@ const buildTokenSendOutputs = (
  * size (wrong size from fills, external sends, etc.).
  *
  * Pins `requiredUtxos` so selection cannot spend fill-eligible inventory or
- * postage. Wallet chains if needed.
+ * postage. XEC change goes to slush. Wallet chains if needed.
  */
 export const actionCleanupSellerToSlush = (
     wrongSizedTraded: SellerUtxoLike[],
@@ -96,6 +96,7 @@ export const actionCleanupSellerToSlush = (
         outputs: [{ sats: 0n }, ...outputs],
         tokenActions: tokenActionsForOutputs(outputs),
         requiredUtxos: wrongSizedTraded.map(u => u.outpoint),
+        changeScript: slushScript,
     };
 };
 
@@ -164,11 +165,13 @@ export const actionFundPostage = (
 /**
  * Seller → fee: sweep non-traded fungibles and odd (non-postage) XEC.
  * Batons must not appear in `misc`. Pins required outs so inventory/postage
- * are not selected.
+ * are not selected. XEC change (postage pulled in for miner fee) goes to
+ * slush so seller does not keep a new odd-XEC UTXO that must be re-swept.
  */
 export const actionSweepMiscToFee = (
     misc: SellerUtxoLike[],
     feeScript: Script,
+    changeScript: Script,
 ): payment.Action | null => {
     if (misc.length === 0) {
         return null;
@@ -202,6 +205,7 @@ export const actionSweepMiscToFee = (
     const action: payment.Action = {
         outputs: tokenActions.length > 0 ? [{ sats: 0n }, ...outputs] : outputs,
         requiredUtxos: misc.map(u => u.outpoint),
+        changeScript,
     };
     if (tokenActions.length > 0) {
         action.tokenActions = tokenActions;

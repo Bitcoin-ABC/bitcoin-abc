@@ -368,3 +368,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 ### 4.2.7 [D20538](https://reviews.bitcoinabc.org/D20538)
 
 - Patch bump to catch the latest `chronik-client`
+
+### 4.2.8 [D20561](https://reviews.bitcoinabc.org/D20561)
+
+- Upgrade to `ecash-lib` 4.14.0 and `ecash-wallet` 6.2.0

@@ -4,6 +4,7 @@
 
 import { GenesisInfo, TokenType } from '../token/common.js';
 import { PaymentOutput } from './output.js';
+import type { Script } from '../script.js';
 import { OutPoint } from '../tx.js';
 
 /**
@@ -70,6 +71,12 @@ export interface Action {
      * token send txs, as we also want these to be deterministic
      */
     noChange?: boolean;
+    /**
+     * Script that receives XEC change instead of the spending wallet.
+     * Ignored when `noChange` is true. Cannot be combined with `noChange`.
+     * Intermediate chained-tx fuel still goes to the spender.
+     */
+    changeScript?: Script;
     /** Dust sats associated with this tx, defaults to DEFAULT_DUST_SATS */
     dustSats?: bigint;
     /** Fee per kb to be used for tx(s) of this action, defaults to DEFAULT_FEE_SATS_PER_KB */

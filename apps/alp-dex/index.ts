@@ -7,6 +7,7 @@ import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
 import { FormerInventoryNotify } from './src/inventory/formerInventoryNotify';
 import {
+    formatMaintainResultLine,
     MAINTAIN_DELAY_MS,
     MaintainInventoryError,
     maintainHadActivity,
@@ -28,12 +29,7 @@ const logMaintainResult = (
     if (!maintainHadActivity(inventory)) {
         return;
     }
-    console.log(
-        `inventory maintain (${label}): cleanup→slush=${inventory.cleanedToSlush} ` +
-            `postage=${inventory.fundedPostage} ` +
-            `misc→fee=${inventory.sweptMisc} ` +
-            `belowDust=${inventory.belowDust} txs=${inventory.txids.length}`,
-    );
+    console.log(formatMaintainResultLine(label, inventory));
     for (const [tokenId, units] of Object.entries(inventory.fundedInventory)) {
         console.log(`inventory funded ${units}× ${tokenId.slice(0, 8)}…`);
     }
