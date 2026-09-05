@@ -2494,15 +2494,16 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     async fn estimate_fee(&self, params: Value) -> Result<Value, RPCError> {
         check_max_number_of_params!(params, 1);
 
+        let err_msg = "blockchain.estimatefee parameter should be a single \
+                       non-negative integer"
+            .to_string();
         // We don't need it but it's mandatory
         let _confirmations = match get_param!(params, 0, "number")? {
-            Value::Number(v) if v.as_i64().unwrap() >= 0 => Ok(v),
-            _ => Err(RPCError::CustomError(
-                1,
-                "blockchain.estimatefee parameter should be a single \
-                 non-negative integer"
-                    .to_string(),
-            )),
+            Value::Number(v) => match v.as_i64() {
+                Some(n) if n >= 0 => Ok(n),
+                _ => Err(RPCError::CustomError(1, err_msg)),
+            },
+            _ => Err(RPCError::CustomError(1, err_msg)),
         }?;
 
         let sats_per_kb = self.node.bridge.estimate_feerate_sats_per_kb();
