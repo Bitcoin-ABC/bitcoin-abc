@@ -267,6 +267,13 @@ const miners: Miners = {
                 coinbaseHexFragment: '6d696e65706f6f6c69732e636f6d', // ascii minepoolis.com
             },
         ],
+        [
+            '76a9142f6e5f71dcabaa4a0d5f00c8216b60dc2a500a1d88ac',
+            {
+                miner: 'BlockForge',
+                coinbaseHexFragment: '426c6f636b466f726765', // ascii BlockForge
+            },
+        ],
     ],
 };
 

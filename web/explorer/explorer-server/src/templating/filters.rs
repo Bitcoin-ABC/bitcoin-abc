@@ -158,6 +158,7 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "AlphaSoloPool.com",
         "mkpool.com",
         "minepoolis.com",
+        "BlockForge",
         // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
@@ -587,6 +588,15 @@ mod tests {
         assert_eq!(
             render_miner(minepoolis_coinbase_hex).unwrap(),
             "minepoolis.com"
+        );
+
+        // BlockForge 965354
+        let blockforge_coinbase_hex =
+            b"\x03\xea\xba\x0e\x0c/BlockForge/\x10\xa1\x93\x9dY\x16\x00\x00\x00\
+            \x00\x00\x00";
+        assert_eq!(
+            render_miner(blockforge_coinbase_hex).unwrap(),
+            "BlockForge"
         );
 
         // Unknown miner

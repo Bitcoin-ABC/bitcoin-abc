@@ -627,6 +627,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'minepoolis.com',
     },
+    // BlockForge - parsed from payout script
+    {
+        height: '965354',
+        coinbaseHex:
+            '03eaba0e0c2f426c6f636b466f7267652f10a1939d5916000000000000',
+        payoutOutputScript:
+            '76a9142f6e5f71dcabaa4a0d5f00c8216b60dc2a500a1d88ac',
+        parsed: 'BlockForge',
+    },
+    // BlockForge - parsed from coinbase hex fragment
+    {
+        height: '965354',
+        coinbaseHex:
+            '03eaba0e0c2f426c6f636b466f7267652f10a1939d5916000000000000',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'BlockForge',
+    },
 ];
 
 export default minerTestFixtures;
