@@ -281,7 +281,7 @@ impl MempoolTokens {
                 // Input tx not a token tx
                 continue;
             };
-            if token_tx.outputs.len() < out_idx {
+            if token_tx.outputs.len() <= out_idx {
                 return Ok(Err(InputTxNoSuchOutput(input.prev_out)));
             }
             let Some(token_num_idx) = token_tx.outputs[out_idx].token_num_idx()
