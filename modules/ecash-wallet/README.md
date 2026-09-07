@@ -400,3 +400,7 @@ Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.
 # 6.2.0 [D20561](https://reviews.bitcoinabc.org/D20561)
 
 - Honor optional `payment.Action.changeScript` so XEC change can go to a script other than the spending wallet. Cannot be combined with `noChange`. Intermediate chained-tx fuel still goes to the spender.
+
+# 6.2.1 [D20579](https://reviews.bitcoinabc.org/D20579)
+
+- Patch bump to catch the latest `ecash-lib`

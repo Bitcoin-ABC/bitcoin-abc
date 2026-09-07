@@ -27,6 +27,8 @@ const ONESHOT_HEX = toHex(strToBytes(AgoraOneshot.COVENANT_VARIANT));
 const PARTIAL_HEX = toHex(strToBytes(AgoraPartial.COVENANT_VARIANT));
 const PUBKEY_PREFIX = toHex(strToBytes('P'));
 const MAKER_SCRIPT = Script.p2pkh(fromHex('11'.repeat(20)));
+const TAKER_P2PKH = Script.p2pkh(fromHex('33'.repeat(20)));
+const TAKER_P2SH = Script.p2sh(fromHex('44'.repeat(20)));
 const SLP_TOKEN: Token = {
     tokenId: TOKEN_ID,
     tokenType: {
@@ -170,6 +172,141 @@ describe('Agora offer-group parse robustness', () => {
             goodTx.inputs[0].prevOut.txid,
         );
         expect(result.numTxs).to.equal(2);
+    });
+
+    it('Keeps readable historic offers when a TAKEN tx has only two outputs', async () => {
+        const goodTx = canceledHistoricTx(
+            validExtraOutputsSer,
+            '07'.repeat(32),
+        );
+        // Consensus-valid ONESHOT accept: OP_RETURN + maker payment, no outputs[2].
+        // Last-but-one op is OP_1 => TAKEN (not canceled).
+        const shortTakenTx = canceledHistoricTx(
+            validExtraOutputsSer,
+            '08'.repeat(32),
+        );
+        shortTakenTx.inputs[0].inputScript = Script.fromOps([
+            OP_1,
+            OP_1,
+        ]).toHex();
+        shortTakenTx.outputs = [
+            { sats: 0n, outputScript: '6a' },
+            { sats: 80000n, outputScript: MAKER_SCRIPT.toHex() },
+        ];
+        const agora = new Agora(
+            mockChronik({
+                confirmedTxs: async () => ({
+                    txs: [shortTakenTx, goodTx],
+                    numPages: 1,
+                    numTxs: 2,
+                }),
+            }),
+        );
+
+        const result = await agora.historicOffers({
+            type: 'TOKEN_ID',
+            tokenId: TOKEN_ID,
+            table: 'CONFIRMED',
+        });
+        const canceled = result.offers.find(
+            offer => offer.status === 'CANCELED',
+        );
+        expect(canceled).to.not.equal(undefined);
+        expect(canceled!.outpoint.txid).to.equal(goodTx.inputs[0].prevOut.txid);
+        const taken = result.offers.find(offer => offer.status === 'TAKEN');
+        expect(taken).to.not.equal(undefined);
+        expect(taken!.takenInfo).to.equal(undefined);
+        expect(result.numTxs).to.equal(2);
+    });
+
+    it('Sets takenInfo from output 2 when a full accept pays a P2SH recipient', async () => {
+        const fullAcceptP2sh = canceledHistoricTx(
+            validExtraOutputsSer,
+            '09'.repeat(32),
+        );
+        fullAcceptP2sh.inputs[0].inputScript = Script.fromOps([
+            OP_1,
+            OP_1,
+        ]).toHex();
+        fullAcceptP2sh.outputs = [
+            { sats: 0n, outputScript: '6a' },
+            { sats: 80000n, outputScript: MAKER_SCRIPT.toHex() },
+            {
+                sats: 546n,
+                outputScript: TAKER_P2SH.toHex(),
+                token: SLP_TOKEN,
+            },
+        ];
+        const agora = new Agora(
+            mockChronik({
+                confirmedTxs: async () => ({
+                    txs: [fullAcceptP2sh],
+                    numPages: 1,
+                    numTxs: 1,
+                }),
+            }),
+        );
+
+        const result = await agora.historicOffers({
+            type: 'TOKEN_ID',
+            tokenId: TOKEN_ID,
+            table: 'CONFIRMED',
+        });
+        expect(result.offers).to.have.length(1);
+        expect(result.offers[0].status).to.equal('TAKEN');
+        expect(result.offers[0].takenInfo).to.deep.equal({
+            sats: 80000n,
+            atoms: 1n,
+            takerScriptHex: TAKER_P2SH.toHex(),
+        });
+    });
+
+    it('Sets takenInfo from output 3 when output 2 is a leftover agora offer', async () => {
+        const partialAccept = canceledHistoricTx(
+            validExtraOutputsSer,
+            '0a'.repeat(32),
+        );
+        partialAccept.inputs[0].inputScript = Script.fromOps([
+            OP_1,
+            OP_1,
+        ]).toHex();
+        partialAccept.outputs = [
+            { sats: 0n, outputScript: '6a' },
+            { sats: 40000n, outputScript: MAKER_SCRIPT.toHex() },
+            {
+                sats: 546n,
+                outputScript: Script.p2sh(fromHex('55'.repeat(20))).toHex(),
+                plugins: { agora: agoraPlugin(validExtraOutputsSer) },
+                token: SLP_TOKEN,
+            },
+            {
+                sats: 546n,
+                outputScript: TAKER_P2PKH.toHex(),
+                token: { ...SLP_TOKEN, atoms: 1n },
+            },
+        ];
+        const agora = new Agora(
+            mockChronik({
+                confirmedTxs: async () => ({
+                    txs: [partialAccept],
+                    numPages: 1,
+                    numTxs: 1,
+                }),
+            }),
+        );
+
+        const result = await agora.historicOffers({
+            type: 'TOKEN_ID',
+            tokenId: TOKEN_ID,
+            table: 'CONFIRMED',
+        });
+        expect(result.offers).to.have.length(1);
+        expect(result.offers[0].status).to.equal('TAKEN');
+        expect(result.offers[0].takenInfo).to.deep.equal({
+            sats: 40000n,
+            atoms: 1n,
+            takerScriptHex: TAKER_P2PKH.toHex(),
+        });
     });
 
     it('Drops a version-skewed PARTIAL plugin data() shape instead of rejecting the group', async () => {

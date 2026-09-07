@@ -1158,7 +1158,7 @@ export class Agora {
                 if (!isCanceled) {
                     // If this tx is not canceling an agora offer
                     if (
-                        typeof tx.outputs[1].plugins !== 'undefined' &&
+                        typeof tx.outputs[1]?.plugins !== 'undefined' &&
                         'agora' in tx.outputs[1].plugins
                     ) {
                         // If this tx creates a new agora offer at index 1 of outputs
@@ -1191,32 +1191,48 @@ export class Agora {
                     // In practice, we can get these amounts by following the rules below
                     // Note we may see AgoraOffer change in the future and need to update this parsing
 
-                    // The purchase price is satoshis that go to the offer creator
-                    // Index 1 output
-                    const sats = tx.outputs[1].sats;
+                    // ONESHOT accepts can have only OP_RETURN + maker payment
+                    // (no outputs[2]). Skip takenInfo rather than throw.
+                    try {
+                        const makerOutput = tx.outputs[1];
+                        const maybeTakerOrChange = tx.outputs[2];
+                        if (
+                            makerOutput !== undefined &&
+                            maybeTakerOrChange !== undefined
+                        ) {
+                            // The purchase price is satoshis that go to the offer creator
+                            // Index 1 output
+                            const sats = makerOutput.sats;
 
-                    // The taker receives the purchased tokens at a p2pkh address
-                    // This is at index 2 for a buy of the full offer and index 3 for a partial buy
-                    // If tx.outputs[2].outputScript is p2sh, that means partialbuy and takerBuyIndex is 3
-                    const takerBuyIndex = tx.outputs[2].outputScript.startsWith(
-                        '76a914',
-                    )
-                        ? 2
-                        : 3;
+                            // The taker receives the purchased tokens at index 2
+                            // for a full accept, or index 3 when index 2 is the
+                            // leftover agora offer from a partial accept.
+                            // Do not infer this from a P2PKH prefix: a full
+                            // accept can pay any recipientScript, including P2SH.
+                            const isPartialChange =
+                                typeof maybeTakerOrChange.plugins !==
+                                    'undefined' &&
+                                'agora' in maybeTakerOrChange.plugins;
+                            const takerBuyIndex = isPartialChange ? 3 : 2;
 
-                    const takerScriptHex =
-                        tx.outputs[takerBuyIndex].outputScript;
-
-                    const atoms = tx.outputs[takerBuyIndex].token?.atoms;
-                    if (typeof atoms === 'bigint') {
-                        // Should always be true but we may have different kinds of agora
-                        // offers in the future
-                        // So, we only set if we have the info we expect
-                        takenInfo = {
-                            sats,
-                            atoms,
-                            takerScriptHex,
-                        };
+                            const takerOutput = tx.outputs[takerBuyIndex];
+                            if (takerOutput !== undefined) {
+                                const takerScriptHex = takerOutput.outputScript;
+                                const atoms = takerOutput.token?.atoms;
+                                if (typeof atoms === 'bigint') {
+                                    // Should always be true but we may have different kinds of agora
+                                    // offers in the future
+                                    // So, we only set if we have the info we expect
+                                    takenInfo = {
+                                        sats,
+                                        atoms,
+                                        takerScriptHex,
+                                    };
+                                }
+                            }
+                        }
+                    } catch {
+                        // Leave takenInfo undefined; still try _parseOfferUtxo.
                     }
                 }
                 delete input.token?.entryIdx; // UTXO token has no entryIdx
