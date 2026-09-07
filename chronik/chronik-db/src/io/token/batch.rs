@@ -395,7 +395,7 @@ impl<'tx> BatchProcessor<'tx> {
         valid_txs: &HashMap<TxNum, TokenTx>,
     ) -> Result<Vec<Option<SpentToken>>> {
         if tx.is_coinbase {
-            Ok(vec![])
+            Ok(vec![None; tx.tx.inputs.len()])
         } else {
             let mut inputs = Vec::with_capacity(tx.input_nums.len());
             for (&input_num, input) in tx.input_nums.iter().zip(&tx.tx.inputs) {

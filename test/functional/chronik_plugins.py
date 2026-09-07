@@ -14,8 +14,10 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import COINBASE_MATURITY
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
+from test_framework.chronik.alp import alp_genesis, alp_opreturn
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
+from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -58,6 +60,7 @@ class ChronikPlugins(BitcoinTestFramework):
         # concatenated with the existing plugin data of the corresponding input
         with open(plugins_toml, "w", encoding="utf-8") as f:
             print("[regtest.plugin.my_plugin]", file=f)
+            print("[regtest.plugin.alp_plugin]", file=f)
         os.mkdir(plugins_dir)
         plugin_module = os.path.join(plugins_dir, "my_plugin.py")
         with open(plugin_module, "w", encoding="utf-8") as f:
@@ -97,9 +100,31 @@ class MyPluginPlugin(Plugin):
                 file=f,
             )
 
+        # Plugin matching ALP (SLP2) so coinbase ALP genesis runs through the
+        # plugin bridge with token_data attached.
+        alp_plugin_module = os.path.join(plugins_dir, "alp_plugin.py")
+        with open(alp_plugin_module, "w", encoding="utf-8") as f:
+            print(
+                """
+from chronik_plugin.plugin import Plugin
+
+class AlpPluginPlugin(Plugin):
+    def lokad_id(self):
+        return b'SLP2'
+
+    def version(self):
+        return '0.1.0'
+
+    def run(self, tx):
+        return []
+""",
+                file=f,
+            )
+
         with node.assert_debug_log(
             [
                 "Plugin context initialized Python",
+                'Loaded plugin alp_plugin.AlpPluginPlugin (version 0.1.0) with LOKAD IDs [b"SLP2"]',
                 'Loaded plugin my_plugin.MyPluginPlugin (version 0.1.0) with LOKAD IDs [b"TEST"]',
             ]
         ):
@@ -408,6 +433,32 @@ class MyPluginPlugin(Plugin):
             [utxo.plugins for utxo in proto_utxos3],
             tx3_plugin_outputs[1:],
         )
+
+        # RCoinbase with ALP genesis OP_RETURN while an ALP plugin is loaded
+        peer = node.add_p2p_connection(P2PDataStore())
+        tip = node.getbestblockhash()
+        height = node.getblockcount() + 1
+        coinbase_tx = create_coinbase(height, b"\x03" * 33)
+        coinbase_tx.vout.insert(
+            0,
+            alp_opreturn(
+                alp_genesis(
+                    token_ticker=b"CB",
+                    token_name=b"Coinbase ALP",
+                    mint_amounts=[],
+                    num_batons=0,
+                )
+            ),
+        )
+        block = create_block(int(tip, 16), coinbase_tx)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        peer.send_blocks_and_test([block], node)
+
+        # Node must still be responsive; coinbase is queryable with ALP entry
+        proto_cb = chronik.tx(coinbase_tx.txid_hex).ok()
+        assert_equal(len(proto_cb.token_entries), 1)
+        assert_equal(proto_cb.token_entries[0].tx_type, pb.GENESIS)
 
 
 if __name__ == "__main__":
