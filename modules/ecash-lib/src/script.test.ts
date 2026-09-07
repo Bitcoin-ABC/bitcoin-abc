@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import { fromHex, toHex } from './io/hex.js';
 import { WriterBytes } from './io/writerbytes.js';
 import { MAX_PUBKEYS_PER_MULTISIG } from './consts.js';
-import { pushBytesOp } from './op.js';
+import { pushBytesOp, pushNumberOp } from './op.js';
 import { Script } from './script.js';
 import {
     OP_0,
@@ -288,6 +288,55 @@ describe('Script', () => {
         const oneMore = [...pks, fromHex('04'.repeat(33))];
         expect(() => Script.multisig(2, oneMore)).to.throw(
             /numPubkeys must be <= 20/,
+        );
+    });
+
+    it('Script.parseMultisigRedeemScript throws for unbounded or invalid m/n', () => {
+        const pk1 = fromHex('02'.repeat(33));
+        const pk2 = fromHex('03'.repeat(33));
+
+        const hugeM = Script.fromOps([
+            pushNumberOp(2 ** 26),
+            pushBytesOp(pk1),
+            pushBytesOp(pk2),
+            pushNumberOp(2),
+            OP_CHECKMULTISIG,
+        ]);
+        expect(() => hugeM.parseMultisigRedeemScript()).to.throw(
+            /m must be <= n/,
+        );
+
+        const mZero = Script.fromOps([
+            pushNumberOp(0),
+            pushBytesOp(pk1),
+            pushBytesOp(pk2),
+            pushNumberOp(2),
+            OP_CHECKMULTISIG,
+        ]);
+        expect(() => mZero.parseMultisigRedeemScript()).to.throw(
+            /m and n must be >= 1/,
+        );
+
+        const mGreaterThanN = Script.fromOps([
+            pushNumberOp(3),
+            pushBytesOp(pk1),
+            pushBytesOp(pk2),
+            pushNumberOp(2),
+            OP_CHECKMULTISIG,
+        ]);
+        expect(() => mGreaterThanN.parseMultisigRedeemScript()).to.throw(
+            /m must be <= n/,
+        );
+
+        const negativeM = Script.fromOps([
+            pushNumberOp(-1),
+            pushBytesOp(pk1),
+            pushBytesOp(pk2),
+            pushNumberOp(2),
+            OP_CHECKMULTISIG,
+        ]);
+        expect(() => negativeM.parseMultisigRedeemScript()).to.throw(
+            /m and n must be >= 1/,
         );
     });
 

@@ -399,6 +399,29 @@ export class Script {
                 `Invalid multisig redeem script: expected ${numPubkeys} pubkeys, got ${pubkeys.length}`,
             );
         }
+        if (
+            !Number.isSafeInteger(numSignatures) ||
+            !Number.isSafeInteger(numPubkeys)
+        ) {
+            throw new Error(
+                `Invalid multisig redeem script: m and n must be safe integers (got m=${numSignatures}, n=${numPubkeys})`,
+            );
+        }
+        if (numSignatures < 1 || numPubkeys < 1) {
+            throw new Error(
+                `Invalid multisig redeem script: m and n must be >= 1 (got m=${numSignatures}, n=${numPubkeys})`,
+            );
+        }
+        if (numSignatures > numPubkeys) {
+            throw new Error(
+                `Invalid multisig redeem script: m must be <= n (got ${numSignatures} of ${numPubkeys})`,
+            );
+        }
+        if (numPubkeys > MAX_PUBKEYS_PER_MULTISIG) {
+            throw new Error(
+                `Invalid multisig redeem script: n must be <= ${MAX_PUBKEYS_PER_MULTISIG} (got ${numPubkeys})`,
+            );
+        }
         return { numSignatures, numPubkeys, pubkeys };
     }
 
