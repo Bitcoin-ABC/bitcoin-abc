@@ -178,124 +178,144 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     // Parse app action
     const appActions: AppAction[] = [];
     if (stackArray.length !== 0) {
-        const lokadId = stackArray[0];
-        switch (lokadId) {
-            case opReturn.appPrefixesHex.eToken: {
-                // slpv1
-                // Do nothing, handle this in token actions
-                break;
-            }
-            case opReturn.opReserved: {
-                // EMPP
-                // spec: https://ecashbuilders.notion.site/eCash-Multi-Pushdata-Protocol-11e1b991071c4a77a3e948ba604859ac
-
-                const emppActions = getEmppAppActions(stackArray);
-                for (const emppAction of emppActions) {
-                    appActions.push(emppAction);
+        try {
+            const lokadId = stackArray[0];
+            switch (lokadId) {
+                case opReturn.appPrefixesHex.eToken: {
+                    // slpv1
+                    // Do nothing, handle this in token actions
+                    break;
                 }
-                break;
-            }
-            case opReturn.appPrefixesHex.alp: {
-                // ALP token transaction - check for embedded EMPP data (DICE/ROLL)
-                // Look through stackArray for DICE or ROLL lokad IDs
-                // DICE/ROLL data may be embedded in any push after the ALP protocol identifier
-                for (let i = 0; i < stackArray.length; i++) {
-                    const push = stackArray[i];
-                    // Check if this push starts with DICE or ROLL lokad ID (8 hex chars = 4 bytes)
-                    if (push.length >= 8) {
-                        const lokadId = push.slice(0, 8);
-                        if (lokadId === opReturn.appPrefixesHex.dice) {
-                            // Found DICE bet in ALP transaction
-                            const emppAction = getEmppAppAction(push);
-                            if (typeof emppAction !== 'undefined') {
-                                appActions.push(emppAction);
-                            }
-                        } else if (lokadId === opReturn.appPrefixesHex.roll) {
-                            // Found ROLL payout in ALP transaction
-                            const emppAction = getEmppAppAction(push);
-                            if (typeof emppAction !== 'undefined') {
-                                appActions.push(emppAction);
-                            }
-                        } else if (lokadId === opReturn.appPrefixesHex.trophy) {
-                            // Found everydayjackpot.com payout in ALP transaction
-                            const emppAction = getEmppAppAction(push);
-                            if (typeof emppAction !== 'undefined') {
-                                appActions.push(emppAction);
+                case opReturn.opReserved: {
+                    // EMPP
+                    // spec: https://ecashbuilders.notion.site/eCash-Multi-Pushdata-Protocol-11e1b991071c4a77a3e948ba604859ac
+
+                    const emppActions = getEmppAppActions(stackArray);
+                    for (const emppAction of emppActions) {
+                        appActions.push(emppAction);
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.alp: {
+                    // ALP token transaction - check for embedded EMPP data (DICE/ROLL)
+                    // Look through stackArray for DICE or ROLL lokad IDs
+                    // DICE/ROLL data may be embedded in any push after the ALP protocol identifier
+                    for (let i = 0; i < stackArray.length; i++) {
+                        const push = stackArray[i];
+                        // Check if this push starts with DICE or ROLL lokad ID (8 hex chars = 4 bytes)
+                        if (push.length >= 8) {
+                            const lokadId = push.slice(0, 8);
+                            if (lokadId === opReturn.appPrefixesHex.dice) {
+                                // Found DICE bet in ALP transaction
+                                const emppAction = getEmppAppAction(push);
+                                if (typeof emppAction !== 'undefined') {
+                                    appActions.push(emppAction);
+                                }
+                            } else if (
+                                lokadId === opReturn.appPrefixesHex.roll
+                            ) {
+                                // Found ROLL payout in ALP transaction
+                                const emppAction = getEmppAppAction(push);
+                                if (typeof emppAction !== 'undefined') {
+                                    appActions.push(emppAction);
+                                }
+                            } else if (
+                                lokadId === opReturn.appPrefixesHex.trophy
+                            ) {
+                                // Found everydayjackpot.com payout in ALP transaction
+                                const emppAction = getEmppAppAction(push);
+                                if (typeof emppAction !== 'undefined') {
+                                    appActions.push(emppAction);
+                                }
                             }
                         }
                     }
+                    break;
                 }
-                break;
-            }
-            case opReturn.appPrefixesHex.aliasRegistration: {
-                const app = 'alias';
-                // Magic numbers per spec
-                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
-                if (
-                    stackArray[1] === '00' &&
-                    typeof stackArray[2] !== 'undefined' &&
-                    typeof stackArray[3] !== 'undefined' &&
-                    stackArray[3].length === 42
-                ) {
-                    const addressTypeByte = stackArray[3].slice(0, 2);
-                    let addressType: 'p2pkh' | 'p2sh';
-                    if (addressTypeByte === '00') {
-                        addressType = 'p2pkh';
-                    } else if (addressTypeByte === '08') {
-                        addressType = 'p2sh';
-                    } else {
+                case opReturn.appPrefixesHex.aliasRegistration: {
+                    const app = 'alias';
+                    // Magic numbers per spec
+                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
+                    if (
+                        stackArray[1] === '00' &&
+                        typeof stackArray[2] !== 'undefined' &&
+                        typeof stackArray[3] !== 'undefined' &&
+                        stackArray[3].length === 42
+                    ) {
+                        const addressTypeByte = stackArray[3].slice(0, 2);
+                        let addressType: 'p2pkh' | 'p2sh';
+                        if (addressTypeByte === '00') {
+                            addressType = 'p2pkh';
+                        } else if (addressTypeByte === '08') {
+                            addressType = 'p2sh';
+                        } else {
+                            appActions.push({
+                                app,
+                                lokadId,
+                                isValid: false,
+                            });
+                            break;
+                        }
+                        const aliasAddress = encodeCashAddress(
+                            appConfig.prefix,
+                            addressType,
+                            stackArray[3].slice(1),
+                        );
                         appActions.push({
                             app,
                             lokadId,
-                            isValid: false,
+                            isValid: true,
+                            action: {
+                                alias: Buffer.from(
+                                    stackArray[2],
+                                    'hex',
+                                ).toString('utf8'),
+                                address: aliasAddress,
+                            },
                         });
                         break;
                     }
-                    const aliasAddress = encodeCashAddress(
-                        appConfig.prefix,
-                        addressType,
-                        stackArray[3].slice(1),
-                    );
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: true,
-                        action: {
-                            alias: Buffer.from(stackArray[2], 'hex').toString(
-                                'utf8',
-                            ),
-                            address: aliasAddress,
-                        },
-                    });
+                    appActions.push({ app, lokadId, isValid: false });
                     break;
                 }
-                appActions.push({ app, lokadId, isValid: false });
-                break;
-            }
-            case opReturn.appPrefixesHex.airdrop: {
-                const app = '🪂Airdrop';
-                if (
-                    typeof stackArray[1] !== 'undefined' &&
-                    stackArray[1].length === 64
-                ) {
-                    // We have an on-spec airdrop tx if OP_RETURN prefix and tokenID at first push after prefix
-                    const airdroppedTokenId = stackArray[1];
-                    let airdropMsg = '';
-                    if (typeof stackArray[2] !== 'undefined') {
-                        // Legacy airdrop msg would be at [3] after cashtab msg prefix push
-                        // on-spec airdrop msg would be at [2]
-                        airdropMsg =
-                            stackArray[2] === opReturn.appPrefixesHex.cashtab &&
-                            typeof stackArray[3] !== 'undefined'
-                                ? Buffer.from(stackArray[3], 'hex').toString(
-                                      'utf8',
-                                  )
-                                : Buffer.from(stackArray[2], 'hex').toString(
-                                      'utf8',
-                                  );
+                case opReturn.appPrefixesHex.airdrop: {
+                    const app = '🪂Airdrop';
+                    if (
+                        typeof stackArray[1] !== 'undefined' &&
+                        stackArray[1].length === 64
+                    ) {
+                        // We have an on-spec airdrop tx if OP_RETURN prefix and tokenID at first push after prefix
+                        const airdroppedTokenId = stackArray[1];
+                        let airdropMsg = '';
+                        if (typeof stackArray[2] !== 'undefined') {
+                            // Legacy airdrop msg would be at [3] after cashtab msg prefix push
+                            // on-spec airdrop msg would be at [2]
+                            airdropMsg =
+                                stackArray[2] ===
+                                    opReturn.appPrefixesHex.cashtab &&
+                                typeof stackArray[3] !== 'undefined'
+                                    ? Buffer.from(
+                                          stackArray[3],
+                                          'hex',
+                                      ).toString('utf8')
+                                    : Buffer.from(
+                                          stackArray[2],
+                                          'hex',
+                                      ).toString('utf8');
+                            const airdropAction: AirdropAction = {
+                                tokenId: airdroppedTokenId,
+                                msg: airdropMsg,
+                            };
+                            appActions.push({
+                                app,
+                                lokadId,
+                                isValid: true,
+                                action: airdropAction,
+                            });
+                            break;
+                        }
                         const airdropAction: AirdropAction = {
                             tokenId: airdroppedTokenId,
-                            msg: airdropMsg,
                         };
                         appActions.push({
                             app,
@@ -305,351 +325,363 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                         });
                         break;
                     }
-                    const airdropAction: AirdropAction = {
-                        tokenId: airdroppedTokenId,
-                    };
                     appActions.push({
                         app,
                         lokadId,
-                        isValid: true,
-                        action: airdropAction,
+                        isValid: false,
                     });
                     break;
                 }
-                appActions.push({
-                    app,
-                    lokadId,
-                    isValid: false,
-                });
-                break;
-            }
-            case opReturn.appPrefixesHex.cashtabEncrypted: {
-                // Parsing is not supported but we do know the lokad
-                const app = 'Cashtab Encrypted (deprecated)';
-                appActions.push({ app, lokadId });
-                break;
-            }
-            case opReturn.appPrefixesHex.swap: {
-                // Parsing is not supported but we do know the lokad
-                const app = 'SWaP';
-                appActions.push({ app, lokadId });
-                break;
-            }
-            case opReturn.appPrefixesHex.paybutton: {
-                // PayButton tx
-                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
-                const app = 'PayButton';
-                if (
-                    stackArray[1] === '00' &&
-                    typeof stackArray[2] !== 'undefined' &&
-                    typeof stackArray[3] !== 'undefined'
-                ) {
-                    // Valid PayButtonTx
-                    appActions.push({
-                        lokadId,
-                        app,
-                        isValid: true,
-                        action: {
-                            data:
-                                stackArray[2] !== '00'
-                                    ? Buffer.from(
-                                          stackArray[2],
-                                          'hex',
-                                      ).toString('utf8')
-                                    : '',
-                            nonce: stackArray[3] !== '00' ? stackArray[3] : '',
-                        },
-                    });
-                } else {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: false,
-                    });
+                case opReturn.appPrefixesHex.cashtabEncrypted: {
+                    // Parsing is not supported but we do know the lokad
+                    const app = 'Cashtab Encrypted (deprecated)';
+                    appActions.push({ app, lokadId });
+                    break;
                 }
-                break;
-            }
-            case opReturn.appPrefixesHex.nftoa: {
-                // NFToa tx
-                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/nftoa.md
-                const app = 'NFToa';
-                if (typeof stackArray[1] !== 'undefined') {
-                    // Valid NFToaTx
-                    appActions.push({
-                        lokadId,
-                        app,
-                        isValid: true,
-                        action: {
-                            data: Buffer.from(stackArray[1], 'hex').toString(
-                                'utf8',
-                            ),
-                            nonce:
-                                typeof stackArray[2] !== 'undefined'
-                                    ? stackArray[2]
-                                    : '',
-                        },
-                    });
-                } else {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: false,
-                    });
+                case opReturn.appPrefixesHex.swap: {
+                    // Parsing is not supported but we do know the lokad
+                    const app = 'SWaP';
+                    appActions.push({ app, lokadId });
+                    break;
                 }
-                break;
-            }
-            case opReturn.appPrefixesHex.eCashChat: {
-                const app = 'eCashChat';
-                if (typeof stackArray[1] !== 'undefined') {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: true,
-                        action: {
-                            msg: Buffer.from(stackArray[1], 'hex').toString(
-                                'utf8',
-                            ),
-                        },
-                    });
-                } else {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: false,
-                    });
-                }
-                break;
-            }
-            case opReturn.appPrefixesHex.paywallPayment: {
-                const app = 'Paywall';
-                if (typeof stackArray[1] !== 'undefined') {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: true,
-                        action: { sharedArticleTxid: stackArray[1] },
-                    });
-                } else {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: false,
-                    });
-                }
-                break;
-            }
-            // eCashChat authentication txs consists of authPrefixHex + a random string
-            // Other apps can use this same prefix followed by an authentication identifier of their choosing
-            case opReturn.appPrefixesHex.authPrefixHex: {
-                const app = 'Auth';
-                appActions.push({ app, lokadId, isValid: true });
-                break;
-            }
-            case opReturn.appPrefixesHex.eCashChatArticle: {
-                let app = 'eCashChat Article';
-                if (typeof stackArray[1] !== 'undefined') {
-                    // If this is a reply to a blog post then index 2 is txid of article and index 3 is the reply
+                case opReturn.appPrefixesHex.paybutton: {
+                    // PayButton tx
+                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+                    const app = 'PayButton';
                     if (
-                        stackArray[1] ===
-                        opReturn.appPrefixesHex.eCashChatArticleReply
+                        stackArray[1] === '00' &&
+                        typeof stackArray[2] !== 'undefined' &&
+                        typeof stackArray[3] !== 'undefined'
                     ) {
-                        app += ' Reply';
-                        if (stackArray.length === 4) {
-                            appActions.push({
-                                app,
-                                lokadId,
-                                isValid: true,
-                                action: {
-                                    replyArticleTxid: stackArray[2],
-                                    msg: Buffer.from(
-                                        stackArray[3],
-                                        'hex',
-                                    ).toString('utf8'),
-                                },
-                            });
+                        // Valid PayButtonTx
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: {
+                                data:
+                                    stackArray[2] !== '00'
+                                        ? Buffer.from(
+                                              stackArray[2],
+                                              'hex',
+                                          ).toString('utf8')
+                                        : '',
+                                nonce:
+                                    stackArray[3] !== '00' ? stackArray[3] : '',
+                            },
+                        });
+                    } else {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: false,
+                        });
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.nftoa: {
+                    // NFToa tx
+                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/nftoa.md
+                    const app = 'NFToa';
+                    if (typeof stackArray[1] !== 'undefined') {
+                        // Valid NFToaTx
+                        appActions.push({
+                            lokadId,
+                            app,
+                            isValid: true,
+                            action: {
+                                data: Buffer.from(
+                                    stackArray[1],
+                                    'hex',
+                                ).toString('utf8'),
+                                nonce:
+                                    typeof stackArray[2] !== 'undefined'
+                                        ? stackArray[2]
+                                        : '',
+                            },
+                        });
+                    } else {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: false,
+                        });
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.eCashChat: {
+                    const app = 'eCashChat';
+                    if (typeof stackArray[1] !== 'undefined') {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: true,
+                            action: {
+                                msg: Buffer.from(stackArray[1], 'hex').toString(
+                                    'utf8',
+                                ),
+                            },
+                        });
+                    } else {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: false,
+                        });
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.paywallPayment: {
+                    const app = 'Paywall';
+                    if (typeof stackArray[1] !== 'undefined') {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: true,
+                            action: { sharedArticleTxid: stackArray[1] },
+                        });
+                    } else {
+                        appActions.push({
+                            app,
+                            lokadId,
+                            isValid: false,
+                        });
+                    }
+                    break;
+                }
+                // eCashChat authentication txs consists of authPrefixHex + a random string
+                // Other apps can use this same prefix followed by an authentication identifier of their choosing
+                case opReturn.appPrefixesHex.authPrefixHex: {
+                    const app = 'Auth';
+                    appActions.push({ app, lokadId, isValid: true });
+                    break;
+                }
+                case opReturn.appPrefixesHex.eCashChatArticle: {
+                    let app = 'eCashChat Article';
+                    if (typeof stackArray[1] !== 'undefined') {
+                        // If this is a reply to a blog post then index 2 is txid of article and index 3 is the reply
+                        if (
+                            stackArray[1] ===
+                            opReturn.appPrefixesHex.eCashChatArticleReply
+                        ) {
+                            app += ' Reply';
+                            if (stackArray.length === 4) {
+                                appActions.push({
+                                    app,
+                                    lokadId,
+                                    isValid: true,
+                                    action: {
+                                        replyArticleTxid: stackArray[2],
+                                        msg: Buffer.from(
+                                            stackArray[3],
+                                            'hex',
+                                        ).toString('utf8'),
+                                    },
+                                });
+                            } else {
+                                appActions.push({
+                                    app,
+                                    lokadId,
+                                    isValid: false,
+                                });
+                            }
                         } else {
                             appActions.push({
                                 app,
                                 lokadId,
-                                isValid: false,
+                                isValid: true,
+                                // Still no action for this type, we just know article created
                             });
                         }
                     } else {
                         appActions.push({
                             app,
                             lokadId,
-                            isValid: true,
-                            // Still no action for this type, we just know article created
+                            isValid: false,
                         });
                     }
-                } else {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: false,
-                    });
-                }
-                break;
-            }
-            case opReturn.appPrefixesHex.cashtab: {
-                const app = 'Cashtab Msg';
-                if (typeof stackArray[1] !== 'undefined') {
-                    appActions.push({
-                        app,
-                        lokadId,
-                        isValid: true,
-                        action: {
-                            msg: Buffer.from(stackArray[1], 'hex').toString(
-                                'utf8',
-                            ),
-                        },
-                    });
-                } else {
-                    appActions.push({ app, lokadId, isValid: false });
-                }
-                break;
-            }
-            case opReturn.appPrefixesHex.dice:
-            case opReturn.appPrefixesHex.roll: {
-                // Blitzchips DICE/ROLL in standalone OP_RETURN (not EMPP)
-                const emppAction = getEmppAppAction(stackArray.join(''));
-                if (typeof emppAction !== 'undefined') {
-                    appActions.push(emppAction);
-                }
-                break;
-            }
-            case opReturn.appPrefixesHex.pow: {
-                const app = 'Proof of Writing';
-
-                // stackArray[1] = version (bare OP_0 -> "00"), [2] = action (bare OP_N),
-                // [3]/[4] = 32-byte pushes per the action table.
-                if (stackArray[1] !== '00') {
-                    appActions.push({ lokadId, app, isValid: false });
                     break;
                 }
-
-                const TYPES: Record<string, PowAction['type']> = {
-                    '51': 'post', // OP_1
-                    '52': 'reply', // OP_2
-                    '53': 'quote', // OP_3
-                    '54': 'repost', // OP_4
-                    '55': 'like', // OP_5
-                    '56': 'publish', // OP_6
-                    '57': 'unlock', // OP_7
-                    '58': 'auth', // OP_8
-                    '59': 'handle', // OP_9
-                    '5a': 'comment', // OP_10
-                    '5b': 'comment_reply', // OP_11
-                };
-                const type = TYPES[stackArray[2]];
-                if (typeof type === 'undefined') {
-                    appActions.push({ lokadId, app, isValid: false });
-                    break;
-                }
-
-                const is32 = (s?: string): s is string =>
-                    typeof s === 'string' && s.length === 64;
-                const is36 = (s?: string): s is string =>
-                    typeof s === 'string' && s.length === 72;
-
-                switch (type) {
-                    case 'post':
-                    case 'publish':
-                    case 'comment': {
-                        if (!is32(stackArray[3])) {
-                            appActions.push({ lokadId, app, isValid: false });
-                            break;
-                        }
+                case opReturn.appPrefixesHex.cashtab: {
+                    const app = 'Cashtab Msg';
+                    if (typeof stackArray[1] !== 'undefined') {
                         appActions.push({
-                            lokadId,
                             app,
-                            isValid: true,
-                            action: { type, contentHash: stackArray[3] },
-                        });
-                        break;
-                    }
-                    case 'reply':
-                    case 'quote':
-                    case 'comment_reply': {
-                        if (!is32(stackArray[3]) || !is32(stackArray[4])) {
-                            appActions.push({ lokadId, app, isValid: false });
-                            break;
-                        }
-                        appActions.push({
                             lokadId,
-                            app,
                             isValid: true,
                             action: {
-                                type,
-                                targetTxid: stackArray[3],
-                                contentHash: stackArray[4],
+                                msg: Buffer.from(stackArray[1], 'hex').toString(
+                                    'utf8',
+                                ),
                             },
                         });
+                    } else {
+                        appActions.push({ app, lokadId, isValid: false });
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.dice:
+                case opReturn.appPrefixesHex.roll: {
+                    // Blitzchips DICE/ROLL in standalone OP_RETURN (not EMPP)
+                    const emppAction = getEmppAppAction(stackArray.join(''));
+                    if (typeof emppAction !== 'undefined') {
+                        appActions.push(emppAction);
+                    }
+                    break;
+                }
+                case opReturn.appPrefixesHex.pow: {
+                    const app = 'Proof of Writing';
+
+                    // stackArray[1] = version (bare OP_0 -> "00"), [2] = action (bare OP_N),
+                    // [3]/[4] = 32-byte pushes per the action table.
+                    if (stackArray[1] !== '00') {
+                        appActions.push({ lokadId, app, isValid: false });
                         break;
                     }
-                    case 'repost':
-                    case 'like': {
-                        if (!is32(stackArray[3])) {
-                            appActions.push({ lokadId, app, isValid: false });
+
+                    const TYPES: Record<string, PowAction['type']> = {
+                        '51': 'post', // OP_1
+                        '52': 'reply', // OP_2
+                        '53': 'quote', // OP_3
+                        '54': 'repost', // OP_4
+                        '55': 'like', // OP_5
+                        '56': 'publish', // OP_6
+                        '57': 'unlock', // OP_7
+                        '58': 'auth', // OP_8
+                        '59': 'handle', // OP_9
+                        '5a': 'comment', // OP_10
+                        '5b': 'comment_reply', // OP_11
+                    };
+                    const type = TYPES[stackArray[2]];
+                    if (typeof type === 'undefined') {
+                        appActions.push({ lokadId, app, isValid: false });
+                        break;
+                    }
+
+                    const is32 = (s?: string): s is string =>
+                        typeof s === 'string' && s.length === 64;
+                    const is36 = (s?: string): s is string =>
+                        typeof s === 'string' && s.length === 72;
+
+                    switch (type) {
+                        case 'post':
+                        case 'publish':
+                        case 'comment': {
+                            if (!is32(stackArray[3])) {
+                                appActions.push({
+                                    lokadId,
+                                    app,
+                                    isValid: false,
+                                });
+                                break;
+                            }
+                            appActions.push({
+                                lokadId,
+                                app,
+                                isValid: true,
+                                action: { type, contentHash: stackArray[3] },
+                            });
                             break;
                         }
-                        appActions.push({
-                            lokadId,
-                            app,
-                            isValid: true,
-                            action: { type, targetTxid: stackArray[3] },
-                        });
-                        break;
-                    }
-                    case 'unlock': {
-                        appActions.push({
-                            lokadId,
-                            app,
-                            isValid: true,
-                            action: { type },
-                        });
-                        break;
-                    }
-                    case 'auth':
-                    case 'handle': {
-                        if (!is36(stackArray[3])) {
-                            appActions.push({ lokadId, app, isValid: false });
+                        case 'reply':
+                        case 'quote':
+                        case 'comment_reply': {
+                            if (!is32(stackArray[3]) || !is32(stackArray[4])) {
+                                appActions.push({
+                                    lokadId,
+                                    app,
+                                    isValid: false,
+                                });
+                                break;
+                            }
+                            appActions.push({
+                                lokadId,
+                                app,
+                                isValid: true,
+                                action: {
+                                    type,
+                                    targetTxid: stackArray[3],
+                                    contentHash: stackArray[4],
+                                },
+                            });
                             break;
                         }
-                        appActions.push({
-                            lokadId,
-                            app,
-                            isValid: true,
-                            action: { type, nonce: stackArray[3] },
-                        });
-                        break;
+                        case 'repost':
+                        case 'like': {
+                            if (!is32(stackArray[3])) {
+                                appActions.push({
+                                    lokadId,
+                                    app,
+                                    isValid: false,
+                                });
+                                break;
+                            }
+                            appActions.push({
+                                lokadId,
+                                app,
+                                isValid: true,
+                                action: { type, targetTxid: stackArray[3] },
+                            });
+                            break;
+                        }
+                        case 'unlock': {
+                            appActions.push({
+                                lokadId,
+                                app,
+                                isValid: true,
+                                action: { type },
+                            });
+                            break;
+                        }
+                        case 'auth':
+                        case 'handle': {
+                            if (!is36(stackArray[3])) {
+                                appActions.push({
+                                    lokadId,
+                                    app,
+                                    isValid: false,
+                                });
+                                break;
+                            }
+                            appActions.push({
+                                lokadId,
+                                app,
+                                isValid: true,
+                                action: { type, nonce: stackArray[3] },
+                            });
+                            break;
+                        }
                     }
+                    break;
                 }
-                break;
-            }
-            default: {
-                // Test for some sort of lokad id
-                const LOKAD_BYTES_STR_LENGTH = 8;
-                const hasLokad =
-                    stackArray[0].length === LOKAD_BYTES_STR_LENGTH;
-                const lokadId = hasLokad ? stackArray[0] : '';
-                // Unsupported lokad prefixes or misc OP_RETURN msgs
-                // e.g. a msg sent by ElectrumABC
-                // Attempt to utf8 decode each push
-                const decodedTest = [];
-                for (const el of stackArray) {
-                    decodedTest.push(Buffer.from(el, 'hex').toString('utf8'));
+                default: {
+                    // Test for some sort of lokad id
+                    const LOKAD_BYTES_STR_LENGTH = 8;
+                    const hasLokad =
+                        stackArray[0].length === LOKAD_BYTES_STR_LENGTH;
+                    const lokadId = hasLokad ? stackArray[0] : '';
+                    // Unsupported lokad prefixes or misc OP_RETURN msgs
+                    // e.g. a msg sent by ElectrumABC
+                    // Attempt to utf8 decode each push
+                    const decodedTest = [];
+                    for (const el of stackArray) {
+                        decodedTest.push(
+                            Buffer.from(el, 'hex').toString('utf8'),
+                        );
+                    }
+                    appActions.push({
+                        lokadId,
+                        app: hasLokad ? 'unknown' : 'none',
+                        action: {
+                            stack: stackArray.join(' '),
+                            decoded: decodedTest.join(' '),
+                        },
+                    });
+                    break;
                 }
-                appActions.push({
-                    lokadId,
-                    app: hasLokad ? 'unknown' : 'none',
-                    action: {
-                        stack: stackArray.join(' '),
-                        decoded: decodedTest.join(' '),
-                    },
-                });
-                break;
             }
+        } catch {
+            // Malformed OP_RETURN for any lokad must not fail parseTx
         }
     }
 
