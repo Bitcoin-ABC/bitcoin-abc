@@ -483,7 +483,7 @@ impl ChronikIndexer {
              {fork_height}.\n"
         );
         log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
-        for height in (revert_height..indexer_height).rev() {
+        for height in (revert_height..=indexer_height).rev() {
             if node.bridge.shutdown_requested() {
                 log!("Stopped re-sync rewinding blocks\n");
                 // return MAX here so we don't add any blocks

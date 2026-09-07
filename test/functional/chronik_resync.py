@@ -44,6 +44,29 @@ class ChronikResyncTest(BitcoinTestFramework):
 
         chronik.block(101).err(404)
 
+        # Invalidated tip must be disconnected on resync.
+        invalidated_tip_hash = block_hashes[100]
+        chronik.block(invalidated_tip_hash).ok()
+
+        # Without Chronik: invalidate the tip
+        self.restart_node(0, [])
+        node.invalidateblock(invalidated_tip_hash)
+
+        # Restart with chronik and check the block is missing
+        self.restart_node(0, ["-chronik"])
+        chronik.block(100).err(404)
+        assert_equal(
+            chronik.block(invalidated_tip_hash).err(404).msg,
+            f"404: Block not found: {invalidated_tip_hash}",
+        )
+
+        # Restore height 100 so the following deep-reorg case stays unchanged
+        block_hashes[100] = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[
+            0
+        ]
+        node.syncwithvalidationinterfacequeue()
+        chronik.block(100).ok()
+
         self.restart_node(0, [])
 
         # Without Chronik: Undo last 50 blocks, then add 100 new ones
