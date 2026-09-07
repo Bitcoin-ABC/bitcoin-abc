@@ -8,15 +8,15 @@ This document is the ops target for that model.
 
 ## What is in-tree today
 
-| Piece                                                          | Status                                                      |
-| -------------------------------------------------------------- | ----------------------------------------------------------- |
-| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))    |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))    |
-| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))    |
-| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466))    |
-| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | This slice — second listen + Tor hook; no live Tor required |
-| Coordinator + client round RPCs over the wire                  | Not yet                                                     |
-| Chronik sync / signing / broadcast                             | Not yet                                                     |
+| Piece                                                          | Status                                                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------ |
+| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))     |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))     |
+| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))     |
+| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466))     |
+| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506))     |
+| Coordinator + client round RPCs over the wire                  | This slice — hello/join/commit + covert reveal → unsigned tx |
+| Chronik sync / signing / broadcast                             | Not yet                                                      |
 
 Unit verification:
 
@@ -86,3 +86,7 @@ delays and stop/abort behavior already covered by unit tests.
   SOCKS5 are the hook; participants point `socks5` at a Tor SOCKS port
   (typically `127.0.0.1:9050`) when they dial a public coordinator. The
   coordinator side still needs an inbound Tor path (onion service).
+- Covert reveal is **not yet unlinkable to the coordinator**: commitments
+  are `sha256(component)`, so the coordinator maps every revealed component
+  to its committer. Salted commitments and blind-signature reveal are still
+  required.

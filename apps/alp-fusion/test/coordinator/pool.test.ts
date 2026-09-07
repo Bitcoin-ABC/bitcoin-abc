@@ -99,6 +99,23 @@ describe('PoolMatcher', () => {
         expect(() => new PoolMatcher(1)).to.throw(/integer/);
     });
 
+    it('unregister drops a waiter and is a no-op after takeReady', () => {
+        const m = new PoolMatcher(2);
+        m.register({ playerId: 'a', tokenId: TOKEN_ID, atomTier: 1n });
+        m.register({ playerId: 'b', tokenId: TOKEN_ID, atomTier: 1n });
+        expect(m.unregister('a', TOKEN_ID, 1n)).to.equal(true);
+        expect(m.size(TOKEN_ID, 1n)).to.equal(1);
+        expect(m.isReady(TOKEN_ID, 1n)).to.equal(false);
+        expect(m.unregister('a', TOKEN_ID, 1n)).to.equal(false);
+        expect(m.unregister('missing', TOKEN_ID, 1n)).to.equal(false);
+
+        m.register({ playerId: 'c', tokenId: TOKEN_ID, atomTier: 1n });
+        const ready = m.takeReady(TOKEN_ID, 1n);
+        expect(ready.playerIds).to.have.members(['b', 'c']);
+        expect(m.unregister('b', TOKEN_ID, 1n)).to.equal(false);
+        expect(m.size(TOKEN_ID, 1n)).to.equal(0);
+    });
+
     it('defaults to DEFAULT_MIN_PLAYERS (privacy floor, not 2)', () => {
         const m = new PoolMatcher();
         for (let i = 0; i < DEFAULT_MIN_PLAYERS - 1; i++) {

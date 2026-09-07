@@ -64,6 +64,30 @@ export class PoolMatcher {
         return { key, size: list.length };
     }
 
+    /**
+     * Drop a waiting player. No-op (returns false) if they are not in this
+     * pool — including after {@link takeReady} already consumed them.
+     */
+    unregister(playerId: PlayerId, tokenId: string, atomTier: bigint): boolean {
+        if (!playerId) {
+            throw new Error('playerId is required');
+        }
+        const key = keyFor(tokenId, atomTier);
+        const list = this.pools.get(key);
+        if (!list) {
+            return false;
+        }
+        const idx = list.findIndex(p => p.playerId === playerId);
+        if (idx === -1) {
+            return false;
+        }
+        list.splice(idx, 1);
+        if (list.length === 0) {
+            this.pools.delete(key);
+        }
+        return true;
+    }
+
     size(tokenId: string, atomTier: bigint): number {
         return this.pools.get(keyFor(tokenId, atomTier))?.length ?? 0;
     }
