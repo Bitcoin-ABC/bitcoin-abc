@@ -15,6 +15,7 @@ import {
     quoteExactOut,
     spotToPerWholeFrom,
 } from '../src/pricing/quotes';
+import { exactInTemplate, priceImpactPct } from '../src/pricing/templates';
 import {
     pairPricingReserves,
     pricingReserveAtoms,
@@ -255,5 +256,70 @@ describe('pricing quotes', () => {
                 ),
             /less than/,
         );
+    });
+});
+
+describe('priceImpactPct', () => {
+    it('matches (spot - effective) / spot from fill atoms', () => {
+        // 50 in / 66 out on 100/200: spot 2, effective 1.32 → 34%
+        assert.strictEqual(priceImpactPct(50n, 66n, 100n, 200n), 34);
+    });
+
+    it('returns 0 when reserves or input are empty', () => {
+        assert.strictEqual(priceImpactPct(0n, 66n, 100n, 200n), 0);
+        assert.strictEqual(priceImpactPct(50n, 66n, 0n, 200n), 0);
+        assert.strictEqual(priceImpactPct(50n, 66n, 100n, 0n), 0);
+        assert.strictEqual(priceImpactPct(50n, -1n, 100n, 200n), 0);
+    });
+
+    it('reports real impact when encoded XECX→FIRMA rates floor to 0', () => {
+        // Live-shaped reserves: 1 XECX << 1 FIRMA atom, so per-whole-from
+        // spot/effective encode as "0" and the old Number(rate) helper
+        // reported 0% on a ~0.6% CP move.
+        const reserveIn = 49_930_120_824n;
+        const reserveOut = 33_814_928n;
+        const amountIn = 299_102_691n;
+        const amountOut = quoteExactIn(
+            amountIn,
+            {
+                fromTokenId: TOKEN_A,
+                toTokenId: TOKEN_B,
+                reserveIn,
+                reserveOut,
+            },
+            0,
+        ).amountOut;
+        assert.strictEqual(
+            spotToPerWholeFrom(reserveIn, reserveOut, 2, 4),
+            '0',
+        );
+        const impact = priceImpactPct(
+            amountIn,
+            amountOut,
+            reserveIn,
+            reserveOut,
+        );
+        assert.ok(impact > 0.5);
+        assert.ok(impact < 0.7);
+        const template = exactInTemplate(
+            '3000000',
+            {
+                fromTokenId: TOKEN_A,
+                toTokenId: TOKEN_B,
+                reserveIn,
+                reserveOut,
+            },
+            0.003,
+            2,
+            4,
+            TOKEN_A,
+            TOKEN_B,
+            '76a914' + '11'.repeat(20) + '88ac',
+            '76a914' + '22'.repeat(20) + '88ac',
+        );
+        assert.strictEqual(template.spotRate, '0');
+        assert.strictEqual(template.rate, '0');
+        assert.ok(template.priceImpactPct > 0.5);
+        assert.ok(template.priceImpactPct < 0.7);
     });
 });

@@ -225,7 +225,8 @@ describe('alp-dex quote API', () => {
         // effective: floor(476190 * 10^4 / 1_000_000) = 4761 → "0.4761" @ 4 dec
         assert.strictEqual(res.body.effectiveRate, '0.4761');
         assert.ok(Number(res.body.effectiveRate) < Number(res.body.spotRate));
-        assert.ok(res.body.priceImpactPct > 0);
+        // 1 - (476190 * 2e7) / (1e6 * 1e7) = 4.762%
+        assert.strictEqual(res.body.priceImpactPct, 4.762);
         assert.strictEqual(res.body.feePct, 0.02);
     });
 

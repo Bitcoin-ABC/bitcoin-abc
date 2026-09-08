@@ -74,20 +74,29 @@ export const effectiveRateToPerWholeFrom = (
     return atomsToDecimalizedQty(atomsToPerWholeFrom, decimalsTo);
 };
 
+/** bigint scale so impact percents keep ~9 fractional digits. */
+const IMPACT_SCALE = 1_000_000_000n;
+
 /**
- * Percent impact of effective vs spot for discovery UX.
- * Not used in settle validation.
+ * Percent impact of a fill vs spot, from reserve + fill atoms:
+ * `100 * (1 - (amountOut * reserveIn) / (amountIn * reserveOut))`.
  */
 export const priceImpactPct = (
-    spotRate: string,
-    effectiveRate: string,
+    amountIn: bigint,
+    amountOut: bigint,
+    reserveIn: bigint,
+    reserveOut: bigint,
 ): number => {
-    const spot = Number(spotRate);
-    const effective = Number(effectiveRate);
-    if (!Number.isFinite(spot) || !Number.isFinite(effective) || spot === 0) {
+    if (amountIn <= 0n || reserveIn <= 0n || reserveOut <= 0n) {
         return 0;
     }
-    return ((spot - effective) / spot) * 100;
+    if (amountOut < 0n) {
+        return 0;
+    }
+    const denom = amountIn * reserveOut;
+    const numer = denom - amountOut * reserveIn;
+    const pctScaled = (numer * 100n * IMPACT_SCALE) / denom;
+    return Number(pctScaled) / Number(IMPACT_SCALE);
 };
 
 /**
@@ -190,7 +199,12 @@ const templateBody = (
         fee: atomsToDecimalizedQty(feeAtoms, decimalsFrom),
         rate,
         spotRate,
-        priceImpactPct: priceImpactPct(spotRate, rate),
+        priceImpactPct: priceImpactPct(
+            priceLegAtoms,
+            toTokenAtomsOut,
+            reserves.reserveIn,
+            reserves.reserveOut,
+        ),
         feePct,
         platformFee: '0',
         platformFeePct: 0,
