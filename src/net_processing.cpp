@@ -122,6 +122,17 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
 static constexpr auto GETAVAADDR_INTERVAL{2min};
 
 /**
+ * Maximum number of failed avaproof registrations (e.g. missing UTXO, rejected,
+ * cooldown) a peer may send within AVALANCHE_INVALID_AVAPROOFS_INTERVAL before
+ * being discouraged.
+ */
+static constexpr size_t AVALANCHE_MAX_INVALID_AVAPROOFS{10};
+/**
+ * Interval to look back for bad avaproofs.
+ */
+static constexpr auto AVALANCHE_INVALID_AVAPROOFS_INTERVAL{1h};
+
+/**
  * If no proof was requested from a compact proof message after this timeout
  * expired, the proof radix tree can be cleaned up.
  */
@@ -559,6 +570,14 @@ struct Peer {
     const std::unique_ptr<ProofRelay> m_proof_relay;
 
     /**
+     * Timestamps of recent failed avaproof registrations from this peer
+     * (missing UTXO, rejected, cooldown), used as a sliding window for
+     * rate-limiting.
+     */
+    std::vector<std::chrono::seconds> m_invalid_avaproof_times
+        GUARDED_BY(NetEventsInterface::g_msgproc_mutex);
+
+    /**
      * A vector of addresses to send to the peer, limited to MAX_ADDR_TO_SEND.
      */
     std::vector<CAddress>
@@ -671,7 +690,9 @@ struct Peer {
     explicit Peer(NodeId id, ServiceFlags our_services, bool fRelayProofs)
         : m_id(id), m_our_services{our_services},
           m_proof_relay(fRelayProofs ? std::make_unique<ProofRelay>()
-                                     : nullptr) {}
+                                     : nullptr) {
+        m_invalid_avaproof_times.reserve(AVALANCHE_MAX_INVALID_AVAPROOFS);
+    }
 
 private:
     mutable Mutex m_tx_relay_mutex;
@@ -1687,7 +1708,8 @@ private:
      */
     bool ReceivedAvalancheProof(CNode &node, Peer &peer,
                                 const avalanche::ProofRef &proof)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest,
+                                 NetEventsInterface::g_msgproc_mutex);
 
     avalanche::ProofRef FindProofForGetData(const Peer &peer,
                                             const avalanche::ProofId &proofid,
@@ -9394,6 +9416,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
 bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
                                              const avalanche::ProofRef &proof) {
+    AssertLockHeld(NetEventsInterface::g_msgproc_mutex);
+
     if (!proof) {
         LogError("ReceivedAvalancheProof: proof is null\n");
         return false;
@@ -9441,6 +9465,8 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     // registerProof should not be called while cs_proofrequest because it
     // holds cs_main and that creates a potential deadlock during shutdown
 
+    const auto now{GetTime<std::chrono::seconds>()};
+
     avalanche::ProofRegistrationState state;
     if (m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             return pm.registerProof(proof, state);
@@ -9448,7 +9474,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
         WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
         RelayProof(proofid);
 
-        node.m_last_proof_time = GetTime<std::chrono::seconds>();
+        node.m_last_proof_time = now;
 
         LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
                  nodeid, proofid.ToString());
@@ -9461,10 +9487,25 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
         return false;
     }
 
-    if (state.GetResult() == avalanche::ProofRegistrationResult::MISSING_UTXO) {
-        // This is possible that a proof contains a utxo we don't know yet, so
-        // don't ban for this.
-        return false;
+    // Rate-limit uncached registration failures that still pay for (or follow)
+    // full proof verification. Do not setInvalid: the proof may become
+    // acceptable later (e.g. missing UTXO appears, cooldown elapses).
+    const auto result = state.GetResult();
+    if (result == avalanche::ProofRegistrationResult::MISSING_UTXO ||
+        result == avalanche::ProofRegistrationResult::REJECTED ||
+        result == avalanche::ProofRegistrationResult::COOLDOWN_NOT_ELAPSED) {
+        auto &times = peer.m_invalid_avaproof_times;
+        // Drop timestamps older than AVALANCHE_INVALID_AVAPROOFS_INTERVAL
+        times.erase(
+            times.begin(),
+            std::find_if(times.begin(), times.end(), [now](const auto &t) {
+                return t > now - AVALANCHE_INVALID_AVAPROOFS_INTERVAL;
+            }));
+        times.push_back(now);
+        if (times.size() >= AVALANCHE_MAX_INVALID_AVAPROOFS) {
+            Misbehaving(peer, "too-many-invalid-avaproofs");
+            return false;
+        }
     }
 
     // Unlike other reasons we can expect lots of peers to send a proof that we

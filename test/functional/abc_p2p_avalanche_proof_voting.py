@@ -30,6 +30,11 @@ from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
 
+# Matches AVALANCHE_MAX_INVALID_AVAPROOFS / AVALANCHE_INVALID_AVAPROOFS_INTERVAL
+# in net_processing.cpp
+AVALANCHE_MAX_INVALID_AVAPROOFS = 10
+AVALANCHE_INVALID_AVAPROOFS_INTERVAL = 60 * 60
+
 
 class AvalancheProofVotingTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -81,6 +86,24 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def build_conflicting_proof(self, node, sequence):
         return node.buildavalancheproof(
             sequence, 0, self.privkey_wif, self.conflicting_stakes
+        )
+
+    def build_missing_utxo_proof(self, node, sequence):
+        """Build a cryptographically valid proof whose stake UTXO does not exist."""
+        return node.buildavalancheproof(
+            sequence,
+            2000000000,
+            self.privkey_wif,
+            [
+                {
+                    "txid": "0" * 64,
+                    "vout": sequence,
+                    "amount": 10000000,
+                    "height": 42,
+                    "iscoinbase": False,
+                    "privatekey": self.privkey_wif,
+                }
+            ],
         )
 
     def wait_for_invalidated_proof(self, node, proofid):
@@ -136,6 +159,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.vote_tests(node)
         self.stale_proof_tests(node)
         self.maturity_poll_tests(node)
+        self.invalid_avaproof_rate_limit_tests(node)
 
     def poll_tests(self, node):
         # Disable the peer replacement cooldown for this test
@@ -561,6 +585,55 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.generate(node, 1, sync_fun=self.no_op)
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
+
+    def invalid_avaproof_rate_limit_tests(self, node):
+        self.restart_node(0)
+
+        peer = get_ava_p2p_interface(self, node)
+
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
+
+        def send_missing_utxo_proof(sequence):
+            peer.send_avaproof(
+                avalanche_proof_from_hex(self.build_missing_utxo_proof(node, sequence))
+            )
+
+        self.log.info(
+            "Invalid avalanche proofs below the rate limit do not trigger Misbehaving"
+        )
+        with node.assert_debug_log(
+            ["received: avaproof"],
+            unexpected_msgs=["too-many-invalid-avaproofs"],
+        ):
+            for i in range(AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
+                send_missing_utxo_proof(i)
+            peer.sync_with_ping()
+
+        self.log.info(
+            "Reaching the invalid avalanche proof rate limit triggers Misbehaving"
+        )
+        with node.assert_debug_log(["Misbehaving", "too-many-invalid-avaproofs"]):
+            send_missing_utxo_proof(AVALANCHE_MAX_INVALID_AVAPROOFS - 1)
+            peer.sync_with_ping()
+
+        self.log.info(
+            "The invalid avalanche proof counter resets after the rate-limit window"
+        )
+        mock_time += AVALANCHE_INVALID_AVAPROOFS_INTERVAL
+        node.setmocktime(mock_time)
+
+        with node.assert_debug_log(
+            ["received: avaproof"],
+            unexpected_msgs=["too-many-invalid-avaproofs"],
+        ):
+            for i in range(AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
+                send_missing_utxo_proof(100 + i)
+            peer.sync_with_ping()
+
+        with node.assert_debug_log(["Misbehaving", "too-many-invalid-avaproofs"]):
+            send_missing_utxo_proof(100 + AVALANCHE_MAX_INVALID_AVAPROOFS - 1)
+            peer.sync_with_ping()
 
 
 if __name__ == "__main__":
