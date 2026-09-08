@@ -54,7 +54,7 @@ RUN CC=clang ./build-wasm.sh
 FROM node:22-trixie-slim AS builder
 
 # Install pnpm
-RUN npm install -g pnpm@10.34.5
+RUN npm install -g pnpm@12.3.4
 
 # Set working directory to monorepo root
 WORKDIR /app
@@ -80,7 +80,7 @@ COPY apps/marlin-wallet/package.json ./apps/marlin-wallet/
 COPY apps/marlin-wallet/web/package.json ./apps/marlin-wallet/web/
 
 # Fetch dependencies (pnpm best practice for Docker)
-RUN pnpm fetch --frozen-lockfile
+RUN pnpm fetch
 
 # Copy source files
 COPY modules/b58-ts/ ./modules/b58-ts/

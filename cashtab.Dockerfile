@@ -55,7 +55,7 @@ RUN CC=clang ./build-wasm.sh
 FROM node:22-bookworm-slim AS builder
 
 # Install pnpm
-RUN npm install -g pnpm@10.34.5
+RUN npm install -g pnpm@12.3.4
 
 # Set working directory to monorepo root
 WORKDIR /app
@@ -80,7 +80,7 @@ COPY modules/ecash-parse/package.json ./modules/ecash-parse/
 COPY cashtab/package.json ./cashtab/
 
 # Fetch dependencies (pnpm best practice for Docker)
-RUN pnpm fetch --frozen-lockfile
+RUN pnpm fetch
 
 # Copy source files
 COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/

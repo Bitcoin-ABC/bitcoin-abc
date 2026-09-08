@@ -1,6 +1,6 @@
 {
     "description": "Bitcoin ABC monorepo dependencies. Used to version pin binaries needed for arc lint and arc unit of JS repos.",
-    "packageManager": "pnpm@10.24.0",
+    "packageManager": "pnpm@12.3.4",
     "devDependencies": {
         "c8": "^10.1.3",
         "eslint": "^9.39.4",

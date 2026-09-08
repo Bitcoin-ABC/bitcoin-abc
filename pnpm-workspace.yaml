@@ -3,6 +3,17 @@ packages:
     - 'apps/**/*'
     - 'web/*'
     - 'modules/**/*'
+# Lifecycle scripts that pnpm 11+ refuses to run until listed here.
+# Native addons / binary downloads are allowed; notice-only postinstalls are not.
+allowBuilds:
+    '@parcel/watcher': true
+    '@firebase/util': false
+    core-js: false
+    cypress: true
+    esbuild: true
+    protobufjs: true
+    styled-components: false
+    unrs-resolver: true
 overrides:
     'tar': '>=7.5.21'
     'undici@>=5.0.0 <6.28.0': '6.28.0'

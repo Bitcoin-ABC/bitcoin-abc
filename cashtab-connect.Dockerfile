@@ -5,7 +5,7 @@
 FROM node:22-bookworm-slim
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@12.3.4
 
 # Set CI environment variable to avoid pnpm TTY prompts
 ENV CI=true

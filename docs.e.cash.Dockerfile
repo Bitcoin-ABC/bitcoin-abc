@@ -7,7 +7,7 @@
 FROM node:22-trixie-slim
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@12.3.4
 
 COPY pnpm-workspace.yaml .
 COPY pnpm-lock.yaml .

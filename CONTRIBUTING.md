@@ -186,9 +186,7 @@ Then:
 ```
 cd bitcoin-abc
 [sudo] nvm install 22
-# Enable corepack (built into Node.js 16.9+, no installation needed)
-corepack enable
-corepack prepare pnpm@10.24.0 --activate
+npm install -g pnpm@12.3.4
 pnpm install --frozen-lockfile
 ```
 

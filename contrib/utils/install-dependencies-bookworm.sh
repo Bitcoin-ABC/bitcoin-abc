@@ -174,9 +174,8 @@ echo "${NODE_SHA256} ${NODE_TARBALL}" | sha256sum -c -
 tar -xJf "${NODE_TARBALL}" -C /usr/local --strip-components=1
 rm "${NODE_TARBALL}"
 
-# Enable corepack for pnpm
-corepack enable
-corepack prepare pnpm@10.24.0 --activate
+# Pin pnpm (unpinned `npm install -g pnpm` tracks latest).
+npm install -g pnpm@12.3.4
 
 # c8 is installed as a dev dependency in the root package.json and accessed via pnpm exec
 

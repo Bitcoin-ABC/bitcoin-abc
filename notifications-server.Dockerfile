@@ -45,7 +45,7 @@ RUN CC=clang ./build-wasm.sh
 
 FROM node:22-bookworm-slim
 
-RUN npm install -g pnpm@10.34.5
+RUN npm install -g pnpm@12.3.4
 
 WORKDIR /app
 
@@ -64,7 +64,7 @@ COPY modules/ecash-agora/package.json ./modules/ecash-agora/
 COPY modules/ecash-parse/package.json ./modules/ecash-parse/
 COPY apps/notifications-server/package.json ./apps/notifications-server/
 
-RUN pnpm fetch --frozen-lockfile
+RUN pnpm fetch
 
 COPY modules/ecashaddrjs/ ./modules/ecashaddrjs/
 COPY modules/chronik-client/ ./modules/chronik-client/
