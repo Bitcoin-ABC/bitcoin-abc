@@ -42,7 +42,7 @@ from electrumabc.ecc import ECPrivkey, ECPubkey
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
-from electrumabc.util import InvalidPassword, Weak, bfh, bh2u
+from electrumabc.util import InvalidPassword, Weak, bfh
 from electrumabc.wallet import MultisigWallet
 from electrumabc_gui.qt.transaction_dialog import TxDialog, show_transaction
 
@@ -283,7 +283,7 @@ class Plugin(BasePlugin):
         for key, keystore_ in wallet.keystores.items():
             xpub = keystore_.get_master_public_key()
             K = deserialize_xpub(xpub)[-1]
-            _hash = bh2u(Hash(K))
+            _hash = Hash(K).hex()
             if not keystore_.is_watching_only():
                 state.keys.append((key, _hash))
             else:
@@ -445,7 +445,7 @@ class Plugin(BasePlugin):
                 self.on_receive(window, keyhash, message)  # try again
             return
         try:
-            k = bh2u(deserialize_xprv(xprv)[-1])
+            k = deserialize_xprv(xprv)[-1].hex()
             EC = ECPrivkey(bfh(k))
             raw_tx = EC.decrypt_message(message)
         except Exception as e:

@@ -58,7 +58,7 @@ from .ecc import (
 )
 from .plugins import run_hook
 from .printerror import PrintError, print_error
-from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
+from .util import BitcoinException, InvalidPassword, WalletFileException
 
 if TYPE_CHECKING:
     from electrumabc_gui.qt.util import TaskThread
@@ -572,7 +572,7 @@ class OldKeyStore(DeterministicKeyStore):
         ]
         if master_public_key != self.mpk:
             print_error(
-                "invalid password (mpk)", self.mpk.hex(), bh2u(master_public_key)
+                "invalid password (mpk)", self.mpk.hex(), master_public_key.hex()
             )
             raise InvalidPassword()
         return secexp

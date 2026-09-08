@@ -38,7 +38,7 @@ import pyaes
 from . import ecc, networks
 from .crypto import Hash, hash_160, sha256
 from .printerror import print_error
-from .util import InvalidPassword, assert_bytes, bh2u, to_bytes
+from .util import InvalidPassword, assert_bytes, to_bytes
 
 if TYPE_CHECKING:
     from .address import Address
@@ -290,8 +290,8 @@ def hmac_oneshot(key, msg, digest):
     return hmac.digest(key, msg, digest)
 
 
-def hash_encode(x):
-    return bh2u(x[::-1])
+def hash_encode(x: bytes) -> str:
+    return x[::-1].hex()
 
 
 def hash_decode(x):
@@ -1154,9 +1154,9 @@ class Bip38Key:
                 if x == "typ":
                     a = self.typeString()
                 elif isinstance(a, int) and not isinstance(a, bool):
-                    a = "0x" + bh2u(self._int_to_bytes(a, 1))
+                    a = "0x" + self._int_to_bytes(a, 1).hex()
                 elif isinstance(a, bytes):
-                    a = "0x" + bh2u(a) if a else a
+                    a = "0x" + a.hex() if a else a
                 ret += " {}={}".format(x, a)
         ret += ">"
         return ret

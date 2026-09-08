@@ -22,7 +22,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import binascii
 import builtins
 import hmac
 import inspect
@@ -351,21 +350,6 @@ def to_bytes(something, encoding="utf8"):
 
 
 bfh = bytes.fromhex
-hfu = binascii.hexlify
-
-
-def bh2u(x):
-    """
-    str with hex representation of a bytes-like object
-
-    >>> x = bytes((1, 2, 10))
-    >>> bh2u(x)
-    '01020a'
-
-    :param x: bytes
-    :rtype: str
-    """
-    return hfu(x).decode("ascii")
 
 
 def get_user_dir(prefer_local=False):

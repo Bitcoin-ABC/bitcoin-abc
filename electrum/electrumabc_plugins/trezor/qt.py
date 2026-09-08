@@ -20,7 +20,6 @@ from qtpy.QtGui import QBitmap, QImage, qBlue, qGray, qGreen, qRed
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.plugins import hook
-from electrumabc.util import bh2u
 from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -539,7 +538,7 @@ class SettingsDialog(WindowModalDialog):
 
             set_label_enabled()
             if features.bootloader_hash:
-                bl_hash = bh2u(features.bootloader_hash)
+                bl_hash = features.bootloader_hash.hex()
                 bl_hash = "\n".join([bl_hash[:32], bl_hash[32:]])
             else:
                 bl_hash = "N/A"

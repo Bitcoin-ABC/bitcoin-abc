@@ -75,7 +75,6 @@ from electrumabc.util import (
     UserCancelled,
     Weak,
     bfh,
-    bh2u,
     format_time,
 )
 from electrumabc.version import PACKAGE_VERSION
@@ -2500,7 +2499,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     return
                 # else if the user scanned an offline signed tx
                 try:
-                    result = bh2u(bitcoin.base_decode(result, length=None, base=43))
+                    result = bitcoin.base_decode(result, length=None, base=43).hex()
                     # will show an error dialog on error
                     tx = self.tx_from_text(result)
                     if not tx:

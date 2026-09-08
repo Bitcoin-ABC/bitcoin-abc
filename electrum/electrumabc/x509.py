@@ -25,7 +25,7 @@
 import hashlib
 
 from .printerror import print_error, set_verbosity
-from .util import bh2u, profiler
+from .util import profiler
 
 # algo OIDs
 ALGO_RSA_SHA1 = "1.2.840.113549.1.1.5"
@@ -332,10 +332,10 @@ class X509(object):
                     # Subject Key Identifier
                     r = value.root()
                     value = value.get_value_of_type(r, "OCTET STRING")
-                    self.SKI = bh2u(value)
+                    self.SKI = value.hex()
                 elif oid == "2.5.29.35":
                     # Authority Key Identifier
-                    self.AKI = bh2u(value.get_sequence()[0])
+                    self.AKI = value.get_sequence()[0].hex()
                 else:
                     pass
 

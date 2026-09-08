@@ -64,7 +64,7 @@ from .serialize import (
     serialize_sequence,
 )
 from .uint256 import UInt256
-from .util import bh2u, profiler, to_bytes
+from .util import profiler, to_bytes
 
 DUST_THRESHOLD: int = 546
 """
@@ -347,7 +347,7 @@ class TxInput:
             try:
                 pubkey, address = xpubkey_to_address(x_pubkey)
             except Exception:
-                print_error("cannot find address in input script", bh2u(self.scriptsig))
+                print_error("cannot find address in input script", self.scriptsig.hex())
                 return
             self._type = ScriptType.p2pkh
             self._signatures = [sig if sig != NO_SIGNATURE else None]
@@ -359,7 +359,7 @@ class TxInput:
 
         if not matches_p2sh_ecdsa_multisig_scriptsig(decoded):
             self._type = ScriptType.unknown
-            print_error("cannot find address in input script", bh2u(self.scriptsig))
+            print_error("cannot find address in input script", self.scriptsig.hex())
             return
         # p2sh transaction, m of n
         x_sig = [x[1] for x in decoded[1:-1]]
@@ -919,7 +919,7 @@ def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], by
     n = dec2[-2][0] - OpCodes.OP_1 + 1
     if not matches_multisig_redeemscript(dec2, n):
         # causes exception in caller when mismatched
-        print_error("cannot find address in input script", bh2u(s))
+        print_error("cannot find address in input script", s.hex())
         return
     x_pubkeys = [x[1] for x in dec2[1:-2]]
     pubkeys = [safe_parse_pubkey(x) for x in x_pubkeys]

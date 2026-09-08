@@ -49,7 +49,7 @@ from .ecc import ECPrivkey, verify_message_with_address
 from .printerror import print_error
 from .simple_config import ConfigKeys, SimpleConfig
 from .transaction import TxOutput
-from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
+from .util import FileImportFailed, FileImportFailedEncrypted, bfh
 from .version import PACKAGE_VERSION
 
 
@@ -157,7 +157,7 @@ class PaymentRequest:
     def parse(self, r):
         if self.error:
             return
-        self.id = bh2u(sha256(r)[0:16])
+        self.id = sha256(r)[0:16].hex()
         try:
             self.data = pb2.PaymentRequest()
             self.data.ParseFromString(r)
@@ -587,7 +587,7 @@ class InvoiceStore(object):
         invoices = {}
         for k, pr in self.invoices.items():
             invoices[k] = {
-                "hex": bh2u(pr.serialize()),
+                "hex": pr.serialize().hex(),
                 "requestor": pr.requestor,
                 "txid": pr.tx,
             }

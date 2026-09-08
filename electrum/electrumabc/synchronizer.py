@@ -36,7 +36,7 @@ from .address import Address
 from .bip32 import InvalidXKeyFormat
 from .monotonic import Monotonic
 from .transaction import Transaction
-from .util import ThreadJob, bh2u, profiler
+from .util import ThreadJob, profiler
 
 if TYPE_CHECKING:
     from .wallet import AbstractWallet
@@ -224,7 +224,7 @@ class Synchronizer(ThreadJob):
         status = bytearray()
         for tx_hash, height in hist:
             status.extend(f"{tx_hash}:{height:d}:".encode("ascii"))
-        return bh2u(hashlib.sha256(status).digest())
+        return hashlib.sha256(status).digest().hex()
 
     @property
     def change_subs_active(self) -> Set[str]:

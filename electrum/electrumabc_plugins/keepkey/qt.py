@@ -7,7 +7,7 @@ from qtpy.QtGui import QRegularExpressionValidator
 from electrumabc.bip32 import is_xprv
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.plugins import hook
-from electrumabc.util import _, bh2u
+from electrumabc.util import _
 from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -365,7 +365,7 @@ class SettingsDialog(WindowModalDialog):
         def update(features):
             self.features = features
             set_label_enabled()
-            bl_hash = bh2u(features.bootloader_hash)
+            bl_hash = features.bootloader_hash.hex()
             bl_hash = "\n".join([bl_hash[:32], bl_hash[32:]])
             noyes = [_("No"), _("Yes")]
             endis = [_("Enable Passphrases"), _("Disable Passphrases")]

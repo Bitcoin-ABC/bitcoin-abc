@@ -113,7 +113,7 @@ def DecodeAES_base64(secret, ciphertext_b64):
     return DecodeAES_bytes(secret, ciphertext)
 
 
-def sha256(x):
+def sha256(x) -> bytes:
     x = to_bytes(x, "utf8")
     return bytes(hashlib.sha256(x).digest())
 

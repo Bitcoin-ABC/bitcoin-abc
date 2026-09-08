@@ -112,7 +112,6 @@ from .util import (
     TimeoutException,
     UserCancelled,
     WalletFileException,
-    bh2u,
     finalization_print_error,
     format_time,
     multisig_type,
@@ -2782,7 +2781,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 " make_payment_request"
             )
         timestamp = int(time.time())
-        _id = bh2u(Hash(addr.to_storage_string() + "%d" % timestamp))[0:10]
+        _id = Hash(addr.to_storage_string() + "%d" % timestamp).hex()[0:10]
         d = {
             "time": timestamp,
             "amount": amount,
@@ -2824,7 +2823,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         pr = paymentrequest.make_unsigned_request(req)
         paymentrequest.sign_request_with_alias(pr, alias, alias_privkey)
         req["name"] = to_string(pr.pki_data)
-        req["sig"] = bh2u(pr.signature)
+        req["sig"] = pr.signature.hex()
         self.receive_requests[key] = req
         self.save_payment_requests()
 
