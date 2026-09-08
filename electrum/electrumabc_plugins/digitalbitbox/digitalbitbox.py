@@ -53,7 +53,7 @@ except ImportError:
 
 
 def to_hexstr(s):
-    return binascii.hexlify(s).decode("ascii")
+    return s.hex()
 
 
 def derive_keys(x):
@@ -585,7 +585,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 # firmware > v2.1.1
                 sig = bytes(
                     [27 + int(reply["sign"][0]["recid"], 16) + 4]
-                ) + binascii.unhexlify(reply["sign"][0]["sig"])
+                ) + bytes.fromhex(reply["sign"][0]["sig"])
                 pk, compressed = ECPubkey.from_signature65(sig, msg_hash)
                 pk = pk.get_public_key_bytes(compressed)
                 addr = public_key_to_p2pkh(pk)
@@ -594,12 +594,10 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
             elif "pubkey" in reply["sign"][0]:
                 # firmware <= v2.1.1
                 for i in range(4):
-                    sig = bytes([27 + i + 4]) + binascii.unhexlify(
-                        reply["sign"][0]["sig"]
-                    )
+                    sig = bytes([27 + i + 4]) + bytes.fromhex(reply["sign"][0]["sig"])
                     try:
                         addr = public_key_to_p2pkh(
-                            binascii.unhexlify(reply["sign"][0]["pubkey"])
+                            bytes.fromhex(reply["sign"][0]["pubkey"])
                         )
                         if verify_message_with_address(addr, sig, message):
                             break
@@ -785,7 +783,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                     if "recid" in signed:
                         # firmware > v2.1.1
                         recid = int(signed["recid"], 16)
-                        s = binascii.unhexlify(signed["sig"])
+                        s = bytes.fromhex(signed["sig"])
                         h = inputhasharray[i]
                         pk = ECPubkey.from_sig_string(s, recid, h)
                         pk = pk.get_public_key_hex(compressed=True)

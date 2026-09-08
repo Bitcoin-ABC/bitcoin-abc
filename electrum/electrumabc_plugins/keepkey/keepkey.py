@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from binascii import unhexlify
 from typing import TYPE_CHECKING
 
 from electrumabc import networks
@@ -476,7 +475,7 @@ class KeepKeyPlugin(HWPluginBase):
                                     txinputtype.address_n.extend(xpub_n + s)
                                     break
 
-                prev_hash = unhexlify(txin["prevout_hash"])
+                prev_hash = bytes.fromhex(txin["prevout_hash"])
                 prev_index = txin["prevout_n"]
 
             if "value" in txin:

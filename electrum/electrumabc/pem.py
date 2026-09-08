@@ -176,7 +176,7 @@ def _parseSSLeay(key):
 
 
 def bytesToNumber(s):
-    return int(binascii.hexlify(s), 16)
+    return int(s.hex(), 16)
 
 
 def _parseASN1PrivateKey(s):

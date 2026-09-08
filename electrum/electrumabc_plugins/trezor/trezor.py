@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sys
 import traceback
-from binascii import unhexlify
 from typing import TYPE_CHECKING, Any, NamedTuple, Optional, Tuple
 
 from electrumabc.address import Address
@@ -536,7 +535,7 @@ class TrezorPlugin(HWPluginBase):
                 )
             else:
                 txinputtype = TxInputType(
-                    prev_hash=unhexlify(txin["prevout_hash"]),
+                    prev_hash=bytes.fromhex(txin["prevout_hash"]),
                     prev_index=txin["prevout_n"],
                 )
                 if for_sig:
