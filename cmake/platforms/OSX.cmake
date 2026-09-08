@@ -22,7 +22,7 @@ set(SDK_XCODE_BUILD_ID 15A240d)
 set(LLD_VERSION 711)
 
 # On OSX we use various stuff from Apple's SDK.
-set(OSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/SDKs/Xcode-${SDK_XCODE_VERSION}-${SDK_XCODE_BUILD_ID}-extracted-SDK-with-libcxx-headers")
+set(OSX_SDK_PATH "${CMAKE_CURRENT_LIST_DIR}/../../depends/SDKs/Xcode-${SDK_XCODE_VERSION}-${SDK_XCODE_BUILD_ID}-extracted-SDK-with-libcxx-headers")
 set(CMAKE_OSX_SYSROOT "${OSX_SDK_PATH}")
 set(CMAKE_OSX_DEPLOYMENT_TARGET ${OSX_MIN_VERSION})
 set(CMAKE_OSX_ARCHITECTURES x86_64)
