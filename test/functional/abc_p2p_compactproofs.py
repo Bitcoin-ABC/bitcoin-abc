@@ -33,6 +33,8 @@ from test_framework.util import MAX_NODES, assert_equal, p2p_port, uint256_hex
 AVALANCHE_AVAPROOFS_TIMEOUT = 2 * 60
 # Max interval between 2 periodic networking processing
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
+# Minimum time between 2 successive getavaproofs from the same peer
+GETAVAPROOFS_INTERVAL = 60
 
 
 class ProofStoreP2PInterface(AvaP2PInterface):
@@ -270,16 +272,26 @@ class CompactProofsTest(BitcoinTestFramework):
 
         node = self.nodes[0]
 
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
+
         def send_getavaproof_check_shortid_len(peer, expected_len):
+            nonlocal mock_time
             peer.send_without_ping(msg_getavaproofs())
             self.wait_until(lambda: self.received_avaproofs(peer))
 
             avaproofs = self.received_avaproofs(peer)
             assert_equal(len(avaproofs.shortids), expected_len)
 
+            # Allow another getavaproofs from the same peer
+            mock_time += GETAVAPROOFS_INTERVAL
+            node.setmocktime(mock_time)
+
         # Initially the node has 0 peer
         self.restart_node(0)
         assert_equal(len(get_proof_ids(node)), 0)
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
 
         peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
         send_getavaproof_check_shortid_len(peer, 0)
@@ -327,6 +339,32 @@ class CompactProofsTest(BitcoinTestFramework):
             for proofid in sorted(proofids)
         ]
         assert_equal(expected_shortids, avaproofs.shortids)
+
+    def test_getavaproofs_rate_limit(self):
+        self.log.info("Check getavaproofs messages are rate-limited per peer")
+
+        node = self.nodes[0]
+        self.restart_node(0)
+
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
+
+        peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
+
+        peer.send_without_ping(msg_getavaproofs())
+        self.wait_until(lambda: self.received_avaproofs(peer))
+        assert self.get_avaproofs(peer) is not None
+
+        # Subsequent getavaproofs within the interval are ignored
+        peer.send_and_ping(msg_getavaproofs())
+        assert self.received_avaproofs(peer) is None
+
+        mock_time += GETAVAPROOFS_INTERVAL
+        node.setmocktime(mock_time)
+
+        peer.send_without_ping(msg_getavaproofs())
+        self.wait_until(lambda: self.received_avaproofs(peer))
+        assert self.get_avaproofs(peer) is not None
 
     def test_request_missing_proofs(self):
         self.log.info(
@@ -728,6 +766,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.test_send_outbound_getavaproofs()
         self.test_send_manual_getavaproofs()
         self.test_respond_getavaproofs()
+        self.test_getavaproofs_rate_limit()
         self.test_request_missing_proofs()
         self.test_send_missing_proofs()
         self.test_compact_proofs_download_on_connect()

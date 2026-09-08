@@ -122,6 +122,11 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
 static constexpr auto GETAVAADDR_INTERVAL{2min};
 
 /**
+ * Minimum time between 2 successive getavaproofs messages from the same peer
+ */
+static constexpr auto GETAVAPROOFS_INTERVAL{1min};
+
+/**
  * Maximum number of failed avaproof registrations (e.g. missing UTXO, rejected,
  * cooldown) a peer may send within AVALANCHE_INVALID_AVAPROOFS_INTERVAL before
  * being discouraged.
@@ -568,6 +573,12 @@ struct Peer {
      * proofs with this peer
      */
     const std::unique_ptr<ProofRelay> m_proof_relay;
+
+    /**
+     * Next time we will consider a getavaproofs message from this peer.
+     */
+    std::chrono::seconds
+        m_next_getavaproofs GUARDED_BY(NetEventsInterface::g_msgproc_mutex){0s};
 
     /**
      * Timestamps of recent failed avaproof registrations from this peer
@@ -7499,8 +7510,17 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        peer->m_proof_relay->lastSharedProofsUpdate =
-            GetTime<std::chrono::seconds>();
+        auto now = GetTime<std::chrono::seconds>();
+        if (now < peer->m_next_getavaproofs) {
+            // Prevent a peer from exhausting our resources by spamming
+            // getavaproofs messages.
+            return;
+        }
+
+        // Only accept a getavaproofs every GETAVAPROOFS_INTERVAL at most
+        peer->m_next_getavaproofs = now + GETAVAPROOFS_INTERVAL;
+
+        peer->m_proof_relay->lastSharedProofsUpdate = now;
 
         peer->m_proof_relay->sharedProofs =
             m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {

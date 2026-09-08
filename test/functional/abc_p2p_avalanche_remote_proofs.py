@@ -26,6 +26,8 @@ from test_framework.wallet_util import bytes_to_wif
 
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
 AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
+# Minimum time between 2 successive getavaproofs from the same peer
+GETAVAPROOFS_INTERVAL = 60
 
 
 class AvalancheRemoteProofsTest(BitcoinTestFramework):
@@ -320,6 +322,11 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             node1.verifyavalancheproof(proof.serialize().hex()) for proof in proofs
         )
 
+        # Handshake already sent getavaproofs; advance mocktime so node0 will
+        # answer another request from this peer.
+        now += GETAVAPROOFS_INTERVAL
+        node.setmocktime(now)
+
         node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
         def wait_for_remote_proofs(remote_proofs, nodeid=1, **kwargs):
@@ -341,6 +348,9 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         self.wait_until(lambda: len(node.getpeerinfo()) == 6)
 
         proofs_absent = [peer.proof for peer in quorum[:5]]
+
+        now += GETAVAPROOFS_INTERVAL
+        node.setmocktime(now)
 
         node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
@@ -385,8 +395,8 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             proof_count=21, dangling_proof_count=11, finalized_proof_count=21
         )
 
-        now = int(time.time()) + AVALANCHE_DANGLING_PROOF_TIMEOUT
-        node1.setmocktime(now)
+        node1_now = int(time.time()) + AVALANCHE_DANGLING_PROOF_TIMEOUT
+        node1.setmocktime(node1_now)
         node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
         # The dangling proofs are cleaned up
@@ -402,6 +412,10 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         nodeid = node1.getpeerinfo()[-1]["id"]
         proofs_present = [node0_proof] + [peer.proof for peer in quorum[5:]]
         proofs_absent = [peer.proof for peer in quorum[:5]]
+
+        # Handshake already sent getavaproofs; allow another reply from node0.
+        now += GETAVAPROOFS_INTERVAL
+        node.setmocktime(now)
 
         # Need a compact avaproofs snapshot from node0 so remotes are rebuilt for
         # both peers and dangling proofs (not only sticky AVAPROOF rows).
