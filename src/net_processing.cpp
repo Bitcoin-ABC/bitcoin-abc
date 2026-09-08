@@ -575,6 +575,12 @@ struct Peer {
     const std::unique_ptr<ProofRelay> m_proof_relay;
 
     /**
+     * Next time we will consider a getavaaddr message from this peer.
+     */
+    std::chrono::seconds
+        m_next_getavaaddr GUARDED_BY(NetEventsInterface::g_msgproc_mutex){0s};
+
+    /**
      * Next time we will consider a getavaproofs message from this peer.
      */
     std::chrono::seconds
@@ -7746,14 +7752,14 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::GETAVAADDR) {
         auto now = GetTime<std::chrono::seconds>();
-        if (now < pfrom.m_nextGetAvaAddr) {
+        if (now < peer->m_next_getavaaddr) {
             // Prevent a peer from exhausting our resources by spamming
             // getavaaddr messages.
             return;
         }
 
         // Only accept a getavaaddr every GETAVAADDR_INTERVAL at most
-        pfrom.m_nextGetAvaAddr = now + GETAVAADDR_INTERVAL;
+        peer->m_next_getavaaddr = now + GETAVAADDR_INTERVAL;
 
         if (!SetupAddressRelay(pfrom, *peer)) {
             LogPrint(BCLog::AVALANCHE,

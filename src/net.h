@@ -616,9 +616,6 @@ public:
     void updateAvailabilityScore(double decayFactor);
     double getAvailabilityScore() const;
 
-    // Store the next time we will consider a getavaaddr message from this peer
-    std::chrono::seconds m_nextGetAvaAddr{0};
-
     // The last time the node sent us a faulty message
     std::atomic<std::chrono::seconds> m_avalanche_last_message_fault{0s};
     /**
