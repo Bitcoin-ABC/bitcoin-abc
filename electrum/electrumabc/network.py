@@ -1824,7 +1824,6 @@ class Network(util.DaemonThread):
 
         header_hex = header_dict["hex"]
         height = header_dict["height"]
-        header = blockchain.deserialize_header(bytes.fromhex(header_hex), height)
 
         # If the server is behind the verification height, then something is wrong
         # with it.  Drop it.
@@ -1832,6 +1831,16 @@ class Network(util.DaemonThread):
             networks.net.VERIFICATION_BLOCK_HEIGHT is not None
             and height <= networks.net.VERIFICATION_BLOCK_HEIGHT
         ):
+            self.connection_down(interface.server)
+            return
+
+        try:
+            header = blockchain.deserialize_header(bytes.fromhex(header_hex), height)
+        except (ValueError, TypeError, IndexError):
+            # ValueError can happen if header_hex is a string with non-hex characters.
+            # TypeError can happen if header_hex is not a string.
+            # IndexError could be raised by deserialize_header if header_hex is shorter
+            # than an expected header.
             self.connection_down(interface.server)
             return
 
