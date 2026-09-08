@@ -5,8 +5,8 @@
 /**
  * Encode / decode CashFusion-shaped {@link Component} blobs for a wire round.
  *
- * Pedersen / blind-auth verification is out of scope — commitments are
- * `sha256(componentBytes)` carried in `InitialCommitment.saltedComponentHash`.
+ * `saltedComponentHash` is still `sha256(componentBytes)` for assemble
+ * matching. Pedersen / blind-auth live in `commit.ts`.
  */
 import { randomBytes } from 'node:crypto';
 

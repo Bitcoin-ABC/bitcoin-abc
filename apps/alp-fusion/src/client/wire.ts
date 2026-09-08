@@ -6,19 +6,16 @@
  * One-shot networked client: control-channel hello / join / commit, covert
  * component reveal, then unsigned {@link FusionResult}.
  *
- * Chronik, signing, and blind-auth are out of scope — inject real coins via
+ * Chronik and tx signing stay out of scope — inject real coins via
  * {@link WireContribution}.
  */
-import { randomBytes } from 'node:crypto';
-
-import { sha256 } from 'ecash-lib';
+import { DEFAULT_FEE_SATS_PER_KB, finalizeBlindSigs } from 'ecash-lib';
 
 import {
-    componentCommitment,
     contributionToComponents,
-    DUMMY_POINT,
     type WireContribution,
 } from '../protocol/components.js';
+import { buildPlayerCommit, readBlindSigScalars } from '../protocol/commit.js';
 import { PROTOCOL_VERSION } from '../protocol/constants.js';
 import {
     connect,
@@ -29,7 +26,6 @@ import { CovertSubmitter } from '../protocol/covert.js';
 import { tokenIdFromBytes, tokenIdToBytes } from '../protocol/hash.js';
 import {
     decodeMessage,
-    encodeInitialCommitment,
     encodeMessage,
     getTypes,
     initProto,
@@ -84,6 +80,10 @@ export async function runWireRound(
         if (hello.field !== 'serverhello') {
             throw new Error(`expected serverhello, got ${hello.field}`);
         }
+        const feerate =
+            typeof hello.payload.componentFeerate === 'bigint'
+                ? hello.payload.componentFeerate
+                : DEFAULT_FEE_SATS_PER_KB;
 
         const joinKeys = opts.pools ?? [
             { tokenId: opts.tokenId, atomTier: opts.atomTier },
@@ -135,25 +135,38 @@ export async function runWireRound(
         const roundPubkey = Buffer.from(
             (start.payload.roundPubkey as Uint8Array) ?? Buffer.alloc(0),
         );
+        const nonceRaw = start.payload.blindNoncePoints;
+        const noncePoints = Array.isArray(nonceRaw)
+            ? nonceRaw.map(p => Buffer.from(p as Uint8Array))
+            : [];
 
         const components = contributionToComponents(opts.contribution);
-        const commKey = randomBytes(33);
-        commKey[0] = 0x02;
+        const built = buildPlayerCommit(
+            components,
+            roundPubkey,
+            noncePoints,
+            feerate,
+        );
         await sendClient(conn, types, 'playercommit', {
-            initialCommitments: components.map(c =>
-                encodeInitialCommitment({
-                    saltedComponentHash: Buffer.from(componentCommitment(c)),
-                    satsCommitment: DUMMY_POINT,
-                    tokenCommitment: DUMMY_POINT,
-                    communicationKey: commKey,
-                }),
-            ),
-            excessFee: 0n,
-            satsPedersenTotalNonce: Buffer.alloc(32, 1),
-            tokenPedersenTotalNonce: Buffer.alloc(32, 2),
-            randomNumberCommitment: Buffer.from(sha256(randomBytes(32))),
-            blindSigRequests: [] as Buffer[],
+            initialCommitments: built.initialCommitments,
+            excessFee: built.excessFee,
+            satsPedersenTotalNonce: Buffer.from(built.satsPedersenTotalNonce),
+            tokenPedersenTotalNonce: Buffer.from(built.tokenPedersenTotalNonce),
+            randomNumberCommitment: Buffer.from(built.randomNumberCommitment),
+            blindSigRequests: built.blindSigRequests.map(e => Buffer.from(e)),
         });
+
+        const blinds = await recvServerSkipStatus(conn, types, recvMs);
+        if (blinds.field === 'error') {
+            throw new Error(errorMessage(blinds.payload));
+        }
+        if (blinds.field !== 'blindsigresponses') {
+            throw new Error(`expected blindsigresponses, got ${blinds.field}`);
+        }
+        const sigs = finalizeBlindSigs(
+            built.requests,
+            readBlindSigScalars(blinds.payload.scalars, built.requests.length),
+        );
 
         const covert = new CovertSubmitter({
             destHost: covertDomain,
@@ -172,11 +185,11 @@ export async function runWireRound(
         await covert.waitUntilConnected(opts.covertTimeoutMs ?? 5_000);
         covert.scheduleSubmissions(
             Date.now(),
-            components.map(component => ({
+            components.map((component, i) => ({
                 field: 'component' as const,
                 payload: {
                     roundPubkey,
-                    signature: Buffer.alloc(64, 1),
+                    signature: Buffer.from(sigs[i]),
                     component,
                 },
             })),

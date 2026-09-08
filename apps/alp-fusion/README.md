@@ -103,10 +103,13 @@ fuses ALP without burning tokens.
    separate covert sockets (`CovertSubmitter`, slots/spares, `randTrap`
    stagger) and SOCKS5 CONNECT with unique per-connection credentials. No live
    Tor daemon, Chronik, or signing.
-9. **Control-channel round RPCs** — hello / join / pool status / FusionBegin /
-   StartRound / PlayerCommit + covert component reveal, then unsigned
-   `FusionResult` via `OneShotRound`. No Chronik, signing, or blind-auth verify.
-10. **Shared client library** — drop CLI-only assumptions.
-11. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
+9. **Control-channel round RPCs [D20575](https://reviews.bitcoinabc.org/D20575)** —
+   hello / join / pool status / FusionBegin / StartRound / PlayerCommit +
+   covert component reveal, then unsigned `FusionResult` via `OneShotRound`.
+10. **Pedersen + blind-auth verify** — dual Pedersen openings on PlayerCommit
+    (sats → excess fee, atoms → 0) and Schnorr-unblinded covert component
+    signatures. No Chronik, tx signing, or blame proofs.
+11. **Shared client library** — drop CLI-only assumptions.
+12. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
     opportunistic background where the OS allows.
-12. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.
+13. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.

@@ -14,17 +14,22 @@ import {
     Tx,
 } from 'ecash-lib';
 
+import { finalizeBlindSigs } from 'ecash-lib';
+
 import { runWireRound } from '../../src/client/wire.js';
 import { FusionCoordinator } from '../../src/coordinator/wire.js';
 import {
     componentCommitment,
     componentsToContribution,
     contributionToComponents,
-    DUMMY_POINT,
     type WireContribution,
     type WireFuelInput,
     type WireTokenInput,
 } from '../../src/protocol/components.js';
+import {
+    buildPlayerCommit,
+    readBlindSigScalars,
+} from '../../src/protocol/commit.js';
 import { PROTOCOL_VERSION } from '../../src/protocol/constants.js';
 import {
     connect,
@@ -35,7 +40,6 @@ import { CovertSubmitter } from '../../src/protocol/covert.js';
 import { tokenIdToBytes } from '../../src/protocol/hash.js';
 import {
     decodeMessage,
-    encodeInitialCommitment,
     encodeMessage,
     getTypes,
     initProto,
@@ -98,34 +102,52 @@ function pairPlayers(
     };
 }
 
+function dustFuel(
+    tag: number,
+    outIdx: number,
+    dust = DEFAULT_DUST_SATS,
+): WireFuelInput[] {
+    const pubkey = dummyPubkey(tag);
+    return [
+        {
+            prevOut: { txid: '22'.repeat(32), outIdx },
+            sats: dust,
+            script: scriptFromPub(pubkey),
+            atoms: 0n,
+            pubkey,
+        },
+    ];
+}
+
 function fundFuel(
     tokenInputs: WireTokenInput[],
     tokenOutputs: FusionTokenOutput[],
     tag = 0xcc,
     fuelOutIdx = 0,
+    extraFuel: WireFuelInput[] = [],
 ): WireFuelInput[] {
     const pubkey = dummyPubkey(tag);
+    const placeholder = {
+        prevOut: { txid: '22'.repeat(32), outIdx: fuelOutIdx },
+        sats: 1n,
+        script: scriptFromPub(pubkey),
+        atoms: 0n,
+    };
     const shaped = {
         tokenId: TOKEN_ID,
         tokenInputs,
         tokenOutputs,
-        fuelInputs: [
-            {
-                prevOut: { txid: '22'.repeat(32), outIdx: fuelOutIdx },
-                sats: 1n,
-                script: scriptFromPub(pubkey),
-                atoms: 0n,
-            },
-        ],
+        fuelInputs: [placeholder, ...extraFuel],
         feePerKb: DEFAULT_FEE_SATS_PER_KB,
     };
     const { feeSats } = estimateAlpSendFeeSats(shaped);
     const outSats = BigInt(tokenOutputs.length) * DEFAULT_DUST_SATS;
     const inSats = BigInt(tokenInputs.length) * DEFAULT_DUST_SATS;
+    const extraIn = extraFuel.reduce((sum, f) => sum + f.sats, 0n);
     return [
         {
             prevOut: { txid: '22'.repeat(32), outIdx: fuelOutIdx },
-            sats: outSats + feeSats - inSats,
+            sats: outSats + feeSats - inSats - extraIn,
             script: scriptFromPub(pubkey),
             atoms: 0n,
             pubkey,
@@ -190,9 +212,13 @@ describe('FusionCoordinator wire round', function () {
             const outsA = [tokenOut(40n, 0xb1)];
             const inputsB = [tokenIn(1, 60n, 0xa2)];
             const outsB = [tokenOut(25n, 0xb2), tokenOut(35n, 0xb3)];
+            const fuelB = dustFuel(0xcd, 9);
             const fuel = fundFuel(
                 [...inputsA, ...inputsB],
                 [...outsA, ...outsB],
+                0xcc,
+                0,
+                fuelB,
             );
 
             const [a, b] = await Promise.all([
@@ -217,6 +243,7 @@ describe('FusionCoordinator wire round', function () {
                     contribution: {
                         tokenInputs: inputsB,
                         tokenOutputs: outsB,
+                        fuelInputs: fuelB,
                     },
                     recvTimeoutMs: 5_000,
                     covertTimeoutMs: 5_000,
@@ -269,7 +296,7 @@ describe('FusionCoordinator wire round', function () {
         }
     });
 
-    it('returns FusionResult not-ok when atoms are burned', async () => {
+    it('rejects a burned contribution before PlayerCommit', async () => {
         const coord = new FusionCoordinator({
             minPlayers: 2,
             atomTiers: [1n],
@@ -308,7 +335,7 @@ describe('FusionCoordinator wire round', function () {
             ]);
             expect(results.every(r => r.status === 'rejected')).to.equal(true);
             const msg = (results[0] as PromiseRejectedResult).reason as Error;
-            expect(msg.message).to.match(/atom burn/i);
+            expect(msg.message).to.match(/not conserved|atom burn|Pedersen/i);
         } finally {
             await coord.close();
         }
@@ -463,7 +490,7 @@ describe('FusionCoordinator wire round', function () {
         }
     });
 
-    it('rejects unmatched covert blobs beyond maxEarlyCovert', async () => {
+    it('rejects covert components before a round starts', async () => {
         const coord = new FusionCoordinator({
             minPlayers: 2,
             maxEarlyCovert: 2,
@@ -492,7 +519,7 @@ describe('FusionCoordinator wire round', function () {
                     covert.close();
                 }
             }
-            expect(replies).to.deep.equal(['ok', 'ok', 'error']);
+            expect(replies).to.deep.equal(['error', 'error', 'error']);
         } finally {
             await coord.close();
         }
@@ -512,9 +539,13 @@ describe('FusionCoordinator wire round', function () {
             const outsA = [tokenOut(40n, 0xb1)];
             const inputsB = [tokenIn(1, 60n, 0xa2)];
             const outsB = [tokenOut(25n, 0xb2), tokenOut(35n, 0xb3)];
+            const fuelB = dustFuel(0xcd, 9);
             const fuel = fundFuel(
                 [...inputsA, ...inputsB],
                 [...outsA, ...outsB],
+                0xcc,
+                0,
+                fuelB,
             );
             const runA = runWireRound({
                 host: '127.0.0.1',
@@ -551,6 +582,7 @@ describe('FusionCoordinator wire round', function () {
                 contribution: {
                     tokenInputs: inputsB,
                     tokenOutputs: outsB,
+                    fuelInputs: fuelB,
                 },
                 recvTimeoutMs: 5_000,
                 covertTimeoutMs: 5_000,
@@ -1029,25 +1061,38 @@ async function commitThenPause(
         throw new Error(`expected startround, got ${start.field}`);
     }
     const roundPubkey = Buffer.from(start.payload.roundPubkey as Uint8Array);
+    const nonceRaw = start.payload.blindNoncePoints;
+    const noncePoints = Array.isArray(nonceRaw)
+        ? nonceRaw.map(p => Buffer.from(p as Uint8Array))
+        : [];
     const components = contributionToComponents(contribution);
-    const commKey = Buffer.alloc(33, 3);
-    commKey[0] = 0x02;
+    const feerate =
+        typeof hello.payload.componentFeerate === 'bigint'
+            ? hello.payload.componentFeerate
+            : DEFAULT_FEE_SATS_PER_KB;
+    const built = buildPlayerCommit(
+        components,
+        roundPubkey,
+        noncePoints,
+        feerate,
+    );
     await conn.sendMessage(
         encodeMessage(types.ClientMessage, 'playercommit', {
-            initialCommitments: components.map(c =>
-                encodeInitialCommitment({
-                    saltedComponentHash: Buffer.from(componentCommitment(c)),
-                    satsCommitment: DUMMY_POINT,
-                    tokenCommitment: DUMMY_POINT,
-                    communicationKey: commKey,
-                }),
-            ),
-            excessFee: 0n,
-            satsPedersenTotalNonce: Buffer.alloc(32, 1),
-            tokenPedersenTotalNonce: Buffer.alloc(32, 2),
-            randomNumberCommitment: Buffer.alloc(32, 3),
-            blindSigRequests: [] as Buffer[],
+            initialCommitments: built.initialCommitments,
+            excessFee: built.excessFee,
+            satsPedersenTotalNonce: Buffer.from(built.satsPedersenTotalNonce),
+            tokenPedersenTotalNonce: Buffer.from(built.tokenPedersenTotalNonce),
+            randomNumberCommitment: Buffer.from(built.randomNumberCommitment),
+            blindSigRequests: built.blindSigRequests.map(e => Buffer.from(e)),
         }),
+    );
+    const blinds = await recvSkipStatus(conn, types, 3_000);
+    if (blinds.field !== 'blindsigresponses') {
+        throw new Error(`expected blindsigresponses, got ${blinds.field}`);
+    }
+    const sigs = finalizeBlindSigs(
+        built.requests,
+        readBlindSigScalars(blinds.payload.scalars, built.requests.length),
     );
     const covertPort = begin.payload.covertPort;
     if (typeof covertPort !== 'number') {
@@ -1067,11 +1112,11 @@ async function commitThenPause(
         await covert.waitUntilConnected(2_000);
         covert.scheduleSubmissions(
             Date.now(),
-            components.map(component => ({
+            components.map((component, i) => ({
                 field: 'component' as const,
                 payload: {
                     roundPubkey,
-                    signature: Buffer.alloc(64, 1),
+                    signature: Buffer.from(sigs[i]),
                     component,
                 },
             })),

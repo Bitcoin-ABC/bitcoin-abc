@@ -7,11 +7,18 @@
  * StartRound → PlayerCommit, plus covert {@link CovertComponent} reveal, then
  * {@link OneShotRound} assemble and FusionResult (unsigned tx).
  *
- * Blind-auth verify, Chronik, signing, and broadcast are out of scope.
+ * Chronik, tx signing, and broadcast stay out of scope.
  */
 import { randomBytes } from 'node:crypto';
 
-import { DEFAULT_FEE_SATS_PER_KB, sha256, toHex } from 'ecash-lib';
+import {
+    BlindSigner,
+    DEFAULT_FEE_SATS_PER_KB,
+    Ecc,
+    randomScalarBytes,
+    sha256,
+    toHex,
+} from 'ecash-lib';
 
 import {
     DEFAULT_MIN_PLAYERS,
@@ -25,9 +32,12 @@ import {
     componentCommitment,
     componentsToContribution,
 } from '../protocol/components.js';
+import {
+    verifyCovertComponent,
+    verifyPlayerCommit,
+} from '../protocol/commit.js';
 import { tokenIdFromBytes, tokenIdToBytes } from '../protocol/hash.js';
 import {
-    decodeInitialCommitment,
     decodeMessage,
     encodeMessage,
     getTypes,
@@ -73,6 +83,8 @@ interface Session {
     joined: { tokenId: string; atomTier: bigint }[];
     resolveRound: (round: ActiveRound) => void;
     roundAssigned: Promise<ActiveRound>;
+    /** Per-session BlindSigners (unique R points). Set in beginRound. */
+    blinds: BlindSigner[];
 }
 
 interface RoundResult {
@@ -96,6 +108,8 @@ class ActiveRound {
     private readonly shuffleSeed: number | undefined;
     private readonly feePerKb: bigint;
     private readonly maxPending: number;
+    roundSeckey: Uint8Array<ArrayBufferLike> = new Uint8Array(32);
+    roundPubkey: Uint8Array<ArrayBufferLike> = new Uint8Array(33);
 
     constructor(
         tokenId: string,
@@ -358,28 +372,21 @@ export class FusionCoordinator {
             return { ok: false, message: `unexpected covert ${field}` };
         }
         try {
-            const component = asBytes(payload.component, 'covert.component');
-            const hashHex = toHex(componentCommitment(component));
-            if (this.activeRound) {
-                if (!this.activeRound.addPending(hashHex, component)) {
-                    return {
-                        ok: false,
-                        message: 'too many covert components',
-                    };
-                }
-                this.activeRound.tryAssemble();
-            } else {
-                if (
-                    !this.earlyCovert.has(hashHex) &&
-                    this.earlyCovert.size >= this.maxEarlyCovert
-                ) {
-                    return {
-                        ok: false,
-                        message: 'too many early components',
-                    };
-                }
-                this.earlyCovert.set(hashHex, component);
+            if (!this.activeRound) {
+                return { ok: false, message: 'no active round' };
             }
+            const component = verifyCovertComponent(
+                payload,
+                this.activeRound.roundPubkey,
+            );
+            const hashHex = toHex(componentCommitment(component));
+            if (!this.activeRound.addPending(hashHex, component)) {
+                return {
+                    ok: false,
+                    message: 'too many covert components',
+                };
+            }
+            this.activeRound.tryAssemble();
             return { ok: true };
         } catch (err) {
             return {
@@ -420,6 +427,7 @@ export class FusionCoordinator {
             joined: [],
             resolveRound,
             roundAssigned,
+            blinds: [],
         };
         this.sessions.set(playerId, session);
         const recvMs = this.opts.recvTimeoutMs ?? 15_000;
@@ -515,8 +523,34 @@ export class FusionCoordinator {
                 round.fail('expected playercommit');
                 return;
             }
-            const hashes = parseCommitHashes(commit.payload);
-            round.addCommit(playerId, hashes);
+            let verified;
+            try {
+                verified = verifyPlayerCommit(commit.payload, {
+                    minExcessFee: this.opts.minExcessFee ?? 0n,
+                    maxExcessFee: this.opts.maxExcessFee ?? 300_000n,
+                    maxComponents: this.opts.numComponents ?? NUM_COMPONENTS,
+                });
+            } catch (err) {
+                const message =
+                    err instanceof Error ? err.message : String(err);
+                await this.send(session, 'error', { message });
+                round.fail(message);
+                return;
+            }
+            if (session.blinds.length < verified.eValues.length) {
+                await this.send(session, 'error', {
+                    message: 'blind nonce miscount',
+                });
+                round.fail('blind nonce miscount');
+                return;
+            }
+            const scalars = verified.eValues.map((e, i) =>
+                session.blinds[i].sign(round.roundSeckey, e),
+            );
+            await this.send(session, 'blindsigresponses', {
+                scalars: scalars.map(s => Buffer.from(s)),
+            });
+            round.addCommit(playerId, verified.hashes);
             round.tryAssemble();
 
             const wait = delay(this.opts.roundTimeoutMs ?? 10_000);
@@ -706,8 +740,9 @@ export class FusionCoordinator {
             this.opts.covertDomain ?? this.opts.host ?? '127.0.0.1',
         );
         const serverTime = BigInt(Math.floor(Date.now() / 1000));
-        const roundPubkey = randomBytes(33);
-        roundPubkey[0] = 0x02;
+        const numComponents = this.opts.numComponents ?? NUM_COMPONENTS;
+        round.roundSeckey = randomScalarBytes();
+        round.roundPubkey = new Ecc().derivePubkey(round.roundSeckey);
         const sessions = round.playerIds.map(playerId => {
             const session = this.sessions.get(playerId);
             if (!session) {
@@ -726,16 +761,22 @@ export class FusionCoordinator {
             covertSsl: false,
             serverTime,
         };
-        const start = {
-            roundPubkey,
-            blindNoncePoints: [] as Buffer[],
-            serverTime,
-        };
         const budget = delay(this.opts.roundTimeoutMs ?? 10_000);
         try {
             await Promise.race([
                 Promise.all(
                     sessions.map(async session => {
+                        session.blinds = Array.from(
+                            { length: numComponents },
+                            () => new BlindSigner(),
+                        );
+                        const start = {
+                            roundPubkey: Buffer.from(round.roundPubkey),
+                            blindNoncePoints: session.blinds.map(b =>
+                                Buffer.from(b.getR()),
+                            ),
+                            serverTime,
+                        };
                         await this.send(session, 'fusionbegin', begin);
                         await this.send(session, 'startround', start);
                     }),
@@ -753,25 +794,6 @@ export class FusionCoordinator {
             budget.clear();
         }
     }
-}
-
-/**
- * Read `PlayerCommit.initialCommitments` as `sha256(component)` hex strings.
- */
-function parseCommitHashes(payload: Record<string, unknown>): string[] {
-    const raw = payload.initialCommitments;
-    if (!Array.isArray(raw) || raw.length === 0) {
-        throw new Error('playercommit: initialCommitments required');
-    }
-    const hashes: string[] = [];
-    for (const item of raw) {
-        const bytes = asBytes(item, 'initialCommitment');
-        const decoded = decodeInitialCommitment(bytes);
-        hashes.push(
-            toHex(asBytes(decoded.saltedComponentHash, 'saltedComponentHash')),
-        );
-    }
-    return hashes;
 }
 
 function delay(ms: number): { promise: Promise<void>; clear: () => void } {
