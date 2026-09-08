@@ -7,7 +7,7 @@
 FROM node:22-trixie-slim
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.34.5
 
 # Set working directory to monorepo root
 WORKDIR /app

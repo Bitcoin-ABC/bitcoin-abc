@@ -45,7 +45,7 @@ RUN CC=clang ./build-wasm.sh
 
 FROM node:22-bookworm-slim
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.34.5
 
 WORKDIR /app
 
