@@ -22,7 +22,7 @@ import time
 import urllib.parse
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .address import ADDRESS_ECREG_UNSPENDABLE
 from .authproxy import JSONRPCException
@@ -675,17 +675,17 @@ class TestNode:
         self,
         expected_msgs: List[bytes],
         timeout=60,
-        interval=0.05,
+        interval: Optional[float] = 0.05,
         chatty_callable=None,
     ):
         """
         Block until we see all the debug log messages or until we exceed the timeout.
         If a chatty_callable is provided, it is repeated at every iteration.
         """
+        assert chatty_callable is None or interval is not None
         time_end = time.time() + timeout * self.timeout_factor
-        prev_size = self.debug_log_size(
-            mode="rb"
-        )  # Must use same mode that is used to read() below
+        # Must use same mode that is used to read() below
+        prev_size = self.debug_log_size(mode="rb")
 
         yield
 
@@ -716,8 +716,8 @@ class TestNode:
                     [f"\n - {line.decode()}" for line in log.splitlines()]
                 )
                 break
-
-            time.sleep(interval)
+            if interval is not None:
+                time.sleep(interval)
 
         missing_msg = f'Missing messages: "{pprint.pformat(missing, width=120)}"'
         if len(expected_msgs) == len(missing):
