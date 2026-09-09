@@ -1,23 +1,15 @@
 # Copyright (c) 2025 The Bitcoin developers
 
 include(FetchContent)
-# Prefer a system / Guix-provided Corrosion if available
-find_package(Corrosion 0.5.1 QUIET)
 
-if(Corrosion_FOUND)
-    message(STATUS "Using system/Guix Corrosion")
-else()
-    message(STATUS "Corrosion not found – fetching via FetchContent")
+FetchContent_Declare(
+    Corrosion
+    URL https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.5.1.tar.gz
+    URL_HASH SHA256=843334a9f0f5efbc225dccfa88031fe0f2ec6fd787ca1e7d55ed27b2c25d9c97
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+)
 
-    FetchContent_Declare(
-        Corrosion
-        URL https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.5.1.tar.gz
-        URL_HASH SHA256=843334a9f0f5efbc225dccfa88031fe0f2ec6fd787ca1e7d55ed27b2c25d9c97
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    )
-
-    FetchContent_MakeAvailable(Corrosion)
-endif()
+FetchContent_MakeAvailable(Corrosion)
 
 set(REQUIRED_RUST_VERSION "1.87.0")
 if(Rust_VERSION VERSION_LESS REQUIRED_RUST_VERSION)
