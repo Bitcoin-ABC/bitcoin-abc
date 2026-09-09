@@ -795,8 +795,8 @@ describe('Test expected websocket behavior of chronik-client', () => {
     it('After a block is mined', async () => {
         nextBlockhash = await get_next_blockhash;
 
-        // Wait for expected ws msgs
-        await expectWsMsgs(1, msgCollector);
+        // Wait for BLK_CONNECTED and TX_CONFIRMED
+        await expectWsMsgs(2, msgCollector);
 
         // The block connected msg comes first
         const blockConnectedMsg = msgCollector.shift();
@@ -825,8 +825,8 @@ describe('Test expected websocket behavior of chronik-client', () => {
         coinbaseOutValue = await get_coinbase_out_value;
         coinbaseOutScriptpubkey = await get_coinbase_out_scriptpubkey;
 
-        // Wait for expected ws msgs
-        await expectWsMsgs(1, msgCollector);
+        // Wait for BLK_DISCONNECTED and TX_ADDED_TO_MEMPOOL
+        await expectWsMsgs(2, msgCollector);
 
         // The Block Disconnected msg comes first
         const blockMsg = msgCollector.shift();
