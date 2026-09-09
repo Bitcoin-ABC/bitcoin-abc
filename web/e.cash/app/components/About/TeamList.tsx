@@ -7,7 +7,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import ContentContainer from "../Atoms/ContentContainer";
 import PlusHeader from "../Atoms/PlusHeader";
-import Button from "../Atoms/Button";
 import { cn } from "@/app/utils/cn";
 import { team } from "@/app/data/team";
 
@@ -96,12 +95,6 @@ const TeamList: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-        <div className="mt-10 w-full flex-col items-center justify-center text-center">
-          <h4 className="mb-6">Interested in contributing?</h4>
-          <Button href="/careers" variant="white">
-            View Careers
-          </Button>
         </div>
       </ContentContainer>
     </section>

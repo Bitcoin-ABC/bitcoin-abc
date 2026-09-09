@@ -31,4 +31,9 @@ export const redirects = async (): Promise<
     destination: "/what-is-ecash",
     permanent: true,
   },
+  {
+    source: "/careers",
+    destination: "/about",
+    permanent: true,
+  },
 ];

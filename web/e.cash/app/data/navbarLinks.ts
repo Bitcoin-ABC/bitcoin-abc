@@ -25,7 +25,6 @@ export const navbarLinks: NavbarLink[] = [
   { title: "About", href: "/about", category: "about" },
   { title: "Blog", href: "/blog", category: "about" },
   { title: "Roadmap", href: "/roadmap", category: "about" },
-  { title: "Careers", href: "/careers", category: "about" },
   { title: "Brand", href: "/brand", category: "about" },
   { title: "Wallets", href: "/wallets", category: "about" },
   { title: "Merch", href: "https://store.e.cash", category: "about" },
