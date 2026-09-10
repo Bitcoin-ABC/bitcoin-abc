@@ -4,7 +4,6 @@
 """Utilities for avalanche tests."""
 
 import random
-import struct
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .authproxy import JSONRPCException
@@ -273,13 +272,10 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
     ) -> msg_avahello:
         local_sighash = hash256(
             delegation.getid()
-            + struct.pack(
-                "<QQQQ",
-                self.local_nonce,
-                self.remote_nonce,
-                self.local_extra_entropy,
-                self.remote_extra_entropy,
-            )
+            + self.local_nonce.to_bytes(8, "little")
+            + self.remote_nonce.to_bytes(8, "little")
+            + self.local_extra_entropy.to_bytes(8, "little")
+            + self.remote_extra_entropy.to_bytes(8, "little")
         )
 
         msg = msg_avahello()

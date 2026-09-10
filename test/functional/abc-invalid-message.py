@@ -7,8 +7,6 @@ Test that invalid messages get rejected and/or ban the sender as expected for
 each case.
 """
 
-import struct
-
 from test_framework.messages import NODE_NETWORK, msg_version
 from test_framework.p2p import P2PInterface, msg_ping
 from test_framework.test_framework import BitcoinTestFramework
@@ -21,7 +19,7 @@ def msg_bad_checksum(connection, original_message):
     i = 0
     i += len(connection.magic_bytes)
     i += 12
-    i += len(struct.pack("<I", len(data)))
+    i += len(len(data).to_bytes(4, "little"))
 
     # Make the checksum invalid
     message_data[i] = message_data[i] ^ 0xAA

@@ -3,7 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the number of elements in an avalanche poll."""
 
-import struct
 
 from test_framework.avatools import (
     AvaP2PInterface,
@@ -60,10 +59,10 @@ class AvalancheHelloLegacy:
 
     def get_sighash(self, node):
         b = self.delegation.getid()
-        b += struct.pack("<Q", node.remote_nonce)
-        b += struct.pack("<Q", node.local_nonce)
-        b += struct.pack("<Q", node.remote_extra_entropy)
-        b += struct.pack("<Q", node.local_extra_entropy)
+        b += node.remote_nonce.to_bytes(8, "little")
+        b += node.local_nonce.to_bytes(8, "little")
+        b += node.remote_extra_entropy.to_bytes(8, "little")
+        b += node.local_extra_entropy.to_bytes(8, "little")
         return hash256(b)
 
 
@@ -99,13 +98,10 @@ class OldAvaP2PInterface(AvaP2PInterface):
     ) -> msg_avahello_legacy:
         local_sighash = hash256(
             delegation.getid()
-            + struct.pack(
-                "<QQQQ",
-                self.local_nonce,
-                self.remote_nonce,
-                self.local_extra_entropy,
-                self.remote_extra_entropy,
-            )
+            + self.local_nonce.to_bytes(8, "little")
+            + self.remote_nonce.to_bytes(8, "little")
+            + self.local_extra_entropy.to_bytes(8, "little")
+            + self.remote_extra_entropy.to_bytes(8, "little")
         )
 
         msg = msg_avahello_legacy()

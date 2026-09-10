@@ -5,7 +5,6 @@
 Functionality to build Bitcoin Scripts.
 """
 
-import struct
 import unittest
 from typing import Dict, List
 
@@ -44,10 +43,10 @@ class CScriptOp(int):
             return b"\x4c" + bytes([len(d)]) + d
         elif len(d) <= 0xFFFF:
             # OP_PUSHDATA2
-            return b"\x4d" + struct.pack(b"<H", len(d)) + d
+            return b"\x4d" + len(d).to_bytes(2, "little") + d
         elif len(d) <= 0xFFFFFFFF:
             # OP_PUSHDATA4
-            return b"\x4e" + struct.pack(b"<I", len(d)) + d
+            return b"\x4e" + len(d).to_bytes(4, "little") + d
         else:
             raise ValueError("Data too long to encode in a PUSHDATA op")
 

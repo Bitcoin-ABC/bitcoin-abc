@@ -5,7 +5,6 @@
 """Test block processing."""
 
 import copy
-import struct
 import time
 
 from data import invalid_txs
@@ -48,7 +47,7 @@ class CBrokenBlock(CBlock):
     def serialize(self):
         r = b""
         r += super(CBlock, self).serialize()
-        r += struct.pack("<BQ", 255, len(self.vtx))
+        r += (255).to_bytes(1, "little") + len(self.vtx).to_bytes(8, "little")
         for tx in self.vtx:
             r += tx.serialize()
         return r

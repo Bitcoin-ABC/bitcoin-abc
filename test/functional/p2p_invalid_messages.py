@@ -4,7 +4,6 @@
 """Test node responses to invalid network messages."""
 
 import random
-import struct
 import time
 
 from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE, LEGACY_MAX_BLOCK_SIZE
@@ -231,7 +230,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         )
 
     def test_addrv2_unrecognized_network(self):
-        now_hex = struct.pack("<I", int(time.time())).hex()
+        now_hex = int(time.time()).to_bytes(4, "little").hex()
         self.test_addrv2(
             "unrecognized network",
             [

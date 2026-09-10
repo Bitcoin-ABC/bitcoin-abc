@@ -6,8 +6,6 @@
 Python imlementations of SignatureHash and SignatureHashForkId
 """
 
-import struct
-
 from .messages import (
     CTransaction,
     CTxOut,
@@ -87,7 +85,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
         txtmp.vin.append(tmp)
 
     s = txtmp.serialize()
-    s += struct.pack(b"<I", hashtype)
+    s += hashtype.to_bytes(4, "little")
 
     sighash = hash256(s)
 
@@ -116,7 +114,7 @@ def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
     ):
         serialize_sequence = bytes()
         for i in txTo.vin:
-            serialize_sequence += struct.pack("<I", i.nSequence)
+            serialize_sequence += i.nSequence.to_bytes(4, "little")
         hashSequence = uint256_from_str(hash256(serialize_sequence))
 
     if (hashtype & 0x1F) != SIGHASH_SINGLE and (hashtype & 0x1F) != SIGHASH_NONE:
@@ -129,15 +127,15 @@ def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
         hashOutputs = uint256_from_str(hash256(serialize_outputs))
 
     ss = bytes()
-    ss += struct.pack("<i", txTo.nVersion)
+    ss += txTo.nVersion.to_bytes(4, "little", signed=True)
     ss += ser_uint256(hashPrevouts)
     ss += ser_uint256(hashSequence)
     ss += txTo.vin[inIdx].prevout.serialize()
     ss += ser_string(script)
-    ss += struct.pack("<q", amount)
-    ss += struct.pack("<I", txTo.vin[inIdx].nSequence)
+    ss += amount.to_bytes(8, "little", signed=True)
+    ss += txTo.vin[inIdx].nSequence.to_bytes(4, "little")
     ss += ser_uint256(hashOutputs)
-    ss += struct.pack("<i", txTo.nLockTime)
-    ss += struct.pack("<I", hashtype)
+    ss += txTo.nLockTime.to_bytes(4, "little", signed=True)
+    ss += hashtype.to_bytes(4, "little")
 
     return hash256(ss)
