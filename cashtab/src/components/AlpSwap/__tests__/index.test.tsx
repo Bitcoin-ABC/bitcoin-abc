@@ -10,7 +10,8 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import appConfig from 'config/app';
 import { explorer } from 'config/explorer';
-import { alpSwap } from 'config/alpSwap';
+import { alpSwap, FIRMA_TOKEN_ID, XECX_TOKEN_ID } from 'config/alpSwap';
+import { FIRMA_FOREX_API_URL } from 'test';
 import {
     initializeCashtabStateForTests,
     clearLocalForage,
@@ -165,6 +166,18 @@ const mockAlpSwapFetch = () => {
                     },
                 }) as Response;
             }
+            if (url === FIRMA_FOREX_API_URL) {
+                return jsonResponse({
+                    rates: {
+                        usd: {
+                            name: 'US Dollar',
+                            unit: '$',
+                            value: 60000,
+                            type: 'fiat',
+                        },
+                    },
+                }) as Response;
+            }
             if (url === statusUrl()) {
                 return jsonResponse(statusResponse) as Response;
             }
@@ -194,6 +207,18 @@ const mockAlpSwapFetch = () => {
                 })
             ) {
                 return jsonResponse(templateResponseLarge) as Response;
+            }
+            if (
+                url ===
+                swapTemplateUrl(TOKEN_A, TOKEN_B, {
+                    from: '2',
+                    feePct: MAKER_FEE_PCT,
+                })
+            ) {
+                return jsonResponse({
+                    ...templateResponse,
+                    priceImpactPct: 17.61,
+                }) as Response;
             }
             if (
                 url === settleUrl(TOKEN_A, TOKEN_B) &&
@@ -525,7 +550,10 @@ describe('<AlpSwap />', () => {
             expect(screen.getByLabelText('Swap to amount')).toHaveValue('0.98');
         });
 
-        expect(screen.getByText('Fee: 1% · Impact: 0.92%')).toBeInTheDocument();
+        expect(screen.getByText(/Fee:\s*1%/)).toBeInTheDocument();
+        expect(screen.getByText('Impact: 0.92%')).toBeInTheDocument();
+        expect(screen.queryByText('High price impact')).not.toBeInTheDocument();
+        expect(screen.queryByText(/This swap has/)).not.toBeInTheDocument();
 
         const swapButton = screen.getByRole('button', { name: /^Swap$/ });
         await waitFor(() => expect(swapButton).not.toBeDisabled());
@@ -561,6 +589,436 @@ describe('<AlpSwap />', () => {
             'href',
             `${explorer.blockExplorerUrl}/tx/${SWAP_TXID}`,
         );
+    });
+
+    it('Warns on high price impact and does not settle until the user accepts', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const fromInput = await screen.findByLabelText('Swap from amount');
+        await userEvent.type(fromInput, '2');
+
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Impact: 17.61%')).toBeInTheDocument();
+        });
+        expect(screen.getByText(/Fee:\s*1%/)).toBeInTheDocument();
+        expect(screen.queryByText('High price impact')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(/You will receive less than the current market/),
+        ).not.toBeInTheDocument();
+
+        const swapButton = screen.getByRole('button', { name: /^Swap$/ });
+        await waitFor(() => expect(swapButton).not.toBeDisabled());
+        await userEvent.click(swapButton);
+
+        expect(
+            await screen.findByText(
+                /This order is large relative to available liquidity, so it moves the price by 17\.61%/,
+            ),
+        ).toBeInTheDocument();
+        expect(screen.getByText('High price impact')).toBeInTheDocument();
+        expect(screen.queryByText(/^Market:/)).not.toBeInTheDocument();
+        expect(screen.getByText('USD / XEC')).toBeInTheDocument();
+        expect(screen.getByText('CoinGecko')).toBeInTheDocument();
+        expect(screen.getByText('0.00003000')).toBeInTheDocument();
+        expect(screen.queryByText('alp-dex spot')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Cancel' }),
+        ).toBeInTheDocument();
+
+        const postedSettleUrl = settleUrl(TOKEN_A, TOKEN_B);
+        const settleCallsSoFar = () =>
+            (fetch as jest.Mock).mock.calls.filter(
+                ([url, init]) =>
+                    url === postedSettleUrl && init && init.method === 'POST',
+            );
+        expect(settleCallsSoFar()).toHaveLength(0);
+
+        await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(
+            screen.queryByText(
+                /This order is large relative to available liquidity/,
+            ),
+        ).not.toBeInTheDocument();
+        expect(settleCallsSoFar()).toHaveLength(0);
+
+        await userEvent.click(swapButton);
+        await userEvent.click(screen.getByRole('button', { name: 'OK' }));
+
+        await waitFor(() => {
+            expect(settleCallsSoFar().length).toBe(1);
+        });
+        const successNotification = await screen.findByText(
+            'Swapped 2 TKA → 0.98 TKB',
+        );
+        expect(successNotification).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${SWAP_TXID}`,
+        );
+    });
+
+    it('Shows high-impact prices as fiat per XEC for XECX↔FIRMA', async () => {
+        const spotFirmaPerXecx = 0.00000478351;
+        global.fetch = jest.fn(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                if (url === priceApiUrl) {
+                    return jsonResponse({
+                        ecash: {
+                            usd: 0.00003,
+                            last_updated_at: 1706644626,
+                        },
+                    }) as Response;
+                }
+                if (url === FIRMA_FOREX_API_URL) {
+                    return jsonResponse({
+                        rates: {
+                            usd: {
+                                name: 'US Dollar',
+                                unit: '$',
+                                value: 60000,
+                                type: 'fiat',
+                            },
+                        },
+                    }) as Response;
+                }
+                if (url === statusUrl()) {
+                    return jsonResponse({
+                        ...statusResponse,
+                        tradedTokens: [
+                            {
+                                tokenId: XECX_TOKEN_ID,
+                                decimals: 2,
+                                utxoQty: 1,
+                                utxoAtoms: '100',
+                                tokenTicker: 'XECX',
+                                tokenName: 'Staked XEC',
+                            },
+                            {
+                                tokenId: FIRMA_TOKEN_ID,
+                                decimals: 4,
+                                utxoQty: 1,
+                                utxoAtoms: '10000',
+                                tokenTicker: 'FIRMA',
+                                tokenName: 'Firma',
+                            },
+                        ],
+                        tradedPairs: [
+                            {
+                                aTokenId: XECX_TOKEN_ID,
+                                bTokenId: FIRMA_TOKEN_ID,
+                                feePct: MAKER_FEE_PCT,
+                                aUtxoQty: 1,
+                                bUtxoQty: 1,
+                            },
+                        ],
+                    }) as Response;
+                }
+                if (url === inventoryUrl()) {
+                    return jsonResponse({
+                        [XECX_TOKEN_ID]: '5000',
+                        [FIRMA_TOKEN_ID]: '5000',
+                    }) as Response;
+                }
+                if (url === spotPriceUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID)) {
+                    return jsonResponse({
+                        rate: String(spotFirmaPerXecx),
+                        feePct: MAKER_FEE_PCT,
+                        source: 'local-liquidity',
+                        reserves: {
+                            [XECX_TOKEN_ID]: '20905200000',
+                            [FIRMA_TOKEN_ID]: '100000000',
+                        },
+                    }) as Response;
+                }
+                if (url === spotPriceUrl(FIRMA_TOKEN_ID, XECX_TOKEN_ID)) {
+                    return jsonResponse({
+                        rate: String(1 / spotFirmaPerXecx),
+                        feePct: MAKER_FEE_PCT,
+                        source: 'local-liquidity',
+                        reserves: {
+                            [FIRMA_TOKEN_ID]: '100000000',
+                            [XECX_TOKEN_ID]: '20905200000',
+                        },
+                    }) as Response;
+                }
+                if (
+                    url ===
+                    swapTemplateUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID, {
+                        from: '100',
+                        feePct: MAKER_FEE_PCT,
+                    })
+                ) {
+                    return jsonResponse({
+                        price: '1.980198',
+                        fee: '0.019802',
+                        rate: String(spotFirmaPerXecx),
+                        spotRate: String(spotFirmaPerXecx),
+                        priceImpactPct: 17.61,
+                        feePct: MAKER_FEE_PCT,
+                        platformFee: '0',
+                        platformFeePct: 0,
+                        platformFeeAddress: null,
+                        outputs: [
+                            {
+                                tokenId: XECX_TOKEN_ID,
+                                atoms: '198',
+                                script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                            },
+                            {
+                                tokenId: XECX_TOKEN_ID,
+                                script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
+                                atoms: '2',
+                            },
+                            {
+                                tokenId: FIRMA_TOKEN_ID,
+                                atoms: '98',
+                            },
+                        ],
+                        slushScript:
+                            '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                    }) as Response;
+                }
+                if (
+                    url ===
+                    swapTemplateUrl(FIRMA_TOKEN_ID, XECX_TOKEN_ID, {
+                        from: '10',
+                        feePct: MAKER_FEE_PCT,
+                    })
+                ) {
+                    return jsonResponse({
+                        price: '9.90099',
+                        fee: '0.09901',
+                        rate: String(1 / spotFirmaPerXecx),
+                        spotRate: String(1 / spotFirmaPerXecx),
+                        priceImpactPct: 17.61,
+                        feePct: MAKER_FEE_PCT,
+                        platformFee: '0',
+                        platformFeePct: 0,
+                        platformFeeAddress: null,
+                        outputs: [
+                            {
+                                tokenId: FIRMA_TOKEN_ID,
+                                atoms: '990099',
+                                script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                            },
+                            {
+                                tokenId: FIRMA_TOKEN_ID,
+                                script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
+                                atoms: '9901',
+                            },
+                            {
+                                tokenId: XECX_TOKEN_ID,
+                                atoms: '194769110',
+                            },
+                        ],
+                        slushScript:
+                            '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                    }) as Response;
+                }
+                if (
+                    url === settleUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID) &&
+                    init?.method === 'POST'
+                ) {
+                    return jsonResponse({
+                        success: true,
+                        txid: SWAP_TXID,
+                        postagePaidSats: '1000',
+                    }) as Response;
+                }
+                throw new Error(`Unexpected fetch: ${url}`);
+            },
+        ) as jest.Mock;
+
+        const walletWithXecx = {
+            ...walletWithAlpSwapBalance,
+            state: {
+                ...walletWithAlpSwapBalance.state,
+                slpUtxos: [
+                    ...walletWithAlpSwapBalance.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: 'dd'.repeat(32),
+                            outIdx: 1,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: XECX_TOKEN_ID,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 100_000_000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: 'ee'.repeat(32),
+                            outIdx: 1,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: FIRMA_TOKEN_ID,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 1_000_000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...walletWithAlpSwapBalance.state.tokens,
+                    [XECX_TOKEN_ID, '1000000'],
+                    [FIRMA_TOKEN_ID, '100'],
+                ]),
+            },
+        };
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecx,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+        mockedChronik.setToken(XECX_TOKEN_ID, {
+            tokenId: XECX_TOKEN_ID,
+            tokenType: {
+                protocol: 'ALP',
+                type: 'ALP_TOKEN_TYPE_STANDARD',
+                number: 0,
+            },
+            timeFirstSeen: 0,
+            genesisInfo: {
+                tokenTicker: 'XECX',
+                tokenName: 'Staked XEC',
+                url: 'https://cashtab.com/',
+                decimals: 2,
+                data: '',
+                authPubkey: '00'.repeat(33),
+            },
+        });
+        mockedChronik.setToken(FIRMA_TOKEN_ID, {
+            tokenId: FIRMA_TOKEN_ID,
+            tokenType: {
+                protocol: 'ALP',
+                type: 'ALP_TOKEN_TYPE_STANDARD',
+                number: 0,
+            },
+            timeFirstSeen: 0,
+            genesisInfo: {
+                tokenTicker: 'FIRMA',
+                tokenName: 'Firma',
+                url: 'https://cashtab.com/',
+                decimals: 4,
+                data: '',
+                authPubkey: '00'.repeat(33),
+            },
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route={`/alpswap?from=${XECX_TOKEN_ID}&to=${FIRMA_TOKEN_ID}`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const fromInput = await screen.findByLabelText('Swap from amount');
+        await userEvent.type(fromInput, '100');
+
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Impact: 17.61%')).toBeInTheDocument();
+        });
+
+        const swapButton = screen.getByRole('button', { name: /^Swap$/ });
+        await waitFor(() => expect(swapButton).not.toBeDisabled());
+        await userEvent.click(swapButton);
+
+        expect(await screen.findByText('CoinGecko')).toBeInTheDocument();
+        expect(screen.getByText('alp-dex spot')).toBeInTheDocument();
+        expect(screen.getByText('this swap')).toBeInTheDocument();
+        expect(screen.getByText('USD / XEC')).toBeInTheDocument();
+        expect(screen.getByText('0.00000478')).toBeInTheDocument();
+        expect(screen.getByText('0.00009800')).toBeInTheDocument();
+        expect(screen.getByText('0.00003000')).toBeInTheDocument();
+        expect(screen.queryByText(/^Market:/)).not.toBeInTheDocument();
+        const priceTable = screen.getByText('USD / XEC').parentElement;
+        expect(priceTable?.textContent).toMatch(
+            /CoinGecko.*alp-dex spot.*this swap/s,
+        );
+
+        await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Flip swap direction' }),
+        );
+        const firmaFrom = await screen.findByLabelText('Swap from amount');
+        await userEvent.clear(firmaFrom);
+        await userEvent.type(firmaFrom, '10');
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+        await waitFor(() => {
+            expect(screen.getByText('Impact: 17.61%')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByRole('button', { name: /^Swap$/ }));
+        expect(await screen.findByText('this swap')).toBeInTheDocument();
+        expect(screen.getByText('0.00000513')).toBeInTheDocument();
+        expect(screen.queryByText('194,769.11060000')).not.toBeInTheDocument();
     });
 
     it('Rejects from-amounts too small to cover fee outputs', async () => {

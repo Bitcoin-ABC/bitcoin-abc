@@ -2,7 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { alpSwap } from 'config/alpSwap';
+import {
+    alpSwap,
+    fiatPerXecFromDexRate,
+    fiatPerXecFromPairQtys,
+    FIRMA_TOKEN_ID,
+    isHighPriceImpact,
+    XECX_TOKEN_ID,
+} from 'config/alpSwap';
 import {
     statusUrl,
     inventoryUrl,
@@ -95,6 +102,68 @@ const status: StatusResponse = {
 };
 
 describe('alpSwapService helpers', () => {
+    it('requires a manual accept at or above the high price-impact threshold', () => {
+        expect(alpSwap.highPriceImpactPct).toBe(5);
+        expect(isHighPriceImpact(4.99)).toBe(false);
+        expect(isHighPriceImpact(5)).toBe(true);
+        expect(isHighPriceImpact(17.61)).toBe(true);
+        expect(isHighPriceImpact(Number.NaN)).toBe(false);
+    });
+
+    it('converts XECX↔FIRMA rates to fiat per XEC in both directions', () => {
+        expect(
+            fiatPerXecFromDexRate(
+                0.00000478351,
+                XECX_TOKEN_ID,
+                FIRMA_TOKEN_ID,
+                1,
+            ),
+        ).toBeCloseTo(0.00000478351);
+        expect(
+            fiatPerXecFromDexRate(209052, FIRMA_TOKEN_ID, XECX_TOKEN_ID, 1),
+        ).toBeCloseTo(1 / 209052);
+        expect(
+            fiatPerXecFromDexRate(
+                0.00000478351,
+                XECX_TOKEN_ID,
+                FIRMA_TOKEN_ID,
+                2,
+            ),
+        ).toBeCloseTo(0.00000956702);
+        expect(fiatPerXecFromDexRate(1, TOKEN_A, TOKEN_B, 1)).toBeNull();
+    });
+
+    it('prices an XECX↔FIRMA fill as fiat per XEC from the two qtys', () => {
+        expect(
+            fiatPerXecFromPairQtys(
+                XECX_TOKEN_ID,
+                FIRMA_TOKEN_ID,
+                44_977_308.59,
+                200,
+                1,
+            ),
+        ).toBeCloseTo(200 / 44_977_308.59);
+        expect(
+            fiatPerXecFromPairQtys(
+                FIRMA_TOKEN_ID,
+                XECX_TOKEN_ID,
+                200,
+                38_953_822.12,
+                1,
+            ),
+        ).toBeCloseTo(200 / 38_953_822.12);
+        expect(
+            fiatPerXecFromPairQtys(
+                FIRMA_TOKEN_ID,
+                XECX_TOKEN_ID,
+                200,
+                38_953_822.12,
+                1,
+            ),
+        ).toBeLessThan(0.001);
+        expect(fiatPerXecFromPairQtys(TOKEN_A, TOKEN_B, 2, 0.98, 1)).toBeNull();
+    });
+
     it('builds standalone alp-dex URLs', () => {
         expect(statusUrl('https://lp.alpswap.com')).toBe(
             'https://lp.alpswap.com/api/v1/status',

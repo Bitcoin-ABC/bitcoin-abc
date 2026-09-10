@@ -18,8 +18,15 @@ import PrimaryButton from 'components/Common/Buttons';
 import { InlineLoader } from 'components/Common/Spinner';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { SwapIcon } from 'components/Common/CustomIcons';
+import appConfig from 'config/app';
 import { explorer } from 'config/explorer';
-import { alpSwap } from 'config/alpSwap';
+import {
+    alpSwap,
+    fiatPerXecFromDexRate,
+    fiatPerXecFromPairQtys,
+    isHighPriceImpact,
+} from 'config/alpSwap';
+import Modal from 'components/Common/Modal';
 import { getTokenGenesisInfo } from 'chronik';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import {
@@ -81,6 +88,12 @@ import {
     RatePill,
     FlipButton,
     FeeRow,
+    ImpactText,
+    PriceTable,
+    PriceTableCaption,
+    PriceLabel,
+    PriceValue,
+    PriceTableGap,
     ErrorBanner,
     ButtonRow,
     StatusText,
@@ -90,6 +103,21 @@ interface ActiveQuote {
     template: SwapTemplateResponse;
     exactIn: boolean;
     qty: string;
+}
+
+function formatToPerFromRate(
+    rate: number,
+    fromTicker: string,
+    toTicker: string,
+): string {
+    return `1 ${fromTicker} ≈ ${rate.toPrecision(6)} ${toTicker}`;
+}
+
+function formatFiatPerXec(rate: number, locale: string): string {
+    return rate.toLocaleString(locale, {
+        minimumFractionDigits: appConfig.pricePrecisionDecimals,
+        maximumFractionDigits: appConfig.pricePrecisionDecimals,
+    });
 }
 
 function formatFeePercentLabel(feePct: number): string {
@@ -174,9 +202,15 @@ const AlpSwap: React.FC = () => {
     if (!isWalletContextLoaded(ContextValue)) {
         return null;
     }
-    const { chronik, cashtabState, updateCashtabState, ecashWallet } =
-        ContextValue;
-    const { cashtabCache, tokens } = cashtabState;
+    const {
+        chronik,
+        cashtabState,
+        updateCashtabState,
+        ecashWallet,
+        fiatPrice,
+        firmaPrice,
+    } = ContextValue;
+    const { cashtabCache, tokens, settings } = cashtabState;
     if (!ecashWallet) {
         return null;
     }
@@ -210,6 +244,7 @@ const AlpSwap: React.FC = () => {
     const [isLoadingQuote, setIsLoadingQuote] = useState(false);
     const [quoteError, setQuoteError] = useState<string | null>(null);
     const [isSwapping, setIsSwapping] = useState(false);
+    const [showHighImpactModal, setShowHighImpactModal] = useState(false);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const quoteRequestId = useRef(0);
@@ -387,6 +422,7 @@ const AlpSwap: React.FC = () => {
         setToFieldError(null);
         setActiveQuote(null);
         setQuoteError(null);
+        setShowHighImpactModal(false);
         setIsLoadingQuote(false);
         if (debounceRef.current) {
             clearTimeout(debounceRef.current);
@@ -654,6 +690,7 @@ const AlpSwap: React.FC = () => {
         setToFieldError(null);
         setActiveQuote(null);
         setQuoteError(null);
+        setShowHighImpactModal(false);
 
         if (debounceRef.current) {
             clearTimeout(debounceRef.current);
@@ -750,7 +787,11 @@ const AlpSwap: React.FC = () => {
         clearAmounts();
     };
 
+    const quoteImpactPct = activeQuote?.template.priceImpactPct ?? 0;
+    const highImpact = isHighPriceImpact(quoteImpactPct);
+
     const handleSwap = async () => {
+        setShowHighImpactModal(false);
         if (
             !ecashWallet ||
             !fromTokenId ||
@@ -919,6 +960,14 @@ const AlpSwap: React.FC = () => {
         }
     };
 
+    const onSwapClick = () => {
+        if (highImpact) {
+            setShowHighImpactModal(true);
+            return;
+        }
+        void handleSwap();
+    };
+
     useEffect(() => {
         return () => {
             if (debounceRef.current) {
@@ -932,13 +981,41 @@ const AlpSwap: React.FC = () => {
 
     const ratePill =
         spotRate !== null && fromLabel && toLabel
-            ? `1 ${fromLabel.ticker} ≈ ${spotRate.toPrecision(6)} ${toLabel.ticker}`
+            ? formatToPerFromRate(spotRate, fromLabel.ticker, toLabel.ticker)
             : null;
 
     const fromAmtNumeric = Number(
         normalizeDecimalInput(fromAmountStr, userLocale),
     );
     const toAmtNumeric = Number(normalizeDecimalInput(toAmountStr, userLocale));
+    const firmaInFiat =
+        typeof firmaPrice === 'number' && firmaPrice > 0
+            ? firmaPrice
+            : settings.fiatCurrency === 'usd'
+              ? 1
+              : null;
+    const alpDexFiatPerXec =
+        spotRate !== null &&
+        fromTokenId !== null &&
+        toTokenId !== null &&
+        firmaInFiat !== null
+            ? fiatPerXecFromDexRate(
+                  spotRate,
+                  fromTokenId,
+                  toTokenId,
+                  firmaInFiat,
+              )
+            : null;
+    const swapFiatPerXec =
+        fromTokenId !== null && toTokenId !== null && firmaInFiat !== null
+            ? fiatPerXecFromPairQtys(
+                  fromTokenId,
+                  toTokenId,
+                  fromAmtNumeric,
+                  toAmtNumeric,
+                  firmaInFiat,
+              )
+            : null;
     const canSwap =
         !!activeQuote &&
         !isLoadingQuote &&
@@ -1107,19 +1184,84 @@ const AlpSwap: React.FC = () => {
                         {typeof totalFeePct === 'number'
                             ? formatFeePercentLabel(totalFeePct)
                             : '—'}
-                        {activeQuote
-                            ? ` · Impact: ${(
-                                  activeQuote.template.priceImpactPct ?? 0
-                              ).toFixed(2)}%`
-                            : ''}
+                        {activeQuote && (
+                            <>
+                                {' · '}
+                                <ImpactText $warn={highImpact}>
+                                    Impact: {quoteImpactPct.toFixed(2)}%
+                                </ImpactText>
+                            </>
+                        )}
                     </FeeRow>
 
                     {quoteError && <ErrorBanner>{quoteError}</ErrorBanner>}
 
+                    {showHighImpactModal && (
+                        <Modal
+                            title="High price impact"
+                            description={`This order is large relative to available liquidity, so it moves the price by ${quoteImpactPct.toFixed(
+                                2,
+                            )}%.`}
+                            showCancelButton
+                            handleOk={() => void handleSwap()}
+                            handleCancel={() => setShowHighImpactModal(false)}
+                        >
+                            {(typeof fiatPrice === 'number' ||
+                                alpDexFiatPerXec !== null ||
+                                swapFiatPerXec !== null) && (
+                                <PriceTable>
+                                    <PriceTableCaption>
+                                        {settings.fiatCurrency.toUpperCase()} /{' '}
+                                        {appConfig.ticker}
+                                    </PriceTableCaption>
+                                    {typeof fiatPrice === 'number' && (
+                                        <>
+                                            <PriceLabel>CoinGecko</PriceLabel>
+                                            <PriceValue>
+                                                {formatFiatPerXec(
+                                                    fiatPrice,
+                                                    userLocale,
+                                                )}
+                                            </PriceValue>
+                                        </>
+                                    )}
+                                    {(alpDexFiatPerXec !== null ||
+                                        swapFiatPerXec !== null) && (
+                                        <PriceTableGap />
+                                    )}
+                                    {alpDexFiatPerXec !== null && (
+                                        <>
+                                            <PriceLabel>
+                                                alp-dex spot
+                                            </PriceLabel>
+                                            <PriceValue>
+                                                {formatFiatPerXec(
+                                                    alpDexFiatPerXec,
+                                                    userLocale,
+                                                )}
+                                            </PriceValue>
+                                        </>
+                                    )}
+                                    {swapFiatPerXec !== null && (
+                                        <>
+                                            <PriceLabel>this swap</PriceLabel>
+                                            <PriceValue>
+                                                {formatFiatPerXec(
+                                                    swapFiatPerXec,
+                                                    userLocale,
+                                                )}
+                                            </PriceValue>
+                                        </>
+                                    )}
+                                </PriceTable>
+                            )}
+                        </Modal>
+                    )}
+
                     <ButtonRow>
                         <PrimaryButton
                             disabled={!canSwap}
-                            onClick={() => void handleSwap()}
+                            onClick={onSwapClick}
                         >
                             {isSwapping ? (
                                 <center>

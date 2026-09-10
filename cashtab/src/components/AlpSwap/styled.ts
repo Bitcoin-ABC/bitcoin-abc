@@ -184,6 +184,50 @@ export const FeeRow = styled.div`
     color: ${props => props.theme.secondaryText};
 `;
 
+export const ImpactText = styled.span<{ $warn?: boolean }>`
+    font-weight: ${props => (props.$warn ? 700 : 400)};
+    color: ${props =>
+        props.$warn ? props.theme.formError : props.theme.secondaryText};
+`;
+
+export const PriceTable = styled.div`
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 16px;
+    row-gap: 6px;
+    justify-content: center;
+    margin: 12px auto 0;
+    width: fit-content;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-sm);
+    color: ${props => props.theme.primaryText};
+    text-align: left;
+`;
+
+export const PriceTableCaption = styled.div`
+    grid-column: 1 / -1;
+    text-align: center;
+    color: ${props => props.theme.secondaryText};
+    font-size: var(--text-sm);
+`;
+
+export const PriceLabel = styled.span`
+    text-align: right;
+    color: ${props => props.theme.secondaryText};
+`;
+
+export const PriceValue = styled.span`
+    text-align: right;
+`;
+
+export const PriceTableGap = styled.div`
+    grid-column: 1 / -1;
+    height: 12px;
+`;
+
 export const ErrorBanner = styled.div`
     margin: 12px 0;
     padding: 12px;
