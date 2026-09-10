@@ -325,12 +325,12 @@ class CBlockLocator:
 
     def deserialize(self, f):
         # Ignore version field.
-        struct.unpack("<i", f.read(4))[0]
+        int.from_bytes(f.read(4), "little", signed=True)
         self.vHave = deser_uint256_vector(f)
 
     def serialize(self) -> bytes:
         # Bitcoin ABC ignores version field. Set it to 0.
-        return struct.pack("<i", 0) + ser_uint256_vector(self.vHave)
+        return (0).to_bytes(4, "little", signed=True) + ser_uint256_vector(self.vHave)
 
     def __repr__(self):
         return f"CBlockLocator(vHave={self.vHave!r})"
@@ -1281,7 +1281,7 @@ class msg_version:
 
         self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
 
-        self.relay = struct.unpack("<b", f.read(1))[0]
+        self.relay = int.from_bytes(f.read(1), "little")
 
         self.nExtraEntropy = struct.unpack("<Q", f.read(8))[0]
 
@@ -1295,7 +1295,7 @@ class msg_version:
             + struct.pack("<Q", self.nNonce)
             + ser_string(self.strSubVer.encode("utf-8"))
             + struct.pack("<i", self.nStartingHeight)
-            + struct.pack("<b", self.relay)
+            + self.relay.to_bytes(1, "little")
             + struct.pack("<Q", self.nExtraEntropy)
         )
 
