@@ -210,10 +210,12 @@ describe('routes.js', function () {
             });
     });
     it('We receive a 500 error if image upload exceeds server limit', function () {
+        // multer 2.3+ treats limits.fileSize as inclusive, so exactly
+        // maxUploadSize is accepted; one extra byte triggers LIMIT_FILE_SIZE.
         return appendCashtabNewTokenFields(request(app).post(`/new`))
             .attach(
                 'tokenIcon',
-                Buffer.alloc(config.maxUploadSize, 1),
+                Buffer.alloc(config.maxUploadSize + 1, 1),
                 'mockicon.png',
             )
             .expect(500)
