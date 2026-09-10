@@ -33,12 +33,32 @@ import {
 } from './types';
 import { tryParseAlpSwap } from './parseAlpSwap';
 
+/** Direct pushdata opcodes 0x01-0x4b (1–75 bytes). Not OP_0–OP_16. */
+const XECV_LOKAD_PUSH = `04${opReturn.appPrefixesHex.xecv}`;
+const isXecvMemoPushdata = (opReturnRaw: string): boolean => {
+    if (!opReturnRaw.startsWith(XECV_LOKAD_PUSH)) {
+        return false;
+    }
+    const pushOpHex = opReturnRaw.slice(
+        XECV_LOKAD_PUSH.length,
+        XECV_LOKAD_PUSH.length + 2,
+    );
+    if (pushOpHex.length !== 2) {
+        return false;
+    }
+    const pushOp = parseInt(pushOpHex, 16);
+    return pushOp >= 1 && pushOp <= 0x4b;
+};
+
 export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
     const { inputs, outputs, isCoinbase, tokenEntries, txid } = tx;
 
     // Assign defaults
     let incoming = true;
     let stackArray: string[] = [];
+    // Retained only to distinguish a memo pushdata opcode from a bare
+    // OP_N; getStackArray maps both OP_1 and 01 51 to "51".
+    let opReturnOutputScript = '';
 
     const destinationAddresses: Set<string> = new Set();
 
@@ -154,6 +174,7 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         outputSatoshis += sats;
         if (outputScript.startsWith(opReturn.opReturnPrefixHex)) {
             stackArray = getStackArray(outputScript);
+            opReturnOutputScript = outputScript;
             continue;
         }
         let walletIncludesThisOutputScript = false;
@@ -652,6 +673,50 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                             break;
                         }
                     }
+                    break;
+                }
+                case opReturn.appPrefixesHex.xecv: {
+                    // Spec: doc/standards/xecvibe.md
+                    // <XECV> <utf8 memo 1–75 bytes>
+                    // getStackArray maps bare OP_1 to "51", same as a 1-byte
+                    // push of 0x51. Spec requires a pushdata opcode (0x01-0x4b).
+                    const app = 'XecVibe';
+                    const opReturnRaw = opReturnOutputScript.slice(
+                        opReturn.opReturnPrefixHex.length,
+                    );
+                    if (
+                        stackArray.length !== 2 ||
+                        !isXecvMemoPushdata(opReturnRaw)
+                    ) {
+                        appActions.push({ lokadId, app, isValid: false });
+                        break;
+                    }
+                    const memoBytes = Buffer.from(stackArray[1], 'hex');
+                    if (memoBytes.length < 1 || memoBytes.length > 75) {
+                        appActions.push({ lokadId, app, isValid: false });
+                        break;
+                    }
+                    // fatal: spec rejects malformed UTF-8 (Buffer.toString
+                    // would emit U+FFFD). ignoreBOM: default TextDecoder
+                    // strips a leading UTF-8 BOM (EF BB BF); the memo is
+                    // the on-chain bytes, so a leading U+FEFF stays in the
+                    // payload.
+                    let memo: string;
+                    try {
+                        memo = new TextDecoder('utf-8', {
+                            fatal: true,
+                            ignoreBOM: true,
+                        }).decode(memoBytes);
+                    } catch {
+                        appActions.push({ lokadId, app, isValid: false });
+                        break;
+                    }
+                    appActions.push({
+                        lokadId,
+                        app,
+                        isValid: true,
+                        action: { memo },
+                    });
                     break;
                 }
                 default: {

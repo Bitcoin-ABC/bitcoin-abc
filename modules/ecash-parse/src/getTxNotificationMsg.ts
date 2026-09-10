@@ -25,6 +25,7 @@ import {
     RollPayoutAction,
     UnknownAction,
     XecTxType,
+    XecvibeAction,
 } from './types';
 
 export const getTxNotificationMsg = (
@@ -236,6 +237,13 @@ export const getTxNotificationMsg = (
                     const verb =
                         action && 'type' in action ? action.type : 'activity';
                     return `Proof of Writing | ${xecTxType} ${renderedAmount} | ${verb}`;
+                }
+                case opReturn.appPrefixesHex.xecv: {
+                    if (isValid) {
+                        const { memo } = action as XecvibeAction;
+                        return `${app} | ${xecTxType} ${renderedAmount} | ${memo}`;
+                    }
+                    return `${xecTxType} ${renderedAmount} | Invalid ${app}`;
                 }
                 case opReturn.appPrefixesHex.dice: {
                     if (isValid) {

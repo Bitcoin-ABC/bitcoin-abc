@@ -29,6 +29,7 @@ export const opReturn = {
         roll: '524f4c4c', // ROLL
         trophy: 'f09f8f86', // 🏆 everydayjackpot.com game payout
         pow: '504f5752', // ASCII "POWR" — Proof of Writing
+        xecv: '58454356', // ASCII "XECV" — XecVibe
     },
     /* The max payload per spec is 220 bytes (or 223 bytes including +1 for OP_RETURN and +2 for pushdata opcodes)
        Within this 223 bytes, transaction building will take up 8 bytes, hence cashtabMsgByteLimit is set to 215 bytes

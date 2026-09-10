@@ -554,6 +554,63 @@ export const opReturnVectors = {
                 },
             },
             {
+                description: 'XecVibe payment with utf8 memo',
+                opReturnRaw: '04584543560568656c6c6f',
+                returned: {
+                    protocol: 'XecVibe',
+                    data: 'Memo: hello',
+                },
+            },
+            {
+                description: 'XecVibe memo with leading UTF-8 BOM',
+                opReturnRaw: '045845435606efbbbf616263',
+                returned: {
+                    protocol: 'XecVibe',
+                    data: 'Memo: \uFEFFabc',
+                },
+            },
+            {
+                description: 'Invalid XecVibe (missing memo)',
+                opReturnRaw: '0458454356',
+                returned: {
+                    protocol: 'Invalid XecVibe',
+                    data: '0458454356',
+                },
+            },
+            {
+                description: 'Invalid XecVibe (extra push after memo)',
+                opReturnRaw: '04584543560568656c6c6f0b786563766962652e636f6d',
+                returned: {
+                    protocol: 'Invalid XecVibe',
+                    data: '04584543560568656c6c6f0b786563766962652e636f6d',
+                },
+            },
+            {
+                description: 'Invalid XecVibe (malformed UTF-8 memo)',
+                opReturnRaw: '045845435601ff',
+                returned: {
+                    protocol: 'Invalid XecVibe',
+                    data: '045845435601ff',
+                },
+            },
+            {
+                description:
+                    'Invalid XecVibe (bare opcode instead of memo push)',
+                opReturnRaw: '045845435651',
+                returned: {
+                    protocol: 'Invalid XecVibe',
+                    data: '045845435651',
+                },
+            },
+            {
+                description: 'XecVibe memo from pushed byte 0x51',
+                opReturnRaw: '04584543560151',
+                returned: {
+                    protocol: 'XecVibe',
+                    data: 'Memo: Q',
+                },
+            },
+            {
                 description: 'eCash Chat Auth lokad with challenge bytes',
                 opReturnRaw:
                     '0461757468140644ad85a538657c033e36ce5a3c8cf26076591f',

@@ -85,6 +85,23 @@ export interface ParsedOpReturnRaw {
     protocol: string;
     data: string;
 }
+
+/** Direct pushdata opcodes 0x01-0x4b (1–75 bytes). Not OP_0–OP_16. */
+const XECV_LOKAD_PUSH = `04${opReturn.appPrefixesHex.xecv}`;
+const isXecvMemoPushdata = (opReturnRaw: string): boolean => {
+    if (!opReturnRaw.startsWith(XECV_LOKAD_PUSH)) {
+        return false;
+    }
+    const pushOpHex = opReturnRaw.slice(
+        XECV_LOKAD_PUSH.length,
+        XECV_LOKAD_PUSH.length + 2,
+    );
+    if (pushOpHex.length !== 2) {
+        return false;
+    }
+    const pushOp = parseInt(pushOpHex, 16);
+    return pushOp >= 1 && pushOp <= 0x4b;
+};
 /**
  * Parse an op_return_raw input according to known op_return specs
  * The returned output is used to generate a preview of the tx on the SendXec screen
@@ -237,6 +254,41 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
             // Spec: doc/standards/proofofwriting.md
             // <POWR> <OP_0 version> <OP_N action> [payload pushes]
             return parsePowOpReturnRaw(stackArray, opReturnRaw);
+        }
+        case opReturn.appPrefixesHex.xecv: {
+            // Spec: doc/standards/xecvibe.md
+            // <XECV> <utf8 memo 1–75 bytes>
+            // getStackArray maps bare OP_1 to "51", same as a 1-byte push of
+            // 0x51. The spec requires a pushdata opcode (0x01-0x4b).
+            if (stackArray.length !== 2 || !isXecvMemoPushdata(opReturnRaw)) {
+                parsed.protocol = 'Invalid XecVibe';
+                parsed.data = opReturnRaw;
+                return parsed;
+            }
+            const memoBytes = Buffer.from(stackArray[1], 'hex');
+            if (memoBytes.length < 1 || memoBytes.length > 75) {
+                parsed.protocol = 'Invalid XecVibe';
+                parsed.data = opReturnRaw;
+                return parsed;
+            }
+            // fatal: spec rejects malformed UTF-8 (Buffer.toString would
+            // emit U+FFFD). ignoreBOM: default TextDecoder strips a leading
+            // UTF-8 BOM (EF BB BF); the memo is the on-chain bytes, so a
+            // leading U+FEFF stays in the payload.
+            let memo: string;
+            try {
+                memo = new TextDecoder('utf-8', {
+                    fatal: true,
+                    ignoreBOM: true,
+                }).decode(memoBytes);
+            } catch {
+                parsed.protocol = 'Invalid XecVibe';
+                parsed.data = opReturnRaw;
+                return parsed;
+            }
+            parsed.protocol = 'XecVibe';
+            parsed.data = `Memo: ${memo}`;
+            return parsed;
         }
         case opReturn.appPrefixesHex.authPrefixHex: {
             // eCash Chat auth: lokad + random challenge bytes

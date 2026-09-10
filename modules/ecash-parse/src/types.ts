@@ -99,6 +99,10 @@ export interface PowAction {
     /** server-issued nonce (hex of 36-byte ASCII UUID); present for auth/handle */
     nonce?: string;
 }
+export interface XecvibeAction {
+    /** UTF-8 one-time memo (1–75 bytes) */
+    memo: string;
+}
 export interface AppAction {
     lokadId: string;
     app: string;
@@ -118,6 +122,7 @@ export interface AppAction {
         | RollPayoutAction
         | TrophyPayoutAction
         | PowAction
+        | XecvibeAction
         | UnknownAction;
 }
 

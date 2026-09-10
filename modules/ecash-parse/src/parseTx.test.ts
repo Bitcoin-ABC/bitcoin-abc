@@ -6,9 +6,14 @@ import * as assert from 'assert';
 import { parseTx } from './parseTx';
 import { parseFixtures } from './fixtures/vectors';
 import { powParseFixtures } from './fixtures/powFixtures';
+import { xecvParseFixtures } from './fixtures/xecvFixtures';
 
 describe('parseTx', () => {
-    for (const fixture of [...parseFixtures, ...powParseFixtures]) {
+    for (const fixture of [
+        ...parseFixtures,
+        ...powParseFixtures,
+        ...xecvParseFixtures,
+    ]) {
         it(fixture.description, () => {
             assert.deepStrictEqual(
                 parseTx(fixture.tx, fixture.walletHashes),

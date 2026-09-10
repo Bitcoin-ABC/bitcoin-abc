@@ -29,6 +29,7 @@ export const opReturn = {
         roll: '524f4c4c',
         trophy: 'f09f8f86',
         pow: '504f5752', // ASCII "POWR" — Proof of Writing
+        xecv: '58454356', // ASCII "XECV" — XecVibe
     },
     cashtabMsgByteLimit: 215,
     airdropMsgByteLimit: 182,
