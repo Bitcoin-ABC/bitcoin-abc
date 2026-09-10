@@ -82,7 +82,7 @@ def hash256(s):
 
 def ser_compact_size(size: int) -> bytes:
     if size < 253:
-        r = struct.pack("B", size)
+        r = size.to_bytes(1, "little")
     elif size < 0x10000:
         r = struct.pack("<BH", 253, size)
     elif size < 0x100000000:
@@ -93,13 +93,13 @@ def ser_compact_size(size: int) -> bytes:
 
 
 def deser_compact_size(f) -> int:
-    nit = struct.unpack("<B", f.read(1))[0]
+    nit = int.from_bytes(f.read(1), "little")
     if nit == 253:
-        nit = struct.unpack("<H", f.read(2))[0]
+        nit = int.from_bytes(f.read(2), "little")
     elif nit == 254:
-        nit = struct.unpack("<I", f.read(4))[0]
+        nit = int.from_bytes(f.read(4), "little")
     elif nit == 255:
-        nit = struct.unpack("<Q", f.read(8))[0]
+        nit = int.from_bytes(f.read(8), "little")
     return nit
 
 
@@ -225,35 +225,35 @@ class CAddress:
         """Deserialize from addrv1 format (pre-BIP155)"""
         if with_time:
             # VERSION messages serialize CAddress objects without time
-            self.time = struct.unpack("<I", f.read(4))[0]
-        self.nServices = struct.unpack("<Q", f.read(8))[0]
+            self.time = int.from_bytes(f.read(4), "little")
+        self.nServices = int.from_bytes(f.read(8), "little")
         # We only support IPv4 which means skip 12 bytes and read the next 4 as
         # IPv4 address.
         f.read(12)
         self.net = self.NET_IPV4
         self.ip = socket.inet_ntoa(f.read(4))
-        self.port = struct.unpack(">H", f.read(2))[0]
+        self.port = int.from_bytes(f.read(2), "big")
 
     def serialize(self, *, with_time=True) -> bytes:
         """Serialize in addrv1 format (pre-BIP155)"""
         assert self.net == self.NET_IPV4
         return (
             # VERSION messages serialize CAddress objects without time
-            (struct.pack("<I", self.time) if with_time else b"")
-            + struct.pack("<Q", self.nServices)
+            (self.time.to_bytes(4, "little") if with_time else b"")
+            + self.nServices.to_bytes(8, "little")
             + b"\x00" * 10
             + b"\xff" * 2
             + socket.inet_aton(self.ip)
-            + struct.pack(">H", self.port)
+            + self.port.to_bytes(2, "big")
         )
 
     def deserialize_v2(self, f):
         """Deserialize from addrv2 format (BIP155)"""
-        self.time = struct.unpack("<I", f.read(4))[0]
+        self.time = int.from_bytes(f.read(4), "little")
 
         self.nServices = deser_compact_size(f)
 
-        self.net = struct.unpack("B", f.read(1))[0]
+        self.net = int.from_bytes(f.read(1), "little")
         assert self.net == self.NET_IPV4
 
         address_length = deser_compact_size(f)
@@ -261,18 +261,18 @@ class CAddress:
 
         self.ip = socket.inet_ntoa(f.read(4))
 
-        self.port = struct.unpack(">H", f.read(2))[0]
+        self.port = int.from_bytes(f.read(2), "big")
 
     def serialize_v2(self) -> bytes:
         """Serialize in addrv2 format (BIP155)"""
         assert self.net == self.NET_IPV4
         return (
-            struct.pack("<I", self.time)
+            self.time.to_bytes(4, "little")
             + ser_compact_size(self.nServices)
-            + struct.pack("B", self.net)
+            + self.net.to_bytes(1, "little")
             + ser_compact_size(self.ADDRV2_ADDRESS_LENGTH[self.net])
             + socket.inet_aton(self.ip)
-            + struct.pack(">H", self.port)
+            + self.port.to_bytes(2, "big")
         )
 
     def __repr__(self):
@@ -300,11 +300,11 @@ class CInv:
         self.hash = h
 
     def deserialize(self, f):
-        self.type = struct.unpack("<i", f.read(4))[0]
+        self.type = int.from_bytes(f.read(4), "little", signed=True)
         self.hash = deser_uint256(f)
 
     def serialize(self) -> bytes:
-        return struct.pack("<i", self.type) + ser_uint256(self.hash)
+        return self.type.to_bytes(4, "little", signed=True) + ser_uint256(self.hash)
 
     def __repr__(self):
         return f"CInv(type={self.typemap[self.type]} hash={uint256_hex(self.hash)})"
@@ -345,10 +345,10 @@ class COutPoint:
 
     def deserialize(self, f):
         self.txid = deser_uint256(f)
-        self.n = struct.unpack("<I", f.read(4))[0]
+        self.n = int.from_bytes(f.read(4), "little")
 
     def serialize(self) -> bytes:
-        return ser_uint256(self.txid) + struct.pack("<I", self.n)
+        return ser_uint256(self.txid) + self.n.to_bytes(4, "little")
 
     def __repr__(self):
         return f"COutPoint(txid={uint256_hex(self.txid)} n={self.n})"
@@ -369,13 +369,13 @@ class CTxIn:
         self.prevout = COutPoint()
         self.prevout.deserialize(f)
         self.scriptSig = deser_string(f)
-        self.nSequence = struct.unpack("<I", f.read(4))[0]
+        self.nSequence = int.from_bytes(f.read(4), "little")
 
     def serialize(self) -> bytes:
         return (
             self.prevout.serialize()
             + ser_string(self.scriptSig)
-            + struct.pack("<I", self.nSequence)
+            + self.nSequence.to_bytes(4, "little")
         )
 
     def __repr__(self):
@@ -393,11 +393,13 @@ class CTxOut:
         self.scriptPubKey = scriptPubKey
 
     def deserialize(self, f):
-        self.nValue = struct.unpack("<q", f.read(8))[0]
+        self.nValue = int.from_bytes(f.read(8), "little", signed=True)
         self.scriptPubKey = deser_string(f)
 
     def serialize(self) -> bytes:
-        return struct.pack("<q", self.nValue) + ser_string(self.scriptPubKey)
+        return self.nValue.to_bytes(8, "little", signed=True) + ser_string(
+            self.scriptPubKey
+        )
 
     def __repr__(self):
         return (
@@ -422,10 +424,10 @@ class CTransaction:
             self.nLockTime = tx.nLockTime
 
     def deserialize(self, f):
-        self.nVersion = struct.unpack("<i", f.read(4))[0]
+        self.nVersion = int.from_bytes(f.read(4), "little", signed=True)
         self.vin = deser_vector(f, CTxIn)
         self.vout = deser_vector(f, CTxOut)
-        self.nLockTime = struct.unpack("<I", f.read(4))[0]
+        self.nLockTime = int.from_bytes(f.read(4), "little")
 
     def billable_size(self):
         """
@@ -435,10 +437,10 @@ class CTransaction:
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<i", self.nVersion)
+            self.nVersion.to_bytes(4, "little", signed=True)
             + ser_vector(self.vin)
             + ser_vector(self.vout)
-            + struct.pack("<I", self.nLockTime)
+            + self.nLockTime.to_bytes(4, "little")
         )
 
     @property
@@ -494,24 +496,24 @@ class CBlockHeader:
         self.nNonce = 0
 
     def deserialize(self, f):
-        self.nVersion = struct.unpack("<i", f.read(4))[0]
+        self.nVersion = int.from_bytes(f.read(4), "little", signed=True)
         self.hashPrevBlock = deser_uint256(f)
         self.hashMerkleRoot = deser_uint256(f)
-        self.nTime = struct.unpack("<I", f.read(4))[0]
-        self.nBits = struct.unpack("<I", f.read(4))[0]
-        self.nNonce = struct.unpack("<I", f.read(4))[0]
+        self.nTime = int.from_bytes(f.read(4), "little")
+        self.nBits = int.from_bytes(f.read(4), "little")
+        self.nNonce = int.from_bytes(f.read(4), "little")
 
     def serialize(self) -> bytes:
         return self._serialize_header()
 
     def _serialize_header(self) -> bytes:
         return (
-            struct.pack("<i", self.nVersion)
+            self.nVersion.to_bytes(4, "little", signed=True)
             + ser_uint256(self.hashPrevBlock)
             + ser_uint256(self.hashMerkleRoot)
-            + struct.pack("<I", self.nTime)
-            + struct.pack("<I", self.nBits)
-            + struct.pack("<I", self.nNonce)
+            + self.nTime.to_bytes(4, "little")
+            + self.nBits.to_bytes(4, "little")
+            + self.nNonce.to_bytes(4, "little")
         )
 
     @property
@@ -633,22 +635,22 @@ class P2PHeaderAndShortIDs:
 
     def deserialize(self, f):
         self.header.deserialize(f)
-        self.nonce = struct.unpack("<Q", f.read(8))[0]
+        self.nonce = int.from_bytes(f.read(8), "little")
         self.shortids_length = deser_compact_size(f)
         for _ in range(self.shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
-            self.shortids.append(struct.unpack("<Q", f.read(6) + b"\x00\x00")[0])
+            self.shortids.append(int.from_bytes(f.read(6) + b"\x00\x00", "little"))
         self.prefilled_txn = deser_vector(f, PrefilledTransaction)
         self.prefilled_txn_length = len(self.prefilled_txn)
 
     def serialize(self) -> bytes:
         return (
             self.header.serialize()
-            + struct.pack("<Q", self.nonce)
+            + self.nonce.to_bytes(8, "little")
             + ser_compact_size(self.shortids_length)
             # We only want the first 6 bytes
-            + b"".join(struct.pack("<Q", x)[0:6] for x in self.shortids)
+            + b"".join(x.to_bytes(8, "little")[0:6] for x in self.shortids)
             + ser_vector(self.prefilled_txn)
         )
 
@@ -709,10 +711,10 @@ class HeaderAndShortIDs:
 
     def get_siphash_keys(self):
         header_nonce = self.header.serialize()
-        header_nonce += struct.pack("<Q", self.nonce)
+        header_nonce += self.nonce.to_bytes(8, "little")
         hash_header_nonce_as_str = sha256(header_nonce)
-        key0 = struct.unpack("<Q", hash_header_nonce_as_str[0:8])[0]
-        key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
+        key0 = int.from_bytes(hash_header_nonce_as_str[0:8], "little")
+        key1 = int.from_bytes(hash_header_nonce_as_str[8:16], "little")
         return [key0, key1]
 
     def initialize_from_block(self, block, nonce=0, prefill_list=None):
@@ -818,8 +820,8 @@ class AvalancheStake:
     def deserialize(self, f):
         self.utxo = COutPoint()
         self.utxo.deserialize(f)
-        self.amount = struct.unpack("<q", f.read(8))[0]
-        height_ser = struct.unpack("<I", f.read(4))[0]
+        self.amount = int.from_bytes(f.read(8), "little", signed=True)
+        height_ser = int.from_bytes(f.read(4), "little")
         self.is_coinbase = bool(height_ser & 1)
         self.height = height_ser >> 1
         self.pubkey = deser_string(f)
@@ -828,8 +830,8 @@ class AvalancheStake:
         height_ser = self.height << 1 | int(self.is_coinbase)
         return (
             self.utxo.serialize()
-            + struct.pack("<q", self.amount)
-            + struct.pack("<I", height_ser)
+            + self.amount.to_bytes(8, "little", signed=True)
+            + height_ser.to_bytes(4, "little")
             + ser_compact_size(len(self.pubkey))
             + self.pubkey
         )
@@ -916,8 +918,8 @@ class AvalancheProof:
         return sum([stake.stake.amount for stake in self.stakes]) // 1000000
 
     def deserialize(self, f):
-        self.sequence = struct.unpack("<Q", f.read(8))[0]
-        self.expiration = struct.unpack("<q", f.read(8))[0]
+        self.sequence = int.from_bytes(f.read(8), "little")
+        self.expiration = int.from_bytes(f.read(8), "little", signed=True)
         self.master = deser_string(f)
         self.stakes = deser_vector(f, AvalancheSignedStake)
         self.payout_script = deser_string(f)
@@ -926,8 +928,8 @@ class AvalancheProof:
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<Q", self.sequence)
-            + struct.pack("<q", self.expiration)
+            self.sequence.to_bytes(8, "little")
+            + self.expiration.to_bytes(8, "little", signed=True)
             + ser_string(self.master)
             + ser_vector(self.stakes)
             + ser_string(self.payout_script)
@@ -973,11 +975,11 @@ class AvalanchePoll:
         self.invs = invs if invs is not None else []
 
     def deserialize(self, f):
-        self.round = struct.unpack("<q", f.read(8))[0]
+        self.round = int.from_bytes(f.read(8), "little", signed=True)
         self.invs = deser_vector(f, CInv)
 
     def serialize(self) -> bytes:
-        return struct.pack("<q", self.round) + ser_vector(self.invs)
+        return self.round.to_bytes(8, "little", signed=True) + ser_vector(self.invs)
 
     def __repr__(self):
         return f"AvalanchePoll(round={self.round}, invs={self.invs!r})"
@@ -1024,11 +1026,11 @@ class AvalancheVote:
         self.hash = h
 
     def deserialize(self, f):
-        self.error = struct.unpack("<i", f.read(4))[0]
+        self.error = int.from_bytes(f.read(4), "little", signed=True)
         self.hash = deser_uint256(f)
 
     def serialize(self) -> bytes:
-        return struct.pack("<i", self.error) + ser_uint256(self.hash)
+        return self.error.to_bytes(4, "little", signed=True) + ser_uint256(self.hash)
 
     def __repr__(self):
         return f"AvalancheVote(error={self.error}, hash={uint256_hex(self.hash)})"
@@ -1043,14 +1045,14 @@ class AvalancheResponse:
         self.votes = votes if votes is not None else []
 
     def deserialize(self, f):
-        self.round = struct.unpack("<q", f.read(8))[0]
-        self.cooldown = struct.unpack("<i", f.read(4))[0]
+        self.round = int.from_bytes(f.read(8), "little", signed=True)
+        self.cooldown = int.from_bytes(f.read(4), "little", signed=True)
         self.votes = deser_vector(f, AvalancheVote)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<q", self.round)
-            + struct.pack("<i", self.cooldown)
+            self.round.to_bytes(8, "little", signed=True)
+            + self.cooldown.to_bytes(4, "little", signed=True)
             + ser_vector(self.votes)
         )
 
@@ -1165,13 +1167,13 @@ class AvalancheHello:
     def deserialize(self, f):
         self.delegation.deserialize(f)
         self.sig = f.read(64)
-        self.max_elements = struct.unpack("<I", f.read(4))[0]
+        self.max_elements = int.from_bytes(f.read(4), "little")
 
     def serialize(self) -> bytes:
         return (
             self.delegation.serialize()
             + self.sig
-            + struct.pack("<I", self.max_elements)
+            + self.max_elements.to_bytes(4, "little")
         )
 
     def __repr__(self):
@@ -1179,10 +1181,10 @@ class AvalancheHello:
 
     def get_sighash(self, node):
         b = self.delegation.getid()
-        b += struct.pack("<Q", node.remote_nonce)
-        b += struct.pack("<Q", node.local_nonce)
-        b += struct.pack("<Q", node.remote_extra_entropy)
-        b += struct.pack("<Q", node.local_extra_entropy)
+        b += node.remote_nonce.to_bytes(8, "little")
+        b += node.local_nonce.to_bytes(8, "little")
+        b += node.remote_extra_entropy.to_bytes(8, "little")
+        b += node.local_extra_entropy.to_bytes(8, "little")
         return hash256(b)
 
 
@@ -1195,7 +1197,7 @@ class CPartialMerkleTree:
         self.vBits = []
 
     def deserialize(self, f):
-        self.nTransactions = struct.unpack("<i", f.read(4))[0]
+        self.nTransactions = int.from_bytes(f.read(4), "little", signed=True)
         self.vHash = deser_uint256_vector(f)
         vBytes = deser_string(f)
         self.vBits = []
@@ -1207,7 +1209,7 @@ class CPartialMerkleTree:
         for i in range(len(self.vBits)):
             vBytesArray[i // 8] |= self.vBits[i] << (i % 8)
         return (
-            struct.pack("<i", self.nTransactions)
+            self.nTransactions.to_bytes(4, "little", signed=True)
             + ser_uint256_vector(self.vHash)
             + ser_string(bytes(vBytesArray))
         )
@@ -1268,35 +1270,35 @@ class msg_version:
         self.nExtraEntropy = random.getrandbits(64)
 
     def deserialize(self, f):
-        self.nVersion = struct.unpack("<i", f.read(4))[0]
-        self.nServices = struct.unpack("<Q", f.read(8))[0]
-        self.nTime = struct.unpack("<q", f.read(8))[0]
+        self.nVersion = int.from_bytes(f.read(4), "little", signed=True)
+        self.nServices = int.from_bytes(f.read(8), "little")
+        self.nTime = int.from_bytes(f.read(8), "little", signed=True)
         self.addrTo = CAddress()
         self.addrTo.deserialize(f, with_time=False)
 
         self.addrFrom = CAddress()
         self.addrFrom.deserialize(f, with_time=False)
-        self.nNonce = struct.unpack("<Q", f.read(8))[0]
+        self.nNonce = int.from_bytes(f.read(8), "little")
         self.strSubVer = deser_string(f).decode("utf-8")
 
-        self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
+        self.nStartingHeight = int.from_bytes(f.read(4), "little", signed=True)
 
         self.relay = int.from_bytes(f.read(1), "little")
 
-        self.nExtraEntropy = struct.unpack("<Q", f.read(8))[0]
+        self.nExtraEntropy = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<i", self.nVersion)
-            + struct.pack("<Q", self.nServices)
-            + struct.pack("<q", self.nTime)
+            self.nVersion.to_bytes(4, "little", signed=True)
+            + self.nServices.to_bytes(8, "little")
+            + self.nTime.to_bytes(8, "little", signed=True)
             + self.addrTo.serialize(with_time=False)
             + self.addrFrom.serialize(with_time=False)
-            + struct.pack("<Q", self.nNonce)
+            + self.nNonce.to_bytes(8, "little")
             + ser_string(self.strSubVer.encode("utf-8"))
-            + struct.pack("<i", self.nStartingHeight)
+            + self.nStartingHeight.to_bytes(4, "little", signed=True)
             + self.relay.to_bytes(1, "little")
-            + struct.pack("<Q", self.nExtraEntropy)
+            + self.nExtraEntropy.to_bytes(8, "little")
         )
 
     def __repr__(self):
@@ -1515,10 +1517,10 @@ class msg_ping:
         self.nonce = nonce
 
     def deserialize(self, f):
-        self.nonce = struct.unpack("<Q", f.read(8))[0]
+        self.nonce = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
-        return struct.pack("<Q", self.nonce)
+        return self.nonce.to_bytes(8, "little")
 
     def __repr__(self):
         return f"msg_ping(nonce={self.nonce:08x})"
@@ -1532,10 +1534,10 @@ class msg_pong:
         self.nonce = nonce
 
     def deserialize(self, f):
-        self.nonce = struct.unpack("<Q", f.read(8))[0]
+        self.nonce = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
-        return struct.pack("<Q", self.nonce)
+        return self.nonce.to_bytes(8, "little")
 
     def __repr__(self):
         return f"msg_pong(nonce={self.nonce:08x})"
@@ -1677,16 +1679,16 @@ class msg_filterload:
 
     def deserialize(self, f):
         self.data = deser_string(f)
-        self.nHashFuncs = struct.unpack("<I", f.read(4))[0]
-        self.nTweak = struct.unpack("<I", f.read(4))[0]
-        self.nFlags = struct.unpack("<B", f.read(1))[0]
+        self.nHashFuncs = int.from_bytes(f.read(4), "little")
+        self.nTweak = int.from_bytes(f.read(4), "little")
+        self.nFlags = int.from_bytes(f.read(1), "little")
 
     def serialize(self) -> bytes:
         return (
             ser_string(self.data)
-            + struct.pack("<I", self.nHashFuncs)
-            + struct.pack("<I", self.nTweak)
-            + struct.pack("<B", self.nFlags)
+            + self.nHashFuncs.to_bytes(4, "little")
+            + self.nTweak.to_bytes(4, "little")
+            + self.nFlags.to_bytes(1, "little")
         )
 
     def __repr__(self):
@@ -1738,10 +1740,10 @@ class msg_feefilter:
         self.feerate = feerate
 
     def deserialize(self, f):
-        self.feerate = struct.unpack("<Q", f.read(8))[0]
+        self.feerate = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
-        return struct.pack("<Q", self.feerate)
+        return self.feerate.to_bytes(8, "little")
 
     def __repr__(self):
         return f"msg_feefilter(feerate={self.feerate:08x})"
@@ -1757,10 +1759,10 @@ class msg_sendcmpct:
 
     def deserialize(self, f):
         self.announce = struct.unpack("<?", f.read(1))[0]
-        self.version = struct.unpack("<Q", f.read(8))[0]
+        self.version = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
-        return struct.pack("<?", self.announce) + struct.pack("<Q", self.version)
+        return struct.pack("<?", self.announce) + self.version.to_bytes(8, "little")
 
     def __repr__(self):
         return f"msg_sendcmpct(announce={self.announce}, version={self.version})"
@@ -1829,14 +1831,14 @@ class msg_getcfilters:
         self.stop_hash = stop_hash
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
-        self.start_height = struct.unpack("<I", f.read(4))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
+        self.start_height = int.from_bytes(f.read(4), "little")
         self.stop_hash = deser_uint256(f)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<B", self.filter_type)
-            + struct.pack("<I", self.start_height)
+            self.filter_type.to_bytes(1, "little")
+            + self.start_height.to_bytes(4, "little")
             + ser_uint256(self.stop_hash)
         )
 
@@ -1857,13 +1859,13 @@ class msg_cfilter:
         self.filter_data = filter_data
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
         self.block_hash = deser_uint256(f)
         self.filter_data = deser_string(f)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<B", self.filter_type)
+            self.filter_type.to_bytes(1, "little")
             + ser_uint256(self.block_hash)
             + ser_string(self.filter_data)
         )
@@ -1885,14 +1887,14 @@ class msg_getcfheaders:
         self.stop_hash = stop_hash
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
-        self.start_height = struct.unpack("<I", f.read(4))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
+        self.start_height = int.from_bytes(f.read(4), "little")
         self.stop_hash = deser_uint256(f)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<B", self.filter_type)
-            + struct.pack("<I", self.start_height)
+            self.filter_type.to_bytes(1, "little")
+            + self.start_height.to_bytes(4, "little")
             + ser_uint256(self.stop_hash)
         )
 
@@ -1914,14 +1916,14 @@ class msg_cfheaders:
         self.hashes = hashes
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
         self.stop_hash = deser_uint256(f)
         self.prev_header = deser_uint256(f)
         self.hashes = deser_uint256_vector(f)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<B", self.filter_type)
+            self.filter_type.to_bytes(1, "little")
             + ser_uint256(self.stop_hash)
             + ser_uint256(self.prev_header)
             + ser_uint256_vector(self.hashes)
@@ -1943,11 +1945,11 @@ class msg_getcfcheckpt:
         self.stop_hash = stop_hash
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
         self.stop_hash = deser_uint256(f)
 
     def serialize(self) -> bytes:
-        return struct.pack("<B", self.filter_type) + ser_uint256(self.stop_hash)
+        return self.filter_type.to_bytes(1, "little") + ser_uint256(self.stop_hash)
 
     def __repr__(self):
         return (
@@ -1966,13 +1968,13 @@ class msg_cfcheckpt:
         self.headers = headers
 
     def deserialize(self, f):
-        self.filter_type = struct.unpack("<B", f.read(1))[0]
+        self.filter_type = int.from_bytes(f.read(1), "little")
         self.stop_hash = deser_uint256(f)
         self.headers = deser_uint256_vector(f)
 
     def serialize(self) -> bytes:
         return (
-            struct.pack("<B", self.filter_type)
+            self.filter_type.to_bytes(1, "little")
             + ser_uint256(self.stop_hash)
             + ser_uint256_vector(self.headers)
         )
@@ -2114,13 +2116,13 @@ class msg_avaproofs:
         self.prefilled_proofs = []
 
     def deserialize(self, f):
-        self.key0 = struct.unpack("<Q", f.read(8))[0]
-        self.key1 = struct.unpack("<Q", f.read(8))[0]
+        self.key0 = int.from_bytes(f.read(8), "little")
+        self.key1 = int.from_bytes(f.read(8), "little")
         shortids_length = deser_compact_size(f)
         for _ in range(shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
-            self.shortids.append(struct.unpack("<Q", f.read(6) + b"\x00\x00")[0])
+            self.shortids.append(int.from_bytes(f.read(6) + b"\x00\x00", "little"))
 
         # The indices are differentially encoded
         self.prefilled_proofs = deser_vector(f, AvalanchePrefilledProof)
@@ -2130,12 +2132,12 @@ class msg_avaproofs:
             p.index = current_indice
 
     def serialize(self) -> bytes:
-        r = struct.pack("<Q", self.key0)
-        r += struct.pack("<Q", self.key1)
+        r = self.key0.to_bytes(8, "little")
+        r += self.key1.to_bytes(8, "little")
         r += ser_compact_size(len(self.shortids))
         for shortid in self.shortids:
             # We only want the first 6 bytes
-            r += struct.pack("<Q", shortid)[0:6]
+            r += shortid.to_bytes(8, "little")[0:6]
 
         r += ser_compact_size(len(self.prefilled_proofs))
         if len(self.prefilled_proofs) < 1:
