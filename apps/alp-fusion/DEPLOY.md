@@ -16,8 +16,9 @@ This document is the ops target for that model.
 | Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466)) |
 | Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506)) |
 | Coordinator + client round RPCs over the wire                  | Landed ([D20575](https://reviews.bitcoinabc.org/D20575)) |
-| Pedersen + blind-auth verify                                   | This slice — dual Pedersen + covert Schnorr; no Chronik  |
-| Chronik sync / signing / broadcast                             | Not yet                                                  |
+| Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591)) |
+| Chronik sync + covert sign + broadcast                         | This slice — MockChronikClient in tests; no blame        |
+| Blame / restart / DoS limits                                   | Not yet                                                  |
 
 Unit verification:
 

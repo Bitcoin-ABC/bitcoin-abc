@@ -4,14 +4,15 @@
 
 /**
  * One-shot networked client: control-channel hello / join / commit, covert
- * component reveal, then unsigned {@link FusionResult}.
+ * component reveal, covert Schnorr input sigs, then signed {@link FusionResult}.
  *
- * Chronik and tx signing stay out of scope — inject real coins via
- * {@link WireContribution}.
+ * Inject coins via {@link WireContribution} (optional Chronik load). Blame
+ * proofs stay out of scope.
  */
 import { DEFAULT_FEE_SATS_PER_KB, finalizeBlindSigs } from 'ecash-lib';
 
 import {
+    asBytes,
     contributionToComponents,
     type WireContribution,
 } from '../protocol/components.js';
@@ -25,11 +26,19 @@ import {
 import { CovertSubmitter } from '../protocol/covert.js';
 import { tokenIdFromBytes, tokenIdToBytes } from '../protocol/hash.js';
 import {
+    decodeComponent,
     decodeMessage,
     encodeMessage,
     getTypes,
     initProto,
 } from '../protocol/messages.js';
+import {
+    assembleFromComponents,
+    assertOwnOutputsPresent,
+    keysFromContribution,
+    prevOutsFromContribution,
+    signOwnedInputs,
+} from '../tx/sign.js';
 
 type ProtoTypes = Awaited<ReturnType<typeof getTypes>>;
 
@@ -59,7 +68,7 @@ export interface WireRoundResult {
 
 /**
  * Join one `(tokenId, atomTier)` pool, run a single wire round, return the
- * unsigned fused tx. Throws on protocol error or `FusionResult.ok === false`.
+ * signed fused tx. Throws on protocol error or `FusionResult.ok === false`.
  */
 export async function runWireRound(
     opts: RunWireRoundOptions,
@@ -198,6 +207,7 @@ export async function runWireRound(
 
         let msg = await recvServerSkipStatus(conn, types, recvMs);
         let shared: Uint8Array[] = [];
+        let signaturesSent = false;
         while (
             msg.field === 'sharecovertcomponents' ||
             msg.field === 'poolstatusupdate'
@@ -206,6 +216,70 @@ export async function runWireRound(
                 const raw = msg.payload.components;
                 if (Array.isArray(raw)) {
                     shared = raw.map(c => Buffer.from(c as Uint8Array));
+                }
+                if (
+                    !signaturesSent &&
+                    msg.payload.skipSignatures !== true &&
+                    shared.length > 0
+                ) {
+                    const { assembled } = assembleFromComponents(
+                        beginToken,
+                        shared,
+                        feerate,
+                    );
+                    assertOwnOutputsPresent(assembled, opts.contribution);
+                    const owned = signOwnedInputs(
+                        assembled.tx,
+                        keysFromContribution(opts.contribution),
+                        prevOutsFromContribution(opts.contribution),
+                    );
+                    const byInput = new Map(
+                        owned.map(s => [s.whichInput, s.signature]),
+                    );
+                    covert.scheduleSubmissions(
+                        Date.now(),
+                        components.map(component => {
+                            const dec = decodeComponent(component);
+                            if (!dec.input) {
+                                return null;
+                            }
+                            const input = dec.input as Record<string, unknown>;
+                            const prevTxid = asBytes(
+                                input.prevTxid,
+                                'input.prevTxid',
+                            ).toString('hex');
+                            const prevIndex = input.prevIndex;
+                            if (typeof prevIndex !== 'number') {
+                                return null;
+                            }
+                            const which = assembled.tx.inputs.findIndex(inp => {
+                                const txid =
+                                    typeof inp.prevOut.txid === 'string'
+                                        ? inp.prevOut.txid.toLowerCase()
+                                        : Buffer.from(
+                                              inp.prevOut.txid,
+                                          ).toString('hex');
+                                return (
+                                    txid === prevTxid &&
+                                    inp.prevOut.outIdx === prevIndex
+                                );
+                            });
+                            const signature = byInput.get(which);
+                            if (which < 0 || signature === undefined) {
+                                return null;
+                            }
+                            return {
+                                field: 'signature' as const,
+                                payload: {
+                                    roundPubkey,
+                                    whichInput: which,
+                                    txsignature: Buffer.from(signature),
+                                },
+                            };
+                        }),
+                    );
+                    await covert.waitUntilDone(opts.covertTimeoutMs ?? 5_000);
+                    signaturesSent = true;
                 }
             }
             msg = await recvServerSkipStatus(conn, types, recvMs);

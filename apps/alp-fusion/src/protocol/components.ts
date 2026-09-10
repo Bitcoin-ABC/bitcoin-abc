@@ -38,10 +38,14 @@ export const DUMMY_POINT = Buffer.alloc(33, 2);
  */
 export interface WireTokenInput extends FusionTokenInput {
     pubkey: Uint8Array;
+    /** Optional seckey — required to sign this input after assemble. */
+    sk?: Uint8Array;
 }
 
 export interface WireFuelInput extends FusionFuelInput {
     pubkey: Uint8Array;
+    /** Optional seckey — required to sign this input after assemble. */
+    sk?: Uint8Array;
 }
 
 /** One player's fuseable coins for a networked round. */

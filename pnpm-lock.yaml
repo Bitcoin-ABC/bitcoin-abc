@@ -258,6 +258,9 @@ importers:
 
   apps/alp-fusion:
     dependencies:
+      chronik-client:
+        specifier: workspace:^
+        version: link:../../modules/chronik-client
       ecash-lib:
         specifier: workspace:^
         version: link:../../modules/ecash-lib
@@ -286,6 +289,9 @@ importers:
       mocha-junit-reporter:
         specifier: ^2.2.1
         version: 2.2.1(mocha@11.7.5)
+      mock-chronik-client:
+        specifier: workspace:^
+        version: link:../../modules/mock-chronik-client
       tsx:
         specifier: ^4.21.0
         version: 4.21.0

@@ -6,6 +6,7 @@ import { expect } from 'chai';
 import {
     DEFAULT_DUST_SATS,
     DEFAULT_FEE_SATS_PER_KB,
+    Ecc,
     parseAlp,
     parseEmppScript,
     Script,
@@ -19,6 +20,7 @@ import { finalizeBlindSigs } from 'ecash-lib';
 import { runWireRound } from '../../src/client/wire.js';
 import { FusionCoordinator } from '../../src/coordinator/wire.js';
 import {
+    asBytes,
     componentCommitment,
     componentsToContribution,
     contributionToComponents,
@@ -39,21 +41,41 @@ import {
 import { CovertSubmitter } from '../../src/protocol/covert.js';
 import { tokenIdToBytes } from '../../src/protocol/hash.js';
 import {
+    decodeComponent,
     decodeMessage,
     encodeMessage,
     getTypes,
     initProto,
 } from '../../src/protocol/messages.js';
 import { estimateAlpSendFeeSats } from '../../src/tx/assemble.js';
+import {
+    assembleFromComponents,
+    keysFromContribution,
+    prevOutsFromContribution,
+    signOwnedInputs,
+} from '../../src/tx/sign.js';
 import type { FusionTokenOutput } from '../../src/tx/types.js';
 
 const TOKEN_ID =
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
+const ecc = new Ecc();
+const keysByTag = new Map<number, { sk: Buffer; pk: Buffer }>();
+
+function keypair(tag: number): { sk: Buffer; pk: Buffer } {
+    const hit = keysByTag.get(tag);
+    if (hit) {
+        return hit;
+    }
+    const sk = Buffer.alloc(32);
+    sk.writeUInt32BE(tag + 1, 28);
+    const created = { sk, pk: Buffer.from(ecc.derivePubkey(sk)) };
+    keysByTag.set(tag, created);
+    return created;
+}
+
 function dummyPubkey(tag: number): Buffer {
-    const pk = Buffer.alloc(33, tag);
-    pk[0] = 0x02;
-    return pk;
+    return keypair(tag).pk;
 }
 
 function scriptFromPub(pk: Uint8Array): Script {
@@ -61,7 +83,7 @@ function scriptFromPub(pk: Uint8Array): Script {
 }
 
 function tokenIn(outIdx: number, atoms: bigint, tag: number): WireTokenInput {
-    const pubkey = dummyPubkey(tag);
+    const { sk, pk: pubkey } = keypair(tag);
     return {
         prevOut: { txid: '11'.repeat(32), outIdx },
         sats: DEFAULT_DUST_SATS,
@@ -69,6 +91,7 @@ function tokenIn(outIdx: number, atoms: bigint, tag: number): WireTokenInput {
         tokenId: TOKEN_ID,
         atoms,
         pubkey,
+        sk,
     };
 }
 
@@ -107,7 +130,7 @@ function dustFuel(
     outIdx: number,
     dust = DEFAULT_DUST_SATS,
 ): WireFuelInput[] {
-    const pubkey = dummyPubkey(tag);
+    const { sk, pk: pubkey } = keypair(tag);
     return [
         {
             prevOut: { txid: '22'.repeat(32), outIdx },
@@ -115,6 +138,7 @@ function dustFuel(
             script: scriptFromPub(pubkey),
             atoms: 0n,
             pubkey,
+            sk,
         },
     ];
 }
@@ -126,7 +150,7 @@ function fundFuel(
     fuelOutIdx = 0,
     extraFuel: WireFuelInput[] = [],
 ): WireFuelInput[] {
-    const pubkey = dummyPubkey(tag);
+    const { sk, pk: pubkey } = keypair(tag);
     const placeholder = {
         prevOut: { txid: '22'.repeat(32), outIdx: fuelOutIdx },
         sats: 1n,
@@ -151,6 +175,7 @@ function fundFuel(
             script: scriptFromPub(pubkey),
             atoms: 0n,
             pubkey,
+            sk,
         },
     ];
 }
@@ -198,13 +223,24 @@ describe('FusionCoordinator wire round', function () {
         await initProto();
     });
 
-    it('hello → join → covert reveal → unsigned ALP SEND', async () => {
+    it('hello → join → covert reveal → signed ALP SEND', async () => {
+        const broadcasts: string[] = [];
         const coord = new FusionCoordinator({
             minPlayers: 2,
             atomTiers: [100n],
             shuffleSeed: 42,
             recvTimeoutMs: 5_000,
             roundTimeoutMs: 8_000,
+            chronik: {
+                broadcastTx: async raw => {
+                    const hex =
+                        typeof raw === 'string'
+                            ? raw
+                            : Buffer.from(raw).toString('hex');
+                    broadcasts.push(hex);
+                    return { txid: Tx.deser(Buffer.from(hex, 'hex')).txid() };
+                },
+            },
         });
         await coord.start('127.0.0.1');
         try {
@@ -251,7 +287,14 @@ describe('FusionCoordinator wire round', function () {
             ]);
 
             expect(a.txid).to.equal(b.txid);
+            expect(broadcasts).to.have.length(1);
+            expect(a.txid).to.equal(
+                Tx.deser(Buffer.from(broadcasts[0], 'hex')).txid(),
+            );
             const tx = Tx.deser(a.rawTx);
+            expect(
+                tx.inputs.every(inp => (inp.script?.bytecode.length ?? 0) > 0),
+            ).to.equal(true);
             expect(tx.outputs.length).to.equal(4);
             const pushes = parseEmppScript(tx.outputs[0].script);
             const alp = parseAlp(pushes![0]);
@@ -986,6 +1029,42 @@ describe('FusionCoordinator wire round', function () {
             await coord.close();
         }
     });
+
+    it('a disconnect after assemble fails signing so the next round can start', async () => {
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            recvTimeoutMs: 3_000,
+            // Long enough that a missing failSign would stall this test.
+            roundTimeoutMs: 8_000,
+        });
+        await coord.start('127.0.0.1');
+        const pair = pairPlayers(24, 25);
+        try {
+            const dropP = shareThenClose(coord, pair.a);
+            const liveP = joinRound(coord, pair.b, {
+                recvTimeoutMs: 3_000,
+                covertTimeoutMs: 2_000,
+            });
+            await dropP;
+            let threw: Error | undefined;
+            try {
+                await liveP;
+            } catch (err) {
+                threw = err as Error;
+            }
+            expect(threw).to.not.equal(undefined);
+
+            const next = pairPlayers(26, 27);
+            const [a, b] = await Promise.all([
+                joinRound(coord, next.a),
+                joinRound(coord, next.b),
+            ]);
+            expect(a.txid).to.equal(b.txid);
+        } finally {
+            await coord.close();
+        }
+    });
 });
 
 function joinRound(
@@ -1023,13 +1102,19 @@ async function recvSkipStatus(
 }
 
 /**
- * Hello / join / commit / covert reveal, then pause so FusionResult cannot
- * be read. Used to prove the coordinator bounds the terminal send.
+ * Hello / join / commit / covert component reveal through ShareCovertComponents.
  */
-async function commitThenPause(
+async function throughShare(
     coord: FusionCoordinator,
     contribution: WireContribution,
-): Promise<FusionConnection> {
+): Promise<{
+    conn: FusionConnection;
+    covert: CovertSubmitter;
+    components: Buffer[];
+    feerate: bigint;
+    shared: Uint8Array[];
+    roundPubkey: Buffer;
+}> {
     const types = await getTypes();
     const conn = await connect('127.0.0.1', coord.controlPort);
     await conn.sendMessage(
@@ -1107,19 +1192,86 @@ async function commitThenPause(
         submitTimeoutMs: 2_000,
         connectTimeoutMs: 2_000,
     });
+    covert.scheduleConnections(Date.now(), 0, 0);
+    await covert.waitUntilConnected(2_000);
+    covert.scheduleSubmissions(
+        Date.now(),
+        components.map((component, i) => ({
+            field: 'component' as const,
+            payload: {
+                roundPubkey,
+                signature: Buffer.from(sigs[i]),
+                component,
+            },
+        })),
+    );
+    await covert.waitUntilDone(2_000);
+    const share = await recvSkipStatus(conn, types, 3_000);
+    if (share.field !== 'sharecovertcomponents') {
+        throw new Error(`expected sharecovertcomponents, got ${share.field}`);
+    }
+    const shared = Array.isArray(share.payload.components)
+        ? share.payload.components.map(c => Buffer.from(c as Uint8Array))
+        : [];
+    return { conn, covert, components, feerate, shared, roundPubkey };
+}
+
+/**
+ * Hello / join / commit / covert reveal, then pause so FusionResult cannot
+ * be read. Used to prove the coordinator bounds the terminal send.
+ */
+async function commitThenPause(
+    coord: FusionCoordinator,
+    contribution: WireContribution,
+): Promise<FusionConnection> {
+    const { conn, covert, components, feerate, shared, roundPubkey } =
+        await throughShare(coord, contribution);
     try {
-        covert.scheduleConnections(Date.now(), 0, 0);
-        await covert.waitUntilConnected(2_000);
+        const { assembled } = assembleFromComponents(TOKEN_ID, shared, feerate);
+        const owned = signOwnedInputs(
+            assembled.tx,
+            keysFromContribution(contribution),
+            prevOutsFromContribution(contribution),
+        );
+        const byInput = new Map(owned.map(s => [s.whichInput, s.signature]));
         covert.scheduleSubmissions(
             Date.now(),
-            components.map((component, i) => ({
-                field: 'component' as const,
-                payload: {
-                    roundPubkey,
-                    signature: Buffer.from(sigs[i]),
-                    component,
-                },
-            })),
+            components.map(component => {
+                const dec = decodeComponent(component);
+                if (!dec.input) {
+                    return null;
+                }
+                const input = dec.input as Record<string, unknown>;
+                const prevTxid = asBytes(
+                    input.prevTxid,
+                    'input.prevTxid',
+                ).toString('hex');
+                const prevIndex = input.prevIndex;
+                if (typeof prevIndex !== 'number') {
+                    return null;
+                }
+                const which = assembled.tx.inputs.findIndex(inp => {
+                    const txid =
+                        typeof inp.prevOut.txid === 'string'
+                            ? inp.prevOut.txid.toLowerCase()
+                            : Buffer.from(inp.prevOut.txid).toString('hex');
+                    return (
+                        txid === prevTxid && inp.prevOut.outIdx === prevIndex
+                    );
+                });
+                const signature = byInput.get(which);
+                if (which < 0 || signature === undefined) {
+                    return null;
+                }
+                return {
+                    field: 'signature' as const,
+                    payload: {
+                        roundPubkey,
+                        whichInput: which,
+                        txsignature: Buffer.from(signature),
+                    },
+                };
+            }),
         );
         await covert.waitUntilDone(2_000);
     } finally {
@@ -1129,6 +1281,21 @@ async function commitThenPause(
     }
     conn.socket.pause();
     return conn;
+}
+
+/**
+ * Reveal components, then drop the control socket so the coordinator
+ * must failSign after assemble (not wait out the sign timeout).
+ */
+async function shareThenClose(
+    coord: FusionCoordinator,
+    contribution: WireContribution,
+): Promise<void> {
+    const { conn, covert } = await throughShare(coord, contribution);
+    covert.setStopTime(Date.now());
+    covert.stop();
+    await covert.waitUntilStopped().catch(() => undefined);
+    conn.close();
 }
 
 function toHexish(bytes: Uint8Array): string {

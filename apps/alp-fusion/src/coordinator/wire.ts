@@ -4,10 +4,10 @@
 
 /**
  * Control-channel round driver: ClientHello → JoinPools → FusionBegin /
- * StartRound → PlayerCommit, plus covert {@link CovertComponent} reveal, then
- * {@link OneShotRound} assemble and FusionResult (unsigned tx).
+ * StartRound → PlayerCommit, covert {@link CovertComponent} reveal, then
+ * covert {@link CovertTransactionSignature} + Chronik broadcast.
  *
- * Chronik, tx signing, and broadcast stay out of scope.
+ * Blame proofs stay out of scope.
  */
 import { randomBytes } from 'node:crypto';
 
@@ -18,8 +18,14 @@ import {
     randomScalarBytes,
     sha256,
     toHex,
+    UnsignedTx,
+    type Tx,
 } from 'ecash-lib';
 
+import {
+    broadcastFusionTx,
+    type FusionBroadcaster,
+} from '../client/chronik.js';
 import {
     DEFAULT_MIN_PLAYERS,
     NUM_COMPONENTS,
@@ -27,11 +33,7 @@ import {
 } from '../protocol/constants.js';
 import { listen, type FusionConnection } from '../protocol/connection.js';
 import { serveCovertPeer } from '../protocol/covert.js';
-import {
-    asBytes,
-    componentCommitment,
-    componentsToContribution,
-} from '../protocol/components.js';
+import { asBytes, componentCommitment } from '../protocol/components.js';
 import {
     verifyCovertComponent,
     verifyPlayerCommit,
@@ -43,10 +45,10 @@ import {
     getTypes,
     initProto,
 } from '../protocol/messages.js';
+import { applyCovertSignature, assembleFromComponents } from '../tx/sign.js';
 
 import { PoolMatcher } from './pool.js';
-import { OneShotRound } from './round.js';
-import type { PlayerContribution, PlayerId } from './types.js';
+import type { PlayerId } from './types.js';
 
 type ProtoTypes = Awaited<ReturnType<typeof getTypes>>;
 
@@ -73,6 +75,11 @@ export interface FusionCoordinatorOptions {
      * Default: `numComponents * minPlayers * 2`.
      */
     maxEarlyCovert?: number;
+    /**
+     * Chronik (or MockChronikClient) used to broadcast the signed tx.
+     * When omitted, FusionResult still carries the signed rawTx + local txid.
+     */
+    chronik?: FusionBroadcaster;
 }
 
 interface Session {
@@ -103,11 +110,18 @@ class ActiveRound {
     readonly received = new Map<PlayerId, Buffer[]>();
     readonly pending = new Map<string, Buffer>();
     readonly result: Promise<RoundResult>;
+    readonly signed: Promise<RoundResult>;
     private resolveResult!: (r: RoundResult) => void;
+    private resolveSigned!: (r: RoundResult) => void;
     private finished = false;
-    private readonly shuffleSeed: number | undefined;
+    private signedFinished = false;
     private readonly feePerKb: bigint;
     private readonly maxPending: number;
+    tx: Tx | undefined;
+    unsigned: UnsignedTx | undefined;
+    pubkeys: Uint8Array[] = [];
+    sigs: Array<Uint8Array | undefined> = [];
+    allComponents: Buffer[] = [];
     roundSeckey: Uint8Array<ArrayBufferLike> = new Uint8Array(32);
     roundPubkey: Uint8Array<ArrayBufferLike> = new Uint8Array(33);
 
@@ -116,17 +130,18 @@ class ActiveRound {
         atomTier: bigint,
         playerIds: PlayerId[],
         feePerKb: bigint,
-        shuffleSeed: number | undefined,
         maxPending: number,
     ) {
         this.tokenId = tokenId;
         this.atomTier = atomTier;
         this.playerIds = playerIds;
         this.feePerKb = feePerKb;
-        this.shuffleSeed = shuffleSeed;
         this.maxPending = maxPending;
         this.result = new Promise(resolve => {
             this.resolveResult = resolve;
+        });
+        this.signed = new Promise(resolve => {
+            this.resolveSigned = resolve;
         });
         for (const id of playerIds) {
             this.received.set(id, []);
@@ -182,11 +197,57 @@ class ActiveRound {
     }
 
     fail(error: string): void {
+        // tryAssemble sets finished once the unsigned tx exists, so a later
+        // disconnect / close must still resolve `signed` (else the next
+        // round cannot start until the sign timeout).
+        this.failSign(error);
         if (this.finished) {
             return;
         }
         this.finished = true;
         this.resolveResult({ ok: false, error, components: [] });
+    }
+
+    failSign(error: string): void {
+        if (this.signedFinished) {
+            return;
+        }
+        this.signedFinished = true;
+        this.resolveSigned({
+            ok: false,
+            error,
+            components: this.allComponents,
+        });
+    }
+
+    addSignature(whichInput: number, signature: Uint8Array): void {
+        if (this.signedFinished || !this.tx || !this.unsigned) {
+            throw new Error('no assembled tx');
+        }
+        const pubkey = this.pubkeys[whichInput];
+        if (!pubkey) {
+            throw new Error('whichInput out of range');
+        }
+        if (this.sigs[whichInput] !== undefined) {
+            throw new Error('input already signed');
+        }
+        applyCovertSignature(
+            this.tx,
+            this.unsigned,
+            whichInput,
+            signature,
+            pubkey,
+        );
+        this.sigs[whichInput] = signature;
+        if (this.sigs.every(s => s !== undefined)) {
+            this.signedFinished = true;
+            this.resolveSigned({
+                ok: true,
+                rawTx: this.tx.ser(),
+                txid: this.tx.txid(),
+                components: this.allComponents,
+            });
+        }
     }
 
     tryAssemble(): void {
@@ -203,30 +264,22 @@ class ActiveRound {
                 return;
             }
         }
-        const contributions: PlayerContribution[] = [];
         const allComponents: Buffer[] = [];
         try {
             for (const id of this.playerIds) {
-                const blobs = this.received.get(id) ?? [];
-                allComponents.push(...blobs);
-                contributions.push(
-                    componentsToContribution(id, this.tokenId, blobs),
-                );
+                allComponents.push(...(this.received.get(id) ?? []));
             }
-            const round = new OneShotRound(
-                {
-                    tokenId: this.tokenId,
-                    atomTier: this.atomTier,
-                    feePerKb: this.feePerKb,
-                    shuffleSeed: this.shuffleSeed,
-                },
-                [...this.playerIds],
+            const { assembled, pubkeys } = assembleFromComponents(
+                this.tokenId,
+                allComponents,
+                this.feePerKb,
             );
-            for (const c of contributions) {
-                round.submitContribution(c);
-            }
-            const assembled = round.assemble();
             this.finished = true;
+            this.tx = assembled.tx;
+            this.unsigned = UnsignedTx.fromTx(assembled.tx);
+            this.pubkeys = pubkeys;
+            this.sigs = pubkeys.map(() => undefined);
+            this.allComponents = allComponents;
             this.resolveResult({
                 ok: true,
                 rawTx: assembled.tx.ser(),
@@ -240,6 +293,7 @@ class ActiveRound {
                 error: err instanceof Error ? err.message : String(err),
                 components: allComponents,
             });
+            this.failSign(err instanceof Error ? err.message : String(err));
         }
     }
 
@@ -275,6 +329,7 @@ export class FusionCoordinator {
     private sessions = new Map<PlayerId, Session>();
     private activeRound: ActiveRound | null = null;
     private earlyCovert = new Map<string, Buffer>();
+    private signedBroadcast = new WeakMap<ActiveRound, Promise<RoundResult>>();
     private control: { port: number; close: () => Promise<void> } | undefined;
     private covert: { port: number; close: () => Promise<void> } | undefined;
     private closed = false;
@@ -365,8 +420,44 @@ export class FusionCoordinator {
         field: string,
         payload: Record<string, unknown>,
     ): { ok: true } | { ok: false; message: string } {
-        if (field === 'ping' || field === 'signature') {
+        if (field === 'ping') {
             return { ok: true };
+        }
+        if (field === 'signature') {
+            try {
+                if (!this.activeRound?.tx) {
+                    return { ok: false, message: 'no assembled tx' };
+                }
+                const rp = payload.roundPubkey;
+                if (
+                    rp !== undefined &&
+                    !asBytes(rp, 'signature.roundPubkey').equals(
+                        Buffer.from(this.activeRound.roundPubkey),
+                    )
+                ) {
+                    return { ok: false, message: 'round pubkey mismatch' };
+                }
+                const whichInput = payload.whichInput;
+                if (
+                    typeof whichInput !== 'number' ||
+                    !Number.isInteger(whichInput)
+                ) {
+                    return {
+                        ok: false,
+                        message: 'whichInput: expected integer',
+                    };
+                }
+                this.activeRound.addSignature(
+                    whichInput,
+                    asBytes(payload.txsignature, 'signature.txsignature'),
+                );
+                return { ok: true };
+            } catch (err) {
+                return {
+                    ok: false,
+                    message: err instanceof Error ? err.message : String(err),
+                };
+            }
         }
         if (field !== 'component') {
             return { ok: false, message: `unexpected covert ${field}` };
@@ -568,29 +659,64 @@ export class FusionCoordinator {
             } finally {
                 wait.clear();
             }
-            const sendBudget = delay(this.opts.roundTimeoutMs ?? 10_000);
+            const sendShare = delay(this.opts.roundTimeoutMs ?? 10_000);
             try {
                 await Promise.race([
                     (async () => {
                         if (result.components.length > 0) {
                             await this.send(session, 'sharecovertcomponents', {
                                 components: result.components,
-                                skipSignatures: true,
+                                skipSignatures: !result.ok,
                                 sessionHash: Buffer.from(
                                     sha256(Buffer.from(round.tokenId)),
                                 ),
                             });
                         }
-                        if (result.ok && result.rawTx) {
+                    })(),
+                    sendShare.promise.then(() => {
+                        throw new Error('share send timed out');
+                    }),
+                ]);
+            } finally {
+                sendShare.clear();
+            }
+
+            let finalized: RoundResult = result;
+            if (result.ok) {
+                const signWait = delay(this.opts.roundTimeoutMs ?? 10_000);
+                try {
+                    finalized = await Promise.race([
+                        this.finalizeSigned(round),
+                        signWait.promise.then(() => {
+                            round.failSign(
+                                'round timed out waiting for signatures',
+                            );
+                            return this.finalizeSigned(round);
+                        }),
+                        conn.whenClosed().then(() => {
+                            round.fail(`player ${playerId} disconnected`);
+                            return this.finalizeSigned(round);
+                        }),
+                    ]);
+                } finally {
+                    signWait.clear();
+                }
+            }
+
+            const sendBudget = delay(this.opts.roundTimeoutMs ?? 10_000);
+            try {
+                await Promise.race([
+                    (async () => {
+                        if (finalized.ok && finalized.rawTx) {
                             await this.send(session, 'fusionresult', {
                                 ok: true,
-                                rawTx: Buffer.from(result.rawTx),
-                                txid: result.txid ?? '',
+                                rawTx: Buffer.from(finalized.rawTx),
+                                txid: finalized.txid ?? '',
                             });
                         } else {
                             await this.send(session, 'fusionresult', {
                                 ok: false,
-                                error: result.error ?? 'round failed',
+                                error: finalized.error ?? 'round failed',
                             });
                         }
                     })(),
@@ -664,6 +790,33 @@ export class FusionCoordinator {
         );
     }
 
+    /**
+     * Apply covert sigs once, then broadcast once (shared across sessions).
+     */
+    private finalizeSigned(round: ActiveRound): Promise<RoundResult> {
+        let pending = this.signedBroadcast.get(round);
+        if (!pending) {
+            pending = round.signed.then(async finalized => {
+                if (!finalized.ok || !finalized.rawTx || !this.opts.chronik) {
+                    return finalized;
+                }
+                try {
+                    const broadcast = await broadcastFusionTx(
+                        this.opts.chronik,
+                        finalized.rawTx,
+                    );
+                    return { ...finalized, txid: broadcast.txid };
+                } catch {
+                    // Signed tx is still valid — "already known" and relay
+                    // errors must not drop rawTx or flip the round to failed.
+                    return finalized;
+                }
+            });
+            this.signedBroadcast.set(round, pending);
+        }
+        return pending;
+    }
+
     private tryStartReady(): void {
         if (this.activeRound || this.closed) {
             return;
@@ -707,7 +860,6 @@ export class FusionCoordinator {
                     ready.atomTier,
                     ready.playerIds,
                     this.opts.componentFeerate ?? DEFAULT_FEE_SATS_PER_KB,
-                    this.opts.shuffleSeed,
                     this.maxEarlyCovert,
                 );
                 this.activeRound = round;
@@ -720,7 +872,7 @@ export class FusionCoordinator {
                         err instanceof Error ? err.message : String(err),
                     );
                 });
-                void round.result.finally(() => {
+                void round.signed.finally(() => {
                     if (this.activeRound === round) {
                         this.activeRound = null;
                     }
