@@ -402,6 +402,7 @@ def get_ava_p2p_interface(
     sync_fun=None,
     payoutAddress=ADDRESS_ECREG_UNSPENDABLE,
     max_elements: int = AvalancheHello.MAX_ELEMENT_POLL,
+    timeout: int = 5,
 ) -> AvaP2PInterface:
     """Build and return an AvaP2PInterface connected to the specified TestNode."""
     n = AvaP2PInterface(
@@ -433,7 +434,7 @@ def get_ava_p2p_interface(
 
         return n.nodeid in node_list
 
-    wait_until_helper_internal(avapeer_connected, timeout=5)
+    wait_until_helper_internal(avapeer_connected, timeout=timeout * node.timeout_factor)
 
     return n
 
