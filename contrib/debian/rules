@@ -9,12 +9,16 @@ export DEB_BUILD_MAINT_OPTIONS = optimize=-lto
 %:
 	dh $@ --buildsystem=cmake+ninja --builddirectory=_build
 
+# -DUSE_LINKER= disables the use of the gold linker in favor of the default
+# linker. ld.gold is deprecated and no longer available by default since Ubuntu
+# 26.04 (resolute).
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 		-DCMAKE_INSTALL_PREFIX=$$(pwd)/debian/tmp \
 		-DCLIENT_VERSION_IS_RELEASE=ON \
 		-DUSE_JEMALLOC=OFF \
+		-DUSE_LINKER= \
 		-DBUILD_LIBBITCOINCONSENSUS=OFF \
 		-DBUILD_SEEDER=OFF \
 		-DBUILD_IGUANA=OFF
