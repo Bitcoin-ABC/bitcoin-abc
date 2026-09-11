@@ -40,6 +40,7 @@ class CompactRelayPeer(P2PInterface):
 class AvalancheTxCompactBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avaproofstakeutxoconfirmations=1",
