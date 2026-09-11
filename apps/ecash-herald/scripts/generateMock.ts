@@ -89,7 +89,7 @@ const txids = [
     'ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a', // SWaP SLP Atomic Swap Signal
     'a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a', // memo | reply to memo
     '7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be', // Airdrop
-    '22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9', // alias beta
+    '22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9', // unknown app (legacy .xec prefix)
     '9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1', // Unknown app tx, parsable
     'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e', // Unknown app tx, likely hex
     '01ef128ab5424ca838ae9e94ac62754ba561d4f382125a0beeca0c981d9cb7f4', // Blitzchips DICE play (block 938796)

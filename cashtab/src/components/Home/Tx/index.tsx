@@ -46,7 +46,6 @@ import {
     SendIcon,
     ReceiveIcon,
     MinedIcon,
-    AliasIconTx,
     AirdropIcon,
     EncryptedMsgIcon,
     SwapIcon,
@@ -454,39 +453,6 @@ const Tx: React.FC<TxProps> = ({
             continue;
         }
         switch (lokadId) {
-            case opReturn.appPrefixesHex.aliasRegistration: {
-                if (!isValid) {
-                    renderedAppActions.push(
-                        <IconAndLabel>
-                            <AliasIconTx />
-                            <AppDescLabel>
-                                Invalid alias registration
-                            </AppDescLabel>
-                        </IconAndLabel>,
-                    );
-                } else {
-                    if (typeof action !== 'undefined' && 'alias' in action) {
-                        // Type guard, we know that all valid aliases will have this action
-                        // from the parseTx function
-                        const { alias, address } = action;
-                        const aliasAddrPreview = previewAddress(address);
-                        renderedAppActions.push(
-                            <>
-                                <IconAndLabel>
-                                    <AliasIconTx />
-                                    <AppDescLabel>
-                                        Alias Registration
-                                    </AppDescLabel>
-                                </IconAndLabel>
-                                <AppDescMsg>
-                                    {`${alias} to ${aliasAddrPreview}`}
-                                </AppDescMsg>
-                            </>,
-                        );
-                    }
-                }
-                break;
-            }
             case opReturn.appPrefixesHex.airdrop: {
                 if (shouldFilterAirdropMsg(tx, minAirdropXec)) {
                     renderedAppActions.push(

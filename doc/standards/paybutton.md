@@ -87,7 +87,7 @@ Breaking this down:
 
 ### Encoding and broadcasting txs
 
-Valid PayButton transactions may be created and decoded using the `ecash-script` library published on npm. The `utxolib.script` object is also useful to create OP_RETURN txs with javascript apps. See `cashtab/src/opreturn/index` for an implementation of alias txs and Cashtab Message txs.
+Valid PayButton transactions may be created and decoded using the `ecash-script` library published on npm. The `utxolib.script` object is also useful to create OP_RETURN txs with javascript apps. See `cashtab/src/opreturn/index` for an implementation of Cashtab Message txs.
 
 ### Decoding txs
 

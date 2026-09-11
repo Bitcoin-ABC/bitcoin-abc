@@ -12,7 +12,6 @@ export const opReturn = {
         cashtab: '00746162',
         cashtabEncrypted: '65746162',
         airdrop: '64726f70',
-        aliasRegistration: '2e786563',
         paybutton: '50415900',
         nftoa: '4e465400',
         eCashChat: '63686174',

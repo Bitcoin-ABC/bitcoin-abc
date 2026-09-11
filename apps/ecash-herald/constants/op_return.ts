@@ -43,7 +43,6 @@ const opReturnConstants: OpReturnConstants = {
         fusion: { prefix: '46555a00', app: 'CashFusion' },
         fusionLegacy: { prefix: '5920070', app: 'CashFusion' },
         slp2: { prefix: '534c5032', app: 'ALP' },
-        alias: { prefix: '2e786563', app: 'Alias (beta)' },
         payButton: { prefix: '50415900', app: 'PayButton' },
         paywall: { prefix: '70617977', app: 'Paywall' },
         pow: { prefix: '504f5752', app: 'Proof of Writing' },

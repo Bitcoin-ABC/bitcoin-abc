@@ -21,10 +21,6 @@ export enum ParsedTokenTxType {
     BlitzPlay = 'Blitz play',
 }
 
-export interface AliasAction {
-    alias: string;
-    address: string;
-}
 export interface AirdropAction {
     tokenId: string;
     msg?: string;
@@ -108,7 +104,6 @@ export interface AppAction {
     app: string;
     isValid?: boolean;
     action?:
-        | AliasAction
         | AirdropAction
         | PaybuttonAction
         | NftoaAction

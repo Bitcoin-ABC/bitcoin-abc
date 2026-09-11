@@ -12,10 +12,7 @@ import {
     incomingXec,
     outgoingXec,
     stakingRwd,
-    aliasRegistration,
-    invalidAliasRegistration,
     mockParseTxWallet,
-    mockAliasWallet,
     incomingEtoken,
     outgoingEtoken,
     genesisTx,
@@ -295,95 +292,6 @@ describe('<Tx />', () => {
 
         // We see the formatted fiat amount
         expect(screen.getByText('$18.75')).toBeInTheDocument();
-    });
-    it('Alias registration (v0)', async () => {
-        render(
-            <MemoryRouter>
-                <ThemeProvider theme={theme}>
-                    <Tx
-                        tx={{
-                            ...aliasRegistration.tx,
-                            parsed: aliasRegistration.parsed,
-                        }}
-                        hashes={[
-                            mockAliasWallet.paths.find(p => p.path === 1899)
-                                .hash,
-                        ]}
-                        fiatPrice={0.00003}
-                        fiatCurrency="usd"
-                        cashtabState={new CashtabState()}
-                    />
-                    ,
-                </ThemeProvider>
-            </MemoryRouter>,
-        );
-
-        // We see the tx sent icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
-
-        // We see the tx sent label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
-
-        // We render the timestamp
-        expect(screen.getByText('Oct 3, 2023, 12:14:36')).toBeInTheDocument();
-
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.55 XEC')).toBeInTheDocument();
-
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
-
-        // Alias registration app action
-        // We see the alias registration icon
-        expect(screen.getByTitle('tx-alias-registration')).toBeInTheDocument();
-        // We see the alias registration description
-        expect(screen.getByText('bug2 to qqx...kqz')).toBeInTheDocument();
-    });
-    it('Invalid alias registration (v0)', async () => {
-        render(
-            <MemoryRouter>
-                <ThemeProvider theme={theme}>
-                    <Tx
-                        tx={{
-                            ...invalidAliasRegistration.tx,
-                            parsed: invalidAliasRegistration.parsed,
-                        }}
-                        hashes={[
-                            mockAliasWallet.paths.find(p => p.path === 1899)
-                                .hash,
-                        ]}
-                        fiatPrice={0.00003}
-                        fiatCurrency="usd"
-                        cashtabState={new CashtabState()}
-                    />
-                    ,
-                </ThemeProvider>
-            </MemoryRouter>,
-        );
-
-        // We see the tx sent icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
-
-        // We see the tx sent label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
-
-        // Coinbase txs have timeFirstSeen of 0
-        // For a tx with timeFirstSeen of 0, we render the block timestamp
-        expect(screen.getByText('Oct 3, 2023, 12:14:36')).toBeInTheDocument();
-
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.55 XEC')).toBeInTheDocument();
-
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
-
-        // Alias registration app action
-        // We see the alias registration icon
-        expect(screen.getByTitle('tx-alias-registration')).toBeInTheDocument();
-        // We see the alias registration description
-        expect(
-            screen.getByText('Invalid alias registration'),
-        ).toBeInTheDocument();
     });
     it('Received slpv1 fungible token', async () => {
         render(

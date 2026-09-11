@@ -45,7 +45,6 @@ export interface HeraldConfig {
         agoraBuy: string;
         agoraList: string;
         agoraCancel: string;
-        alias: string;
         alp: string;
         invalid: string;
         nft: string;
@@ -139,7 +138,6 @@ const config: HeraldConfig = {
         agoraBuy: '💰',
         agoraList: '🏷',
         agoraCancel: '❌',
-        alias: '👾',
         alp: '🗻',
         invalid: '❌',
         nft: '🖼',

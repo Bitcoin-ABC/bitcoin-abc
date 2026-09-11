@@ -23,7 +23,6 @@ import { ReactComponent as Mined } from 'assets/pickaxe.svg';
 import { ReactComponent as CashtabEncrypted } from 'assets/cashtab-encrypted.svg';
 import { ReactComponent as TokenBurn } from 'assets/tokenburn.svg';
 import { ReactComponent as Swap } from 'assets/swap.svg';
-import { ReactComponent as Alias } from 'assets/alias.svg';
 import { ReactComponent as Receive } from 'assets/receive.svg';
 import { ReactComponent as Genesis } from 'assets/flask.svg';
 import { ReactComponent as Unparsed } from 'assets/alert-circle.svg';
@@ -221,9 +220,6 @@ export const ReplyIcon: React.FC = () => <Reply title="reply" />;
 export const UnknownIcon: React.FC = () => <Unknown title="tx-unknown" />;
 export const CashtabMsgIcon: React.FC = () => (
     <CashtabMsg title="tx-cashtab-msg" />
-);
-export const AliasIconTx: React.FC = () => (
-    <Alias title="tx-alias-registration" />
 );
 export const GenesisIcon: React.FC = () => <Genesis title="tx-genesis" />;
 export const ReceiveIcon: React.FC = () => <Receive title="tx-received" />;

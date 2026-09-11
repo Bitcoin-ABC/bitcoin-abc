@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import appConfig from 'config/app';
-import { encodeCashAddress } from 'ecashaddrjs';
 import { encodeBase58 } from 'b58-ts';
 import { opReturn } from 'config/opreturn';
 import {
@@ -22,7 +20,6 @@ import {
     Bytes,
     bytesToStr,
 } from 'ecash-lib';
-import { AddressType } from 'ecashaddrjs/dist/types';
 import { AppAction, XecxAction, UnknownAction } from 'chronik';
 import { Buffer } from 'buffer';
 import { toXec } from 'wallet';
@@ -159,39 +156,6 @@ export const parseOpReturnRaw = (opReturnRaw: string): ParsedOpReturnRaw => {
                 return parsed;
             }
             parsed.data = data;
-            return parsed;
-        }
-        case opReturn.appPrefixesHex.aliasRegistration: {
-            // Magic numbers per spec
-            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
-            if (
-                stackArray[1] === '00' &&
-                typeof stackArray[2] !== 'undefined' &&
-                typeof stackArray[3] !== 'undefined' &&
-                stackArray[3].length === 42
-            ) {
-                const addressTypeByte = stackArray[3].slice(0, 2);
-                let addressType;
-                if (addressTypeByte === '00') {
-                    addressType = 'p2pkh';
-                } else if (addressTypeByte === '08') {
-                    addressType = 'p2sh';
-                } else {
-                    parsed.protocol = 'Invalid Alias Registration';
-                    return parsed;
-                }
-
-                parsed.protocol = 'Alias Registration';
-                parsed.data = `${Buffer.from(stackArray[2], 'hex').toString(
-                    'utf8',
-                )} to ${encodeCashAddress(
-                    appConfig.prefix,
-                    addressType as AddressType,
-                    stackArray[3].slice(1),
-                )}`;
-                return parsed;
-            }
-            parsed.protocol = 'Invalid Alias Registration';
             return parsed;
         }
         case opReturn.appPrefixesHex.paybutton: {

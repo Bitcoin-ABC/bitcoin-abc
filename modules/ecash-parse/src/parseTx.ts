@@ -5,7 +5,6 @@
 import { Tx, TokenTxType } from 'chronik-client';
 import {
     decodeCashAddress,
-    encodeCashAddress,
     encodeOutputScript,
     getTypeAndHashFromOutputScript,
 } from 'ecashaddrjs';
@@ -251,52 +250,6 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
                             }
                         }
                     }
-                    break;
-                }
-                case opReturn.appPrefixesHex.aliasRegistration: {
-                    const app = 'alias';
-                    // Magic numbers per spec
-                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
-                    if (
-                        stackArray[1] === '00' &&
-                        typeof stackArray[2] !== 'undefined' &&
-                        typeof stackArray[3] !== 'undefined' &&
-                        stackArray[3].length === 42
-                    ) {
-                        const addressTypeByte = stackArray[3].slice(0, 2);
-                        let addressType: 'p2pkh' | 'p2sh';
-                        if (addressTypeByte === '00') {
-                            addressType = 'p2pkh';
-                        } else if (addressTypeByte === '08') {
-                            addressType = 'p2sh';
-                        } else {
-                            appActions.push({
-                                app,
-                                lokadId,
-                                isValid: false,
-                            });
-                            break;
-                        }
-                        const aliasAddress = encodeCashAddress(
-                            appConfig.prefix,
-                            addressType,
-                            stackArray[3].slice(1),
-                        );
-                        appActions.push({
-                            app,
-                            lokadId,
-                            isValid: true,
-                            action: {
-                                alias: Buffer.from(
-                                    stackArray[2],
-                                    'hex',
-                                ).toString('utf8'),
-                                address: aliasAddress,
-                            },
-                        });
-                        break;
-                    }
-                    appActions.push({ app, lokadId, isValid: false });
                     break;
                 }
                 case opReturn.appPrefixesHex.airdrop: {

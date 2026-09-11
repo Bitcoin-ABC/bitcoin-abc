@@ -397,27 +397,6 @@ export const opReturnVectors = {
                 },
             },
             {
-                description:
-                    'Returns protocol identifier and raw hex for valid alias registration',
-                opReturnRaw:
-                    '042e786563000c746573747465737474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                returned: {
-                    protocol: 'Alias Registration',
-                    data: `testtesttest to ecash:qqy4u704r4pxp0qdcwa8ldmu005j6raa6ys060u0ns`,
-                },
-            },
-            {
-                description:
-                    'Returns protocol identifier and raw hex for invalid alias registration',
-                opReturnRaw:
-                    // bad address type
-                    '042e786563000c746573747465737474657374150395e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                returned: {
-                    protocol: 'Invalid Alias Registration',
-                    data: `042e786563000c746573747465737474657374150395e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d`,
-                },
-            },
-            {
                 description: 'Valid paybutton with data and nonce',
                 opReturnRaw: '0450415900000474657374080102030405060708',
                 returned: {

@@ -881,24 +881,6 @@ export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
             // Spec https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/chronik/bitcoinsuite-slp/src/empp/mod.rs
             return parseMultipushStack(stackArray);
         }
-        case opReturn.knownApps.alias.prefix: {
-            app = opReturn.knownApps.alias.app;
-            /*
-                For now, parse and render alias txs by going through OP_RETURN
-                When aliases are live, refactor to use alias-server for validation
-                <protocolIdentifier> <version> <alias> <address type + hash>
-
-                Only parse the msg if the tx is constructed correctly
-                */
-            msg =
-                stackArray.length === 4 && stackArray[1] === '00'
-                    ? prepareStringForTelegramHTML(
-                          Buffer.from(stackArray[2], 'hex').toString('utf8'),
-                      )
-                    : 'Invalid alias registration';
-
-            break;
-        }
         case opReturn.knownApps.airdrop.prefix: {
             app = opReturn.knownApps.airdrop.app;
 
@@ -1852,10 +1834,6 @@ export const getBlockTgMessage = (
                     appEmoji = emojis.memo;
                     break;
                 }
-                case opReturn.knownApps.alias.app: {
-                    appEmoji = emojis.alias;
-                    break;
-                }
                 case opReturn.knownApps.payButton.app: {
                     appEmoji = emojis.payButton;
                     break;
@@ -2591,7 +2569,6 @@ export const getBlockTgMessage = (
         tgMsg.push(`<b>${totalAppTxs} app tx${totalAppTxs > 1 ? `s` : ''}</b>`);
 
         // <appName> : <parsedAppData>
-        // alias: newlyregisteredalias
         // Cashtab Msg: This is a Cashtab Msg
         // Or a count line when an app exceeds APP_TX_INDIVIDUAL_DISPLAY_LIMIT
         tgMsg = tgMsg.concat(
