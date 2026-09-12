@@ -4,8 +4,15 @@
 
 import {
     alpSwap,
+    alignAmmToSpotTrade,
+    dexVsMarket,
     fiatPerXecFromDexRate,
+    formatDexVsMarketPct,
     fiatPerXecFromPairQtys,
+    firmaPerXecFromDexRate,
+    firmaPerXecFromMarket,
+    firmaPerXecFromPairQtys,
+    firmaPerXecFromReserves,
     FIRMA_TOKEN_ID,
     isHighPriceImpact,
     XECX_TOKEN_ID,
@@ -108,6 +115,109 @@ describe('alpSwapService helpers', () => {
         expect(isHighPriceImpact(5)).toBe(true);
         expect(isHighPriceImpact(17.61)).toBe(true);
         expect(isHighPriceImpact(Number.NaN)).toBe(false);
+    });
+
+    it('converts XECX↔FIRMA rates to FIRMA per XEC in both directions', () => {
+        expect(
+            firmaPerXecFromDexRate(
+                0.00000478351,
+                XECX_TOKEN_ID,
+                FIRMA_TOKEN_ID,
+            ),
+        ).toBeCloseTo(0.00000478351);
+        expect(
+            firmaPerXecFromDexRate(209052, FIRMA_TOKEN_ID, XECX_TOKEN_ID),
+        ).toBeCloseTo(1 / 209052);
+        expect(firmaPerXecFromDexRate(1, TOKEN_A, TOKEN_B)).toBeNull();
+    });
+
+    it('prices FIRMA per XECX from reserves without a swap direction', () => {
+        expect(
+            firmaPerXecFromReserves('20905200000', '10000000', 2, 4),
+        ).toBeCloseTo(0.00000478351);
+        expect(firmaPerXecFromReserves('0', '10000000', 2, 4)).toBeNull();
+    });
+
+    it('prices an XECX↔FIRMA fill as FIRMA per XEC from the two qtys', () => {
+        expect(
+            firmaPerXecFromPairQtys(
+                XECX_TOKEN_ID,
+                FIRMA_TOKEN_ID,
+                44_977_308.59,
+                200,
+            ),
+        ).toBeCloseTo(200 / 44_977_308.59);
+        expect(
+            firmaPerXecFromPairQtys(
+                FIRMA_TOKEN_ID,
+                XECX_TOKEN_ID,
+                200,
+                38_953_822.12,
+            ),
+        ).toBeCloseTo(200 / 38_953_822.12);
+        expect(firmaPerXecFromPairQtys(TOKEN_A, TOKEN_B, 2, 0.98)).toBeNull();
+    });
+
+    it('converts CoinGecko fiat per XEC to FIRMA per XEC', () => {
+        expect(firmaPerXecFromMarket(0.00003, 1)).toBeCloseTo(0.00003);
+        expect(firmaPerXecFromMarket(0.000024, 0.8)).toBeCloseTo(0.00003);
+        expect(firmaPerXecFromMarket(0, 1)).toBeNull();
+        expect(firmaPerXecFromMarket(0.00003, 0)).toBeNull();
+    });
+
+    it('compares DEX FIRMA/XEC to CoinGecko and names the deal direction', () => {
+        expect(dexVsMarket(0.00000478351, 0.00003)).toEqual({
+            pctAbs: expect.closeTo(84.054966, 5),
+            vsMarket: 'below',
+            deal: 'buy-xecx',
+        });
+        expect(dexVsMarket(0.000036, 0.00003)).toEqual({
+            pctAbs: 20,
+            vsMarket: 'above',
+            deal: 'sell-xecx',
+        });
+        expect(dexVsMarket(0.00003, 0.00003)).toEqual({
+            pctAbs: 0,
+            vsMarket: 'inline',
+            deal: null,
+        });
+        expect(dexVsMarket(0, 0.00003)).toBeNull();
+        expect(
+            formatDexVsMarketPct({
+                pctAbs: 84.054966,
+                vsMarket: 'below',
+                deal: 'buy-xecx',
+            }),
+        ).toBe('-84.1%');
+        expect(
+            formatDexVsMarketPct({
+                pctAbs: 20,
+                vsMarket: 'above',
+                deal: 'sell-xecx',
+            }),
+        ).toBe('+20%');
+        expect(
+            formatDexVsMarketPct({
+                pctAbs: 0,
+                vsMarket: 'inline',
+                deal: null,
+            }),
+        ).toBe('0%');
+    });
+
+    it('sizes the constant-product trade that aligns AMM FIRMA/XEC with spot', () => {
+        const xecxAtoms = '20905200000';
+        const firmaAtoms = '10000000';
+        const trade = alignAmmToSpotTrade(xecxAtoms, firmaAtoms, 2, 4, 0.00003);
+        expect(trade).not.toBeNull();
+        expect(trade?.fromTicker).toBe('FIRMA');
+        expect(trade?.toTicker).toBe('XECX');
+        expect(trade?.fromQty).toBeCloseTo(1504.3083, 3);
+        expect(trade?.toQty).toBeCloseTo(125575057.08, 1);
+        expect(
+            alignAmmToSpotTrade(xecxAtoms, firmaAtoms, 2, 4, 1000 / 209052000),
+        ).toBeNull();
+        expect(alignAmmToSpotTrade('0', firmaAtoms, 2, 4, 0.00003)).toBeNull();
     });
 
     it('converts XECX↔FIRMA rates to fiat per XEC in both directions', () => {

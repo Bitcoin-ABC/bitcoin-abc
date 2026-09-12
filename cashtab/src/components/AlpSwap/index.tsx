@@ -22,9 +22,17 @@ import appConfig from 'config/app';
 import { explorer } from 'config/explorer';
 import {
     alpSwap,
-    fiatPerXecFromDexRate,
+    alignAmmToSpotTrade,
+    dexVsMarket,
     fiatPerXecFromPairQtys,
+    firmaPerXecFromMarket,
+    firmaPerXecFromPairQtys,
+    firmaPerXecFromReserves,
+    FIRMA_TOKEN_ID,
+    formatDexVsMarketPct,
+    humanReservesFromAtoms,
     isHighPriceImpact,
+    XECX_TOKEN_ID,
 } from 'config/alpSwap';
 import Modal from 'components/Common/Modal';
 import { getTokenGenesisInfo } from 'chronik';
@@ -94,6 +102,12 @@ import {
     PriceLabel,
     PriceValue,
     PriceTableGap,
+    PriceCompare,
+    PriceCompareRow,
+    PriceComparePct,
+    PriceCompareLabel,
+    PriceCompareMeta,
+    FillSpotButton,
     ErrorBanner,
     ButtonRow,
     StatusText,
@@ -109,8 +123,13 @@ function formatToPerFromRate(
     rate: number,
     fromTicker: string,
     toTicker: string,
+    locale: string,
 ): string {
-    return `1 ${fromTicker} ≈ ${rate.toPrecision(6)} ${toTicker}`;
+    const formatted =
+        rate >= 1
+            ? rate.toLocaleString(locale, { maximumSignificantDigits: 6 })
+            : rate.toLocaleString(locale, { maximumSignificantDigits: 2 });
+    return `1 ${fromTicker} ≈ ${formatted} ${toTicker}`;
 }
 
 function formatFiatPerXec(rate: number, locale: string): string {
@@ -118,6 +137,21 @@ function formatFiatPerXec(rate: number, locale: string): string {
         minimumFractionDigits: appConfig.pricePrecisionDecimals,
         maximumFractionDigits: appConfig.pricePrecisionDecimals,
     });
+}
+
+function formatAlignQty(qty: number, decimals: number, locale: string): string {
+    return qty.toLocaleString(locale, {
+        maximumFractionDigits: decimals,
+    });
+}
+
+function tokenDecimals(
+    cache: { tokens: Map<string, { genesisInfo?: { decimals?: number } }> },
+    tokenId: string,
+    fallback: number,
+): number {
+    const decimals = cache.tokens.get(tokenId)?.genesisInfo?.decimals;
+    return typeof decimals === 'number' ? decimals : fallback;
 }
 
 function formatFeePercentLabel(feePct: number): string {
@@ -240,11 +274,16 @@ const AlpSwap: React.FC = () => {
         string,
         string
     > | null>(null);
+    const spotMarketKeyRef = useRef<string | null>(null);
     const [activeQuote, setActiveQuote] = useState<ActiveQuote | null>(null);
     const [isLoadingQuote, setIsLoadingQuote] = useState(false);
     const [quoteError, setQuoteError] = useState<string | null>(null);
     const [isSwapping, setIsSwapping] = useState(false);
     const [showHighImpactModal, setShowHighImpactModal] = useState(false);
+    const [pendingSpotFill, setPendingSpotFill] = useState<{
+        fromTokenId: string;
+        qty: number;
+    } | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const quoteRequestId = useRef(0);
@@ -423,6 +462,7 @@ const AlpSwap: React.FC = () => {
         setActiveQuote(null);
         setQuoteError(null);
         setShowHighImpactModal(false);
+        setPendingSpotFill(null);
         setIsLoadingQuote(false);
         if (debounceRef.current) {
             clearTimeout(debounceRef.current);
@@ -443,12 +483,20 @@ const AlpSwap: React.FC = () => {
         clearAmounts();
     };
 
-    // Spot rate when pair changes
+    // Spot rate when the undirected market changes. Flip keeps reserves so
+    // the FIRMA/XECX card does not flash an inverted percent.
     useEffect(() => {
         if (!fromTokenId || !toTokenId || fromTokenId === toTokenId) {
             setSpotRate(null);
             setSpotReserves(null);
+            spotMarketKeyRef.current = null;
             return;
+        }
+        const marketKey = [fromTokenId, toTokenId].sort().join(':');
+        if (spotMarketKeyRef.current !== marketKey) {
+            setSpotRate(null);
+            setSpotReserves(null);
+            spotMarketKeyRef.current = marketKey;
         }
         let cancelled = false;
         (async () => {
@@ -472,7 +520,7 @@ const AlpSwap: React.FC = () => {
                     setSpotReserves(res.reserves ?? null);
                 }
             } catch {
-                if (!cancelled) {
+                if (!cancelled && spotMarketKeyRef.current !== marketKey) {
                     setSpotRate(null);
                     setSpotReserves(null);
                 }
@@ -782,10 +830,43 @@ const AlpSwap: React.FC = () => {
             toast.error('Reverse pair is not available');
             return;
         }
+        if (spotRate !== null && spotRate > 0) {
+            setSpotRate(1 / spotRate);
+        }
         setFromTokenId(toTokenId);
         setToTokenId(fromTokenId);
         clearAmounts();
     };
+
+    useEffect(() => {
+        if (pendingSpotFill === null || !activePair || makerFeePct === null) {
+            return;
+        }
+        if (activePair.fromTokenId !== pendingSpotFill.fromTokenId) {
+            return;
+        }
+        const qty = pendingSpotFill.qty;
+        setPendingSpotFill(null);
+        const wire = formatSwapQty(qty, activePair.fromDecimals);
+        const formatted = formatAmountFromWire(wire, userLocale);
+        setFromAmountStr(formatted);
+        setToAmountStr('');
+        setFromFieldError(
+            qty > fromBalance ? 'Insufficient token balance' : null,
+        );
+        setIsLoadingQuote(true);
+        debounceRef.current = setTimeout(() => {
+            void runQuote(true, qty);
+            debounceRef.current = null;
+        }, alpSwap.quoteDebounceMs);
+    }, [
+        pendingSpotFill,
+        activePair,
+        makerFeePct,
+        fromBalance,
+        userLocale,
+        runQuote,
+    ]);
 
     const quoteImpactPct = activeQuote?.template.priceImpactPct ?? 0;
     const highImpact = isHighPriceImpact(quoteImpactPct);
@@ -981,7 +1062,12 @@ const AlpSwap: React.FC = () => {
 
     const ratePill =
         spotRate !== null && fromLabel && toLabel
-            ? formatToPerFromRate(spotRate, fromLabel.ticker, toLabel.ticker)
+            ? formatToPerFromRate(
+                  spotRate,
+                  fromLabel.ticker,
+                  toLabel.ticker,
+                  userLocale,
+              )
             : null;
 
     const fromAmtNumeric = Number(
@@ -994,18 +1080,6 @@ const AlpSwap: React.FC = () => {
             : settings.fiatCurrency === 'usd'
               ? 1
               : null;
-    const alpDexFiatPerXec =
-        spotRate !== null &&
-        fromTokenId !== null &&
-        toTokenId !== null &&
-        firmaInFiat !== null
-            ? fiatPerXecFromDexRate(
-                  spotRate,
-                  fromTokenId,
-                  toTokenId,
-                  firmaInFiat,
-              )
-            : null;
     const swapFiatPerXec =
         fromTokenId !== null && toTokenId !== null && firmaInFiat !== null
             ? fiatPerXecFromPairQtys(
@@ -1016,6 +1090,115 @@ const AlpSwap: React.FC = () => {
                   firmaInFiat,
               )
             : null;
+    const xecxDecimals = tokenDecimals(cashtabCache, XECX_TOKEN_ID, 2);
+    const firmaDecimals = tokenDecimals(cashtabCache, FIRMA_TOKEN_ID, 4);
+    const xecxReserveAtoms = spotReserves?.[XECX_TOKEN_ID];
+    const firmaReserveAtoms = spotReserves?.[FIRMA_TOKEN_ID];
+    const pairReserves =
+        typeof xecxReserveAtoms === 'string' &&
+        typeof firmaReserveAtoms === 'string'
+            ? humanReservesFromAtoms(
+                  xecxReserveAtoms,
+                  firmaReserveAtoms,
+                  xecxDecimals,
+                  firmaDecimals,
+              )
+            : null;
+    const alpDexFirmaPerXec =
+        typeof xecxReserveAtoms === 'string' &&
+        typeof firmaReserveAtoms === 'string'
+            ? firmaPerXecFromReserves(
+                  xecxReserveAtoms,
+                  firmaReserveAtoms,
+                  xecxDecimals,
+                  firmaDecimals,
+              )
+            : null;
+    const alpDexFiatPerXec =
+        alpDexFirmaPerXec !== null && firmaInFiat !== null
+            ? alpDexFirmaPerXec * firmaInFiat
+            : null;
+    const marketFirmaPerXec =
+        typeof fiatPrice === 'number' && firmaInFiat !== null
+            ? firmaPerXecFromMarket(fiatPrice, firmaInFiat)
+            : null;
+    const vsMarket =
+        alpDexFirmaPerXec !== null && marketFirmaPerXec !== null
+            ? dexVsMarket(alpDexFirmaPerXec, marketFirmaPerXec)
+            : null;
+    const swapFirmaPerXec =
+        fromTokenId !== null && toTokenId !== null
+            ? firmaPerXecFromPairQtys(
+                  fromTokenId,
+                  toTokenId,
+                  fromAmtNumeric,
+                  toAmtNumeric,
+              )
+            : null;
+    const quoteVsMarket =
+        swapFirmaPerXec !== null && marketFirmaPerXec !== null
+            ? dexVsMarket(swapFirmaPerXec, marketFirmaPerXec)
+            : null;
+    const quoteVsPctTone =
+        quoteVsMarket?.vsMarket === 'below'
+            ? 'deal'
+            : quoteVsMarket?.vsMarket === 'above'
+              ? 'warn'
+              : 'flat';
+    const isXecxFirmaMarket =
+        fromTokenId !== null &&
+        toTokenId !== null &&
+        ((fromTokenId === XECX_TOKEN_ID && toTokenId === FIRMA_TOKEN_ID) ||
+            (fromTokenId === FIRMA_TOKEN_ID && toTokenId === XECX_TOKEN_ID));
+    const alignTrade =
+        typeof xecxReserveAtoms === 'string' &&
+        typeof firmaReserveAtoms === 'string' &&
+        marketFirmaPerXec !== null
+            ? alignAmmToSpotTrade(
+                  xecxReserveAtoms,
+                  firmaReserveAtoms,
+                  xecxDecimals,
+                  firmaDecimals,
+                  marketFirmaPerXec,
+              )
+            : null;
+    const vsPctTone =
+        vsMarket?.vsMarket === 'below'
+            ? 'deal'
+            : vsMarket?.vsMarket === 'above'
+              ? 'warn'
+              : 'flat';
+    const fillToSpot = () => {
+        if (alignTrade === null || !pairs) {
+            return;
+        }
+        const nextFrom =
+            alignTrade.fromTicker === 'FIRMA' ? FIRMA_TOKEN_ID : XECX_TOKEN_ID;
+        const nextTo =
+            alignTrade.toTicker === 'FIRMA' ? FIRMA_TOKEN_ID : XECX_TOKEN_ID;
+        if (!findPair(pairs, nextFrom, nextTo)) {
+            toast.error('Reverse pair is not available');
+            return;
+        }
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+            debounceRef.current = null;
+        }
+        ++quoteRequestId.current;
+        setFromFieldError(null);
+        setToFieldError(null);
+        setActiveQuote(null);
+        setQuoteError(null);
+        setShowHighImpactModal(false);
+        if (fromTokenId !== nextFrom) {
+            if (spotRate !== null && spotRate > 0) {
+                setSpotRate(1 / spotRate);
+            }
+            setFromTokenId(nextFrom);
+            setToTokenId(nextTo);
+        }
+        setPendingSpotFill({ fromTokenId: nextFrom, qty: alignTrade.fromQty });
+    };
     const canSwap =
         !!activeQuote &&
         !isLoadingQuote &&
@@ -1194,6 +1377,63 @@ const AlpSwap: React.FC = () => {
                         )}
                     </FeeRow>
 
+                    {isXecxFirmaMarket && alpDexFirmaPerXec === null && (
+                        <PriceCompare aria-label="Loading AlpDex XECX price">
+                            <PriceCompareRow>
+                                <InlineLoader />
+                            </PriceCompareRow>
+                        </PriceCompare>
+                    )}
+                    {alpDexFirmaPerXec !== null && (
+                        <PriceCompare aria-label="AlpDex XECX price">
+                            <PriceCompareRow>
+                                <span>
+                                    1 XECX ={' '}
+                                    {formatFiatPerXec(
+                                        alpDexFirmaPerXec,
+                                        userLocale,
+                                    )}{' '}
+                                    FIRMA
+                                </span>
+                                {vsMarket !== null ? (
+                                    <PriceComparePct $tone={vsPctTone}>
+                                        {formatDexVsMarketPct(vsMarket)} over
+                                        Agora
+                                    </PriceComparePct>
+                                ) : (
+                                    <PriceCompareLabel>
+                                        AlpDex
+                                    </PriceCompareLabel>
+                                )}
+                            </PriceCompareRow>
+                            {pairReserves !== null && (
+                                <PriceCompareMeta $tone="flat">
+                                    Liquidity:{' '}
+                                    {formatAlignQty(
+                                        pairReserves.xecx,
+                                        xecxDecimals,
+                                        userLocale,
+                                    )}{' '}
+                                    XECX ·{' '}
+                                    {formatAlignQty(
+                                        pairReserves.firma,
+                                        firmaDecimals,
+                                        userLocale,
+                                    )}{' '}
+                                    FIRMA
+                                </PriceCompareMeta>
+                            )}
+                            {alignTrade !== null && (
+                                <FillSpotButton
+                                    type="button"
+                                    onClick={fillToSpot}
+                                >
+                                    Fill to spot
+                                </FillSpotButton>
+                            )}
+                        </PriceCompare>
+                    )}
+
                     {quoteError && <ErrorBanner>{quoteError}</ErrorBanner>}
 
                     {showHighImpactModal && (
@@ -1255,6 +1495,13 @@ const AlpSwap: React.FC = () => {
                                     )}
                                 </PriceTable>
                             )}
+                            {quoteVsMarket !== null &&
+                                quoteVsMarket.vsMarket !== 'inline' && (
+                                    <PriceCompareMeta $tone={quoteVsPctTone}>
+                                        {formatDexVsMarketPct(quoteVsMarket)}{' '}
+                                        over Agora
+                                    </PriceCompareMeta>
+                                )}
                         </Modal>
                     )}
 

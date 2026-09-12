@@ -228,6 +228,75 @@ export const PriceTableGap = styled.div`
     height: 12px;
 `;
 
+export const PriceCompare = styled.div`
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: ${props => props.theme.primaryBackground};
+    border: 1px solid ${props => props.theme.border};
+    text-align: center;
+`;
+
+export const PriceCompareRow = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    width: 100%;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-variant-numeric: tabular-nums;
+    color: ${props => props.theme.primaryText};
+`;
+
+export const PriceComparePct = styled.span<{
+    $tone?: 'deal' | 'warn' | 'flat';
+}>`
+    font-weight: 700;
+    white-space: nowrap;
+    color: ${props =>
+        props.$tone === 'deal'
+            ? props.theme.genesisGreen
+            : props.$tone === 'warn'
+              ? props.theme.formError
+              : props.theme.secondaryText};
+`;
+
+export const PriceCompareLabel = styled.span`
+    color: ${props => props.theme.secondaryText};
+    font-weight: 600;
+`;
+
+export const PriceCompareMeta = styled.div<{
+    $tone?: 'deal' | 'warn' | 'flat';
+}>`
+    margin-top: 8px;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: ${props => (props.$tone === 'flat' ? 400 : 700)};
+    color: ${props =>
+        props.$tone === 'deal'
+            ? props.theme.genesisGreen
+            : props.$tone === 'warn'
+              ? props.theme.formError
+              : props.theme.secondaryText};
+`;
+
+export const FillSpotButton = styled.button`
+    margin-top: 8px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: ${props => props.theme.accent};
+    &:hover {
+        color: ${props => props.theme.primaryText};
+    }
+`;
+
 export const ErrorBanner = styled.div`
     margin: 12px 0;
     padding: 12px;

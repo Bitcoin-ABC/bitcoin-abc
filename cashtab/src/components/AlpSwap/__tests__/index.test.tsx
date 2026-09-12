@@ -385,6 +385,50 @@ describe('<AlpSwap />', () => {
         );
     });
 
+    it('Keeps fractional mid-row rates above one', async () => {
+        const inner = global.fetch as jest.Mock;
+        global.fetch = jest.fn(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                if (
+                    url === spotPriceUrl(TOKEN_A, TOKEN_B) ||
+                    url === spotPriceUrl(TOKEN_B, TOKEN_A)
+                ) {
+                    return jsonResponse({
+                        ...spotResponse,
+                        rate: '1.49',
+                    }) as Response;
+                }
+                return inner(input, init);
+            },
+        ) as jest.Mock;
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
+            expect(screen.getByText(/1 TKA ≈ 1.49 TKB/)).toBeInTheDocument(),
+        );
+        expect(screen.queryByText(/1 TKA ≈ 1 TKB/)).not.toBeInTheDocument();
+    });
+
     it('Selects the pair from from/to query params', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithAlpSwapBalance,
@@ -752,7 +796,7 @@ describe('<AlpSwap />', () => {
                         source: 'local-liquidity',
                         reserves: {
                             [XECX_TOKEN_ID]: '20905200000',
-                            [FIRMA_TOKEN_ID]: '100000000',
+                            [FIRMA_TOKEN_ID]: '10000000',
                         },
                     }) as Response;
                 }
@@ -762,7 +806,7 @@ describe('<AlpSwap />', () => {
                         feePct: MAKER_FEE_PCT,
                         source: 'local-liquidity',
                         reserves: {
-                            [FIRMA_TOKEN_ID]: '100000000',
+                            [FIRMA_TOKEN_ID]: '10000000',
                             [XECX_TOKEN_ID]: '20905200000',
                         },
                     }) as Response;
@@ -987,8 +1031,8 @@ describe('<AlpSwap />', () => {
         await waitFor(() => expect(swapButton).not.toBeDisabled());
         await userEvent.click(swapButton);
 
-        expect(await screen.findByText('CoinGecko')).toBeInTheDocument();
-        expect(screen.getByText('alp-dex spot')).toBeInTheDocument();
+        expect(await screen.findByText('alp-dex spot')).toBeInTheDocument();
+        expect(screen.getAllByText('CoinGecko').length).toBeGreaterThan(0);
         expect(screen.getByText('this swap')).toBeInTheDocument();
         expect(screen.getByText('USD / XEC')).toBeInTheDocument();
         expect(screen.getByText('0.00000478')).toBeInTheDocument();
@@ -999,6 +1043,9 @@ describe('<AlpSwap />', () => {
         expect(priceTable?.textContent).toMatch(
             /CoinGecko.*alp-dex spot.*this swap/s,
         );
+        // Quoted fill 0.000098 FIRMA/XEC is above CoinGecko 0.00003,
+        // even though alp-dex spot is below.
+        expect(screen.getByText('+226.7% over Agora')).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         await userEvent.click(
@@ -1019,6 +1066,286 @@ describe('<AlpSwap />', () => {
         expect(await screen.findByText('this swap')).toBeInTheDocument();
         expect(screen.getByText('0.00000513')).toBeInTheDocument();
         expect(screen.queryByText('194,769.11060000')).not.toBeInTheDocument();
+    });
+
+    it('Shows AlpDex FIRMA/XECX vs Agora, liquidity, and Fill to spot', async () => {
+        const spotFirmaPerXecx = 0.00000478351;
+        global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+            const url = String(input);
+            if (url === priceApiUrl) {
+                return jsonResponse({
+                    ecash: {
+                        usd: 0.00003,
+                        last_updated_at: 1706644626,
+                    },
+                }) as Response;
+            }
+            if (url === FIRMA_FOREX_API_URL) {
+                return jsonResponse({
+                    rates: {
+                        usd: {
+                            name: 'US Dollar',
+                            unit: '$',
+                            value: 60000,
+                            type: 'fiat',
+                        },
+                    },
+                }) as Response;
+            }
+            if (url === statusUrl()) {
+                return jsonResponse({
+                    ...statusResponse,
+                    tradedTokens: [
+                        {
+                            tokenId: XECX_TOKEN_ID,
+                            decimals: 2,
+                            utxoQty: 1,
+                            utxoAtoms: '100',
+                            tokenTicker: 'XECX',
+                            tokenName: 'Staked XEC',
+                        },
+                        {
+                            tokenId: FIRMA_TOKEN_ID,
+                            decimals: 4,
+                            utxoQty: 1,
+                            utxoAtoms: '10000',
+                            tokenTicker: 'FIRMA',
+                            tokenName: 'Firma',
+                        },
+                    ],
+                    tradedPairs: [
+                        {
+                            aTokenId: XECX_TOKEN_ID,
+                            bTokenId: FIRMA_TOKEN_ID,
+                            feePct: MAKER_FEE_PCT,
+                            aUtxoQty: 1,
+                            bUtxoQty: 1,
+                        },
+                    ],
+                }) as Response;
+            }
+            if (url === inventoryUrl()) {
+                return jsonResponse({
+                    [XECX_TOKEN_ID]: '5000',
+                    [FIRMA_TOKEN_ID]: '5000',
+                }) as Response;
+            }
+            if (url === spotPriceUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID)) {
+                return jsonResponse({
+                    rate: String(spotFirmaPerXecx),
+                    feePct: MAKER_FEE_PCT,
+                    source: 'local-liquidity',
+                    reserves: {
+                        [XECX_TOKEN_ID]: '20905200000',
+                        [FIRMA_TOKEN_ID]: '10000000',
+                    },
+                }) as Response;
+            }
+            if (url === spotPriceUrl(FIRMA_TOKEN_ID, XECX_TOKEN_ID)) {
+                return jsonResponse({
+                    rate: String(1 / spotFirmaPerXecx),
+                    feePct: MAKER_FEE_PCT,
+                    source: 'local-liquidity',
+                    reserves: {
+                        [FIRMA_TOKEN_ID]: '10000000',
+                        [XECX_TOKEN_ID]: '20905200000',
+                    },
+                }) as Response;
+            }
+            if (
+                url.startsWith(
+                    `https://lp.alpswap.com/api/v1/swap/${FIRMA_TOKEN_ID}/${XECX_TOKEN_ID}?`,
+                )
+            ) {
+                return jsonResponse({
+                    price: '1504.3083',
+                    fee: '15.0431',
+                    rate: String(1 / spotFirmaPerXecx),
+                    spotRate: String(1 / spotFirmaPerXecx),
+                    priceImpactPct: 12,
+                    feePct: MAKER_FEE_PCT,
+                    platformFee: '0',
+                    platformFeePct: 0,
+                    platformFeeAddress: null,
+                    outputs: [
+                        {
+                            tokenId: FIRMA_TOKEN_ID,
+                            atoms: '15043083',
+                            script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                        },
+                        {
+                            tokenId: FIRMA_TOKEN_ID,
+                            script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
+                            atoms: '150431',
+                        },
+                        {
+                            tokenId: XECX_TOKEN_ID,
+                            atoms: '12557505708',
+                        },
+                    ],
+                    slushScript:
+                        '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                }) as Response;
+            }
+            throw new Error(`Unexpected fetch: ${url}`);
+        }) as jest.Mock;
+
+        const walletWithXecx = {
+            ...walletWithAlpSwapBalance,
+            state: {
+                ...walletWithAlpSwapBalance.state,
+                slpUtxos: [
+                    ...walletWithAlpSwapBalance.state.slpUtxos,
+                    {
+                        outpoint: {
+                            txid: 'dd'.repeat(32),
+                            outIdx: 1,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: XECX_TOKEN_ID,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 100_000_000n,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        outpoint: {
+                            txid: 'ee'.repeat(32),
+                            outIdx: 1,
+                        },
+                        blockHeight: 800000,
+                        isCoinbase: false,
+                        sats: 546n,
+                        isFinal: true,
+                        token: {
+                            tokenId: FIRMA_TOKEN_ID,
+                            tokenType: {
+                                protocol: 'ALP',
+                                type: 'ALP_TOKEN_TYPE_STANDARD',
+                                number: 0,
+                            },
+                            atoms: 1_000_000n,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokens: new Map([
+                    ...walletWithAlpSwapBalance.state.tokens,
+                    [XECX_TOKEN_ID, '1000000'],
+                    [FIRMA_TOKEN_ID, '100'],
+                ]),
+            },
+        };
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecx,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+        mockedChronik.setToken(XECX_TOKEN_ID, {
+            tokenId: XECX_TOKEN_ID,
+            tokenType: {
+                protocol: 'ALP',
+                type: 'ALP_TOKEN_TYPE_STANDARD',
+                number: 0,
+            },
+            timeFirstSeen: 0,
+            genesisInfo: {
+                tokenTicker: 'XECX',
+                tokenName: 'Staked XEC',
+                url: 'https://cashtab.com/',
+                decimals: 2,
+                data: '',
+                authPubkey: '00'.repeat(33),
+            },
+        });
+        mockedChronik.setToken(FIRMA_TOKEN_ID, {
+            tokenId: FIRMA_TOKEN_ID,
+            tokenType: {
+                protocol: 'ALP',
+                type: 'ALP_TOKEN_TYPE_STANDARD',
+                number: 0,
+            },
+            timeFirstSeen: 0,
+            genesisInfo: {
+                tokenTicker: 'FIRMA',
+                tokenName: 'Firma',
+                url: 'https://cashtab.com/',
+                decimals: 4,
+                data: '',
+                authPubkey: '00'.repeat(33),
+            },
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route={`/alpswap?from=${XECX_TOKEN_ID}&to=${FIRMA_TOKEN_ID}`}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const priceCard = await screen.findByLabelText('AlpDex XECX price');
+        expect(priceCard).toHaveTextContent('1 XECX = 0.00000478 FIRMA');
+        expect(priceCard).toHaveTextContent('-84.1% over Agora');
+        expect(priceCard).not.toHaveTextContent('1 XEC = 0.00000478 FIRMA');
+        expect(priceCard).not.toHaveTextContent('vs CoinGecko');
+        expect(priceCard).toHaveTextContent(
+            'Liquidity: 209,052,000 XECX · 1,000 FIRMA',
+        );
+        expect(priceCard).toHaveTextContent('Fill to spot');
+        expect(priceCard).not.toHaveTextContent('To spot:');
+        expect(priceCard).not.toHaveTextContent('on sale');
+        expect(
+            screen.getByText(/1 XECX ≈ 0.0000048 FIRMA/),
+        ).toBeInTheDocument();
+
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Flip swap direction' }),
+        );
+        expect(screen.getByLabelText('AlpDex XECX price')).toHaveTextContent(
+            '1 XECX = 0.00000478 FIRMA',
+        );
+        expect(screen.getByLabelText('AlpDex XECX price')).toHaveTextContent(
+            '-84.1% over Agora',
+        );
+        expect(screen.getByText(/1 FIRMA ≈ 209,052 XECX/)).toBeInTheDocument();
+        expect(
+            screen.queryByText(/\+[0-9,]+\.?[0-9]*% over Agora/),
+        ).not.toBeInTheDocument();
+
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Fill to spot' }),
+        );
+        await waitFor(() => {
+            expect(screen.getByLabelText('You pay FIRMA')).toBeInTheDocument();
+        });
+        expect(screen.getByLabelText('Swap from amount')).toHaveValue(
+            '1,504.3083',
+        );
+        expect(
+            screen.getByText(/Insufficient token balance/),
+        ).toBeInTheDocument();
     });
 
     it('Rejects from-amounts too small to cover fee outputs', async () => {
@@ -1141,9 +1468,7 @@ describe('<AlpSwap />', () => {
 
         // Wait for spot rate so exact-out min uses the mocked high rate.
         await waitFor(() =>
-            expect(
-                screen.getByText(new RegExp(String(highSpotRate))),
-            ).toBeInTheDocument(),
+            expect(screen.getByText(/1 TKA ≈ 149,032 TKB/)).toBeInTheDocument(),
         );
 
         const toInput = await screen.findByLabelText('Swap to amount');
