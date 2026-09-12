@@ -17,6 +17,7 @@ import {
     splitMiscFromFormerInventory,
     type FormerInventoryPile,
 } from './classify';
+import { syncLpWallets, type LocalBook } from './localBook';
 import {
     assertPositiveCountOrNone,
     INVENTORY_FUND_MAX_BATCHES_PER_TOKEN,
@@ -166,8 +167,10 @@ export const maintainInventory = async (opts: {
      * Override {@link INVENTORY_FUND_MAX_BATCHES_PER_TOKEN} (tests).
      */
     maxFundBatchesPerToken?: number;
+    /** Re-apply fills Chronik has not spent yet after this pass's sync. */
+    localBook?: LocalBook;
 }): Promise<MaintainInventoryResult> => {
-    const { seller, slush, feeAddress, tradedTokens } = opts;
+    const { seller, slush, feeAddress, tradedTokens, localBook } = opts;
     const maxFundBatchesPerToken =
         opts.maxFundBatchesPerToken ?? INVENTORY_FUND_MAX_BATCHES_PER_TOKEN;
     if (
@@ -207,9 +210,9 @@ export const maintainInventory = async (opts: {
         // Refresh both wallets before classify/fund. Spenders update on
         // build(), but receivers (e.g. seller after slush→seller postage)
         // do not — without this, postage.length stays stale and step 3
-        // re-funds every pass. Can shrink once WS / addReceivedTx keeps
-        // UTXO sets current.
-        await Promise.all([seller.sync(), slush.sync()]);
+        // re-funds every pass. Local fills are re-applied after sync so
+        // Chronik lag does not rewind seller+slush atom sums.
+        await syncLpWallets(seller, slush, localBook);
 
         // 1. Wrong-sized traded tokens on seller → slush
         //    (visible to step 2 on the next maintain pass after sync)

@@ -150,6 +150,7 @@ export const assertConfiguredPair = (
 
 /**
  * Read-only quote / discovery routes. No broadcast.
+ * Prices from in-memory seller+slush atom sums (updated on each fill).
  * Reads in-memory wallet UTXOs only.
  */
 export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {

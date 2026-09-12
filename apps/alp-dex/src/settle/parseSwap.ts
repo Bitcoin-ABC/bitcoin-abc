@@ -10,7 +10,6 @@ import {
     parseAlp,
     parseEmppScript,
 } from 'ecash-lib';
-import { SETTLE_BAND_BPS } from '../constants';
 import { ValidationError } from '../methods/errors';
 import { makerFeeAtoms } from '../pricing/cp';
 import { splitExactInTotalAtoms } from '../pricing/templates';
@@ -31,7 +30,6 @@ export type ParsedPartiallySignedSwap = {
     atomsTo: bigint;
     /**
      * Atom ratio on the price leg: Number(atomsTo) / Number(priceLeg).
-     * Prefer {@link ValidationConfig.expectedToAtoms} for band checks.
      */
     effectiveRate: number;
 };
@@ -41,14 +39,10 @@ export type ValidationConfig = {
     feeScriptHex: string;
     sellerScriptHex: string;
     /**
-     * Legacy rate band (±1%). Ignored when {@link expectedToAtoms} is set.
+     * Exact CP `toToken` atoms for the price leg on current seller+slush
+     * reserves. `atomsTo` must equal this.
      */
-    currentRate: number;
-    /**
-     * Preferred CP band: validate `atomsTo` against this expected amount (±
-     * {@link SETTLE_BAND_BPS}).
-     */
-    expectedToAtoms?: bigint;
+    expectedToAtoms: bigint;
     /** When set with platformFeePct > 0, require a matching platform-fee output */
     platformFeeScriptHex?: string | null;
     platformFeePct?: number;
@@ -423,7 +417,7 @@ export const parsePartiallySignedSwap = (
 };
 
 /**
- * Validate parsed swap schema, maker/platform fees, and CP / rate band.
+ * Validate parsed swap schema, maker/platform fees, and exact CP output.
  *
  * @throws {ValidationError} on any validation failure
  */
@@ -439,33 +433,14 @@ export const validatePartiallySignedTx = (
         config.expectedPlatformFeeAtoms !== undefined;
     const hasPlatformFee = parsedSwap.platformFeeInFromAtoms > 0n;
 
-    if (config.expectedToAtoms !== undefined) {
-        const expected = config.expectedToAtoms;
-        if (expected <= 0n) {
-            throw new ValidationError('expectedToAtoms must be positive');
-        }
-        const bps = 10_000n;
-        const lower = (expected * (bps - SETTLE_BAND_BPS)) / bps;
-        const upper = (expected * (bps + SETTLE_BAND_BPS) + (bps - 1n)) / bps;
-        if (parsedSwap.atomsTo < lower || parsedSwap.atomsTo > upper) {
-            throw new ValidationError(
-                `atomsTo ${parsedSwap.atomsTo} outside ±${SETTLE_BAND_BPS} bps of ` +
-                    `expectedToAtoms ${expected} (bounds ${lower}-${upper})`,
-            );
-        }
-    } else {
-        const expectedRate = config.currentRate;
-        const rateLowerBound = expectedRate * 0.99;
-        const rateUpperBound = expectedRate * 1.01;
-        if (
-            parsedSwap.effectiveRate < rateLowerBound ||
-            parsedSwap.effectiveRate > rateUpperBound
-        ) {
-            throw new ValidationError(
-                `effectiveRate ${parsedSwap.effectiveRate} outside ±1% of ` +
-                    `expected ${expectedRate}`,
-            );
-        }
+    const expected = config.expectedToAtoms;
+    if (expected <= 0n) {
+        throw new ValidationError('expectedToAtoms must be positive');
+    }
+    if (parsedSwap.atomsTo !== expected) {
+        throw new ValidationError(
+            `atomsTo ${parsedSwap.atomsTo} does not match expectedToAtoms ${expected}`,
+        );
     }
 
     const feeOutputCount = (hasMakerFee ? 1 : 0) + (hasPlatformFee ? 1 : 0);

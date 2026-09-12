@@ -6,6 +6,7 @@ import { createApp } from './src/app';
 import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
 import { FormerInventoryNotify } from './src/inventory/formerInventoryNotify';
+import { LocalBook, syncLpWallets } from './src/inventory/localBook';
 import {
     formatMaintainResultLine,
     MAINTAIN_DELAY_MS,
@@ -72,7 +73,8 @@ const main = async (): Promise<void> => {
         tradedConfig.feeAddress,
     );
 
-    await Promise.all([seller.sync(), slush.sync()]);
+    const localBook = new LocalBook();
+    await syncLpWallets(seller, slush, localBook);
     const tradedTokens = await loadTradedTokens(chronik, tradedConfig);
 
     const telegram = tradedConfig.telegram;
@@ -102,6 +104,7 @@ const main = async (): Promise<void> => {
                     slush,
                     feeAddress: tradedConfig.feeAddress,
                     tradedTokens,
+                    localBook,
                 });
                 logMaintainResult(label, inventory);
                 if (telegramOps === undefined) {
@@ -148,6 +151,7 @@ const main = async (): Promise<void> => {
         tradedConfig,
         tradedTokens,
         walletQueue,
+        localBook,
         maintainInventory: () => enqueueMaintain('post-settle'),
         sendOps:
             telegramOps === undefined

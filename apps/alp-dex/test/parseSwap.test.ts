@@ -14,7 +14,6 @@ import {
     fromHex,
 } from 'ecash-lib';
 import { ValidationError } from '../src/methods/errors';
-import { SETTLE_BAND_BPS } from '../src/constants';
 import {
     assertMakerFeeAtoms,
     parsePartiallySignedSwap,
@@ -92,162 +91,38 @@ describe('assertMakerFeeAtoms', () => {
 });
 
 describe('validatePartiallySignedTx', () => {
-    it('accepts a valid swap within expectedToAtoms band', () => {
+    it('accepts a valid swap at exact expectedToAtoms', () => {
         validatePartiallySignedTx(baseSwap(), {
             slushScriptHex,
             feeScriptHex,
             sellerScriptHex,
-            currentRate: 0.5,
             expectedToAtoms: 4_997n,
             makerFeePct: 0.02,
         });
     });
 
-    it('accepts atomsTo at ±1% band edges', () => {
-        assert.strictEqual(SETTLE_BAND_BPS, 100n);
-        const expected = 10_000n;
-        // Independent of production formula (100 bps → ±1%).
-        const lower = 9_900n;
-        const upper = 10_100n;
-
-        validatePartiallySignedTx(
-            baseSwap({
-                atomsTo: lower,
-                outputs: [
-                    {
-                        tokenId: TOKEN_A,
-                        atoms: 10_000n,
-                        script: slushScriptHex,
-                    },
-                    {
-                        tokenId: TOKEN_A,
-                        atoms: 200n,
-                        script: feeScriptHex,
-                    },
-                    {
-                        tokenId: TOKEN_B,
-                        atoms: lower,
-                        script: buyerScriptHex,
-                    },
-                ],
-            }),
-            {
-                slushScriptHex,
-                feeScriptHex,
-                sellerScriptHex,
-                currentRate: 1,
-                expectedToAtoms: expected,
-                makerFeePct: 0.02,
-            },
-        );
-
-        validatePartiallySignedTx(
-            baseSwap({
-                atomsTo: upper,
-                outputs: [
-                    {
-                        tokenId: TOKEN_A,
-                        atoms: 10_000n,
-                        script: slushScriptHex,
-                    },
-                    {
-                        tokenId: TOKEN_A,
-                        atoms: 200n,
-                        script: feeScriptHex,
-                    },
-                    {
-                        tokenId: TOKEN_B,
-                        atoms: upper,
-                        script: buyerScriptHex,
-                    },
-                ],
-            }),
-            {
-                slushScriptHex,
-                feeScriptHex,
-                sellerScriptHex,
-                currentRate: 1,
-                expectedToAtoms: expected,
-                makerFeePct: 0.02,
-            },
-        );
-    });
-
-    it('ceils the +1% band bound for small expectedToAtoms', () => {
-        // expected=3 → lower=floor(2.97)=2, upper=ceil(3.03)=4
-        const expected = 3n;
-        validatePartiallySignedTx(
-            baseSwap({
-                atomsTo: 4n,
-                feeInFromAtoms: 0n,
-                atomsFrom: 10_000n,
-                outputs: [
-                    {
-                        tokenId: TOKEN_A,
-                        atoms: 10_000n,
-                        script: slushScriptHex,
-                    },
-                    {
-                        tokenId: TOKEN_B,
-                        atoms: 4n,
-                        script: buyerScriptHex,
-                    },
-                ],
-            }),
-            {
-                slushScriptHex,
-                feeScriptHex,
-                sellerScriptHex,
-                currentRate: 1,
-                expectedToAtoms: expected,
-                makerFeePct: 0,
-            },
-        );
+    it('rejects atomsTo that is not the exact expectedToAtoms', () => {
         assert.throws(
             () =>
-                validatePartiallySignedTx(
-                    baseSwap({
-                        atomsTo: 5n,
-                        feeInFromAtoms: 0n,
-                        atomsFrom: 10_000n,
-                        outputs: [
-                            {
-                                tokenId: TOKEN_A,
-                                atoms: 10_000n,
-                                script: slushScriptHex,
-                            },
-                            {
-                                tokenId: TOKEN_B,
-                                atoms: 5n,
-                                script: buyerScriptHex,
-                            },
-                        ],
-                    }),
-                    {
-                        slushScriptHex,
-                        feeScriptHex,
-                        sellerScriptHex,
-                        currentRate: 1,
-                        expectedToAtoms: expected,
-                        makerFeePct: 0,
-                    },
-                ),
-            /outside/,
+                validatePartiallySignedTx(baseSwap({ atomsTo: 4_998n }), {
+                    slushScriptHex,
+                    feeScriptHex,
+                    sellerScriptHex,
+                    expectedToAtoms: 4_997n,
+                    makerFeePct: 0.02,
+                }),
+            /does not match expectedToAtoms/,
         );
-    });
-
-    it('rejects atomsTo outside the ±1% settle band', () => {
         assert.throws(
             () =>
                 validatePartiallySignedTx(baseSwap({ atomsTo: 1n }), {
                     slushScriptHex,
                     feeScriptHex,
                     sellerScriptHex,
-                    currentRate: 0.5,
                     expectedToAtoms: 4_997n,
                     makerFeePct: 0.02,
                 }),
-            /outside/,
+            /does not match expectedToAtoms/,
         );
     });
 
@@ -278,7 +153,6 @@ describe('validatePartiallySignedTx', () => {
                         slushScriptHex,
                         feeScriptHex,
                         sellerScriptHex,
-                        currentRate: 0.5,
                         expectedToAtoms: 4_997n,
                         makerFeePct: 0.02,
                     },
@@ -321,7 +195,6 @@ describe('validatePartiallySignedTx', () => {
                         slushScriptHex,
                         feeScriptHex,
                         sellerScriptHex,
-                        currentRate: 0.5,
                         expectedToAtoms: 4_997n,
                         makerFeePct: 0.02,
                         platformFeePct: 0,
@@ -338,7 +211,6 @@ describe('validatePartiallySignedTx', () => {
                     slushScriptHex,
                     feeScriptHex,
                     sellerScriptHex,
-                    currentRate: 0.5,
                     expectedToAtoms: 4_997n,
                     makerFeePct: 0,
                 }),
@@ -368,7 +240,6 @@ describe('validatePartiallySignedTx', () => {
                 slushScriptHex,
                 feeScriptHex,
                 sellerScriptHex,
-                currentRate: 0.5,
                 expectedToAtoms: 4_997n,
                 makerFeePct: 0,
             },
@@ -405,7 +276,6 @@ describe('validatePartiallySignedTx', () => {
                 slushScriptHex,
                 feeScriptHex,
                 sellerScriptHex,
-                currentRate: 0.5,
                 expectedToAtoms: 4_997n,
                 makerFeePct: 0.02,
             },

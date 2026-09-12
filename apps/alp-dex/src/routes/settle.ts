@@ -7,6 +7,12 @@ import { PostageTx, type Wallet } from 'ecash-wallet';
 import { Router, type Request, type Response } from 'express';
 import type { ParsedTradedConfig } from '../config/tradedConfig';
 import { POSTAGE_SATS } from '../constants';
+import {
+    LocalBook,
+    outpointTxidHex,
+    slushUtxosFromFill,
+    syncLpWallets,
+} from '../inventory/localBook';
 import { atomsToDecimalizedQty } from '../methods/atoms';
 import { AsyncQueue } from '../methods/queue';
 import { HttpError, ValidationError } from '../methods/errors';
@@ -63,6 +69,11 @@ export type SettleRouteDeps = {
      * asserted without sleeping 20s.
      */
     createdAtMs?: number;
+    /**
+     * Shared in-memory fills so quotes and later settles keep seller+slush
+     * atom sums after broadcast, including across Chronik `sync()`.
+     */
+    localBook?: LocalBook;
 };
 
 type SwapTokenParams = {
@@ -162,8 +173,11 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
         maintainInventory,
         sendOps,
         createdAtMs: createdAtMsOverride,
+        localBook: localBookDep,
     } = deps;
+    const localBook = localBookDep ?? new LocalBook();
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
+    const slushScriptHex = slush.script.toHex();
     // Prefer the process-wide wallet queue so maintain cannot race settle.
     const settleQueue = deps.walletQueue ?? new AsyncQueue();
     const router = Router();
@@ -178,7 +192,6 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
             let serializedTxHex = '';
             let parsedSwap: ParsedPartiallySignedSwap | undefined;
             let takerAddress = 'Unknown';
-            let currentRate = 0;
             let displayRate = 0;
             let pairFeePct = 0;
             let postagePaidSats = 0n;
@@ -386,7 +399,6 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     swap.feeInFromAtoms -
                     swap.platformFeeInFromAtoms;
                 if (priceLegAtoms > 0n) {
-                    currentRate = Number(swap.atomsTo) / Number(priceLegAtoms);
                     displayRate = humanExchangeRate(
                         swap.atomsTo,
                         priceLegAtoms,
@@ -414,10 +426,10 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     // broadcast so a job that starts at t=19s cannot
                     // still fill at t=25s.
                     assertSettleRequestFresh(createdAtMs);
-                    // Band + inventory selection share one post-sync
-                    // snapshot so concurrent settles cannot validate
-                    // against reserves the previous fill already moved.
-                    await Promise.all([seller.sync(), slush.sync()]);
+                    // Exact CP + inventory selection share one snapshot
+                    // so concurrent settles cannot validate against
+                    // reserves the previous fill already moved.
+                    await syncLpWallets(seller, slush, localBook);
 
                     const reserves = pairPricingReserves(
                         seller.utxos,
@@ -437,10 +449,9 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     }
 
                     validatePartiallySignedTx(swap, {
-                        slushScriptHex: slush.script.toHex(),
+                        slushScriptHex,
                         feeScriptHex,
                         sellerScriptHex: seller.script.toHex(),
-                        currentRate,
                         expectedToAtoms,
                         makerFeePct: feePct,
                         // platformFeeEnabled false: reject unexpected platform outs
@@ -523,7 +534,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     const takerPrevOuts = new Set(
                         deserializedTx.inputs.map(
                             input =>
-                                `${input.prevOut.txid}:${input.prevOut.outIdx}`,
+                                `${outpointTxidHex(input.prevOut.txid)}:${input.prevOut.outIdx}`,
                         ),
                     );
                     const inventoryPrevOuts = new Set(
@@ -561,9 +572,33 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         throw new Error(`Broadcast failed: ${errorMsg}`);
                     }
 
+                    const settledTxid = broadcastResp.broadcasted[0];
+                    localBook.record(
+                        {
+                            slushUtxos: slushUtxosFromFill(
+                                deserializedTx,
+                                settledTxid,
+                                slush,
+                                slushScriptHex,
+                                swap,
+                                tradedTokens,
+                            ),
+                            sellerSpent: builtTx.txs[0].inputs
+                                .filter(input => {
+                                    const key = `${outpointTxidHex(input.prevOut.txid)}:${input.prevOut.outIdx}`;
+                                    return !takerPrevOuts.has(key);
+                                })
+                                .map(input => ({
+                                    txid: outpointTxidHex(input.prevOut.txid),
+                                    outIdx: input.prevOut.outIdx,
+                                })),
+                        },
+                        slush,
+                    );
+
                     return {
                         postagePaidSats: paidSats,
-                        txid: broadcastResp.broadcasted[0],
+                        txid: settledTxid,
                     };
                 });
                 postagePaidSats = settled.postagePaidSats;

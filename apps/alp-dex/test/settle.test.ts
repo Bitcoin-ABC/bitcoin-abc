@@ -703,6 +703,29 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         assert.ok(broadcastCalls > 0);
     });
 
+    it('quotes the next fill from updated seller+slush atoms', async () => {
+        const first = await buildBuyerSettlePayload(app);
+        await request(app)
+            .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+            .send(first)
+            .expect(200);
+
+        const nextTemplate = await request(app)
+            .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+            .expect(200);
+        const nextOut = nextTemplate.body.outputs.find(
+            (o: { tokenId: string }) => o.tokenId === TOKEN_B,
+        )!.atoms;
+        assert.notStrictEqual(nextOut, first.atoms);
+
+        const second = await buildBuyerSettlePayload(app);
+        const secondSettle = await request(app)
+            .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+            .send(second)
+            .expect(200);
+        assert.strictEqual(typeof secondSettle.body.txid, 'string');
+    });
+
     it('returns 408 and does not broadcast a settle that sat in queue too long', async () => {
         const payload = await buildBuyerSettlePayload(app);
         const staleApp = createApp({

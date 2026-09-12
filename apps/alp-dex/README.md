@@ -89,9 +89,8 @@ market maker with a public API.
   confirmed, outcomes are as final as any other chain tx.
 - The taker builds outputs and signs their own inputs before settle. They
   can inspect maker fee (and optional coordinator fee) outs before signing.
-- At settle time the node checks the price leg against constant-product
-  expectations (±1% band, `SETTLE_BAND_BPS`) using its current local
-  reserves.
+- At settle time the node checks the price leg against the exact
+  constant-product output from current seller+slush reserves.
 
 ### What still requires trust / reputation
 
@@ -181,7 +180,7 @@ should ship tests a reviewer can run locally.
    `platformFeeEnabled` stays false until coordinator opt-in.
 9. **Settle [D20478](https://reviews.bitcoinabc.org/D20478)** — Parse/validate
    postage-ready ALP txs; settle queue; fuel + sign + broadcast (mocked
-   Chronik/broadcast); ±1% constant-product settle band; maker fee schema.
+   Chronik/broadcast); exact constant-product settle; maker fee schema.
    `POST /api/v1/swap/:from/:to` via `PostageTx`; no DB audit / Telegram
    yet; `platformFeeEnabled` stays false.
 10. **Ops + logs (this package)** — stdout settle logs and optional
@@ -202,5 +201,5 @@ change.
 - Inventory reshape never spends batons; only exact-size seller UTXOs are
   fill-eligible.
 - Settle rejects wrong fee pct, wrong platform fee (when enabled), and
-  price legs outside the ±1% constant-product settle band.
+  price legs that are not the exact constant-product output.
 - Mocked end-to-end: template → taker-signed hex → fuel → broadcast shape.

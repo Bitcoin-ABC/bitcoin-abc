@@ -12,6 +12,7 @@ import express, {
 } from 'express';
 import type { ParsedTradedConfig } from './config/tradedConfig';
 import { POSTAGE_SATS, SPEC_VERSION } from './constants';
+import type { LocalBook } from './inventory/localBook';
 import type { SendOpsFn } from './routes/settle';
 import type { AsyncQueue } from './methods/queue';
 import { createQuoteRouter } from './routes/quotes';
@@ -43,6 +44,8 @@ export type CreateAppDeps = {
      * can expire without a real 20s sleep.
      */
     createdAtMs?: number;
+    /** Shared with inventory maintain so fills survive Chronik sync. */
+    localBook?: LocalBook;
 };
 
 /**
@@ -75,6 +78,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
         maintainInventory,
         sendOps,
         createdAtMs,
+        localBook,
     } = deps;
     const app = express();
     // One hop (typical nginx) so req.ip is the client, not 127.0.0.1.
@@ -151,6 +155,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             maintainInventory,
             sendOps,
             createdAtMs,
+            localBook,
         }),
     );
 

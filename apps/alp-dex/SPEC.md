@@ -121,10 +121,9 @@ Maker `feePct` is **on top of** the price leg (paid in `fromToken` to the
 fee script). Optional coordinator platform fee is likewise an explicit
 mid-output the taker can inspect.
 
-Settle accepts the buyer’s `toToken` atoms within a small band of the
-**constant-product** expectation for the price leg (**±1%**,
-`SETTLE_BAND_BPS = 100`). That cushions small reserve moves between quote
-and settle; fills outside the band are rejected.
+Settle requires the buyer’s `toToken` atoms to equal the
+**constant-product** output for the price leg on current seller+slush
+reserves. There is no price band.
 
 ## Inventory automation
 
@@ -164,8 +163,8 @@ Flow:
 1. Taker `GET`s a settleable output template (scripts + atoms + fees).
 2. Taker builds an ALP send (EMPP), signs own inputs, `POST`s hex +
    `prePostageInputSats` + expected `tokenId` / `atoms`.
-3. Node parses EMPP/ALP, validates schema / fees / ±1% constant-product
-   settle band, serializes settle through a queue, selects N exact-size
+3. Node parses EMPP/ALP, validates schema / fees / exact constant-product
+   output, serializes settle through a queue, selects N exact-size
    `toToken` seller UTXOs, adds postage fuel, signs, broadcasts.
 4. On success: stdout settle log + optional post-swap inventory pass.
 
@@ -277,13 +276,12 @@ seller or slush.
 
 ## Open questions
 
-1. Exact ±% settle band and whether it should be configurable per pair.
-2. Whether public LOKAD pushdata should mark settled swaps for indexers.
-3. Multi-denomination inventory vs single `utxoQty` + change (design tradeoff;
+1. Whether public LOKAD pushdata should mark settled swaps for indexers.
+2. Multi-denomination inventory vs single `utxoQty` + change (design tradeoff;
    SPEC v1 targets single size + change).
-4. How aggressively wallets should retry / fail over across whitelisted
+3. How aggressively wallets should retry / fail over across whitelisted
    nodes when settle is refused.
-5. When and how to **split** a single logical swap across multiple LPs
+4. When and how to **split** a single logical swap across multiple LPs
    (vs best-of-one) given postage settle and per-node inventory races.
-6. Minimum status fields a coordinator should require before whitelist
+5. Minimum status fields a coordinator should require before whitelist
    (TLS, `platformFeeEnabled`, uptime probes, settle success rate).
