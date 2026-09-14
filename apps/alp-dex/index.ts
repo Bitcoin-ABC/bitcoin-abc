@@ -5,6 +5,7 @@
 import { createApp } from './src/app';
 import { createChronikClient } from './src/chronik/createChronik';
 import { loadTradedConfig } from './src/config/tradedConfig';
+import { BOOK_WS_PATH } from './src/constants';
 import { FormerInventoryNotify } from './src/inventory/formerInventoryNotify';
 import { LocalBook, syncLpWallets } from './src/inventory/localBook';
 import {
@@ -16,6 +17,9 @@ import {
     type MaintainInventoryResult,
 } from './src/inventory/maintain';
 import { AsyncQueue } from './src/methods/queue';
+import { BookHub } from './src/ops/bookHub';
+import { bookSnapshot } from './src/ops/bookSnapshot';
+import { attachBookWs } from './src/ops/bookWs';
 import { createTelegramBot, createTelegramOpsSender } from './src/ops/telegram';
 import { getFormerInventoryNotice } from './src/ops/telegramMessages';
 import { pairSpotPrices } from './src/pricing/quotes';
@@ -76,6 +80,9 @@ const main = async (): Promise<void> => {
     const localBook = new LocalBook();
     await syncLpWallets(seller, slush, localBook);
     const tradedTokens = await loadTradedTokens(chronik, tradedConfig);
+    const bookHub = new BookHub(() =>
+        bookSnapshot(seller, slush, tradedConfig, tradedTokens),
+    );
 
     const telegram = tradedConfig.telegram;
     const telegramBot =
@@ -107,6 +114,7 @@ const main = async (): Promise<void> => {
                     localBook,
                 });
                 logMaintainResult(label, inventory);
+                bookHub.publish();
                 if (telegramOps === undefined) {
                     return;
                 }
@@ -152,6 +160,7 @@ const main = async (): Promise<void> => {
         tradedTokens,
         walletQueue,
         localBook,
+        bookHub,
         maintainInventory: () => enqueueMaintain('post-settle'),
         sendOps:
             telegramOps === undefined
@@ -165,6 +174,7 @@ const main = async (): Promise<void> => {
             console.log(
                 `alp-dex listening on port ${tradedConfig.port} (${tradedConfig.pairs.length} pair(s))`,
             );
+            console.log(`book   ws ${BOOK_WS_PATH}`);
             console.log(`seller ${addresses.sellerAddress}`);
             console.log(`slush  ${addresses.slushAddress}`);
             console.log(`fee    ${addresses.feeAddress}`);
@@ -207,6 +217,7 @@ const main = async (): Promise<void> => {
             }
             resolve();
         });
+        attachBookWs(server, bookHub);
         server.once('error', reject);
     });
 

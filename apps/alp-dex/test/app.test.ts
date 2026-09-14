@@ -103,6 +103,7 @@ describe('alp-dex HTTP metadata', () => {
         assert.strictEqual(res.body.feeAddress, addresses.feeAddress);
         assert.strictEqual(res.body.postage.sats, POSTAGE_SATS.toString());
         assert.strictEqual(res.body.platformFeeEnabled, false);
+        assert.strictEqual(res.body.bookWs, '/api/v1/book');
         assert.strictEqual(res.body.tradedPairs.length, 1);
         assert.strictEqual(res.body.tradedPairs[0].feePct, 0.02);
         assert.strictEqual(res.body.tradedTokens.length, 2);

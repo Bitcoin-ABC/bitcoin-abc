@@ -22,3 +22,15 @@ export const POSTAGE_SATS = 1000n;
  * broadcast it (20s).
  */
 export const SETTLE_MAX_QUEUE_AGE_MS = 20_000;
+
+/** WebSocket path for the in-memory seller+slush book. */
+export const BOOK_WS_PATH = '/api/v1/book';
+
+/** Server ping interval so dead Cashtab tabs drop. */
+export const BOOK_WS_PING_MS = 30_000;
+
+/**
+ * Max inbound WebSocket frame size. `/api/v1/book` is server-push
+ * only; clients should not send application data.
+ */
+export const BOOK_WS_MAX_PAYLOAD = 1024;

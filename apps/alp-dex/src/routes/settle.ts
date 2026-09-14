@@ -18,6 +18,7 @@ import { AsyncQueue } from '../methods/queue';
 import { HttpError, ValidationError } from '../methods/errors';
 import { assertSettleRequestFresh } from '../methods/settleAge';
 import { assertTokenId } from '../methods/tokenId';
+import type { BookHub } from '../ops/bookHub';
 import {
     getBroadcastFailedMessage,
     getInvalidSwapMessage,
@@ -74,6 +75,8 @@ export type SettleRouteDeps = {
      * atom sums after broadcast, including across Chronik `sync()`.
      */
     localBook?: LocalBook;
+    /** Push the book after sync and after crediting a fill. */
+    bookHub?: BookHub;
 };
 
 type SwapTokenParams = {
@@ -174,6 +177,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
         sendOps,
         createdAtMs: createdAtMsOverride,
         localBook: localBookDep,
+        bookHub,
     } = deps;
     const localBook = localBookDep ?? new LocalBook();
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
@@ -430,6 +434,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     // so concurrent settles cannot validate against
                     // reserves the previous fill already moved.
                     await syncLpWallets(seller, slush, localBook);
+                    bookHub?.publish();
 
                     const reserves = pairPricingReserves(
                         seller.utxos,
@@ -595,6 +600,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         },
                         slush,
                     );
+                    bookHub?.publish();
 
                     return {
                         postagePaidSats: paidSats,

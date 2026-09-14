@@ -194,22 +194,24 @@ CORS open for browser takers. Rate limiting lands with deploy ops.
 **Implemented:** `GET /`, `GET /api/v1/status`, available, inventory, spot,
 amm discovery, exact-in/out templates, settleable `?from|to&feePct`
 templates, **`POST` settle** (parse/validate, queue, fuel+sign+broadcast),
-stdout settle logs, and optional Telegram ops.
+**`WS /api/v1/book`** (in-memory seller+slush book), stdout settle logs, and
+optional Telegram ops.
 **Still planned:** coordinator platform-fee fields beyond
 `platformFeeEnabled: false`.
 
-| Method | Path                                     | Purpose                                              |
-| ------ | ---------------------------------------- | ---------------------------------------------------- |
-| GET    | `/`                                      | Service metadata                                     |
-| GET    | `/api/v1/status`                         | Health, seller address, pairs, postage, platform fee |
-| GET    | `/api/v1/token/:tokenId/available`       | Seller spendable atoms for one token                 |
-| GET    | `/api/v1/swap/inventory`                 | `tokenId →` human balance (seller+slush)             |
-| GET    | `/api/v1/swap/:from/:to/price`           | Spot + reserves + pair `feePct`                      |
-| GET    | `/api/v1/swap/:from/:to/amm/:qty`        | CP exact-in discovery quote                          |
-| GET    | `/api/v1/swap/:from/:to/quote/:qty`      | Exact-in + fee output template                       |
-| GET    | `/api/v1/swap/:from/:to/price/:qty`      | Exact-out + fee output template                      |
-| GET    | `/api/v1/swap/:from/:to?from\|to&feePct` | Settleable CP output template                        |
-| POST   | `/api/v1/swap/:from/:to`                 | Settle postage-ready tx                              |
+| Method | Path                                     | Purpose                                                        |
+| ------ | ---------------------------------------- | -------------------------------------------------------------- |
+| GET    | `/`                                      | Service metadata                                               |
+| GET    | `/api/v1/status`                         | Health, seller address, pairs, postage, platform fee, `bookWs` |
+| WS     | `/api/v1/book`                           | Push seller+slush book after each in-memory change             |
+| GET    | `/api/v1/token/:tokenId/available`       | Seller spendable atoms for one token                           |
+| GET    | `/api/v1/swap/inventory`                 | `tokenId →` human balance (seller+slush)                       |
+| GET    | `/api/v1/swap/:from/:to/price`           | Spot + reserves + pair `feePct`                                |
+| GET    | `/api/v1/swap/:from/:to/amm/:qty`        | CP exact-in discovery quote                                    |
+| GET    | `/api/v1/swap/:from/:to/quote/:qty`      | Exact-in + fee output template                                 |
+| GET    | `/api/v1/swap/:from/:to/price/:qty`      | Exact-out + fee output template                                |
+| GET    | `/api/v1/swap/:from/:to?from\|to&feePct` | Settleable CP output template                                  |
+| POST   | `/api/v1/swap/:from/:to`                 | Settle postage-ready tx                                        |
 
 ### Settle body
 
@@ -232,6 +234,30 @@ from/to token ids, taker, valid/broadcasted/txid, human qty, postage, rate,
 and the error on failures. Successes go to stdout; failures go to stderr.
 Optional Telegram ops messages fire after the log (grammy FIFO send with
 429 backoff; settle HTTP does not wait).
+
+### Live book (`WS /api/v1/book`)
+
+`GET /api/v1/status` advertises `bookWs` (`/api/v1/book`). Clients upgrade
+that path. The first text frame is the current book; later frames are sent
+only when seller+slush pair reserves or spots change (fills, Chronik sync
+that moves sums, slush deposits). Inventory reshape that keeps atom sums
+does not emit.
+
+Each frame is JSON:
+
+```
+{ "type": "book", "timestamp": "<ISO>", "pairs": [
+    { "aTokenId", "bTokenId", "feePct",
+      "reserves": { "<tokenId>": "<atoms>", ... },
+      "spotAtoB", "spotBtoA" }
+] }
+```
+
+`reserves` and spots use the same units as `GET /swap/:from/:to/price`.
+Empty sides use `spotAtoB` / `spotBtoA` of `n/a`. The server pings every
+30s and terminates clients that miss a pong. Inbound frames are capped at
+1 KiB. This is the same in-memory book settle uses — not a Chronik lag
+view.
 
 ## Output schema (parsed, excl. OP_RETURN)
 

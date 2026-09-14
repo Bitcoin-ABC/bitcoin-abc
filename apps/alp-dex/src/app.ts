@@ -11,8 +11,9 @@ import express, {
     Router,
 } from 'express';
 import type { ParsedTradedConfig } from './config/tradedConfig';
-import { POSTAGE_SATS, SPEC_VERSION } from './constants';
+import { BOOK_WS_PATH, POSTAGE_SATS, SPEC_VERSION } from './constants';
 import type { LocalBook } from './inventory/localBook';
+import type { BookHub } from './ops/bookHub';
 import type { SendOpsFn } from './routes/settle';
 import type { AsyncQueue } from './methods/queue';
 import { createQuoteRouter } from './routes/quotes';
@@ -46,6 +47,8 @@ export type CreateAppDeps = {
     createdAtMs?: number;
     /** Shared with inventory maintain so fills survive Chronik sync. */
     localBook?: LocalBook;
+    /** Optional live book fan-out (WebSocket subscribers). */
+    bookHub?: BookHub;
 };
 
 /**
@@ -79,6 +82,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
         sendOps,
         createdAtMs,
         localBook,
+        bookHub,
     } = deps;
     const app = express();
     // One hop (typical nginx) so req.ip is the client, not 127.0.0.1.
@@ -129,6 +133,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
                 sats: POSTAGE_SATS.toString(),
             },
             platformFeeEnabled: false,
+            bookWs: BOOK_WS_PATH,
             tradedTokens: tokens,
             tradedPairs: pairs,
         });
@@ -156,6 +161,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             sendOps,
             createdAtMs,
             localBook,
+            bookHub,
         }),
     );
 

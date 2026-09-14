@@ -185,9 +185,12 @@ should ship tests a reviewer can run locally.
    yet; `platformFeeEnabled` stays false.
 10. **Ops + logs (this package)** — stdout settle logs and optional
     Telegram ops messages.
-11. **Coordinator opt-in + deploy** — Platform-fee source (mockable fetch),
+11. **Live book WebSocket** — `WS /api/v1/book` pushes seller+slush
+    reserves and spots after each in-memory book change (same book settle
+    uses). `GET /api/v1/status` advertises `bookWs`.
+12. **Coordinator opt-in + deploy** — Platform-fee source (mockable fetch),
     status flag for whitelist discovery, Docker/nginx, public HTTPS checklist.
-12. **Wallet + multi-server liquidity** — Cashtab (and others) consume
+13. **Wallet + multi-server liquidity** — Cashtab (and others) consume
     whitelisted alp-dex URLs via a coordinator; quote → template → settle;
     best-of / split / failover across multiple LPs for the same pair.
 
