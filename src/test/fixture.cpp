@@ -44,7 +44,7 @@ struct CustomArgumentsFixture {
         }
     }
 
-    ~CustomArgumentsFixture(){};
+    ~CustomArgumentsFixture() {};
 };
 
 BOOST_TEST_GLOBAL_FIXTURE(CustomArgumentsFixture);

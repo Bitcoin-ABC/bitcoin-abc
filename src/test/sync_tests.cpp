@@ -12,7 +12,9 @@
 namespace {
 template <typename MutexType>
 void TestPotentialDeadLockDetected(MutexType &mutex1, MutexType &mutex2) {
-    { LOCK2(mutex1, mutex2); }
+    {
+        LOCK2(mutex1, mutex2);
+    }
     BOOST_CHECK(LockStackEmpty());
     bool error_thrown = false;
     try {

@@ -140,7 +140,7 @@ will have to install the following:
 Install all the code formatting tools on Debian Bookworm/Trixie (12/13) or
 Ubuntu 24.04:
 ```
-sudo apt-get install clang-format-16 clang-tidy-16 python3-pip php-codesniffer shellcheck yamllint
+sudo apt-get install clang-format-19 clang-tidy-19 python3-pip php-codesniffer shellcheck yamllint
 
 # Depending on your distribution policy you might need to pass the
 # --break-system-packages to the below pip3 call
@@ -150,7 +150,7 @@ echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-If not available in the distribution, `clang-format-16` and `clang-tidy-16` can be
+If not available in the distribution, `clang-format-19` and `clang-tidy-19` can be
 installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.

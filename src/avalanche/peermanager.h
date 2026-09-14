@@ -127,7 +127,7 @@ struct PendingNode {
     size_t max_elements;
 
     PendingNode(ProofId proofid_, NodeId nodeid_, size_t max_elements_)
-        : proofid(proofid_), nodeid(nodeid_), max_elements(max_elements_){};
+        : proofid(proofid_), nodeid(nodeid_), max_elements(max_elements_) {};
 };
 
 struct by_proofid;
@@ -307,7 +307,7 @@ public:
                 const ProofRef &localProofIn = ProofRef())
         : stakeUtxoDustThreshold(stakeUtxoDustThresholdIn),
           chainman(chainmanIn), m_stakingPreConsensus(stakingPreConsensus),
-          localProof(localProofIn){};
+          localProof(localProofIn) {};
 
     /**
      * Node API.

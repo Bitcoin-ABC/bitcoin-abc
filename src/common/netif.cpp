@@ -275,7 +275,7 @@ std::optional<CNetAddr> QueryDefaultGatewayImpl(sa_family_t family) {
 #elif defined(__APPLE__)
 
 #define ROUNDUP32(a)                                                           \
-    ((a) > 0 ? (1 + (((a)-1) | (sizeof(uint32_t) - 1))) : sizeof(uint32_t))
+    ((a) > 0 ? (1 + (((a) - 1) | (sizeof(uint32_t) - 1))) : sizeof(uint32_t))
 
 //! MacOS: Get default gateway from route table. See route(4) for the format.
 std::optional<CNetAddr> QueryDefaultGatewayImpl(sa_family_t family) {

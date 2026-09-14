@@ -1278,7 +1278,9 @@ BOOST_AUTO_TEST_CASE(ccoins_reset_guard) {
     BOOST_CHECK(!root_cache.HaveCoinInCache(outpoint));
 
     // Using a reset guard again is idempotent
-    { const auto reset_guard{cache.CreateResetGuard()}; }
+    {
+        const auto reset_guard{cache.CreateResetGuard()};
+    }
 
     BOOST_CHECK(cache.AccessCoin(outpoint).IsSpent());
     BOOST_CHECK_EQUAL(cache.GetCacheSize(), 0);

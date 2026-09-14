@@ -91,7 +91,7 @@ public:
     /**
      * @param[in] _parent   CDBWrapper that this batch is to be submitted to
      */
-    explicit CDBBatch(const CDBWrapper &_parent) : parent(_parent){};
+    explicit CDBBatch(const CDBWrapper &_parent) : parent(_parent) {};
 
     void Clear() {
         batch.Clear();
@@ -151,7 +151,7 @@ public:
      * @param[in] _piter           The original leveldb iterator.
      */
     CDBIterator(const CDBWrapper &_parent, leveldb::Iterator *_piter)
-        : parent(_parent), piter(_piter){};
+        : parent(_parent), piter(_piter) {};
     ~CDBIterator();
 
     bool Valid() const;

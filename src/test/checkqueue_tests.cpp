@@ -31,9 +31,8 @@
 struct NoLockLoggingTestingSetup : public TestingSetup {
     NoLockLoggingTestingSetup()
 #ifdef DEBUG_LOCKCONTENTION
-        : TestingSetup{ChainType::MAIN, /*extra_args=*/{
-                           "-debugexclude=lock"
-                       }} {}
+        : TestingSetup{ChainType::MAIN,
+                       /*extra_args=*/{"-debugexclude=lock"}} {}
 #else
         : TestingSetup{ChainType::MAIN} {
     }
@@ -61,7 +60,7 @@ struct FakeCheckCheckCompletion {
 
 struct FixedCheck {
     std::optional<int> m_result;
-    FixedCheck(std::optional<int> result) : m_result(result){};
+    FixedCheck(std::optional<int> result) : m_result(result) {};
     std::optional<int> operator()() const { return m_result; }
 };
 
@@ -69,7 +68,7 @@ struct UniqueCheck {
     static Mutex m;
     static std::unordered_multiset<size_t> results GUARDED_BY(m);
     size_t check_id{0};
-    UniqueCheck(size_t check_id_in) : check_id(check_id_in){};
+    UniqueCheck(size_t check_id_in) : check_id(check_id_in) {};
     std::optional<int> operator()() {
         LOCK(m);
         results.insert(check_id);

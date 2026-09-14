@@ -34,7 +34,7 @@ template <typename T> bool IsInterrupted(const T &result) {
  */
 class Notifications {
 public:
-    virtual ~Notifications(){};
+    virtual ~Notifications() {};
 
     [[nodiscard]] virtual InterruptResult blockTip(SynchronizationState state,
                                                    CBlockIndex &index) {

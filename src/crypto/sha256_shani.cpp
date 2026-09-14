@@ -31,17 +31,17 @@ QuadRound(__m128i &state0, __m128i &state1, uint64_t k1, uint64_t k0) {
         _mm_sha256rnds2_epu32(state0, state1, _mm_shuffle_epi32(msg, 0x0e));
 }
 
-inline void __attribute__((always_inline))
-QuadRound(__m128i &state0, __m128i &state1, __m128i m, uint64_t k1,
-          uint64_t k0) {
+inline void __attribute__((always_inline)) QuadRound(__m128i &state0,
+                                                     __m128i &state1, __m128i m,
+                                                     uint64_t k1, uint64_t k0) {
     const __m128i msg = _mm_add_epi32(m, _mm_set_epi64x(k1, k0));
     state1 = _mm_sha256rnds2_epu32(state1, state0, msg);
     state0 =
         _mm_sha256rnds2_epu32(state0, state1, _mm_shuffle_epi32(msg, 0x0e));
 }
 
-inline void __attribute__((always_inline))
-ShiftMessageA(__m128i &m0, __m128i m1) {
+inline void __attribute__((always_inline)) ShiftMessageA(__m128i &m0,
+                                                         __m128i m1) {
     m0 = _mm_sha256msg1_epu32(m0, m1);
 }
 

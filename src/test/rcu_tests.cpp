@@ -359,7 +359,9 @@ BOOST_AUTO_TEST_CASE(move_rcuptr_test) {
     BOOST_CHECK(!isDestroyed);
 
     // Move to a local and check proper destruction.
-    { auto rcuptr3 = std::move(rcuptr2); }
+    {
+        auto rcuptr3 = std::move(rcuptr2);
+    }
 
     BOOST_CHECK(!isDestroyed);
     RCULock::synchronize();

@@ -156,15 +156,17 @@ protected:
      * yet.
      */
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
-                                  const std::shared_ptr<const CBlock> &block){};
-    virtual void BlockFinalized(const CBlockIndex *pindex){};
+                                  const std::shared_ptr<const CBlock> &block) {
+    };
+    virtual void BlockFinalized(const CBlockIndex *pindex) {};
     virtual void BlockInvalidated(const CBlockIndex *pindex,
-                                  const std::shared_ptr<const CBlock> &block){};
+                                  const std::shared_ptr<const CBlock> &block) {
+    };
 
-    virtual void TransactionFinalized(const CTransactionRef &tx){};
+    virtual void TransactionFinalized(const CTransactionRef &tx) {};
     virtual void TransactionInvalidated(
         const CTransactionRef &tx,
-        std::shared_ptr<const std::vector<Coin>> spent_coins){};
+        std::shared_ptr<const std::vector<Coin>> spent_coins) {};
 
     friend class ValidationSignals;
     friend class ValidationInterfaceTest;

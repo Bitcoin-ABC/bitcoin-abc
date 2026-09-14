@@ -259,14 +259,16 @@ private:
      * range [0, size)
      */
     inline std::array<uint32_t, 8> compute_hashes(const Key &k) const {
-        return {{FastRange32(hash_function.template operator()<0>(k), size),
-                 FastRange32(hash_function.template operator()<1>(k), size),
-                 FastRange32(hash_function.template operator()<2>(k), size),
-                 FastRange32(hash_function.template operator()<3>(k), size),
-                 FastRange32(hash_function.template operator()<4>(k), size),
-                 FastRange32(hash_function.template operator()<5>(k), size),
-                 FastRange32(hash_function.template operator()<6>(k), size),
-                 FastRange32(hash_function.template operator()<7>(k), size)}};
+        return {
+            {FastRange32(hash_function.template operator()<0>(k), size),
+             FastRange32(hash_function.template operator()<1>(k), size),
+             FastRange32(hash_function.template operator()<2>(k), size),
+             FastRange32(hash_function.template operator()<3>(k), size),
+             FastRange32(hash_function.template operator()<4>(k), size),
+             FastRange32(hash_function.template operator()<5>(k), size),
+             FastRange32(hash_function.template operator()<6>(k), size),
+             FastRange32(hash_function.template operator()<7>(k), size)}
+        };
     }
 
     /**

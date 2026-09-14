@@ -482,7 +482,7 @@ private:
     struct IsWorthPolling {
         const Processor &processor;
 
-        IsWorthPolling(const Processor &_processor) : processor(_processor){};
+        IsWorthPolling(const Processor &_processor) : processor(_processor) {};
 
         bool operator()(const CBlockIndex *pindex) const
             LOCKS_EXCLUDED(cs_main);
@@ -499,7 +499,7 @@ private:
         const Processor &processor;
 
         GetLocalAcceptance(const Processor &_processor)
-            : processor(_processor){};
+            : processor(_processor) {};
 
         bool operator()(const CBlockIndex *pindex) const
             LOCKS_EXCLUDED(cs_main);

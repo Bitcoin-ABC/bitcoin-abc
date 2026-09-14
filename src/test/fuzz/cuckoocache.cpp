@@ -28,7 +28,7 @@ struct FuzzCuckooCacheKey {
     bool b;
 
 public:
-    FuzzCuckooCacheKey(bool _b = false) : b(_b){};
+    FuzzCuckooCacheKey(bool _b = false) : b(_b) {};
     operator bool() const { return b; }
 };
 } // namespace

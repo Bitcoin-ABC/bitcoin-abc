@@ -17,7 +17,7 @@ struct ScriptExecutionMetrics;
 class IguanaFormatter {
 public:
     virtual bool Format(const IguanaResult &) = 0;
-    virtual ~IguanaFormatter(){};
+    virtual ~IguanaFormatter() {};
 };
 
 class FormatterHumanReadable : public IguanaFormatter {

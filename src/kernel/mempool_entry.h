@@ -116,7 +116,7 @@ public:
           nTime(other.nTime), entryHeight(other.entryHeight),
           sigChecks(other.sigChecks), m_modified_fee(other.m_modified_fee),
           lockPoints(std::move(other.lockPoints)),
-          refcount(other.refcount.load()){};
+          refcount(other.refcount.load()) {};
 
     uint64_t GetEntryId() const { return entryId; }
     //! This should only be set by addUnchecked() before entry insertion into

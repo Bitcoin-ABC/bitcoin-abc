@@ -352,7 +352,7 @@ struct StalledTxId {
     std::chrono::seconds timeAdded;
 
     StalledTxId(TxId txid_, std::chrono::seconds timeAdded_)
-        : txid(txid_), timeAdded(timeAdded_){};
+        : txid(txid_), timeAdded(timeAdded_) {};
 };
 
 struct by_txid {};

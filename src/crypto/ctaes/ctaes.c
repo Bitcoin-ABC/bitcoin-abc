@@ -267,9 +267,9 @@ static void SubBytes(AES_state *s, int inv) {
 #define BIT_RANGE(from, to) (((1 << ((to) - (from))) - 1) << (from))
 
 #define BIT_RANGE_LEFT(x, from, to, shift)                                     \
-    (((x)&BIT_RANGE((from), (to))) << (shift))
+    (((x) & BIT_RANGE((from), (to))) << (shift))
 #define BIT_RANGE_RIGHT(x, from, to, shift)                                    \
-    (((x)&BIT_RANGE((from), (to))) >> (shift))
+    (((x) & BIT_RANGE((from), (to))) >> (shift))
 
 static void ShiftRows(AES_state *s) {
     int i;
@@ -295,7 +295,7 @@ static void InvShiftRows(AES_state *s) {
     }
 }
 
-#define ROT(x, b) (((x) >> ((b)*4)) | ((x) << ((4 - (b)) * 4)))
+#define ROT(x, b) (((x) >> ((b) * 4)) | ((x) << ((4 - (b)) * 4)))
 
 static void MixColumns(AES_state *s, int inv) {
     /* The MixColumns transform treats the bytes of the columns of the state as

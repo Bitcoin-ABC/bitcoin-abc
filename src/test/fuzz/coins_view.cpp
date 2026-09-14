@@ -97,7 +97,9 @@ void TestCoinsView(FuzzedDataProvider &fuzzed_data_provider,
                 coins_view_cache.SetBestBlock(best_block);
             },
             [&] {
-                { const auto reset_guard{coins_view_cache.CreateResetGuard()}; }
+                {
+                    const auto reset_guard{coins_view_cache.CreateResetGuard()};
+                }
                 // Set best block hash to non-null to satisfy the assertion in
                 // CCoinsViewDB::BatchWrite().
                 if (is_db) {

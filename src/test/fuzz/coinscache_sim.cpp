@@ -475,7 +475,9 @@ FUZZ_TARGET(coinscache_sim) {
                 // Reset.
                 sim_caches[caches.size()].Wipe();
                 // Apply to real caches.
-                { const auto reset_guard{caches.back()->CreateResetGuard()}; }
+                {
+                    const auto reset_guard{caches.back()->CreateResetGuard()};
+                }
             },
 
             [&]() {

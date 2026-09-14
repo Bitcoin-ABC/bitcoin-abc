@@ -42,7 +42,7 @@ struct CBlockTemplateEntry {
     int64_t sigChecks;
 
     CBlockTemplateEntry(CTransactionRef _tx, Amount _fees, int64_t _sigChecks)
-        : tx(_tx), fees(_fees), sigChecks(_sigChecks){};
+        : tx(_tx), fees(_fees), sigChecks(_sigChecks) {};
 };
 
 struct CBlockTemplate {

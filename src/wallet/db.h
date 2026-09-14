@@ -103,7 +103,7 @@ public:
     WalletDatabase()
         : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
           nLastWalletUpdate(0) {}
-    virtual ~WalletDatabase(){};
+    virtual ~WalletDatabase() {};
 
     /** Open the database if it is not already opened. */
     virtual void Open() = 0;
@@ -195,7 +195,7 @@ public:
  */
 class DummyDatabase : public WalletDatabase {
 public:
-    void Open() override{};
+    void Open() override {};
     void AddRef() override {}
     void RemoveRef() override {}
     bool Rewrite(const char *pszSkip = nullptr) override { return true; }
