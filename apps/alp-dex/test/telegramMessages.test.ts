@@ -127,7 +127,8 @@ describe('telegram message builders', () => {
         assert.ok(message.includes('<b>From:</b> 100 USD'));
         assert.ok(message.includes('<b>To:</b> 95 CHF'));
         assert.ok(message.includes('z2.035'));
-        assert.ok(message.includes('0.9500'));
+        assert.ok(message.includes('<b>Rate:</b> 1 USD === 0.9500 CHF'));
+        assert.ok(message.includes('<b>Rate:</b> 1 CHF === 1.053 USD'));
         assert.ok(!message.includes('0.950000'));
         assert.ok(message.includes('validation error'));
     });
@@ -192,7 +193,8 @@ describe('telegram message builders', () => {
             1,
         );
         assert.ok(message.includes('<b>From:</b> 100 BUTTER'));
-        assert.ok(message.includes('0.9500 GUNS'));
+        assert.ok(message.includes('<b>Rate:</b> 1 BUTTER === 0.9500 GUNS'));
+        assert.ok(message.includes('<b>Rate:</b> 1 GUNS === 1.053 BUTTER'));
     });
 
     it('locale-formats large token qtys and 4-sig-fig rates', () => {
@@ -215,7 +217,10 @@ describe('telegram message builders', () => {
         });
         assert.ok(message.includes('<b>From:</b> 14.92 FIRMA'));
         assert.ok(message.includes('<b>To:</b> 2,171,731.97 XECX'));
-        assert.ok(message.includes('147,000 XECX'));
+        assert.ok(message.includes('<b>Rate:</b> 1 FIRMA === 147,000 XECX'));
+        assert.ok(
+            message.includes('<b>Rate:</b> 1 XECX === 0.000006802 FIRMA'),
+        );
         assert.ok(message.includes('<b>Price impact:</b> &lt;0.01%'));
         assert.ok(!message.includes('147014.796036'));
     });
@@ -238,6 +243,8 @@ describe('telegram message builders', () => {
         });
         assert.ok(message.includes('<b>Fee:</b> 0%'));
         assert.ok(message.includes('<b>Postage:</b> 20.00 XEC'));
+        assert.ok(message.includes('<b>Rate:</b> 1 CHF === 1.050 USD'));
+        assert.ok(message.includes('<b>Rate:</b> 1 USD === 0.9524 CHF'));
         assert.ok(!message.includes('<b>User:</b>'));
     });
 

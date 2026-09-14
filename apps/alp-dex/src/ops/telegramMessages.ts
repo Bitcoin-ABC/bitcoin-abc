@@ -126,7 +126,8 @@ const formatRateLine = (
     fromLabel: string,
     toLabel: string,
 ): string =>
-    `<b>Rate:</b> 1 ${fromLabel} === ${formatSignificantFigures(currentRate)} ${toLabel}`;
+    `<b>Rate:</b> 1 ${fromLabel} === ${formatSignificantFigures(currentRate)} ${toLabel}
+<b>Rate:</b> 1 ${toLabel} === ${formatSignificantFigures(1 / currentRate)} ${fromLabel}`;
 
 const formatPriceImpactLine = (priceImpactPct?: number): string =>
     priceImpactPct === undefined
