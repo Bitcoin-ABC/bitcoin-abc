@@ -103,6 +103,8 @@ import {
     PriceValue,
     PriceTableGap,
     PriceCompare,
+    PriceCompareHeader,
+    PriceCompareRates,
     PriceCompareRow,
     PriceComparePct,
     PriceCompareLabel,
@@ -139,10 +141,21 @@ function formatFiatPerXec(rate: number, locale: string): string {
     });
 }
 
-function formatAlignQty(qty: number, decimals: number, locale: string): string {
-    return qty.toLocaleString(locale, {
-        maximumFractionDigits: decimals,
-    });
+const XECX_LIQUIDITY_MILLION = 1_000_000;
+
+/**
+ * Pool liquidity for the XECX/FIRMA price card: XECX to the nearest
+ * million, FIRMA to the nearest 1 (≈ $1).
+ */
+function formatPoolLiquidity(
+    xecx: number,
+    firma: number,
+    locale: string,
+): string {
+    const xecxMillions = Math.round(xecx / XECX_LIQUIDITY_MILLION);
+    const xecxLabel =
+        xecxMillions === 0 ? '<1M' : `${xecxMillions.toLocaleString(locale)}M`;
+    return `≈ ${xecxLabel} XECX, ${Math.round(firma).toLocaleString(locale)} FIRMA`;
 }
 
 function tokenDecimals(
@@ -1114,6 +1127,15 @@ const AlpSwap: React.FC = () => {
                   firmaDecimals,
               )
             : null;
+    const alpDexXecxPerFirma =
+        alpDexFirmaPerXec !== null && alpDexFirmaPerXec > 0
+            ? formatToPerFromRate(
+                  1 / alpDexFirmaPerXec,
+                  'FIRMA',
+                  'XECX',
+                  userLocale,
+              )
+            : null;
     const alpDexFiatPerXec =
         alpDexFirmaPerXec !== null && firmaInFiat !== null
             ? alpDexFirmaPerXec * firmaInFiat
@@ -1309,10 +1331,7 @@ const AlpSwap: React.FC = () => {
                     <MidRow>
                         <MidLabel>to</MidLabel>
                         {ratePill ? (
-                            <RatePill>
-                                {ratePill}
-                                <span>· Market</span>
-                            </RatePill>
+                            <RatePill>{ratePill}</RatePill>
                         ) : (
                             <InlineLoader />
                         )}
@@ -1379,57 +1398,59 @@ const AlpSwap: React.FC = () => {
 
                     {isXecxFirmaMarket && alpDexFirmaPerXec === null && (
                         <PriceCompare aria-label="Loading AlpDex XECX price">
-                            <PriceCompareRow>
+                            <PriceCompareRow $center>
                                 <InlineLoader />
                             </PriceCompareRow>
                         </PriceCompare>
                     )}
                     {alpDexFirmaPerXec !== null && (
                         <PriceCompare aria-label="AlpDex XECX price">
-                            <PriceCompareRow>
-                                <span>
-                                    1 XECX ={' '}
-                                    {formatFiatPerXec(
-                                        alpDexFirmaPerXec,
-                                        userLocale,
-                                    )}{' '}
-                                    FIRMA
-                                </span>
-                                {vsMarket !== null ? (
-                                    <PriceComparePct $tone={vsPctTone}>
-                                        {formatDexVsMarketPct(vsMarket)} over
-                                        Agora
-                                    </PriceComparePct>
-                                ) : (
-                                    <PriceCompareLabel>
-                                        AlpDex
-                                    </PriceCompareLabel>
+                            <PriceCompareHeader>
+                                <PriceCompareRates>
+                                    <PriceCompareRow>
+                                        <span>
+                                            1 XECX ={' '}
+                                            {formatFiatPerXec(
+                                                alpDexFirmaPerXec,
+                                                userLocale,
+                                            )}{' '}
+                                            FIRMA
+                                        </span>
+                                        {vsMarket !== null ? (
+                                            <PriceComparePct $tone={vsPctTone}>
+                                                {formatDexVsMarketPct(vsMarket)}{' '}
+                                                over Agora
+                                            </PriceComparePct>
+                                        ) : (
+                                            <PriceCompareLabel>
+                                                AlpDex
+                                            </PriceCompareLabel>
+                                        )}
+                                    </PriceCompareRow>
+                                    {alpDexXecxPerFirma !== null && (
+                                        <PriceCompareRow>
+                                            <span>{alpDexXecxPerFirma}</span>
+                                        </PriceCompareRow>
+                                    )}
+                                </PriceCompareRates>
+                                {alignTrade !== null && (
+                                    <FillSpotButton
+                                        type="button"
+                                        onClick={fillToSpot}
+                                    >
+                                        Fill to spot
+                                    </FillSpotButton>
                                 )}
-                            </PriceCompareRow>
+                            </PriceCompareHeader>
                             {pairReserves !== null && (
                                 <PriceCompareMeta $tone="flat">
                                     Liquidity:{' '}
-                                    {formatAlignQty(
+                                    {formatPoolLiquidity(
                                         pairReserves.xecx,
-                                        xecxDecimals,
-                                        userLocale,
-                                    )}{' '}
-                                    XECX ·{' '}
-                                    {formatAlignQty(
                                         pairReserves.firma,
-                                        firmaDecimals,
                                         userLocale,
-                                    )}{' '}
-                                    FIRMA
+                                    )}
                                 </PriceCompareMeta>
-                            )}
-                            {alignTrade !== null && (
-                                <FillSpotButton
-                                    type="button"
-                                    onClick={fillToSpot}
-                                >
-                                    Fill to spot
-                                </FillSpotButton>
                             )}
                         </PriceCompare>
                     )}

@@ -1307,15 +1307,18 @@ describe('<AlpSwap />', () => {
 
         const priceCard = await screen.findByLabelText('AlpDex XECX price');
         expect(priceCard).toHaveTextContent('1 XECX = 0.00000478 FIRMA');
+        expect(priceCard).toHaveTextContent('1 FIRMA ≈ 209,052 XECX');
         expect(priceCard).toHaveTextContent('-84.1% over Agora');
         expect(priceCard).not.toHaveTextContent('1 XEC = 0.00000478 FIRMA');
         expect(priceCard).not.toHaveTextContent('vs CoinGecko');
+        expect(priceCard).not.toHaveTextContent('· Market');
         expect(priceCard).toHaveTextContent(
-            'Liquidity: 209,052,000 XECX · 1,000 FIRMA',
+            'Liquidity: ≈ 209M XECX, 1,000 FIRMA',
         );
         expect(priceCard).toHaveTextContent('Fill to spot');
         expect(priceCard).not.toHaveTextContent('To spot:');
         expect(priceCard).not.toHaveTextContent('on sale');
+        expect(screen.queryByText('· Market')).not.toBeInTheDocument();
         expect(
             screen.getByText(/1 XECX ≈ 0.0000048 FIRMA/),
         ).toBeInTheDocument();
@@ -1327,9 +1330,12 @@ describe('<AlpSwap />', () => {
             '1 XECX = 0.00000478 FIRMA',
         );
         expect(screen.getByLabelText('AlpDex XECX price')).toHaveTextContent(
+            '1 FIRMA ≈ 209,052 XECX',
+        );
+        expect(screen.getByLabelText('AlpDex XECX price')).toHaveTextContent(
             '-84.1% over Agora',
         );
-        expect(screen.getByText(/1 FIRMA ≈ 209,052 XECX/)).toBeInTheDocument();
+        expect(screen.getAllByText(/1 FIRMA ≈ 209,052 XECX/)).toHaveLength(2);
         expect(
             screen.queryByText(/\+[0-9,]+\.?[0-9]*% over Agora/),
         ).not.toBeInTheDocument();

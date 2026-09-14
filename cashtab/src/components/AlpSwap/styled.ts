@@ -234,12 +234,27 @@ export const PriceCompare = styled.div`
     border-radius: 8px;
     background: ${props => props.theme.primaryBackground};
     border: 1px solid ${props => props.theme.border};
-    text-align: center;
+    text-align: left;
 `;
 
-export const PriceCompareRow = styled.div`
+export const PriceCompareHeader = styled.div`
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+`;
+
+export const PriceCompareRates = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+`;
+
+export const PriceCompareRow = styled.div<{ $center?: boolean }>`
+    display: flex;
+    justify-content: ${props => (props.$center ? 'center' : 'flex-start')};
     align-items: baseline;
     flex-wrap: wrap;
     gap: 8px 10px;
@@ -284,15 +299,24 @@ export const PriceCompareMeta = styled.div<{
 `;
 
 export const FillSpotButton = styled.button`
-    margin-top: 8px;
-    padding: 0;
-    background: none;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    border: 1px solid ${props => props.theme.accent};
+    background: ${props => props.theme.primaryBackground};
     cursor: pointer;
     font-size: var(--text-sm);
     font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
     color: ${props => props.theme.accent};
     &:hover {
+        border-color: ${props => props.theme.primary};
+        background: ${props => props.theme.secondaryBackground};
         color: ${props => props.theme.primaryText};
     }
 `;
