@@ -237,8 +237,8 @@ public:
 
     bool IsNull() const { return vin.empty() && vout.empty(); }
 
-    const TxId GetId() const { return TxId(hash); }
-    const TxHash GetHash() const { return TxHash(hash); }
+    TxId GetId() const { return TxId(hash); }
+    TxHash GetHash() const { return TxHash(hash); }
 
     // Return sum of txouts.
     Amount GetValueOut() const;

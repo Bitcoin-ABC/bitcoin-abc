@@ -1000,7 +1000,9 @@ void Serialize(Stream &os, const prevector<N, T> &v) {
     if constexpr (BasicByte<T>) {
         // Use optimized version for unformatted basic bytes
         WriteCompactSize(os, v.size());
-        if (!v.empty()) os.write(MakeByteSpan(v));
+        if (!v.empty()) {
+            os.write(MakeByteSpan(v));
+        }
     } else {
         Serialize(os, Using<VectorFormatter<DefaultFormatter>>(v));
     }

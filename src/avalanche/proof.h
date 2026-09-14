@@ -166,7 +166,7 @@ public:
 
     const ProofId &getId() const { return proofid; }
     const LimitedProofId &getLimitedId() const { return limitedProofId; }
-    const StakeCommitment getStakeCommitment() const {
+    StakeCommitment getStakeCommitment() const {
         return StakeCommitment(expirationTime, master);
     };
     uint32_t getScore() const { return score; }

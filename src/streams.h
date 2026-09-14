@@ -225,8 +225,9 @@ public:
                 m_read_pos = (last - vch.begin());
                 return last;
             }
-        } else
+        } else {
             return vch.erase(first, last);
+        }
     }
 
     inline void Compact() {
@@ -319,7 +320,9 @@ public:
             // important that we calculate `j`, i.e. the `key` index in this way
             // instead of doing a %, which would effectively be a division for
             // each byte Xor'd -- much slower than need be.
-            if (j == key.size()) j = 0;
+            if (j == key.size()) {
+                j = 0;
+            }
         }
     }
 };

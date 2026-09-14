@@ -139,7 +139,9 @@ inline std::string MakeUnorderedList(const std::vector<std::string> &items) {
  */
 [[nodiscard]] inline bool ContainsNoNUL(std::string_view str) noexcept {
     for (auto c : str) {
-        if (c == 0) return false;
+        if (c == 0) {
+            return false;
+        }
     }
     return true;
 }

@@ -257,7 +257,9 @@ public:
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
         if (!status.ok()) {
-            if (status.IsNotFound()) return false;
+            if (status.IsNotFound()) {
+                return false;
+            }
             LogPrintf("LevelDB read failure: %s\n", status.ToString());
             dbwrapper_private::HandleError(status);
         }
@@ -295,7 +297,9 @@ public:
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
         if (!status.ok()) {
-            if (status.IsNotFound()) return false;
+            if (status.IsNotFound()) {
+                return false;
+            }
             LogPrintf("LevelDB read failure: %s\n", status.ToString());
             dbwrapper_private::HandleError(status);
         }
