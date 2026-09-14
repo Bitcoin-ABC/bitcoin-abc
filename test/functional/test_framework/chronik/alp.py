@@ -49,7 +49,7 @@ def alp_genesis(
         result.extend(amount.to_bytes(ALP_INT_SIZE, "little"))
 
     result.append(num_batons)
-    return result
+    return bytes(result)
 
 
 def alp_mint(
@@ -71,7 +71,7 @@ def alp_mint(
 
     result.append(num_batons)
 
-    return result
+    return bytes(result)
 
 
 def alp_send(
@@ -90,7 +90,7 @@ def alp_send(
     for amount in output_amounts:
         result.extend(amount.to_bytes(ALP_INT_SIZE, "little"))
 
-    return result
+    return bytes(result)
 
 
 def alp_burn(
@@ -106,4 +106,4 @@ def alp_burn(
     result.extend(bytes.fromhex(token_id)[::-1])
     result.extend(burn_amount.to_bytes(ALP_INT_SIZE, "little"))
 
-    return result
+    return bytes(result)

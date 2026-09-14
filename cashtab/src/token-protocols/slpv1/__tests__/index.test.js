@@ -2,10 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import {
-    getMintBatons,
-    getMaxDecimalizedSlpQty,
-} from 'token-protocols/slpv1';
+import { getMintBatons, getMaxDecimalizedSlpQty } from 'token-protocols/slpv1';
 import vectors from '../fixtures/vectors';
 
 describe('slpv1 methods', () => {

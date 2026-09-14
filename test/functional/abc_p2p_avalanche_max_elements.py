@@ -3,7 +3,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the number of elements in an avalanche poll."""
 
-
 from test_framework.avatools import (
     AvaP2PInterface,
     can_find_inv_in_poll,

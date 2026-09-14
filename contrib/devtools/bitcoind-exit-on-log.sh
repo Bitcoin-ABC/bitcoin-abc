@@ -110,7 +110,7 @@ BITCOIND_PID=$(cat "${BITCOIND_PID_FILE}")
 # Wait for log checking to finish and kill the daemon
 (
   # When this subshell finishes, kill bitcoind
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317 disable=SC2329
   log_subshell_cleanup() {
     echo "Cleaning up bitcoin daemon (PID: ${BITCOIND_PID})."
     kill ${BITCOIND_PID}

@@ -87,7 +87,7 @@ git pull "${REMOTE}" "${BRANCH}"
 
 (
   # If arc fails, there may be a dangling branch. Clean it up before exiting.
-  # shellcheck disable=SC2317
+  # shellcheck disable=SC2317 disable=SC2329
   cleanup() {
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     git checkout "${BRANCH}"

@@ -14,7 +14,6 @@ import { TokenType } from 'chronik-client';
 // by the wallet broadcasting this transaction.
 export const TOKEN_DUST_CHANGE_OUTPUT = { sats: BigInt(appConfig.dustSats) };
 
-
 export interface TokenTargetOutput {
     sats: bigint;
     script?: Script;

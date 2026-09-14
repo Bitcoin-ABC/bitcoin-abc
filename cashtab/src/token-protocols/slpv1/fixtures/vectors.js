@@ -3,9 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 // Test vectors for slpv1 functions
-import {
-    MAX_OUTPUT_AMOUNT_SLP_ATOMS,
-} from 'token-protocols/slpv1';
+import { MAX_OUTPUT_AMOUNT_SLP_ATOMS } from 'token-protocols/slpv1';
 
 export const SEND_DESTINATION_ADDRESS =
     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';

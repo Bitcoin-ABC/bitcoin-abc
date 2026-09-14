@@ -20,8 +20,6 @@ Note: you will have to adjust the `imageDir` param in `config` to test serving o
 
 See `env.sample` for required environment variables. Tests use defaults from `test/setupEnv.ts` when `.env` is not present.
 
-For the full upgrade roadmap (PostgreSQL, 1024 icons, signed uploads), see [UPGRADE.md](./UPGRADE.md).
-
 ## Production
 
 Before running `token-server` in production, you must first set up the file system on your desired server (see "Setting up the file system", below).

@@ -8,7 +8,6 @@
 #include <avalanche/proof.h>
 #include <key.h>
 
-
 namespace avalanche {
 
 struct TestProofBuilder;

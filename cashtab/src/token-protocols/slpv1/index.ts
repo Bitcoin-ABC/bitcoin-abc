@@ -52,4 +52,3 @@ export const getMaxDecimalizedSlpQty = (decimals: SlpDecimals): string => {
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
 };
-

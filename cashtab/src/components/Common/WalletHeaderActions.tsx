@@ -59,11 +59,7 @@ const WalletHeaderActions: React.FC<WalletHeaderActionsProps> = ({
                 settings={settings}
                 updateCashtabState={updateCashtabState}
             />
-            <CopyIconButton
-                name={`Copy ${address}`}
-                data={address}
-                isHeader
-            />
+            <CopyIconButton name={`Copy ${address}`} data={address} isHeader />
             <SettingsLink to="/configure" aria-label="Settings">
                 <SettingsIcon title="Settings" />
             </SettingsLink>
