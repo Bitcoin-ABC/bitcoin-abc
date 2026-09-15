@@ -1725,8 +1725,8 @@ class Transaction:
                     inps.append(inp)
                     continue
 
-                # Tx was in cache or wallet.transactions, proceed
-                # note that the tx here should be in the "not
+                # Tx was in cache or wallet.transactions, proceed.
+                # Note that the tx here should be in the "not
                 # deserialized" state
 
                 # Note we deserialize a *copy* of the tx so as to
@@ -1774,7 +1774,7 @@ class Transaction:
                 # append cached result
                 inps.append(inp)
             # Now, download the tx's we didn't find above if network is available
-            # and caller said it's ok to go out ot network.. otherwise just return
+            # and caller said it's ok to go out to network.. otherwise just return
             # what we have
             if use_network and eph.get("_fetch") == t and wallet.network:
                 callback_funcs_to_cancel = set()
@@ -1803,9 +1803,9 @@ class Transaction:
                             # this function runs in the network thread and we
                             # don't want to eat up that thread's CPU time
                             # needlessly. Also note the cache doesn't store
-                            # deserializd tx's so as to save memory. We
+                            # deserialized tx's so as to save memory. We
                             # always deserialize a copy when reading the cache.
-                            tx = Transaction(bytes.fromhex(["result"]))
+                            tx = Transaction(bytes.fromhex(r["result"]))
                             txid = r["params"][0]
                             # protection against phony responses
                             assert txid == cls._txid(tx.raw), "txid-is-sane-check"
