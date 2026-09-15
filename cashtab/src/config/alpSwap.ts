@@ -49,6 +49,13 @@ export const alpSwap = {
      */
     requestTimeoutMs: 60_000,
     /**
+     * Live seller+slush book. alp-dex advertises this as `bookWs` on
+     * GET /api/v1/status (WS upgrade, same host as baseUrls).
+     */
+    bookWsPath: '/api/v1/book',
+    /** Delay before reopening the book socket after an unexpected close. */
+    bookWsReconnectMs: 2_000,
+    /**
      * Quotes at or above this price-impact percent require an explicit
      * accept before settle. The swap is still allowed.
      */

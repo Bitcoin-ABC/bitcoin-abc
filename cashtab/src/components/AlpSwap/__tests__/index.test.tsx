@@ -26,6 +26,7 @@ import {
     swapTemplateUrl,
     settleUrl,
 } from 'services/alpSwapService';
+import { bookWsUrl } from 'services/alpDexBookWs';
 
 const TOKEN_A =
     '488fb8fb66ce0a0a3800b83720d45b7d5acd5337b4aba71d63590708bfb4688c';
@@ -153,6 +154,41 @@ const jsonResponse = (body: unknown) => ({
 });
 
 const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${appConfig.coingeckoId}&vs_currencies=usd&include_last_updated_at=true`;
+
+type MockWsHandler = (event?: { data?: unknown }) => void;
+
+class MockBookWebSocket {
+    static instances: MockBookWebSocket[] = [];
+    url: string;
+    readyState = 0;
+    close = jest.fn(() => {
+        this.readyState = 3;
+        this.emit('close');
+    });
+    private listeners: Record<string, MockWsHandler[]> = {};
+
+    constructor(url: string) {
+        this.url = url;
+        MockBookWebSocket.instances.push(this);
+    }
+
+    addEventListener(type: string, handler: MockWsHandler): void {
+        const list = this.listeners[type] ?? [];
+        list.push(handler);
+        this.listeners[type] = list;
+    }
+
+    open(): void {
+        this.readyState = 1;
+        this.emit('open');
+    }
+
+    emit(type: string, event: { data?: unknown } = {}): void {
+        for (const handler of this.listeners[type] ?? []) {
+            handler(event);
+        }
+    }
+}
 
 const mockAlpSwapFetch = () => {
     global.fetch = jest.fn(
@@ -314,13 +350,18 @@ const walletWithAlpSwapBalance = {
 };
 
 describe('<AlpSwap />', () => {
+    const originalWebSocket = global.WebSocket;
+
     beforeEach(() => {
         mockAlpSwapFetch();
+        MockBookWebSocket.instances = [];
+        global.WebSocket = MockBookWebSocket as unknown as typeof WebSocket;
     });
 
     afterEach(async () => {
         jest.restoreAllMocks();
         jest.clearAllMocks();
+        global.WebSocket = originalWebSocket;
         setAlpSwapBuyerToastSuppressed(false);
         await clearLocalForage(localforage);
     });
@@ -383,6 +424,369 @@ describe('<AlpSwap />', () => {
             inventoryUrl(),
             expect.objectContaining({ signal: expect.any(AbortSignal) }),
         );
+    });
+
+    it('Connects to the alp-dex book websocket only on AlpSwap and updates the rate', async () => {
+        const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {
+            return undefined;
+        });
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        const { unmount } = render(
+            <CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
+            expect(screen.getByText(/1 TKA ≈ 1 TKB/)).toBeInTheDocument(),
+        );
+
+        expect(MockBookWebSocket.instances).toHaveLength(1);
+        const socket = MockBookWebSocket.instances[0];
+        expect(socket.url).toBe(bookWsUrl());
+
+        act(() => {
+            socket.open();
+        });
+        expect(infoSpy).toHaveBeenCalledWith(
+            'AlpSwap: connected to alp-dex book websocket',
+            bookWsUrl(),
+        );
+
+        const book = {
+            type: 'book',
+            timestamp: '2026-09-15T12:00:00.000Z',
+            pairs: [
+                {
+                    aTokenId: TOKEN_A,
+                    bTokenId: TOKEN_B,
+                    feePct: MAKER_FEE_PCT,
+                    reserves: {
+                        [TOKEN_A]: '5000000',
+                        [TOKEN_B]: '125000',
+                    },
+                    spotAtoB: '2.5',
+                    spotBtoA: '0.4',
+                },
+            ],
+        };
+        act(() => {
+            socket.emit('message', { data: JSON.stringify(book) });
+        });
+        expect(infoSpy).toHaveBeenCalledWith(
+            'AlpSwap: alp-dex rate change',
+            book,
+        );
+        await waitFor(() =>
+            expect(screen.getByText(/1 TKA ≈ 2.5 TKB/)).toBeInTheDocument(),
+        );
+
+        unmount();
+        expect(socket.close).toHaveBeenCalled();
+        infoSpy.mockRestore();
+    });
+
+    it('Re-quotes the form when a book frame arrives after an amount is entered', async () => {
+        const templateFrom1 = swapTemplateUrl(TOKEN_A, TOKEN_B, {
+            from: '1',
+            feePct: MAKER_FEE_PCT,
+        });
+        let templateCalls = 0;
+        const inner = global.fetch as jest.Mock;
+        global.fetch = jest.fn(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                if (url === templateFrom1) {
+                    templateCalls += 1;
+                    if (templateCalls >= 2) {
+                        return jsonResponse({
+                            ...templateResponse,
+                            outputs: templateResponse.outputs.map(output =>
+                                output.tokenId === TOKEN_B
+                                    ? { ...output, atoms: '97' }
+                                    : output,
+                            ),
+                        }) as Response;
+                    }
+                }
+                return inner(input, init);
+            },
+        ) as jest.Mock;
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const fromInput = await screen.findByLabelText('Swap from amount');
+        await userEvent.type(fromInput, '1');
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+        await waitFor(() => {
+            expect(screen.getByLabelText('Swap to amount')).toHaveValue('0.98');
+        });
+
+        act(() => {
+            MockBookWebSocket.instances[0].open();
+            MockBookWebSocket.instances[0].emit('message', {
+                data: JSON.stringify({
+                    type: 'book',
+                    timestamp: '2026-09-21T12:00:00.000Z',
+                    pairs: [
+                        {
+                            aTokenId: TOKEN_A,
+                            bTokenId: TOKEN_B,
+                            feePct: MAKER_FEE_PCT,
+                            reserves: {
+                                [TOKEN_A]: '5000000',
+                                [TOKEN_B]: '125000',
+                            },
+                            spotAtoB: '2.5',
+                            spotBtoA: '0.4',
+                        },
+                    ],
+                }),
+            });
+        });
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('Swap to amount')).toHaveValue('0.97');
+        });
+        expect(templateCalls).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Does not open the alp-dex book websocket off the AlpSwap screen', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/" />);
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        expect(MockBookWebSocket.instances).toHaveLength(0);
+    });
+
+    it('Falls back to REST spot when the book omits the selected pair', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() => expect(MockBookWebSocket.instances.length).toBe(1));
+
+        act(() => {
+            MockBookWebSocket.instances[0].open();
+            MockBookWebSocket.instances[0].emit('message', {
+                data: JSON.stringify({
+                    type: 'book',
+                    timestamp: '2026-09-15T12:00:00.000Z',
+                    pairs: [],
+                }),
+            });
+        });
+
+        // TOKEN_A is the BEAR fixture id; cache may show BEAR or TKA.
+        await waitFor(() =>
+            expect(
+                screen.getByText(/1 (?:TKA|BEAR) ≈ 1 TKB/),
+            ).toBeInTheDocument(),
+        );
+    });
+
+    it('Falls back to REST spot when the book pair has an n/a rate', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() => expect(MockBookWebSocket.instances.length).toBe(1));
+
+        act(() => {
+            MockBookWebSocket.instances[0].open();
+            MockBookWebSocket.instances[0].emit('message', {
+                data: JSON.stringify({
+                    type: 'book',
+                    timestamp: '2026-09-15T12:00:00.000Z',
+                    pairs: [
+                        {
+                            aTokenId: TOKEN_A,
+                            bTokenId: TOKEN_B,
+                            feePct: MAKER_FEE_PCT,
+                            reserves: {
+                                [TOKEN_A]: '0',
+                                [TOKEN_B]: '0',
+                            },
+                            spotAtoB: 'n/a',
+                            spotBtoA: 'n/a',
+                        },
+                    ],
+                }),
+            });
+        });
+
+        await waitFor(() =>
+            expect(
+                screen.getByText(/1 (?:TKA|BEAR) ≈ 1 TKB/),
+            ).toBeInTheDocument(),
+        );
+    });
+
+    it('Does not let an in-flight quote overwrite a newer book rate', async () => {
+        let releaseTemplate: ((value: Response) => void) | undefined;
+        const templateGate = new Promise<Response>(resolve => {
+            releaseTemplate = resolve;
+        });
+        const inner = global.fetch as jest.Mock;
+        global.fetch = jest.fn(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                if (
+                    url ===
+                    swapTemplateUrl(TOKEN_A, TOKEN_B, {
+                        from: '1',
+                        feePct: MAKER_FEE_PCT,
+                    })
+                ) {
+                    return templateGate;
+                }
+                return inner(input, init);
+            },
+        ) as jest.Mock;
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
+            expect(screen.getByText(/1 TKA ≈ 1 TKB/)).toBeInTheDocument(),
+        );
+
+        const fromInput = await screen.findByLabelText('Swap from amount');
+        await userEvent.type(fromInput, '1');
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+        await waitFor(() => expect(releaseTemplate).toBeDefined());
+
+        const book = {
+            type: 'book',
+            timestamp: '2026-09-15T12:01:00.000Z',
+            pairs: [
+                {
+                    aTokenId: TOKEN_A,
+                    bTokenId: TOKEN_B,
+                    feePct: MAKER_FEE_PCT,
+                    reserves: {
+                        [TOKEN_A]: '5000000',
+                        [TOKEN_B]: '125000',
+                    },
+                    spotAtoB: '2.5',
+                    spotBtoA: '0.4',
+                },
+            ],
+        };
+        act(() => {
+            MockBookWebSocket.instances[0].open();
+            MockBookWebSocket.instances[0].emit('message', {
+                data: JSON.stringify(book),
+            });
+        });
+        await waitFor(() =>
+            expect(screen.getByText(/1 TKA ≈ 2.5 TKB/)).toBeInTheDocument(),
+        );
+
+        await act(async () => {
+            releaseTemplate?.(jsonResponse(templateResponse) as Response);
+        });
+        await waitFor(() => {
+            expect(screen.getByLabelText('Swap to amount')).toHaveValue('0.98');
+        });
+        expect(screen.getByText(/1 TKA ≈ 2.5 TKB/)).toBeInTheDocument();
+        expect(screen.queryByText(/1 TKA ≈ 1 TKB/)).not.toBeInTheDocument();
     });
 
     it('Keeps fractional mid-row rates above one', async () => {

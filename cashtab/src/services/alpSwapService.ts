@@ -953,6 +953,96 @@ export function splitExactInTotalAtoms(
  * @param reserveIn From-token reserve atoms
  * @param reserveOut To-token reserve atoms
  */
+/**
+ * True when both maps list the same atom counts for `tokenIdA` / `tokenIdB`.
+ */
+export const pairReservesMatch = (
+    left: Record<string, string>,
+    right: Record<string, string> | undefined,
+    tokenIdA: string,
+    tokenIdB: string,
+): boolean => {
+    if (right === undefined) {
+        return false;
+    }
+    const atom = (
+        reserves: Record<string, string>,
+        tokenId: string,
+    ): bigint | null => {
+        const raw = reserves[tokenId] ?? reserves[tokenId.toLowerCase()];
+        if (typeof raw !== 'string' || raw === '') {
+            return null;
+        }
+        try {
+            return BigInt(raw);
+        } catch {
+            return null;
+        }
+    };
+    const leftA = atom(left, tokenIdA);
+    const leftB = atom(left, tokenIdB);
+    const rightA = atom(right, tokenIdA);
+    const rightB = atom(right, tokenIdB);
+    return (
+        leftA !== null &&
+        leftB !== null &&
+        rightA !== null &&
+        rightB !== null &&
+        leftA === rightA &&
+        leftB === rightB
+    );
+};
+
+/**
+ * Fetch a swap template. When `expectedReserves` is set, retry until
+ * REST spot reserves match (post-settle maintain can dip in-memory
+ * wallets; the live book is the settle snapshot).
+ */
+export async function fetchSwapTemplateMatchingReserves(
+    fromTokenId: string,
+    toTokenId: string,
+    params: { from?: string; to?: string; feePct: number },
+    expectedReserves: Record<string, string> | null,
+    opts?: { attempts?: number; delayMs?: number },
+    baseUrl = alpSwapBaseUrl(),
+): Promise<SwapTemplateResponse> {
+    const attempts = opts?.attempts ?? 20;
+    const delayMs = opts?.delayMs ?? 100;
+    let template = await fetchSwapTemplate(
+        fromTokenId,
+        toTokenId,
+        params,
+        baseUrl,
+    );
+    if (expectedReserves === null) {
+        return template;
+    }
+    for (let i = 0; i < attempts; i++) {
+        const spot = await fetchSpotPrice(fromTokenId, toTokenId, baseUrl);
+        if (
+            pairReservesMatch(
+                expectedReserves,
+                spot.reserves,
+                fromTokenId,
+                toTokenId,
+            )
+        ) {
+            if (i === 0) {
+                return template;
+            }
+            return fetchSwapTemplate(fromTokenId, toTokenId, params, baseUrl);
+        }
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        template = await fetchSwapTemplate(
+            fromTokenId,
+            toTokenId,
+            params,
+            baseUrl,
+        );
+    }
+    return template;
+}
+
 export function cpExactInOutAtoms(
     amountIn: bigint,
     reserveIn: bigint,

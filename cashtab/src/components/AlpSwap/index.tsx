@@ -45,6 +45,7 @@ import {
     fetchInventory,
     fetchSpotPrice,
     fetchSwapTemplate,
+    fetchSwapTemplateMatchingReserves,
     settleSwap,
     roundSwapQty,
     uniqueTokenIdsFromPairs,
@@ -66,6 +67,11 @@ import {
     utxoQtyByTokenIdFromStatus,
     liquidityTotalsFromInventory,
 } from 'services/alpSwapService';
+import {
+    AlpDexBookSnapshot,
+    connectAlpDexBookWs,
+    directedSpotFromBook,
+} from 'services/alpDexBookWs';
 import { buildAlpSwapPostageTx } from 'components/AlpSwap/buildPostage';
 import AlpSwapExperimentalNotice from 'components/AlpSwap/ExperimentalNotice';
 import {
@@ -302,8 +308,52 @@ const AlpSwap: React.FC = () => {
     const quoteRequestId = useRef(0);
     const fromTokenIdRef = useRef<string | null>(null);
     const toTokenIdRef = useRef<string | null>(null);
+    const pairsRef = useRef<TradablePair[] | null>(null);
+    const lastBookRef = useRef<AlpDexBookSnapshot | null>(null);
+    const quoteIntentRef = useRef<{ exactIn: boolean; qty: number } | null>(
+        null,
+    );
+    const isSwappingRef = useRef(false);
+    const runQuoteRef = useRef<
+        (exactIn: boolean, qtyRaw: number) => Promise<void>
+    >(async () => undefined);
     fromTokenIdRef.current = fromTokenId;
     toTokenIdRef.current = toTokenId;
+    pairsRef.current = pairs;
+
+    /**
+     * Apply a book snapshot to the selected pair's displayed spot.
+     * Returns true only when the book has a usable positive rate.
+     */
+    const applyBookToSpot = (
+        book: AlpDexBookSnapshot,
+        from: string,
+        to: string,
+    ): boolean => {
+        const directed = directedSpotFromBook(book, from, to);
+        if (directed === null) {
+            return false;
+        }
+        const pair = findPair(pairsRef.current ?? [], from, to);
+        const resolved = pair
+            ? resolveToPerFromRate(
+                  directed.rate,
+                  directed.reserves,
+                  from,
+                  to,
+                  pair.fromDecimals,
+                  pair.toDecimals,
+              )
+            : directed.rate > 0
+              ? directed.rate
+              : null;
+        if (resolved === null || !(resolved > 0)) {
+            return false;
+        }
+        setSpotRate(resolved);
+        setSpotReserves(directed.reserves);
+        return true;
+    };
 
     const tokenLabel = useCallback(
         (tokenId: string): { ticker: string; name: string } => {
@@ -452,6 +502,38 @@ const AlpSwap: React.FC = () => {
         void loadCatalog();
     }, []);
 
+    // Live book only while this screen is mounted.
+    useEffect(() => {
+        return connectAlpDexBookWs({
+            onOpen: url => {
+                console.info(
+                    'AlpSwap: connected to alp-dex book websocket',
+                    url,
+                );
+            },
+            onBook: book => {
+                lastBookRef.current = book;
+                console.info('AlpSwap: alp-dex rate change', book);
+                const from = fromTokenIdRef.current;
+                const to = toTokenIdRef.current;
+                if (from === null || to === null) {
+                    return;
+                }
+                applyBookToSpot(book, from, to);
+                // Settle uses the REST template, not the rate pill.
+                // Re-quote so consecutive fills do not post stale atomsTo.
+                const intent = quoteIntentRef.current;
+                if (intent === null || isSwappingRef.current) {
+                    return;
+                }
+                void runQuoteRef.current(intent.exactIn, intent.qty);
+            },
+            onError: err => {
+                console.error('AlpSwap: alp-dex book websocket error', err);
+            },
+        });
+    }, []);
+
     useEffect(() => {
         if (!pairs || !requestedFrom || !requestedTo) {
             return;
@@ -468,6 +550,7 @@ const AlpSwap: React.FC = () => {
     }, [pairs, requestedFrom, requestedTo]);
 
     const clearAmounts = () => {
+        quoteIntentRef.current = null;
         setFromAmountStr('');
         setToAmountStr('');
         setFromFieldError(null);
@@ -507,31 +590,50 @@ const AlpSwap: React.FC = () => {
         }
         const marketKey = [fromTokenId, toTokenId].sort().join(':');
         if (spotMarketKeyRef.current !== marketKey) {
+            if (lastBookRef.current === null) {
+                setSpotRate(null);
+                setSpotReserves(null);
+            }
+            spotMarketKeyRef.current = marketKey;
+        }
+        if (
+            lastBookRef.current !== null &&
+            applyBookToSpot(lastBookRef.current, fromTokenId, toTokenId)
+        ) {
+            return;
+        }
+        if (lastBookRef.current !== null) {
             setSpotRate(null);
             setSpotReserves(null);
-            spotMarketKeyRef.current = marketKey;
         }
         let cancelled = false;
         (async () => {
             try {
                 const res = await fetchSpotPrice(fromTokenId, toTokenId);
-                if (!cancelled) {
-                    const pair = findPair(pairs ?? [], fromTokenId, toTokenId);
-                    const resolved = pair
-                        ? resolveToPerFromRate(
-                              res.rate,
-                              res.reserves,
-                              fromTokenId,
-                              toTokenId,
-                              pair.fromDecimals,
-                              pair.toDecimals,
-                          )
-                        : res.rate > 0
-                          ? res.rate
-                          : null;
-                    setSpotRate(resolved);
-                    setSpotReserves(res.reserves ?? null);
+                if (cancelled) {
+                    return;
                 }
+                if (
+                    lastBookRef.current !== null &&
+                    applyBookToSpot(lastBookRef.current, fromTokenId, toTokenId)
+                ) {
+                    return;
+                }
+                const pair = findPair(pairs ?? [], fromTokenId, toTokenId);
+                const resolved = pair
+                    ? resolveToPerFromRate(
+                          res.rate,
+                          res.reserves,
+                          fromTokenId,
+                          toTokenId,
+                          pair.fromDecimals,
+                          pair.toDecimals,
+                      )
+                    : res.rate > 0
+                      ? res.rate
+                      : null;
+                setSpotRate(resolved);
+                setSpotReserves(res.reserves ?? null);
             } catch {
                 if (!cancelled && spotMarketKeyRef.current !== marketKey) {
                     setSpotRate(null);
@@ -595,11 +697,20 @@ const AlpSwap: React.FC = () => {
                     activePair.fromDecimals,
                     activePair.toDecimals,
                 );
-                if (resolvedRate !== null && resolvedRate > 0) {
-                    setSpotRate(resolvedRate);
-                }
-                if (spot.reserves) {
-                    setSpotReserves(spot.reserves);
+                const appliedBook =
+                    lastBookRef.current !== null &&
+                    applyBookToSpot(
+                        lastBookRef.current,
+                        fromTokenId,
+                        toTokenId,
+                    );
+                if (!appliedBook) {
+                    if (resolvedRate !== null && resolvedRate > 0) {
+                        setSpotRate(resolvedRate);
+                    }
+                    if (spot.reserves) {
+                        setSpotReserves(spot.reserves);
+                    }
                 }
 
                 // Fee outs and the buyer receive out must each be ≥ 1 atom.
@@ -712,6 +823,7 @@ const AlpSwap: React.FC = () => {
         },
         [fromTokenId, toTokenId, activePair, makerFeePct, userLocale],
     );
+    runQuoteRef.current = runQuote;
 
     const handleAmountInput = (
         side: 'from' | 'to',
@@ -761,6 +873,7 @@ const AlpSwap: React.FC = () => {
         const normalized = normalizeDecimalInput(formatted, userLocale);
         const numeric = Number(normalized);
         if (!normalized || !Number.isFinite(numeric) || numeric <= 0) {
+            quoteIntentRef.current = null;
             setIsLoadingQuote(false);
             if (side === 'from') {
                 setToAmountStr('');
@@ -784,6 +897,7 @@ const AlpSwap: React.FC = () => {
                 spotReserves,
             );
             if (numeric < minQty) {
+                quoteIntentRef.current = null;
                 const localeMin = formatAmountFromWire(
                     formatSwapQty(minQty, activePair.fromDecimals),
                     userLocale,
@@ -804,6 +918,7 @@ const AlpSwap: React.FC = () => {
                 spotRate,
             );
             if (numeric < minTo) {
+                quoteIntentRef.current = null;
                 const localeMin = formatAmountFromWire(
                     formatSwapQty(minTo, activePair.toDecimals),
                     userLocale,
@@ -827,6 +942,7 @@ const AlpSwap: React.FC = () => {
             setToFieldError('Amount exceeds available liquidity');
         }
 
+        quoteIntentRef.current = { exactIn: side === 'from', qty: numeric };
         setIsLoadingQuote(true);
         debounceRef.current = setTimeout(() => {
             void runQuote(side === 'from', numeric);
@@ -867,6 +983,7 @@ const AlpSwap: React.FC = () => {
         setFromFieldError(
             qty > fromBalance ? 'Insufficient token balance' : null,
         );
+        quoteIntentRef.current = { exactIn: true, qty };
         setIsLoadingQuote(true);
         debounceRef.current = setTimeout(() => {
             void runQuote(true, qty);
@@ -999,17 +1116,31 @@ const AlpSwap: React.FC = () => {
             return;
         }
 
+        isSwappingRef.current = true;
         setIsSwapping(true);
         setQuoteError(null);
         setAlpSwapBuyerToastSuppressed(true);
         try {
+            const book = lastBookRef.current;
+            const directed =
+                book !== null
+                    ? directedSpotFromBook(book, fromTokenId, toTokenId)
+                    : null;
+            const template = await fetchSwapTemplateMatchingReserves(
+                fromTokenId,
+                toTokenId,
+                activeQuote.exactIn
+                    ? { from: activeQuote.qty, feePct: swapMakerFeePct }
+                    : { to: activeQuote.qty, feePct: swapMakerFeePct },
+                directed?.reserves ?? null,
+            );
             const built = buildAlpSwapPostageTx({
                 wallet: ecashWallet,
-                outputs: activeQuote.template.outputs,
+                outputs: template.outputs,
                 receivingTokenId: toTokenId,
                 receivingDecimals: activePair.toDecimals,
                 receivingUtxoQty,
-                slushScriptHex: activeQuote.template.slushScript,
+                slushScriptHex: template.slushScript,
             });
 
             const result = await settleSwap(fromTokenId, toTokenId, {
@@ -1050,6 +1181,7 @@ const AlpSwap: React.FC = () => {
             setQuoteError(message);
             toast.error(message);
         } finally {
+            isSwappingRef.current = false;
             setIsSwapping(false);
         }
     };

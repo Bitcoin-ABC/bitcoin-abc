@@ -42,6 +42,7 @@ import {
     displaySwapFeePct,
     splitExactInTotalAtoms,
     cpExactInOutAtoms,
+    pairReservesMatch,
     minExactOutQtyForFeeOutputs,
     toPerFromRateFromReserveAtoms,
     resolveToPerFromRate,
@@ -705,6 +706,29 @@ describe('alpSwapService helpers', () => {
         expect(split.priceLegAtoms).toBe(1471n);
         expect(cpExactInOutAtoms(1471n, 49930120824n, 33814928n)).toBe(0n);
         expect(cpExactInOutAtoms(1477n, 49930120824n, 33814928n)).toBe(1n);
+    });
+
+    it('pairReservesMatch compares book vs REST atom strings', () => {
+        const book = { [TOKEN_A]: '36907066', [TOKEN_B]: '45875909906' };
+        expect(
+            pairReservesMatch(
+                book,
+                { [TOKEN_A]: '36907066', [TOKEN_B]: '45875909906' },
+                TOKEN_A,
+                TOKEN_B,
+            ),
+        ).toBe(true);
+        expect(
+            pairReservesMatch(
+                book,
+                { [TOKEN_A]: '36907066', [TOKEN_B]: '1' },
+                TOKEN_A,
+                TOKEN_B,
+            ),
+        ).toBe(false);
+        expect(pairReservesMatch(book, undefined, TOKEN_A, TOKEN_B)).toBe(
+            false,
+        );
     });
 
     it('shows realized fee/total when atom rounding blows up the pair feePct', () => {
