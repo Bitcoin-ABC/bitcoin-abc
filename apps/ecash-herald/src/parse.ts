@@ -861,6 +861,15 @@ export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
     // Get the protocolIdentifier, the first push
     const protocolIdentifier = stackArray[0];
 
+    if (protocolIdentifier === undefined) {
+        return {
+            app: 'unknown',
+            msg: 'Invalid protocol identifier',
+            stackArray,
+            tokenId,
+        };
+    }
+
     // Test for memo
     // Memo prefixes are special in that they are two bytes instead of the usual four
     // Also, memo has many prefixes, in that the action is also encoded in these two bytes

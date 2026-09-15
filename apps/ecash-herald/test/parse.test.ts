@@ -446,6 +446,14 @@ describe('parse.js functions', function () {
         assert.strictEqual(stackArray[1], '00');
         assert.strictEqual(rollResult.tokenId, false);
     });
+    it('parseOpReturn returns invalid protocol identifier on bare OP_RETURN', function () {
+        assert.deepEqual(parseOpReturn(''), {
+            app: 'unknown',
+            msg: 'Invalid protocol identifier',
+            stackArray: [],
+            tokenId: false,
+        });
+    });
     it('parseMultipushStack handles DICE and ROLL EMPP pushes', function () {
         // EMPP: OP_RESERVED + DICE push
         assert.deepEqual(
