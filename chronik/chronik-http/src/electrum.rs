@@ -6,8 +6,10 @@
 
 use std::{
     cmp,
+    collections::HashMap,
     net::{IpAddr, SocketAddr, ToSocketAddrs},
     sync::Arc,
+    time::Duration,
 };
 
 use abc_rust_error::Result;
@@ -52,13 +54,35 @@ use rustls::{
 use serde_json::{json, Map, Value};
 use sha2::Digest;
 use thiserror::Error;
-use tokio::sync::Mutex;
+use tokio::sync::{oneshot, Mutex};
 use versions::Versioning;
 
 use crate::{
     server::{ChronikIndexerRef, NodeRef},
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
+
+/// How often the per-connection disconnect watcher polls whether the
+/// client's [`Channel`] is still alive. One watcher runs per connection,
+/// not per subscription, so idle scripthash subscriptions can sleep on
+/// `recv` indefinitely while the client stays connected.
+const DISCONNECT_WATCH_INTERVAL: Duration = Duration::from_secs(1);
+
+/// Key identifying an Electrum client connection (pointer of its
+/// [`Channel`] allocation).
+type ConnectionKey = usize;
+
+/// Cancel senders for subscription tasks belonging to one connection.
+struct ElectrumConnSubs {
+    /// Distinguishes successive connections that reuse the same
+    /// [`ConnectionKey`] after the previous [`Channel`] was freed.
+    generation: u64,
+    /// Per-subscription cancel senders, keyed so unsubscribe can stop an
+    /// idle task without waiting for a member event.
+    cancels: HashMap<message::SubscriptionID, oneshot::Sender<()>>,
+    /// Keep a weak ref so a new connection can detect a stale map entry.
+    channel: std::sync::Weak<Channel>,
+}
 
 /// Minimum protocol version implemented by this server
 pub const ELECTRUM_PROTOCOL_MIN_VERSION: &str = "1.4";
@@ -236,6 +260,8 @@ impl ChronikElectrumServer {
                 indexer: self.indexer.clone(),
                 node: self.node.clone(),
                 max_history: self.max_history,
+                conn_subs: Arc::new(Mutex::new(HashMap::new())),
+                conn_generation: std::sync::atomic::AtomicU64::new(1),
             });
 
         let mempool_endpoint = Arc::new(ChronikElectrumRPCMempoolEndpoint {
@@ -503,6 +529,12 @@ struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
+    /// Per-connection cancel senders used to stop subscription tasks when
+    /// the client disconnects or unsubscribes, even if the subscribed member
+    /// never produces an event.
+    conn_subs: Arc<Mutex<HashMap<ConnectionKey, ElectrumConnSubs>>>,
+    /// Monotonic counter used to tag [`ElectrumConnSubs`] generations.
+    conn_generation: std::sync::atomic::AtomicU64,
 }
 
 struct ChronikElectrumRPCMempoolEndpoint {
@@ -1182,6 +1214,92 @@ fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
 }
 
 impl ChronikElectrumRPCBlockchainEndpoint {
+    /// Register a cancel receiver that completes when this client
+    /// disconnects or unsubscribes. Starts a single watcher task for the
+    /// connection on the first subscription.
+    async fn register_disconnect_cancel(
+        &self,
+        chan: &Arc<Channel>,
+        sub_id: message::SubscriptionID,
+    ) -> oneshot::Receiver<()> {
+        let key = Arc::as_ptr(chan) as ConnectionKey;
+        let (cancel_tx, cancel_rx) = oneshot::channel();
+
+        let mut start_watcher = false;
+        let generation;
+        {
+            let mut conn_subs = self.conn_subs.lock().await;
+            let stale = conn_subs
+                .get(&key)
+                .is_some_and(|entry| entry.channel.upgrade().is_none());
+            if stale {
+                // Previous connection at this address is gone; its watcher
+                // will ignore this map entry via the generation check.
+                conn_subs.remove(&key);
+            }
+            let entry = conn_subs.entry(key).or_insert_with(|| {
+                let generation = self
+                    .conn_generation
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                start_watcher = true;
+                ElectrumConnSubs {
+                    generation,
+                    cancels: HashMap::new(),
+                    channel: Arc::downgrade(chan),
+                }
+            });
+            generation = entry.generation;
+            // Drop senders whose subscription tasks already finished
+            // (notify failure / recv error), so a long-lived client that
+            // churns subscriptions cannot grow this map unboundedly.
+            entry.cancels.retain(|_, tx| !tx.is_closed());
+            // Replacing an existing sub_id drops the prior sender, which
+            // cancels any leftover task for that subscription.
+            entry.cancels.insert(sub_id, cancel_tx);
+        }
+
+        if start_watcher {
+            let weak_chan = Arc::downgrade(chan);
+            let conn_subs = Arc::clone(&self.conn_subs);
+            tokio::spawn(async move {
+                loop {
+                    tokio::time::sleep(DISCONNECT_WATCH_INTERVAL).await;
+                    if weak_chan.upgrade().is_none() {
+                        break;
+                    }
+                }
+                let mut conn_subs = conn_subs.lock().await;
+                if let Some(state) = conn_subs.get(&key) {
+                    if state.generation != generation {
+                        return;
+                    }
+                }
+                if let Some(state) = conn_subs.remove(&key) {
+                    for (_, cancel) in state.cancels {
+                        let _ = cancel.send(());
+                    }
+                }
+            });
+        }
+
+        cancel_rx
+    }
+
+    /// Stop the subscription task for `sub_id` on this connection, if any.
+    async fn cancel_subscription(
+        &self,
+        chan: &Arc<Channel>,
+        sub_id: message::SubscriptionID,
+    ) {
+        let key = Arc::as_ptr(chan) as ConnectionKey;
+        let mut conn_subs = self.conn_subs.lock().await;
+        if let Some(entry) = conn_subs.get_mut(&key) {
+            if let Some(cancel) = entry.cancels.remove(&sub_id) {
+                let _ = cancel.send(());
+            }
+        }
+    }
+
     async fn scripthash_or_address_suscribe(
         &self,
         chan: Arc<Channel>,
@@ -1210,15 +1328,23 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let sub_id = hash_to_sub_id(&script_hash.into());
         if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
+            let mut cancel_rx =
+                self.register_disconnect_cancel(&chan, sub_id).await;
             tokio::spawn(async move {
                 log_chronik!("Subscription to electrum scripthash\n");
 
                 let mut last_status = None;
 
                 loop {
-                    let Ok(tx_msg) = recv.recv().await else {
-                        // Error, disconnect
-                        break;
+                    let tx_msg = tokio::select! {
+                        tx_msg = recv.recv() => {
+                            let Ok(tx_msg) = tx_msg else {
+                                // Error, disconnect
+                                break;
+                            };
+                            tx_msg
+                        }
+                        _ = &mut cancel_rx => break,
                     };
 
                     // We want all the events except finalization (this might
@@ -1255,6 +1381,15 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                         }
                     }
                 }
+
+                std::mem::drop(recv);
+                let indexer = indexer_clone.read().await;
+                indexer
+                    .subs()
+                    .write()
+                    .await
+                    .subs_script_mut()
+                    .unsubscribe_from_hash_member(&script_hash.to_be_bytes());
 
                 log_chronik!("Unsubscription from electrum scripthash\n");
             });
@@ -1309,13 +1444,20 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let node_clone = self.node.clone();
 
         if let Ok(sub) = chan.new_subscription(&method, Some(0)).await {
+            let mut cancel_rx = self.register_disconnect_cancel(&chan, 0).await;
             tokio::spawn(async move {
                 log_chronik!("Subscription to electrum headers\n");
 
                 loop {
-                    let Ok(block_msg) = block_subs.recv().await else {
-                        // Error, disconnect
-                        break;
+                    let block_msg = tokio::select! {
+                        block_msg = block_subs.recv() => {
+                            let Ok(block_msg) = block_msg else {
+                                // Error, disconnect
+                                break;
+                            };
+                            block_msg
+                        }
+                        _ = &mut cancel_rx => break,
                     };
 
                     if !matches!(
@@ -1397,6 +1539,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     ) -> Result<Value, RPCError> {
         let sub_id: message::SubscriptionID = 0;
         let success = chan.remove_subscription(&sub_id).await.is_ok();
+        if success {
+            self.cancel_subscription(&chan, sub_id).await;
+        }
         Ok(json!(success))
     }
 
@@ -1470,13 +1615,21 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let sub_id = hash_to_sub_id(txid.as_bytes());
         if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
+            let mut cancel_rx =
+                self.register_disconnect_cancel(&chan, sub_id).await;
             tokio::spawn(async move {
                 log_chronik!("Subscription to electrum txid {txid_hex}\n");
 
                 loop {
-                    let Ok(tx_msg) = recv.recv().await else {
-                        // Error, disconnect
-                        break;
+                    let tx_msg = tokio::select! {
+                        tx_msg = recv.recv() => {
+                            let Ok(tx_msg) = tx_msg else {
+                                // Error, disconnect
+                                break;
+                            };
+                            tx_msg
+                        }
+                        _ = &mut cancel_rx => break,
                     };
 
                     // We want all the events except finalization (this might
@@ -1504,12 +1657,20 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     }
                 }
 
+                std::mem::drop(recv);
+                let indexer = indexer_clone.read().await;
+                indexer
+                    .subs()
+                    .write()
+                    .await
+                    .subs_txid_mut()
+                    .unsubscribe_from_member(&txid);
+
                 log_chronik!("Unsubscription from electrum txid {txid_hex}\n");
             });
         }
 
         let indexer = self.indexer.read().await;
-
         let txs = indexer.txs(&self.node);
         let height = txs.tx_by_id(txid).ok().map(|tx| {
             if let Some(block) = tx.block {
@@ -1542,6 +1703,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let sub_id = hash_to_sub_id(&script_hash.into());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
+        if success {
+            self.cancel_subscription(&chan, sub_id).await;
+        }
         Ok(serde_json::json!(success))
     }
 
@@ -1563,6 +1727,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let sub_id = hash_to_sub_id(&script_hash.into());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
+        if success {
+            self.cancel_subscription(&chan, sub_id).await;
+        }
         Ok(serde_json::json!(success))
     }
 
@@ -1581,6 +1748,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
 
         let sub_id = hash_to_sub_id(txid.as_bytes());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
+        if success {
+            self.cancel_subscription(&chan, sub_id).await;
+        }
         Ok(serde_json::json!(success))
     }
 }

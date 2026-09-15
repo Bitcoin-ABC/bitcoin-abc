@@ -113,6 +113,9 @@ class ChronikElectrumClient:
         """
         return MethodNameProxy(self, item)
 
+    def close(self):
+        self.sock.close()
+
     def _recv(self):
         # We need the initial check because self.data might already contain
         # the messages and we don't want to block on sock.recv() in this case

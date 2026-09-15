@@ -109,6 +109,16 @@ impl<G: Group> SubsGroup<G> {
         }
     }
 
+    /// Cleanly unsubscribe from a hash member. This will try to deallocate
+    /// the memory used by a subscriber.
+    pub fn unsubscribe_from_hash_member(&mut self, hash_member: &[u8; 32]) {
+        if let Some(sender) = self.subs.get(hash_member.as_ref()) {
+            if sender.receiver_count() == 0 {
+                self.subs.remove(hash_member.as_ref());
+            }
+        }
+    }
+
     /// Send out updates to subscribers for this tx and msg_type.
     pub fn handle_tx_event(
         &mut self,

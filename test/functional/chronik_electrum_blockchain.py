@@ -91,6 +91,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_utxo_get_info()
         self.test_mempool_get_fee_histogram()
         self.test_block_header()
+        self.test_subscription_cleanup_on_disconnect()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -2297,6 +2298,67 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 [1, 300],  # 3 txs in the range [0..1] sat/vB
             ],
         )
+
+    def test_subscription_cleanup_on_disconnect(self):
+        self.log.info("Test the subscriptions are released when a client disconnects")
+
+        scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+        # No such tx will ever exist, so the subscription is never woken up by
+        # a matching event: only the disconnection can release it
+        dangling_txid = "ab" * 32
+
+        client = self.node.get_chronik_electrum_client()
+        client.blockchain.scripthash.subscribe(scripthash)
+        client.blockchain.headers.subscribe()
+        client.blockchain.transaction.subscribe(dangling_txid)
+
+        # Another client subscribes to the same scripthash and remains connected
+        self.client.blockchain.scripthash.subscribe(scripthash)
+
+        # Closing the connection without unsubscribing releases all the
+        # subscriptions of that client
+        with self.node.assert_debug_log(
+            [
+                "Unsubscription from electrum scripthash",
+                "Unsubscription from electrum headers",
+                # The txid is logged as a json value, hence the quotes
+                f'Unsubscription from electrum txid "{dangling_txid}"',
+            ],
+            # The disconnection check happens once per second, so the default 2s
+            # timeout might fall short
+            timeout=10,
+        ):
+            client.close()
+
+        # The remaining client is unaffected and still gets notified
+        self.wallet.send_self_transfer(from_node=self.node)
+        ret_scripthash, last_status = self.client.wait_for_notification(
+            "blockchain.scripthash.subscribe"
+        )
+        assert_equal(ret_scripthash, scripthash)
+
+        # The disconnected client can reconnect and subscribe again, and gets
+        # the same status as the client that never disconnected
+        client = self.node.get_chronik_electrum_client()
+        assert_equal(
+            client.blockchain.scripthash.subscribe(scripthash).result, last_status
+        )
+
+        # Both clients get notified with the same status
+        self.wallet.send_self_transfer(from_node=self.node)
+        notifications = [
+            c.wait_for_notification("blockchain.scripthash.subscribe")
+            for c in (self.client, client)
+        ]
+        for ret_scripthash, status in notifications:
+            assert_equal(ret_scripthash, scripthash)
+            assert status != last_status
+        assert_equal(notifications[0][1], notifications[1][1])
+
+        assert_equal(
+            self.client.blockchain.scripthash.unsubscribe(scripthash).result, True
+        )
+        assert_equal(client.blockchain.scripthash.unsubscribe(scripthash).result, True)
 
 
 if __name__ == "__main__":
